@@ -1,6 +1,7 @@
 name: javadocs
 
 on:
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron: '40 21 * * 0'
@@ -19,6 +20,7 @@ jobs:
   javadocs:
     name: build-javadocs / ${{ matrix.projects.name }} / ${{ matrix.scala-version }}
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       matrix:

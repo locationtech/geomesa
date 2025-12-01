@@ -15,6 +15,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.ArrowScan.DeltaReducer
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
@@ -23,7 +24,8 @@ import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptor
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.index.view.MergedQueryRunner.Queryable
+import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
+import org.locationtech.geomesa.index.view.MergedQueryRunner.{MergedQueryPlan, Queryable}
 import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -59,19 +61,20 @@ class MergedQueryRunner(
     val plan = if (hints.isArrowQuery) {
       val scan = () => scanner(sft, query, org.locationtech.geomesa.arrow.ArrowEncodedSft, new ArrowProcessor(_, hints))
       val reducer = new DeltaReducer(hints.getTransformSchema.getOrElse(sft), hints, sorted = false)
-      LocalQueryPlan(scan, toFeatures, Some(reducer), None, None)
+      MergedQueryPlan(scan, toFeatures, Some(reducer), hints.getMaxFeatures)
     } else if (hints.isBinQuery) {
       if (query.getSortBy != null && !query.getSortBy.isEmpty) {
         logger.warn("Ignoring sort for BIN query")
       }
       val scan = () => scanner(sft, query, BinaryOutputEncoder.BinEncodedSft, new BinProcessor(_, hints))
-      LocalQueryPlan(scan, toFeatures, None, None, None)
+      MergedQueryPlan(scan, toFeatures, None, hints.getMaxFeatures)
     } else if (hints.isDensityQuery) {
       val scan = () => scanner(sft, query, DensityScan.DensitySft, new DensityProcessor(_, hints))
-      LocalQueryPlan(scan, toFeatures, None, None, None)
+      MergedQueryPlan(scan, toFeatures, None, hints.getMaxFeatures)
     } else if (hints.isStatsQuery) {
       val scan = () => scanner(sft, query, StatsScan.StatsSft, new StatsProcessor(_, hints))
-      LocalQueryPlan(scan, toFeatures, Some(StatsScan.StatsReducer(sft, hints)), None, None)
+      val reducer = StatsScan.StatsReducer(sft, hints)
+      MergedQueryPlan(scan, toFeatures, Some(reducer), hints.getMaxFeatures)
     } else {
       // we assume the delegate stores can handle normal transforms/etc appropriately
       val scanner = () => {
@@ -88,12 +91,9 @@ class MergedQueryRunner(
           // the delegate stores should sort their results, so we can sort merge them
           case Some(sort) => new SortedMergeIterator(deduped)(SimpleFeatureOrdering(hints.getReturnSft, sort))
         }
-        hints.getMaxFeatures match {
-          case None => sorted
-          case Some(max) => sorted.take(max)
-        }
+        sorted
       }
-      LocalQueryPlan(scanner, toFeatures, None, None, None)
+      MergedQueryPlan(scanner, toFeatures, None, hints.getMaxFeatures)
     }
     Seq(plan)
   }
@@ -145,5 +145,22 @@ object MergedQueryRunner {
   case class DataStoreQueryable(ds: DataStore) extends Queryable {
     override def getFeatureReader(q: Query, t: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] =
       ds.getFeatureReader(q, t)
+  }
+
+  case class MergedQueryPlan(
+      scanner: () => CloseableIterator[SimpleFeature],
+      resultsToFeatures: ResultsToFeatures[SimpleFeature],
+      reducer: Option[FeatureReducer],
+      maxFeatures: Option[Int],
+    ) extends QueryPlan {
+    override type Results = SimpleFeature
+    override def sort: Option[Seq[(String, Boolean)]] = None
+    override def projection: Option[QueryReferenceSystems] = None
+    override def scan(): CloseableIterator[SimpleFeature] = scanner()
+    override def explain(explainer: Explainer): Unit = {
+      explainer.pushLevel("MergedQueryPlan:")
+      explainer(s"Reduce: ${reducer.getOrElse("none")}")
+      explainer.popLevel()
+    }
   }
 }

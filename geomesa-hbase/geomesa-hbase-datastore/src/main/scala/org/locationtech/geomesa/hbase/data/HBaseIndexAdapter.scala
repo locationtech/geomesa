@@ -21,27 +21,18 @@ import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
-import org.locationtech.geomesa.index.api.IndexAdapter.RequiredVisibilityWriter
-import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
-import org.locationtech.geomesa.utils.io.IsFlushableImplicits
-
-import java.nio.charset.StandardCharsets
-import java.util.regex.Pattern
-import java.util.{Collections, Locale, UUID}
-import scala.util.Try
-// noinspection ScalaDeprecation
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, CoprocessorUrl, TableAvailabilityTimeout}
 import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
 import org.locationtech.geomesa.hbase.aggregators.HBaseBinAggregator.HBaseBinResultsToFeatures
 import org.locationtech.geomesa.hbase.aggregators.HBaseDensityAggregator.HBaseDensityResultsToFeatures
 import org.locationtech.geomesa.hbase.aggregators.HBaseStatsAggregator.HBaseStatsResultsToFeatures
 import org.locationtech.geomesa.hbase.aggregators.{HBaseArrowAggregator, HBaseBinAggregator, HBaseDensityAggregator, HBaseStatsAggregator}
-import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, EmptyPlan, ScanPlan, TableScan}
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan._
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.rpc.filter._
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
-import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
+import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, IndexResultsToFeatures}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
@@ -53,13 +44,18 @@ import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
 import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
 import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalTransformReducer}
+import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, IsFlushableImplicits, WithClose}
 import org.locationtech.geomesa.utils.text.StringSerialization
 
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
-import scala.util.Random
+import java.util.regex.Pattern
+import java.util.{Collections, Locale, UUID}
+import scala.util.{Random, Try}
 import scala.util.control.NonFatal
 
 class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore] with StrictLogging {
@@ -225,14 +221,12 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       // note: we assume visibility filtering is still done server-side as it's part of core hbase
       // note: we use the full filter here, since we can't use the z3 server-side filter
       // for some attribute queries we wouldn't need the full filter...
-      val reducer = Some(new LocalTransformReducer(schema, hints))
-      empty(reducer).getOrElse {
+      val processor = LocalProcessor(schema, strategy.filter.filter, hints, None)
+      empty(processor.reducer).getOrElse {
         val scans = configureScans(tables, ranges, small, colFamily, Seq.empty, coprocessor = false)
-        val resultsToFeatures = new HBaseResultsToFeatures(index, schema)
-        val sort = hints.getSortFields
-        val max = hints.getMaxFeatures
+        val resultsToFeatures = new IdentityResultsToFeatures(schema)
         val project = hints.getProjection
-        ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, strategy.filter.filter, transform, reducer, sort, max, project)
+        LocalProcessorScanPlan(ds, strategy, ranges, scans, processor, resultsToFeatures, project)
       }
     } else {
       // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
@@ -290,7 +284,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               // since the density sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, None, localReducer, None, max, projection)
+            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
           }
         }
       } else if (hints.isArrowQuery) {
@@ -307,7 +301,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               // since the arrow sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, None, localReducer, hints.getSortFields, max, projection)
+            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, hints.getSortFields, max, projection)
           }
         }
       } else if (hints.isStatsQuery) {
@@ -323,7 +317,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               // since the stats sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, None, localReducer, None, max, projection)
+            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
           }
         }
       } else if (hints.isBinQuery) {
@@ -338,12 +332,12 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               // since the bin sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, None, localReducer, hints.getSortFields, max, projection)
+            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, hints.getSortFields, max, projection)
           }
         }
       } else {
         empty(None).getOrElse {
-          ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, None, None, hints.getSortFields, max, projection)
+          ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, hints.getSortFields, max, projection)
         }
       }
     }

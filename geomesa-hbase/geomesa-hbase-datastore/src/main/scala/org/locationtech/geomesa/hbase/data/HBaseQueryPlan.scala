@@ -13,17 +13,20 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.util.Bytes
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
+import org.locationtech.geomesa.hbase.data.HBaseIndexAdapter.HBaseResultsToFeatures
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{TableScan, filterToString, rangeToString, scanToString}
 import org.locationtech.geomesa.hbase.utils.{CoprocessorBatchScan, HBaseBatchScan}
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.QueryStrategy
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 sealed trait HBaseQueryPlan extends QueryStrategyPlan {
@@ -108,8 +111,6 @@ object HBaseQueryPlan {
     override val ranges: Seq[RowRange] = Seq.empty
     override val scans: Seq[TableScan] = Seq.empty
     override val resultsToFeatures: ResultsToFeatures[Result] = ResultsToFeatures.empty
-    override val localFilter: Option[Filter] = None
-    override val localTransform: Option[(String, SimpleFeatureType)] = None
     override val sort: Option[Seq[(String, Boolean)]] = None
     override val maxFeatures: Option[Int] = None
     override val projection: Option[QueryReferenceSystems] = None
@@ -128,8 +129,6 @@ object HBaseQueryPlan {
       ranges: Seq[RowRange],
       scans: Seq[TableScan],
       resultsToFeatures: ResultsToFeatures[Result],
-      localFilter: Option[Filter],
-      localTransform: Option[(String, SimpleFeatureType)],
       reducer: Option[FeatureReducer],
       sort: Option[Seq[(String, Boolean)]],
       maxFeatures: Option[Int],
@@ -146,6 +145,44 @@ object HBaseQueryPlan {
         threads: Int,
         timeout: Option[Timeout]): CloseableIterator[Result] = {
       HBaseBatchScan(this, connection, scan.table, scan.scans, threads, timeout)
+    }
+  }
+
+  case class LocalProcessorScanPlan(
+      ds: HBaseDataStore,
+      strategy: QueryStrategy,
+      ranges: Seq[RowRange],
+      scans: Seq[TableScan],
+      processor: LocalProcessor,
+      resultsToFeatures: ResultsToFeatures[SimpleFeature],
+      projection: Option[QueryReferenceSystems]
+    ) extends HBaseQueryPlan {
+
+    override type Results = SimpleFeature
+
+    override def reducer: Option[FeatureReducer] = processor.reducer
+    // handled by local processor
+    override def sort: Option[Seq[(String, Boolean)]] = None
+    override def maxFeatures: Option[Int] = None
+
+    override protected def threads: Int = ds.config.queries.threads
+
+    override protected def singleTableScan(
+      scan: TableScan,
+      connection: Connection,
+      threads: Int,
+      timeout: Option[Timeout]): CloseableIterator[SimpleFeature] = {
+      val toFeatures = new HBaseResultsToFeatures(strategy.index, processor.sft)
+      processor(HBaseBatchScan(this, connection, scan.table, scan.scans, threads, timeout).map(toFeatures.apply))
+    }
+
+    override protected def moreExplaining(explainer: Explainer): Unit = {
+      import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+      // filter, transforms, sort, max features are all captured in the local processor so pull them out of the hints instead of the plan
+      explainer(s"ECQL: ${processor.filter.fold("none")(FilterHelper.toString)}")
+      explainer(s"Transform: ${strategy.hints.getTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
+      explainer(s"Sort: ${strategy.hints.getSortFields.fold("none")(_.mkString(", "))}")
+      explainer(s"Max Features: ${strategy.hints.getMaxFeatures.getOrElse("none")}")
     }
   }
 
@@ -167,8 +204,6 @@ object HBaseQueryPlan {
 
     // client side processing is not relevant for coprocessors
     override def sort: Option[Seq[(String, Boolean)]] = None
-    override def localFilter: Option[Filter] = None
-    override def localTransform: Option[(String, SimpleFeatureType)] = None
 
     override protected def threads: Int = ds.config.coprocessors.threads
 

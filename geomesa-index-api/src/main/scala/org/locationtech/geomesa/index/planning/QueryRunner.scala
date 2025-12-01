@@ -17,7 +17,6 @@ import org.geotools.api.filter.Filter
 import org.geotools.api.filter.sort.SortOrder
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.api.QueryPlan
@@ -81,7 +80,6 @@ trait QueryRunner {
 
     // ensure we're not making incorrect assumptions by only looking at the head plan
     sanityCheck(plans, _.sort, "Sort")
-    sanityCheck(plans, _.localTransform, "Local transform")
     sanityCheck(plans, _.maxFeatures, "Max features")
     sanityCheck(plans, _.projection, "Projection")
     sanityCheck(plans, _.reducer, "Reduce")
@@ -101,15 +99,10 @@ trait QueryRunner {
           _.take(max)
         }
       }
-      val transform: Option[QueryStep] = plan.localTransform.map { case (tdefs, tsft) =>
-        val transform = TransformSimpleFeature(sft, tsft, tdefs)
-        _.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
-      }
       val reproject: Option[QueryStep] = plan.projection.map(Reprojection(hints.getReturnSft, _)).map(r => _.map(r.apply))
       val reduce: Option[QueryStep] = plan.reducer.filterNot(_ => hints.isSkipReduce).map(r => r.apply)
 
-      // note: localFilter is applied per-plan in the QueryResult since it may vary between plans
-      sort ++ limit ++ transform ++ reproject ++ reduce
+      sort ++ limit ++ reproject ++ reduce
     }
 
     val timer: FinalQueryStep = new TimedIterator(_, Timers.scanning(query.getTypeName).record(_, TimeUnit.NANOSECONDS))
@@ -404,8 +397,6 @@ object QueryRunner {
       querySteps: Seq[QueryStep],
       timer: FinalQueryStep) {
 
-    import QueryHints.RichHints
-
     /**
      * Executes the query
      *
@@ -421,24 +412,20 @@ object QueryRunner {
      * @return
      */
     def iterator(timerCallback: Long => Unit, counterCallback: Long => Unit): CloseableIterator[SimpleFeature] = {
-      val counter: SimpleFeature => Int = {
+      val counter: SimpleFeature => Int =
         if (schema == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
           // TODO handle arrow queries
           StandardCounter
         } else if (schema == BinaryOutputEncoder.BinEncodedSft) {
-          BinCounter(hints.getBinLabelField.isDefined)
+          BinAggregatingScan.BinCounter(hints)
         } else {
           StandardCounter
         }
-      }
       ExceptionalIterator(new CountingIterator(runQuery().addCallback(timerCallback), counter, counterCallback))
     }
 
     private def runQuery(): TimedIterator[SimpleFeature] = {
-      val iter = CloseableIterator(plans.iterator).flatMap { p =>
-        val features = p.scan().map(p.resultsToFeatures.apply)
-        p.localFilter.fold(features)(f => features.filter(f.evaluate))
-      }
+      val iter = CloseableIterator(plans.iterator).flatMap(p => p.scan().map(p.resultsToFeatures.apply))
       timer(querySteps.foldLeft(iter) { case (i, step) => step(i) })
     }
 
@@ -448,20 +435,5 @@ object QueryRunner {
 
   private object StandardCounter extends (SimpleFeature => Int) {
     override def apply(f: SimpleFeature): Int = 1
-  }
-
-  // bin queries pack multiple records into each feature
-  // to count the records, we have to count the total bytes coming back, instead of the number of features
-  private object BinCounter {
-
-    def apply(labels: Boolean): SimpleFeature => Int = if (labels) { BinWithLabelCounter } else { BinNoLabelCounter }
-
-    private object BinNoLabelCounter extends (SimpleFeature => Int) {
-      override def apply(f: SimpleFeature): Int = f.getAttribute(0).asInstanceOf[Array[Byte]].length / 16
-    }
-
-    private object BinWithLabelCounter extends (SimpleFeature => Int) {
-      override def apply(f: SimpleFeature): Int = f.getAttribute(0).asInstanceOf[Array[Byte]].length / 24
-    }
   }
 }

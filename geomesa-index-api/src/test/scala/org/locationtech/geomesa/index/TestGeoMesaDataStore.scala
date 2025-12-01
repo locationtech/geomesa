@@ -12,7 +12,7 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption, SimpleFeatureSerializer, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
@@ -135,8 +135,8 @@ object TestGeoMesaDataStore {
       sft: SimpleFeatureType,
       serializer: SimpleFeatureSerializer,
       ranges: Seq[TestRange],
-      localFilter: Option[Filter],
-      localTransform: Option[(String, SimpleFeatureType)],
+      ecql: Option[Filter],
+      transform: Option[(String, SimpleFeatureType)],
       reducer: Option[FeatureReducer],
       sort: Option[Seq[(String, Boolean)]],
       maxFeatures: Option[Int],
@@ -165,7 +165,12 @@ object TestGeoMesaDataStore {
           }
         }
       }
-      matches.iterator
+      val filtered = ecql.fold(matches)(f => matches.filter(f.evaluate))
+      val transformed = transform.fold(filtered)  {  case (tdefs, tsft) =>
+        val transform = TransformSimpleFeature(sft, tsft, tdefs)
+        filtered.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
+      }
+      transformed.iterator
     }
 
     override def explain(explainer: Explainer): Unit = {
@@ -173,7 +178,7 @@ object TestGeoMesaDataStore {
       explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
         s"[${r.start.map(ByteArrays.toHex).mkString(";")}::" +
             s"${r.end.map(ByteArrays.toHex).mkString(";")})").mkString(",")}")
-      explainer(s"ecql: ${localFilter.fold("INCLUDE")(FilterHelper.toString)}")
+      explainer(s"ecql: ${ecql.fold("INCLUDE")(FilterHelper.toString)}")
     }
   }
 

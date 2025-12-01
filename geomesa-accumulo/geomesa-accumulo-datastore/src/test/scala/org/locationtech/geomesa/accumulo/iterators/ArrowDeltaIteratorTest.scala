@@ -42,7 +42,9 @@ class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyL
     ScalaSimpleFeature.create(sft, s"$i", name, team, age, props, s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
   }
 
-  addFeatures(features)
+  step {
+    addFeatures(features)
+  }
 
   "Arrow delta scans" should {
     "return projections" in {

@@ -41,9 +41,6 @@ sealed trait AccumuloQueryPlan extends QueryStrategyPlan {
 
   def join: Option[(AccumuloQueryPlan.JoinFunction, AccumuloQueryPlan)] = None
 
-  override def localFilter: Option[Filter] = None
-  override def localTransform: Option[(String, SimpleFeatureType)] = None
-
   override def explain(explainer: Explainer): Unit = AccumuloQueryPlan.explain(this, explainer)
 }
 

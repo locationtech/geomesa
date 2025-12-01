@@ -15,15 +15,15 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
+import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff.AgeOffWriter
-import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.{RedisIndexWriter, RedisResultsToFeatures}
+import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.RedisIndexWriter
 import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLexPlan}
-import org.locationtech.geomesa.security.filter.{GetVisibilitiesFilterFunction, IsVisibleFilterFunction}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.util.Pool
@@ -39,10 +39,7 @@ import scala.util.control.NonFatal
   */
 class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore] with StrictLogging {
 
-  import org.locationtech.geomesa.filter.ff
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-  import scala.collection.JavaConverters._
 
   // each 'table' is a sorted set - they are created automatically when you insert values
   override def createTable(
@@ -65,27 +62,19 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
   override def createQueryPlan(strategy: QueryStrategy): RedisQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val hints = strategy.hints
-    val reducer = Some(new LocalTransformReducer(hints.getTransformSchema.getOrElse(strategy.index.sft), hints))
+    val processor = LocalProcessor(strategy.index.sft, strategy.ecql, strategy.hints, Option(ds.config.authProvider))
 
-    if (strategy.ranges.isEmpty) { EmptyPlan(strategy, reducer) } else {
+    if (strategy.ranges.isEmpty) { EmptyPlan(strategy, processor.reducer) } else {
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ranges = if (strategy.index.isInstanceOf[IdIndex]) {
         strategy.ranges.map(RedisIndexAdapter.toRedisIdRange)
       } else {
         strategy.ranges.map(RedisIndexAdapter.toRedisRange)
       }
-      val results = new RedisResultsToFeatures(strategy.index, strategy.index.sft)
-      val ecql = {
-        val visible = IsVisibleFilterFunction.visible(ds.config.authProvider.getAuthorizations.asScala.toSeq)
-        Some(strategy.ecql.fold[Filter](visible)(f => ff.and(f, visible)))
-      }
-      val transform = hints.getTransform
-      val sort = hints.getSortFields
-      val max = hints.getMaxFeatures
-      val project = hints.getProjection
+      val results = new IdentityResultsToFeatures(strategy.index.sft)
+      val project = strategy.hints.getProjection
 
-      ZLexPlan(ds, strategy, tables, ranges, ds.config.pipeline, results, ecql, transform, reducer, sort, max, project)
+      ZLexPlan(ds, strategy, tables, ranges, ds.config.pipeline, processor, results, project)
     }
   }
 

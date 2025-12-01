@@ -24,10 +24,10 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.ArrowScan.DeltaReducer
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalQueryPlan
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalQueryPlan}
 import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
-import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler}
+import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler, SortingSimpleFeatureIterator}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, VisibilityUtils}
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteStreamCallback
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -50,7 +50,6 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
     extends QueryRunner {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   /**
     * Return features for the given schema and filter. Does not need to account for visibility
@@ -62,42 +61,13 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
   protected def features(sft: SimpleFeatureType, filter: Option[Filter]): Iterator[SimpleFeature]
 
   override protected def getQueryPlans(sft: SimpleFeatureType, query: Query, explain: Explainer): Seq[QueryPlan] = {
-    val hints = query.getHints
-    LocalQueryRunner.setLocalSorting(hints, sft.getDtgField)
-
+    val processor = LocalProcessor(sft, None, query.getHints, authProvider)
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
-
-    val filterFunction: SimpleFeature => Boolean = {
-      val visible = VisibilityUtils.visible(authProvider)
-      val sampler = hints.getSampling.flatMap { case (percent, field) =>
-        FeatureSampler.sample(percent, field.map(sft.indexOf).filter(_ != -1))
-      }
-      sampler match {
-        case None => visible
-        case Some(s) => f => visible(f) && s(f) // note: make sure visibility is checked first so sampling is correct
-      }
-    }
-
-    val (processor, reducer) = LocalQueryRunner.plan(sft, hints)
-
-    // handled max features here before any encoding complicates things
-    val maxFeatures = hints.getMaxFeatures
-    val scanner = () => {
-      val filtered = features(sft, filter).filter(filterFunction.apply)
-      val limited = maxFeatures.fold(filtered)(m => filtered.take(m))
-      val transformed = hints.getTransform.fold(limited) {  case (tdefs, tsft) =>
-        // note: we do the transform here and not in the query plan, as the processor step expects already transformed features
-        val transform = TransformSimpleFeature(sft, tsft, tdefs)
-        limited.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
-      }
-      processor(transformed)
-    }
+    val scanner = () => processor(features(sft, filter))
     val toFeatures = new IdentityResultsToFeatures(sft)
+    val projection = query.getHints.getProjection
 
-    val projection = hints.getProjection
-    val sort = hints.getSortFields
-
-    Seq(LocalQueryPlan(scanner, toFeatures, reducer, sort, projection))
+    Seq(LocalQueryPlan(scanner, toFeatures, processor.reducer, projection, query.getHints))
   }
 }
 
@@ -114,26 +84,28 @@ object LocalQueryRunner extends LazyLogging {
       scanner: () => CloseableIterator[SimpleFeature],
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
       reducer: Option[FeatureReducer],
-      sort: Option[Seq[(String, Boolean)]],
       projection: Option[QueryReferenceSystems],
+      hints: Hints, // note: only used for explain logging
     ) extends QueryPlan {
     override type Results = SimpleFeature
-    override def localFilter: Option[Filter] = None
-    override def localTransform: Option[(String, SimpleFeatureType)] = None
+    // note: sort and maxFeatures are handled in the scanner()
+    override def sort: Option[Seq[(String, Boolean)]] = None
     override def maxFeatures: Option[Int] = None
     override def scan(): CloseableIterator[SimpleFeature] = scanner()
     override def explain(explainer: Explainer): Unit = {
-      explainer.pushLevel("LocalQuery:")
-      explainer(s"Transform: ${localTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
-      explainer(s"Sort: ${sort.fold("none")(_.mkString(", "))}")
-      explainer(s"Max Features: ${maxFeatures.getOrElse("none")}")
+      explainer.pushLevel("LocalQueryPlan:")
+      explainer(s"Transform: ${hints.getTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
+      // sort and max features are captured in the scanner so pull them out of the hints instead of the plan
+      explainer(s"Sort: ${hints.getSortFields.fold("none")(_.mkString(", "))}")
+      explainer(s"Max Features: ${hints.getMaxFeatures.getOrElse("none")}")
       explainer(s"Reduce: ${reducer.getOrElse("none")}")
       explainer.popLevel()
     }
   }
 
   /**
-   * Reducer for local transforms. Handles sampling + analytic queries (BIN, arrow, etc).
+   * Reducer for local transforms. Handles sampling + analytic queries (BIN, arrow, etc). Expects that filtering
+   * and transforming have already been applied.
    *
    * Note: creating this transformer will automatically move distributed sort hints into regular sort hints,
    * to ensure that features are sorted *before* being passed to this reducer. Ensure that sort hints
@@ -190,6 +162,56 @@ object LocalQueryRunner extends LazyLogging {
     override def hashCode(): Int = {
       val state = Seq(sft, hints)
       state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+    }
+  }
+
+  /**
+   * Local processor, for datastores that don't support remote filtering/transforms. Handles filtering, transforms,
+   * sorting, max features, and analytic processing (may be partially encapsulated in the reducer).
+   *
+   * Note: creating this processor will automatically move distributed sort hints into regular sort hints,
+   * to ensure that features are sorted *before* being passed to any reducer. Ensure that sort hints
+   * are evaluated *after* creating this processor.
+   *
+   * @param sft feature type
+   * @param filter ecql filter
+   * @param hints query hints
+   * @param authProvider auth provider
+   */
+  case class LocalProcessor(sft: SimpleFeatureType, filter: Option[Filter], hints: Hints, authProvider: Option[AuthorizationsProvider])
+      extends LocalScanProcessor {
+
+    setLocalSorting(hints, sft.getDtgField)
+
+    private val filterFunction: SimpleFeature => Boolean = {
+      val visible = VisibilityUtils.visible(authProvider)
+      val sampler = hints.getSampling.flatMap { case (percent, field) =>
+        FeatureSampler.sample(percent, field.map(sft.indexOf).filter(_ != -1))
+      }
+      // note: make sure sampling is checked after other filtering so it's correct
+      (filter, sampler) match {
+        case (None, None) => visible
+        case (None, Some(sample)) => f => visible(f) && sample(f)
+        case (Some(cql), None) => f => visible(f) && cql.evaluate(f)
+        case (Some(cql), Some(sample)) => f => visible(f) && cql.evaluate(f) && sample(f)
+      }
+    }
+
+    private val (processor, _reducer) = plan(sft, hints)
+
+    val reducer: Option[FeatureReducer] = _reducer
+
+    override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
+      val filtered = features.filter(filterFunction.apply)
+      val transformed = hints.getTransform.fold(filtered) {  case (tdefs, tsft) =>
+        // note: we do the transform here and not in the query plan, as the processor step expects already transformed features
+        val transform = TransformSimpleFeature(sft, tsft, tdefs)
+        filtered.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
+      }
+      // handle sorting + max features here before any encoding complicates things
+      val sorted = hints.getSortFields.fold(transformed)(s => new SortingSimpleFeatureIterator(transformed, s))
+      val limited = hints.getMaxFeatures.fold(sorted)(m => sorted.take(m))
+      processor(limited)
     }
   }
 

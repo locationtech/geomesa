@@ -9,27 +9,31 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import com.datastax.driver.core.{Row, Statement}
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
+import com.datastax.driver.core.Statement
+import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.CassandraResultsToFeatures
 import org.locationtech.geomesa.cassandra.utils.CassandraBatchScan
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.QueryStrategy
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 sealed trait CassandraQueryPlan extends QueryStrategyPlan {
 
-  override type Results = Row
+  override type Results = SimpleFeature
 
   def tables: Seq[String]
   def ranges: Seq[Statement]
   def numThreads: Int
 
   override def explain(explainer: Explainer): Unit = CassandraQueryPlan.explain(this, explainer)
+
+  protected def moreExplaining(explainer: Explainer): Unit = {}
 }
 
 object CassandraQueryPlan {
@@ -37,7 +41,7 @@ object CassandraQueryPlan {
     explainer.pushLevel(s"Plan: ${plan.getClass.getName}")
     explainer(s"Tables: ${plan.tables.mkString(", ")}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(_.toString).mkString(", ")}")
-    explainer(s"Client-side filter: ${plan.localFilter.fold("none")(FilterHelper.toString)}")
+    plan.moreExplaining(explainer)
     explainer(s"Reduce: ${plan.reducer.getOrElse("none")}")
     explainer.popLevel()
   }
@@ -48,13 +52,11 @@ case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = 
   override val tables: Seq[String] = Seq.empty
   override val ranges: Seq[Statement] = Seq.empty
   override val numThreads: Int = 0
-  override val localFilter: Option[Filter] = None
-  override val localTransform: Option[(String, SimpleFeatureType)] = None
-  override val resultsToFeatures: ResultsToFeatures[Row] = ResultsToFeatures.empty
+  override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.empty
   override val sort: Option[Seq[(String, Boolean)]] = None
   override val maxFeatures: Option[Int] = None
   override val projection: Option[QueryReferenceSystems] = None
-  override def scan(): CloseableIterator[Row] = CloseableIterator.empty
+  override def scan(): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
 
 case class StatementPlan(
@@ -63,17 +65,29 @@ case class StatementPlan(
     tables: Seq[String],
     ranges: Seq[Statement],
     numThreads: Int,
-    resultsToFeatures: ResultsToFeatures[Row],
-    localFilter: Option[Filter],
-    localTransform: Option[(String, SimpleFeatureType)],
-    reducer: Option[FeatureReducer],
-    sort: Option[Seq[(String, Boolean)]],
-    maxFeatures: Option[Int],
+    processor: LocalProcessor,
+    resultsToFeatures: ResultsToFeatures[SimpleFeature],
     projection: Option[QueryReferenceSystems]
   ) extends CassandraQueryPlan {
 
-  override def scan(): CloseableIterator[Row] = {
+  override def reducer: Option[FeatureReducer] = processor.reducer
+  // handled in the local processor
+  override def sort: Option[Seq[(String, Boolean)]] = None
+  override def maxFeatures: Option[Int] = None
+
+  override def scan(): CloseableIterator[SimpleFeature] = {
     strategy.runGuards(ds) // query guard hook - also handles full table scan checks
-    CassandraBatchScan(this, ds.session, ranges, numThreads, ds.config.queries.timeout.map(Timeout.apply))
+    val timeout = ds.config.queries.timeout.map(Timeout.apply)
+    val toFeatures = new CassandraResultsToFeatures(strategy.index, strategy.index.sft)
+    processor(CassandraBatchScan(this, ds.session, ranges, numThreads, timeout).map(toFeatures.apply))
+  }
+
+  override protected def moreExplaining(explainer: Explainer): Unit = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+    // filter, transforms, sort, max features are all captured in the local processor so pull them out of the hints instead of the plan
+    explainer(s"ECQL: ${processor.filter.fold("none")(FilterHelper.toString)}")
+    explainer(s"Transform: ${strategy.hints.getTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
+    explainer(s"Sort: ${strategy.hints.getSortFields.fold("none")(_.mkString(", "))}")
+    explainer(s"Max Features: ${strategy.hints.getMaxFeatures.getOrElse("none")}")
   }
 }
