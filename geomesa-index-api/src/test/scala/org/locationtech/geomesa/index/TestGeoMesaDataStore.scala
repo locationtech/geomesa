@@ -12,19 +12,19 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption, SimpleFeatureSerializer, TransformSimpleFeature}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption, SimpleFeatureSerializer}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter, RequiredVisibilityWriter}
-import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
+import org.locationtech.geomesa.index.api.QueryPlan.QueryStrategyPlan
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, MetricsConfig}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalProcessorPlan}
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
@@ -98,13 +98,10 @@ object TestGeoMesaDataStore {
       val opts = if (strategy.index.serializedWithId) { SerializationOption.defaults } else { Set(SerializationOption.WithoutId) }
       val serializer = KryoFeatureSerializer(strategy.index.sft, opts)
       val ecql = strategy.ecql.map(FastFilterFactory.optimize(strategy.index.sft, _))
-      val transform = strategy.hints.getTransform
-      val reducer = Some(new LocalTransformReducer(strategy.index.sft, strategy.hints))
-      val maxFeatures = strategy.hints.getMaxFeatures
-      val sort = strategy.hints.getSortFields
+      val processor = LocalProcessor(strategy.index.sft, strategy.hints, Some(ds.config.authProvider))
       val project = strategy.hints.getProjection
 
-      TestQueryPlan(ds, strategy, tables.toMap, strategy.index.sft, serializer, ranges, ecql, transform, reducer, sort, maxFeatures, project)
+      TestQueryPlan(ds, strategy, tables.toMap, strategy.index.sft, serializer, ranges, ecql, processor, project)
     }
 
     override def createWriter(
@@ -136,16 +133,11 @@ object TestGeoMesaDataStore {
       serializer: SimpleFeatureSerializer,
       ranges: Seq[TestRange],
       ecql: Option[Filter],
-      transform: Option[(String, SimpleFeatureType)],
-      reducer: Option[FeatureReducer],
-      sort: Option[Seq[(String, Boolean)]],
-      maxFeatures: Option[Int],
+      processor: LocalProcessor,
       projection: Option[QueryReferenceSystems]
-    ) extends QueryStrategyPlan {
+    ) extends QueryStrategyPlan with LocalProcessorPlan {
 
     override type Results = SimpleFeature
-
-    override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.identity(sft)
 
     override def scan(): CloseableIterator[SimpleFeature] = {
       strategy.runGuards(ds) // query guard hook - also handles full table scan checks
@@ -166,11 +158,7 @@ object TestGeoMesaDataStore {
         }
       }
       val filtered = ecql.fold(matches)(f => matches.filter(f.evaluate))
-      val transformed = transform.fold(filtered)  {  case (tdefs, tsft) =>
-        val transform = TransformSimpleFeature(sft, tsft, tdefs)
-        filtered.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
-      }
-      transformed.iterator
+      processor(filtered.iterator)
     }
 
     override def explain(explainer: Explainer): Unit = {

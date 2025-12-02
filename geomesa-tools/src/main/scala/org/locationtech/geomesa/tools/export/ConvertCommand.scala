@@ -15,8 +15,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.`export`.ConvertCommand.ResultTracker
 import org.locationtech.geomesa.tools.export.ConvertCommand.ConvertParameters
@@ -112,8 +111,6 @@ object ConvertCommand extends LazyLogging {
       tracker: ResultTracker,
       query: Query): CloseableIterator[SimpleFeature] = {
 
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
     def convert(): CloseableIterator[SimpleFeature] = CloseableIterator(files).flatMap { file =>
       file.open.flatMap { case (name, is) =>
         val params = EvaluationContext.inputFileParam(name.getOrElse(file.path))
@@ -126,26 +123,12 @@ object ConvertCommand extends LazyLogging {
     def filter(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =
       if (query.getFilter == Filter.INCLUDE) { iter } else { iter.filter(query.getFilter.evaluate) }
 
-    def limit(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-      query.getHints.getMaxFeatures match {
-        case None    => iter
-        case Some(m) => iter.take(m)
-      }
-    }
-
-    def transform(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-      query.getHints.getTransform match {
-        case None => iter
-        case Some((tdefs, tsft)) =>
-          val transform = TransformSimpleFeature(converter.targetSft, tsft, tdefs)
-          iter.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
-      }
-    }
+    val processor = LocalProcessor(converter.targetSft, query.getHints, None)
 
     def reduce(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =
-      new LocalTransformReducer(query.getHints.getTransformSchema.getOrElse(converter.targetSft), query.getHints).apply(iter)
+      processor.reducer.fold(iter)(_.apply(iter))
 
-    reduce(transform(limit(filter(convert()))))
+    reduce(processor(filter(convert())))
   }
 
   private class ResultTracker {

@@ -88,7 +88,6 @@ object RedisQueryPlan {
       pipeline: Boolean,
       localFilter: Option[Filter],
       processor: LocalProcessor,
-      resultsToFeatures: ResultsToFeatures[SimpleFeature],
       projection: Option[QueryReferenceSystems]
     ) extends RedisQueryPlan with LocalProcessorPlan {
 

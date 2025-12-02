@@ -65,7 +65,6 @@ object CassandraQueryPlan {
       numThreads: Int,
       localFilter: Option[Filter],
       processor: LocalProcessor,
-      resultsToFeatures: ResultsToFeatures[SimpleFeature],
       projection: Option[QueryReferenceSystems]
     ) extends CassandraQueryPlan with LocalProcessorPlan {
 

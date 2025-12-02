@@ -14,9 +14,12 @@ import org.apache.accumulo.core.client.{AccumuloClient, IteratorSetting, Scanner
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
+import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.AccumuloResultsToFeatures
 import org.locationtech.geomesa.accumulo.util.BatchMultiScanner
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.QueryStrategy
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalProcessorPlan}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
@@ -28,8 +31,6 @@ import java.util.Map.Entry
   * Accumulo-specific query plan
   */
 sealed trait AccumuloQueryPlan extends QueryStrategyPlan {
-
-  override type Results = Entry[Key, Value]
 
   def tables: Seq[String]
   def columnFamily: Option[Text]
@@ -75,6 +76,7 @@ object AccumuloQueryPlan extends LazyLogging {
 
   // plan that will not actually scan anything
   case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends AccumuloQueryPlan {
+    override type Results = Entry[Key, Value]
     override def tables: Seq[String] = Seq.empty
     override def iterators: Seq[IteratorSetting] = Seq.empty
     override def ranges: Seq[org.apache.accumulo.core.data.Range] = Seq.empty
@@ -87,28 +89,15 @@ object AccumuloQueryPlan extends LazyLogging {
     override def scan(): CloseableIterator[Entry[Key, Value]] = CloseableIterator.empty
   }
 
+
   // batch scan plan
-  case class BatchScanPlan(
-      ds: AccumuloDataStore,
-      strategy: QueryStrategy,
+  abstract class AbstractBatchScanPlan(
       tables: Seq[String],
       ranges: Seq[org.apache.accumulo.core.data.Range],
       iterators: Seq[IteratorSetting],
       columnFamily: Option[Text],
-      resultsToFeatures: ResultsToFeatures[Entry[Key, Value]],
-      reducer: Option[FeatureReducer],
-      sort: Option[Seq[(String, Boolean)]],
-      maxFeatures: Option[Int],
-      projection: Option[QueryReferenceSystems],
       numThreads: Int
     ) extends AccumuloQueryPlan {
-
-    override def scan(): CloseableIterator[Entry[Key, Value]] = {
-      // query guard hook - also handles full table scan checks
-      strategy.runGuards(ds)
-      // note: calculate auths and convert the relative timeout to an absolute timeout up front
-      scan(ScanHelper(ds))
-    }
 
     /**
      * Scan with pre-computed auths
@@ -146,6 +135,54 @@ object AccumuloQueryPlan extends LazyLogging {
     }
   }
 
+  // batch scan plan
+  case class BatchScanPlan(
+      ds: AccumuloDataStore,
+      strategy: QueryStrategy,
+      tables: Seq[String],
+      ranges: Seq[org.apache.accumulo.core.data.Range],
+      iterators: Seq[IteratorSetting],
+      columnFamily: Option[Text],
+      resultsToFeatures: ResultsToFeatures[Entry[Key, Value]],
+      reducer: Option[FeatureReducer],
+      sort: Option[Seq[(String, Boolean)]],
+      maxFeatures: Option[Int],
+      projection: Option[QueryReferenceSystems],
+      numThreads: Int
+    ) extends AbstractBatchScanPlan(tables, ranges, iterators, columnFamily, numThreads) {
+
+    override type Results = Entry[Key, Value]
+
+    override def scan(): CloseableIterator[Entry[Key, Value]] = {
+      // query guard hook - also handles full table scan checks
+      strategy.runGuards(ds)
+      // note: calculate auths and convert the relative timeout to an absolute timeout up front
+      scan(ScanHelper(ds))
+    }
+  }
+
+  // batch scan plan
+  case class BatchScanLocalProcessorPlan(
+      ds: AccumuloDataStore,
+      strategy: QueryStrategy,
+      tables: Seq[String],
+      ranges: Seq[org.apache.accumulo.core.data.Range],
+      iterators: Seq[IteratorSetting],
+      columnFamily: Option[Text],
+      processor: LocalProcessor,
+      projection: Option[QueryReferenceSystems],
+      numThreads: Int
+    ) extends AbstractBatchScanPlan(tables, ranges, iterators, columnFamily, numThreads) with LocalProcessorPlan {
+
+    override def scan(): CloseableIterator[SimpleFeature] = {
+      // query guard hook - also handles full table scan checks
+      strategy.runGuards(ds)
+      val toFeatures = AccumuloResultsToFeatures(strategy.index, processor.sft)
+      // note: calculate auths and convert the relative timeout to an absolute timeout up front
+      processor(scan(ScanHelper(ds)).map(toFeatures.apply))
+    }
+  }
+
   // join on multiple tables - requires multiple scans
   case class JoinPlan(
       ds: AccumuloDataStore,
@@ -156,29 +193,29 @@ object AccumuloQueryPlan extends LazyLogging {
       columnFamily: Option[Text],
       numThreads: Int,
       joinFunction: JoinFunction,
-      joinQuery: BatchScanPlan
-    ) extends AccumuloQueryPlan {
+      joinQuery: BatchScanPlan,
+      processor: LocalProcessor,
+      projection: Option[QueryReferenceSystems],
+    ) extends AccumuloQueryPlan with LocalProcessorPlan {
 
     override val join: Some[(JoinFunction, BatchScanPlan)] = Some((joinFunction, joinQuery))
-    override def resultsToFeatures: ResultsToFeatures[Entry[Key, Value]] = joinQuery.resultsToFeatures
-    override def reducer: Option[FeatureReducer] = joinQuery.reducer
-    override def sort: Option[Seq[(String, Boolean)]] = joinQuery.sort
-    override def maxFeatures: Option[Int] = joinQuery.maxFeatures
-    override def projection: Option[QueryReferenceSystems] = joinQuery.projection
 
-    override def scan(): CloseableIterator[Entry[Key, Value]] = {
+    override def scan(): CloseableIterator[SimpleFeature] = {
       // query guard hook - also handles full table scan checks
       strategy.runGuards(ds)
       // calculate auths and convert the relative timeout to an absolute timeout up front
       val helper = ScanHelper(ds)
       val joinTables = joinQuery.tables.iterator
-      if (helper.parallel) {
-        // kick off all the scans at once
-        tables.map(scanner( _, joinTables.next, helper)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ concat _)
-      } else {
-        // kick off the scans sequentially as they finish
-        SelfClosingIterator(tables.iterator).flatMap(scanner(_, joinTables.next, helper))
-      }
+      val entries =
+        if (helper.parallel) {
+          // kick off all the scans at once
+          tables.map(scanner( _, joinTables.next, helper)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ concat _)
+        } else {
+          // kick off the scans sequentially as they finish
+          SelfClosingIterator(tables.iterator).flatMap(scanner(_, joinTables.next, helper))
+        }
+      val features = entries.map(joinQuery.resultsToFeatures.apply)
+      processor(features)
     }
 
     private def scanner(table: String, joinTable: String, helper: ScanHelper): CloseableIterator[Entry[Key, Value]] = {

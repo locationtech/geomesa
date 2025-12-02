@@ -15,7 +15,6 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
-import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -71,10 +70,9 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
       } else {
         strategy.ranges.map(RedisIndexAdapter.toRedisRange)
       }
-      val results = new IdentityResultsToFeatures(strategy.index.sft)
       val project = strategy.hints.getProjection
 
-      ZLexPlan(ds, strategy, tables, ranges, ds.config.pipeline, strategy.ecql, processor, results, project)
+      ZLexPlan(ds, strategy, tables, ranges, ds.config.pipeline, strategy.ecql, processor, project)
     }
   }
 

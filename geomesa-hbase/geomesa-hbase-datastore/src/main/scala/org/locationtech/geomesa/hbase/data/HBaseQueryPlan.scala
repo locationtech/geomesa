@@ -129,13 +129,13 @@ object HBaseQueryPlan {
       ranges: Seq[RowRange],
       scans: Seq[TableScan],
       resultsToFeatures: ResultsToFeatures[Result],
-      reducer: Option[FeatureReducer],
       sort: Option[Seq[(String, Boolean)]],
       maxFeatures: Option[Int],
       projection: Option[QueryReferenceSystems]
     ) extends HBaseQueryPlan {
 
     override type Results = Result
+    override def reducer: Option[FeatureReducer] = None
 
     override protected def threads: Int = ds.config.queries.threads
 
@@ -155,7 +155,6 @@ object HBaseQueryPlan {
       scans: Seq[TableScan],
       localFilter: Option[Filter],
       processor: LocalProcessor,
-      resultsToFeatures: ResultsToFeatures[SimpleFeature],
       projection: Option[QueryReferenceSystems]
     ) extends HBaseQueryPlan with LocalProcessorPlan {
 
@@ -194,8 +193,7 @@ object HBaseQueryPlan {
 
     private lazy val maximizeThreads = HBaseSystemProperties.CoprocessorMaxThreads.toBoolean.get
 
-    // client side processing is not relevant for coprocessors
-    override def sort: Option[Seq[(String, Boolean)]] = None
+    override def sort: Option[Seq[(String, Boolean)]] = None // client side sorting is not relevant for coprocessors
 
     override protected def threads: Int = ds.config.coprocessors.threads
 

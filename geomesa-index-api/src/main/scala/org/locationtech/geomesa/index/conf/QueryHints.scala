@@ -96,6 +96,13 @@ object QueryHints {
       val Seq(native, user, target) = StringSerialization.decodeSeq(hint).map(CRS.decode)
       QueryReferenceSystems(native, user, target)
     }
+
+    def clearTransforms(hints: Hints): Hints = {
+      val updated = new Hints(hints)
+      updated.remove(QueryHints.Internal.TRANSFORMS)
+      updated.remove(QueryHints.Internal.TRANSFORM_SCHEMA)
+      updated
+    }
   }
 
   implicit class RichHints(val hints: Hints) extends AnyRef {

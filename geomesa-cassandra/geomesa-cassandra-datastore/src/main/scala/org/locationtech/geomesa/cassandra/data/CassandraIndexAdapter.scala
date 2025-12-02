@@ -24,7 +24,6 @@ import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
-import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
@@ -86,7 +85,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
   override def createQueryPlan(strategy: QueryStrategy): CassandraQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val processor = LocalProcessor(strategy.index.sft, strategy.hints, Option(ds.config.authProvider))
+    val processor = LocalProcessor(strategy.index.sft, strategy.hints, Some(ds.config.authProvider))
 
     val hints = strategy.hints
 
@@ -96,10 +95,9 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ks = ds.session.getLoggedKeyspace
       val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))
-      val rowsToFeatures = new IdentityResultsToFeatures(strategy.index.sft)
       val threads = ds.config.queries.threads
       val project = hints.getProjection
-      StatementPlan(ds, strategy, tables, statements, threads, strategy.ecql, processor, rowsToFeatures, project)
+      StatementPlan(ds, strategy, tables, statements, threads, strategy.ecql, processor, project)
     }
   }
 
