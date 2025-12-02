@@ -62,7 +62,7 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
   override def createQueryPlan(strategy: QueryStrategy): RedisQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val processor = LocalProcessor(strategy.index.sft, strategy.ecql, strategy.hints, Option(ds.config.authProvider))
+    val processor = LocalProcessor(strategy.index.sft, strategy.hints, Option(ds.config.authProvider))
 
     if (strategy.ranges.isEmpty) { EmptyPlan(strategy, processor.reducer) } else {
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
@@ -74,7 +74,7 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
       val results = new IdentityResultsToFeatures(strategy.index.sft)
       val project = strategy.hints.getProjection
 
-      ZLexPlan(ds, strategy, tables, ranges, ds.config.pipeline, processor, results, project)
+      ZLexPlan(ds, strategy, tables, ranges, ds.config.pipeline, strategy.ecql, processor, results, project)
     }
   }
 

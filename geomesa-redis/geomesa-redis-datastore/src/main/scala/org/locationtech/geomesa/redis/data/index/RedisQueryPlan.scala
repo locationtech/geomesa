@@ -10,6 +10,7 @@ package org.locationtech.geomesa.redis.data
 package index
 
 import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{BoundedByteRange, QueryStrategy}
@@ -85,6 +86,7 @@ object RedisQueryPlan {
       tables: Seq[String],
       ranges: Seq[BoundedByteRange],
       pipeline: Boolean,
+      localFilter: Option[Filter],
       processor: LocalProcessor,
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
       projection: Option[QueryReferenceSystems]
@@ -98,18 +100,21 @@ object RedisQueryPlan {
       val toFeatures = new RedisResultsToFeatures(strategy.index, strategy.index.sft)
       val iter = tables.iterator.map(_.getBytes(StandardCharsets.UTF_8))
       val scans = iter.map(singleTableScan(ds, _))
-      if (ds.config.queries.parallelPartitionScans) {
-        // kick off all the scans at once
-        processor(scans.foldLeft(CloseableIterator.empty[Array[Byte]])(_ concat _).map(toFeatures.apply))
-      } else {
-        // kick off the scans sequentially as they finish
-        processor(SelfClosingIterator(scans).flatMap(s => s.map(toFeatures.apply)))
-      }
+      val scanner =
+        if (ds.config.queries.parallelPartitionScans) {
+          // kick off all the scans at once
+          scans.foldLeft(CloseableIterator.empty[Array[Byte]])(_ concat _).map(toFeatures.apply)
+        } else {
+          // kick off the scans sequentially as they finish
+          SelfClosingIterator(scans).flatMap(s => s.map(toFeatures.apply))
+        }
+      val features = localFilter.fold(scanner)(f => scanner.filter(f.evaluate))
+      processor(features)
     }
 
     override def moreExplaining(explainer: Explainer): Unit = {
       explainer(s"Pipelining: ${if (pipeline) { "enabled" } else { "disabled" }}")
-      explainer(s"Client-side filter: ${processor.filter.fold("none")(FilterHelper.toString)}")
+      explainer(s"Client-side filter: ${localFilter.fold("none")(FilterHelper.toString)}")
       processor.explain(explainer)
     }
 

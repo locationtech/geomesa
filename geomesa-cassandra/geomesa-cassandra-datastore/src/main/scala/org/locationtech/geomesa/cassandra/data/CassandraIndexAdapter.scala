@@ -86,7 +86,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
   override def createQueryPlan(strategy: QueryStrategy): CassandraQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val processor = LocalProcessor(strategy.index.sft, strategy.ecql, strategy.hints, Option(ds.config.authProvider))
+    val processor = LocalProcessor(strategy.index.sft, strategy.hints, Option(ds.config.authProvider))
 
     val hints = strategy.hints
 
@@ -99,7 +99,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       val rowsToFeatures = new IdentityResultsToFeatures(strategy.index.sft)
       val threads = ds.config.queries.threads
       val project = hints.getProjection
-      StatementPlan(ds, strategy, tables, statements, threads, processor, rowsToFeatures, project)
+      StatementPlan(ds, strategy, tables, statements, threads, strategy.ecql, processor, rowsToFeatures, project)
     }
   }
 

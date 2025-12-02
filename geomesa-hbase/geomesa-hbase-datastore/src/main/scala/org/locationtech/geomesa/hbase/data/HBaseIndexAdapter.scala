@@ -219,14 +219,14 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     if (!ds.config.remoteFilter) {
       // everything is done client side
       // note: we assume visibility filtering is still done server-side as it's part of core hbase
-      // note: we use the full filter here, since we can't use the z3 server-side filter
-      // for some attribute queries we wouldn't need the full filter...
-      val processor = LocalProcessor(schema, strategy.filter.filter, hints, None)
+      val processor = LocalProcessor(schema, hints, None)
       empty(processor.reducer).getOrElse {
         val scans = configureScans(tables, ranges, small, colFamily, Seq.empty, coprocessor = false)
         val resultsToFeatures = new IdentityResultsToFeatures(schema)
         val project = hints.getProjection
-        LocalProcessorScanPlan(ds, strategy, ranges, scans, processor, resultsToFeatures, project)
+        // note: we use the full filter here, since we can't use the z3 server-side filter
+        // for some attribute queries we wouldn't need the full filter...
+        LocalProcessorScanPlan(ds, strategy, ranges, scans, strategy.filter.filter, processor, resultsToFeatures, project)
       }
     } else {
       // TODO pull this out to be SPI loaded so that new indices can be added seamlessly

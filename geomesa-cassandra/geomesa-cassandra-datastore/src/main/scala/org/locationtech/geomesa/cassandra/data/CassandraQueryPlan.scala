@@ -11,6 +11,7 @@ package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core.Statement
 import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.CassandraResultsToFeatures
 import org.locationtech.geomesa.cassandra.utils.CassandraBatchScan
 import org.locationtech.geomesa.filter.FilterHelper
@@ -62,6 +63,7 @@ object CassandraQueryPlan {
       tables: Seq[String],
       ranges: Seq[Statement],
       numThreads: Int,
+      localFilter: Option[Filter],
       processor: LocalProcessor,
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
       projection: Option[QueryReferenceSystems]
@@ -71,11 +73,13 @@ object CassandraQueryPlan {
       strategy.runGuards(ds) // query guard hook - also handles full table scan checks
       val timeout = ds.config.queries.timeout.map(Timeout.apply)
       val toFeatures = new CassandraResultsToFeatures(strategy.index, strategy.index.sft)
-      processor(CassandraBatchScan(this, ds.session, ranges, numThreads, timeout).map(toFeatures.apply))
+      val scanner = CassandraBatchScan(this, ds.session, ranges, numThreads, timeout).map(toFeatures.apply)
+      val features = localFilter.fold(scanner)(f => scanner.filter(f.evaluate))
+      processor(features)
     }
 
     override protected def moreExplaining(explainer: Explainer): Unit = {
-      explainer(s"Client-side filter: ${processor.filter.fold("none")(FilterHelper.toString)}")
+      explainer(s"Client-side filter: ${localFilter.fold("none")(FilterHelper.toString)}")
       processor.explain(explainer)
     }
   }

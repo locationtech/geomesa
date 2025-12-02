@@ -63,7 +63,7 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
   protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature]
 
   override protected def getQueryPlans(sft: SimpleFeatureType, query: Query, explain: Explainer): Seq[QueryPlan] = {
-    val processor = LocalProcessor(sft, None, query.getHints, authProvider)
+    val processor = LocalProcessor(sft, query.getHints, authProvider)
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
     val scanner = LocalScan(this, sft, filter)
     val toFeatures = new IdentityResultsToFeatures(sft)
@@ -227,11 +227,10 @@ object LocalQueryRunner extends LazyLogging {
    * are evaluated *after* creating this processor.
    *
    * @param sft feature type
-   * @param filter ecql filter
    * @param hints query hints
    * @param authProvider auth provider
    */
-  case class LocalProcessor(sft: SimpleFeatureType, filter: Option[Filter], hints: Hints, authProvider: Option[AuthorizationsProvider])
+  case class LocalProcessor(sft: SimpleFeatureType, hints: Hints, authProvider: Option[AuthorizationsProvider])
       extends LocalScanProcessor {
 
     setLocalSorting(hints, sft.getDtgField)
@@ -242,11 +241,9 @@ object LocalQueryRunner extends LazyLogging {
         FeatureSampler.sample(percent, field.map(sft.indexOf).filter(_ != -1))
       }
       // note: make sure sampling is checked after other filtering so it's correct
-      (filter, sampler) match {
-        case (None, None) => visible
-        case (None, Some(sample)) => f => visible(f) && sample(f)
-        case (Some(cql), None) => f => visible(f) && cql.evaluate(f)
-        case (Some(cql), Some(sample)) => f => visible(f) && cql.evaluate(f) && sample(f)
+      sampler match {
+        case None => visible
+        case Some(sample) => f => visible(f) && sample(f)
       }
     }
 

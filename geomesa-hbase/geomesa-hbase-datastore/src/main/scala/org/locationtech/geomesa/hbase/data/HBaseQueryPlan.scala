@@ -14,6 +14,7 @@ import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseIndexAdapter.HBaseResultsToFeatures
@@ -152,6 +153,7 @@ object HBaseQueryPlan {
       strategy: QueryStrategy,
       ranges: Seq[RowRange],
       scans: Seq[TableScan],
+      localFilter: Option[Filter],
       processor: LocalProcessor,
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
       projection: Option[QueryReferenceSystems]
@@ -165,11 +167,13 @@ object HBaseQueryPlan {
       threads: Int,
       timeout: Option[Timeout]): CloseableIterator[SimpleFeature] = {
       val toFeatures = new HBaseResultsToFeatures(strategy.index, processor.sft)
-      processor(HBaseBatchScan(this, connection, scan.table, scan.scans, threads, timeout).map(toFeatures.apply))
+      val scanner = HBaseBatchScan(this, connection, scan.table, scan.scans, threads, timeout).map(toFeatures.apply)
+      val features = localFilter.fold(scanner)(f => scanner.filter(f.evaluate))
+      processor(features)
     }
 
     override protected def moreExplaining(explainer: Explainer): Unit = {
-      explainer(s"Client-side filter: ${processor.filter.fold("none")(FilterHelper.toString)}")
+      explainer(s"Client-side filter: ${localFilter.fold("none")(FilterHelper.toString)}")
       processor.explain(explainer)
     }
   }
