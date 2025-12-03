@@ -26,14 +26,13 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTrigger, InsertTrigger, UpdateTrigger, WriteAheadTrigger}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.{Conversion, ConvertToInt}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.jts.geom._
 
 import java.sql.{Connection, DatabaseMetaData, ResultSet, Types}
-import scala.util.Try
-import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 /**
  * Dialect
@@ -217,19 +216,22 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     UserDataTable.read(cx, schemaName, sft.getTypeName).foreach { case (k, v) => sft.getUserData.put(k, v) }
 
     // populate flags on indexed attributes
-    getIndexedColumns(cx, sft.getTypeName)
-      .recover {
-        case NonFatal(throwable) =>
-          logger.warn(s"SimpleFeatureType: ${sft.getTypeName} could not load attributes with indices", throwable)
-          List.empty
-      }
-      .get
-      .foreach { attribute =>
-        Try(sft.getDescriptor(attribute)).fold(
-          throwable => logger.warn(s"SimpleFeatureType: ${sft.getTypeName} could not load attribute descriptor by name: $attribute", throwable),
-          _.getUserData.put(AttributeOptions.OptIndex, "true")
-        )
-      }
+    getIndexedColumns(cx, sft.getTypeName) match {
+      case Success(cols) =>
+        cols.foreach { col =>
+          if (col != "fid") {
+            val i = sft.indexOf(col)
+            if (i == -1) {
+              logger.debug(
+                s"Found unexpected indexed column not in feature type: $col for ${sft.getTypeName}=${SimpleFeatureTypes.encodeType(sft)}")
+            } else {
+              sft.getDescriptor(i).getUserData.put(AttributeOptions.OptIndex, "true")
+            }
+          }
+        }
+
+      case Failure(e) => logger.warn(s"Error loading indexed columns for feature type ${sft.getTypeName}:", e)
+    }
   }
 
   override def preDropTable(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit = {
@@ -241,6 +243,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
       PartitionedPostgisDialect.Commands.reverse.filter(_ != WriteAheadTable).foreach(_.drop(info))
+      PartitionTablespacesTable.drop(info)
     } finally {
       ex.close()
     }
@@ -397,7 +400,6 @@ object PartitionedPostgisDialect extends StrictLogging {
     UpdateTrigger,
     DeleteTrigger,
     PrimaryKeyTable,
-    PartitionTablespacesTable,
     AnalyzeQueueTable,
     SortQueueTable,
     UserDataTable,

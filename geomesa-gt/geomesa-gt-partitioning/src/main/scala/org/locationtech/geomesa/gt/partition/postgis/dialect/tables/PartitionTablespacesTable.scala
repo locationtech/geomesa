@@ -16,15 +16,13 @@ import org.locationtech.geomesa.utils.io.WithClose
 import java.sql.{Connection, DatabaseMetaData}
 
 /**
- * Stores tablespaces used by each feature type
+ * Stores tablespaces used by each feature type - deprecated but kept around for back-compatibility
  */
-@deprecated("Tablespaces are stored in user data table")
-object PartitionTablespacesTable extends PartitionTablespacesTable with AdvisoryLock {
+private[postgis] object PartitionTablespacesTable extends PartitionTablespacesTable with AdvisoryLock {
   override protected val lockId: Long = 2005234735580322669L
 }
 
-@deprecated("Tablespaces are stored in user data table")
-class PartitionTablespacesTable extends Sql with LazyLogging {
+private[dialect] class PartitionTablespacesTable extends Sql with LazyLogging {
 
   val Name: TableName = TableName("partition_tablespaces")
 
