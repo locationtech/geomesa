@@ -161,7 +161,7 @@ object AccumuloQueryPlan extends LazyLogging {
     }
   }
 
-  // batch scan plan
+  // batch scan plan with local processing steps
   case class BatchScanLocalProcessorPlan(
       ds: AccumuloDataStore,
       strategy: QueryStrategy,
@@ -214,8 +214,7 @@ object AccumuloQueryPlan extends LazyLogging {
           // kick off the scans sequentially as they finish
           SelfClosingIterator(tables.iterator).flatMap(scanner(_, joinTables.next, helper))
         }
-      val features = entries.map(joinQuery.resultsToFeatures.apply)
-      processor(features)
+      processor(entries.map(joinQuery.resultsToFeatures.apply))
     }
 
     private def scanner(table: String, joinTable: String, helper: ScanHelper): CloseableIterator[Entry[Key, Value]] = {

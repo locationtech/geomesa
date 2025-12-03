@@ -32,10 +32,6 @@ import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, IndexResult
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.index.s2.{S2Index, S2IndexValues}
-import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
-import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
-import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
@@ -182,37 +178,19 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
         AccumuloJoinIndexAdapter.createQueryPlan(ds, i, strategy, tables, ranges, colFamily, schema, ecql, hints, numThreads)
 
       case _ =>
-        // configure additional iterators based on the index
-        // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
-        val indexIter = if (index.name == Z3Index.name) {
-          strategy.values.toSeq.map { case v: Z3IndexValues =>
-            val offset = index.keySpace.sharding.length + index.keySpace.sharing.length
-            Z3Iterator.configure(v, offset, hints.getFilterCompatibility, ZIterPriority)
+        val baselineIters = {
+          // configure additional iterators based on the index
+          val indexIter = strategy.values.flatMap(IndexIterators.configure(index, _, ZIterPriority, hints.getFilterCompatibility))
+          // add the attribute-level vis iterator if necessary
+          val visIter = index.sft.getVisibilityLevel match {
+            case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(schema))
+            case _ => Seq.empty
           }
-        } else if (index.name == Z2Index.name) {
-          strategy.values.toSeq.map { case v: Z2IndexValues =>
-            Z2Iterator.configure(v, index.keySpace.sharding.length + index.keySpace.sharing.length, ZIterPriority)
-          }
-        } else if (index.name == S3Index.name) {
-          strategy.values.toSeq.map { case v: S3IndexValues =>
-            S3Iterator.configure(v, index.keySpace.sharding.length, ZIterPriority)
-          }
-        } else if (index.name == S2Index.name) {
-          strategy.values.toSeq.map { case v: S2IndexValues =>
-            S2Iterator.configure(v, index.keySpace.sharding.length, ZIterPriority)
-          }
-        } else {
-          Seq.empty
-        }
-
-        // add the attribute-level vis iterator if necessary
-        val visIter = index.sft.getVisibilityLevel match {
-          case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(schema))
-          case _ => Seq.empty
+          indexIter.toSeq ++ visIter
         }
 
         def scanPlan(iter: Option[IteratorSetting], toFeatures: ResultsToFeatures[Entry[Key, Value]], reduce: Option[FeatureReducer]): BatchScanPlan = {
-          val iters = iter.toSeq ++ indexIter ++ visIter
+          val iters = iter.toSeq ++ baselineIters
           val sort = hints.getSortFields
           val max = hints.getMaxFeatures
           val projection = hints.getProjection
@@ -220,7 +198,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
         }
 
         def semiLocalPlan(): BatchScanLocalProcessorPlan = {
-          val iters = fti.toSeq ++ indexIter ++ visIter
+          val iters = fti.toSeq ++ baselineIters
           // transforms are handled in the filterTransformIter
           val processor = LocalProcessor(returnSchema, QueryHints.Internal.clearTransforms(hints), None)
           val projection = hints.getProjection

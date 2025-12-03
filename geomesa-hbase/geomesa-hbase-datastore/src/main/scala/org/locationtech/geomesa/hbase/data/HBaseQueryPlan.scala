@@ -107,22 +107,23 @@ object HBaseQueryPlan {
 
   // plan that will not actually scan anything
   case class EmptyPlan(ds: HBaseDataStore, strategy: QueryStrategy, reducer: Option[FeatureReducer]) extends HBaseQueryPlan {
-    override type Results = SimpleFeature
+    override type Results = Result
     override def ranges: Seq[RowRange] = Seq.empty
     override def scans: Seq[TableScan] = Seq.empty
-    override def resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.empty
+    override def resultsToFeatures: ResultsToFeatures[Result] = ResultsToFeatures.empty
     override def sort: Option[Seq[(String, Boolean)]] = None
     override def maxFeatures: Option[Int] = None
     override def projection: Option[QueryReferenceSystems] = None
-    override def scan(): CloseableIterator[SimpleFeature] = CloseableIterator.empty
+    override def scan(): CloseableIterator[Result] = CloseableIterator.empty
     override protected def threads: Int = 0
     override protected def singleTableScan(
         scan: TableScan,
         connection: Connection,
         threads: Int,
-        timeout: Option[Timeout]): CloseableIterator[SimpleFeature] = CloseableIterator.empty
+        timeout: Option[Timeout]): CloseableIterator[Result] = CloseableIterator.empty
   }
 
+  // scan plan
   case class ScanPlan(
       ds: HBaseDataStore,
       strategy: QueryStrategy,
@@ -148,6 +149,7 @@ object HBaseQueryPlan {
     }
   }
 
+  // scan plan with local processing step
   case class LocalProcessorScanPlan(
       ds: HBaseDataStore,
       strategy: QueryStrategy,
@@ -177,6 +179,7 @@ object HBaseQueryPlan {
     }
   }
 
+  // coprocessor plan
   case class CoprocessorPlan(
       ds: HBaseDataStore,
       strategy: QueryStrategy,

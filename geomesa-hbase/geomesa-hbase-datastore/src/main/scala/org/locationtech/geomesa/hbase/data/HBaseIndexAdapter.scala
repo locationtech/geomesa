@@ -229,40 +229,15 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         LocalProcessorScanPlan(ds, strategy, ranges, scans, ecql, processor, hints.getProjection)
       }
     } else {
-      // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
-      val indexFilter = strategy.index match {
-        case _: Z3Index =>
-          strategy.values.map { case v: Z3IndexValues =>
-            (Z3HBaseFilter.Priority, Z3HBaseFilter(Z3Filter(v), index.keySpace.sharding.length))
-          }
-
-        case _: Z2Index =>
-          strategy.values.map { case v: Z2IndexValues =>
-            (Z2HBaseFilter.Priority, Z2HBaseFilter(Z2Filter(v), index.keySpace.sharding.length))
-          }
-
-        case _: S2Index =>
-          strategy.values.map { case v: S2IndexValues =>
-            (S2HBaseFilter.Priority, S2HBaseFilter(S2Filter(v), index.keySpace.sharding.length))
-          }
-
-        case _: S3Index =>
-          strategy.values.map { case v: S3IndexValues =>
-            (S3HBaseFilter.Priority, S3HBaseFilter(S3Filter(v), index.keySpace.sharding.length))
-          }
-        // TODO GEOMESA-1807 deal with non-points in a pushdown XZ filter
-
-        case _ => None
-      }
-
       val ecql = strategy.ecql
       val (colFamily, schema) = groups.group(index.sft, hints.getTransformDefinition, ecql)
       val projection = hints.getProjection
+      val indexFilter = strategy.values.flatMap(IndexFilters(index, _))
       lazy val returnSchema = hints.getTransformSchema.getOrElse(schema)
       lazy val scans = {
         val transform = hints.getTransform
         val cqlFilter = if (ecql.isEmpty && transform.isEmpty && hints.getSampling.isEmpty) { Seq.empty } else {
-          Seq((CqlTransformFilter.Priority, CqlTransformFilter(schema, strategy.index, ecql, transform, hints)))
+          Seq((CqlTransformFilter.Priority, CqlTransformFilter(schema, index, ecql, transform, hints)))
         }
         val filters = (cqlFilter ++ indexFilter).sortBy(_._1).map(_._2)
         configureScans(tables, ranges, small, colFamily, filters, coprocessor = false)
@@ -274,7 +249,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         CoprocessorPlan(ds, strategy, ranges, scans, options ++ coprocessorOptions, toFeatures, reducer, hints.getMaxFeatures, projection)
       }
 
-      def semiLocalScan(): LocalProcessorScanPlan = {
+      def semiLocalPlan(): LocalProcessorScanPlan = {
         // note: transforms are handled in the cqlTransformFilter
         val processor = LocalProcessor(returnSchema, QueryHints.Internal.clearTransforms(hints), None)
         LocalProcessorScanPlan(ds, strategy, ranges, scans, None, processor, projection)
@@ -287,7 +262,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
             val results = new HBaseDensityResultsToFeatures()
             coprocessorPlan(options, results, None)
           } else {
-            semiLocalScan()
+            semiLocalPlan()
           }
         }
       } else if (hints.isArrowQuery) {
@@ -299,7 +274,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
             val results = new HBaseArrowResultsToFeatures()
             coprocessorPlan(options, results, reducer)
           } else {
-            semiLocalScan()
+            semiLocalPlan()
           }
         }
       } else if (hints.isStatsQuery) {
@@ -310,7 +285,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
             val results = new HBaseStatsResultsToFeatures()
             coprocessorPlan(options, results, reducer)
           } else {
-            semiLocalScan()
+            semiLocalPlan()
           }
         }
       } else if (hints.isBinQuery) {
@@ -320,7 +295,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
             val results = new HBaseBinResultsToFeatures()
             coprocessorPlan(options, results, None)
           } else {
-            semiLocalScan()
+            semiLocalPlan()
           }
         }
       } else {
