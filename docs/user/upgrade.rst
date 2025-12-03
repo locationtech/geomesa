@@ -201,6 +201,7 @@ Removed Classes
 * ``org.locationtech.geomesa.filter.index.BucketIndexSupport``
 * ``org.locationtech.geomesa.filter.index.SizeSeparatedBucketIndexSupport``
 * ``org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader``
+* ``org.locationtech.geomesa.gt.partition.postgis.dialect.tables.PartitionTablespacesTable``
 * ``org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer``
 * ``org.locationtech.geomesa.metrics.micrometer.MicrometerSetup``
 * ``org.locationtech.geomesa.security.VisibilityEvaluator``
