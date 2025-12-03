@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.Tags
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
 import org.apache.kafka.clients.producer._
@@ -20,7 +21,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
+import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
@@ -65,7 +66,13 @@ class KafkaStore(
 
   private val interceptors = QueryInterceptorFactory(ds)
 
-  private val queryRunner = new KafkaQueryRunner(cache, authProvider, interceptors)
+  private val queryRunner = {
+    val catalogTag = ds match {
+      case gm: GeoMesaDataStore[_] => Tags.of("catalog", gm.config.catalog)
+      case _ => Tags.of("catalog", ds.getClass.getSimpleName)
+    }
+    new KafkaQueryRunner(cache, authProvider, interceptors, catalogTag.and("store", "lambda"))
+  }
 
   private val loader = {
     val consumers = KafkaStore.consumers(config.consumerConfig, topic, offsetManager, config.consumers, cache.partitionAssigned)
@@ -107,11 +114,11 @@ class KafkaStore(
       transforms: Option[Array[String]] = None,
       hints: Option[Hints] = None,
       explain: Explainer = new ExplainLogging): QueryResult = {
-    val query = new Query()
+    val query = new Query(sft.getTypeName)
     filter.foreach(query.setFilter)
     transforms.foreach(query.setPropertyNames(_: _*))
     hints.foreach(query.setHints)
-    queryRunner.runQuery(sft, query, explain)
+    queryRunner.query(sft, query, explain)
   }
 
   override def write(original: SimpleFeature): Unit = {

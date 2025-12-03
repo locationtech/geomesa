@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import org.geotools.api.data.Query
+import org.geotools.api.data.{Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.index.conf.QueryHints.QUERY_INDEX
-import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -55,12 +55,10 @@ class AttributeIndexIteratorTest extends Specification with TestWithFeatureType 
     })
   }
 
-  lazy val queryPlanner = ds.queryPlanner
-
-  def query(filter: String, attributes: Array[String] = Array.empty, explain: Explainer = ExplainNull): List[SimpleFeature] = {
+  def query(filter: String, attributes: Array[String] = Array.empty): List[SimpleFeature] = {
     val query = new Query(sftName, ECQL.toFilter(filter), attributes: _*)
     query.getHints.put(QUERY_INDEX, JoinIndex.name)
-    WithClose(queryPlanner.runQuery(sft, query, explain).iterator())(_.toList)
+    WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)))(_.toList)
   }
 
   "AttributeIndexIterator" should {

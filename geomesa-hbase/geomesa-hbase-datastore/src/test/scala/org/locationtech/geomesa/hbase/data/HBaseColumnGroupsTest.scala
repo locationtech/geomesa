@@ -22,7 +22,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, ScanPlan}
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, LocalProcessorScanPlan}
 import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_TRACK}
 import org.locationtech.geomesa.index.conf.{ColumnGroups, QueryHints}
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
@@ -230,7 +230,6 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
       dsSemiLocal.config.coprocessors.enabled.arrow must beFalse
       dsFullLocal.config.remoteFilter must beFalse
 
-      // TODO GEOMESA-2816 column groups and coprocessors do not work together with remote filtering disabled
       foreach(Seq(ds, dsSemiLocal/*, dsFullLocal*/)) { ds =>
         val query = new Query(sft.getTypeName, filter, "track", "dtg", "geom")
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
@@ -242,7 +241,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
           if (ds.config.remoteFilter && ds.config.coprocessors.enabled.arrow) {
             qp must beAnInstanceOf[CoprocessorPlan]
           } else {
-            qp must beAnInstanceOf[ScanPlan]
+            qp must beAnInstanceOf[LocalProcessorScanPlan]
           }
           qp.scans.head.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("A")
         }
@@ -271,8 +270,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
       dsSemiLocal.config.coprocessors.enabled.bin must beFalse
       dsFullLocal.config.remoteFilter must beFalse
 
-      // TODO GEOMESA-2816 column groups and coprocessors do not work together with remote filtering disabled
-      foreach(Seq(ds, dsSemiLocal/*, dsFullLocal*/)) { ds =>
+      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
         val query = new Query(sft.getTypeName, filter)
         query.getHints.put(BIN_TRACK, "track")
         query.getHints.put(BIN_BATCH_SIZE, 1000)
@@ -281,7 +279,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
           if (ds.config.remoteFilter && ds.config.coprocessors.enabled.bin) {
             qp must beAnInstanceOf[CoprocessorPlan]
           } else {
-            qp must beAnInstanceOf[ScanPlan]
+            qp must beAnInstanceOf[LocalProcessorScanPlan]
           }
           qp.scans.head.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("A")
         }
@@ -313,8 +311,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
       dsSemiLocal.config.coprocessors.enabled.density must beFalse
       dsFullLocal.config.remoteFilter must beFalse
 
-      // TODO GEOMESA-2816 column groups and coprocessors do not work together with remote filtering disabled
-      foreach(Seq(ds, dsSemiLocal/*, dsFullLocal*/)) { ds =>
+      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
         val query = new Query(sft.getTypeName, filter)
         query.getHints.put(QueryHints.LOOSE_BBOX, false)
         query.getHints.put(QueryHints.DENSITY_BBOX, new ReferencedEnvelope(envelope, DefaultGeographicCRS.WGS84))
@@ -325,7 +322,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
           if (ds.config.remoteFilter && ds.config.coprocessors.enabled.density) {
             qp must beAnInstanceOf[CoprocessorPlan]
           } else {
-            qp must beAnInstanceOf[ScanPlan]
+            qp must beAnInstanceOf[LocalProcessorScanPlan]
           }
           qp.scans.head.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("A")
         }
@@ -345,8 +342,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
       dsSemiLocal.config.coprocessors.enabled.stats must beFalse
       dsFullLocal.config.remoteFilter must beFalse
 
-      // TODO GEOMESA-2816 column groups and coprocessors do not work together with remote filtering disabled
-      foreach(Seq(ds, dsSemiLocal/*, dsFullLocal*/)) { ds =>
+      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
         val query = new Query(sft.getTypeName, filter)
         query.getHints.put(QueryHints.STATS_STRING, "MinMax(track)")
         query.getHints.put(QueryHints.ENCODE_STATS, true)
@@ -355,7 +351,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
           if (ds.config.remoteFilter && ds.config.coprocessors.enabled.stats) {
             qp must beAnInstanceOf[CoprocessorPlan]
           } else {
-            qp must beAnInstanceOf[ScanPlan]
+            qp must beAnInstanceOf[LocalProcessorScanPlan]
           }
           qp.scans.head.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("A")
         }

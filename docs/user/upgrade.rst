@@ -163,17 +163,6 @@ but are not meant to be publicly available.
    <details>
    <summary><b>Click here to see all API changes</b></summary>
 
-Internal API Changes
---------------------
-
-GeoMesa does not have a well-defined public API. This section details classes and methods that have been changed or removed,
-but are not meant to be publicly available.
-
-.. raw:: html
-
-   <details>
-   <summary><b>Click here to see all API changes</b></summary>
-
 Relocated Classes
 ^^^^^^^^^^^^^^^^^
 
@@ -190,6 +179,7 @@ Relocated Classes
 * ``org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader`` ->
   ``org.locationtech.geomesa.fs.storage.parquet.io.ParquetFileSystemReader``
 * ``org.locationtech.geomesa.fs.storage.parquet.SimpleFeatureParquetWriter`` -> ``org.locationtech.geomesa.fs.storage.parquet.io``
+* ``org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation`` -> ``org.locationtech.geomesa.index.planning.StrategyDecider.CostEvaluation``
 * ``org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``
 * ``org.locationtech.geomesa.utils.index.BucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``
 * ``org.locationtech.geomesa.utils.index.WrappedQuadTree`` -> ``org.locationtech.geomesa.memory.index.impl``
@@ -211,6 +201,7 @@ Removed Classes
 * ``org.locationtech.geomesa.filter.index.BucketIndexSupport``
 * ``org.locationtech.geomesa.filter.index.SizeSeparatedBucketIndexSupport``
 * ``org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader``
+* ``org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer``
 * ``org.locationtech.geomesa.metrics.micrometer.MicrometerSetup``
 * ``org.locationtech.geomesa.security.VisibilityEvaluator``
 * ``org.locationtech.geomesa.tools.utils.StorageJobUtils``
@@ -255,8 +246,10 @@ Removed Methods
 * ``org.locationtech.geomesa.fs.data.FileSystemDataStore#this(FileContext)``
 * ``org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme#apply(DateTimeFormatter)``
 * ``org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory`` - various system properties
+* ``org.locationtech.geomesa.index.geotools.GeoMesaDataStore#queryPlanner``
 * ``org.locationtech.geomesa.index.planning.LocalQueryRunner#visible``
-* ``org.locationtech.geomesa.index.planning.QueryPlanner`` - "perThreadQueryHints"-related methods
+* ``org.locationtech.geomesa.index.planning.QueryPlanner`` - most static methods
+* ``org.locationtech.geomesa.index.planning.QueryRunner#configureDefaultQuery``
 * ``org.locationtech.geomesa.kafka.data.KafkaDataStore#producer(KafkaDataStoreConfig)``
 * ``org.locationtech.geomesa.kafka.utils.GeoMessageSerializer#apply(SimpleFeatureType, SerializationType, Boolean)``
 * ``org.locationtech.geomesa.lambda.stream.kafka.KafkaStore#topic``

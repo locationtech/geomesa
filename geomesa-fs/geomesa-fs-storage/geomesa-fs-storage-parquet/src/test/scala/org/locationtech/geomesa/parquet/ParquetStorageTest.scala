@@ -379,7 +379,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           config.set(AuthsParam.key, auths)
           WithClose(new ParquetFileSystemStorageFactory().apply(FileSystemContext(dir, config), loaded.get)) { storage =>
             foreach(testCases) { case (filter, transforms, expected) =>
-              val isVisible = VisibilityUtils.visible(Some(new DefaultAuthorizationsProvider(auths.split(",").filter(_.nonEmpty))))
+              val isVisible = VisibilityUtils.visible(new DefaultAuthorizationsProvider(auths.split(",").filter(_.nonEmpty)))
               testQuery(storage, sft)(filter, transforms, expected.filter(isVisible))
             }
           }

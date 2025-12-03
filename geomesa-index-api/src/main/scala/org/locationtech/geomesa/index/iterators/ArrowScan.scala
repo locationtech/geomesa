@@ -127,6 +127,12 @@ object ArrowScan extends LazyLogging {
     */
   def getBatchSize(hints: Hints): Int = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
 
+  def getIpcOpts(hints: Hints): IpcOption =
+    FormatVersion.options(hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get))
+
+  def getEncoding(hints: Hints): SimpleFeatureEncoding =
+    SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid, hints.isFlipAxisOrder)
+
   /**
     * Simple feature used for returning from scans
     *
@@ -210,6 +216,10 @@ object ArrowScan extends LazyLogging {
     ) extends FeatureReducer {
 
     def this() = this(null, null, null, null, -1, null, false, true) // no-arg constructor required for serialization
+
+    def this(sft: SimpleFeatureType, hints: Hints, sorted: Boolean) =
+      this(sft, hints.getArrowDictionaryFields, getEncoding(hints), getIpcOpts(hints), getBatchSize(hints),
+        hints.getSortFields.map(_.head).orElse(hints.getArrowSort), sorted, hints.isArrowProcessDeltas)
 
     override def init(state: Map[String, String]): Unit = {
       sft = ReducerConfig.sft(state)

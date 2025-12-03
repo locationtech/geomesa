@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.security.Authorizations
-import org.geotools.api.data.Query
+import org.geotools.api.data.{Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
@@ -22,9 +22,9 @@ import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.index.z2.Z2Index
-import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -53,10 +53,10 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       sf.setAttributes(Array[AnyRef](s"name$i", "track3", s"2010-05-${i}T${i-10}:00:00.000Z", s"POINT(40 8${i - 20})"))
       sf
     }
-  addFeatures(features)
 
-  val queryPlanner = ds.queryPlanner
-  val output = ExplainNull
+  step {
+    addFeatures(features)
+  }
 
   "Z2IdxStrategy" should {
     "print values" in {
@@ -153,7 +153,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val qps = getQueryPlans(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val aggregates = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator()) { returnedFeatures =>
+      val aggregates = WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))) { returnedFeatures =>
         // the same simple feature gets reused - so make sure you access in serial order
         returnedFeatures.map(_.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
       }
@@ -179,7 +179,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val qps = getQueryPlans(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val aggregates = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator()) { returnedFeatures =>
+      val aggregates = WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))) { returnedFeatures =>
         // the same simple feature gets reused - so make sure you access in serial order
         returnedFeatures.map(_.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
       }
@@ -209,7 +209,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val qps = getQueryPlans(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val aggregates = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator()) { returnedFeatures =>
+      val aggregates = WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))) { returnedFeatures =>
         // the same simple feature gets reused - so make sure you access in serial order
         returnedFeatures.map(_.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
       }
@@ -228,7 +228,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val query = new Query(sftName, Filter.INCLUDE)
       query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
+      val results = WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)))(_.toList)
       results.length must beLessThan(30)
     }
 
@@ -236,7 +236,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val query = new Query(sftName, ECQL.toFilter("track = 'track1'"))
       query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
+      val results = WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)))(_.toList)
       results.length must beLessThan(10)
       forall(results)(_.getAttribute("track") mustEqual "track1")
     }
@@ -245,7 +245,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val query = new Query(sftName, Filter.INCLUDE, "name", "geom")
       query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
+      val results = WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)))(_.toList)
       results.length must beLessThan(30)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
@@ -254,7 +254,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), "name", "geom")
       query.getHints.put(SAMPLING, Float.box(.2f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
+      val results = WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)))(_.toList)
       results.length must beLessThan(10)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
@@ -264,7 +264,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(SAMPLE_BY, "track")
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
+      val results = WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)))(_.toList)
       results.length must beLessThan(30)
       results.count(_.getAttribute("track") == "track1") must beLessThan(10)
       results.count(_.getAttribute("track") == "track2") must beLessThan(10)
@@ -281,7 +281,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       query.getHints.put(QUERY_INDEX, Z2Index.name)
 
       // have to evaluate attributes before pulling into collection, as the same sf is reused
-      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList)
+      val results = WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)))(_.map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList)
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins.length must beLessThan(30)
@@ -289,17 +289,17 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
     }
   }
 
-  def execute(ecql: String, transforms: Option[Array[String]] = None, explain: Explainer = ExplainNull): Seq[SimpleFeature] = {
+  def execute(ecql: String, transforms: Option[Array[String]] = None): Seq[SimpleFeature] = {
     val query = transforms match {
       case None    => new Query(sftName, ECQL.toFilter(ecql))
       case Some(t) => new Query(sftName, ECQL.toFilter(ecql), t: _*)
     }
     query.getHints.put(QUERY_INDEX, Z2Index.name)
-    WithClose(queryPlanner.runQuery(sft, query, explain).iterator())(_.toList)
+    WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)))(_.toList)
   }
 
   def getQueryPlans(query: Query): Seq[AccumuloQueryPlan] = {
     query.getHints.put(QUERY_INDEX, Z2Index.name)
-    queryPlanner.planQuery(sft, query, output).asInstanceOf[Seq[AccumuloQueryPlan]]
+    ds.getQueryPlan(query)
   }
 }

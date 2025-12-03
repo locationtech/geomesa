@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.planning
 
+import io.micrometer.core.instrument.Tags
 import org.apache.arrow.vector.complex.StructVector
 import org.apache.arrow.vector.ipc.ArrowStreamReader
 import org.geotools.api.data.Query
@@ -17,7 +18,6 @@ import org.geotools.api.filter.sort.SortOrder
 import org.geotools.filter.SortByImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.ArrowAllocator
-import org.locationtech.geomesa.arrow.io.reader.StreamingSimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
@@ -51,8 +51,8 @@ class LocalQueryRunnerTest extends Specification {
   }
 
   val runner: LocalQueryRunner = new LocalQueryRunner(None) {
-    override protected val name: String = "test-runner"
     override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
+    override protected def tags(typeName: String): Tags = Tags.empty()
     override protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature] = {
       filter match {
         case None    => CloseableIterator(LocalQueryRunnerTest.this.features.iterator)
@@ -63,8 +63,8 @@ class LocalQueryRunnerTest extends Specification {
 
   // Designed to show when iteration throws exceptions.
   val failingRunner: LocalQueryRunner = new LocalQueryRunner(None) {
-    override protected val name: String = "test-runner"
     override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
+    override protected def tags(typeName: String): Tags = Tags.empty()
     override protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature] = {
       val iter = filter match {
         case None    => CloseableIterator(LocalQueryRunnerTest.this.features.iterator)
@@ -79,18 +79,14 @@ class LocalQueryRunnerTest extends Specification {
             throw new NoSuchElementException("No more elements!")
           }
         }
-
-        override def next(): SimpleFeature = {
-          internal.next()
-        }
-
+        override def next(): SimpleFeature = internal.next()
         override def close(): Unit = internal.close()
       }
     }
   }
 
   def runQuery(runner: QueryRunner, query: Query): Seq[SimpleFeature] =
-    WithClose(runner.runQuery(sft, query).iterator().map(ScalaSimpleFeature.copy))(_.toList)
+    WithClose(runner.query(sft, query).iterator().map(ScalaSimpleFeature.copy))(_.toList)
 
   "InMemoryQueryRunner" should {
     "not sort" in {

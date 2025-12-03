@@ -107,7 +107,7 @@ abstract class AbstractFileSystemStorage(
   override def getReader(original: Query, partition: Option[String], threads: Int): CloseableFeatureIterator = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val query = QueryRunner.configureDefaultQuery(metadata.sft, original)
+    val query = QueryRunner.configureQuery(metadata.sft, original)
     val transform = query.getHints.getTransform
     val filter = Option(query.getFilter).getOrElse(Filter.INCLUDE)
 

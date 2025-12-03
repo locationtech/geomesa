@@ -57,7 +57,7 @@ object SamplingIterator {
     import Configuration.{SampleByOpt, SampleOpt}
     val (percent, by) = sampling
     require(percent > 0 && percent < 1f, "Sampling must be a percentage between (0, 1)")
-    val nth = (1 / percent.toFloat).toInt
+    val nth = math.round(1 / percent)
     if (nth <= 1) { Map.empty } else {
       val sampleBy = by.map(sft.indexOf).collect {
         case i if i != -1 => SampleByOpt -> i.toString

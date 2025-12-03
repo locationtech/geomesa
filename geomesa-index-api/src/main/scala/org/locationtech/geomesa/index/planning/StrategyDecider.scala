@@ -16,8 +16,8 @@ import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.EmptyIndex
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
-import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
-import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
+import org.locationtech.geomesa.index.planning.StrategyDecider.CostEvaluation
+import org.locationtech.geomesa.index.planning.StrategyDecider.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -201,5 +201,10 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
       override def compareTo(o: FilterPlanCost): Int = java.lang.Long.compare(cost, o.cost)
       override def toString: String = s"$plan (Cost $cost in ${time}ms)"
     }
+  }
+
+  object CostEvaluation extends Enumeration {
+    type CostEvaluation = Value
+    val Stats, Index = Value
   }
 }

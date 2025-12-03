@@ -329,8 +329,7 @@ class RedisDataStoreClusterTest extends Specification with LazyLogging {
         ds.createSchema(sft)
         val explain = new ExplainString()
         ds.getQueryPlan(new Query(sft.getTypeName), explainer = explain) must not(throwAn[Exception])
-        // TODO GEOMESA-3035 remove this check when we implement a better work-around
-        explain.toString must contain("unserializable state=???")
+        explain.toString must contain("Plan: ZLexPlan")
       } finally {
         ds.dispose()
       }

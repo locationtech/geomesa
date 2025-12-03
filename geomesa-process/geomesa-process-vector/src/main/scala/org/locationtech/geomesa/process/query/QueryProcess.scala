@@ -18,8 +18,9 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
-import org.locationtech.geomesa.index.planning.QueryPlanner
+import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.process.{FeatureResult, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.process.GeoMesaProcess
 
@@ -65,15 +66,17 @@ class QueryProcess extends GeoMesaProcess with LazyLogging {
 class QueryVisitor(features: SimpleFeatureCollection, filter: Filter, properties: Array[String])
     extends GeoMesaProcessVisitor with LazyLogging {
 
+  import QueryHints.RichHints
+
   private val (sft, transformFeature) = if (properties == null) { (features.getSchema, null) } else {
     val original = features.getSchema
     val query = new Query(original.getTypeName, Filter.INCLUDE)
     if (properties != null) {
       query.setPropertyNames(properties: _*)
     }
-    QueryPlanner.extractQueryTransforms(original, query) match {
+    QueryRunner.configureQuery(original, query).getHints.getTransform match {
       case None => (original, null)
-      case Some((tsft, tdefs, _)) => (tsft, TransformSimpleFeature(tsft, tdefs))
+      case Some((tdefs, tsft)) => (tsft, TransformSimpleFeature(original, tsft, tdefs))
     }
   }
 

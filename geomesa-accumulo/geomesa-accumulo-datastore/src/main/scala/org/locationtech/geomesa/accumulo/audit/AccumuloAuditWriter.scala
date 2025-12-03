@@ -67,7 +67,7 @@ class AccumuloAuditWriter(
       user: String,
       filter: Filter,
       hints: Hints,
-      plans: Seq[QueryPlan[_]],
+      plans: Seq[QueryPlan],
       startTime: Long,
       endTime: Long,
       planTime: Long,

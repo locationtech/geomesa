@@ -29,8 +29,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.index.{EmptyIndex, NamedIndex}
-import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.index.utils.{ExplainNull, ExplainString}
+import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
@@ -410,8 +409,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val queryPlanner = new QueryPlanner(ds)
-      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList)
+      val results = WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)))(_.map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList)
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(2)

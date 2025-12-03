@@ -17,14 +17,14 @@ import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter, RequiredVisibilityWriter}
-import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
+import org.locationtech.geomesa.index.api.QueryPlan.QueryStrategyPlan
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, MetricsConfig}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalProcessorPlan}
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
@@ -87,7 +87,7 @@ object TestGeoMesaDataStore {
       }
     }
 
-    override def createQueryPlan(strategy: QueryStrategy): QueryPlan[TestGeoMesaDataStore] = {
+    override def createQueryPlan(strategy: QueryStrategy): QueryPlan = {
       import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter).flatMap(t => this.tables.get(t).map(t -> _))
@@ -98,13 +98,10 @@ object TestGeoMesaDataStore {
       val opts = if (strategy.index.serializedWithId) { SerializationOption.defaults } else { Set(SerializationOption.WithoutId) }
       val serializer = KryoFeatureSerializer(strategy.index.sft, opts)
       val ecql = strategy.ecql.map(FastFilterFactory.optimize(strategy.index.sft, _))
-      val transform = strategy.hints.getTransform
-      val reducer = Some(new LocalTransformReducer(strategy.index.sft, ecql, None, transform, strategy.hints))
-      val maxFeatures = strategy.hints.getMaxFeatures
-      val sort = strategy.hints.getSortFields
+      val processor = LocalProcessor(strategy.index.sft, strategy.hints, Some(ds.config.authProvider))
       val project = strategy.hints.getProjection
 
-      TestQueryPlan(strategy, tables.toMap, strategy.index.sft, serializer, ranges, reducer, ecql, sort, maxFeatures, project)
+      TestQueryPlan(ds, strategy, tables.toMap, strategy.index.sft, serializer, ranges, ecql, processor, project)
     }
 
     override def createWriter(
@@ -129,24 +126,21 @@ object TestGeoMesaDataStore {
   }
 
   case class TestQueryPlan(
+      ds: TestGeoMesaDataStore,
       strategy: QueryStrategy,
       tables: Map[String, SortedSet[SingleRowKeyValue[_]]],
       sft: SimpleFeatureType,
       serializer: SimpleFeatureSerializer,
       ranges: Seq[TestRange],
-      reducer: Option[FeatureReducer],
       ecql: Option[Filter],
-      sort: Option[Seq[(String, Boolean)]],
-      maxFeatures: Option[Int],
+      processor: LocalProcessor,
       projection: Option[QueryReferenceSystems]
-    ) extends QueryPlan[TestGeoMesaDataStore] {
+    ) extends QueryStrategyPlan with LocalProcessorPlan {
 
     override type Results = SimpleFeature
 
-    override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.identity(sft)
-
-    override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
-      strategy.runGuards(ds) // query guard hook - also handles full table scan checks
+    override def scan(): CloseableIterator[SimpleFeature] = {
+      ds.interceptors.runGuards(strategy) // query guard hook - also handles full table scan checks
 
       def contained(range: TestRange, row: Array[Byte]): Boolean =
         ByteArrays.ByteOrdering.compare(range.start, row) <= 0 &&
@@ -163,10 +157,11 @@ object TestGeoMesaDataStore {
           }
         }
       }
-      matches.iterator
+      val filtered = ecql.fold(matches)(f => matches.filter(f.evaluate))
+      processor(filtered.iterator)
     }
 
-    override def explain(explainer: Explainer, prefix: String): Unit = {
+    override def explain(explainer: Explainer): Unit = {
       explainer(s"tables: ${tables.keys.mkString(", ")}")
       explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
         s"[${r.start.map(ByteArrays.toHex).mkString(";")}::" +

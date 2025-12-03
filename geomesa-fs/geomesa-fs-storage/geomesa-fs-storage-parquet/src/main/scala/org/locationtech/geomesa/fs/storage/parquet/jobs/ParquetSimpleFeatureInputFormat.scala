@@ -69,7 +69,7 @@ object ParquetSimpleFeatureInputFormat {
     * @param query query
     */
   def configure(conf: Configuration, sft: SimpleFeatureType, query: Query): Unit = {
-    val q = QueryRunner.configureDefaultQuery(sft, query)
+    val q = QueryRunner.configureQuery(sft, query)
     val filter = Option(q.getFilter).filter(_ != Filter.INCLUDE)
 
     // Parquet read schema and final transform

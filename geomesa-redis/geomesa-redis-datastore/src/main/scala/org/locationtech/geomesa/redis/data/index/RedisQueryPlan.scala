@@ -9,12 +9,15 @@
 package org.locationtech.geomesa.redis.data
 package index
 
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.api.{BoundedByteRange, FilterStrategy, QueryPlan, QueryStrategy}
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
+import org.locationtech.geomesa.index.api.{BoundedByteRange, QueryStrategy}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalProcessorPlan}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
+import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.RedisResultsToFeatures
 import org.locationtech.geomesa.redis.data.util.RedisBatchScan
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -22,9 +25,9 @@ import redis.clients.jedis.{Jedis, Response, UnifiedJedis}
 
 import java.nio.charset.StandardCharsets
 
-sealed trait RedisQueryPlan extends QueryPlan[RedisDataStore] {
+sealed trait RedisQueryPlan extends QueryStrategyPlan {
 
-  override type Results = Array[Byte]
+  override type Results = SimpleFeature
 
   /**
     * Tables being scanned
@@ -40,28 +43,18 @@ sealed trait RedisQueryPlan extends QueryPlan[RedisDataStore] {
     */
   def ranges: Seq[BoundedByteRange]
 
-  /**
-    * Final filter applied to results
-    *
-    * @return
-    */
-  def ecql: Option[Filter]
+  override def explain(explainer: Explainer): Unit = RedisQueryPlan.explain(this, explainer)
 
-  override def explain(explainer: Explainer, prefix: String = ""): Unit =
-    RedisQueryPlan.explain(this, explainer, prefix)
-
-  // additional explaining, if any
-  protected def explain(explainer: Explainer): Unit = {}
+  protected def moreExplaining(explainer: Explainer): Unit = {}
 }
 
 object RedisQueryPlan {
 
-  def explain(plan: RedisQueryPlan, explainer: Explainer, prefix: String): Unit = {
-    explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getSimpleName}")
+  def explain(plan: RedisQueryPlan, explainer: Explainer): Unit = {
+    explainer.pushLevel(s"Plan: ${plan.getClass.getSimpleName}")
     explainer(s"Tables: ${plan.tables.mkString(", ")}")
-    explainer(s"ECQL: ${plan.ecql.fold("none")(FilterHelper.toString)}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
-    plan.explain(explainer)
+    plan.moreExplaining(explainer)
     explainer(s"Reduce: ${plan.reducer.getOrElse("none")}")
     explainer.popLevel()
   }
@@ -79,46 +72,50 @@ object RedisQueryPlan {
   case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends RedisQueryPlan {
     override val tables: Seq[String] = Seq.empty
     override val ranges: Seq[BoundedByteRange] = Seq.empty
-    override val ecql: Option[Filter] = None
-    override val resultsToFeatures: ResultsToFeatures[Array[Byte]] = ResultsToFeatures.empty
+    override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.empty
     override val sort: Option[Seq[(String, Boolean)]] = None
     override val maxFeatures: Option[Int] = None
     override val projection: Option[QueryReferenceSystems] = None
-    override def scan(ds: RedisDataStore): CloseableIterator[Array[Byte]] = CloseableIterator.empty
+    override def scan(): CloseableIterator[SimpleFeature] = CloseableIterator.empty
   }
 
   // uses zrangebylex
   case class ZLexPlan(
+      ds: RedisDataStore,
       strategy: QueryStrategy,
       tables: Seq[String],
       ranges: Seq[BoundedByteRange],
       pipeline: Boolean,
-      ecql: Option[Filter], // note: will already be applied in resultsToFeatures
-      resultsToFeatures: ResultsToFeatures[Array[Byte]],
-      reducer: Option[FeatureReducer],
-      sort: Option[Seq[(String, Boolean)]],
-      maxFeatures: Option[Int],
+      localFilter: Option[Filter],
+      processor: LocalProcessor,
       projection: Option[QueryReferenceSystems]
-    ) extends RedisQueryPlan {
+    ) extends RedisQueryPlan with LocalProcessorPlan {
 
     import scala.collection.JavaConverters._
 
-    override def scan(ds: RedisDataStore): CloseableIterator[Array[Byte]] = {
+    override def scan(): CloseableIterator[SimpleFeature] = {
       // query guard hook - also handles full table scan checks
-      strategy.runGuards(ds)
+      ds.interceptors.runGuards(strategy)
+      val toFeatures = new RedisResultsToFeatures(strategy.index, strategy.index.sft)
       val iter = tables.iterator.map(_.getBytes(StandardCharsets.UTF_8))
       val scans = iter.map(singleTableScan(ds, _))
-      if (ds.config.queries.parallelPartitionScans) {
-        // kick off all the scans at once
-        scans.foldLeft(CloseableIterator.empty[Array[Byte]])(_ concat _)
-      } else {
-        // kick off the scans sequentially as they finish
-        SelfClosingIterator(scans).flatMap(s => s)
-      }
+      val scanner =
+        if (ds.config.queries.parallelPartitionScans) {
+          // kick off all the scans at once
+          scans.foldLeft(CloseableIterator.empty[Array[Byte]])(_ concat _).map(toFeatures.apply)
+        } else {
+          // kick off the scans sequentially as they finish
+          SelfClosingIterator(scans).flatMap(s => s.map(toFeatures.apply))
+        }
+      val features = localFilter.fold(scanner)(f => scanner.filter(f.evaluate))
+      processor(features)
     }
 
-    override protected def explain(explainer: Explainer): Unit =
+    override def moreExplaining(explainer: Explainer): Unit = {
       explainer(s"Pipelining: ${if (pipeline) { "enabled" } else { "disabled" }}")
+      explainer(s"Client-side filter: ${localFilter.fold("none")(FilterHelper.toString)}")
+      processor.explain(explainer)
+    }
 
     private def singleTableScan(ds: RedisDataStore, table: Array[Byte]): CloseableIterator[Array[Byte]] = {
       if (pipeline) {

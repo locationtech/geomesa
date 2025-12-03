@@ -49,8 +49,7 @@ object StatsScan {
   val StatsSft: SimpleFeatureType = SimpleFeatureTypes.createType("stats:stats", "stats:String,geom:Geometry")
 
   object Configuration {
-    val STATS_STRING_KEY       = "geomesa.stats.string"
-    val STATS_FEATURE_TYPE_KEY = "geomesa.stats.featuretype"
+    val STATS_STRING_KEY = "geomesa.stats.string"
   }
 
   def configure(sft: SimpleFeatureType,

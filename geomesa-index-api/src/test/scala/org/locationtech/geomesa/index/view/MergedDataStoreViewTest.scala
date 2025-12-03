@@ -13,11 +13,13 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.mockito.ArgumentMatchers
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -27,7 +29,9 @@ import scala.collection.mutable.ArrayBuffer
 @RunWith(classOf[JUnitRunner])
 class MergedDataStoreViewTest extends Specification with Mockito {
 
-  import org.locationtech.geomesa.filter.andFilters
+  import org.locationtech.geomesa.filter.{andFilters, decomposeAnd}
+
+  import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createImmutableType("test",
     "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg=dtg")
@@ -51,14 +55,21 @@ class MergedDataStoreViewTest extends Specification with Mockito {
     store -> Some(filter)
   }
 
+  // standardizes filters so that comparisons work as expected for non-equals but equivalent values
+  def compareFilters(actual: Filter, expected: Filter): MatchResult[_] = {
+    decomposeAnd(FastFilterFactory.optimize(sft, actual)) must
+      containTheSameElementsAs(decomposeAnd(FastFilterFactory.optimize(sft, expected)) )
+  }
+
   "MergedDataStoreView" should {
     "pass through INCLUDE filters" in {
       val stores = this.stores()
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
       WithClose(view.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))(_.hasNext)
       foreach(stores) { case (store, Some(filter)) =>
-        val query = new Query(sft.getTypeName, filter)
-        there was one(store).getFeatureReader(query, Transaction.AUTO_COMMIT)
+        val captor = ArgumentCaptor.forClass(classOf[Query])
+        there was one(store).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
+        captor.getValue.getFilter mustEqual filter
       }
     }
 
@@ -66,12 +77,15 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       val stores = this.stores()
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 
-      val noDates = Seq("IN ('1', '2')", "foo = 'bar'", "age = 21", "bbox(geom,120,45,130,55)")
-      foreach(noDates.map(ECQL.toFilter)) { f =>
+      val noDates = Seq("IN ('1', '2')", "name = 'bar'", "age = 21", "bbox(geom,120,45,130,55)").map(ECQL.toFilter)
+      noDates.foreach { f =>
         WithClose(view.getFeatureReader(new Query(sft.getTypeName, f), Transaction.AUTO_COMMIT))(_.hasNext)
-        foreach(stores) { case (store, Some(filter)) =>
-          val query = new Query(sft.getTypeName, andFilters(Seq(filter, f)))
-          there was one(store).getFeatureReader(query, Transaction.AUTO_COMMIT)
+      }
+      foreach(stores) { case (store, Some(filter)) =>
+        val captor = ArgumentCaptor.forClass(classOf[Query])
+        there was noDates.size.times(store).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
+        foreach(captor.getAllValues.asScala.map(_.getFilter).zip(noDates)) { case (actual, expected) =>
+          compareFilters(actual, andFilters(Seq(filter, expected)))
         }
       }
     }
@@ -80,17 +94,18 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       val stores = this.stores()
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 
-      val before = Seq("dtg during 2022-02-01T00:00:00.000Z/2022-02-01T12:00:00.000Z and name = 'alice'")
-      foreach(before.map(ECQL.toFilter)) { f =>
-        WithClose(view.getFeatureReader(new Query(sft.getTypeName, f), Transaction.AUTO_COMMIT))(_.hasNext)
-        foreach(stores.take(1)) { case (store, Some(filter)) =>
-          val query = new Query(sft.getTypeName, andFilters(Seq(f, filter)))
-          there was one(store).getFeatureReader(query, Transaction.AUTO_COMMIT)
-        }
-        foreach(stores.drop(1)) { case (store, _) =>
-          val query = new Query(sft.getTypeName, Filter.EXCLUDE)
-          there was one(store).getFeatureReader(query, Transaction.AUTO_COMMIT)
-        }
+      val before = ECQL.toFilter("dtg during 2022-02-01T00:00:00.000Z/2022-02-01T12:00:00.000Z and name = 'alice'")
+      WithClose(view.getFeatureReader(new Query(sft.getTypeName, before), Transaction.AUTO_COMMIT))(_.hasNext)
+      foreach(stores.take(1)) { case (store, Some(filter)) =>
+        val captor = ArgumentCaptor.forClass(classOf[Query])
+        there was one(store).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
+        decomposeAnd(FastFilterFactory.optimize(sft, captor.getValue.getFilter)) must
+          containTheSameElementsAs(decomposeAnd(FastFilterFactory.optimize(sft, andFilters(Seq(before, filter)))))
+      }
+      foreach(stores.drop(1)) { case (store, _) =>
+        val captor = ArgumentCaptor.forClass(classOf[Query])
+        there was one(store).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
+        captor.getValue.getFilter mustEqual Filter.EXCLUDE
       }
     }
 
@@ -98,17 +113,17 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       val stores = this.stores()
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 
-      val after = Seq("dtg during 2022-02-04T00:00:00.000Z/2022-02-04T12:00:00.000Z and name = 'alice'")
-      foreach(after.map(ECQL.toFilter)) { f =>
-        WithClose(view.getFeatureReader(new Query(sft.getTypeName, f), Transaction.AUTO_COMMIT))(_.hasNext)
-        foreach(stores.take(2)) { case (store, _) =>
-          val query = new Query(sft.getTypeName, Filter.EXCLUDE)
-          there was one(store).getFeatureReader(query, Transaction.AUTO_COMMIT)
-        }
-        foreach(stores.drop(2)) { case (store, Some(filter)) =>
-          val query = new Query(sft.getTypeName, andFilters(Seq(f, filter)))
-          there was one(store).getFeatureReader(query, Transaction.AUTO_COMMIT)
-        }
+      val after = ECQL.toFilter("dtg during 2022-02-04T00:00:00.000Z/2022-02-04T12:00:00.000Z and name = 'alice'")
+      WithClose(view.getFeatureReader(new Query(sft.getTypeName, after), Transaction.AUTO_COMMIT))(_.hasNext)
+      foreach(stores.take(2)) { case (store, _) =>
+        val captor = ArgumentCaptor.forClass(classOf[Query])
+        there was one(store).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
+        captor.getValue.getFilter mustEqual Filter.EXCLUDE
+      }
+      foreach(stores.drop(2)) { case (store, Some(filter)) =>
+        val captor = ArgumentCaptor.forClass(classOf[Query])
+        there was one(store).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
+        compareFilters(captor.getValue.getFilter, andFilters(Seq(after, filter)))
       }
     }
 
@@ -116,13 +131,12 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       val stores = this.stores()
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 
-      val after = Seq("dtg during 2022-02-01T00:00:00.000Z/2022-02-04T12:00:00.000Z and name = 'alice'")
-      foreach(after.map(ECQL.toFilter)) { f =>
-        WithClose(view.getFeatureReader(new Query(sft.getTypeName, f), Transaction.AUTO_COMMIT))(_.hasNext)
-        foreach(stores) { case (store, Some(filter)) =>
-          val query = new Query(sft.getTypeName, andFilters(Seq(f, filter)))
-          there was one(store).getFeatureReader(query, Transaction.AUTO_COMMIT)
-        }
+      val after = ECQL.toFilter("dtg during 2022-02-01T00:00:00.000Z/2022-02-04T12:00:00.000Z and name = 'alice'")
+      WithClose(view.getFeatureReader(new Query(sft.getTypeName, after), Transaction.AUTO_COMMIT))(_.hasNext)
+      foreach(stores) { case (store, Some(filter)) =>
+        val captor = ArgumentCaptor.forClass(classOf[Query])
+        there was one(store).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
+        compareFilters(captor.getValue.getFilter, andFilters(Seq(after, filter)))
       }
     }
 

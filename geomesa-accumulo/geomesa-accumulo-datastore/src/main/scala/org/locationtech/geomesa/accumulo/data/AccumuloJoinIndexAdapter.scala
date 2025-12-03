@@ -31,7 +31,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode, VisibilityLevel}
 
@@ -46,19 +46,21 @@ object AccumuloJoinIndexAdapter {
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   /**
-    * Create a query plan against a join index - if possible, will use the reduced index-values to scan
-    * the single table, otherwise will require a join against the id index
-    *
-    * @param filter filter strategy
-    * @param tables tables to scan
-    * @param ranges ranges to scan
-    * @param colFamily column family to scan, optional
-    * @param schema simple feature schema being scanned
-    * @param ecql secondary push-down predicates
-    * @param hints query hints
-    * @param numThreads query threads
-    * @return
-    */
+   * Create a query plan against a join index - if possible, will use the reduced index-values to scan
+   * the single table, otherwise will require a join against the id index
+   *
+   * @param ds data store
+   * @param index index
+   * @param strategy query strategy
+   * @param tables tables to scan
+   * @param ranges ranges to scan
+   * @param colFamily column family to scan, optional
+   * @param schema simple feature schema being scanned
+   * @param ecql secondary push-down predicates
+   * @param hints query hints
+   * @param numThreads query threads
+   * @return
+   */
   def createQueryPlan(
       ds: AccumuloDataStore,
       index: AttributeJoinIndex,
@@ -85,20 +87,15 @@ object AccumuloJoinIndexAdapter {
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
-      BatchScanPlan(strategy, tables, ranges, iterators, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads)
+      BatchScanPlan(ds, strategy, tables, ranges, iterators, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads)
     }
 
     // used when remote processing is disabled
-    def localPlan(overrides: Option[Seq[IteratorSetting]] = None): BatchScanPlan = {
-      val returnSchema = transform.getOrElse(indexSft)
-      if (hints.isSkipReduce) {
-        // override the return sft to reflect what we're actually returning,
-        // since the bin sft is only created in the local reduce step
-        hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
-      }
-      val iters = overrides.getOrElse(FilterTransformIterator.configure(indexSft, index, ecql, hints).toSeq)
-      val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
-      plan(iters, AccumuloResultsToFeatures(index, returnSchema), localReducer)
+    def localPlan(overrides: Option[Seq[IteratorSetting]] = None): BatchScanLocalProcessorPlan = {
+      val iters = visibilityIter(index) ++ overrides.getOrElse(FilterTransformIterator.configure(indexSft, index, ecql, hints).toSeq)
+      val processor = LocalProcessor(transform.getOrElse(indexSft), QueryHints.Internal.clearTransforms(hints), None)
+      val projection = hints.getProjection
+      BatchScanLocalProcessorPlan(ds, strategy, tables, ranges, iters, colFamily, processor, projection, numThreads)
     }
 
     val qp = if (hints.isBinQuery) {
@@ -272,13 +269,9 @@ object AccumuloJoinIndexAdapter {
         Seq(KryoVisibilityRowEncoder.configure(recordSchema)) ++ recordIter
       }
     }
-    val toFeatures = AccumuloResultsToFeatures(recordIndex, resultSft)
-    val reducer = new LocalTransformReducer(resultSft, None, None, None, hints)
-    if (hints.isSkipReduce) {
-      // override the return sft to reflect what we're actually returning,
-      // since the arrow sft is only created in the local reduce step
-      hints.put(QueryHints.Internal.RETURN_SFT, resultSft)
-    }
+    val recordToFeatures = AccumuloResultsToFeatures(recordIndex, resultSft)
+    // transforms are handled by the recordIter
+    val processor = LocalProcessor(resultSft, QueryHints.Internal.clearTransforms(hints), None)
 
     val recordTables = recordIndex.getTablesForQuery(strategy.filter.filter)
     val recordThreads = ds.config.queries.recordThreads
@@ -294,13 +287,15 @@ object AccumuloJoinIndexAdapter {
       }
     }
 
-    val joinQuery = BatchScanPlan(strategy, recordTables, Seq.empty, recordIterators, recordColFamily, toFeatures,
-      Some(reducer), hints.getSortFields, hints.getMaxFeatures, hints.getProjection, recordThreads)
+    val joinQuery =
+      BatchScanPlan(ds, strategy, recordTables, Seq.empty, recordIterators, recordColFamily, recordToFeatures,
+        None, None, None, None, recordThreads)
 
     val attributeIters = visibilityIter(index) ++
         FilterTransformIterator.configure(index.indexSft, index, stFilter, None, hints.getSampling).toSeq
 
-    JoinPlan(strategy, tables, ranges, attributeIters, colFamily, recordThreads, joinFunction, joinQuery)
+    JoinPlan(ds, strategy, tables, ranges, attributeIters, colFamily, recordThreads, joinFunction, joinQuery,
+      processor, hints.getProjection)
   }
 
   private def visibilityIter(index: AttributeJoinIndex): Seq[IteratorSetting] = {

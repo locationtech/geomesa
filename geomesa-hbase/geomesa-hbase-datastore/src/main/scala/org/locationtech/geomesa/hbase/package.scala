@@ -34,7 +34,7 @@ package object hbase {
     val MaxRangesPerExtendedScanProperty   : SystemProperty = SystemProperty("geomesa.hbase.ranges.max-per-extended-scan", "100")
     val MaxRangesPerCoprocessorScanProperty: SystemProperty = SystemProperty("geomesa.hbase.ranges.max-per-coprocessor-scan", Int.MaxValue.toString)
 
-    @deprecated("Use coprocessor url")
-    val CoprocessorPath: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.path")
+    // deprecated coprocessor path prop
+    private[hbase] val CoprocessorPath: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.path")
   }
 }

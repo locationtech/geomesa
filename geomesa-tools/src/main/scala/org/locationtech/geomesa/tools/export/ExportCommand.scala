@@ -316,7 +316,7 @@ object ExportCommand extends LazyLogging {
     logger.debug(s"Applying CQL filter ${ECQL.toCQL(filter)}")
     logger.debug(s"Applying transform ${Option(attributes).map(_.mkString(",")).orNull}")
 
-    QueryRunner.configureDefaultQuery(sft, query)
+    QueryRunner.configureQuery(sft, query)
   }
 
   /**

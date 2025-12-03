@@ -16,7 +16,8 @@ import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.cassandra.ColumnSelect
-import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.{CassandraIndexWriter, CassandraResultsToFeatures}
+import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.CassandraIndexWriter
+import org.locationtech.geomesa.cassandra.data.CassandraQueryPlan.{EmptyPlan, StatementPlan}
 import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper
 import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper.{FeatureIdColumnName, SimpleFeatureColumnName}
 import org.locationtech.geomesa.features.SerializationOption
@@ -25,7 +26,7 @@ import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, Require
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.ByteArrays
 
@@ -84,21 +85,19 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
   override def createQueryPlan(strategy: QueryStrategy): CassandraQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val hints = strategy.hints
-    val reducer = Some(new LocalTransformReducer(strategy.index.sft, strategy.ecql, None, hints.getTransform, hints))
+    val processor = LocalProcessor(strategy.index.sft, strategy.hints, Some(ds.config.authProvider))
 
-    if (strategy.keyRanges.isEmpty) { EmptyPlan(strategy, reducer) } else {
+    val hints = strategy.hints
+
+    if (strategy.keyRanges.isEmpty) { EmptyPlan(strategy, processor.reducer) } else {
       val mapper = CassandraColumnMapper(strategy.index)
       val ranges = strategy.keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ks = ds.session.getLoggedKeyspace
       val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))
-      val rowsToFeatures = new CassandraResultsToFeatures(strategy.index, strategy.index.sft)
       val threads = ds.config.queries.threads
-      val sort = hints.getSortFields
-      val max = hints.getMaxFeatures
       val project = hints.getProjection
-      StatementPlan(strategy, tables, statements, threads, strategy.ecql, rowsToFeatures, reducer, sort, max, project)
+      StatementPlan(ds, strategy, tables, statements, threads, strategy.ecql, processor, project)
     }
   }
 

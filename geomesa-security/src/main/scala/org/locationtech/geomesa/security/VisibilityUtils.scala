@@ -24,24 +24,7 @@ object VisibilityUtils {
    * @param provider auth provider
    * @return
    */
-  def visible(provider: Option[AuthorizationsProvider]): IsVisible = {
-    provider match {
-      case None    => noAuthVisibilityCheck
-      case Some(p) => new AuthVisibilityCheck(p.getAuthorizations)
-    }
-  }
-
-  /**
-   * Used when we don't have an auth provider - any visibilities in the feature will
-   * cause the check to fail, so we can skip parsing
-   *
-   * @param f simple feature to check
-   * @return true if feature is visible without any authorizations, otherwise false
-   */
-  private def noAuthVisibilityCheck(f: SimpleFeature): Boolean = {
-    val vis = SecurityUtils.getVisibility(f)
-    vis == null || vis.isEmpty
-  }
+  def visible(provider: AuthorizationsProvider): IsVisible = new AuthVisibilityCheck(provider.getAuthorizations)
 
   /**
    * Parses any visibilities in the feature and compares with the user's authorizations

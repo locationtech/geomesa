@@ -13,13 +13,15 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * Class for gathering timing metrics on an iterator
+ * Class for gathering a count for an iterator
  *
- * @param delegate iterator to time
- * @param callback timer callback, will be passed nanoseconds spent running the iterator
+ * @param delegate iterator to count
+ * @param counter counting function
+ * @param callback count callback
  * @tparam T type binding of iterator
  */
-class TimedIterator[T](delegate: CloseableIterator[T], callback: Long => Unit) extends CloseableIterator[T] {
+class CountingIterator[T](delegate: CloseableIterator[T], counter: T => Int, callback: Long => Unit)
+    extends CloseableIterator[T] {
 
   private var total = 0L
 
@@ -31,34 +33,22 @@ class TimedIterator[T](delegate: CloseableIterator[T], callback: Long => Unit) e
    * @param callback callback to be executed when iterator is closed, will be passed nanoseconds spent running the iterator
    * @return this iterator, for method chaining
    */
-  def addCallback(callback: Long => Unit): TimedIterator[T] = {
+  def addCallback(callback: Long => Unit): CountingIterator[T] = {
     callbacks += callback
     this
   }
 
-  override def hasNext: Boolean = {
-    val start = System.nanoTime()
-    try { delegate.hasNext } finally {
-      total += (System.nanoTime() - start)
-    }
-  }
+  override def hasNext: Boolean = delegate.hasNext
 
   override def next(): T = {
-    val start = System.nanoTime()
-    try { delegate.next() } finally {
-      total += (System.nanoTime() - start)
-    }
+    val result = delegate.next()
+    total += counter(result)
+    result
   }
 
   override def close(): Unit = {
-    val start = System.nanoTime()
     try { delegate.close() } finally {
-      total += (System.nanoTime() - start)
       callbacks.foreach(_.apply(total))
     }
   }
-}
-
-object TimedIterator {
-  def empty[T](): TimedIterator[T] = new TimedIterator(CloseableIterator.empty, _ => ())
 }

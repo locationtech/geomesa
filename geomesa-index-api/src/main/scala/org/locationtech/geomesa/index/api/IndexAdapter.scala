@@ -27,7 +27,7 @@ import scala.util.control.NonFatal
   */
 trait IndexAdapter[DS <: GeoMesaDataStore[DS]] {
 
-  val groups: ColumnGroups = new ColumnGroups
+  val groups: ColumnGroups = new ColumnGroups()
 
   val tableNameLimit: Option[Int] = None
 
@@ -83,7 +83,7 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS]] {
     * @param strategy strategy
     * @return
     */
-  def createQueryPlan(strategy: QueryStrategy): QueryPlan[DS]
+  def createQueryPlan(strategy: QueryStrategy): QueryPlan
 
   /**
    * Gets the cost of running a filter strategy, if possible. The exact values returned do not matter, as long as they

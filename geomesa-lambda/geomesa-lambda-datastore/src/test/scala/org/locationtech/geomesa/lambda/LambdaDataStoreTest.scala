@@ -13,7 +13,6 @@ import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.data.DataUtilities
-import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -174,19 +173,6 @@ class LambdaDataStoreTest extends LambdaContainerTest {
             testBin(ds)
             testArrow(ds)
             testStats(ds)
-
-            // test query_persistent/query_transient hints
-            forall(Seq((features.take(1), QueryHints.LAMBDA_QUERY_TRANSIENT, "LAMBDA_QUERY_TRANSIENT"),
-              (features.drop(1), QueryHints.LAMBDA_QUERY_PERSISTENT, "LAMBDA_QUERY_PERSISTENT"))) {
-              case (feature, hint, string) =>
-                val hints = Seq((hint, java.lang.Boolean.FALSE),
-                  (Hints.VIRTUAL_TABLE_PARAMETERS, Map(string -> "false").asJava))
-                forall(hints) { case (k, v) =>
-                  val query = new Query(sft.getTypeName)
-                  query.getHints.put(k, v)
-                  SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq mustEqual feature
-                }
-            }
 
             // persist both features to the long-term storage
             clock.tick = 151

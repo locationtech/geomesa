@@ -209,4 +209,21 @@ object BinAggregatingScan {
 
     override def hashCode(): Int = schema.hashCode()
   }
+
+  /**
+   * Feature counter for BIN results
+   */
+  object BinCounter {
+
+    def apply(hints: Hints): SimpleFeature => Int =
+      if (hints.getBinLabelField.isDefined) { BinWithLabelCounter } else { BinNoLabelCounter }
+
+    private object BinNoLabelCounter extends (SimpleFeature => Int) {
+      override def apply(f: SimpleFeature): Int = f.getAttribute(0).asInstanceOf[Array[Byte]].length / 16
+    }
+
+    private object BinWithLabelCounter extends (SimpleFeature => Int) {
+      override def apply(f: SimpleFeature): Int = f.getAttribute(0).asInstanceOf[Array[Byte]].length / 24
+    }
+  }
 }

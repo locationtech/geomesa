@@ -11,7 +11,6 @@ package org.locationtech.geomesa.index
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.{FilterHelper, andOption}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -225,16 +224,6 @@ package object api {
       values: Option[_]) {
     def index: GeoMesaFeatureIndex[_, _] = filter.index
     def hints: Hints = filter.hints
-
-    /**
-     * Runs any configured query guards, throwing any exceptions raised
-     *
-     * @param ds data store
-     * @tparam DS data store type
-     */
-    @throws[IllegalArgumentException]
-    def runGuards[DS <: GeoMesaDataStore[DS]](ds: DS): Unit =
-      ds.interceptors(filter.index.sft).foreach(_.guard(this).foreach(e => throw e))
   }
 
   /**

@@ -11,7 +11,6 @@ package org.locationtech.geomesa.index.api
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
@@ -25,10 +24,8 @@ import scala.util.Try
 
 /**
   * Plan for querying a GeoMesaDataStore
-  *
-  * @tparam DS type of this data store
   */
-trait QueryPlan[DS <: GeoMesaDataStore[DS]] {
+trait QueryPlan {
 
   /**
     * Type of raw results returned from the underlying database
@@ -36,26 +33,11 @@ trait QueryPlan[DS <: GeoMesaDataStore[DS]] {
   type Results
 
   /**
-    * Reference back to the query strategy
-    *
-    * @return
-    */
-  def strategy: QueryStrategy
-
-  /**
-   * Reference back to the filter strategy
-   *
-   * @return
-   */
-  def filter: FilterStrategy = strategy.filter
-
-  /**
     * Runs the query plan against the underlying database
     *
-    * @param ds data store - provides connection object and metadata
     * @return
     */
-  def scan(ds: DS): CloseableIterator[Results]
+  def scan(): CloseableIterator[Results]
 
   /**
     * Transform results coming back from a raw scan into features
@@ -96,12 +78,19 @@ trait QueryPlan[DS <: GeoMesaDataStore[DS]] {
     * Explains details on how this query plan will be executed
     *
     * @param explainer explainer to use for explanation
-    * @param prefix prefix for explanation lines, used for nesting explanations
     */
-  def explain(explainer: Explainer, prefix: String = ""): Unit
+  def explain(explainer: Explainer): Unit
 }
 
 object QueryPlan {
+
+  /**
+   * Query plan that uses a query strategy
+   */
+  trait QueryStrategyPlan extends QueryPlan {
+    def strategy: QueryStrategy
+    def filter: FilterStrategy = strategy.filter
+  }
 
   /**
     * Convert scan results to simple features. Must have a zero-arg constructor to allow re-creation from

@@ -12,7 +12,7 @@ import org.geotools.api.data.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
+import org.locationtech.geomesa.index.planning.StrategyDecider.CostEvaluation
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification

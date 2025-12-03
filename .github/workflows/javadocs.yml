@@ -79,21 +79,3 @@ jobs:
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
-  validate-ci:
-    # validates that we haven't missed any projects in our build matrix
-    name: validate-ci
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-      - name: Validate project list
-        run: |
-          while IFS= read -r -d '' pom; do
-            grep -q 'packaging>pom' "$pom" || {
-              module="${pom%/pom.xml}"
-              module="${module#./}"
-              echo "Checking $module"
-              yq -e '.jobs.javadocs.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/javadocs.yml >/dev/null 2>&1 || exit 1
-            }
-          done < <(find . -name pom.xml -print0)
-          echo "done"

@@ -9,75 +9,77 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import com.datastax.driver.core.{Row, Statement}
+import com.datastax.driver.core.Statement
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.CassandraResultsToFeatures
 import org.locationtech.geomesa.cassandra.utils.CassandraBatchScan
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.api.{QueryPlan, QueryStrategy}
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
+import org.locationtech.geomesa.index.api.QueryStrategy
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalProcessorPlan}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
-sealed trait CassandraQueryPlan extends QueryPlan[CassandraDataStore] {
+sealed trait CassandraQueryPlan extends QueryStrategyPlan {
 
-  override type Results = Row
+  override type Results = SimpleFeature
 
   def tables: Seq[String]
   def ranges: Seq[Statement]
   def numThreads: Int
 
-  /**
-    * Note: filter is applied in entriesToFeatures, this is just for explain logging
-    * @return
-    */
-  def clientSideFilter: Option[Filter]
+  override def explain(explainer: Explainer): Unit = {
+    explainer.pushLevel(s"Plan: ${getClass.getName}")
+    explainer(s"Tables: ${tables.mkString(", ")}")
+    explainer(s"Ranges (${ranges.size}): ${ranges.take(5).map(_.toString).mkString(", ")}")
+    moreExplaining(explainer)
+    explainer(s"Reduce: ${reducer.getOrElse("none")}")
+    explainer.popLevel()
+  }
 
-  override def explain(explainer: Explainer, prefix: String): Unit =
-    CassandraQueryPlan.explain(this, explainer, prefix)
+  protected def moreExplaining(explainer: Explainer): Unit = {}
 }
 
 object CassandraQueryPlan {
-  def explain(plan: CassandraQueryPlan, explainer: Explainer, prefix: String): Unit = {
-    explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
-    explainer(s"Tables: ${plan.tables.mkString(", ")}")
-    explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(_.toString).mkString(", ")}")
-    explainer(s"Client-side filter: ${plan.clientSideFilter.fold("none")(FilterHelper.toString)}")
-    explainer(s"Reduce: ${plan.reducer.getOrElse("none")}")
-    explainer.popLevel()
+
+  // plan that will not actually scan anything
+  case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends CassandraQueryPlan {
+    override val tables: Seq[String] = Seq.empty
+    override val ranges: Seq[Statement] = Seq.empty
+    override val numThreads: Int = 0
+    override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.empty
+    override val sort: Option[Seq[(String, Boolean)]] = None
+    override val maxFeatures: Option[Int] = None
+    override val projection: Option[QueryReferenceSystems] = None
+    override def scan(): CloseableIterator[SimpleFeature] = CloseableIterator.empty
   }
-}
 
-// plan that will not actually scan anything
-case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends CassandraQueryPlan {
-  override val tables: Seq[String] = Seq.empty
-  override val ranges: Seq[Statement] = Seq.empty
-  override val numThreads: Int = 0
-  override val clientSideFilter: Option[Filter] = None
-  override val resultsToFeatures: ResultsToFeatures[Row] = ResultsToFeatures.empty
-  override val sort: Option[Seq[(String, Boolean)]] = None
-  override val maxFeatures: Option[Int] = None
-  override val projection: Option[QueryReferenceSystems] = None
-  override def scan(ds: CassandraDataStore): CloseableIterator[Row] = CloseableIterator.empty
-}
+  case class StatementPlan(
+      ds: CassandraDataStore,
+      strategy: QueryStrategy,
+      tables: Seq[String],
+      ranges: Seq[Statement],
+      numThreads: Int,
+      localFilter: Option[Filter],
+      processor: LocalProcessor,
+      projection: Option[QueryReferenceSystems]
+    ) extends CassandraQueryPlan with LocalProcessorPlan {
 
-case class StatementPlan(
-    strategy: QueryStrategy,
-    tables: Seq[String],
-    ranges: Seq[Statement],
-    numThreads: Int,
-    // note: filter is applied in entriesToFeatures, this is just for explain logging
-    clientSideFilter: Option[Filter],
-    resultsToFeatures: ResultsToFeatures[Row],
-    reducer: Option[FeatureReducer],
-    sort: Option[Seq[(String, Boolean)]],
-    maxFeatures: Option[Int],
-    projection: Option[QueryReferenceSystems]
-  ) extends CassandraQueryPlan {
+    override def scan(): CloseableIterator[SimpleFeature] = {
+      ds.interceptors.runGuards(strategy) // query guard hook - also handles full table scan checks
+      val timeout = ds.config.queries.timeout.map(Timeout.apply)
+      val toFeatures = new CassandraResultsToFeatures(strategy.index, strategy.index.sft)
+      val scanner = CassandraBatchScan(this, ds.session, ranges, numThreads, timeout).map(toFeatures.apply)
+      val features = localFilter.fold(scanner)(f => scanner.filter(f.evaluate))
+      processor(features)
+    }
 
-  override def scan(ds: CassandraDataStore): CloseableIterator[Row] = {
-    strategy.runGuards(ds) // query guard hook - also handles full table scan checks
-    CassandraBatchScan(this, ds.session, ranges, numThreads, ds.config.queries.timeout.map(Timeout.apply))
+    override protected def moreExplaining(explainer: Explainer): Unit = {
+      explainer(s"Client-side filter: ${localFilter.fold("none")(FilterHelper.toString)}")
+      processor.explain(explainer)
+    }
   }
 }

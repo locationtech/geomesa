@@ -66,7 +66,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     val ReadFilter(fc, residualFilter) = ReadFilter(readSft, filter)
     val parquetFilter = fc.map(FilterCompat.get).getOrElse(FilterCompat.NOOP)
     val gtFilter = residualFilter.map(FastFilterFactory.optimize(readSft, _))
-    val visFilter = VisibilityUtils.visible(Some(authProvider))
+    val visFilter = VisibilityUtils.visible(authProvider)
 
     logger.debug(
       s"Parquet filter: ${parquetFilter match { case f: FilterPredicateCompat => f.getFilterPredicate; case f => f }} " +

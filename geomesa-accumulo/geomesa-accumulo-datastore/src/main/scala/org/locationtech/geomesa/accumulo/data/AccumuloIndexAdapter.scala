@@ -10,13 +10,14 @@ package org.locationtech.geomesa.accumulo.data
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.apache.hadoop.io.Text
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.accumulo.AccumuloProperties.TableProperties.TableCacheExpiry
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter._
-import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan}
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanLocalProcessorPlan, BatchScanPlan, EmptyPlan}
 import org.locationtech.geomesa.accumulo.data.writer.tx.AccumuloAtomicIndexWriter
 import org.locationtech.geomesa.accumulo.data.writer.{AccumuloIndexWriter, ColumnFamilyMapper}
 import org.locationtech.geomesa.accumulo.index.AttributeJoinIndex
@@ -27,16 +28,12 @@ import org.locationtech.geomesa.accumulo.iterators.StatsIterator.AccumuloStatsRe
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.util.TableManager
 import org.locationtech.geomesa.index.api.IndexAdapter.{IndexWriter, RequiredVisibilityWriter}
-import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, IndexResultsToFeatures, ResultsToFeatures}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.index.s2.{S2Index, S2IndexValues}
-import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
-import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
-import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
@@ -173,108 +170,75 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
       val (cf, s) = groups.group(index.sft, hints.getTransformDefinition, ecql)
       (Some(new Text(ColumnFamilyMapper(index)(cf))), s)
     }
-    // used when remote processing is disabled
     lazy val returnSchema = hints.getTransformSchema.getOrElse(schema)
-    lazy val fti = FilterTransformIterator.configure(schema, index, ecql, hints).toSeq
-    lazy val resultsToFeatures = AccumuloResultsToFeatures(index, returnSchema)
-    lazy val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
+    lazy val fti = FilterTransformIterator.configure(schema, index, ecql, hints)
 
     index match {
       case i: AttributeJoinIndex =>
         AccumuloJoinIndexAdapter.createQueryPlan(ds, i, strategy, tables, ranges, colFamily, schema, ecql, hints, numThreads)
 
       case _ =>
-        val (iter, eToF, reduce) = if (hints.isBinQuery) {
-          if (ds.config.remote.bin) {
-            val iter = BinAggregatingIterator.configure(schema, index, ecql, hints)
-            (Seq(iter), new AccumuloBinResultsToFeatures(), None)
-          } else {
-            if (hints.isSkipReduce) {
-              // override the return sft to reflect what we're actually returning,
-              // since the bin sft is only created in the local reduce step
-              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
-            }
-            (fti, resultsToFeatures, localReducer)
-          }
-        } else if (hints.isArrowQuery) {
-          if (ds.config.remote.arrow) {
-            val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, strategy.filter.filter, ecql, hints)
-            (Seq(iter), new AccumuloArrowResultsToFeatures(), Some(reduce))
-          } else {
-            if (hints.isSkipReduce) {
-              // override the return sft to reflect what we're actually returning,
-              // since the arrow sft is only created in the local reduce step
-              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
-            }
-            (fti, resultsToFeatures, localReducer)
-          }
-        } else if (hints.isDensityQuery) {
-          if (ds.config.remote.density) {
-            val iter = DensityIterator.configure(schema, index, ecql, hints)
-            (Seq(iter), new AccumuloDensityResultsToFeatures(), None)
-          } else {
-            if (hints.isSkipReduce) {
-              // override the return sft to reflect what we're actually returning,
-              // since the density sft is only created in the local reduce step
-              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
-            }
-            (fti, resultsToFeatures, localReducer)
-          }
-        } else if (hints.isStatsQuery) {
-          if (ds.config.remote.stats) {
-            val iter = StatsIterator.configure(schema, index, ecql, hints)
-            val reduce = Some(StatsScan.StatsReducer(schema, hints))
-            (Seq(iter), new AccumuloStatsResultsToFeatures(), reduce)
-          } else {
-            if (hints.isSkipReduce) {
-              // override the return sft to reflect what we're actually returning,
-              // since the stats sft is only created in the local reduce step
-              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
-            }
-            (fti, resultsToFeatures, localReducer)
-          }
-        } else {
-          (fti, resultsToFeatures, None)
-        }
-
-        if (ranges.isEmpty) { EmptyPlan(strategy, reduce) } else {
+        val baselineIters = {
           // configure additional iterators based on the index
-          // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
-          val indexIter = if (index.name == Z3Index.name) {
-            strategy.values.toSeq.map { case v: Z3IndexValues =>
-              val offset = index.keySpace.sharding.length + index.keySpace.sharing.length
-              Z3Iterator.configure(v, offset, hints.getFilterCompatibility, ZIterPriority)
-            }
-          } else if (index.name == Z2Index.name) {
-            strategy.values.toSeq.map { case v: Z2IndexValues =>
-              Z2Iterator.configure(v, index.keySpace.sharding.length + index.keySpace.sharing.length, ZIterPriority)
-            }
-          } else if (index.name == S3Index.name) {
-            strategy.values.toSeq.map { case v: S3IndexValues =>
-              S3Iterator.configure(v, index.keySpace.sharding.length, ZIterPriority)
-            }
-          } else if (index.name == S2Index.name) {
-            strategy.values.toSeq.map { case v: S2IndexValues =>
-              S2Iterator.configure(v, index.keySpace.sharding.length, ZIterPriority)
-            }
-          } else {
-            Seq.empty
-          }
-
+          val indexIter = strategy.values.flatMap(IndexIterators.configure(index, _, ZIterPriority, hints.getFilterCompatibility))
           // add the attribute-level vis iterator if necessary
           val visIter = index.sft.getVisibilityLevel match {
             case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(schema))
             case _ => Seq.empty
           }
+          indexIter.toSeq ++ visIter
+        }
 
-          val iters = iter ++ indexIter ++ visIter
-
+        def scanPlan(iter: Option[IteratorSetting], toFeatures: ResultsToFeatures[Entry[Key, Value]], reduce: Option[FeatureReducer]): BatchScanPlan = {
+          val iters = iter.toSeq ++ baselineIters
           val sort = hints.getSortFields
           val max = hints.getMaxFeatures
-          val project = hints.getProjection
-
-          BatchScanPlan(strategy, tables, ranges, iters, colFamily, eToF, reduce, sort, max, project, numThreads)
+          val projection = hints.getProjection
+          BatchScanPlan(ds, strategy, tables, ranges, iters, colFamily, toFeatures, reduce, sort, max, projection, numThreads)
         }
+
+        def semiLocalPlan(): BatchScanLocalProcessorPlan = {
+          val iters = fti.toSeq ++ baselineIters
+          // transforms are handled in the filterTransformIter
+          val processor = LocalProcessor(returnSchema, QueryHints.Internal.clearTransforms(hints), None)
+          val projection = hints.getProjection
+          BatchScanLocalProcessorPlan(ds, strategy, tables, ranges, iters, colFamily, processor, projection, numThreads)
+        }
+
+        val plan = if (hints.isBinQuery) {
+          if (ds.config.remote.bin) {
+            val iter = BinAggregatingIterator.configure(schema, index, ecql, hints)
+            scanPlan(Some(iter), new AccumuloBinResultsToFeatures(), None)
+          } else {
+            semiLocalPlan()
+          }
+        } else if (hints.isArrowQuery) {
+          if (ds.config.remote.arrow) {
+            val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, strategy.filter.filter, ecql, hints)
+            scanPlan(Some(iter), new AccumuloArrowResultsToFeatures(), Some(reduce))
+          } else {
+            semiLocalPlan()
+          }
+        } else if (hints.isDensityQuery) {
+          if (ds.config.remote.density) {
+            val iter = DensityIterator.configure(schema, index, ecql, hints)
+            scanPlan(Some(iter), new AccumuloDensityResultsToFeatures(), None)
+          } else {
+            semiLocalPlan()
+          }
+        } else if (hints.isStatsQuery) {
+          if (ds.config.remote.stats) {
+            val iter = StatsIterator.configure(schema, index, ecql, hints)
+            val reduce = Some(StatsScan.StatsReducer(schema, hints))
+            scanPlan(Some(iter), new AccumuloStatsResultsToFeatures(), reduce)
+          } else {
+            semiLocalPlan()
+          }
+        } else {
+          scanPlan(fti, AccumuloResultsToFeatures(index, returnSchema), None)
+        }
+
+        if (tables.isEmpty || ranges.isEmpty) { EmptyPlan(strategy, plan.reducer) } else { plan }
     }
   }
 

@@ -1,0 +1,78 @@
+# validates that we haven't missed any projects in our build matrices
+name: validate-ci
+
+on:
+  pull_request:
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+env:
+  JAVA_VERSION: 17
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
+  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -T4
+  MAVEN_TEST_ARGS: test -Dmaven.main.skip
+
+jobs:
+  validate-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - name: Validate project list
+        run: |
+          while IFS= read -r -d '' pom; do
+            grep -q 'packaging>pom' "$pom" || {
+              module="${pom%/pom.xml}"
+              module="${module#./}"
+              if [[ $module != *distributed-runtime* ]]; then
+                echo "Checking $module"
+                yq -e '.jobs.build.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/build-and-test.yml >/dev/null 2>&1 || exit 1
+              fi
+            }
+          done < <(find . -name pom.xml -print0)
+          echo "done"
+  validate-integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - name: Validate project list
+        run: |
+          while IFS= read -r -d '' test_class; do
+            module="${test_class%/src/test/*}"
+            module="${module#./}"
+            if [[ $module != *spark ]]; then
+              echo "Checking $module"
+              yq -e '.jobs.integration-tests.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/integration-tests.yml >/dev/null 2>&1 || exit 1
+            fi
+          done < <(find . -name '*IT.scala' -print0)
+          echo "done"
+  validate-javadocs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - name: Validate project list
+        run: |
+          while IFS= read -r -d '' pom; do
+            grep -q 'packaging>pom' "$pom" || {
+              module="${pom%/pom.xml}"
+              module="${module#./}"
+              echo "Checking $module"
+              yq -e '.jobs.javadocs.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/javadocs.yml >/dev/null 2>&1 || exit 1
+            }
+          done < <(find . -name pom.xml -print0)
+          echo "done"
+  validate-spark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - name: Validate project list
+        run: |
+          while IFS= read -r -d '' test_class; do
+            module="${test_class%/src/test/*}"
+            module="${module#./}"
+            if [[ $module =~ .*spark ]]; then
+              echo "Checking $module"
+              yq -e '.jobs.integration-tests.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/spark.yml >/dev/null 2>&1 || exit 1
+            fi
+          done < <(find . -name '*IT.scala' -print0)
+          echo "done"

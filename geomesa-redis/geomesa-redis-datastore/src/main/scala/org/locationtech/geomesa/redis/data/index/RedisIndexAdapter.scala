@@ -18,12 +18,11 @@ import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff.AgeOffWriter
-import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.{RedisIndexWriter, RedisResultsToFeatures}
+import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.RedisIndexWriter
 import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLexPlan}
-import org.locationtech.geomesa.security.VisibilityUtils
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.util.Pool
@@ -62,26 +61,18 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
   override def createQueryPlan(strategy: QueryStrategy): RedisQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val hints = strategy.hints
+    val processor = LocalProcessor(strategy.index.sft, strategy.hints, Option(ds.config.authProvider))
 
-    val reducer = {
-      val visible = Some(VisibilityUtils.visible(Some(ds.config.authProvider)))
-      Some(new LocalTransformReducer(strategy.index.sft, strategy.ecql, visible, hints.getTransform, hints))
-    }
-
-    if (strategy.ranges.isEmpty) { EmptyPlan(strategy, reducer) } else {
+    if (strategy.ranges.isEmpty) { EmptyPlan(strategy, processor.reducer) } else {
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ranges = if (strategy.index.isInstanceOf[IdIndex]) {
         strategy.ranges.map(RedisIndexAdapter.toRedisIdRange)
       } else {
         strategy.ranges.map(RedisIndexAdapter.toRedisRange)
       }
-      val results = new RedisResultsToFeatures(strategy.index, strategy.index.sft)
-      val sort = hints.getSortFields
-      val max = hints.getMaxFeatures
-      val project = hints.getProjection
+      val project = strategy.hints.getProjection
 
-      ZLexPlan(strategy, tables, ranges, ds.config.pipeline, strategy.ecql, results, reducer, sort, max, project)
+      ZLexPlan(ds, strategy, tables, ranges, ds.config.pipeline, strategy.ecql, processor, project)
     }
   }
 
