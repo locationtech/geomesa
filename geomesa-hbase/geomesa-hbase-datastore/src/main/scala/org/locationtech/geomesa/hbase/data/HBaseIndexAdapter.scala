@@ -20,6 +20,7 @@ import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, CoprocessorUrl, TableAvailabilityTimeout}
 import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
@@ -35,7 +36,7 @@ import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, Require
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, IndexResultsToFeatures, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
-import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.conf.{ColumnGroups, QueryHints}
 import org.locationtech.geomesa.index.filters.{S2Filter, S3Filter, Z2Filter, Z3Filter}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.s2.{S2Index, S2IndexValues}
@@ -193,7 +194,6 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val byteRanges = strategy.ranges
-    val ecql = strategy.ecql
     val hints = strategy.hints
     val index = strategy.index
 
@@ -207,9 +207,6 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     val small = byteRanges.headOption.exists(_.isInstanceOf[SingleRowByteRange])
 
     val tables = index.getTablesForQuery(strategy.filter.filter).map(TableName.valueOf)
-    val (colFamily, schema) = groups.group(index.sft, hints.getTransformDefinition, ecql)
-
-    val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
 
     // check for an empty query plan, if there are no tables or ranges to scan
     def empty(reducer: Option[FeatureReducer]): Option[HBaseQueryPlan] =
@@ -217,13 +214,19 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
     if (!ds.config.remoteFilter) {
       // everything is done client side
+      // note: we use the full filter here, since we can't use the z3 server-side filter
+      // for some attribute queries we wouldn't need the full filter...
+      val (colFamily, schema) = groups.group(index.sft, hints.getTransformDefinition, strategy.filter.filter)
+      // re-optimize the filter to account for the colFamily/schema being used
+      val ecql = {
+        val f = strategy.filter.filter
+        if (colFamily.eq(ColumnGroups.Default)) { f } else { f.map(FastFilterFactory.optimize(schema, _)) }
+      }
       // note: we assume visibility filtering is still done server-side as it's part of core hbase
       val processor = LocalProcessor(schema, hints, None)
       empty(processor.reducer).getOrElse {
         val scans = configureScans(tables, ranges, small, colFamily, Seq.empty, coprocessor = false)
-        // note: we use the full filter here, since we can't use the z3 server-side filter
-        // for some attribute queries we wouldn't need the full filter...
-        LocalProcessorScanPlan(ds, strategy, ranges, scans, strategy.filter.filter, processor, hints.getProjection)
+        LocalProcessorScanPlan(ds, strategy, ranges, scans, ecql, processor, hints.getProjection)
       }
     } else {
       // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
@@ -252,9 +255,12 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         case _ => None
       }
 
+      val ecql = strategy.ecql
+      val (colFamily, schema) = groups.group(index.sft, hints.getTransformDefinition, ecql)
       val projection = hints.getProjection
-      lazy val returnSchema = transform.map(_._2).getOrElse(schema)
+      lazy val returnSchema = hints.getTransformSchema.getOrElse(schema)
       lazy val scans = {
+        val transform = hints.getTransform
         val cqlFilter = if (ecql.isEmpty && transform.isEmpty && hints.getSampling.isEmpty) { Seq.empty } else {
           Seq((CqlTransformFilter.Priority, CqlTransformFilter(schema, strategy.index, ecql, transform, hints)))
         }
@@ -354,7 +360,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
    * @param coprocessor is this a coprocessor scan or not
    * @return
    */
-  protected def configureScans(
+  private def configureScans(
       tables: Seq[TableName],
       ranges: Seq[RowRange],
       small: Boolean,

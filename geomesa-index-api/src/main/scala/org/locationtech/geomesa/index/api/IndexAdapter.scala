@@ -27,7 +27,7 @@ import scala.util.control.NonFatal
   */
 trait IndexAdapter[DS <: GeoMesaDataStore[DS]] {
 
-  val groups: ColumnGroups = new ColumnGroups
+  val groups: ColumnGroups = new ColumnGroups()
 
   val tableNameLimit: Option[Int] = None
 
