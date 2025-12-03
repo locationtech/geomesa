@@ -22,7 +22,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.{SchemaCompatibi
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.planning.QueryPlanner
+import org.locationtech.geomesa.index.planning.DataStoreQueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
@@ -57,7 +57,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
   private val registry = config.metrics.map(_.register())
 
-  val queryPlanner: QueryPlanner[DS] = new QueryPlanner(this)
+  private val runner = new DataStoreQueryRunner(this)
 
   val manager: IndexManager = new IndexManager(this)
 
@@ -366,7 +366,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    GeoMesaFeatureReader(sft, query, queryPlanner, config.audit)
+    GeoMesaFeatureReader(sft, query, runner, config.audit)
   }
 
   /**
@@ -435,7 +435,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
       throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
     }
     index.foreach(query.getHints.put(QueryHints.QUERY_INDEX, _))
-    queryPlanner.planQuery(sft, query, explainer)
+    runner.query(sft, query, explainer).plans.toList
   }
 
   /**

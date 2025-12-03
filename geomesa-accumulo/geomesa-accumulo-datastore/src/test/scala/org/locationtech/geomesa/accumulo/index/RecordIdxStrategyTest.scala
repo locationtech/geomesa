@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import org.geotools.api.data.Query
+import org.geotools.api.data.{Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.{Filter, Id}
 import org.geotools.filter.text.ecql.ECQL
@@ -19,7 +19,6 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
-import org.locationtech.geomesa.index.utils.ExplainNull
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
@@ -64,13 +63,13 @@ class RecordIdxStrategyTest extends Specification with TestWithFeatureType {
     sf
   }
 
-  addFeatures(features)
-
-  val planner = ds.queryPlanner
+  step {
+    addFeatures(features)
+  }
 
   def runQuery(query: Query): CloseableIterator[SimpleFeature] = {
     query.getHints.put(QUERY_INDEX, IdIndex.name)
-    planner.runQuery(sft, query, ExplainNull).iterator()
+    CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
   }
 
   "RecordIdxStrategy" should {
@@ -96,14 +95,14 @@ class RecordIdxStrategyTest extends Specification with TestWithFeatureType {
 
     "support sampling" in {
       val query = new Query(sftName, Filter.INCLUDE)
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       val results = runQuery(query).toList
       results.length must beLessThan(20)
     }
 
     "support sampling with cql" in {
       val query = new Query(sftName, ECQL.toFilter("track = 'track1'"))
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       val results = runQuery(query).toList
       results.length must beLessThan(10)
       forall(results)(_.getAttribute("track") mustEqual "track1")
@@ -111,7 +110,7 @@ class RecordIdxStrategyTest extends Specification with TestWithFeatureType {
 
     "support sampling with transformations" in {
       val query = new Query(sftName, Filter.INCLUDE, "name", "geom")
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       val results = runQuery(query).toList
       results.length must beLessThan(20)
       forall(results)(_.getAttributeCount mustEqual 2)
@@ -119,7 +118,7 @@ class RecordIdxStrategyTest extends Specification with TestWithFeatureType {
 
     "support sampling with cql and transformations" in {
       val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), "name", "geom")
-      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, Float.box(.2f))
       val results = runQuery(query).toList
       results.length must beLessThan(10)
       forall(results)(_.getAttributeCount mustEqual 2)
@@ -127,7 +126,7 @@ class RecordIdxStrategyTest extends Specification with TestWithFeatureType {
 
     "support sampling by thread" in {
       val query = new Query(sftName, Filter.INCLUDE)
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(SAMPLE_BY, "track")
       val results = runQuery(query).toList
       results.length must beLessThan(20)
@@ -141,7 +140,7 @@ class RecordIdxStrategyTest extends Specification with TestWithFeatureType {
       val query = new Query(sftName, ECQL.toFilter("dtg AFTER 2010-05-07T07:30:00.000Z"))
       query.getHints.put(BIN_TRACK, "track")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
-      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, Float.box(.2f))
       query.getHints.put(SAMPLE_BY, "track")
       // have to evaluate attributes before pulling into collection, as the same sf is reused
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList

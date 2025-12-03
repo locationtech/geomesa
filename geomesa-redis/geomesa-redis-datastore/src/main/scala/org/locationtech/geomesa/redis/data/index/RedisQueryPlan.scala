@@ -95,7 +95,7 @@ object RedisQueryPlan {
 
     override def scan(): CloseableIterator[SimpleFeature] = {
       // query guard hook - also handles full table scan checks
-      strategy.runGuards(ds)
+      ds.interceptors.runGuards(strategy)
       val toFeatures = new RedisResultsToFeatures(strategy.index, strategy.index.sft)
       val iter = tables.iterator.map(_.getBytes(StandardCharsets.UTF_8))
       val scans = iter.map(singleTableScan(ds, _))

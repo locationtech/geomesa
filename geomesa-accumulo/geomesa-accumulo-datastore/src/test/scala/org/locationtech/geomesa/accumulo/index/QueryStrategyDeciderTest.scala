@@ -23,7 +23,7 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
-import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
+import org.locationtech.geomesa.index.planning.StrategyDecider.CostEvaluation
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

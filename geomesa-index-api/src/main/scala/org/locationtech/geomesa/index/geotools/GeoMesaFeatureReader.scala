@@ -42,11 +42,11 @@ object GeoMesaFeatureReader extends MethodProfiling {
   def apply(
       sft: SimpleFeatureType,
       query: Query,
-      qp: QueryRunner,
+      runner: QueryRunner,
       audit: Option[AuditWriter]): GeoMesaFeatureReader = {
     audit match {
-      case None => new GeoMesaFeatureReader(qp.runQuery(sft, query))
-      case Some(a) => new GeoMesaFeatureReaderWithAudit(qp.runQuery(sft, query), a, sft.getTypeName, query.getFilter)
+      case None => new GeoMesaFeatureReader(runner.query(sft, query))
+      case Some(a) => new GeoMesaFeatureReaderWithAudit(runner.query(sft, query), a, sft.getTypeName, query.getFilter)
     }
   }
 

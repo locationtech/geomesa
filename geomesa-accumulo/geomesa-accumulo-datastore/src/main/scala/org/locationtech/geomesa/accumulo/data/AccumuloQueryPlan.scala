@@ -155,7 +155,7 @@ object AccumuloQueryPlan extends LazyLogging {
 
     override def scan(): CloseableIterator[Entry[Key, Value]] = {
       // query guard hook - also handles full table scan checks
-      strategy.runGuards(ds)
+      ds.interceptors.runGuards(strategy)
       // note: calculate auths and convert the relative timeout to an absolute timeout up front
       scan(ScanHelper(ds))
     }
@@ -176,7 +176,7 @@ object AccumuloQueryPlan extends LazyLogging {
 
     override def scan(): CloseableIterator[SimpleFeature] = {
       // query guard hook - also handles full table scan checks
-      strategy.runGuards(ds)
+      ds.interceptors.runGuards(strategy)
       val toFeatures = AccumuloResultsToFeatures(strategy.index, processor.sft)
       // note: calculate auths and convert the relative timeout to an absolute timeout up front
       processor(scan(ScanHelper(ds)).map(toFeatures.apply))
@@ -202,7 +202,7 @@ object AccumuloQueryPlan extends LazyLogging {
 
     override def scan(): CloseableIterator[SimpleFeature] = {
       // query guard hook - also handles full table scan checks
-      strategy.runGuards(ds)
+      ds.interceptors.runGuards(strategy)
       // calculate auths and convert the relative timeout to an absolute timeout up front
       val helper = ScanHelper(ds)
       val joinTables = joinQuery.tables.iterator

@@ -43,17 +43,6 @@ trait QueryRunner {
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   /**
-   * Plan the query, but don't execute it - used for m/r jobs and explain query
-   *
-   * @param sft simple feature type
-   * @param query query to plan
-   * @param explain planning explanation output
-   * @return
-   */
-  def planQuery(sft: SimpleFeatureType, query: Query, explain: Explainer = new ExplainLogging): Seq[QueryPlan] =
-    runQuery(sft, query, explain).plans.toList // toList forces evaluation of all plans
-
-  /**
     * Execute a query
     *
     * @param sft simple feature type
@@ -61,7 +50,7 @@ trait QueryRunner {
     * @param explain explain output
     * @return
     */
-  def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer = new ExplainLogging): QueryResult = {
+  def query(sft: SimpleFeatureType, original: Query, explain: Explainer = new ExplainLogging): QueryResult = {
     val start = System.nanoTime()
     val query = configureQuery(sft, original)
     val hints = query.getHints

@@ -217,10 +217,9 @@ object ArrowScan extends LazyLogging {
 
     def this() = this(null, null, null, null, -1, null, false, true) // no-arg constructor required for serialization
 
-    def this(sft: SimpleFeatureType, hints: Hints, sorted: Boolean) = {
+    def this(sft: SimpleFeatureType, hints: Hints, sorted: Boolean) =
       this(sft, hints.getArrowDictionaryFields, getEncoding(hints), getIpcOpts(hints), getBatchSize(hints),
         hints.getSortFields.map(_.head).orElse(hints.getArrowSort), sorted, hints.isArrowProcessDeltas)
-    }
 
     override def init(state: Map[String, String]): Unit = {
       sft = ReducerConfig.sft(state)

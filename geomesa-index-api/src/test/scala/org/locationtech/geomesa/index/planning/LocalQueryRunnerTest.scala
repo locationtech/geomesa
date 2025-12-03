@@ -86,7 +86,7 @@ class LocalQueryRunnerTest extends Specification {
   }
 
   def runQuery(runner: QueryRunner, query: Query): Seq[SimpleFeature] =
-    WithClose(runner.runQuery(sft, query).iterator().map(ScalaSimpleFeature.copy))(_.toList)
+    WithClose(runner.query(sft, query).iterator().map(ScalaSimpleFeature.copy))(_.toList)
 
   "InMemoryQueryRunner" should {
     "not sort" in {

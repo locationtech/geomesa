@@ -20,7 +20,7 @@ import org.locationtech.geomesa.index.utils._
 /**
  * Plans and executes queries against geomesa
  */
-class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with LazyLogging {
+class DataStoreQueryRunner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with LazyLogging {
 
   override protected val interceptors: QueryInterceptorFactory = ds.interceptors
 
@@ -45,11 +45,4 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
     }
   }
 
-}
-
-object QueryPlanner extends LazyLogging {
-  object CostEvaluation extends Enumeration {
-    type CostEvaluation = Value
-    val Stats, Index = Value
-  }
 }

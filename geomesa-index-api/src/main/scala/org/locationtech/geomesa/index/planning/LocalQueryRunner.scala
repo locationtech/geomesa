@@ -155,8 +155,8 @@ object LocalQueryRunner extends LazyLogging {
       }
     }
 
-    // pull out distributed sort hints into regular sort hints that we process here
     private val sort = hints.getSortFields.orElse {
+      // pull out distributed sort hints into regular sort hints that we process here
       if (hints.isArrowQuery) {
         hints.getArrowSort.map { case (field, reverse) => Seq(field -> reverse) }
       } else if (hints.isBinQuery && hints.isBinSorting) {

@@ -140,7 +140,7 @@ object TestGeoMesaDataStore {
     override type Results = SimpleFeature
 
     override def scan(): CloseableIterator[SimpleFeature] = {
-      strategy.runGuards(ds) // query guard hook - also handles full table scan checks
+      ds.interceptors.runGuards(strategy) // query guard hook - also handles full table scan checks
 
       def contained(range: TestRange, row: Array[Byte]): Boolean =
         ByteArrays.ByteOrdering.compare(range.start, row) <= 0 &&

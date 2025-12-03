@@ -32,23 +32,18 @@ class QueryPlannerTest extends Specification {
   val ds = new TestGeoMesaDataStore(true)
   ds.createSchema(sft)
 
-  val planner = ds.queryPlanner
-
   "QueryPlanner" should {
-    "be a queryPlanner" in {
-      planner.getClass mustEqual classOf[QueryPlanner[_]] // sanity check
-    }
 
     "throw an exception for invalid requested index during explain" in {
       val query = new Query(sft.getTypeName)
       query.getHints.put(QueryHints.QUERY_INDEX, "foo")
-      planner.planQuery(sft, query) must throwAn[IllegalArgumentException]
+      ds.getQueryPlan(query) must throwAn[IllegalArgumentException]
     }
 
     "throw an exception for invalid requested index during query" in {
       val query = new Query(sft.getTypeName)
       query.getHints.put(QueryHints.QUERY_INDEX, "foo")
-      planner.runQuery(sft, query) must throwAn[IllegalArgumentException]
+      ds.getQueryPlan(query) must throwAn[IllegalArgumentException]
     }
 
     "return z3 index for spatio-temporal queries that are bounded by the epoch" in {

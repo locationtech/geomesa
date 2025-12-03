@@ -15,8 +15,8 @@ import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
 import org.geotools.util.factory.Hints.{ClassKey, IntegerKey}
 import org.locationtech.geomesa.index.conf.FilterCompatibility.FilterCompatibility
-import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
-import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
+import org.locationtech.geomesa.index.planning.StrategyDecider.CostEvaluation
+import org.locationtech.geomesa.index.planning.StrategyDecider.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.locationtech.jts.geom.Envelope

@@ -69,7 +69,7 @@ object CassandraQueryPlan {
     ) extends CassandraQueryPlan with LocalProcessorPlan {
 
     override def scan(): CloseableIterator[SimpleFeature] = {
-      strategy.runGuards(ds) // query guard hook - also handles full table scan checks
+      ds.interceptors.runGuards(strategy) // query guard hook - also handles full table scan checks
       val timeout = ds.config.queries.timeout.map(Timeout.apply)
       val toFeatures = new CassandraResultsToFeatures(strategy.index, strategy.index.sft)
       val scanner = CassandraBatchScan(this, ds.session, ranges, numThreads, timeout).map(toFeatures.apply)

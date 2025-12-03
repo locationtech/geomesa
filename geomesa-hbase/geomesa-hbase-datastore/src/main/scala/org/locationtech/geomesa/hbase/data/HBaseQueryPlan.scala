@@ -49,7 +49,7 @@ sealed trait HBaseQueryPlan extends QueryStrategyPlan {
 
   override def scan(): CloseableIterator[Results] = {
     // query guard hook - also handles full table scan checks
-    strategy.runGuards(ds)
+    ds.interceptors.runGuards(strategy)
     // convert the relative timeout to an absolute timeout up front
     val timeout = ds.config.queries.timeout.map(Timeout.apply)
     val iter = scans.iterator.map(singleTableScan(_, ds.connection, threads, timeout))

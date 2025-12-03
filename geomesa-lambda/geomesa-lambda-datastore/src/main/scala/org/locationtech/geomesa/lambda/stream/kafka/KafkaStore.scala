@@ -118,7 +118,7 @@ class KafkaStore(
     filter.foreach(query.setFilter)
     transforms.foreach(query.setPropertyNames(_: _*))
     hints.foreach(query.setHints)
-    queryRunner.runQuery(sft, query, explain)
+    queryRunner.query(sft, query, explain)
   }
 
   override def write(original: SimpleFeature): Unit = {

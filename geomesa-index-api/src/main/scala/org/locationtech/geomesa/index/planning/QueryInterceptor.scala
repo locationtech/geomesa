@@ -57,7 +57,17 @@ object QueryInterceptor extends LazyLogging {
     * Manages query interceptors
     */
   trait QueryInterceptorFactory extends Closeable {
+
     def apply(sft: SimpleFeatureType): Seq[QueryInterceptor]
+
+    /**
+     * Runs any configured query guards, throwing any exceptions raised
+     *
+     * @param strategy query strategy
+     */
+    @throws[IllegalArgumentException]
+    def runGuards(strategy: QueryStrategy): Unit =
+      apply(strategy.index.sft).foreach(_.guard(strategy).foreach(e => throw e))
   }
 
   object QueryInterceptorFactory {
