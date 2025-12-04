@@ -150,6 +150,9 @@ object CloseableIterator {
 
 trait CloseableIterator[+A] extends Iterator[A] with Closeable {
 
+  // note: in scala 2.12, toList ends up calling foreach, which closes the iterator
+  // override def toList: List[A] = try { super.toList } finally { close() }
+
   override def foreach[U](f: A => U): Unit = try { super.foreach(f) } finally { close() }
 
   override def size: Int =  try { super.size } finally { close() }

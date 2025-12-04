@@ -18,7 +18,6 @@ import org.locationtech.geomesa.utils.io.CloseQuietly
 
 import java.io.Closeable
 import scala.annotation.tailrec
-import scala.collection.Iterator
 
 /**
  * A CloseableIterator is an iterator that should be closed after use
@@ -154,6 +153,9 @@ object CloseableIterator {
 }
 
 trait CloseableIterator[+A] extends Iterator[A] with Closeable {
+
+  // note: in scala 2.13, toList *does not* call foreach, so we need to close the iterator here
+  override def toList: List[A] = try { super.toList } finally { close() }
 
   override def foreach[U](f: A => U): Unit = try { super.foreach(f) } finally { close() }
 
