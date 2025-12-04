@@ -19,40 +19,40 @@ class CloseableIteratorTest extends Specification {
 
   "CloseableIterator" should {
     "close" >> {
-      var closed = false
-      val iter = CloseableIterator(Iterator.empty, { closed = true })
-      closed must beFalse
+      val closed = new CloseCounter()
+      val iter = CloseableIterator(Iterator.empty, { closed.close() })
+      closed.count mustEqual 0
       iter.close()
-      closed must beTrue
+      closed.count mustEqual 1
     }
     "close with map" >> {
-      var closed = false
-      val iter = CloseableIterator(Iterator(0, 1), { closed = true }).map(i => i + 1)
-      closed must beFalse
+      val closed = new CloseCounter()
+      val iter = CloseableIterator(Iterator(0, 1), { closed.close() }).map(i => i + 1)
+      closed.count mustEqual 0
       iter.toSeq mustEqual Seq(1, 2)
-      closed must beFalse
+      closed.count mustEqual 0
       iter.close()
-      closed must beTrue
+      closed.count mustEqual 1
     }
     "close with filter" >> {
-      var closed = false
-      val iter = CloseableIterator(Iterator(0, 1), { closed = true }).filter(i => i % 2 == 0)
-      closed must beFalse
-      iter.toSeq mustEqual Seq(0)
-      closed must beFalse
+      val closed = new CloseCounter()
+      val iter = CloseableIterator(Iterator(0, 1), { closed.close() }).filter(i => i % 2 == 0)
+      closed.count mustEqual 0
+      iter.toSeq mustEqual Seq(0) // note: toSeq does not close the iterator...
+      closed.count mustEqual 0
       iter.close()
-      closed must beTrue
+      closed.count mustEqual 1
     }
     "close with collect" >> {
-      var closed = false
-      val iter = CloseableIterator(Iterator(0, 1), { closed = true }).collect {
+      val closed = new CloseCounter()
+      val iter = CloseableIterator(Iterator(0, 1), { closed.close() }).collect {
         case i if i % 2 == 0 => i + 1
       }
-      closed must beFalse
-      iter.toSeq mustEqual Seq(1)
-      closed must beFalse
+      closed.count mustEqual 0
+      iter.toSeq mustEqual Seq(1) // note: toSeq does not close the iterator...
+      closed.count mustEqual 0
       iter.close()
-      closed must beTrue
+      closed.count mustEqual 1
     }
     "close with flatmap" >> {
       val closed0, closed1, closed2 = new CloseCounter()
@@ -89,7 +89,7 @@ class CloseableIteratorTest extends Specification {
     }
     "self close with flatmap" >> {
       val closed0, closed1, closed2 = new CloseCounter()
-      val result = CloseableIterator(CloseableIterator(Iterator(0, 1), closed0.close())).flatMap { i =>
+      val result = CloseableIterator(Iterator(0, 1), closed0.close()).flatMap { i =>
         if (i == 0) {
           CloseableIterator(Iterator(2, 3), closed1.close())
         } else {
@@ -100,14 +100,37 @@ class CloseableIteratorTest extends Specification {
       result.toList mustEqual Seq(2, 3, 4, 5)
       foreach(Seq(closed0, closed1, closed2))(_.count mustEqual 1)
     }
+    "self close with toList" >> {
+      val closed = new CloseCounter()
+      val iter = CloseableIterator(Iterator(1, 2), { closed.close() })
+      closed.count mustEqual 0
+      // note: toList isn't explicitly overridden, but it ends up calling foreach, which will close the iterator
+      iter.toList mustEqual List(1, 2)
+      closed.count mustEqual 1
+    }
+    "self close with foreach" >> {
+      val closed = new CloseCounter()
+      val iter = CloseableIterator(Iterator(1, 2), { closed.close() })
+      closed.count mustEqual 0
+      iter.foreach(_ => ())
+      closed.count mustEqual 1
+    }
     "close with concatenate" >> {
       val closed0, closed1, closed2 = new CloseCounter()
       val result = CloseableIterator(Iterator(0, 1), closed0.close()) concat
           CloseableIterator(Iterator(2, 3), closed1.close()) concat
           CloseableIterator(Iterator(4, 5), closed2.close())
       result must beAnInstanceOf[CloseableIterator[Int]]
-      result.toSeq mustEqual Seq(0, 1, 2, 3, 4, 5)
-      result.asInstanceOf[CloseableIterator[Int]].close()
+      result.close()
+      foreach(Seq(closed0, closed1, closed2))(_.count mustEqual 1)
+    }
+    "self close with concatenate" >> {
+      val closed0, closed1, closed2 = new CloseCounter()
+      val result = CloseableIterator(Iterator(0, 1), closed0.close()) concat
+        CloseableIterator(Iterator(2, 3), closed1.close()) concat
+        CloseableIterator(Iterator(4, 5), closed2.close())
+      result must beAnInstanceOf[CloseableIterator[Int]]
+      result.toList mustEqual Seq(0, 1, 2, 3, 4, 5)
       foreach(Seq(closed0, closed1, closed2))(_.count mustEqual 1)
     }
     "provide an empty iterator that has no next element" >> {
@@ -139,7 +162,6 @@ class CloseableIteratorTest extends Specification {
       closeable.close()
       closed.count mustEqual 1
     }
-    // TODO add toList, foreach tests
   }
 
   class CloseCounter(var count: Int = 0) extends Closeable {

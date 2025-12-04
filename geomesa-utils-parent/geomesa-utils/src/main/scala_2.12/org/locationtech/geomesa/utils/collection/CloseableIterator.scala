@@ -28,10 +28,15 @@ object CloseableIterator {
   private val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
 
   // This apply method provides us with a simple interface for creating new CloseableIterators.
-  def apply[A](iter: Iterator[A], close: => Unit = ()): CloseableIterator[A] = new CloseableIteratorImpl[A](iter, close)
+  def apply[A](iter: Iterator[A]): CloseableIterator[A] =
+    new CloseableIteratorImpl[A](iter, Option(iter).collect { case c: Closeable => c.close() })
+
+  // This apply method provides us with a simple interface for creating new CloseableIterators.
+  def apply[A](iter: Iterator[A], close: => Unit): CloseableIterator[A] = new CloseableIteratorImpl[A](iter, close)
 
   // for wrapping java iterators
-  def apply[A](iter: java.util.Iterator[A]): CloseableIterator[A] = new CloseableIteratorJavaWrapper[A](iter)
+  def apply[A](iter: java.util.Iterator[A]): CloseableIterator[A] =
+    new CloseableIteratorJavaWrapper[A](iter, Option(iter).collect { case c: Closeable => c.close() })
 
   // This apply method provides us with a simple interface for creating new CloseableIterators.
   def apply[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A]): CloseableIterator[A] =
@@ -58,10 +63,10 @@ object CloseableIterator {
     override def close(): Unit = closeIter
   }
 
-  private class CloseableIteratorJavaWrapper[A](iter: java.util.Iterator[A]) extends CloseableIterator[A] {
+  private class CloseableIteratorJavaWrapper[A](iter: java.util.Iterator[A], closeIter: => Unit) extends CloseableIterator[A] {
     override def hasNext: Boolean = iter.hasNext
     override def next(): A = iter.next()
-    override def close(): Unit = Option(iter).collect { case c: Closeable => c.close() }
+    override def close(): Unit = closeIter
   }
 
   private final class CloseableFeatureReaderIterator[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A])
@@ -144,8 +149,6 @@ object CloseableIterator {
 }
 
 trait CloseableIterator[+A] extends Iterator[A] with Closeable {
-
-  override def toList: List[A] = try { super.toList } finally { close() }
 
   override def foreach[U](f: A => U): Unit = try { super.foreach(f) } finally { close() }
 

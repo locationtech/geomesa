@@ -20,16 +20,23 @@ import java.io.Closeable
 import scala.annotation.tailrec
 import scala.collection.Iterator
 
-// A CloseableIterator is one which involves some kind of close function which should be called at the end of use.
+/**
+ * A CloseableIterator is an iterator that should be closed after use
+ */
 object CloseableIterator {
 
   private val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
 
   // This apply method provides us with a simple interface for creating new CloseableIterators.
-  def apply[A](iter: Iterator[A], close: => Unit = ()): CloseableIterator[A] = new CloseableIteratorImpl[A](iter, close)
+  def apply[A](iter: Iterator[A]): CloseableIterator[A] =
+    new CloseableIteratorImpl[A](iter, Option(iter).collect { case c: Closeable => c.close() })
+
+  // This apply method provides us with a simple interface for creating new CloseableIterators.
+  def apply[A](iter: Iterator[A], close: => Unit): CloseableIterator[A] = new CloseableIteratorImpl[A](iter, close)
 
   // for wrapping java iterators
-  def apply[A](iter: java.util.Iterator[A]): CloseableIterator[A] = new CloseableIteratorJavaWrapper[A](iter)
+  def apply[A](iter: java.util.Iterator[A]): CloseableIterator[A] =
+    new CloseableIteratorJavaWrapper[A](iter, Option(iter).collect { case c: Closeable => c.close() })
 
   // This apply method provides us with a simple interface for creating new CloseableIterators.
   def apply[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A]): CloseableIterator[A] =
@@ -56,10 +63,10 @@ object CloseableIterator {
     override def close(): Unit = closeIter
   }
 
-  private class CloseableIteratorJavaWrapper[A](iter: java.util.Iterator[A]) extends CloseableIterator[A] {
+  private class CloseableIteratorJavaWrapper[A](iter: java.util.Iterator[A], closeIter: => Unit) extends CloseableIterator[A] {
     override def hasNext: Boolean = iter.hasNext
     override def next(): A = iter.next()
-    override def close(): Unit = Option(iter).collect { case c: Closeable => c.close() }
+    override def close(): Unit = closeIter
   }
 
   private final class CloseableFeatureReaderIterator[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A])
@@ -148,8 +155,6 @@ object CloseableIterator {
 
 trait CloseableIterator[+A] extends Iterator[A] with Closeable {
 
-  override def toList: List[A] = try { super.toList } finally { close() }
-
   override def foreach[U](f: A => U): Unit = try { super.foreach(f) } finally { close() }
 
   override def size: Int =  try { super.size } finally { close() }
@@ -160,20 +165,17 @@ trait CloseableIterator[+A] extends Iterator[A] with Closeable {
 
   override def withFilter(p: A => Boolean): CloseableIterator[A] = filter(p)
 
-  override def filterNot(p: A => Boolean): CloseableIterator[A] =
-    new CloseableIteratorImpl(super.filterNot(p), close())
+  override def filterNot(p: A => Boolean): CloseableIterator[A] = new CloseableIteratorImpl(super.filterNot(p), close())
 
   override def take(n: Int): CloseableIterator[A] = new CloseableIteratorImpl(super.take(n), close())
 
-  override def takeWhile(p: A => Boolean): CloseableIterator[A] =
-    new CloseableIteratorImpl(super.takeWhile(p), close())
+  override def takeWhile(p: A => Boolean): CloseableIterator[A] = new CloseableIteratorImpl(super.takeWhile(p), close())
 
   override def drop(n: Int): CloseableIterator[A] = new CloseableIteratorImpl(super.drop(n), close())
 
   override def dropWhile(p: A => Boolean): CloseableIterator[A] = new CloseableIteratorImpl(super.dropWhile(p), close())
 
-  override def collect[B](pf: PartialFunction[A, B]): CloseableIterator[B] =
-    new CloseableIteratorImpl(super.collect(pf), close())
+  override def collect[B](pf: PartialFunction[A, B]): CloseableIterator[B] = new CloseableIteratorImpl(super.collect(pf), close())
 
   override def concat[B >: A](xs: => IterableOnce[B]): CloseableIterator[B] = {
     lazy val applied = CloseableIterator.wrap(xs)
@@ -183,8 +185,7 @@ trait CloseableIterator[+A] extends Iterator[A] with Closeable {
     new ConcatCloseableIterator[B](queue)
   }
 
-  override def flatMap[B](f: A => IterableOnce[B]): CloseableIterator[B] =
-    new FlatMapCloseableIterator(this, f)
+  override def flatMap[B](f: A => IterableOnce[B]): CloseableIterator[B] = new FlatMapCloseableIterator(this, f)
 
   override def tapEach[U](f: A => U): CloseableIterator[A] = new CloseableIteratorImpl(super.tapEach(f), close())
 }
