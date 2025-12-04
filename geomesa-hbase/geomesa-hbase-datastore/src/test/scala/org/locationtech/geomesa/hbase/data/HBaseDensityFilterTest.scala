@@ -21,7 +21,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.DensityScan
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Envelope
@@ -231,6 +231,6 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
     q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
     val decode = DensityScan.decodeResult(envelope, 500, 500)
-    SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).flatMap(decode).toList
+    CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).flatMap(decode).toList
   }
 }

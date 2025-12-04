@@ -31,7 +31,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.utils.ExplainString
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
@@ -149,11 +149,11 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val ids = fs.addFeatures(fc)
       ids.asScala.map(_.getID).find(_ != "fid1").foreach(f2.setId)
 
-      SelfClosingIterator(fs.getFeatures(Filter.INCLUDE).features).toList must containTheSameElementsAs(List(f, f2))
-      SelfClosingIterator(fs.getFeatures(ECQL.toFilter("IN('fid1')")).features).toList mustEqual List(f)
-      SelfClosingIterator(fs.getFeatures(ECQL.toFilter("name = 'my name'")).features).toList mustEqual List(f)
-      SelfClosingIterator(fs.getFeatures(ECQL.toFilter("name = 'my other name'")).features).toList mustEqual List(f2)
-      SelfClosingIterator(fs.getFeatures(ECQL.toFilter("name = 'false'")).features).toList must beEmpty
+      CloseableIterator(fs.getFeatures(Filter.INCLUDE).features).toList must containTheSameElementsAs(List(f, f2))
+      CloseableIterator(fs.getFeatures(ECQL.toFilter("IN('fid1')")).features).toList mustEqual List(f)
+      CloseableIterator(fs.getFeatures(ECQL.toFilter("name = 'my name'")).features).toList mustEqual List(f)
+      CloseableIterator(fs.getFeatures(ECQL.toFilter("name = 'my other name'")).features).toList mustEqual List(f2)
+      CloseableIterator(fs.getFeatures(ECQL.toFilter("name = 'false'")).features).toList must beEmpty
 
       ds.removeSchema(sft.getTypeName)
       ds.getSchema(sft.getTypeName) must beNull
@@ -175,7 +175,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       // Let's read out what we wrote.
       val results = ds.getFeatureSource(defaultTypeName).getFeatures(query)
-      val features = SelfClosingIterator(results.features).toList
+      val features = CloseableIterator(results.features).toList
 
       results.getSchema mustEqual defaultSft
       features must haveLength(2)
@@ -284,14 +284,14 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       // indexed attribute
       val q1 = ECQL.toFilter("name = 'one'")
       val fr = ds.getFeatureReader(new Query(sftName, q1), Transaction.AUTO_COMMIT)
-      val results = SelfClosingIterator(fr).toList
+      val results = CloseableIterator(fr).toList
       results must haveLength(1)
       results.head.getAttribute("name") mustEqual "one"
 
       // non-indexed attributes
       val q2 = ECQL.toFilter("numattr = 2")
       val fr2 = ds.getFeatureReader(new Query(sftName, q2), Transaction.AUTO_COMMIT)
-      val results2 = SelfClosingIterator(fr2).toList
+      val results2 = CloseableIterator(fr2).toList
       results2 must haveLength(1)
       results2.head.getAttribute("numattr") mustEqual 2
     }
@@ -301,7 +301,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val f = ScalaSimpleFeature.create(sft, "0", "2018-01-01T00:00:00.000Z", "2018-01-01T00:00:00.000Z", "POINT (45 55)")
       addFeature(f)
       val query = new Query(sft.getTypeName, ECQL.toFilter("ts = '2018-01-01T00:00:00.000Z'"))
-      SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual Seq(f)
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual Seq(f)
     }
 
     "hex encode multibyte chars as multiple underscore + hex" in {
@@ -417,7 +417,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"), "geom", "dtg")
       val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
 
-      val read = SelfClosingIterator(reader).toList
+      val read = CloseableIterator(reader).toList
 
       // verify that all the attributes came back
       read must haveSize(6)
@@ -483,7 +483,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       def query(filter: Filter, transforms: String*): List[SimpleFeature] = {
         var query = new Query(sftName, filter, transforms: _*)
-        SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+        CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
       }
 
       // "with out of order attributes" >> {
@@ -547,7 +547,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 44.5) AND dtg after 2012-01-02T05:02:00.000Z"))
       val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
 
-      val read = SelfClosingIterator(reader).toList
+      val read = CloseableIterator(reader).toList
 
       // verify that all the attributes came back
       read must haveSize(3)

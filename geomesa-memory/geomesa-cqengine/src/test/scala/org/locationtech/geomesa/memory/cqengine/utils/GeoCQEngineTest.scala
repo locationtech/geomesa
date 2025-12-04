@@ -15,7 +15,7 @@ import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.index.GeoIndexType
 import org.locationtech.geomesa.memory.cqengine.index.param.STRtreeIndexParam
 import org.locationtech.geomesa.memory.cqengine.utils.SampleFeatures._
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -69,7 +69,7 @@ class GeoCQEngineTest extends Specification with LazyLogging {
 
   def checkFilter(filter: Filter, cq: GeoCQEngine): MatchResult[_] = {
     val gtCount = feats.count(filter.evaluate)
-    val cqCount = SelfClosingIterator(cq.query(filter)).length
+    val cqCount = cq.query(filter).length
     // since GT count is (presumably) correct
     cqCount mustEqual gtCount
   }

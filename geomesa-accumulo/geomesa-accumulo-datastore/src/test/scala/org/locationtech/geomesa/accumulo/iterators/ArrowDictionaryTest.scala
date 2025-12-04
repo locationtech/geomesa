@@ -19,7 +19,7 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataSt
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
@@ -65,9 +65,9 @@ class ArrowDictionaryTest extends TestWithFeatureType with Mockito with LazyLogg
             query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
             query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dictionaries.mkString(","))
             query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
-            val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
-            results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+              .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
             val result = SimpleFeatureArrowFileReader.read(out.toByteArray)
             result.map(_.getID) mustEqual features.map(_.getID)
             result.map(_.getAttributes.asScala) mustEqual features.map(f => transform.map(f.getAttribute))

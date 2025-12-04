@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, GEOMESA_AUTH_PROVIDER_IMPL, SecurityUtils}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
@@ -124,7 +124,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
             val q = new Query(sftName, ECQL.toFilter(filter))
             threadedAuths.set(new Authorizations("user"))
             try {
-              val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+              val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
               results must haveLength(1)
               results.head.getID mustEqual "0"
             } finally {
@@ -132,7 +132,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
             }
             threadedAuths.set(new Authorizations("admin"))
             try {
-              val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+              val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
               results must beEmpty
             } finally {
               threadedAuths.remove()
@@ -143,7 +143,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
             val q = new Query(sftName, ECQL.toFilter(filter))
             threadedAuths.set(new Authorizations("admin"))
             try {
-              val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+              val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
               results must haveLength(1)
               results.head.getID mustEqual "1"
             } finally {
@@ -151,7 +151,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
             }
             threadedAuths.set(new Authorizations("user"))
             try {
-              val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+              val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
               results must beEmpty
             } finally {
               threadedAuths.remove()
@@ -162,7 +162,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
             val q = new Query(sftName, ECQL.toFilter(filter))
             threadedAuths.set(new Authorizations("user"))
             try {
-              val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+              val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
               results must haveLength(1)
               results.head.getID mustEqual "0"
             } finally {
@@ -170,7 +170,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
             }
             threadedAuths.set(new Authorizations("admin"))
             try {
-              val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+              val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
               results must haveLength(1)
               results.head.getID mustEqual "1"
             } finally {
@@ -178,7 +178,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
             }
             threadedAuths.set(new Authorizations("user", "admin"))
             try {
-              val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+              val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
               results must haveLength(2)
               results.map(_.getID).sorted mustEqual Seq("0", "1")
             } finally {

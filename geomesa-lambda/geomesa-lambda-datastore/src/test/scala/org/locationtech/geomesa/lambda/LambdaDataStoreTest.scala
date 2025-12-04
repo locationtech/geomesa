@@ -21,7 +21,7 @@ import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.stats.impl.EnumerationStat
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.matcher.MatchResult
@@ -46,8 +46,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
   def testTransforms(ds: LambdaDataStore, transform: SimpleFeatureType): MatchResult[Any] = {
     val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toSeq: _*)
     // note: need to copy the features as the same object is re-used in the iterator
-    val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-    val result = iter.map(DataUtilities.encodeFeature).toSeq
+    val iter = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+    val result = iter.map(DataUtilities.encodeFeature).toList
     val expected = features.map(DataUtilities.reType(transform, _)).map(DataUtilities.encodeFeature)
     result must containTheSameElementsAs(expected)
   }
@@ -56,8 +56,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
     val query = new Query(sft.getTypeName, Filter.INCLUDE)
     query.getHints.put(QueryHints.BIN_TRACK, "name")
     // note: need to copy the features as the same object is re-used in the iterator
-    val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-    val bytes = iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
+    val iter = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+    val bytes = iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).toList.reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
     bytes must haveLength(32)
     val bins = bytes.grouped(16).map(BinaryOutputEncoder.decode).toSeq
     bins.map(_.trackId) must containAllOf(Seq("n0", "n1").map(_.hashCode))
@@ -72,8 +72,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
     query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
     query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
     // note: need to copy the features as the same object is re-used in the iterator
-    val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-    val bytes = iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
+    val iter = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+    val bytes = iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).toList.reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
     SimpleFeatureArrowFileReader.read(bytes) must containTheSameElementsAs(features)
   }
 
@@ -83,7 +83,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
     query.getHints.put(QueryHints.ENCODE_STATS, true)
 
     // note: need to copy the features as the same object is re-used in the iterator
-    val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
+    val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
     result must haveLength(1)
     val stat = StatsScan.decodeStat(sft)(result.head.getAttribute(0).asInstanceOf[String])
     stat must beAnInstanceOf[EnumerationStat[String]]
@@ -92,7 +92,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
     val jsonQuery = new Query(sft.getTypeName, Filter.INCLUDE)
     jsonQuery.getHints.put(QueryHints.STATS_STRING, Stat.Enumeration("name"))
     jsonQuery.getHints.put(QueryHints.ENCODE_STATS, false)
-    val jsonResult = SelfClosingIterator(ds.getFeatureReader(jsonQuery, Transaction.AUTO_COMMIT)).toSeq
+    val jsonResult = CloseableIterator(ds.getFeatureReader(jsonQuery, Transaction.AUTO_COMMIT)).toList
     jsonResult must haveLength(1)
     jsonResult.head.getAttribute(0).asInstanceOf[String] must (contain(""""n0":1""") and contain(""""n1":1"""))
     jsonResult.head.getAttribute(0).asInstanceOf[String] must haveLength(15)
@@ -149,9 +149,9 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 
             // test queries against the transient store
             forall(Seq(ds, readOnly)) { store =>
-              eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()).toSeq must
+              eventually(40, 100.millis)(store.transients.get(sft.getTypeName).read().iterator().toList must
                 containTheSameElementsAs(features))
-              SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
+              CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
                 containTheSameElementsAs(features)
             }
             testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
@@ -164,9 +164,9 @@ class LambdaDataStoreTest extends LambdaContainerTest {
             ds.persist(sft.getTypeName)
             // test mixed queries against both stores
             forall(Seq(ds, readOnly)) { store =>
-              eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()).toSeq must
+              eventually(40, 100.millis)(store.transients.get(sft.getTypeName).read().iterator().toList must
                 beEqualTo(features.drop(1)))
-              SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
+              CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
                 containTheSameElementsAs(features)
             }
             testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
@@ -179,8 +179,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
             ds.persist(sft.getTypeName)
             // test queries against the persistent store
             forall(Seq(ds, readOnly)) { store =>
-              eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()) must beEmpty)
-              SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
+              eventually(40, 100.millis)(store.transients.get(sft.getTypeName).read().iterator().toList must beEmpty)
+              CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
                 containTheSameElementsAs(features)
             }
             testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
@@ -195,7 +195,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
             }
             forall(Seq(ds, readOnly)) { store =>
               eventually(40, 100.millis)(
-                SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
+                CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
                   containTheSameElementsAs(Seq(update, features.last))
               )
             }
@@ -204,8 +204,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
             clock.tick = 252
             ds.persist(sft.getTypeName)
             forall(Seq(ds, readOnly)) { store =>
-              eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()) must beEmpty)
-              SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
+              eventually(40, 100.millis)(store.transients.get(sft.getTypeName).read().iterator().toList must beEmpty)
+              CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
                 containTheSameElementsAs(Seq(update, features.last))
             }
           } finally {

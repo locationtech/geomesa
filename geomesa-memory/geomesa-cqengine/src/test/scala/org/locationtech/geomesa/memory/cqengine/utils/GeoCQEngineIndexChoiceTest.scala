@@ -17,7 +17,7 @@ import org.locationtech.geomesa.memory.cqengine.index.{AbstractGeoIndex, GeoInde
 import org.locationtech.geomesa.memory.cqengine.utils.SampleFeatures._
 import org.locationtech.geomesa.memory.index.SpatialIndex
 import org.locationtech.geomesa.memory.index.impl.{BucketIndex, WrappedQuadtree, WrappedSTRtree}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -71,15 +71,13 @@ class GeoCQEngineIndexChoiceTest extends Specification with LazyLogging {
 
   def getGeoToolsCount(filter: Filter) = feats.count(filter.evaluate)
 
-  def getCQEngineCount(filter: Filter, cq: GeoCQEngine) = {
-    SelfClosingIterator(cq.query(filter)).size
-  }
+  def getCQEngineCount(filter: Filter, cq: GeoCQEngine) = cq.query(filter).size
 
   def checkFilter(filter: Filter, cq: GeoCQEngine, spatialIndex: Option[Class[_ <: SpatialIndex[_]]]): MatchResult[_] = {
     AbstractGeoIndex.lastUsed.remove()
 
     val gtCount = feats.count(filter.evaluate)
-    val cqCount = SelfClosingIterator(cq.query(filter)).length
+    val cqCount = cq.query(filter).length
     // since GT count is (presumably) correct
     cqCount mustEqual gtCount
 

@@ -19,7 +19,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature.ImmutableSimpleFeature
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineFeatureStore.{GeoCQEngineFeatureWriter, GeoCQEngineQueryCapabilities}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
@@ -36,8 +35,7 @@ class GeoCQEngineFeatureStore(engine: GeoCQEngine, entry: ContentEntry, query: Q
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = null
 
-  override def getCountInternal(query: Query): Int =
-    SelfClosingIterator(engine.query(query.getFilter)).length
+  override def getCountInternal(query: Query): Int = engine.query(query.getFilter).length
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] =
     new DelegateFeatureReader(engine.sft, new DelegateFeatureIterator(engine.query(query.getFilter).asJava))

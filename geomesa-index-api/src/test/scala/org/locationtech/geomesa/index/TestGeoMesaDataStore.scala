@@ -158,7 +158,7 @@ object TestGeoMesaDataStore {
         }
       }
       val filtered = ecql.fold(matches)(f => matches.filter(f.evaluate))
-      processor(filtered.iterator)
+      processor(CloseableIterator(filtered.iterator))
     }
 
     override def explain(explainer: Explainer): Unit = {

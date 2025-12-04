@@ -22,7 +22,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.utils.ExplainPrintln
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -88,7 +88,7 @@ class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
         "name < 'name5'",
         "name = 'name5'").foreach { filter =>
         val fr = ds.getFeatureReader(new Query(sftName, ECQL.toFilter(filter)), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(fr).toList must beEmpty
+        CloseableIterator(fr).toList must beEmpty
       }
       ok
     }
@@ -98,7 +98,7 @@ class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
     foreach(Seq(ds, parallelDs)) { ds =>
       val query = new Query(sftName, ECQL.toFilter(filter), transforms: _*)
       val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-      val features = SelfClosingIterator(fr).toList
+      val features = CloseableIterator(fr).toList
       if (features.length != results.length) {
         ds.getQueryPlan(query, explainer = new ExplainPrintln)
       }

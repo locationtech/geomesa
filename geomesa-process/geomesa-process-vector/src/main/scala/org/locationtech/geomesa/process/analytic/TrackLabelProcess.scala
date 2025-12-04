@@ -14,7 +14,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.process.GeoMesaProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import java.util.Date
@@ -53,7 +53,7 @@ class TrackLabelProcess extends GeoMesaProcess {
 
     val results = new ListFeatureCollection(sft)
 
-    val grouped = SelfClosingIterator(featureCollection).toSeq.groupBy(_.getAttribute(trackField))
+    val grouped = CloseableIterator(featureCollection.features()).toList.groupBy(_.getAttribute(trackField))
 
     dtgField match {
       case None    => grouped.foreach { case (_, features) => results.add(features.head) }

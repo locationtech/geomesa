@@ -23,7 +23,7 @@ import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -68,11 +68,11 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
     addFeatures(features)
   }
 
-  def runQuery(filter: String, transforms: Array[String] = null): Iterator[SimpleFeature] =
+  def runQuery(filter: String, transforms: Array[String] = null): CloseableIterator[SimpleFeature] =
     runQuery(new Query(sftName, ECQL.toFilter(filter), transforms: _*))
 
-  def runQuery(query: Query): Iterator[SimpleFeature] =
-    SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+  def runQuery(query: Query): CloseableIterator[SimpleFeature] =
+    CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
 
   "Z3IdxStrategy" should {
     "print values" >> {
@@ -229,7 +229,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val aggregates = try {
         // the same simple feature gets reused - so make sure you access in serial order
-        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
       } finally {
         QueryProperties.ScanRangesTarget.threadLocalValue.remove()
       }
@@ -258,7 +258,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val aggregates = try {
         // the same simple feature gets reused - so make sure you access in serial order
-        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
       } finally {
         QueryProperties.ScanRangesTarget.threadLocalValue.remove()
       }
@@ -291,7 +291,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val aggregates = try {
         // the same simple feature gets reused - so make sure you access in serial order
-        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
       } finally {
         QueryProperties.ScanRangesTarget.threadLocalValue.remove()
       }
@@ -320,7 +320,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val aggregates = try {
         // the same simple feature gets reused - so make sure you access in serial order
-        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
       } finally {
         QueryProperties.ScanRangesTarget.threadLocalValue.remove()
       }
@@ -341,7 +341,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))
-      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, Float.box(.2f))
       // reduce our scan ranges so that we get fewer iterator instances and some sampling
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val results = try { runQuery(query).toList } finally {
@@ -354,7 +354,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter), "name", "geom")
-      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, Float.box(.2f))
       // reduce our scan ranges so that we get fewer iterator instances and some sampling
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val results = try { runQuery(query).toList } finally {
@@ -368,7 +368,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))
-      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, Float.box(.2f))
       query.getHints.put(SAMPLE_BY, "track")
       // reduce our scan ranges so that we get fewer iterator instances and some sampling
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
@@ -385,7 +385,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val query = new Query(sftName, ECQL.toFilter(filter))
       query.getHints.put(BIN_TRACK, "track")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
-      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, Float.box(.2f))
       query.getHints.put(SAMPLE_BY, "track")
 
       // reduce our scan ranges so that we get fewer iterator instances and some sampling

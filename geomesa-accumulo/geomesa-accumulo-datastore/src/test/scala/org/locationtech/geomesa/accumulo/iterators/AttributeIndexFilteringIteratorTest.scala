@@ -17,7 +17,7 @@ import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.index.index.NamedIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.MatchResult
@@ -64,17 +64,17 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithFea
         // 4 features for this letter
         val leftWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter"))
         checkStrategies(leftWildCard, Z3Index)
-        SelfClosingIterator(fs.getFeatures(leftWildCard)).toSeq must haveLength(4)
+        CloseableIterator(fs.getFeatures(leftWildCard).features()).toList must haveLength(4)
 
         // Double wildcards should be full table scan
         val doubleWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter%"))
         checkStrategies(doubleWildCard, Z3Index)
-        SelfClosingIterator(fs.getFeatures(doubleWildCard)).toSeq must haveLength(4)
+        CloseableIterator(fs.getFeatures(doubleWildCard).features()).toList must haveLength(4)
 
         // should return the 4 features for this letter
         val rightWildcard = new Query(sftName, ff.like(ff.property("name"),s"$letter%"))
         checkStrategies(rightWildcard, JoinIndex)
-        SelfClosingIterator(fs.getFeatures(rightWildcard)).toSeq must haveLength(4)
+        CloseableIterator(fs.getFeatures(rightWildcard).features()).toList must haveLength(4)
       }
     }
 
@@ -95,7 +95,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithFea
       checkStrategies(rightWildcard, JoinIndex)
 
       forall(List(query, leftWildCard, doubleWildCard, rightWildcard)) { query =>
-        val features = SelfClosingIterator(fs.getFeatures(query)).toList
+        val features = CloseableIterator(fs.getFeatures(query).features()).toList
         features must haveLength(4)
         forall(features)(_.getAttribute(0) must beAnInstanceOf[Geometry])
         forall(features)(_.getAttributeCount mustEqual 1)
@@ -107,7 +107,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithFea
       val query = new Query(sftName, filter, "geom")
       ds.getQueryPlan(query).head.filter.index.name mustEqual JoinIndex.name
 
-      val features = SelfClosingIterator(fs.getFeatures(query)).toList
+      val features = CloseableIterator(fs.getFeatures(query).features()).toList
 
       features must haveLength(4)
       forall(features)(_.getAttribute(0) must beAnInstanceOf[Geometry])

@@ -17,7 +17,7 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloRunner}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.SpecificationWithJUnit
@@ -57,7 +57,7 @@ class AccumuloUpdateFeaturesCommandTest extends SpecificationWithJUnit {
     command.execute()
     command.withDataStore { ds =>
       try {
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
       } finally {
         ds.delete()
       }

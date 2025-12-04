@@ -23,7 +23,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints.{EXACT_COUNT, QUERY_INDEX}
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.stats.impl.MinMax
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
@@ -302,7 +302,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
           "bbox(geom,0,0,10,5) AND dtg during 2016-01-02T23:00:00.000Z/2016-01-03T01:00:00.000Z")
         forall(filters.map(ECQL.toFilter)) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          val exact = SelfClosingIterator(reader).length.toLong
+          val exact = CloseableIterator(reader).size.toLong
           exact must beGreaterThan(0L)
           val calculated = ds.stats.getCount(sft, filter, exact = true)
           calculated must beSome(exact)
@@ -320,7 +320,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
           "bbox(geom,-30,-10,-5,0)", "dwithin(geom, POLYGON((0 0, 0 5, 5 7, 6 3, 0 0)), 100, meters)")
         forall(filters.map(ECQL.toFilter)) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          val exact = SelfClosingIterator(reader).length
+          val exact = CloseableIterator(reader).size
           val estimated = ds.stats.getCount(sft, filter, exact = false)
           estimated must beSome(beCloseTo(exact, 3L))
         }
@@ -332,7 +332,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
           "dtg during 2016-01-08T00:00:00.000Z/2016-01-10T00:00:00.000Z")
         forall(filters.map(ECQL.toFilter)) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          val exact = SelfClosingIterator(reader).length
+          val exact = CloseableIterator(reader).size
           val estimated = ds.stats.getCount(sft, filter, exact = false)
           estimated must beSome(beCloseTo(exact, 3L))
         }
@@ -345,7 +345,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
           "bbox(geom,0,0,30,10) AND dtg during 2015-12-30T00:00:00.000Z/2016-01-01T00:00:00.000Z")
         forall(filters.map(ECQL.toFilter)) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          val exact = SelfClosingIterator(reader).length
+          val exact = CloseableIterator(reader).size
           val estimated = ds.stats.getCount(sft, filter, exact = false)
           estimated must beSome(beCloseTo(exact, 3L))
         }
@@ -355,7 +355,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         val filters = Seq("name = '5'", "name < '7'", "name > 'foo'", "NOT name = '3'")
         forall(filters.map(ECQL.toFilter)) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          val exact = SelfClosingIterator(reader).length
+          val exact = CloseableIterator(reader).size
           val estimated = ds.stats.getCount(sft, filter, exact = false)
           estimated must beSome(beCloseTo(exact, 1L))
         }
@@ -364,14 +364,14 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
       "estimate counts for schemas without a date" >> {
         val sft = createNewSchema("name:String:index=join,*geom:Point:srid=4326")
         val reader = ds.getFeatureReader(new Query(AccumuloDataStoreStatsTest.this.sftName), Transaction.AUTO_COMMIT)
-        val features = SelfClosingIterator(reader).map { f =>
+        val features = CloseableIterator(reader).map { f =>
           ScalaSimpleFeature.create(sft, f.getID, f.getAttribute("name"), f.getAttribute("geom"))
         }
-        addFeatures(features.toSeq)
+        addFeatures(features.toList)
         val filters = Seq("name = '5'", "name < '7'", "name > 'foo'", "NOT name = '3'")
         forall(filters.map(ECQL.toFilter)) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          val exact = SelfClosingIterator(reader).length
+          val exact = CloseableIterator(reader).size
           val estimated = ds.stats.getCount(sft, filter, exact = false)
           estimated must beSome(beCloseTo(exact, 1L))
         }
@@ -424,7 +424,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
           val count = fs.getCount(query)
 
           val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-          val exact = SelfClosingIterator(reader).length.toLong
+          val exact = CloseableIterator(reader).size.toLong
           exact must beGreaterThan(0L)
           val calculated = ds.stats.getCount(sft, filter, exact = true, hints)
           calculated must beSome(exact)

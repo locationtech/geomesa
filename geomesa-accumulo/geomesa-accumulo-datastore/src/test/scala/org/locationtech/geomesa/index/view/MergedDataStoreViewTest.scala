@@ -25,7 +25,7 @@ import org.locationtech.geomesa.index.stats.impl.MinMax
 import org.locationtech.geomesa.index.view.MergedDataStoreViewTest.TestConfigLoader
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodedValues}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.jts.geom.Point
@@ -88,8 +88,8 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       }
     }
 
-    SelfClosingIterator(shpDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(4)
-    SelfClosingIterator(accumuloDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(4)
+    CloseableIterator(shpDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(4)
+    CloseableIterator(accumuloDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(4)
 
     shpDs.dispose()
     accumuloDs.dispose()
@@ -104,7 +104,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       query.setMaxFeatures(1)
       query.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
       mergedDs.getFeatureSource(sft.getTypeName).getCount(query) mustEqual 1
-      SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(1)
+      CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(1)
     }
 
     "load multiple datastores" in {
@@ -177,7 +177,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores" in {
-      val results = SelfClosingIterator(mergedDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList
+      val results = CloseableIterator(mergedDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList
 
       results must haveLength(features.length)
       foreach(results.sortBy(_.getAttribute("name").asInstanceOf[String]).zip(features)) { case (actual, expected) =>
@@ -199,7 +199,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
         val ecql = ECQL.toFilter(filter)
         foreach(transforms) { transform =>
           val query = new Query(sftName, ecql, transform: _*)
-          val results = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val results = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(4)
           val attributes = Option(transform).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
           forall(results) { feature =>
@@ -234,7 +234,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
         foreach(filters) { filter =>
           val ecql = ECQL.toFilter(filter)
           val query = new Query(sftName, ecql)
-          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(3)
           forall(results) { feature =>
             // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
@@ -250,7 +250,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       foreach(Seq[Array[String]](null, Array("the_geom", "dtg"))) { transform =>
         val query = new Query(sftName, Filter.INCLUDE, transform: _*)
         query.setSortBy(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.DESCENDING))
-        val results = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
         results must haveLength(features.length)
         // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
@@ -264,7 +264,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       val query = new Query(sftName, defaultFilter, "name", "dtg", "the_geom")
       query.getHints.put(QueryHints.BIN_TRACK, "name")
 
-      val bytes = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).map { f =>
+      val bytes = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).map { f =>
         val array = f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]
         val copy = Array.ofDim[Byte](array.length)
         System.arraycopy(array, 0, copy, 0, array.length)
@@ -287,14 +287,14 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-      val results = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
-      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+      CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
         val expected = features.slice(2, 6)
         reader.dictionaries.keySet mustEqual Set("name")
         reader.dictionaries.apply("name").iterator.toSeq must containAllOf(expected.map(_.getAttribute("name")))
-        val results = SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList
+        val results = CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList
         results must haveLength(4)
         foreach(results.zip(expected)) { case (actual, e) =>
           actual.getAttributeCount mustEqual 3
@@ -311,7 +311,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
         query.getHints.put(QueryHints.STATS_STRING, "MinMax(dtg)")
         query.getHints.put(QueryHints.ENCODE_STATS, true)
 
-        val results = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
         results must haveLength(1)
 
         val stat = StatsScan.decodeStat(sft)(results.head.getAttribute(0).asInstanceOf[String])
@@ -333,11 +333,11 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
       val decode = DensityScan.decodeResult(envelope, width, height)
 
-      val results = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT))
+      val results = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT))
 
       def round(f: Double): Double = math.round(f * 10) / 10d
 
-      val counts = results.flatMap(decode.apply).foldLeft(Map.empty[(Double, Double), Double]) {
+      val counts = results.flatMap(decode.apply).toList.foldLeft(Map.empty[(Double, Double), Double]) {
         case (map, (x, y, weight)) => map + ((round(x), round(y)) -> weight)
       }
 

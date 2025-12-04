@@ -14,7 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -74,13 +74,13 @@ class AccumuloDataStoreSortTest extends Specification with TestWithFeatureType {
           foreach(sorts) { sort =>
             val query = new Query(sft.getTypeName, filter, transform: _*)
             query.setSortBy(sort: _*)
-            val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             result.map(_.getID) mustEqual features.map(_.getID)
           }
           foreach(reverses) { sort =>
             val query = new Query(sft.getTypeName, filter, transform: _*)
             query.setSortBy(sort: _*)
-            val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             result.map(_.getID) mustEqual features.map(_.getID).reverse
           }
         }

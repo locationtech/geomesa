@@ -20,7 +20,7 @@ import org.locationtech.geomesa.filter.function.ProxyIdFunction
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
@@ -89,7 +89,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       foreach(filters) { filter =>
         foreach(transforms) { transform =>
           val query = new Query(sftName, filter, transform: _*)
-          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           result must not(beEmpty)
           foreach(result)(f => ids.contains(f.getID) must beTrue)
         }
@@ -100,7 +100,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       foreach(ds.getQueryPlan(query)) { plan =>
         plan.filter.index.name mustEqual IdIndex.name
       }
-      val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       result mustEqual Seq(features(5))
     }
     "return minified arrow ids and use them for callbacks" in {
@@ -112,15 +112,15 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
 
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
-      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       val ids = SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getID.toInt)
       val proxy = new ProxyIdFunction()
       features.map(proxy.evaluate(_)) must containAllOf(ids)
 
       val callback = new Query(sftName, ECQL.toFilter(s"$filter AND proxyId() = ${ids.head}"))
-      val callbackResults = SelfClosingIterator(ds.getFeatureReader(callback, Transaction.AUTO_COMMIT)).toList
+      val callbackResults = CloseableIterator(ds.getFeatureReader(callback, Transaction.AUTO_COMMIT)).toList
       callbackResults must haveLength(1)
       proxy.evaluate(callbackResults.head) mustEqual ids.head
     }
@@ -133,15 +133,15 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
 
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
-      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       val ids = SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getID.toInt)
       val proxy = new ProxyIdFunction()
       features.map(proxy.evaluate(_)) must containAllOf(ids)
 
       val callback = new Query(sftName, ECQL.toFilter(s"$filter AND (proxyId() = ${ids.head} OR proxyId() = ${ids.last})"))
-      val callbackResults = SelfClosingIterator(ds.getFeatureReader(callback, Transaction.AUTO_COMMIT)).toList
+      val callbackResults = CloseableIterator(ds.getFeatureReader(callback, Transaction.AUTO_COMMIT)).toList
       callbackResults must haveLength(2)
       callbackResults.map(proxy.evaluate) must containTheSameElementsAs(Seq(ids.head, ids.last))
     }

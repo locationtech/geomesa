@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.process.analytic.UniqueProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -72,7 +72,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val process = new UniqueProcess
       val results = process.execute(features, "name", null, null, null, null, pl)
 
-      val names = SelfClosingIterator(results.features()).map(_.getAttribute("value")).toList
+      val names = CloseableIterator(results.features()).map(_.getAttribute("value")).toList
       names must contain(exactly[Any]("alice", "bill", "bob", "charles"))
     }
 
@@ -82,7 +82,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val process = new UniqueProcess
       val results = process.execute(features, "name", null, null, null, null, pl)
 
-      val names = SelfClosingIterator(results.features()).map(_.getAttribute("value")).toList
+      val names = CloseableIterator(results.features()).map(_.getAttribute("value")).toList
       names must contain(exactly[Any]("bill", "bob"))
     }
 
@@ -92,7 +92,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val process = new UniqueProcess
       val results = process.execute(features, "name", CQL.toFilter("name LIKE 'b%'"), null, null, null, pl)
 
-      val names = SelfClosingIterator(results.features()).map(_.getAttribute("value")).toList
+      val names = CloseableIterator(results.features()).map(_.getAttribute("value")).toList
       names must contain(exactly[Any]("bill", "bob"))
     }
 
@@ -102,7 +102,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val process = new UniqueProcess
       val results = process.execute(features, "name", CQL.toFilter("weight > 25"), null, null, null, pl)
 
-      val names = SelfClosingIterator(results.features()).map(_.getAttribute("value")).toList
+      val names = CloseableIterator(results.features()).map(_.getAttribute("value")).toList
       names must contain(exactly[Any]("bob"))
     }
 
@@ -112,7 +112,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val process = new UniqueProcess
       val results = process.execute(features, "name", null, null, null, null, pl)
 
-      val uniques = SelfClosingIterator(results.features()).toList
+      val uniques = CloseableIterator(results.features()).toList
       val names = uniques.map(_.getAttribute("value"))
       names must contain(exactly[Any]("alice", "bill", "bob", "charles"))
 
@@ -126,7 +126,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val process = new UniqueProcess
       val results = process.execute(features, "name", null, true, null, null, pl)
 
-      val uniques = SelfClosingIterator(results.features()).toList
+      val uniques = CloseableIterator(results.features()).toList
       val names = uniques.map(_.getAttribute("value"))
       names should contain(exactly[Any]("alice", "bill", "bob", "charles"))
 
@@ -149,7 +149,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val process = new UniqueProcess
       val results = process.execute(features, "name", null, true, "DESC", null, pl)
 
-      val uniques = SelfClosingIterator(results.features()).toList
+      val uniques = CloseableIterator(results.features()).toList
       val names = uniques.map(_.getAttribute("value"))
       names must haveLength(4)
       names(0) mustEqual("charles")
@@ -176,7 +176,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val process = new UniqueProcess
       val results = process.execute(features, "name", null, true, "DESC", true, pl)
 
-      val uniques = SelfClosingIterator(results.features()).toList
+      val uniques = CloseableIterator(results.features()).toList
       val names = uniques.map(_.getAttribute("value"))
       names must haveLength(4)
       names(0) mustEqual("bill")
@@ -201,7 +201,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val features = fs.getFeatures()
       val proc = new UniqueProcess
       val results = proc.execute(features, "ml", null, true, "DESC", false, pl)
-      val uniques = SelfClosingIterator(results.features()).toList
+      val uniques = CloseableIterator(results.features()).toList
       val values = uniques.map(_.getAttribute("value"))
       "contain 'foo' and 'bar'" >> { values must containTheSameElementsAs(Seq("foo", "bar")) }
       "'foo' must have count 6" >> { uniques.find(_.getAttribute("value") == "foo").map(_.getAttribute("count")) must beSome(6) }

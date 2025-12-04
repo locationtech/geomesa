@@ -13,6 +13,7 @@ import org.apache.arrow.vector.{IntVector, VarCharVector}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
@@ -21,7 +22,6 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.ByteArrayInputStream
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
@@ -68,7 +68,7 @@ class DeltaWriterTest extends Specification {
         result.append(writer.encode(features.drop(10).toArray, 5))
       }
 
-      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, ipcOpts, None, sorted = false, 5, result.iterator)) { iter =>
+      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, ipcOpts, None, sorted = false, 5, CloseableIterator(result.iterator))) { iter =>
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
@@ -98,7 +98,7 @@ class DeltaWriterTest extends Specification {
         result.append(writer.encode(features.drop(10).toArray, 5))
       }
 
-      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, ipcOpts, sort, sorted = false, 5, result.iterator)) { iter =>
+      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, ipcOpts, sort, sorted = false, 5, CloseableIterator(result.iterator))) { iter =>
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
@@ -128,7 +128,7 @@ class DeltaWriterTest extends Specification {
         result.append(writer.encode(features.drop(10).toArray, 5))
       }
 
-      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, ipcOpts, sort, sorted = false, 5, process = false, result.iterator)) { iter =>
+      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, ipcOpts, sort, sorted = false, 5, process = false, CloseableIterator(result.iterator))) { iter =>
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
@@ -171,7 +171,7 @@ class DeltaWriterTest extends Specification {
         result.append(writer.encode(listFeatures.drop(10).toArray, 5))
       }
 
-      val bytes = WithClose(DeltaWriter.reduce(listSft, dictionaries, encoding, ipcOpts, sort, sorted = false, 5, result.iterator)) { iter =>
+      val bytes = WithClose(DeltaWriter.reduce(listSft, dictionaries, encoding, ipcOpts, sort, sorted = false, 5, CloseableIterator(result.iterator))) { iter =>
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
@@ -193,7 +193,7 @@ class DeltaWriterTest extends Specification {
         result.append(writer.encode(lineFeatures.drop(8).toArray, 2))
       }
 
-      val bytes = WithClose(DeltaWriter.reduce(lineSft, Seq.empty, encoding, ipcOpts, None, sorted = false, 10, result.iterator)) { iter =>
+      val bytes = WithClose(DeltaWriter.reduce(lineSft, Seq.empty, encoding, ipcOpts, None, sorted = false, 10, CloseableIterator(result.iterator))) { iter =>
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
@@ -213,7 +213,7 @@ class DeltaWriterTest extends Specification {
         result.append(writer.encode(lineFeatures.drop(8).toArray, 2))
       }
 
-      val bytes = WithClose(DeltaWriter.reduce(lineSft, Seq.empty, encoding, ipcOpts, sort, sorted = false, 10, result.iterator)) { iter =>
+      val bytes = WithClose(DeltaWriter.reduce(lineSft, Seq.empty, encoding, ipcOpts, sort, sorted = false, 10, CloseableIterator(result.iterator))) { iter =>
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 

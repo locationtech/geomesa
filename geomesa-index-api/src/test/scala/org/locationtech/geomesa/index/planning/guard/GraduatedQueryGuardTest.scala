@@ -14,7 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -68,12 +68,12 @@ class GraduatedQueryGuardTest extends Specification {
       )
 
       foreach(valid.map(ECQL.toFilter)) { filter =>
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
           beEmpty
       }
 
       foreach(invalid.map(ECQL.toFilter)) { filter =>
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
           throwAn[IllegalArgumentException]
       }
 
@@ -83,7 +83,7 @@ class GraduatedQueryGuardTest extends Specification {
       try {
         ds2.createSchema(sft)
         foreach(invalid.map(ECQL.toFilter)) { filter =>
-          SelfClosingIterator(ds2.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+          CloseableIterator(ds2.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
               beEmpty
         }
       } finally {

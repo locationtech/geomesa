@@ -17,7 +17,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.exporters.DelimitedExporter
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -83,7 +83,7 @@ class DelimitedExportImportTest extends Specification {
           }
 
           ds.getTypeNames mustEqual Array("tools")
-          val ingested = SelfClosingIterator(ds.getFeatureReader(new Query("tools"), Transaction.AUTO_COMMIT)).toList
+          val ingested = CloseableIterator(ds.getFeatureReader(new Query("tools"), Transaction.AUTO_COMMIT)).toList
           ingested.map(DataUtilities.encodeFeature(_, false)) mustEqual features.map(DataUtilities.encodeFeature(_, false))
         } finally {
           if (!file.delete()) {

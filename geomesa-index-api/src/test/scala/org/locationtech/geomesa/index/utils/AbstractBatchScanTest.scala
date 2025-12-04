@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.utils
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -40,12 +40,12 @@ class AbstractBatchScanTest extends Specification {
     "scan with multiple threads" in {
       val iter = TestBatchScan(Seq("foo", "bar"), 2, 100)
       iter.waitForDone(1000) must beTrue
-      SelfClosingIterator(iter).toList must containTheSameElementsAs(Seq("f", "o", "o", "b", "a", "r"))
+      CloseableIterator(iter).toList must containTheSameElementsAs(Seq("f", "o", "o", "b", "a", "r"))
     }
     "scan exceeding the buffer size" in {
       val iter = TestBatchScan(Seq("foo", "bar"), 2, 2)
       iter.waitForFull(1000) must beTrue
-      SelfClosingIterator(iter).toList must containTheSameElementsAs(Seq("f", "o", "o", "b", "a", "r"))
+      CloseableIterator(iter).toList must containTheSameElementsAs(Seq("f", "o", "o", "b", "a", "r"))
       iter.waitForDone(1000) must beTrue
     }
     "handle being closed prematurely" in {

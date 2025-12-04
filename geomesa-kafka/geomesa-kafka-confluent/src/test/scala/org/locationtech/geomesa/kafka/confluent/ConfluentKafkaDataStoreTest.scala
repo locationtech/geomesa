@@ -23,7 +23,7 @@ import org.locationtech.geomesa.kafka.confluent.ConfluentKafkaDataStoreTest._
 import org.locationtech.geomesa.kafka.confluent.SchemaParser._
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
@@ -109,7 +109,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
 
       eventually(20, 100.millis) {
         // the record with "hidden" visibility doesn't appear because no auths are configured
-        val features = SelfClosingIterator(fs.getFeatures.features).toList
+        val features = CloseableIterator(fs.getFeatures.features).toList
         features must haveLength(1)
         val feature = features.head
         val expectedPosition = generatePoint(10d, 20d)
@@ -148,7 +148,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
 
       eventually(20, 100.millis) {
         // the record with "hidden" visibility doesn't appear because no auths are configured
-        val features = SelfClosingIterator(fs.getFeatures.features).toList
+        val features = CloseableIterator(fs.getFeatures.features).toList
         features must haveLength(1)
         val feature = features.head
         val expectedPosition = generatePoint(10d, 20d)
@@ -182,7 +182,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
       val fs = kds.getFeatureSource(topic)
 
       eventually(20, 100.millis) {
-        val features = SelfClosingIterator(fs.getFeatures.features).toList
+        val features = CloseableIterator(fs.getFeatures.features).toList
         features must haveLength(2)
         features.map(_.getID) must containTheSameElementsAs(Seq(id1, id2))
         foreach(features)(f => SimpleFeatureTypes.encodeType(f.getType) mustEqual encodedSft1)
@@ -251,7 +251,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
         val fs = kds.getFeatureSource(topic)
 
         eventually(20, 100.millis) {
-          val features = SelfClosingIterator(fs.getFeatures.features).toList
+          val features = CloseableIterator(fs.getFeatures.features).toList
           features must haveLength(1)
           val feature = features.head
           SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSft2
@@ -276,7 +276,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
         val fs = kds.getFeatureSource(topic)
 
         eventually(20, 100.millis) {
-          val features = SelfClosingIterator(fs.getFeatures.features).toList
+          val features = CloseableIterator(fs.getFeatures.features).toList
           features must haveLength(1)
           val feature = features.head
           SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSftLogicalDate
@@ -300,7 +300,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
       val fs = kds.getFeatureSource(topic)
 
       eventually(20, 100.millis) {
-        val features = SelfClosingIterator(fs.getFeatures.features).toList
+        val features = CloseableIterator(fs.getFeatures.features).toList
         features must haveLength(1)
         val feature = features.head
         SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSft2
@@ -317,7 +317,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
       producer.send(new ProducerRecord[String, GenericRecord](topic, id, record2)).get
 
       eventually(20, 100.millis) {
-        val features = SelfClosingIterator(fs.getFeatures.features).toList
+        val features = CloseableIterator(fs.getFeatures.features).toList
         features must haveLength(1)
         val feature = features.head
         SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSft2
@@ -347,13 +347,13 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
       val fs = kds.getFeatureSource(topic)
 
       eventually(20, 100.millis) {
-        SelfClosingIterator(fs.getFeatures.features).toArray.length mustEqual 2
+        CloseableIterator(fs.getFeatures.features).size mustEqual 2
       }
 
       producer.send(new ProducerRecord[String, GenericRecord](topic, id1, null)).get
 
       eventually(20, 100.millis) {
-        val features = SelfClosingIterator(fs.getFeatures.features).toList
+        val features = CloseableIterator(fs.getFeatures.features).toList
         features must haveLength(1)
         val feature = features.head
         SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSft2
@@ -383,13 +383,13 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
       val fs = kds.getFeatureSource(topic)
 
       eventually(20, 100.millis) {
-        SelfClosingIterator(fs.getFeatures.features).toArray.length mustEqual 2
+        CloseableIterator(fs.getFeatures.features).size mustEqual 2
       }
 
       producer.send(new ProducerRecord[String, GenericRecord](topic, "", null)).get
 
       eventually(20, 100.millis) {
-        SelfClosingIterator(fs.getFeatures.features).toArray.length mustEqual 0
+        CloseableIterator(fs.getFeatures.features).size mustEqual 0
       }
     }
   }

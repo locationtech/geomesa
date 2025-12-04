@@ -26,7 +26,7 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.planning.QueryInterceptor
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.{Geometry, Point}
@@ -65,7 +65,7 @@ class GeoMesaDataStoreTest extends Specification {
     "reproject geometries" in {
       val query = new Query("test")
       query.setCoordinateSystemReproject(epsg3857)
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
+      val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must haveLength(10)
 
       val transform = CRS.findMathTransform(epsg3857, CRS_EPSG_4326, true)
@@ -81,7 +81,7 @@ class GeoMesaDataStoreTest extends Specification {
     "handle weird idl-wrapping polygons" in {
       val filter = ECQL.toFilter("intersects(geom, 'POLYGON((-179.99 45, -179.99 90, 179.99 90, 179.99 45, -179.99 45))')")
       val query = new Query("test", filter)
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
+      val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must beEmpty
     }
     "throw an exception on invalid attributes" in {
@@ -107,11 +107,11 @@ class GeoMesaDataStoreTest extends Specification {
 
       // INCLUDE should be re-written to EXCLUDE
       forall(ds.getQueryPlan(new Query(sft.getTypeName)).map(_.filter.index))(_.getClass mustEqual classOf[EmptyIndex])
-      var results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq
+      var results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
       results must beEmpty
 
       // other queries should go through as normal
-      results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("bbox(geom,39,54,51,56)")), Transaction.AUTO_COMMIT)).toSeq
+      results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("bbox(geom,39,54,51,56)")), Transaction.AUTO_COMMIT)).toList
       results must haveLength(10)
     }
     "block queries which would cause a full table scan" in {
@@ -138,17 +138,17 @@ class GeoMesaDataStoreTest extends Specification {
       )
 
       foreach(valid.map(ECQL.toFilter)) { filter =>
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
           beEmpty
       }
 
       foreach(invalid.map(ECQL.toFilter)) { filter =>
         val query = new Query(sft.getTypeName, filter)
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must
             throwAn[IllegalArgumentException]
         // you can set max features and use a full-table scan
         query.setMaxFeatures(50)
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
       }
       ds.dispose()
 
@@ -156,7 +156,7 @@ class GeoMesaDataStoreTest extends Specification {
       System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "false")
       try {
         foreach(invalid.map(ECQL.toFilter)) { filter =>
-          SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+          CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
               beEmpty
         }
       } finally {
@@ -189,15 +189,15 @@ class GeoMesaDataStoreTest extends Specification {
       try {
         foreach(valid.map(ECQL.toFilter)) { filter =>
           val query = new Query(sft.getTypeName, filter)
-          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
         }
 
         foreach(invalid.map(ECQL.toFilter)) { filter =>
           val query = new Query(sft.getTypeName, filter)
-          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must throwA[RuntimeException]
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must throwA[RuntimeException]
           // you can set max features and use a full-table scan
           query.setMaxFeatures(50)
-          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
         }
       } finally {
         QueryProperties.BlockFullTableScans.threadLocalValue.remove()
@@ -211,7 +211,7 @@ class GeoMesaDataStoreTest extends Specification {
       WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
         FeatureUtils.write(writer, feature, useProvidedFid = true)
       }
-      SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
+      CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
           Seq(feature)
       ds.stats.getBounds(sft) mustEqual
           new ReferencedEnvelope(feature.getDefaultGeometry.asInstanceOf[Point].getEnvelopeInternal, CRS_EPSG_4326)
@@ -243,7 +243,7 @@ class GeoMesaDataStoreTest extends Specification {
       WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
         FeatureUtils.write(writer, feature, useProvidedFid = true)
       }
-      SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
+      CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
           Seq(feature)
       WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter("IN ('0')"), Transaction.AUTO_COMMIT)) { writer =>
         writer.hasNext must beTrue
@@ -253,7 +253,7 @@ class GeoMesaDataStoreTest extends Specification {
       }
       val newId = ScalaSimpleFeature.copy(feature)
       newId.setId("1")
-      SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
+      CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
           Seq(newId)
     }
     "checkout duplicate attribute names" in {
@@ -278,7 +278,7 @@ class GeoMesaDataStoreTest extends Specification {
         )
       foreach(filters.map(ECQL.toFilter)) { filter =>
         val query = new Query(sft.getTypeName, filter)
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual Seq(feature)
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual Seq(feature)
       }
     }
     "handle ORs between indexed attribute fields" >> {

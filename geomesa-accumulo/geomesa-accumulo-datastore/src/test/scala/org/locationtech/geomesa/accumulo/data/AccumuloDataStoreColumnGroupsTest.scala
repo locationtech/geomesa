@@ -28,7 +28,7 @@ import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.stats.impl.MinMax
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, Transform}
 import org.locationtech.jts.geom.{Envelope, Point}
@@ -66,7 +66,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
 
   implicit class RichQuery(query: Query) {
     def toList: List[SimpleFeature] =
-      SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
   }
 
   implicit class RichResult(expected: Seq[Int]) {
@@ -249,9 +249,9 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
 
       foreach(ds.getQueryPlan(query))(_.columnFamily.map(_.toString) must beSome("x"))
 
-      val arrows = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
-      arrows.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       val results = SimpleFeatureArrowFileReader.read(out.toByteArray).map { f =>
         // round the points, as precision is lost due to the arrow encoding
         val attributes = f.getAttributes.asScala.collect {
@@ -272,9 +272,9 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
 
       foreach(ds.getQueryPlan(query))(_.columnFamily.map(_.toString) must beSome("x"))
 
-      val bytes = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
-      bytes.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
 
       val expected = (4 to 8).toFeatures(null).map { f =>
         val track = f.getAttribute("track").hashCode
@@ -300,7 +300,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
       foreach(ds.getQueryPlan(query))(_.columnFamily.map(_.toString) must beSome("x"))
 
       val decode = DensityScan.decodeResult(envelope, 640, 480)
-      val grid = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).flatMap(decode).toList
+      val grid = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).flatMap(decode).toList
       grid.map(_._3).sum mustEqual 5 // 5 results
     }
     "work with stats queries" in {
@@ -314,7 +314,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
       foreach(ds.getQueryPlan(query))(_.columnFamily.map(_.toString) must beSome("x"))
 
       def decode(sf: SimpleFeature): Stat = StatsScan.decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String])
-      val stats = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).map(decode).toList
+      val stats = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).map(decode).toList
       stats must haveLength(1) // stats will always return a single feature
       val stat = stats.head
       stat must beAnInstanceOf[MinMax[String]]

@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.query.JoinProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -56,7 +56,7 @@ class JoinProcessTest extends Specification with TestWithDataStore {
       val process = new JoinProcess
       val results = process.execute(fc1, fc2, "track", null, null, null)
 
-      val features = SelfClosingIterator(results).toList
+      val features = CloseableIterator(results.features()).toList
       features must haveLength(10)
       forall(features)(_.getAttribute("track") mustEqual "5")
     }

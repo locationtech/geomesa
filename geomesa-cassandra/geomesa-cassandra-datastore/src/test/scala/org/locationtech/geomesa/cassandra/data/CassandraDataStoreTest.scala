@@ -19,7 +19,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.LooseBBoxParam
 import org.locationtech.geomesa.index.utils.{ExplainString, Explainer}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.slf4j.LoggerFactory
@@ -128,7 +128,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
         val transforms = Array("derived=strConcat('hello',name)", "geom")
         forall(Seq(("INCLUDE", toAdd), ("bbox(geom,42,48,52,62)", toAdd.drop(2)))) { case (filter, results) =>
           val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms: _*), Transaction.AUTO_COMMIT)
-          val features = SelfClosingIterator(fr).toList
+          val features = CloseableIterator(fr).toList
           features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
               beSome("derived:String,*geom:Point:srid=4326")
           features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
@@ -177,7 +177,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
         "name < 'name5'",
         "name = 'name5'")) { filter =>
         val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter)), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(fr).toList must beEmpty
+        CloseableIterator(fr).toList must beEmpty
       }
     }
 
@@ -201,7 +201,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
           "bbox(geom, -122.33072251081467,47.75143951177597,-122.32643097639084,47.753048837184906)")
 
       val query = new Query(typeName, filter)
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results mustEqual Seq(feature)
     }
 
@@ -275,7 +275,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
         "bbox(geom, 39, 49, 42, 52) AND dtg during 2014-01-01T00:00:00.000Z/2014-01-03T00:00:00.000Z")
 
       forall(filters) { f =>
-        SelfClosingIterator(fs.getFeatures(ECQL.toFilter(f))).toSeq must containTheSameElementsAs(toAdd)
+        CloseableIterator(fs.getFeatures(ECQL.toFilter(f)).features()).toList must containTheSameElementsAs(toAdd)
       }
 
       val fw = ds.getFeatureWriter(typeName, ECQL.toFilter("IN('1')"), Transaction.AUTO_COMMIT)
@@ -286,7 +286,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
       fw.close()
 
       forall(filters) { f =>
-        SelfClosingIterator(fs.getFeatures(ECQL.toFilter(f))).toSeq mustEqual Seq(toAdd.head)
+        CloseableIterator(fs.getFeatures(ECQL.toFilter(f)).features()).toList mustEqual Seq(toAdd.head)
       }
 
       ds.removeSchema(typeName)
@@ -313,7 +313,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
     val query = new Query(typeName, ECQL.toFilter(filter), transforms: _*)
     explain.foreach(e => ds.getQueryPlan(query, explainer = e))
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-    val features = SelfClosingIterator(fr).toList
+    val features = CloseableIterator(fr).toList
     val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>

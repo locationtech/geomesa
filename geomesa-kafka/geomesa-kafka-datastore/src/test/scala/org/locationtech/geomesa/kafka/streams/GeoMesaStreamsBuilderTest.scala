@@ -21,7 +21,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.KafkaContainerTest
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -195,7 +195,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
           kryoMessages.foreach(producer.send)
         }
         eventually(40, 100.millis) {
-          val result = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+          val result = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
           result must containTheSameElementsAs(features)
         }
       }

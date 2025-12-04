@@ -34,7 +34,7 @@ import org.locationtech.geomesa.index.planning.FilterSplitter
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.index.view.MergedDataStoreViewFactory
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
@@ -119,19 +119,19 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       qp.filter.index.name must beOneOf(AttributeIndex.name, JoinIndex.name)
       forall(ranges)(_.test(qp.ranges.length))
     }
-    val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
-    results.map(_.getAttribute("name").toString).toList
+    CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
+      .map(_.getAttribute("name").toString).toList
   }
 
-  def runQuery(query: Query, explain: Explainer = ExplainNull): Iterator[SimpleFeature] = {
+  def runQuery(query: Query, explain: Explainer = ExplainNull): CloseableIterator[SimpleFeature] = {
     forall(ds.getQueryPlan(query, explainer = explain)) { qp =>
       qp.filter.index.name must beOneOf(AttributeIndex.name, JoinIndex.name)
     }
-    SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
+    CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
   }
 
   def decodeArrow(reader: SimpleFeatureArrowFileReader): List[SimpleFeature] = {
-    SelfClosingIterator(reader.features()).map { f =>
+    CloseableIterator(reader.features()).map { f =>
       // round the points, as precision is lost due to the arrow encoding
       val attributes = f.getAttributes.asScala.collect {
         case p: Point => s"POINT (${Math.round(p.getX * 10) / 10d} ${Math.round(p.getY * 10) / 10d})"
@@ -241,7 +241,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         query.getHints.put(ARROW_DICTIONARY_FIELDS, "name")
         val plans = Option(ds).collect { case ds: AccumuloDataStore => ds.getQueryPlan(query) }.getOrElse(Seq.empty)
         forall(plans)(_ must beAnInstanceOf[JoinPlan])
-        val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
+        val results = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
         WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
@@ -262,7 +262,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         query.getHints.put(ARROW_DICTIONARY_FIELDS, "name")
         val plans = Option(ds).collect { case ds: AccumuloDataStore => ds.getQueryPlan(query) }.getOrElse(Seq.empty)
         forall(plans)(_ must beAnInstanceOf[JoinPlan])
-        val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
+        val results = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
         WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
@@ -285,7 +285,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         query.getHints.put(ARROW_SORT_FIELD, "dtg")
         val plans = Option(ds).collect { case ds: AccumuloDataStore => ds.getQueryPlan(query) }.getOrElse(Seq.empty)
         forall(plans)(_ must beAnInstanceOf[BatchScanPlan])
-        val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
+        val results = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
         WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
@@ -304,7 +304,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         query.getHints.put(ARROW_DICTIONARY_FIELDS, "count")
         val plans = Option(ds).collect { case ds: AccumuloDataStore => ds.getQueryPlan(query) }.getOrElse(Seq.empty)
         forall(plans)(_ must beAnInstanceOf[BatchScanPlan])
-        val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
+        val results = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
         WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>

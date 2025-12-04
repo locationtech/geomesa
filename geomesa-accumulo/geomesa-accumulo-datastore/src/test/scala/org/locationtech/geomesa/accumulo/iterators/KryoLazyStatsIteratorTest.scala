@@ -15,7 +15,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.stats.impl._
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -50,7 +50,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
 
     "return correctly for exclude filter" in {
       val q = getQuery("MinMax(attr)", Some("EXCLUDE"))
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
@@ -59,7 +59,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
 
     "work with the MinMax stat" in {
       val q = getQuery("MinMax(attr)")
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
@@ -68,7 +68,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
 
     "work with the IteratorStackCount stat" in {
       val q = getQuery("IteratorStackCount()")
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val isc = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[IteratorStackCount]
@@ -78,7 +78,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
 
     "work with the Enumeration stat" in {
       val q = getQuery("Enumeration(idt)")
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val eh = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[EnumerationStat[java.lang.Integer]]
@@ -90,7 +90,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
 
     "work with the Histogram stat" in {
       val q = getQuery("Histogram(idt,5,10,14)", Some("idt between 10 and 14"))
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val rh = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[Histogram[java.lang.Integer]]
@@ -104,7 +104,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
 
     "work with multiple stats at once" in {
       val q = getQuery("MinMax(attr);IteratorStackCount();Enumeration(idt);Histogram(idt,5,10,14)")
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val seqStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[SeqStat]
@@ -133,7 +133,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
     "work with the stidx index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("bbox(geom,-80,35,-75,40)"))
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
@@ -143,7 +143,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
     "work with the record index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("IN(0)"))
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
@@ -153,7 +153,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
     "work with the attribute partial index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("attr > 10"))
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
@@ -163,7 +163,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
     "work with the attribute join index" in {
       val q = getQuery("MinMax(idt)")
       q.setFilter(ECQL.toFilter("attr > 10"))
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Integer]]
@@ -173,7 +173,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
     "work with the attribute full index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("idt > 10"))
-      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val results = CloseableIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]

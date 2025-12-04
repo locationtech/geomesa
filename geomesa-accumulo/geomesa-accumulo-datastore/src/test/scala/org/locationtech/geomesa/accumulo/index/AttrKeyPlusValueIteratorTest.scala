@@ -19,7 +19,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.BatchScanPlan
 import org.locationtech.geomesa.accumulo.iterators.{AttributeKeyValueIterator, FilterTransformIterator}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -75,7 +75,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         }
 
         val fs = ds.getFeatureSource(sft.getTypeName)
-        val rws = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val rws = CloseableIterator(fs.getFeatures(query).features).toList
         rws must haveLength(3)
         val alice = rws.filter(_.getAttribute("name") == "alice").head
         alice.getID mustEqual "alice"
@@ -118,7 +118,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         }
 
         val fs = ds.getFeatureSource(sft.getTypeName)
-        val rws = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val rws = CloseableIterator(fs.getFeatures(query).features).toList
         rws must haveLength(2)
         rws.head.getAttributeCount mustEqual 3
       }

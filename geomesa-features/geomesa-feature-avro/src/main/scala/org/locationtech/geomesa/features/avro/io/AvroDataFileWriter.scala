@@ -15,7 +15,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumWriter
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.io.{Closeable, Flushable, OutputStream}
 import java.util.zip.Deflater
@@ -47,8 +47,7 @@ class AvroDataFileWriter(
   AvroDataFile.setMetaData(dfw, sft)
   dfw.create(writer.getSchema, os)
 
-  def append(fc: SimpleFeatureCollection): Unit =
-    SelfClosingIterator(fc.features()).foreach(dfw.append)
+  def append(fc: SimpleFeatureCollection): Unit = CloseableIterator(fc.features()).foreach(dfw.append)
 
   def append(sf: SimpleFeature): Unit = dfw.append(sf)
 

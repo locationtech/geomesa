@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.io.fs
 
 import org.apache.commons.io.IOUtils
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.{CachingStdInHandle, StdInHandle}
 import org.specs2.mutable.Specification
@@ -49,16 +49,16 @@ class LocalFileHandleTest extends Specification {
       try {
         val handle = CachingStdInHandle.get()
         handle.length mustEqual dataFile.length
-        val List(stream1) = SelfClosingIterator(handle.open).map(_._2).toList
+        val List(stream1) = CloseableIterator(handle.open).map(_._2).toList
         val first3Bytes = try { readNBytes(stream1, 3) } finally {
           stream1.close()
         }
         handle.length mustEqual dataFile.length
-        val List(stream2) = SelfClosingIterator(handle.open).map(_._2).toList
+        val List(stream2) = CloseableIterator(handle.open).map(_._2).toList
         try { readNBytes(stream2, 3) mustEqual first3Bytes } finally {
           stream2.close()
         }
-        val List(stream3) = SelfClosingIterator(handle.open).map(_._2).toList
+        val List(stream3) = CloseableIterator(handle.open).map(_._2).toList
         try { readNBytes(stream3, 6).take(3) mustEqual first3Bytes } finally {
           stream3.close()
         }

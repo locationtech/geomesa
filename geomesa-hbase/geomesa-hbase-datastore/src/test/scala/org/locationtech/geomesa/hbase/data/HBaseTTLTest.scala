@@ -17,7 +17,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -127,7 +127,7 @@ class HBaseTTLTest extends Specification with LazyLogging {
   def runQuery(ds: HBaseDataStore,
                query: Query): List[SimpleFeature] = {
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-    val features = SelfClosingIterator(fr).toList
+    val features = CloseableIterator(fr).toList
     features
   }
 }

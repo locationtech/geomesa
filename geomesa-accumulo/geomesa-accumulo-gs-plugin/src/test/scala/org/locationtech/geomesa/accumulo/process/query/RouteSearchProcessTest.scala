@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.query.RouteSearchProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.runner.JUnitRunner
 
@@ -84,7 +84,7 @@ class RouteSearchProcessTest extends TestWithDataStore {
 
       val collection = process.execute(input, routes, 1000.0, 5.0, null, null, false, "heading")
 
-      val results = SelfClosingIterator(collection.features).toSeq
+      val results = CloseableIterator(collection.features).toList
       results must containTheSameElementsAs(features1)
     }
 
@@ -94,7 +94,7 @@ class RouteSearchProcessTest extends TestWithDataStore {
 
       val collection = process.execute(input, routes, 1000.0, 15.0, null, null, false, "heading")
 
-      val results = SelfClosingIterator(collection.features).toSeq
+      val results = CloseableIterator(collection.features).toList
       results must containTheSameElementsAs(features1 ++ features2)
     }
 
@@ -104,7 +104,7 @@ class RouteSearchProcessTest extends TestWithDataStore {
 
       val collection = process.execute(input, routes, 100000.0, 5.0, null, null, false, "heading")
 
-      val results = SelfClosingIterator(collection.features).toSeq
+      val results = CloseableIterator(collection.features).toList
       results must containTheSameElementsAs(features1 ++ features3)
     }
 
@@ -114,7 +114,7 @@ class RouteSearchProcessTest extends TestWithDataStore {
 
       val collection = process.execute(input, routes, 1000.0, 5.0, null, null, true, "heading")
 
-      val results = SelfClosingIterator(collection.features).toSeq
+      val results = CloseableIterator(collection.features).toList
       results must containTheSameElementsAs(features0 ++ features1)
     }
 
@@ -125,7 +125,7 @@ class RouteSearchProcessTest extends TestWithDataStore {
 
       val collection = process.execute(input, routes, 1000.0, 5.0, null, null, false, "heading")
 
-      val results = SelfClosingIterator(collection.features).toSeq
+      val results = CloseableIterator(collection.features).toList
       results.map(_.getAttributes) must containTheSameElementsAs(features1.map(_.getAttributes))
     }
 

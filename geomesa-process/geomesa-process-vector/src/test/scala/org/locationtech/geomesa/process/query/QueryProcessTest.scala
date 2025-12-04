@@ -14,7 +14,7 @@ import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -46,7 +46,7 @@ class QueryProcessTest extends Specification {
     "manually visit a feature collection" in {
       val filters = Seq("track = 't-1'", "bbox(geom,44,49,46,52)", "INCLUDE")
       foreach(filters.map(ECQL.toFilter)) { filter =>
-        val result = SelfClosingIterator(process.execute(fc, filter, null).features).toSeq
+        val result = CloseableIterator(process.execute(fc, filter, null).features).toList
         result mustEqual features.filter(filter.evaluate)
       }
     }
@@ -55,8 +55,8 @@ class QueryProcessTest extends Specification {
       val transforms = Seq(Seq("track", "geom"), Seq("geom"))
       foreach(transforms) { transform =>
         val retype = DataUtilities.createSubType(sft, transform: _*)
-        val result = SelfClosingIterator(process.execute(fc, filter, transform.asJava).features).toSeq
-        result mustEqual SelfClosingIterator(new ReTypingFeatureCollection(fc.subCollection(filter), retype).features()).toSeq
+        val result = CloseableIterator(process.execute(fc, filter, transform.asJava).features).toList
+        result mustEqual CloseableIterator(new ReTypingFeatureCollection(fc.subCollection(filter), retype).features()).toList
       }
     }
   }

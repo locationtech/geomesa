@@ -20,8 +20,9 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCountMaxFeatures
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.{DelegatingResourceInfo, GeoMesaQueryCapabilities}
 import org.locationtech.geomesa.index.planning.QueryRunner
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.io.WithClose
 
 import java.awt.RenderingHints.Key
 import java.net.URI
@@ -56,7 +57,7 @@ class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
     val useExactCount = hints.isExactCount.getOrElse(QueryExactCount.get.toBoolean)
 
     val count = if (useExactCount && hints.getMaxFeatures.exists(_ < QueryExactCountMaxFeatures.get.toInt)) {
-      SelfClosingIterator(getFeatures(query)).size
+      CloseableIterator(getFeatures(query).features()).size
     } else {
       val statsCount = ds.stats.getCount(getSchema, query.getFilter, useExactCount, hints).getOrElse(-1L)
       hints.getMaxFeatures match {

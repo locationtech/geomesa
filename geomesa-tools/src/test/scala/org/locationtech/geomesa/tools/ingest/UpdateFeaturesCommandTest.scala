@@ -14,7 +14,7 @@ import org.geotools.data.memory.MemoryDataStore
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.tools.ingest.UpdateFeaturesCommand.UpdateFeaturesParams
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
 
@@ -66,7 +66,7 @@ class UpdateFeaturesCommandTest extends SpecificationWithJUnit {
         command.params.attributes = Collections.singletonList("name" -> "bob")
         command.execute()
       }
-      val updated = SelfClosingIterator(ds.getFeatureReader(new Query("tools"), Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+      val updated = CloseableIterator(ds.getFeatureReader(new Query("tools"), Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
       updated.map(_.getID) mustEqual features.map(_.getID)
       foreach(Seq("level", "dtg", "geom")) { attribute =>
         updated.map(_.getAttribute(attribute)) mustEqual features.map(_.getAttribute(attribute))
@@ -85,7 +85,7 @@ class UpdateFeaturesCommandTest extends SpecificationWithJUnit {
         command.params.cqlFilter = ECQL.toFilter("dtg AFTER 2016-01-01T04:00:00.000Z")
         command.execute()
       }
-      val updated = SelfClosingIterator(ds.getFeatureReader(new Query("tools"), Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+      val updated = CloseableIterator(ds.getFeatureReader(new Query("tools"), Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
       updated.map(_.getID) mustEqual features.map(_.getID)
       foreach(Seq("level", "dtg", "geom")) { attribute =>
         updated.map(_.getAttribute(attribute)) mustEqual features.map(_.getAttribute(attribute))

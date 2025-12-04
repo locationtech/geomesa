@@ -50,19 +50,8 @@ class TubeBinTest extends Specification with LazyLogging {
       }
 
       logger.debug("features: "+features.size)
-      val ngf = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 1.0, 6)
-      val binnedFeatures = ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features.asJava), DefaultDtgField).toSeq, 6)
-
-      binnedFeatures.foreach { sf =>
-        sf.getDefaultGeometry match {
-          case collection: GeometryCollection => logger.debug("size: " + collection.getNumGeometries + " " + sf.getDefaultGeometry)
-          case _ => logger.debug("size: 1")
-        }
-      }
-
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features.asJava), DefaultDtgField).toSeq, 1).size mustEqual 1
-
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features.asJava), DefaultDtgField).toSeq, 0).size mustEqual 19
+      new NoGapFill(new ListFeatureCollection(sft, features.asJava), 1.0, 1).createTube().toList must haveSize(1)
+      new NoGapFill(new ListFeatureCollection(sft, features.asJava), 1.0, 0).createTube().toList must haveSize(19)
     }
 
   }

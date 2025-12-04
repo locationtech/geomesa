@@ -18,7 +18,7 @@ import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_LABEL
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.runner.JUnitRunner
 
 import java.util.Date
@@ -42,7 +42,7 @@ class S3IndexTest extends TestWithFeatureType {
   }
 
   def execute(query: Query): Seq[SimpleFeature] =
-    SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+    CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
   def execute(ecql: String, transforms: Option[Array[String]] = None): Seq[SimpleFeature] =
     execute(new Query(sft.getTypeName, ECQL.toFilter(ecql), transforms.orNull: _*))
@@ -172,7 +172,7 @@ class S3IndexTest extends TestWithFeatureType {
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val aggregates = try {
         // the same simple feature gets reused - so make sure you access in serial order
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
             .toList
       } finally {
@@ -200,7 +200,7 @@ class S3IndexTest extends TestWithFeatureType {
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val aggregates = try {
         // the same simple feature gets reused - so make sure you access in serial order
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
             .toList
       } finally {
@@ -232,7 +232,7 @@ class S3IndexTest extends TestWithFeatureType {
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val aggregates = try {
         // the same simple feature gets reused - so make sure you access in serial order
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
             .toList
       } finally {
@@ -260,7 +260,7 @@ class S3IndexTest extends TestWithFeatureType {
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val aggregates = try {
         // the same simple feature gets reused - so make sure you access in serial order
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
             .toList
       } finally {
@@ -334,7 +334,7 @@ class S3IndexTest extends TestWithFeatureType {
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
       val results = try {
         // the same simple feature gets reused - so make sure you access in serial order
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
             .toList
       } finally {

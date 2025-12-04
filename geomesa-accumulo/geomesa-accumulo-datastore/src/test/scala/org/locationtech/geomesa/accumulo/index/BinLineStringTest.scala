@@ -18,7 +18,7 @@ import org.locationtech.geomesa.index.index.z2.XZ2Index
 import org.locationtech.geomesa.index.index.z3.XZ3Index
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -64,14 +64,14 @@ class BinLineStringTest extends Specification with TestWithFeatureType {
   def runQuery(query: Query): Seq[EncodedValues] = {
     import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
     val binSize = if (query.getHints.containsKey(BIN_LABEL)) 24 else 16
-    val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+    val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val bytes = features.map { f =>
       val array = f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]
       val copy = Array.ofDim[Byte](array.length)
       System.arraycopy(array, 0, copy, 0, array.length)
       copy
     }
-    bytes.flatMap(b => b.grouped(binSize).map(BinaryOutputEncoder.decode)).toSeq
+    bytes.flatMap(b => b.grouped(binSize).map(BinaryOutputEncoder.decode)).toList
   }
 
   "BinAggregatingIterator" should {

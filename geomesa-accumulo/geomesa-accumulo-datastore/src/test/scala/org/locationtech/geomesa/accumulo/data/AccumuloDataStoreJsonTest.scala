@@ -14,7 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -58,41 +58,41 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithFeatureType {
     }
     "support queries against json attributes" in {
       val query = new Query(sftName, ECQL.toFilter(""""$.json.properties.characteristics.height" = 30"""))
-      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(1)
       features.head.getID mustEqual "3"
       features.head.getAttributes mustEqual sf3.getAttributes // note: whitespace will be stripped from json string
     }
     "support queries against json attributes with json-path filters" in {
       val query = new Query(sftName, ECQL.toFilter("""jsonPath('$.json.properties.characteristics[?(@.height == 30 && @.age == 20)]') IS NOT NULL"""))
-      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(1)
       features.head.getID mustEqual "3"
       features.head.getAttributes mustEqual sf3.getAttributes // note: whitespace will be stripped from json string
     }
     "support queries against json arrays" in {
       val query = new Query(sftName, ECQL.toFilter(""""$.json[0]" = 'a1'"""))
-      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(1)
       features.head.getID mustEqual "4"
       features.head.getAttributes mustEqual sf4.getAttributes // note: whitespace will be stripped from json string
     }
     "support projecting schemas" in {
       val query = new Query(sftName, Filter.INCLUDE, "geom", """"$.json.properties.characteristics.height"""")
-      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(5)
       features.map(_.getAttribute(1)) must containTheSameElementsAs(Seq("20", "30", null, null, null))
     }
     "support projecting json arrays" in {
       val query = new Query(sftName, Filter.INCLUDE, "geom", """"$.json[1]"""")
-      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(5)
       features.map(_.getAttribute(1)) must containTheSameElementsAs(Seq(null, null, null, null, "a2"))
     }
     "support querying against projected schemas" in {
       val filter = ECQL.toFilter(""""$.json.properties.characteristics.height" = 30""")
       val query = new Query(sftName, filter, "geom", """"$.json.properties.characteristics.height"""")
-      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(1)
       features.head.getID mustEqual "3"
       features.head.getAttribute(1) mustEqual "30"

@@ -18,7 +18,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigsParam, H
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.impl.CountStat
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -62,7 +62,7 @@ class HBaseSamplingFilterTest extends Specification with LazyLogging {
         }
 
         def runQuery(query: Query): Seq[SimpleFeature] =
-          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
         {
           // 0

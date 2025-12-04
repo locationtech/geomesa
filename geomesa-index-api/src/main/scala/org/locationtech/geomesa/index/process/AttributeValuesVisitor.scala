@@ -23,7 +23,7 @@ import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.process.AttributeValuesVisitor.AttributeResult
 import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.stats.impl.EnumerationStat
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.mutable
 
@@ -138,7 +138,7 @@ class AttributeValuesVisitor(
     }
 
     // execute the query
-    SelfClosingIterator(source.getFeatures(query).features()).foreach(addValue)
+    CloseableIterator(source.getFeatures(query).features()).foreach(addValue)
     uniqueValues.toMap
   }
 }

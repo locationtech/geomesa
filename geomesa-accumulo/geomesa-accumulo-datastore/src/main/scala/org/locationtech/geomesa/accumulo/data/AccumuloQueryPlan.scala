@@ -23,7 +23,7 @@ import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor,
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.util.Map.Entry
 
@@ -111,7 +111,7 @@ object AccumuloQueryPlan extends LazyLogging {
         tables.map(scanner(_, helper)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ concat _)
       } else {
         // kick off the scans sequentially as they finish
-        SelfClosingIterator(tables.iterator).flatMap(scanner(_, helper))
+        CloseableIterator(tables.iterator).flatMap(scanner(_, helper))
       }
     }
 
@@ -212,7 +212,7 @@ object AccumuloQueryPlan extends LazyLogging {
           tables.map(scanner( _, joinTables.next, helper)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ concat _)
         } else {
           // kick off the scans sequentially as they finish
-          SelfClosingIterator(tables.iterator).flatMap(scanner(_, joinTables.next, helper))
+          CloseableIterator(tables.iterator).flatMap(scanner(_, joinTables.next, helper))
         }
       processor(entries.map(joinQuery.resultsToFeatures.apply))
     }

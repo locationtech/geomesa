@@ -13,7 +13,7 @@ import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -61,7 +61,7 @@ class FsManageMetadataCommandTest extends Specification {
         // but it's good enough for a test
         storage.context.fs.rename(new Path(storage.context.root, "2022"), new Path(storage.context.root, "2019"))
         // verify we can't retrieve the moved file
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
+        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features.take(2))
 
         // run the consistency check and repair any problems
@@ -79,7 +79,7 @@ class FsManageMetadataCommandTest extends Specification {
             containTheSameElementsAs(Seq("2020/01/01" -> 1, "2021/01/01" -> 1, "2019/01/01" -> 1))
         storage.metadata.getPartitions().flatMap(_.files.map(_.name)) must containTheSameElementsAs(files)
         // verify we can retrieve the moved file again
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
+        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features)
       }
     }
@@ -103,7 +103,7 @@ class FsManageMetadataCommandTest extends Specification {
         storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
             containTheSameElementsAs(Seq("2022/01/01" -> 1, "2020/01/01" -> 1))
         // verify we can only retrieve one feature
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
+        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
             features.take(1)
 
         // run the consistency check and rebuild the metadata
@@ -120,7 +120,7 @@ class FsManageMetadataCommandTest extends Specification {
         storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
             containTheSameElementsAs(Seq("2020/01/01" -> 1, "2021/01/01" -> 1))
         // verify we can retrieve the moved file again
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
+        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features.take(2))
       }
     }

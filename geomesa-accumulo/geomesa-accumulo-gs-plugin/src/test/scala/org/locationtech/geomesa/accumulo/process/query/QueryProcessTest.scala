@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.query.QueryProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.specs2.mutable.Specification
@@ -37,7 +37,9 @@ class QueryProcessTest extends Specification with TestWithDataStore {
     }
   }
 
-  addFeatures(features)
+  step {
+    addFeatures(features)
+  }
 
   "GeomesaQuery" should {
     "return things without a filter" in {
@@ -46,7 +48,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val geomesaQuery = new QueryProcess
       val results = geomesaQuery.execute(features, null)
 
-      val f = SelfClosingIterator(results).toList
+      val f = CloseableIterator(results.features()).toList
       forall(f)(_.getAttribute("type") must beOneOf("a", "b"))
       f must haveLength(8)
     }
@@ -57,7 +59,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val geomesaQuery = new QueryProcess
       val results = geomesaQuery.execute(features, null)
 
-      val f = SelfClosingIterator(results).toList
+      val f = CloseableIterator(results.features()).toList
       forall(f)(_.getAttribute("type") mustEqual "b")
       f must haveLength(4)
     }
@@ -68,7 +70,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val geomesaQuery = new QueryProcess
       val results = geomesaQuery.execute(features, CQL.toFilter("type = 'a'"))
 
-      val f = SelfClosingIterator(results).toList
+      val f = CloseableIterator(results.features()).toList
       forall(f)(_.getAttribute("type") mustEqual "a")
       f must haveLength(4)
     }
@@ -79,7 +81,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val geomesaQuery = new QueryProcess
       val results = geomesaQuery.execute(features, CQL.toFilter("dtg between '2011-01-01' AND '2011-01-02'"))
 
-      val f = SelfClosingIterator(results.features()).toList
+      val f = CloseableIterator(results.features()).toList
 
       f must haveLength(4)
     }
@@ -92,7 +94,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val times = Seq("T00:00", "T00:00:00", "T00:00:00.000").flatMap(time => Seq(time, s"${time}Z")) ++ Seq("")
       val filters = times.map(time => ECQL.toFilter(s"dtg between '2011-01-01$time' AND '2011-01-02$time'"))
 
-      forall(filters)(filter => SelfClosingIterator(geomesaQuery.execute(features, filter)).toList must haveLength(4))
+      forall(filters)(filter => CloseableIterator(geomesaQuery.execute(features, filter).features()).toList must haveLength(4))
     }
 
     "properly query geometry" in {
@@ -103,7 +105,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
 
       val poly = WKTUtils.read("POLYGON((45 45, 46 45, 46 46, 45 46, 45 45))")
 
-      val f = SelfClosingIterator(results).toList
+      val f = CloseableIterator(results.features()).toList
       forall(f)(_.getDefaultGeometry.asInstanceOf[Geometry].intersects(poly) must beTrue)
       f must haveLength(4)
     }
@@ -114,7 +116,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val geomesaQuery = new QueryProcess
       val results = geomesaQuery.execute(features, null, java.util.Arrays.asList("type", "geom"))
 
-      val f = SelfClosingIterator(results).toList
+      val f = CloseableIterator(results.features()).toList
       f.head.getType.getAttributeCount mustEqual 2
 
       forall(f)(_.getAttribute("type") must beOneOf("a", "b"))
@@ -127,7 +129,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val geomesaQuery = new QueryProcess
       val results = geomesaQuery.execute(features, null, java.util.Arrays.asList("type", "geom", "derived=strConcat(type, 'b')"))
 
-      val f = SelfClosingIterator(results).toList
+      val f = CloseableIterator(results.features()).toList
       f.head.getType.getAttributeCount mustEqual 3
 
       forall(f)(_.getAttribute("type") must beOneOf("a", "b"))
@@ -145,7 +147,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
         ECQL.toFilter("strConcat(type, 'b') = 'ab'"),
         java.util.Arrays.asList("type", "geom", "derived=strConcat(type, 'b')"))
 
-      val f = SelfClosingIterator(results).toList
+      val f = CloseableIterator(results.features()).toList
       f.head.getType.getAttributeCount mustEqual 3
 
       forall(f)(_.getAttribute("type") mustEqual "a")

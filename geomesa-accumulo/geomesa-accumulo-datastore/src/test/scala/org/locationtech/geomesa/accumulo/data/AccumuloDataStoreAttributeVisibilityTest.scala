@@ -21,7 +21,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
 
@@ -77,7 +77,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
       query.getHints.put(QueryHints.QUERY_INDEX, strategy)
       val plans = ds.getQueryPlan(query)
       forall(plans)(_.filter.index.name mustEqual strategy)
-      SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
     }
   }
 
@@ -123,13 +123,13 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
       val fs = ds.getFeatureSource(sftName)
 
       val queryBefore = new Query(sftName, ECQL.toFilter("IN('user')"))
-      val resultsBefore = SelfClosingIterator(ds.getFeatureReader(queryBefore, Transaction.AUTO_COMMIT)).toSeq
+      val resultsBefore = CloseableIterator(ds.getFeatureReader(queryBefore, Transaction.AUTO_COMMIT)).toList
       resultsBefore must haveLength(1)
 
       fs.removeFeatures(ECQL.toFilter("IN('user')"))
 
       val queryAfter = new Query(sftName, ECQL.toFilter("IN('user')"))
-      val resultsAfter = SelfClosingIterator(ds.getFeatureReader(queryAfter, Transaction.AUTO_COMMIT)).toSeq
+      val resultsAfter = CloseableIterator(ds.getFeatureReader(queryAfter, Transaction.AUTO_COMMIT)).toList
       resultsAfter must beEmpty
     }
 
@@ -137,13 +137,13 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
       val fs = ds.getFeatureSource(sftName)
 
       val queryBefore = new Query(sftName, ECQL.toFilter("INCLUDE"))
-      val resultsBefore = SelfClosingIterator(ds.getFeatureReader(queryBefore, Transaction.AUTO_COMMIT)).toSeq
+      val resultsBefore = CloseableIterator(ds.getFeatureReader(queryBefore, Transaction.AUTO_COMMIT)).toList
       resultsBefore must haveLength(2) // We deleted one record in the prior test
 
       fs.removeFeatures(ECQL.toFilter("INCLUDE"))
 
       val queryAfter = new Query(sftName, ECQL.toFilter("INCLUDE"))
-      val resultsAfter = SelfClosingIterator(ds.getFeatureReader(queryAfter, Transaction.AUTO_COMMIT)).toSeq
+      val resultsAfter = CloseableIterator(ds.getFeatureReader(queryAfter, Transaction.AUTO_COMMIT)).toList
       resultsAfter must beEmpty
     }
   }

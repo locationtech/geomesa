@@ -32,7 +32,7 @@ import org.locationtech.geomesa.index.index.{EmptyIndex, NamedIndex}
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Coordinate
@@ -130,7 +130,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val filterUsingDegrees  = ff.and(during, dwithinUsingDegrees)
         val queryUsingDegrees   = new Query(sftPoints.getTypeName, filterUsingDegrees)
         val resultsUsingDegrees = ds.getFeatureSource(sftPoints.getTypeName).getFeatures(queryUsingDegrees)
-        SelfClosingIterator(resultsUsingDegrees.features).toSeq must haveLength(50)
+        CloseableIterator(resultsUsingDegrees.features).toList must haveLength(50)
       }.pendingUntilFixed("Fixed Z3 'During And Dwithin' queries for a buffer created with unit degrees")
 
       "with correct result when using a dwithin of meters" >> {
@@ -139,7 +139,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val filterUsingMeters  = ff.and(during, dwithinUsingMeters)
         val queryUsingMeters   = new Query(sftPoints.getTypeName, filterUsingMeters)
         val resultsUsingMeters = ds.getFeatureSource(sftPoints.getTypeName).getFeatures(queryUsingMeters)
-        SelfClosingIterator(resultsUsingMeters.features).toSeq must haveLength(50)
+        CloseableIterator(resultsUsingMeters.features).toList must haveLength(50)
       }
     }
 
@@ -159,8 +159,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       planEmpty must haveLength(1)
       planNull.head.filter.index.name mustEqual Z2Index.name
 
-      val featuresNull = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryNull).features).toSeq
-      val featuresEmpty = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryEmpty).features).toSeq
+      val featuresNull = CloseableIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryNull).features).toList
+      val featuresEmpty = CloseableIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryEmpty).features).toList
 
       featuresNull.map(_.getID) mustEqual Seq("fid-1")
       featuresEmpty.map(_.getID) mustEqual Seq("fid-1")
@@ -175,7 +175,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val ecql = "BBOX(geom, 254.17968736588955,16.52343763411045,264.02343736588955,26.36718763411045) OR " +
           "BBOX(geom, -105.82031263411045,16.52343763411045,-95.97656263411045,26.36718763411045)"
       val fs = ds.getFeatureSource(typeName)
-      val result = SelfClosingIterator(fs.getFeatures(new Query(typeName, ECQL.toFilter(ecql))).features).toList
+      val result = CloseableIterator(fs.getFeatures(new Query(typeName, ECQL.toFilter(ecql))).features).toList
       result must haveLength(1)
       result.head mustEqual feature
     }
@@ -210,10 +210,10 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val orQuery  = new Query(sft.getTypeName,  orq)
       val andQuery = new Query(sft.getTypeName, andq)
 
-      val urNum  = SelfClosingIterator(fs.getFeatures(urQuery).features).length
-      val llNum  = SelfClosingIterator(fs.getFeatures(llQuery).features).length
-      val orNum  = SelfClosingIterator(fs.getFeatures(orQuery).features).length
-      val andNum = SelfClosingIterator(fs.getFeatures(andQuery).features).length
+      val urNum  = CloseableIterator(fs.getFeatures(urQuery).features).size
+      val llNum  = CloseableIterator(fs.getFeatures(llQuery).features).size
+      val orNum  = CloseableIterator(fs.getFeatures(orQuery).features).size
+      val andNum = CloseableIterator(fs.getFeatures(andQuery).features).size
 
       (urNum + llNum) mustEqual (orNum + andNum)
     }
@@ -225,9 +225,9 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val doesNotExist = ECQL.toFilter("name DOES-NOT-EXIST")
 
       val existsResults =
-        SelfClosingIterator(fs.getFeatures(new Query(defaultSft.getTypeName, exists)).features).toList
+        CloseableIterator(fs.getFeatures(new Query(defaultSft.getTypeName, exists)).features).toList
       val doesNotExistResults =
-        SelfClosingIterator(fs.getFeatures(new Query(defaultSft.getTypeName, doesNotExist)).features).toList
+        CloseableIterator(fs.getFeatures(new Query(defaultSft.getTypeName, doesNotExist)).features).toList
 
       existsResults must haveLength(1)
       existsResults.head.getID mustEqual "fid-1"
@@ -238,14 +238,14 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val filter =
         CQL.toFilter("bbox(geom,40,40,60,60) AND dtg BETWEEN '2010-05-07T12:00:00.000Z' AND '2010-05-07T13:00:00.000Z'")
       val query = new Query(defaultSft.getTypeName, filter)
-      val features = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
+      val features = CloseableIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
     "handle 1s duration queries" in {
       val filter = CQL.toFilter("bbox(geom,40,40,60,60) AND dtg DURING 2010-05-07T12:30:00.000Z/T1S")
       val query = new Query(defaultSft.getTypeName, filter)
-      val features = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
+      val features = CloseableIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
@@ -254,23 +254,23 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val filter = ECQL.toFilter("contains(POLYGON ((40 40, 50 40, 50 50, 40 50, 40 40)), geom) AND " +
           "dtg BETWEEN '2010-01-01T00:00:00.000Z' AND '2010-12-31T23:59:59.000Z'")
       val query = new Query(defaultSft.getTypeName, filter)
-      val features = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
+      val features = CloseableIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
     "handle out-of-bound longitude and in-bounds latitude bboxes" in {
       val filter = ECQL.toFilter("BBOX(geom, -266.8359375,-75.5859375,279.4921875,162.7734375)")
       val query = new Query(defaultSft.getTypeName, filter)
-      val features = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
+      val features = CloseableIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
     "exclude start/end times in before/after filters" in {
       val after = new Query(defaultSft.getTypeName,ECQL.toFilter("dtg AFTER 2010-05-07T12:30:00.000Z"))
-      SelfClosingIterator(ds.getFeatureReader(after, Transaction.AUTO_COMMIT)).toList must beEmpty
+      CloseableIterator(ds.getFeatureReader(after, Transaction.AUTO_COMMIT)).toList must beEmpty
 
       val before = new Query(defaultSft.getTypeName,ECQL.toFilter("dtg BEFORE 2010-05-07T12:30:00.000Z"))
-      SelfClosingIterator(ds.getFeatureReader(before, Transaction.AUTO_COMMIT)).toList must beEmpty
+      CloseableIterator(ds.getFeatureReader(before, Transaction.AUTO_COMMIT)).toList must beEmpty
     }
 
     "handle requests with namespaces" in {
@@ -305,7 +305,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       foreach(queries) { query =>
         val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)
         reader.getFeatureType.getName mustEqual name
-        val features = SelfClosingIterator(reader).toList
+        val features = CloseableIterator(reader).toList
         features.map(_.getID) mustEqual Seq(sf.getID)
         features.head.getFeatureType.getName mustEqual name
       }
@@ -326,12 +326,12 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       nStrategies.map(_.head.filter.index.name) mustEqual Seq(JoinIndex, IdIndex, Z2Index, Z3Index).map(_.name)
 
       forall(positives) { query =>
-        val result = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
+        val result = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
         result must haveLength(1)
         result.head.getID mustEqual "fid-1"
       }
       forall(negatives) { query =>
-        val result = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
+        val result = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
         result must beEmpty
       }
     }
@@ -340,7 +340,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val filter = ff.and(Filter.INCLUDE,
         ECQL.toFilter("dtg DURING 2010-05-07T12:00:00.000Z/2010-05-07T13:00:00.000Z and bbox(geom,40,44,50,54)"))
       val reader = ds.getFeatureReader(new Query(defaultSft.getTypeName, filter), Transaction.AUTO_COMMIT)
-      val features = SelfClosingIterator(reader).toList
+      val features = CloseableIterator(reader).toList
       features must haveLength(1)
       features.head.getID mustEqual "fid-1"
     }
@@ -352,7 +352,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       plans must haveLength(1)
       plans.head must beAnInstanceOf[EmptyPlan]
       val reader = ds.getFeatureReader(new Query(defaultSft.getTypeName, filter), Transaction.AUTO_COMMIT)
-      val features = SelfClosingIterator(reader).toList
+      val features = CloseableIterator(reader).toList
       features must beEmpty
     }
 
@@ -364,7 +364,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       plans must haveLength(1)
       plans.head must beAnInstanceOf[EmptyPlan]
       val reader = ds.getFeatureReader(new Query(defaultSft.getTypeName, filter), Transaction.AUTO_COMMIT)
-      val features = SelfClosingIterator(reader).toList
+      val features = CloseableIterator(reader).toList
       features must beEmpty
     }
 
@@ -377,7 +377,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       forall(queries) { ecql =>
         val query = new Query(defaultSft.getTypeName, ECQL.toFilter(ecql))
         val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-        val features = SelfClosingIterator(reader).toList
+        val features = CloseableIterator(reader).toList
         features must haveLength(1)
         features.head.getID mustEqual "fid-1"
       }
@@ -393,7 +393,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
       val start = System.currentTimeMillis()
       // makes sure this doesn't blow up
-      SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       // we give it 30 seconds due to weak build boxes
       (System.currentTimeMillis() - start) must beLessThan(30000L)
     }
@@ -437,7 +437,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         query.getHints.put(BIN_BATCH_SIZE, batch)
         query.getHints.put(BIN_DTG, "dtgs")
 
-        val bytes = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+        val bytes = CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
         forall(bytes)(_ must beAnInstanceOf[Array[Byte]])
         val bins = bytes.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
         bins must haveSize(7)
@@ -460,7 +460,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val filter = ECQL.toFilter("name IN('name1','name2') AND BBOX(geom, 40.0,40.0,50.0,50.0)")
       val query = new Query(sft.getTypeName, filter)
-      val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+      val features = CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature) must containTheSameElementsAs {
         List("1=name1|2010-05-07T00:00:00.000Z|POINT (45 45)", "2=name2|2010-05-07T01:00:00.000Z|POINT (45 46)")
       }
@@ -474,7 +474,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val filter = ECQL.toFilter("name IN('name1','name2') AND BBOX(geom, -180.0,-90.0,180.0,90.0)")
       val query = new Query(sft.getTypeName, filter)
-      val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+      val features = CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature).sorted mustEqual List("1=name1|2010-05-07T00:00:00.000Z|POINT (45 45)", "2=name2|2010-05-07T01:00:00.000Z|POINT (45 46)").sorted
     }
 
@@ -510,7 +510,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       try {
         foreach(filters) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+          val features = CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
           features mustEqual List(feature)
         }
         foreach(fullScans) { filter =>
@@ -521,7 +521,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         // verify that we won't block if max features is set
         foreach(fullScans) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter), 10, null: Array[String], null)
-          val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+          val features = CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
           features mustEqual List(feature)
         }
 
@@ -529,7 +529,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "false")
         foreach(fullScans) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+          val features = CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
           features mustEqual List(feature)
         }
         // verify that we can also block individually
@@ -554,7 +554,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val plans = ds.getQueryPlan(query)
         plans must haveLength(1)
         plans.head.filter.index.name mustEqual strategy.name
-        val res = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).map(_.getID).toList
+        val res = CloseableIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).map(_.getID).toList
         res must containTheSameElementsAs(Seq("fid-1"))
       }
 

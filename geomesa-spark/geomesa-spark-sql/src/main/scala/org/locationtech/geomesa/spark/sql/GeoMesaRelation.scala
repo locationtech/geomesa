@@ -25,7 +25,7 @@ import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.locationtech.geomesa.spark.sql.GeoMesaRelation.{CachedRDD, IndexedRDD, PartitionedIndexedRDD, PartitionedRDD}
 import org.locationtech.geomesa.spark.sql.GeoMesaSparkSQL.GEOMESA_SQL_FEATURE
 import org.locationtech.geomesa.spark.{GeoMesaSpark, SpatialRDD}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Envelope
@@ -122,7 +122,8 @@ case class GeoMesaRelation(
         val cql = ECQL.toCQL(filt)
         rdd.flatMap { engine =>
           val query = new Query(typeName, ECQL.toFilter(cql), requiredAttributes: _*)
-          SelfClosingIterator(engine.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          // note: this isn't getting closed, but since it's cq-engine it doesn't need to be
+          CloseableIterator(engine.getFeatureReader(query, Transaction.AUTO_COMMIT))
         }
 
       case Some(PartitionedIndexedRDD(rdd, _)) =>
@@ -130,7 +131,8 @@ case class GeoMesaRelation(
         val cql = ECQL.toCQL(filt)
         rdd.flatMap { case (_, engine) =>
           val query = new Query(typeName, ECQL.toFilter(cql), requiredAttributes: _*)
-          SelfClosingIterator(engine.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          // note: this isn't getting closed, but since it's cq-engine it doesn't need to be
+          CloseableIterator(engine.getFeatureReader(query, Transaction.AUTO_COMMIT))
         }
     }
 

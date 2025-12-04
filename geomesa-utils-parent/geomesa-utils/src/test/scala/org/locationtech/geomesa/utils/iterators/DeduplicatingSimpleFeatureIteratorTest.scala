@@ -11,6 +11,7 @@ package org.locationtech.geomesa.utils.iterators
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -34,7 +35,7 @@ class DeduplicatingSimpleFeatureIteratorTest extends Specification {
         new SimpleFeatureImpl(attributes, sft, filterFactory.featureId("1"), false),
         new SimpleFeatureImpl(attributes, sft, filterFactory.featureId("3"), false)
       )
-      val deduped = new DeduplicatingSimpleFeatureIterator(features.toIterator).toSeq
+      val deduped = new DeduplicatingSimpleFeatureIterator(CloseableIterator(features.iterator)).toSeq
       deduped must haveLength(5)
       deduped.map(_.getID) mustEqual Seq("1", "2", "0", "3", "4")
     }

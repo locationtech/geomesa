@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileWriter
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -218,7 +218,7 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
       WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
         converter must not(beNull)
 
-        val converted = SelfClosingIterator(converter.process(new ByteArrayInputStream(bytes))).toList
+        val converted = CloseableIterator(converter.process(new ByteArrayInputStream(bytes))).toList
 
         converted must containTheSameElementsAs(features)
         converted.map(_.getUserData.get("foo")) must containTheSameElementsAs(Seq.tabulate(10)(i => s"bar$i"))
@@ -247,7 +247,7 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
       WithClose(SimpleFeatureConverter(updated, inferred.get._2)) { converter =>
         converter must not(beNull)
 
-        val converted = SelfClosingIterator(converter.process(new ByteArrayInputStream(bytes))).toList
+        val converted = CloseableIterator(converter.process(new ByteArrayInputStream(bytes))).toList
 
         converted must containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(updated, _)))
       }
@@ -315,7 +315,7 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
       WithClose(SimpleFeatureConverter(inferred.get._1, inferred.get._2)) { converter =>
         converter must not(beNull)
 
-        val converted = SelfClosingIterator(converter.process(new ByteArrayInputStream(bytes))).toList
+        val converted = CloseableIterator(converter.process(new ByteArrayInputStream(bytes))).toList
         converted must not(beEmpty)
 
         val expected = Seq.tabulate(10) { i =>

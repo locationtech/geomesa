@@ -20,7 +20,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.process.query.ProximitySearchProcess
 import org.locationtech.geomesa.process.tube.TubeSelectProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -70,10 +70,10 @@ class HBaseProcessTest extends Specification with LazyLogging {
         val source = ds.getFeatureSource(typeName).getFeatures()
 
         val proximity = new ProximitySearchProcess().execute(query, source, 10.0)
-        SelfClosingIterator(proximity.features()).toList mustEqual Seq(toAdd(4))
+        CloseableIterator(proximity.features()).toList mustEqual Seq(toAdd(4))
 
         val tube = new TubeSelectProcess().execute(query, source, Filter.INCLUDE, null, 1L, 100.0, 10, null)
-        SelfClosingIterator(tube.features()).toList mustEqual Seq(toAdd(4))
+        CloseableIterator(tube.features()).toList mustEqual Seq(toAdd(4))
       } finally {
         ds.dispose()
       }

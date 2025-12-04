@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.security.UserGroupInformation
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
 
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
@@ -39,10 +39,11 @@ object HadoopUtils extends LazyLogging {
     if (!handle.exists) {
       logger.warn(s"Could not load configuration file at: $path")
     } else {
-      WithClose(handle.open) { files =>
-        files.foreach {
-          case (None, is) => conf.addResource(is)
-          case (Some(name), is) => conf.addResource(is, name)
+      // note: foreach closes the iterator in a finally block
+      handle.open.foreach { case (name, is) =>
+        name match {
+          case None => conf.addResource(is)
+          case Some(name) => conf.addResource(is, name)
         }
         conf.size() // this forces a loading of the resource files, before we close our file handle
       }

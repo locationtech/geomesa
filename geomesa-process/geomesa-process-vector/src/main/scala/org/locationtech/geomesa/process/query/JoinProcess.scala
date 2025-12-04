@@ -22,7 +22,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.process.GeoMesaProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 /**
   * Returns features from a feature type based on a join against a second feature type.
@@ -86,7 +86,7 @@ class JoinProcess extends GeoMesaProcess with LazyLogging {
 
     // check for too many features coming back - limit is somewhat arbitrary, but this
     // class is mainly intended for a single feature lookup
-    val primaryFeatures = SelfClosingIterator(primary).toList
+    val primaryFeatures = CloseableIterator(primary.features()).toList
     require(primaryFeatures.length < 129,
       s"Too many features returned from primary query - got ${primaryFeatures.length}, max 128")
 

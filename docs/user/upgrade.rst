@@ -212,6 +212,7 @@ Removed Classes
 * ``org.locationtech.geomesa.utils.collection.AtomicBitSet``
 * ``org.locationtech.geomesa.utils.collection.ConcurrentHashSet``
 * ``org.locationtech.geomesa.utils.collection.MaybeSynchronized``
+* ``org.locationtech.geomesa.utils.collection.SelfClosingIterator``
 * ``org.locationtech.geomesa.utils.collection.TieredOrdering``
 * ``org.locationtech.geomesa.utils.conversions.ScalaImplicits``
 * ``org.locationtech.geomesa.utils.geohash.CoveringGeoHashes``

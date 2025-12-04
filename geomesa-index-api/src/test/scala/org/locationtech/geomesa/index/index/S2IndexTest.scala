@@ -15,7 +15,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -47,7 +47,7 @@ class S2IndexTest extends Specification with LazyLogging {
   }
 
   def execute(query: Query): Seq[SimpleFeature] =
-    SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+    CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
   def execute(ecql: String, transforms: Option[Array[String]] = None): Seq[SimpleFeature] = {
     val query = transforms match {

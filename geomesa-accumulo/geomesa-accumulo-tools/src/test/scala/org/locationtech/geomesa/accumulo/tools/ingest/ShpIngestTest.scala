@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.Modes
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.tools.Command.CommandException
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
 import org.specs2.mutable.Specification
@@ -90,7 +90,7 @@ class ShpIngestTest extends Specification {
       val projectedFeatures = new ReprojectingFeatureCollection(initialFeatures, CRS.decode("EPSG:32631"))
       store.createSchema(projectedFeatures.getSchema)
       WithClose(store.getFeatureWriterAppend(Transaction.AUTO_COMMIT)) { writer =>
-        SelfClosingIterator(projectedFeatures.features()).foreach { feature =>
+        CloseableIterator(projectedFeatures.features()).foreach { feature =>
           val toWrite = writer.next()
           toWrite.setAttributes(feature.getAttributes)
           toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -104,7 +104,7 @@ class ShpIngestTest extends Specification {
       val projectedFeatures = new ReprojectingFeatureCollection(initialFeatures, CRS.decode("EPSG:4269"))
       store.createSchema(projectedFeatures.getSchema)
       WithClose(store.getFeatureWriterAppend(Transaction.AUTO_COMMIT)) { writer =>
-        SelfClosingIterator(projectedFeatures.features()).foreach { feature =>
+        CloseableIterator(projectedFeatures.features()).foreach { feature =>
           val toWrite = writer.next()
           toWrite.setAttributes(feature.getAttributes)
           toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -139,7 +139,7 @@ class ShpIngestTest extends Specification {
 
         val fs = ds.getFeatureSource(shpFile)
 
-        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+        CloseableIterator(fs.getFeatures.features).toList must haveLength(2)
 
         val bounds = fs.getBounds
         bounds.getMinX mustEqual 1.0
@@ -162,7 +162,7 @@ class ShpIngestTest extends Specification {
 
         val fs = ds.getFeatureSource("changed")
 
-        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+        CloseableIterator(fs.getFeatures.features).toList must haveLength(2)
 
         val bounds = fs.getBounds
         bounds.getMinX mustEqual 1.0
@@ -184,7 +184,7 @@ class ShpIngestTest extends Specification {
 
         val fs = ds.getFeatureSource(shpFileToReproject)
 
-        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+        CloseableIterator(fs.getFeatures.features).toList must haveLength(2)
 
         val bounds = fs.getBounds
         bounds.getMinX must beCloseTo(1.0, 0.0001)
@@ -206,7 +206,7 @@ class ShpIngestTest extends Specification {
 
         val fs = ds.getFeatureSource(shpFileToReproject2)
 
-        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+        CloseableIterator(fs.getFeatures.features).toList must haveLength(2)
 
         val bounds = fs.getBounds
         bounds.getMinX must beCloseTo(1.0, 0.0001)
@@ -228,7 +228,7 @@ class ShpIngestTest extends Specification {
 
         val fs = ds.getFeatureSource(shpFileWithNullDates)
 
-        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(3)
+        CloseableIterator(fs.getFeatures.features).toList must haveLength(3)
 
         val bounds = fs.getBounds
         bounds.getMinX mustEqual 1.0
@@ -258,7 +258,7 @@ class ShpIngestTest extends Specification {
 
         val fs = ds.getFeatureSource("nullDates2")
 
-        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+        CloseableIterator(fs.getFeatures.features).toList must haveLength(2)
 
         val bounds = fs.getBounds
         bounds.getMinX mustEqual 1.0
@@ -286,7 +286,7 @@ class ShpIngestTest extends Specification {
 
       command.withDataStore { ds =>
         val fs = ds.getFeatureSource("nullDates4")
-        SelfClosingIterator(fs.getFeatures.features).toList must beEmpty
+        CloseableIterator(fs.getFeatures.features).toList must beEmpty
       }
     }
   }

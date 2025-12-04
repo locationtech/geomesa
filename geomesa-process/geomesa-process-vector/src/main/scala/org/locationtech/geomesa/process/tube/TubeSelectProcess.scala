@@ -20,7 +20,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.process.GeoMesaProcess
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterator
@@ -149,7 +149,7 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
       case _ => new NoGapFill(tubeFeatures, bufferDistance, maxBins)
     }
 
-    val tube = tubeBuilder.createTube
+    val tube = tubeBuilder.createTube()
 
     val queryResults = CloseableIterator(tube).flatMap { sf =>
       val sfMin = tubeBuilder.getStartTime(sf).getTime
@@ -165,11 +165,11 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
 
       // Eventually these can be combined into OR queries and the QueryPlanner can create multiple Accumulo Ranges
       // Buf for now we issue multiple queries
-      val geoms = (0 until geom.getNumGeometries).toIterator.map(geom.getGeometryN)
-      SelfClosingIterator(geoms).flatMap { g =>
+      val geoms = Iterator.tabulate(geom.getNumGeometries)(geom.getGeometryN)
+      CloseableIterator(geoms).flatMap { g =>
         val geomFilter = ff.intersects(geomProperty, ff.literal(g))
         val combinedFilter = ff.and(List(query.getFilter, geomFilter, dtg1, dtg2, filter).asJava)
-        SelfClosingIterator(source.getFeatures(combinedFilter).features)
+        CloseableIterator(source.getFeatures(combinedFilter).features)
       }
     }
 

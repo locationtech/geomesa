@@ -12,7 +12,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -83,28 +83,28 @@ class RouteSearchProcessTest extends Specification {
     "return features along a route" in {
       val collection = process.execute(input, routes, 1000.0, 5.0, null, null, false, "heading")
 
-      val results = SelfClosingIterator(collection.features).toSeq
+      val results = CloseableIterator(collection.features).toList
       results must containTheSameElementsAs(features1)
     }
 
     "return features along a route with a wider heading tolerance" in {
       val collection = process.execute(input, routes, 1000.0, 15.0, null, null, false, "heading")
 
-      val results = SelfClosingIterator(collection.features).toSeq
+      val results = CloseableIterator(collection.features).toList
       results must containTheSameElementsAs(features1 ++ features2)
     }
 
     "return features along a wide buffered route" in {
       val collection = process.execute(input, routes, 100000.0, 5.0, null, null, false, "heading")
 
-      val results = SelfClosingIterator(collection.features).toSeq
+      val results = CloseableIterator(collection.features).toList
       results must containTheSameElementsAs(features1 ++ features3)
     }
 
     "return features along a bidirectional route" in {
       val collection = process.execute(input, routes, 1000.0, 5.0, null, null, true, "heading")
 
-      val results = SelfClosingIterator(collection.features).toSeq
+      val results = CloseableIterator(collection.features).toList
       results must containTheSameElementsAs(features0 ++ features1)
     }
   }

@@ -14,7 +14,7 @@ import org.apache.hadoop.fs.Path
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemContext
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -39,7 +39,7 @@ class OrcFileSystemWriterTest extends Specification {
         val fc = FileSystemContext(file.getParent, new Configuration())
         WithClose(new OrcFileSystemWriter(sft, fc, file)) { writer => features.foreach(writer.write) }
         val reader = new OrcFileSystemReader(sft, fc.conf, None, None)
-        val read = WithClose(reader.read(file)) { i => SelfClosingIterator(i).map(ScalaSimpleFeature.copy).toList }
+        val read = WithClose(reader.read(file)) { i => CloseableIterator(i).map(ScalaSimpleFeature.copy).toList }
         read mustEqual features
         // test out not calling 'hasNext'
         var i = 0

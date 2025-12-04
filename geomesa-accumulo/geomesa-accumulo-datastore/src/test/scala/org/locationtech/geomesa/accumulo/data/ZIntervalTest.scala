@@ -14,7 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -47,7 +47,7 @@ class ZIntervalTest extends Specification with TestWithMultipleSfts {
       addFeatures(sft)
       forall(filters) { case (filter, results) =>
         val query = new Query(sft.getTypeName, filter)
-        val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+        val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
         features.map(_.getID) must containTheSameElementsAs(results)
       }
     }
@@ -56,7 +56,7 @@ class ZIntervalTest extends Specification with TestWithMultipleSfts {
       addFeatures(sft)
       forall(filters) { case (filter, results) =>
         val query = new Query(sft.getTypeName, filter)
-        val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+        val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
         features.map(_.getID) must containTheSameElementsAs(results)
       }
     }
@@ -65,7 +65,7 @@ class ZIntervalTest extends Specification with TestWithMultipleSfts {
       addFeatures(sft)
       forall(filters) { case (filter, results) =>
         val query = new Query(sft.getTypeName, filter)
-        val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+        val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
         features.map(_.getID) must containTheSameElementsAs(results)
       }
     }
@@ -74,7 +74,7 @@ class ZIntervalTest extends Specification with TestWithMultipleSfts {
       addFeatures(sft)
       forall(filters) { case (filter, results) =>
         val query = new Query(sft.getTypeName, filter)
-        val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+        val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
         features.map(_.getID) must containTheSameElementsAs(results)
       }
     }

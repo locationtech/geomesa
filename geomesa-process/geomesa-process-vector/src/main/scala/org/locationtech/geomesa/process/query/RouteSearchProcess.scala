@@ -23,8 +23,9 @@ import org.locationtech.geomesa.filter.{ff, orFilters}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.process.{FeatureResult, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.process.GeoMesaProcess
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.locationtech.jts.operation.distance.DistanceOp
@@ -111,7 +112,7 @@ class RouteSearchProcess extends GeoMesaProcess with LazyLogging {
       if (!classOf[LineString].isAssignableFrom(sft.getDescriptor(index).getType.getBinding)) {
         throw new IllegalArgumentException(s"Route geometry field '$name' must be a LineString")
       }
-      SelfClosingIterator(routes).map(_.getAttribute(index).asInstanceOf[LineString]).toSeq
+      CloseableIterator(routes.features()).map(_.getAttribute(index).asInstanceOf[LineString]).toList
     }
 
     val visitor = new RouteVisitor(sft, routeGeoms, bufferSize, headingThreshold, bi,

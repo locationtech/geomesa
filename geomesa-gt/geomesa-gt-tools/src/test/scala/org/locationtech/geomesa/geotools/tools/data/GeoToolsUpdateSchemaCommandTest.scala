@@ -18,7 +18,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.gt.partition.postgis.PartitionedPostgisDataStoreParams
 import org.locationtech.geomesa.gt.partition.postgis.dialect.TypeInfo
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{PartitionMaintenance, RollWriteAheadLog}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -108,7 +108,7 @@ class GeoToolsUpdateSchemaCommandTest extends Specification with BeforeAfterAll 
 
         def getFeatures: Seq[SimpleFeature] = {
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
-            SelfClosingIterator(reader).map(ScalaSimpleFeature.copy).toList.sortBy(_.getID)
+            CloseableIterator(reader).map(ScalaSimpleFeature.copy).toList.sortBy(_.getID)
           }
         }
 

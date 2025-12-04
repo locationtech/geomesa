@@ -26,7 +26,7 @@ import org.locationtech.geomesa.lambda.data.LambdaFeatureWriter.{AppendLambdaFea
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
 import org.locationtech.geomesa.security.AuthorizationsProvider
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
@@ -166,7 +166,7 @@ class LambdaDataStore(val persistence: DataStore, offsetManager: OffsetManager, 
                                 filter: Filter,
                                 transaction: Transaction): SimpleFeatureWriter= {
     val query = new Query(typeName, filter)
-    val features = SelfClosingIterator(getFeatureReader(query, transaction))
+    val features = CloseableIterator(getFeatureReader(query, transaction))
     val transient = transients.get(typeName)
     if (transient.sft.isVisibilityRequired) {
       new ModifyLambdaFeatureWriter(transient, features) with RequiredVisibilityWriter

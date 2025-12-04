@@ -11,7 +11,7 @@ package org.locationtech.geomesa.process.analytic
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -42,12 +42,12 @@ class TrackLabelProcessTest extends Specification {
 
   "TrackLabelProcess" should {
     "manually visit a feature collection" in {
-      val result = SelfClosingIterator(process.execute(fc, "track", null, null).features).toSeq
+      val result = CloseableIterator(process.execute(fc, "track", null, null).features).toList
       result must haveSize(2)
       result.map(_.getAttribute("track")) must containTheSameElementsAs(Seq("t-0", "t-1"))
     }
     "manually visit a feature collection with sorting" in {
-      val result = SelfClosingIterator(process.execute(fc, "track", "dtg", null).features).toSeq
+      val result = CloseableIterator(process.execute(fc, "track", "dtg", null).features).toList
       result must containTheSameElementsAs(features.drop(8))
     }
   }

@@ -16,7 +16,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorageFactory, StorageMetadataFactory}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -70,7 +70,7 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
 
       val query = new Query(metadata.sft.getTypeName, ECQL.toFilter("dtg during 2023-01-17T00:00:00.000Z/2023-01-19T00:00:00.000Z"))
       val features = {
-        val iter = SelfClosingIterator(storage.getReader(query))
+        val iter = CloseableIterator(storage.getReader(query))
         // note: need to copy features in iterator as same object is re-used
         iter.map(ScalaSimpleFeature.copy).toList
       }
@@ -106,7 +106,7 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
         "OR dtg = 2024-12-11T10:00:00Z OR dtg = 2024-12-11T23:55:00Z"
       val query = new Query(metadata.sft.getTypeName, ECQL.toFilter(filterText))
       val features = {
-        val iter = SelfClosingIterator(storage.getReader(query))
+        val iter = CloseableIterator(storage.getReader(query))
         // note: need to copy features in iterator as same object is re-used
         iter.map(ScalaSimpleFeature.copy).toList
       }

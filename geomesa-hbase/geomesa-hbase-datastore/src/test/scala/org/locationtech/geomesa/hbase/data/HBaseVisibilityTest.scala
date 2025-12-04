@@ -30,7 +30,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.security.AuthorizationsProvider
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.jts.geom.Envelope
@@ -139,7 +139,7 @@ class HBaseVisibilityTest extends Specification with BeforeAfterAll with LazyLog
       val query = new Query(typeName, Filter.INCLUDE)
 
       val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-      val features = SelfClosingIterator(fr).toList
+      val features = CloseableIterator(fr).toList
 
       features.map(_.getID)
     }
@@ -296,13 +296,13 @@ class HBaseVisibilityTest extends Specification with BeforeAfterAll with LazyLog
         q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
         q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
         val decode = DensityScan.decodeResult(envelope, 500, 500)
-        SelfClosingIterator(fs.getFeatures(q).features).flatMap(decode).toList.map(_._3).sum
+        CloseableIterator(fs.getFeatures(q).features).flatMap(decode).toList.map(_._3).sum
       }
 
       def testQuery(ds: HBaseDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
         val query = new Query(typeName, ECQL.toFilter(filter), transforms: _*)
         val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-        val features = SelfClosingIterator(fr).toList
+        val features = CloseableIterator(fr).toList
         val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
         features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
         forall(features) { feature =>
@@ -315,7 +315,7 @@ class HBaseVisibilityTest extends Specification with BeforeAfterAll with LazyLog
 
         val densitySize = getDensity(typeName, filter, ds.getFeatureSource(typeName))
         densitySize mustEqual results.length
-        SelfClosingIterator(ds.getFeatureSource(typeName).getFeatures(query).features()).size mustEqual results.length
+        CloseableIterator(ds.getFeatureSource(typeName).getFeatures(query).features()).size mustEqual results.length
       }
 
       foreach(Seq(true, false)) { loose =>

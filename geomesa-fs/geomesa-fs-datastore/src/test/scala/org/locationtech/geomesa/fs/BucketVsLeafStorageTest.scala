@@ -16,7 +16,7 @@ import org.geotools.data.simple.SimpleFeatureIterator
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -48,7 +48,7 @@ class BucketVsLeafStorageTest extends Specification {
     ScalaSimpleFeature.create(sft, "3", "fourth", "2016-01-04", "POINT (-5 -5)") // z2 = 0
   )
 
-  def toList(sfi: SimpleFeatureIterator): List[SimpleFeature] = SelfClosingIterator(sfi).toList
+  def toList(sfi: SimpleFeatureIterator): List[SimpleFeature] = CloseableIterator(sfi).toList
 
   step {
     tempDir = Files.createTempDirectory("geomesa")
