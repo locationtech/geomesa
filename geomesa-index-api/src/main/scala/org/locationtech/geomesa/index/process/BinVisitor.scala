@@ -19,6 +19,8 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodingOptions}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
+import java.io.Closeable
+
 /**
  * Binary format visitor
  *
@@ -26,19 +28,22 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
  * @param options encoding options
  */
 class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions) extends GeoMesaProcessVisitor with LazyLogging {
-// TODO this isn't closing the iterator
+
   import scala.collection.JavaConverters._
 
   // for collecting results manually
   private val manualResults = scala.collection.mutable.Queue.empty[Array[Byte]]
   private val manualConversion = BinaryOutputEncoder(sft, options)
 
-  private var result = new Iterator[Array[Byte]] {
-    override def next(): Array[Byte] = manualResults.dequeue()
-    override def hasNext: Boolean = manualResults.nonEmpty
-  }
+  private var result: java.util.Iterator[Array[Byte]] = _
 
-  override def getResult: BinResult = BinResult(result.asJava)
+  override def getResult: BinResult = {
+    if (result != null) {
+      BinResult(result)
+    } else {
+      BinResult(manualResults.iterator.asJava)
+    }
+  }
 
   // manually called for non-accumulo feature collections
   override def visit(feature: Feature): Unit =
@@ -52,8 +57,22 @@ class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions) extends GeoMe
     options.dtgField.foreach(i => query.getHints.put(QueryHints.BIN_DTG, sft.getDescriptor(i).getLocalName))
     options.labelField.foreach(i => query.getHints.put(QueryHints.BIN_LABEL, sft.getDescriptor(i).getLocalName))
 
-    val features = CloseableIterator(source.getFeatures(query).features())
-    result ++= features.map(_.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
+    val features =
+      CloseableIterator(source.getFeatures(query).features()).map(_.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
+    // try to ensure the iterator is closed, by making it Closeable (only discoverable via type matching), and by making it
+    // auto-closing when fully read
+    // TODO investigate options for returning Closeable things from a VectorProcess
+    result = new java.util.Iterator[Array[Byte]] with Closeable {
+      override def hasNext: Boolean = {
+        val more = features.hasNext
+        if (!more) {
+          close()
+        }
+        more
+      }
+      override def next(): Array[Byte] = features.next()
+      override def close(): Unit = features.close()
+    }
   }
 }
 

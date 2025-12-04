@@ -152,6 +152,22 @@ object CloseableIterator {
   }
 }
 
+/**
+ * An iterator that should be closed after use.
+ *
+ * For convenience, some methods that consume the iterator will automatically close the iterator when invoked:
+ *
+ * <ul>
+ * <li>`toList`</li>
+ * <li>`foreach`</li>
+ * <li>`size`</li>
+ * </ul>
+ *
+ * Note that other methods (for example, `length`) may end up invoking these methods, due to the internal implementation of
+ * collections.
+ *
+ * @tparam A iterator values
+ */
 trait CloseableIterator[+A] extends Iterator[A] with Closeable {
 
   // note: in scala 2.13, toList *does not* call foreach, so we need to close the iterator here

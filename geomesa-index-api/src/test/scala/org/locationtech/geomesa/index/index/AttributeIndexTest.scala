@@ -291,14 +291,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 
       val start = System.currentTimeMillis()
 
-      val feats = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-      try {
-        while (feats.hasNext) {
-          feats.next()
-        }
-      } finally {
-        feats.close()
-      }
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).foreach(_ => ())
 
       val time = System.currentTimeMillis() - start
 

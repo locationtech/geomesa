@@ -25,7 +25,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
-import java.io.ByteArrayOutputStream
+import java.io.{ByteArrayOutputStream, Closeable}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.reflect.ClassTag
 
@@ -54,11 +54,11 @@ class ArrowVisitor(
     }
   }
 
-  private var result: Iterator[Array[Byte]] = _
+  private var result: java.util.Iterator[Array[Byte]] = _
 
   override def getResult: ArrowResult = {
     if (result != null) {
-      ArrowResult(result.asJava)
+      ArrowResult(result)
     } else {
       ArrowResult(manualVisitor.results.asJava)
     }
@@ -87,8 +87,21 @@ class ArrowVisitor(
     sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
     sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
 
-    val features = CloseableIterator(source.getFeatures(query).features())
-    result = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
+    val features = CloseableIterator(source.getFeatures(query).features()).map(_.getAttribute(0).asInstanceOf[Array[Byte]])
+    // try to ensure the iterator is closed, by making it Closeable (only discoverable via type matching), and by making it
+    // auto-closing when fully read
+    // TODO investigate options for returning Closeable things from a VectorProcess
+    result = new java.util.Iterator[Array[Byte]] with Closeable {
+      override def hasNext: Boolean = {
+        val more = features.hasNext
+        if (!more) {
+          close()
+        }
+        more
+      }
+      override def next(): Array[Byte] = features.next()
+      override def close(): Unit = features.close()
+    }
   }
 }
 
