@@ -15,7 +15,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.jts.geom.Point
@@ -58,7 +58,7 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
 
   step {
     addFeatures(features)
-    SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must
+    CloseableIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must
         haveLength(features.length)
 
     path = Files.createTempDirectory(s"route-ds-test")
@@ -74,7 +74,7 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
       WithClose(shpDs.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
         features.iterator.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
-      SelfClosingIterator(shpDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must
+      CloseableIterator(shpDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must
           haveLength(features.length)
     } finally {
       if (shpDs != null) {
@@ -100,7 +100,7 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores" in {
-      val results = SelfClosingIterator(routedDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList
+      val results = CloseableIterator(routedDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList
 
       results must haveLength(features.length)
       foreach(results.sortBy(_.getAttribute("name").asInstanceOf[String]).zip(features)) { case (actual, expected) =>
@@ -122,7 +122,7 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
         val ecql = ECQL.toFilter(filter)
         foreach(transforms) { transform =>
           val query = new Query(sftName, ecql, transform: _*)
-          val results = SelfClosingIterator(routedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val results = CloseableIterator(routedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(4)
           val attributes = Option(transform).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
           forall(results) { feature =>

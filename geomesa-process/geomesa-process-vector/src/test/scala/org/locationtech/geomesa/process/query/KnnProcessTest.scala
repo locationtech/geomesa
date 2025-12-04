@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
 import org.locationtech.geomesa.process.query.KNearestNeighborSearchProcess._
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -58,14 +58,14 @@ class KnnProcessTest extends Specification {
     "manually visit a feature collection" in {
       val input = Collections.singletonList[SimpleFeature](ScalaSimpleFeature.create(sft, "", "POINT (45 55)"))
       val query = new ListFeatureCollection(sft, input)
-      val result = SelfClosingIterator(process.execute(query, featureCollection, 3, 0, Double.MaxValue).features).toSeq
+      val result = CloseableIterator(process.execute(query, featureCollection, 3, 0, Double.MaxValue).features).toList
       result must containTheSameElementsAs(features.slice(4, 7))
     }
 
     "manually visit a feature collection smaller than k" in {
       val input = Collections.singletonList[SimpleFeature](ScalaSimpleFeature.create(sft, "", "POINT (45 55)"))
       val query = new ListFeatureCollection(sft, input)
-      val result = SelfClosingIterator(process.execute(query, featureCollection, 20, 0, Double.MaxValue).features).toSeq
+      val result = CloseableIterator(process.execute(query, featureCollection, 20, 0, Double.MaxValue).features).toList
       result must containTheSameElementsAs(features)
     }
 

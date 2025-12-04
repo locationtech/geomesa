@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.process.BinVisitor.BinResult
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodingOptions}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 /**
  * Binary format visitor
@@ -26,7 +26,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
  * @param options encoding options
  */
 class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions) extends GeoMesaProcessVisitor with LazyLogging {
-
+// TODO this isn't closing the iterator
   import scala.collection.JavaConverters._
 
   // for collecting results manually
@@ -52,7 +52,7 @@ class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions) extends GeoMe
     options.dtgField.foreach(i => query.getHints.put(QueryHints.BIN_DTG, sft.getDescriptor(i).getLocalName))
     options.labelField.foreach(i => query.getHints.put(QueryHints.BIN_LABEL, sft.getDescriptor(i).getLocalName))
 
-    val features = SelfClosingIterator(source.getFeatures(query))
+    val features = CloseableIterator(source.getFeatures(query).features())
     result ++= features.map(_.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
   }
 }

@@ -20,7 +20,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -88,7 +88,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
 
         foreach(filters) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          val result = SelfClosingIterator(fs.getFeatures(query).features).toList.sortBy(_.getID)
+          val result = CloseableIterator(fs.getFeatures(query).features).toList.sortBy(_.getID)
           result mustEqual expected
         }
 
@@ -100,7 +100,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
 
         foreach(excludes) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          val result = SelfClosingIterator(fs.getFeatures(query).features).toList.sortBy(_.getID)
+          val result = CloseableIterator(fs.getFeatures(query).features).toList.sortBy(_.getID)
           result must beEmpty
         }
       }
@@ -126,7 +126,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
         writer.close()
 
         val query = new Query(sft.getTypeName)
-        val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+        val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
         result mustEqual features
       }
     }
@@ -151,7 +151,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
           ScalaSimpleFeature.create(sft, "fid5", "bob", 60, "2014-01-02", "POINT(45.0 49.0)")
         )
 
-        val result = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("age = 60")).features).toList.sortBy(_.getID)
+        val result = CloseableIterator(fs.getFeatures(ECQL.toFilter("age = 60")).features).toList.sortBy(_.getID)
         result mustEqual expected
       }
     }
@@ -186,7 +186,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
 
         foreach(filters) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+          val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
           result must beEmpty
         }
 
@@ -238,7 +238,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
 
         foreach(filters) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+          val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
           result mustEqual features
         }
       }
@@ -275,7 +275,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
 
         def query(filter: String): Seq[SimpleFeature] = {
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
         }
 
         // verify old bbox/dtg doesn't return them
@@ -343,7 +343,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
 
         foreach(filters) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+          val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
           result mustEqual features
         }
 
@@ -358,7 +358,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
         // ensure that will was deleted
         foreach(filters) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+          val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
           result mustEqual features.drop(1)
         }
 
@@ -373,7 +373,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
 
         foreach(filters) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+          val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
           result mustEqual features
         }
       }
@@ -416,7 +416,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
         }
 
         val query = new Query(sft.getTypeName)
-        val ids = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.map(_.getID).sorted
+        val ids = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.map(_.getID).sorted
         ids must haveLength(5)
         forall(ids)(_ must not(beMatching("fid\\d")))
 

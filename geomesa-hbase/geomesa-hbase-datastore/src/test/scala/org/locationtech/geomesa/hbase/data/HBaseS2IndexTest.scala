@@ -18,7 +18,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigsParam, H
 import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_LABEL, BIN_SORT, BIN_TRACK}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -63,7 +63,7 @@ class HBaseS2IndexTest extends Specification with LazyLogging {
         }
 
         def runQuery(query: Query): Seq[SimpleFeature] =
-          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
         { // return all features for inclusive filter
           val filter = "bbox(geom, 35, 55, 45, 75)" +
@@ -140,9 +140,11 @@ class HBaseS2IndexTest extends Specification with LazyLogging {
           query.getHints.put(BIN_TRACK, "name")
           query.getHints.put(BIN_BATCH_SIZE, 100)
 
-          val returnedFeatures = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           // the same simple feature gets reused - so make sure you access in serial order
-          val aggregates = returnedFeatures.map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
+          val aggregates =
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+              .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
+              .toList
           aggregates.size must beLessThan(10) // ensure some aggregation was done
           val bin = aggregates.flatMap(a => a.grouped(16).map(BinaryOutputEncoder.decode))
           bin must haveSize(10)
@@ -161,9 +163,11 @@ class HBaseS2IndexTest extends Specification with LazyLogging {
           query.getHints.put(BIN_BATCH_SIZE, 100)
           query.getHints.put(BIN_SORT, true)
 
-          val returnedFeatures = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           // the same simple feature gets reused - so make sure you access in serial order
-          val aggregates = returnedFeatures.map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+          val aggregates =
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+              .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
+              .toList
           aggregates.size must beLessThan(10) // ensure some aggregation was done
           forall(aggregates) { a =>
             val window = a.grouped(16).map(BinaryOutputEncoder.decode(_).dtg).sliding(2).filter(_.length > 1)
@@ -186,9 +190,11 @@ class HBaseS2IndexTest extends Specification with LazyLogging {
           query.getHints.put(BIN_LABEL, "name")
           query.getHints.put(BIN_BATCH_SIZE, 100)
 
-          val returnedFeatures = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           // the same simple feature gets reused - so make sure you access in serial order
-          val aggregates = returnedFeatures.map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+          val aggregates =
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+              .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
+              .toList
           aggregates.size must beLessThan(10) // ensure some aggregation was done
           val bin = aggregates.flatMap(a => a.grouped(24).map(BinaryOutputEncoder.decode))
           bin must haveSize(10)

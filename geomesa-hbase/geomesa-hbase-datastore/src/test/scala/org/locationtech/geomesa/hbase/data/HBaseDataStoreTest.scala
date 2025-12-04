@@ -25,7 +25,7 @@ import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties, SchemaP
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
@@ -116,7 +116,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
           forall(Seq(("INCLUDE", toAdd), ("bbox(geom,42,48,52,62)", toAdd.drop(2)))) { case (filter, results) =>
             val transforms = Array("derived=strConcat('hello',name)", "geom")
             val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms: _*), Transaction.AUTO_COMMIT)
-            val features = SelfClosingIterator(fr).toList
+            val features = CloseableIterator(fr).toList
             features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
               beSome("derived:String,*geom:Point:srid=4326")
             features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
@@ -131,7 +131,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
         def testCount(ds: HBaseDataStore): MatchResult[_] = {
           val query = new Query(typeName, Filter.INCLUDE, Query.NO_PROPERTIES)
-          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(10)
           results.map(_.getID) must containTheSameElementsAs(toAdd.map(_.getID))
           foreach(results)(_.getAttributeCount mustEqual 0)
@@ -179,7 +179,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
           QueryProperties.BlockFullTableScans.threadLocalValue.set("true")
           try {
             val query = new Query(typeName, ECQL.toFilter("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-04T12:00:00.000Z"))
-            val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             features must haveLength(4)
           } finally {
             QueryProperties.BlockFullTableScans.threadLocalValue.remove()
@@ -201,7 +201,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
           "name < 'name5'",
           "name = 'name5'")) { filter =>
           val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter)), Transaction.AUTO_COMMIT)
-          SelfClosingIterator(fr).toList must beEmpty
+          CloseableIterator(fr).toList must beEmpty
         }
       } finally {
         ds.dispose()
@@ -298,7 +298,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
           ScalaSimpleFeature.create(sft, "fid5", "bob", 60, "2014-01-02", "POINT(45.0 49.0)")
         )
 
-        val result = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("age = 60")).features).toList.sortBy(_.getID)
+        val result = CloseableIterator(fs.getFeatures(ECQL.toFilter("age = 60")).features).toList.sortBy(_.getID)
         result mustEqual expected
       } finally {
         ds.dispose()
@@ -370,7 +370,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
-        val query = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        val query = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
         query.sortBy(_.getID) mustEqual features
       } finally {
         ds.dispose()
@@ -428,7 +428,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
   def testQuery(ds: HBaseDataStore, query: Query, results: Seq[SimpleFeature], count: Boolean = true): MatchResult[Any] = {
 
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-    val features = SelfClosingIterator(fr).toList
+    val features = CloseableIterator(fr).toList
     val attributes = Option(query.getPropertyNames)
         .getOrElse(ds.getSchema(query.getTypeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))

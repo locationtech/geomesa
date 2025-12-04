@@ -13,7 +13,7 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -38,7 +38,7 @@ class DateOffsetProcessTest extends Specification {
     "move a feature collection back in time one day" in {
       val collection = new ListFeatureCollection(sft, features.asJava)
       val result = process.execute(collection, "dtg", "P-1D")
-      val dates = SelfClosingIterator(result.features()).map(_.getAttribute("dtg")).toList
+      val dates = CloseableIterator(result.features()).map(_.getAttribute("dtg")).toList
       val expected = (0 until 10).map(i => Converters.convert(s"2017-02-19T00:00:0$i.000Z", classOf[Date]))
       dates must containTheSameElementsAs(expected)
     }
@@ -46,7 +46,7 @@ class DateOffsetProcessTest extends Specification {
     "move a feature collection forward in time one day" in {
       val collection = new ListFeatureCollection(sft, features.asJava)
       val result = process.execute(collection, "dtg", "P1D")
-      val dates = SelfClosingIterator(result.features()).map(_.getAttribute("dtg")).toList
+      val dates = CloseableIterator(result.features()).map(_.getAttribute("dtg")).toList
       val expected = (0 until 10).map(i => Converters.convert(s"2017-02-21T00:00:0$i.000Z", classOf[Date]))
       dates must containTheSameElementsAs(expected)
     }
@@ -54,7 +54,7 @@ class DateOffsetProcessTest extends Specification {
     "move a feature collection back in time one hour" in {
       val collection = new ListFeatureCollection(sft, features.asJava)
       val result = process.execute(collection, "dtg", "PT-1H")
-      val dates = SelfClosingIterator(result.features()).map(_.getAttribute("dtg")).toList
+      val dates = CloseableIterator(result.features()).map(_.getAttribute("dtg")).toList
       val expected = (0 until 10).map(i => Converters.convert(s"2017-02-19T23:00:0$i.000Z", classOf[Date]))
       dates must containTheSameElementsAs(expected)
     }
@@ -62,7 +62,7 @@ class DateOffsetProcessTest extends Specification {
     "move a feature collection forward with mixed units" in {
       val collection = new ListFeatureCollection(sft, features.asJava)
       val result = process.execute(collection, "dtg", "P5DT1H")
-      val dates = SelfClosingIterator(result.features()).map(_.getAttribute("dtg")).toList
+      val dates = CloseableIterator(result.features()).map(_.getAttribute("dtg")).toList
       val expected = (0 until 10).map(i => Converters.convert(s"2017-02-25T01:00:0$i.000Z", classOf[Date]))
       dates must containTheSameElementsAs(expected)
     }

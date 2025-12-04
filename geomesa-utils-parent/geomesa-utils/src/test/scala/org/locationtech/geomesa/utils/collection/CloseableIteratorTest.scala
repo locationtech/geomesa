@@ -89,7 +89,7 @@ class CloseableIteratorTest extends Specification {
     }
     "self close with flatmap" >> {
       val closed0, closed1, closed2 = new CloseCounter()
-      val result = SelfClosingIterator(CloseableIterator(Iterator(0, 1), closed0.close())).flatMap { i =>
+      val result = CloseableIterator(CloseableIterator(Iterator(0, 1), closed0.close())).flatMap { i =>
         if (i == 0) {
           CloseableIterator(Iterator(2, 3), closed1.close())
         } else {
@@ -97,7 +97,7 @@ class CloseableIteratorTest extends Specification {
         }
       }
       foreach(Seq(closed0, closed1, closed2))(_.count mustEqual 0)
-      result.toSeq mustEqual Seq(2, 3, 4, 5)
+      result.toList mustEqual Seq(2, 3, 4, 5)
       foreach(Seq(closed0, closed1, closed2))(_.count mustEqual 1)
     }
     "close with concatenate" >> {
@@ -132,13 +132,14 @@ class CloseableIteratorTest extends Specification {
         override def next(): String = Iterator.empty.next
         override def close(): Unit = closed.close()
       }
-      val closeable = SelfClosingIterator(iter)
+      val closeable = CloseableIterator(iter)
       closed.count mustEqual 0
       closeable.hasNext must beFalse
-      closed.count mustEqual 1
+      closed.count mustEqual 0
       closeable.close()
-      closed.count mustEqual 2
+      closed.count mustEqual 1
     }
+    // TODO add toList, foreach tests
   }
 
   class CloseCounter(var count: Int = 0) extends Closeable {

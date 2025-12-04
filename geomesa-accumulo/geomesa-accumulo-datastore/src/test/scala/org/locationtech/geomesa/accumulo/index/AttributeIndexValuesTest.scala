@@ -19,7 +19,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.impl.EnumerationStat
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.runner.JUnitRunner
 
 import java.io.ByteArrayOutputStream
@@ -61,8 +61,10 @@ class AttributeIndexValuesTest extends TestWithFeatureType {
           query.getHints.put(QueryHints.STATS_STRING, s"Enumeration('$enumeration')")
           query.getHints.put(QueryHints.ENCODE_STATS, true)
           foreach(ds.getQueryPlan(query)) { plan => plan must beAnInstanceOf[BatchScanPlan] }
-          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-          val stats = results.map(f => StatsScan.decodeStat(sft)(f.getAttribute(0).asInstanceOf[String])).toList
+          val stats =
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+              .map(f => StatsScan.decodeStat(sft)(f.getAttribute(0).asInstanceOf[String]))
+              .toList
           stats must haveLength(1)
           stats.head must beAnInstanceOf[EnumerationStat[String]]
           stats.head.asInstanceOf[EnumerationStat[String]].property mustEqual enumeration
@@ -84,9 +86,9 @@ class AttributeIndexValuesTest extends TestWithFeatureType {
           query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
           query.getHints.put(QueryHints.ARROW_INCLUDE_FID, true)
           foreach(ds.getQueryPlan(query)) { plan => plan must beAnInstanceOf[BatchScanPlan] }
-          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           val out = new ByteArrayOutputStream
-          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+            .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
           SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getAttributes.asScala) must
             containTheSameElementsAs(expectation.map(i => transform.toSeq.map(features(i).getAttribute)))
         }

@@ -19,7 +19,7 @@ import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_LABEL
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -65,7 +65,7 @@ class HBaseS3IndexTest extends Specification with LazyLogging {
         }
 
         def runQuery(query: Query): Seq[SimpleFeature] =
-          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
         { // return all features for inclusive filter
           val filter = "bbox(geom, 38, 59, 51, 61)" +
@@ -191,7 +191,7 @@ class HBaseS3IndexTest extends Specification with LazyLogging {
           QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
           val aggregates = try {
             // the same simple feature gets reused - so make sure you access in serial order
-            SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
                 .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
                 .toList
           } finally {
@@ -219,7 +219,7 @@ class HBaseS3IndexTest extends Specification with LazyLogging {
           QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
           val aggregates = try {
             // the same simple feature gets reused - so make sure you access in serial order
-            SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
                 .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
                 .toList
           } finally {
@@ -251,7 +251,7 @@ class HBaseS3IndexTest extends Specification with LazyLogging {
           QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
           val aggregates = try {
             // the same simple feature gets reused - so make sure you access in serial order
-            SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
                 .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
                 .toList
           } finally {
@@ -279,7 +279,7 @@ class HBaseS3IndexTest extends Specification with LazyLogging {
           QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
           val aggregates = try {
             // the same simple feature gets reused - so make sure you access in serial order
-            SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
                 .map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
                 .toList
           } finally {

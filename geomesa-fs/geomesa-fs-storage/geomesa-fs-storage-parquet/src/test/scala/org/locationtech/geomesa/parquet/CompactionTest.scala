@@ -20,7 +20,7 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -74,24 +74,24 @@ class CompactionTest extends Specification with AllExpectations {
       // First simple feature goes in its own file
       write(sf1)
       fsStorage.metadata.getPartition(partition).map(_.files) must beSome(haveSize[Seq[StorageFile]](1))
-      SelfClosingIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(100)
+      CloseableIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(100)
 
       // Second simple feature should be in a separate file
       val sf2 = ScalaSimpleFeature.create(sft, "2", "second", 200, dtg, "POINT (10 10)")
       write(sf2)
       fsStorage.metadata.getPartition(partition).map(_.files) must beSome(haveSize[Seq[StorageFile]](2))
-      SelfClosingIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(200)
+      CloseableIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(200)
 
       // Third feature in a third file
       val sf3 = ScalaSimpleFeature.create(sft, "3", "third", 300, dtg, "POINT (10 10)")
       write(sf3)
       fsStorage.metadata.getPartition(partition).map(_.files) must beSome(haveSize[Seq[StorageFile]](3))
-      SelfClosingIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(300)
+      CloseableIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(300)
 
       // Compact to create a single file
       fsStorage.compact(Some(partition))
       fsStorage.metadata.getPartition(partition).map(_.files) must beSome(haveSize[Seq[StorageFile]](1))
-      SelfClosingIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(300)
+      CloseableIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(300)
 
       // delete a feature and compact again
       WithClose(fsStorage.getWriter(ECQL.toFilter("IN ('2')"))) { writer =>
@@ -102,7 +102,7 @@ class CompactionTest extends Specification with AllExpectations {
       fsStorage.metadata.getPartition(partition).map(_.files) must beSome(haveSize[Seq[StorageFile]](2))
       fsStorage.compact(Some(partition))
       fsStorage.metadata.getPartition(partition).map(_.files) must beSome(haveSize[Seq[StorageFile]](1))
-      SelfClosingIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(299)
+      CloseableIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(299)
 
       // compact to a given file size
       // verify if file is appropriately sized, it won't be modified
@@ -113,7 +113,7 @@ class CompactionTest extends Specification with AllExpectations {
       // verify files are split into smaller ones
       fsStorage.compact(Some(partition), Some(size / 2))
       fsStorage.metadata.getPartition(partition).map(_.files.length).getOrElse(0) must beGreaterThan(1)
-      SelfClosingIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(299)
+      CloseableIterator(fsStorage.getReader(Query.ALL, Some(partition))).toList must haveSize(299)
     }
   }
 

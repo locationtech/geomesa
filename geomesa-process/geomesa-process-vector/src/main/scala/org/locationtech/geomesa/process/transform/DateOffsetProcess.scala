@@ -13,7 +13,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.process.GeoMesaProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.time._
 import java.time.format.DateTimeParseException
@@ -41,7 +41,7 @@ class DateOffsetProcess extends GeoMesaProcess {
     val dtgIndex = obsFeatures.getSchema.indexOf(dateField)
     require(dtgIndex != -1, s"Field '$dateField' does not exist in input feature collection: ${obsFeatures.getSchema}")
 
-    val iter = SelfClosingIterator(obsFeatures.features()).map { sf =>
+    val iter = CloseableIterator(obsFeatures.features()).toList.map { sf =>
       val dtg = sf.getAttribute(dateField).asInstanceOf[Date]
       val offset = ZonedDateTime.ofInstant(dtg.toInstant, ZoneOffset.UTC).plus(period)
       val newDtg = Date.from(offset.toInstant)
@@ -49,6 +49,6 @@ class DateOffsetProcess extends GeoMesaProcess {
       sf
     }
 
-    new ListFeatureCollection(obsFeatures.getSchema, iter.toList.asJava)
+    new ListFeatureCollection(obsFeatures.getSchema, iter.asJava)
   }
 }

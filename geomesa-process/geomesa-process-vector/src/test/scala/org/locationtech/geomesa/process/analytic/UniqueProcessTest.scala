@@ -12,7 +12,7 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -40,18 +40,18 @@ class UniqueProcessTest extends Specification {
 
   "UniqueProcess" should {
     "manually visit a feature collection" in {
-      val result = SelfClosingIterator(process.execute(fc, "track", null, null, null, null, null).features).toSeq
+      val result = CloseableIterator(process.execute(fc, "track", null, null, null, null, null).features).toList
       foreach(result)(_.getAttributeCount mustEqual 1)
       result.map(_.getAttribute(0)) must containTheSameElementsAs(Seq("t-0", "t-1"))
     }
     "manually visit a feature collection with counts" in {
-      val result = SelfClosingIterator(process.execute(fc, "track", null, true, null, null, null).features).toSeq
+      val result = CloseableIterator(process.execute(fc, "track", null, true, null, null, null).features).toList
       foreach(result)(_.getAttributeCount mustEqual 2)
       result.map(_.getAttribute(0)) must containTheSameElementsAs(Seq("t-0", "t-1"))
       result.map(_.getAttribute(1)) must containTheSameElementsAs(Seq(5L, 5L))
     }
     "manually visit a feature collection with a filter" in {
-      val result = SelfClosingIterator(process.execute(fc, "track", ECQL.toFilter("dtg before 2017-05-24T00:00:05.001Z"), true, null, null, null).features).toSeq
+      val result = CloseableIterator(process.execute(fc, "track", ECQL.toFilter("dtg before 2017-05-24T00:00:05.001Z"), true, null, null, null).features).toList
       foreach(result)(_.getAttributeCount mustEqual 2)
       result.map(_.getAttribute(0)) must containTheSameElementsAs(Seq("t-0", "t-1"))
       result.map(_.getAttribute(1)) must containTheSameElementsAs(Seq(3L, 3L))

@@ -17,7 +17,7 @@ import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.transform.ArrowConversionProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
 
@@ -47,7 +47,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
       val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()) must beEmpty
+        CloseableIterator(reader.features()).toList must beEmpty
       }
     }
 
@@ -55,7 +55,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
       val bytes = process.execute(fs.getFeatures(ECQL.toFilter("bbox(geom,20,20,30,30)")), null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()) must beEmpty
+        CloseableIterator(reader.features()).toList must beEmpty
       }
     }
 
@@ -63,7 +63,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
       val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList must
             containTheSameElementsAs(features)
       }
     }
@@ -73,7 +73,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
       val bytes = process.execute(fs.getFeatures(filter), null, null, null, Collections.singletonList("name"), null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList must
             containTheSameElementsAs(features.filter(filter.evaluate))
         // verify only exact values were used for the dictionary
         reader.dictionaries.map { case (k, v) => (k, v.iterator.toSeq) } mustEqual Map("name" -> Seq("name0"))
@@ -84,7 +84,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
       val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, "dtg", null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features
       }
     }
 
@@ -92,7 +92,7 @@ class ArrowConversionProcessTest extends TestWithDataStore {
       val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, "dtg", Boolean.box(true), null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features.reverse
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features.reverse
       }
     }
   }

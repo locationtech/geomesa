@@ -19,7 +19,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.DataUtilities
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.specs2.mutable.SpecificationWithJUnit
@@ -165,10 +165,10 @@ class AccumuloSparkProviderIT extends SpecificationWithJUnit with BeforeAfterAll
         .save()
       val filter = ff.equals(ff.property("case_number"), ff.literal(1))
       val queryOrig = new Query("chicago", filter)
-      val origResults = SelfClosingIterator(ds.getFeatureReader(queryOrig, Transaction.AUTO_COMMIT)).toList
+      val origResults = CloseableIterator(ds.getFeatureReader(queryOrig, Transaction.AUTO_COMMIT)).toList
 
       val query = new Query("fidOnWrite", filter)
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
       results.head.getID must be equalTo origResults.head.getID
     }

@@ -18,7 +18,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.matcher.MatchResult
@@ -147,7 +147,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
         val filter = ECQL.toFilter(f)
         forall(typeNames) { typeName =>
           val query = new Query(typeName, filter)
-          val res = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toSeq
+          val res = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
           res mustEqual Seq("fid")
         }
       }
@@ -165,7 +165,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
         val filter = ECQL.toFilter(f)
         forall(typeNames) { typeName =>
           val query = new Query(typeName, filter)
-          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toSeq must beEmpty
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList must beEmpty
         }
       }
     }

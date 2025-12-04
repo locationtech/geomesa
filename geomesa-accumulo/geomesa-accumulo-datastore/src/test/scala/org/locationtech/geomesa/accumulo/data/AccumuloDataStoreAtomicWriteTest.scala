@@ -20,7 +20,7 @@ import org.locationtech.geomesa.accumulo.data.writer.tx.ConditionalWriteExceptio
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.AtomicWriteTransaction
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
@@ -52,7 +52,7 @@ class AccumuloDataStoreAtomicWriteTest extends Specification with TestWithMultip
 
   def query(sft: SimpleFeatureType, filter: Filter): Seq[SimpleFeature] = {
     val query = new Query(sft.getTypeName, filter)
-    SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+    CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
   }
 
   "AccumuloDataStore atomic writer" should {

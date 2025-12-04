@@ -37,7 +37,7 @@ import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChang
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.memory.index.impl.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -307,14 +307,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
             Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must containTheSameElementsAs(Seq(f0, f1)))
 
           // update
           val f2 = ScalaSimpleFeature.create(sft, "sm", "smith2", 32, "2017-01-01T00:00:02.000Z", "POINT (2 2)")
           WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
             FeatureUtils.write(writer, f2, useProvidedFid = true)
           }
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f1, f2)))
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must containTheSameElementsAs(Seq(f1, f2)))
 
           // query
           val queries = Seq(
@@ -330,17 +330,17 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
           forall(queries) { ecql =>
             val query = new Query(sft.getTypeName, ECQL.toFilter(ecql))
-            val features = SelfClosingIterator(consumer.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
+            val features = CloseableIterator(consumer.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             features mustEqual Seq(f1)
           }
 
           // delete
           producer.getFeatureSource(sft.getTypeName).removeFeatures(ECQL.toFilter("IN('sm')"))
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must beEqualTo(Seq(f1)))
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList mustEqual Seq(f1))
 
           // clear
           producer.getFeatureSource(sft.getTypeName).removeFeatures(Filter.INCLUDE)
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must beEmpty)
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must beEmpty)
         } finally {
           consumer.dispose()
           producer.dispose()
@@ -364,7 +364,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
-        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+        eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must containTheSameElementsAs(Seq(f0, f1)))
         // write a second time so that our "live" metrics get updated, vs we may have hit the initial loader in our first write
         WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
@@ -372,7 +372,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
         // delete
         producer.getFeatureSource(sft.getTypeName).removeFeatures(ECQL.toFilter("IN('sm')"))
-        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must beEqualTo(Seq(f1)))
+        eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList mustEqual Seq(f1))
 
         val metrics = WithClose(Source.fromURL(new URL(s"http://localhost:$port/metrics"))(Codec.UTF8))(_.getLines().toList)
         val indexTagsRegex = s"""\\{.*catalog="${producer.config.catalog}".*store="kafka".*type_name="${sft.getTypeName}".*\\}"""
@@ -412,7 +412,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
           consumer.metadata.resetCache()
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must containTheSameElementsAs(Seq(f0, f1)))
         } finally {
           consumer.dispose()
           producer.dispose()
@@ -435,7 +435,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
         consumer.metadata.resetCache()
         val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
-        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq mustEqual Seq(f0))
+        eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList mustEqual Seq(f0))
       } finally {
         consumer.dispose()
         producer.dispose()
@@ -478,17 +478,17 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
           // admin user
           auths = Set("USER", "ADMIN")
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must containTheSameElementsAs(Seq(f0, f1)))
           store.getCount(q) mustEqual 2
 
           // regular user
           auths = Set("USER")
-          SelfClosingIterator(store.getFeatures.features).toSeq mustEqual Seq(f0)
+          CloseableIterator(store.getFeatures.features).toList mustEqual Seq(f0)
           store.getCount(q) mustEqual 1
 
           // unauthorized
           auths = Set.empty
-          SelfClosingIterator(store.getFeatures.features).toSeq must beEmpty
+          CloseableIterator(store.getFeatures.features).toList must beEmpty
         } finally {
           consumer.dispose()
           producer.dispose()
@@ -535,7 +535,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
 
-        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+        eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must
             containTheSameElementsAs(Seq(f0, f1)))
       } finally {
         consumer.dispose()
@@ -581,7 +581,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
             Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
 
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must
               containTheSameElementsAs(Seq(f0, f1)))
         } finally {
           consumer.dispose()
@@ -626,19 +626,19 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
             Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
           // check the cache directly
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must
               containTheSameElementsAs(Seq(f0, f1)))
           // check the spatial index
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures(bbox).features).toList must
               containTheSameElementsAs(Seq(f0, f1)))
 
           // expire the cache
           expirations.asScala.foreach(_.runnable.run())
 
           // verify feature has expired - hit the cache directly
-          SelfClosingIterator(store.getFeatures.features) must beEmpty
+          CloseableIterator(store.getFeatures.features).toList must beEmpty
           // verify feature has expired - hit the spatial index
-          SelfClosingIterator(store.getFeatures(bbox).features) must beEmpty
+          CloseableIterator(store.getFeatures(bbox).features).toList must beEmpty
         } finally {
           consumer.dispose()
           producer.dispose()
@@ -694,10 +694,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
             Seq(f0).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
           // check the cache directly
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must
               containTheSameElementsAs(Seq(f0)))
           // check the spatial index
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures(bbox).features).toList must
               containTheSameElementsAs(Seq(f0)))
 
           there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(0).runnable), ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
@@ -715,10 +715,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           }
 
           // check the cache directly
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must
               containTheSameElementsAs(Seq(f0, f1)))
           // check the spatial index
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures(bbox).features).toList must
               containTheSameElementsAs(Seq(f0, f1)))
 
           there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(1).runnable), ArgumentMatchers.eq(200L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
@@ -736,10 +736,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           }
 
           // check the cache directly
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must
               containTheSameElementsAs(Seq(f0, f1, f2)))
           // check the spatial index
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures(bbox).features).toList must
               containTheSameElementsAs(Seq(f0, f1, f2)))
 
           there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(2).runnable), ArgumentMatchers.eq(300L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
@@ -748,9 +748,9 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           expirations.asScala.foreach(_.runnable.run())
 
           // verify feature has expired - hit the cache directly
-          SelfClosingIterator(store.getFeatures.features) must beEmpty
+          CloseableIterator(store.getFeatures.features).toList must beEmpty
           // verify feature has expired - hit the spatial index
-          SelfClosingIterator(store.getFeatures(bbox).features) must beEmpty
+          CloseableIterator(store.getFeatures(bbox).features).toList must beEmpty
         } finally {
           consumer.dispose()
           producer.dispose()
@@ -774,7 +774,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
-        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+        eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must containTheSameElementsAs(Seq(f0, f1)))
 
         // new producer - clears on startup
         val producer2 = getStore(producer.config.catalog, 0, params)
@@ -783,7 +783,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           WithClose(producer2.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
             FeatureUtils.write(writer, f2, useProvidedFid = true)
           }
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq mustEqual Seq(f2))
+          eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList mustEqual Seq(f2))
         } finally {
           producer2.dispose()
         }
@@ -985,13 +985,13 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           }
 
           eventually(40, 100.millis)(ids.asScala mustEqual Seq.tabulate(10)(_.toString))
-          eventually(40, 100.millis)(SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features))
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must
+          CloseableIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features.drop(6).map(ScalaSimpleFeature.retype(sft2, _)))
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must
+          CloseableIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(derived)
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT))
+          CloseableIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features.drop(6).map(ScalaSimpleFeature.retype(sft4, _)))
 
           val toRemove = ECQL.toFilter("IN('0','9')")
@@ -1003,21 +1003,21 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           }
 
           eventually(40, 100.millis)(ids.asScala mustEqual Seq.tabulate(10)(_.toString).slice(1, 9))
-          eventually(40, 100.millis)(SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must
+          eventually(40, 100.millis)(CloseableIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features.slice(1, 9)))
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must
+          CloseableIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features.drop(6).dropRight(1).map(ScalaSimpleFeature.retype(sft2, _)))
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must
+          CloseableIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(derived.slice(1, 9))
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT)).toSeq must
+          CloseableIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features.drop(6).dropRight(1).map(ScalaSimpleFeature.retype(sft4, _)))
 
           producer.getFeatureSource(sft.getTypeName).removeFeatures(Filter.INCLUDE)
           eventually(40, 100.millis)(ids.asScala must beEmpty)
-          eventually(40, 100.millis)(SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must beEmpty)
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
+          eventually(40, 100.millis)(CloseableIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toList must beEmpty)
+          CloseableIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toList must beEmpty
+          CloseableIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toList must beEmpty
+          CloseableIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT)).toList must beEmpty
         } finally {
           store.removeFeatureListener(listener)
         }

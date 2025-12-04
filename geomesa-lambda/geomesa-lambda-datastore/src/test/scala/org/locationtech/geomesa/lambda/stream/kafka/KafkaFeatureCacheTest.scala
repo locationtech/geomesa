@@ -15,7 +15,7 @@ import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.PersistenceConfig
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.PartitionOffset
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mock.Mockito
@@ -54,7 +54,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
           manager.getOffset("", 0) returns -1L
           cache.persist() must beEmpty
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList must beEmpty
+          CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList must beEmpty
           clock.tick = 1
           manager.getOffset("", 0) returns -1L
           manager.getOffset("", 1) returns -1L
@@ -63,7 +63,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
           cache.offsetChanged(0, 0)
           cache.all().toSeq must containTheSameElementsAs(Seq(two, three))
           // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
-          Seq(one) mustEqual SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList
+          Seq(one) mustEqual CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList
           clock.tick = 4
           manager.getOffset("", 0) returns 0L
           manager.getOffset("", 1) returns -1L
@@ -75,7 +75,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
           cache.all() must beEmpty
           clock.tick = 4
           // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
-          Seq(one, two, three) mustEqual SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList.sortBy(_.getID)
+          Seq(one, two, three) mustEqual CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList.sortBy(_.getID)
         }
       }
     }

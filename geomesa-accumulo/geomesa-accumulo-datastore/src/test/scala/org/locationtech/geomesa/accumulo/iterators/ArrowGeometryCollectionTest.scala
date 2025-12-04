@@ -18,7 +18,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.runner.JUnitRunner
 
 import java.io.ByteArrayOutputStream
@@ -50,9 +50,9 @@ class ArrowGeometryCollectionTest extends TestWithFeatureType with LazyLogging {
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
-      results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       val result = SimpleFeatureArrowFileReader.read(out.toByteArray)
       result.map(_.getID) mustEqual features.map(_.getID)
       result.map(_.getAttributes.asScala) mustEqual features.map(_.getAttributes.asScala.drop(1))

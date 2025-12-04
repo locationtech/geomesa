@@ -17,7 +17,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature.copy
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.runner.JUnitRunner
 
 /**
@@ -64,7 +64,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
   def queryByAuths(auths: String, filter: String): Seq[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asJava).asInstanceOf[AccumuloDataStore]
     val query = new Query(sftName, ECQL.toFilter(filter))
-    SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
+    CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
   }
 
   def featureWithUserAuth(feature: ScalaSimpleFeature): SimpleFeature = {

@@ -19,7 +19,7 @@ import org.locationtech.geomesa.accumulo.util.TableManager
 import org.locationtech.geomesa.accumulo.{AccumuloContainer, TestWithFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.WithClose
@@ -59,7 +59,7 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
   }
 
   def query(ds: DataStore): Seq[SimpleFeature] =
-    SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toList
+    CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toList
 
   step {
     val ns = catalog.substring(0, catalog.indexOf("."))

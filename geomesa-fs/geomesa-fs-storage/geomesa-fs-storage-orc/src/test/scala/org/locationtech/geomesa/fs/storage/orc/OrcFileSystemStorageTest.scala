@@ -25,7 +25,7 @@ import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
@@ -354,7 +354,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
     val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms: _*)
     val features = {
-      val iter = SelfClosingIterator(storage.getReader(query))
+      val iter = CloseableIterator(storage.getReader(query))
       // note: need to copy features in iterator as same object is re-used
       iter.map(ScalaSimpleFeature.copy).toList
     }

@@ -30,7 +30,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTa
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
 import org.locationtech.geomesa.index.process.ArrowVisitor
 import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -175,7 +175,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
 
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
-            val result = SelfClosingIterator(reader).toList
+            val result = CloseableIterator(reader).toList
             result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
           }
 
@@ -197,7 +197,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
           // ensure we still get same results after running partitioning
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
-            val result = SelfClosingIterator(reader).toList
+            val result = CloseableIterator(reader).toList
             result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
           }
 
@@ -274,7 +274,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
           // verify we can read the existing features but the one we tried to write wasn't persisted
           WithClose(readOnlyDs.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
-            val result = SelfClosingIterator(reader).toList
+            val result = CloseableIterator(reader).toList
             result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
           }
           // verify data is being partitioned as expected
@@ -295,7 +295,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
           // ensure we still get same results after running partitioning
           WithClose(readOnlyDs.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
-            val result = SelfClosingIterator(reader).toList
+            val result = CloseableIterator(reader).toList
             result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
           }
         }
@@ -343,7 +343,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         )
         foreach(filters) { filter =>
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
-            val result = SelfClosingIterator(reader).toList
+            val result = CloseableIterator(reader).toList
             result must haveLength(1)
             compFromDb(result.head) mustEqual compWithFid(features.head, sft)
           }
@@ -355,7 +355,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         )
         foreach(orFilters) { filter =>
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
-            val result = SelfClosingIterator(reader).toList
+            val result = CloseableIterator(reader).toList
             result must haveLength(2)
             result.map(compFromDb) must containTheSameElementsAs(features.take(2).map(compWithFid(_, sft)))
           }
@@ -368,7 +368,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         )
         foreach(nonMatchingFilters) { filter =>
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
-            val result = SelfClosingIterator(reader).toList
+            val result = CloseableIterator(reader).toList
             result must beEmpty
           }
         }
@@ -529,7 +529,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
           // verify data comes back
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
-            val result = SelfClosingIterator(reader).toList
+            val result = CloseableIterator(reader).toList
             result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
           }
 
@@ -574,7 +574,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
             // verify data still comes back
             WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
-              val result = SelfClosingIterator(reader).toList
+              val result = CloseableIterator(reader).toList
               result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
             }
           }
@@ -788,7 +788,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             logger.setLevel(Level.FINE)
             logger.addHandler(handler)
             WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
-              val result = SelfClosingIterator(reader).toList
+              val result = CloseableIterator(reader).toList
               result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
             }
 
@@ -888,7 +888,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
         // verify that filter is re-written to be Filter.INCLUDE
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("IN('1')")), Transaction.AUTO_COMMIT)) { reader =>
-          val result = SelfClosingIterator(reader).toList
+          val result = CloseableIterator(reader).toList
           result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
         }
       } finally {
@@ -1121,7 +1121,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
         // read some data
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
-          SelfClosingIterator(reader).toList
+          CloseableIterator(reader).toList
         }
 
         val tagsRegex = s"""\\{.*name="$jmxName".*\\}"""

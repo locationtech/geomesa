@@ -14,7 +14,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
@@ -38,25 +38,24 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
                            val bufferDistance: Double,
                            val maxBins: Int) extends LazyLogging {
 
-  val calc = new GeodeticCalculator()
-  val dtgField: String = tubeFeatures.getSchema.getDtgField.getOrElse(TubeBuilder.DefaultDtgField)
-  val geoFac = new GeometryFactory
+  protected val calc = new GeodeticCalculator()
+  protected val dtgField: String = tubeFeatures.getSchema.getDtgField.getOrElse(TubeBuilder.DefaultDtgField)
+  protected val geoFac = new GeometryFactory
 
-  val GEOM_PROP = "geom"
-
-  val tubeType: SimpleFeatureType = SimpleFeatureTypes.createType("tubeType", s"$GEOM_PROP:Geometry:srid=4326,start:Date,end:Date")
-  val builder: SimpleFeatureBuilder = ScalaSimpleFeatureFactory.featureBuilder(tubeType)
+  private val tubeType: SimpleFeatureType = SimpleFeatureTypes.createType("tubeType", "geom:Geometry:srid=4326,start:Date,end:Date")
+  protected val builder: SimpleFeatureBuilder = ScalaSimpleFeatureFactory.featureBuilder(tubeType)
 
   def getGeom(sf: SimpleFeature): Geometry = sf.getAttribute(0).asInstanceOf[Geometry]
   def getStartTime(sf: SimpleFeature): Date = sf.getAttribute(1).asInstanceOf[Date]
   def getEndTime(sf: SimpleFeature): Date = sf.getAttribute(2).asInstanceOf[Date]
 
-  def bufferGeom(geom: Geometry, meters: Double): Geometry = {
+  private def bufferGeom(geom: Geometry, meters: Double): Geometry = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
     geom.buffer(metersToDegrees(meters, geom.safeCentroid()))
   }
 
-  def metersToDegrees(meters: Double, point: Point): Double = {
+  // visible for testing
+  private[geomesa] def metersToDegrees(meters: Double, point: Point): Double = {
     logger.debug("Buffering: "+meters.toString + " "+WKTUtils.write(point))
 
     calc.setStartingGeographicPoint(point.getX, point.getY)
@@ -66,20 +65,19 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     point.distance(destPoint)
   }
 
-  def buffer(simpleFeatures: Iterator[SimpleFeature], meters:Double): Iterator[SimpleFeature] =
-    simpleFeatures.map { sf =>
-      val bufferedGeom = bufferGeom(getGeom(sf), meters)
-      builder.reset()
-      builder.init(sf)
-      builder.set(GEOM_PROP, bufferedGeom)
-      builder.buildFeature(sf.getID)
-    }
+  protected def buffer(sf: SimpleFeature, meters: Double): SimpleFeature = {
+    val bufferedGeom = bufferGeom(getGeom(sf), meters)
+    builder.reset()
+    builder.init(sf)
+    builder.set(0, bufferedGeom)
+    builder.buildFeature(sf.getID)
+  }
 
   // transform the input tubeFeatures into the intermediate SF used by the
   // tubing code consisting of three attributes (geom, startTime, endTime)
   // handle date parsing from input -> TODO revisit date parsing...
-  def transform(tubeFeatures: SimpleFeatureCollection, dtgField: String): Iterator[SimpleFeature] = {
-    SelfClosingIterator(tubeFeatures.features).map { sf =>
+  protected def transform(tubeFeatures: SimpleFeatureCollection, dtgField: String): List[SimpleFeature] = {
+    val features = CloseableIterator(tubeFeatures.features).map { sf =>
       val date = FastConverter.convert(sf.getAttribute(dtgField), classOf[Date])
 
       if (date == null) {
@@ -90,6 +88,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
       builder.reset()
       builder.buildFeature(sf.getID, sf.getDefaultGeometry, date, null)
     }
+    features.toList
   }
 
   /**
@@ -100,7 +99,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     * @return an array of LineString containing either 1 or 2 LineStrings that do not
     *         span the IDL.
     */
-  def makeIDLSafeLineString(input1:Coordinate, input2:Coordinate): Geometry = {
+  protected def makeIDLSafeLineString(input1:Coordinate, input2:Coordinate): Geometry = {
     //If the points cross the IDL we must generate two line segments
     if (GeometryUtils.crossesIDL(input1, input2)) {
       //Find the latitude where the segment intercepts the IDL
@@ -117,7 +116,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     }
   }
 
-  def createTube: Iterator[SimpleFeature]
+  def createTube(): Iterator[SimpleFeature]
 }
 
 /**
@@ -128,7 +127,7 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
                 maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with LazyLogging {
 
   // Bin ordered features into maxBins that retain order by date then union by geometry
-  def timeBinAndUnion(features: Iterable[SimpleFeature], maxBins: Int): Iterator[SimpleFeature] = {
+  private def timeBinAndUnion(features: Iterable[SimpleFeature], maxBins: Int): Iterator[SimpleFeature] = {
     val numFeatures = features.size
 
     if (numFeatures == 0) { Iterator.empty } else {
@@ -144,7 +143,7 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
   }
 
   // Union features to create a single geometry and single combined time range
-  def unionFeatures(orderedFeatures: Seq[SimpleFeature], id: String): SimpleFeature = {
+  private def unionFeatures(orderedFeatures: Seq[SimpleFeature], id: String): SimpleFeature = {
     import scala.collection.JavaConverters._
     val geoms = orderedFeatures.map { sf => getGeom(sf) }
     val unionGeom = geoFac.buildGeometry(geoms.asJava).union
@@ -155,12 +154,12 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
     builder.buildFeature(id, unionGeom, min, max)
   }
 
-  override def createTube: Iterator[SimpleFeature] = {
+  override def createTube(): Iterator[SimpleFeature] = {
     logger.debug("Creating tube with no gap filling")
 
     val transformed = transform(tubeFeatures, dtgField)
-    val buffered = buffer(transformed, bufferDistance)
-    val sortedTube = buffered.toSeq.sortBy { sf => getStartTime(sf).getTime }
+    val buffered = transformed.map(buffer(_, bufferDistance))
+    val sortedTube = buffered.sortBy(sf => getStartTime(sf).getTime)
 
     logger.debug(s"sorted tube size: ${sortedTube.size}")
     timeBinAndUnion(sortedTube, maxBins)
@@ -178,17 +177,17 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
                   bufferDistance: Double,
                   maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with LazyLogging {
 
-  val id = new AtomicInteger(0)
+  private val id = new AtomicInteger(0)
 
-  def nextId: String = id.getAndIncrement.toString
+  private def nextId: String = id.getAndIncrement.toString
 
-  override def createTube: Iterator[SimpleFeature] = {
+  override def createTube(): Iterator[SimpleFeature] = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
 
     logger.debug("Creating tube with line gap fill")
 
     val transformed = transform(tubeFeatures, dtgField)
-    val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
+    val sortedTube = transformed.sortBy(sf => getStartTime(sf).getTime)
     val pointsAndTimes = sortedTube.map(sf => (getGeom(sf).safeCentroid(), getStartTime(sf)))
     val lineFeatures = if (pointsAndTimes.lengthCompare(1) == 0) {
       val (p1, t1) = pointsAndTimes.head
@@ -201,7 +200,7 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
         builder.buildFeature(nextId, geo, t1, t2)
       }
     }
-    buffer(lineFeatures, bufferDistance)
+    lineFeatures.map(buffer(_, bufferDistance))
   }
 }
 
@@ -215,17 +214,17 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
                           bufferDistance: Double,
                           maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with LazyLogging {
 
-  val id = new AtomicInteger(0)
+  private val id = new AtomicInteger(0)
 
-  def nextId: String = id.getAndIncrement.toString
+  private def nextId: String = id.getAndIncrement.toString
 
-  override def createTube: Iterator[SimpleFeature] = {
+  override def createTube(): Iterator[SimpleFeature] = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
 
     logger.debug("Creating tube with line interpolated line gap fill")
 
     val transformed = transform(tubeFeatures, dtgField)
-    val sortedTube = transformed.toSeq.sortBy(sf => getStartTime(sf).getTime)
+    val sortedTube = transformed.sortBy(sf => getStartTime(sf).getTime)
     val pointsAndTimes = sortedTube.map(sf => (getGeom(sf).safeCentroid(), getStartTime(sf)))
     val lineFeatures = if (pointsAndTimes.lengthCompare(1) == 0) {
       val (p1, t1) = pointsAndTimes.head
@@ -263,6 +262,6 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
         }
       }
     }
-    buffer(lineFeatures, bufferDistance)
+    lineFeatures.map(buffer(_, bufferDistance))
   }
 }

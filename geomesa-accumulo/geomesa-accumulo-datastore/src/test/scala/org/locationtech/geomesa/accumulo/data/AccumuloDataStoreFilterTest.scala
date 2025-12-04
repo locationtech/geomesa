@@ -13,7 +13,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -46,14 +46,14 @@ class AccumuloDataStoreFilterTest extends Specification with TestWithFeatureType
     "query by point type" in {
       val filter = ECQL.toFilter("geometryType(geom) = 'Point'")
       val query = new Query(sftName, filter)
-      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(1)
       features.head mustEqual point
     }
     "query by polygon type" in {
       val filter = ECQL.toFilter("geometryType(geom) = 'Polygon'")
       val query = new Query(sftName, filter)
-      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(1)
       features.head mustEqual polygon
     }

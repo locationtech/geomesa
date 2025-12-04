@@ -15,6 +15,7 @@ import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -44,7 +45,7 @@ class BatchWriterTest extends Specification {
       val dictionaries = Map.empty[String, ArrowDictionary]
       val batches: Seq[Array[Byte]] = buildBatches(encoding, dictionaries)
 
-      val bytes = WithClose(BatchWriter.reduce(sft, dictionaries, encoding, new IpcOption(), Some("dtg" -> false), sorted = false, 10, batches.iterator))(_.reduceLeft(_ ++ _))
+      val bytes = WithClose(BatchWriter.reduce(sft, dictionaries, encoding, new IpcOption(), Some("dtg" -> false), sorted = false, 10, CloseableIterator(batches.iterator)))(_.reduceLeft(_ ++ _))
 
       val features = SimpleFeatureArrowFileReader.read(bytes)
 
@@ -59,7 +60,7 @@ class BatchWriterTest extends Specification {
       val dictionaries = Map.empty[String, ArrowDictionary]
       val batches: Seq[Array[Byte]] = buildBatches(encoding, dictionaries)
 
-      val iterator: Iterator[Array[Byte]] = new Iterator[Array[Byte]] {
+      val iterator: CloseableIterator[Array[Byte]] = new CloseableIterator[Array[Byte]] {
         private val internal = batches.iterator
         override def hasNext: Boolean = {
           if (internal.hasNext) {
@@ -72,6 +73,8 @@ class BatchWriterTest extends Specification {
         override def next(): Array[Byte] = {
           internal.next()
         }
+
+        override def close(): Unit = {}
       }
 
       try {

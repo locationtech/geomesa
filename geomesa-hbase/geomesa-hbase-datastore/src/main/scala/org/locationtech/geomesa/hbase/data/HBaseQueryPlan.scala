@@ -26,7 +26,7 @@ import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor,
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 sealed trait HBaseQueryPlan extends QueryStrategyPlan {
@@ -58,7 +58,7 @@ sealed trait HBaseQueryPlan extends QueryStrategyPlan {
       iter.foldLeft(CloseableIterator.empty[Results])(_ concat _)
     } else {
       // kick off the scans sequentially as they finish
-      SelfClosingIterator(iter).flatMap(s => s)
+      CloseableIterator(iter).flatMap(s => s)
     }
   }
 

@@ -18,7 +18,7 @@ import org.apache.hadoop.fs.{CreateFlag, FileContext, Path}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.filter.Filter
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.slf4j.LoggerFactory
 import org.specs2.mutable.Specification
@@ -104,7 +104,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
       types.head mustEqual "fs-test"
 
       val q = new Query("fs-test", Filter.INCLUDE)
-      val feats = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+      val feats = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
       feats must haveLength(4)
     }
 
@@ -122,7 +122,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
         types.head mustEqual "fs-test"
 
         val q = new Query("fs-test", Filter.INCLUDE)
-        val feats = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val feats = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         feats must haveLength(4)
       }
     }
@@ -236,7 +236,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
         types.head mustEqual "fs-test"
 
         val q = new Query("fs-test", Filter.INCLUDE)
-        val feats = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val feats = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         feats must haveSize(4)
       }
     }

@@ -13,7 +13,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -44,7 +44,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithFeatureType 
       val query = new Query(sftName, ECQL.toFilter("name = '3name3'"))
       explain(query).indexOf(joinIndicator) mustEqual(-1)
 
-      val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
+      val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
 
       features must haveSize(1)
       features(0).getAttribute("name") mustEqual("3name3")
@@ -58,7 +58,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithFeatureType 
       val query = new Query(sftName, ECQL.toFilter("name = '3name3'"), "name", "age", "dtg", "geom")
       explain(query).indexOf(joinIndicator) mustEqual(-1)
 
-      val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
+      val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
 
       features must haveSize(1)
       features(0).getAttribute("name") mustEqual("3name3")
@@ -72,7 +72,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithFeatureType 
       val query = new Query(sftName, ECQL.toFilter("name >= '3name3' AND height = '9.0'"))
       explain(query).indexOf(joinIndicator) mustEqual(-1)
 
-      val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
+      val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
 
       features must haveSize(1)
       features(0).getAttribute("name") mustEqual("3name3")
@@ -87,7 +87,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithFeatureType 
         "name", "height", "dtg", "geom")
       explain(query).indexOf(joinIndicator) mustEqual(-1)
 
-      val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
+      val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
 
       features must haveSize(1)
       features(0).getAttribute("name") mustEqual("3name3")
@@ -102,7 +102,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithFeatureType 
         "name", "age", "dtg", "geom")
       explain(query).indexOf(joinIndicator) mustEqual(-1)
 
-      val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
+      val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
 
       features must haveSize(1)
       features(0).getAttribute("name") mustEqual("3name3")
@@ -116,7 +116,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithFeatureType 
       val query = new Query(sftName, ECQL.toFilter("age = '5'"))
       explain(query).indexOf(joinIndicator) must beGreaterThan(-1)
 
-      val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
+      val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
 
       features must haveSize(1)
       features(0).getAttribute("name") mustEqual("5name5")
@@ -130,7 +130,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithFeatureType 
       val query = new Query(sftName, ECQL.toFilter("weight = '4.0'"))
       explain(query).indexOf(joinIndicator) must beGreaterThan(-1)
 
-      val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
+      val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
 
       features must haveSize(1)
       features(0).getAttribute("name") mustEqual("2name2")

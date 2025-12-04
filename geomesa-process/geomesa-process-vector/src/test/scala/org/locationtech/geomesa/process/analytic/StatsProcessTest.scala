@@ -11,7 +11,7 @@ package org.locationtech.geomesa.process.analytic
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -41,12 +41,12 @@ class StatsProcessTest extends Specification {
 
   "StatsProcess" should {
     "manually visit a feature collection" in {
-      val result = SelfClosingIterator(process.execute(fc, "Count()", encode = false, null).features).toSeq
+      val result = CloseableIterator(process.execute(fc, "Count()", encode = false, null).features).toList
       result.map(_.getAttribute(0)) mustEqual Seq("""{"count":10}""")
     }
     "manually visit a feature collection with projections" in {
       val props = Collections.singletonList("m=strConcat('m:', track)")
-      val result = SelfClosingIterator(process.execute(fc, "Enumeration(m)", encode = false, props).features).toSeq
+      val result = CloseableIterator(process.execute(fc, "Enumeration(m)", encode = false, props).features).toList
       result.map(_.getAttribute(0)) mustEqual Seq("""{"m:t-0":5,"m:t-1":5}""")
     }
   }

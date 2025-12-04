@@ -21,7 +21,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Coordinate
 import org.specs2.mutable.Specification
@@ -93,7 +93,7 @@ class FilterTest extends Specification with TestWithFeatureType with LazyLogging
     val filterCount = mediumDataFeatures.count(filter.evaluate)
     val query = new Query(sftName, filter)
     Option(projection).foreach(query.setPropertyNames(_: _*))
-    val queryCount = SelfClosingIterator(fs.getFeatures(query)).length
+    val queryCount = CloseableIterator(fs.getFeatures(query).features()).size
     logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
         s"filter hits: $filterCount query hits: $queryCount")
     queryCount mustEqual filterCount
@@ -131,14 +131,14 @@ class IdQueryTest extends Specification with TestWithFeatureType {
   "Id queries" should {
     "use record table to return a result" >> {
       val idQ = ff.id(ff.featureId("2"))
-      val res = SelfClosingIterator(fs.getFeatures(idQ).features).toList
+      val res = CloseableIterator(fs.getFeatures(idQ).features).toList
       res.length mustEqual 1
       res.head.getID mustEqual "2"
     }
 
     "handle multiple ids correctly" >> {
       val idQ = ff.id(ff.featureId("1"), ff.featureId("3"))
-      val res = SelfClosingIterator(fs.getFeatures(idQ).features).toList
+      val res = CloseableIterator(fs.getFeatures(idQ).features).toList
       res.length mustEqual 2
       res.map(_.getID) must contain ("1", "3")
     }
@@ -148,7 +148,7 @@ class IdQueryTest extends Specification with TestWithFeatureType {
       val idQ2 = ff.id(ff.featureId("2"))
       val idQ =  ff.and(idQ1, idQ2)
       val qRes = fs.getFeatures(idQ)
-      val res= SelfClosingIterator(qRes.features).toList
+      val res= CloseableIterator(qRes.features).toList
       res.length mustEqual 0
     }
   }

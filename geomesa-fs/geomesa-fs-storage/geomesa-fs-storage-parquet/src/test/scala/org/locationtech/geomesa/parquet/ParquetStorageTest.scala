@@ -30,7 +30,7 @@ import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFacto
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.parquet.io.{GeoParquetMetadata, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.security.{AuthsParam, DefaultAuthorizationsProvider, SecurityUtils, VisibilityUtils}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.{Geometry, Point}
@@ -577,7 +577,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val metadata = StorageMetadataFactory.load(context).orNull
         metadata must not(beNull)
         WithClose(FileSystemStorageFactory(context, metadata)) { storage =>
-          val features = SelfClosingIterator(storage.getReader(new Query("example-csv"))).toList.sortBy(_.getID)
+          val features = CloseableIterator(storage.getReader(new Query("example-csv"))).toList.sortBy(_.getID)
           features must haveLength(3)
           features.map(_.getAttribute("name").asInstanceOf[String]) mustEqual Seq("Harry", "Hermione", "Severus")
           features.map(_.getAttribute("geom").toString) mustEqual
@@ -601,7 +601,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
             if (transform != null) {
               query.setPropertyNames(transform: _*)
             }
-            val result = SelfClosingIterator(storage.getReader(query)).toList.sortBy(_.getID)
+            val result = CloseableIterator(storage.getReader(query)).toList.sortBy(_.getID)
             if (transform == null) {
               result mustEqual expected
             } else {
@@ -626,7 +626,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val metadata = StorageMetadataFactory.load(context).orNull
         metadata must not(beNull)
         WithClose(FileSystemStorageFactory(context, metadata)) { storage =>
-          val features = SelfClosingIterator(storage.getReader(new Query(typeName))).toList.sortBy(_.getID)
+          val features = CloseableIterator(storage.getReader(new Query(typeName))).toList.sortBy(_.getID)
           features must haveLength(3)
           features.map(_.getID) mustEqual Seq("1", "2", "3")
           features.map(_.getAttribute("name").asInstanceOf[String]) mustEqual Seq("amy", "bob", "carl")
@@ -648,7 +648,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
             if (transform != null) {
               query.setPropertyNames(transform: _*)
             }
-            val result = SelfClosingIterator(storage.getReader(query)).toList.sortBy(_.getID)
+            val result = CloseableIterator(storage.getReader(query)).toList.sortBy(_.getID)
             if (transform == null) {
               result mustEqual expected
             } else {
@@ -678,7 +678,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           results: Seq[SimpleFeature]): MatchResult[Any] = {
     val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms: _*)
     val features = {
-      val iter = SelfClosingIterator(storage.getReader(query))
+      val iter = CloseableIterator(storage.getReader(query))
       // note: need to copy features in iterator as same object is re-used
       iter.map(ScalaSimpleFeature.copy).toList
     }

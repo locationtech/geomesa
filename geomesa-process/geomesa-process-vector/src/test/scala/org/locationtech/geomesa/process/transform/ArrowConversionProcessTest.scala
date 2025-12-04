@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -60,7 +60,7 @@ class ArrowConversionProcessTest extends Specification {
       val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()) must beEmpty
+        CloseableIterator(reader.features()).toList must beEmpty
       }
     }
 
@@ -68,7 +68,7 @@ class ArrowConversionProcessTest extends Specification {
       val bytes = process.execute(collection, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList must
             containTheSameElementsAs(features)
       }
     }
@@ -103,7 +103,7 @@ class ArrowConversionProcessTest extends Specification {
       val bytes = process.execute(collection, null, null, null, Collections.singletonList("name"), null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList must
             containTheSameElementsAs(features)
         reader.dictionaries.get("name") must beSome
       }
@@ -124,7 +124,7 @@ class ArrowConversionProcessTest extends Specification {
         process.execute(collection, null, null, null, Collections.singletonList("name"), null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(features)
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList must containTheSameElementsAs(features)
         reader.dictionaries.get("name") must beSome
         reader.dictionaries("name").iterator.toList must containTheSameElementsAs(Seq.tabulate(5)(j => s"name$j"))
       }
@@ -154,12 +154,12 @@ class ArrowConversionProcessTest extends Specification {
       val ascending = process.execute(collection, null, null, null, null, "dtg", null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(ascending)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features
       }
       val descending = process.execute(collection, null, null, null, null, "dtg", true, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(descending)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features.reverse
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features.reverse
       }
     }
 
@@ -167,13 +167,13 @@ class ArrowConversionProcessTest extends Specification {
       val ascending = process.execute(collection, null, null, null, Collections.singletonList("name"), "dtg", null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(ascending)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features
         reader.dictionaries.get("name") must beSome
       }
       val descending = process.execute(collection, null, null, null, Collections.singletonList("name"), "dtg", true, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(descending)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features.reverse
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features.reverse
         reader.dictionaries.get("name") must beSome
       }
     }
@@ -182,7 +182,7 @@ class ArrowConversionProcessTest extends Specification {
       val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(featuresLatLon)
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList must containTheSameElementsAs(featuresLatLon)
       }
     }
 
@@ -190,7 +190,7 @@ class ArrowConversionProcessTest extends Specification {
       val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null, false).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(featuresLatLon)
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList must containTheSameElementsAs(featuresLatLon)
       }
     }
 
@@ -198,7 +198,7 @@ class ArrowConversionProcessTest extends Specification {
       val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null, true).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.sft mustEqual sft
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(featuresLonLat)
+        CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList must containTheSameElementsAs(featuresLonLat)
       }
     }
   }

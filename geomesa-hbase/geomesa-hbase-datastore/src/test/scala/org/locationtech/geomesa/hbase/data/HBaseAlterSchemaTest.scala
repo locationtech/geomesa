@@ -14,7 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigsParam, HBaseCatalogParam}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
@@ -48,7 +48,7 @@ class HBaseAlterSchemaTest extends Specification {
 
         forall(filters) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          SelfClosingIterator(reader).toList mustEqual Seq(feature)
+          CloseableIterator(reader).toList mustEqual Seq(feature)
         }
         ds.stats.getCount(sft, exact = true) must beSome(1L)
 
@@ -62,7 +62,7 @@ class HBaseAlterSchemaTest extends Specification {
 
         forall(filters) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
+          CloseableIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
         }
         ds.stats.getCount(sft, exact = true) must beSome(1L)
         ds.stats.getMinMax[String](sft, "name", exact = true).map(_.max) must beSome("name0")
@@ -86,7 +86,7 @@ class HBaseAlterSchemaTest extends Specification {
 
         forall(filters) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
+          CloseableIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
         }
         ds.stats.getCount(sft, exact = true) must beSome(1L)
         ds.stats.getMinMax[String](sft, "names", exact = true).map(_.max) must beSome("name0")

@@ -13,7 +13,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.locationtech.geomesa.utils.index.Cardinality
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -49,7 +49,7 @@ class HighCardinalityAttributeOrQueryTest extends Specification with TestWithFea
       def query(attrPart: String) = {
         val filterString = s"($attrPart) AND BBOX(geom, 40.0,40.0,50.0,50.0) AND dtg DURING 2014-01-01T00:00:00+00:00/2014-01-01T23:59:59+00:00"
         val filter = ECQL.toFilter(filterString)
-        val res = SelfClosingIterator(ds.getFeatureSource("HighCardinalityAttributeOrQueryTest").getFeatures(filter).features)
+        val res = CloseableIterator(ds.getFeatureSource("HighCardinalityAttributeOrQueryTest").getFeatures(filter).features).toList
         res.length mustEqual numFeatures
       }
 

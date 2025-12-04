@@ -22,7 +22,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point
@@ -81,7 +81,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
       "with dtg and geom" in {
         val query = new Query(sftName, Filter.INCLUDE, "dtg", "geom")
-        val results = SelfClosingIterator(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())).toList
+        val results = CloseableIterator(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())).toList
         results must haveSize(1)
         results.head.getID mustEqual "fid-1"
         results.head.getAttribute("dtg") mustEqual date
@@ -96,7 +96,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
         val features = ds.getFeatureSource(sftName).getFeatures(query).features
 
-        val results = SelfClosingIterator(features).toList
+        val results = CloseableIterator(features).toList
 
         "return exactly one result" >> {
           results must haveSize(1)
@@ -112,7 +112,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       "with renaming projections" in {
         val query = new Query(sftName, Filter.INCLUDE, "trans=name", "geom")
 
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
+        val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
 
         features must haveSize(1)
         features.head.getID mustEqual "fid-1"
@@ -193,7 +193,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       )
       foreach(filters) { filter =>
         val query = new Query(sft.getTypeName, ECQL.toFilter(filter), Array.empty[String]: _*)
-        val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+        val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
         features must haveLength(1)
         features.head.getID mustEqual "fid-1"
         features.head.getAttributes.asScala must beEmpty
@@ -224,7 +224,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       "with out of order attributes" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg", "label")
         val features =
-          SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+          CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
         (0 until 5).foreach { i =>
           features(i).getID mustEqual s"f$i"
@@ -239,7 +239,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       "with only date and geom" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg")
         val features =
-          SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+          CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
         (0 until 5).foreach { i =>
           features(i).getID mustEqual s"f$i"
@@ -254,7 +254,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"),
           "geom", "dtg", "label", "score", "trackId")
         val features =
-          SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+          CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
         (0 until 5).foreach { i =>
           features(i).getID mustEqual s"f$i"

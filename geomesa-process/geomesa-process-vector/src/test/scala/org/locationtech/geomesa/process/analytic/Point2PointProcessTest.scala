@@ -12,7 +12,7 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.LineString
@@ -57,14 +57,14 @@ class Point2PointProcessTest extends Specification {
   "Point2PointProcess" should {
     "properly create linestrings of groups of 2 coordinates" >> {
       val res = p2p.execute(features, "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true)
-      SelfClosingIterator(res.features).toSeq must haveLength(8)
+      CloseableIterator(res.features).toSeq must haveLength(8)
 
-      val f1 = SelfClosingIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'first'")),
-        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toSeq
+      val f1 = CloseableIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'first'")),
+        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toList
       f1.length mustEqual 4
 
-      val f2 = SelfClosingIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'second'")),
-        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toSeq
+      val f2 = CloseableIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'second'")),
+        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toList
       f2.length mustEqual 4
 
       f1.forall( sf => sf.getAttributeCount mustEqual 4)
@@ -121,19 +121,19 @@ class Point2PointProcessTest extends Specification {
       val res = p2p.execute(features.subCollection(filter),
         "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true)
       res.getSchema must not(beNull)
-      SelfClosingIterator(res.features).toSeq must haveLength(0)
+      CloseableIterator(res.features).toList must haveLength(0)
     }
 
     "group on non-string attributes" >> {
       val res = p2p.execute(features, "myint", "dtg", 2, breakOnDay = false, filterSingularPoints = true)
-      SelfClosingIterator(res.features).toSeq must haveLength(8)
+      CloseableIterator(res.features).toList must haveLength(8)
 
-      val f1 = SelfClosingIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'first'")),
-        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toSeq
+      val f1 = CloseableIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'first'")),
+        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toList
       f1.length mustEqual 4
 
-      val f2 = SelfClosingIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'second'")),
-        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toSeq
+      val f2 = CloseableIterator(p2p.execute(features.subCollection(ECQL.toFilter("myid = 'second'")),
+        "myid", "dtg", 2, breakOnDay = false, filterSingularPoints = true).features).toList
       f2.length mustEqual 4
 
       f1.forall( sf => sf.getAttributeCount mustEqual 4)

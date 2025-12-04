@@ -20,7 +20,7 @@ import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -46,8 +46,8 @@ class XZ2IdxStrategyTest extends Specification with TestWithFeatureType {
   addFeatures(features)
 
   val binHints = Map(BIN_TRACK -> "name", BIN_BATCH_SIZE -> 100)
-  val sampleHalfHints = Map(SAMPLING -> new java.lang.Float(.5f))
-  val sample20Hints = Map(SAMPLING -> new java.lang.Float(.2f))
+  val sampleHalfHints = Map(SAMPLING -> Float.box(.5f))
+  val sample20Hints = Map(SAMPLING -> Float.box(.2f))
 
   "XZ2IdxStrategy" should {
     "return all features for Filter.INCLUDE" >> {
@@ -154,7 +154,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithFeatureType {
 
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = execute(filter, hints = binHints).map(f =>
-        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(16).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
@@ -174,7 +174,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithFeatureType {
 
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = execute(filter, hints = hints).map(f =>
-        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(24).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
@@ -235,11 +235,11 @@ class XZ2IdxStrategyTest extends Specification with TestWithFeatureType {
   def execute(ecql: String,
               transforms: Option[Array[String]] = None,
               hints: Map[_, _] = Map.empty,
-              explain: Explainer = ExplainNull): Iterator[SimpleFeature] = {
+              explain: Explainer = ExplainNull): CloseableIterator[SimpleFeature] = {
     if (explain != ExplainNull) {
       ds.getQueryPlan(getQuery(ecql, transforms, hints), explainer = explain)
     }
-    SelfClosingIterator(ds.getFeatureReader(getQuery(ecql, transforms, hints), Transaction.AUTO_COMMIT))
+    CloseableIterator(ds.getFeatureReader(getQuery(ecql, transforms, hints), Transaction.AUTO_COMMIT))
   }
 
   def plan(ecql: String,

@@ -23,7 +23,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigsParam, HBaseCatalogParam}
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.matcher.MatchResult
@@ -190,7 +190,7 @@ class HBaseBackCompatibilityTest extends Specification with AfterAll with LazyLo
     logger.debug(s"Running query ${ECQL.toCQL(query.getFilter)} :: " +
         Option(query.getPropertyNames).map(_.mkString(",")).getOrElse("All"))
 
-    val results = SelfClosingIterator(fs.getFeatures(query).features).toList
+    val results = CloseableIterator(fs.getFeatures(query).features).toList
     if (logger.underlying.isDebugEnabled()) {
       results.foreach(f => logger.debug(DataUtilities.encodeFeature(f)))
     }
@@ -207,8 +207,8 @@ class HBaseBackCompatibilityTest extends Specification with AfterAll with LazyLo
   def doArrowQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] = {
     query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
     val out = new ByteArrayOutputStream
-    val results = SelfClosingIterator(fs.getFeatures(query).features)
-    results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+    CloseableIterator(fs.getFeatures(query).features)
+      .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
     SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getID.toInt)
   }
 
@@ -296,7 +296,7 @@ class HBaseBackCompatibilityTest extends Specification with AfterAll with LazyLo
         if (logger.underlying.isTraceEnabled()) {
           logger.trace(s"restored $name ${admin.tableExists(name)}")
           val scan = connection.getTable(name).getScanner(new Scan())
-          SelfClosingIterator(scan.iterator.asScala, scan.close()).foreach(r => logger.trace(r.toString))
+          CloseableIterator(scan.iterator.asScala, scan.close()).foreach(r => logger.trace(r.toString))
         }
       }
     }

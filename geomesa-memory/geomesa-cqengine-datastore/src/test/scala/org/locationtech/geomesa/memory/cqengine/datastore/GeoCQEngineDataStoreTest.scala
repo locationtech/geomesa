@@ -14,7 +14,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -51,12 +51,12 @@ class GeoCQEngineDataStoreTest extends Specification {
       fs must not(beNull)
       fs.addFeatures(DataUtilities.collection(feats.asJava))
       fs.getCount(Query.ALL) mustEqual 1000
-      SelfClosingIterator(fs.getFeatures().features()).map(_.getID).toList.sorted mustEqual feats.map(_.getID).sorted
+      CloseableIterator(fs.getFeatures().features()).map(_.getID).toList.sorted mustEqual feats.map(_.getID).sorted
     }
 
     "not allow feature modification" in {
       val query = new Query("test", ECQL.toFilter("IN ('1')"))
-      val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       result must haveLength(1)
       result.head.setAttribute(0, "update") must throwAn[UnsupportedOperationException]
     }

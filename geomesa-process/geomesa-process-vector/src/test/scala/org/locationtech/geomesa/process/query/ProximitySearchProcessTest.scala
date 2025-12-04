@@ -13,7 +13,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.GeodeticCalculator
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Coordinate, Point}
@@ -73,7 +73,7 @@ class ProximitySearchProcessTest extends Specification {
       val prox = new ProximitySearchProcess
 
       // note: size returns an estimated amount, instead we need to actually count the features
-      def ex(p: Double) = SelfClosingIterator(prox.execute(inputFeatures, dataFeatures, p)).toSeq
+      def ex(p: Double) = CloseableIterator(prox.execute(inputFeatures, dataFeatures, p).features()).toList
 
       ex(50.0)  must haveLength(0)
       ex(90.0)  must haveLength(0)

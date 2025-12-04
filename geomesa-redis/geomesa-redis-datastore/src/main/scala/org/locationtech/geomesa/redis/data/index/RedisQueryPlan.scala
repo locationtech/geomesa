@@ -19,7 +19,7 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.RedisResultsToFeatures
 import org.locationtech.geomesa.redis.data.util.RedisBatchScan
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.{Jedis, Response, UnifiedJedis}
 
@@ -105,7 +105,7 @@ object RedisQueryPlan {
           scans.foldLeft(CloseableIterator.empty[Array[Byte]])(_ concat _).map(toFeatures.apply)
         } else {
           // kick off the scans sequentially as they finish
-          SelfClosingIterator(scans).flatMap(s => s.map(toFeatures.apply))
+          CloseableIterator(scans).flatMap(s => s.map(toFeatures.apply))
         }
       val features = localFilter.fold(scanner)(f => scanner.filter(f.evaluate))
       processor(features)
@@ -135,7 +135,7 @@ object RedisQueryPlan {
               pipe.sync()
             }
         }
-        result.result.iterator.flatMap(_.get.iterator().asScala)
+        CloseableIterator(result.result.iterator.flatMap(_.get.iterator().asScala))
       } else {
         RedisBatchScan(ds.connection, table, ranges, ds.config.queries.threads)
       }

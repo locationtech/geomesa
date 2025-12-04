@@ -17,7 +17,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.{HasGeoMesaStats, Stat}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 
 /**
@@ -57,7 +57,7 @@ class MinMaxVisitor(features: SimpleFeatureCollection, attribute: String, cached
 
       case ds =>
         logger.warn(s"Running unoptimized min/max query on ${ds.getClass.getName}")
-        SelfClosingIterator(features.features).foreach(visit)
+        CloseableIterator(features.features).foreach(visit)
     }
   }
 

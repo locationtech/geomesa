@@ -15,7 +15,7 @@ import org.locationtech.geomesa.accumulo.tools.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.features.exporters.{AvroExporter, DelimitedExporter}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.runner.JUnitRunner
@@ -46,7 +46,7 @@ class FeatureExporterTest extends TestWithDataStore {
       val os = new ByteArrayOutputStream()
       val export = DelimitedExporter.csv(os, withHeader = true) // includeIds = true
       export.start(features.getSchema)
-      export.export(SelfClosingIterator(features.features()))
+      export.export(CloseableIterator(features.features()).toList.iterator)
       export.close()
 
       val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n").toSeq
@@ -63,7 +63,7 @@ class FeatureExporterTest extends TestWithDataStore {
       val os = new ByteArrayOutputStream()
       val export = DelimitedExporter.csv(os, withHeader = true) // includeIds = true
       export.start(features.getSchema)
-      export.export(SelfClosingIterator(features.features()))
+      export.export(CloseableIterator(features.features()).toList.iterator)
       export.close()
 
       val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n").toSeq
@@ -80,7 +80,7 @@ class FeatureExporterTest extends TestWithDataStore {
       val os = new ByteArrayOutputStream()
       val export = DelimitedExporter.csv(os, withHeader = true) // includeIds = true
       export.start(features.getSchema)
-      export.export(SelfClosingIterator(features.features()))
+      export.export(CloseableIterator(features.features()).toList.iterator)
       export.close()
 
       val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n").toSeq
@@ -97,7 +97,7 @@ class FeatureExporterTest extends TestWithDataStore {
       val os = new ByteArrayOutputStream()
       val export = DelimitedExporter.csv(os, withHeader = true) // includeIds = true
       export.start(features.getSchema)
-      export.export(SelfClosingIterator(features.features()))
+      export.export(CloseableIterator(features.features()).toList.iterator)
       export.close()
 
       val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n").toSeq
@@ -117,7 +117,7 @@ class FeatureExporterTest extends TestWithDataStore {
       val os = new ByteArrayOutputStream()
       val export = new AvroExporter(os, Some(Deflater.NO_COMPRESSION))
       export.start(featureCollection.getSchema)
-      export.export(SelfClosingIterator(featureCollection.features()))
+      export.export(CloseableIterator(featureCollection.features()).toList.iterator)
       export.close()
 
       val result = new AvroDataFileReader(new ByteArrayInputStream(os.toByteArray))

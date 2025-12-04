@@ -14,7 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.specs2.runner.JUnitRunner
@@ -41,7 +41,7 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
       addFeatures(Seq(feature))
       forall(filters()) { filter =>
         val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader).toList mustEqual Seq(feature)
+        CloseableIterator(reader).toList mustEqual Seq(feature)
       }
       ds.stats.getCount(sft) must beSome(1L)
     }
@@ -57,7 +57,7 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
 
       forall(filters()) { filter =>
         val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
+        CloseableIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
       }
       ds.stats.getCount(sft) must beSome(1L)
       ds.stats.getMinMax[String](sft, "name", exact = false).map(_.max) must beSome("name0")
@@ -78,7 +78,7 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
 
       forall(filters("names")) { filter =>
         val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
+        CloseableIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
       }
       ds.stats.getCount(sft) must beSome(1L)
       ds.stats.getMinMax[String](sft, "names", exact = false).map(_.max) must beSome("name0")
@@ -99,7 +99,7 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
 
       forall(filters("nam")) { filter =>
         val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
+        CloseableIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
       }
       ds.stats.getCount(sft) must beSome(1L)
       ds.stats.getMinMax[String](sft, "nam", exact = false).map(_.max) must beSome("name0")
@@ -122,7 +122,7 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
 
       forall(filters("n")) { filter =>
         val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
+        CloseableIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
       }
       ds.stats.getCount(sft) must beSome(1L)
       ds.stats.getMinMax[String](sft, "n", exact = false).map(_.max) must beSome("name0")
@@ -149,7 +149,7 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
       addFeatures(Seq(feature2))
       foreach(filters("n")) { filter =>
         val query = new Query(sftName, filter)
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+        val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features.map(_.getID) mustEqual Seq("0", "1")
         features.map(_.getAttribute("dtg")) mustEqual Seq(feature, feature2).map(_.getAttribute("dtg"))
         features.map(_.getAttribute("geom")) mustEqual Seq(feature, feature2).map(_.getAttribute("geom"))
@@ -159,7 +159,7 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
     "handle transformations for old attributes with new and old features" in {
       foreach(filters("n")) { filter =>
         val query = new Query(sftName, filter, "geom", "dtg")
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+        val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features.map(_.getID) mustEqual Seq("0", "1")
         features.map(_.getAttribute("geom")) mustEqual Seq(feature, feature2).map(_.getAttribute("geom"))
       }
@@ -167,7 +167,7 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
     "handle transformations for new attributes with new and old features" >> {
       foreach(filters("n")) { filter =>
         val query = new Query(sftName, filter, "geom", "age")
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+        val features = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features.map(_.getID) mustEqual Seq("0", "1")
         features.map(_.getAttribute("geom")) mustEqual Seq(feature, feature2).map(_.getAttribute("geom"))
         features.map(_.getAttribute("age")) mustEqual Seq(feature, feature2).map(_.getAttribute("age"))

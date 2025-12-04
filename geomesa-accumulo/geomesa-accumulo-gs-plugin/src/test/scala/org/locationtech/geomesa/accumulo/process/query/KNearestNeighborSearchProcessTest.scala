@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.query.KNearestNeighborSearchProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Point
 import org.specs2.runner.JUnitRunner
@@ -27,6 +27,8 @@ import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class KNearestNeighborSearchProcessTest extends TestWithDataStore {
+
+  import KNearestNeighborSearchProcessTest.RichCollection
 
   sequential
 
@@ -105,7 +107,7 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
     "handle an empty query point collection" in {
       val inputFeatures = collection()
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures()
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, 100, 500d, 5000d).features()).toList
+      val res = knn.execute(inputFeatures, dataFeatures, 100, 500d, 5000d).toList
       res must beEmpty
     }
 
@@ -113,28 +115,28 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
       val sft = SimpleFeatureTypes.createType("lineStringKnn", "geom:LineString:srid=4326")
       val inputFeatures = collection(ScalaSimpleFeature.create(sft, "route 29", "LINESTRING(-78.491 38.062, -78.474 38.082)"))
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures()
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, 100, 500d, 5000d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, 100, 500d, 5000d).toList
       res must beEmpty
     }
 
     "find nothing within 10km of a single query point " in {
       val inputFeatures = collection(queryFeature("fan mountain", -78.692649, 37.878219))
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures()
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, 5, 1000d, 10000d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, 5, 1000d, 10000d).toList
       res must beEmpty
     }
 
     "find 11 points within 400m of a point when k is set to 15 " in {
       val inputFeatures = collection(queryFeature("madison", -78.502720, 38.036871))
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures()
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, 15, 100d, 400d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, 15, 100d, 400d).toList
       res must containTheSameElementsAs(uvaLawn.take(11))
     }
 
     "find nearest features around Charlottesville" in {
       val inputFeatures = collection(queryFeature("madison", -78.502720, 38.036871))
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures(wideQuery)
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, 15, 500d, 2500d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, 15, 500d, 2500d).toList
       res must containTheSameElementsAs(uvaLawn)
     }
 
@@ -143,9 +145,9 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
       val referenceFeature = queryFeature("blackfriars", -79.070569, 38.149185)
       val inputFeatures = collection(referenceFeature)
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures(wideQuery)
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, k, 5000d, 50000d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, k, 5000d, 50000d).toList
       val calc = new GeodeticCalculator()
-      val directFeatures = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures().features).toList.sortBy { f =>
+      val directFeatures = ds.getFeatureSource(sftName).getFeatures().toList.sortBy { f =>
         val start = referenceFeature.getDefaultGeometry.asInstanceOf[Point]
         val dest = f.getDefaultGeometry.asInstanceOf[Point]
         calc.setStartingGeographicPoint(start.getX, start.getY)
@@ -162,12 +164,12 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
         queryFeature("blackfriars", -79.070569, 38.149185)
       )
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures()
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, 5, 500d, 5000d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, 5, 500d, 5000d).toList
       res must haveLength(10)
       res must containAllOf(uvaLawn.take(5))
 
       val directFeatures = collection(uvaLawn ++ distributedPoints: _*)
-      val direct = SelfClosingIterator(knn.execute(inputFeatures, directFeatures, 5, 500d, 5000d)).toList
+      val direct = knn.execute(inputFeatures, directFeatures, 5, 500d, 5000d).toList
       res must containTheSameElementsAs(direct)
     }
 
@@ -175,7 +177,7 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
       val k = 10
       val inputFeatures = collection(queryFeature("", 0.1, 0.2))
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures()
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, k, 1000000d, 2000000d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, k, 1000000d, 2000000d).toList
       res.map(_.getID) must containTheSameElementsAs((0 until k).map(_.toString))
     }
 
@@ -183,7 +185,7 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
       val k = 10
       val inputFeatures = collection(queryFeature("", 45.1, 45.1))
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures()
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, k, 500000d, 1000000d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, k, 500000d, 1000000d).toList
       res.map(_.getID) must containTheSameElementsAs((41 to 50).map(_.toString))
     }
 
@@ -191,7 +193,7 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
       val k = 10
       val inputFeatures = collection(queryFeature("", 89.9, 89.9))
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures(new Query(sftName, ECQL.toFilter("label = 'diagonal'")))
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, k, 700000d, 2000000d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, k, 700000d, 2000000d).toList
       res.map(_.getID) must containTheSameElementsAs((80 to 89).map(_.toString))
     }
 
@@ -199,7 +201,7 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
       val k = 10
       val inputFeatures = collection(queryFeature("", 89.9, 89.9))
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures(new Query(sftName, ECQL.toFilter("label = 'polar'")))
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, k, 100000d, 1000000d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, k, 100000d, 1000000d).toList
       res.map(_.getID) must containTheSameElementsAs((85 to 94).map(_.toString))
     }
 
@@ -207,8 +209,14 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
       val k = 10
       val inputFeatures = collection(queryFeature("", 0.0001, 89.9))
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures()
-      val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, k, 100000d, 1000000d)).toList
+      val res = knn.execute(inputFeatures, dataFeatures, k, 100000d, 1000000d).toList
       res.map(_.getID) must containTheSameElementsAs((-4 to 5).map(_.toString))
     }
+  }
+}
+
+object KNearestNeighborSearchProcessTest {
+  implicit class RichCollection(val c: SimpleFeatureCollection) extends AnyVal {
+    def toList: List[SimpleFeature] = CloseableIterator(c.features()).toList
   }
 }

@@ -16,7 +16,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
@@ -56,7 +56,7 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
     "be able to use z3 for spatial queries" >> {
       val filter = "BBOX(geom,40,50,50,60)"
       val query = new Query(sftName, ECQL.toFilter(filter))
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must haveSize(10)
       results.map(_.getID) must containTheSameElementsAs((0 until 10).map(i => s"f-$i"))
     }
@@ -64,7 +64,7 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
     "be able to use z3 for spatial ors" >> {
       val filter = "BBOX(geom,40,50,45,55) OR BBOX(geom,44,54,50,60) "
       val query = new Query(sftName, ECQL.toFilter(filter))
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must haveSize(10)
       results.map(_.getID) must containTheSameElementsAs((0 until 10).map(i => s"f-$i"))
     }
@@ -72,7 +72,7 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
     "be able to use z3 for spatial and attribute ors" >> {
       val filter = "BBOX(geom,40,50,45,55) OR name IN ('name-6', 'name-7', 'name-8', 'name-9')"
       val query = new Query(sftName, ECQL.toFilter(filter))
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must haveSize(10)
       results.map(_.getID) must containTheSameElementsAs((0 until 10).map(i => s"f-$i"))
     }
@@ -102,7 +102,7 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
     "use another index" >> {
       val filter = "BBOX(geom,40,50,51,61)"
       val query = new Query(sftName, ECQL.toFilter(filter))
-      var results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      var results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must beEmpty
 
       val sf = new ScalaSimpleFeature(ds.getSchema(sftName), s"f-10")
@@ -111,7 +111,7 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
       sf.setAttribute(2, "POINT(50 60)")
       addFeatures(Seq(sf))
 
-      results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must haveSize(1)
       results.head.getID mustEqual "f-10"
     }
@@ -119,7 +119,7 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
     "use the original index" >> {
       val filter = "BBOX(geom,40,50,51,61) AND dtg DURING 2016-01-01T00:00:00.000Z/2016-01-02T00:00:00.000Z"
       val query = new Query(sftName, ECQL.toFilter(filter))
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must haveSize(11)
       results.map(_.getID) must containTheSameElementsAs((0 until 11).map(i => s"f-$i"))
     }

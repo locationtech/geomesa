@@ -17,7 +17,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.utils.ExplainString
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -93,7 +93,7 @@ class RedisDataStoreTest extends Specification with LazyLogging {
           val filtered = features.filter(filter.evaluate)
           foreach(transforms) { transform =>
             val query = new Query(sft.getTypeName, filter, transform: _*)
-            val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             val expected = if (transform == null) { filtered } else {
               val tsft = DataUtilities.createSubType(sft, transform: _*)
               filtered.map(DataUtilities.reType(tsft, _)).map(ScalaSimpleFeature.copy)
@@ -132,7 +132,7 @@ class RedisDataStoreTest extends Specification with LazyLogging {
         foreach(filters) { filter =>
           val expected = features.filter(filter.evaluate)
           val query = new Query(sft.getTypeName, filter)
-          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           result must containTheSameElementsAs(expected)
         }
 
@@ -142,7 +142,7 @@ class RedisDataStoreTest extends Specification with LazyLogging {
         foreach(filters) { filter =>
           val query = new Query(sft.getTypeName, filter)
           eventually(10, 1000.millis) {
-            val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             result must beEmpty
           }
         }
@@ -181,7 +181,7 @@ class RedisDataStoreTest extends Specification with LazyLogging {
         foreach(filters) { filter =>
           val expected = features.filter(filter.evaluate)
           val query = new Query(sft.getTypeName, filter)
-          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           result must containTheSameElementsAs(expected)
         }
 
@@ -192,7 +192,7 @@ class RedisDataStoreTest extends Specification with LazyLogging {
           val expected = features.drop(1).filter(filter.evaluate)
           val query = new Query(sft.getTypeName, filter)
           eventually(10, 1000.millis) {
-            val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             result must containTheSameElementsAs(expected)
           }
         }

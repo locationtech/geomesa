@@ -18,7 +18,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.process.analytic.StatsProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -141,7 +141,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
 
     "work with non AccumuloFeatureCollections" in {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
-      SelfClosingIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
+      CloseableIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
 
       val results = statsIteratorProcess.execute(features,
         "MinMax(attr);IteratorStackCount();Enumeration(an_id);Histogram(an_id,5,10,14)", encode = true)
@@ -180,7 +180,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
 
     "return stats encoded as json with non-Accumulo Feature collections" in {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
-      SelfClosingIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
+      CloseableIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
 
       val results = statsIteratorProcess.execute(features, "MinMax(attr)", false)
       val sf = results.features().next
@@ -201,7 +201,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
 
     "return stats binary encoded as with non-Accumulo Feature collections" in {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
-      SelfClosingIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
+      CloseableIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
 
       val results = statsIteratorProcess.execute(features, "MinMax(attr)", true)
       val sf = results.features().next
@@ -222,7 +222,7 @@ class StatsProcessTest extends Specification with TestWithDataStore {
 
     "return transforms stats encoded as json with non AccumuloFeatureCollections" in {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
-      SelfClosingIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
+      CloseableIterator(fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features).foreach(features.add)
 
       val results = statsIteratorProcess.execute(features, "MinMax(attr1)", false, Collections.singletonList("attr1=attr+5"))
       val sf = results.features().next

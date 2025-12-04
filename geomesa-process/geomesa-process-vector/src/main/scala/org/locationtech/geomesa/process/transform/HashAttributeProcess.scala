@@ -14,7 +14,7 @@ import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuild
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.process.GeoMesaProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.nio.charset.StandardCharsets
 import scala.util.hashing.MurmurHash3
@@ -44,7 +44,7 @@ trait HashAttribute {
 
     val results = new ListFeatureCollection(targetSft)
 
-    SelfClosingIterator(obsFeatures.features()).foreach { sf =>
+    CloseableIterator(obsFeatures.features()).foreach { sf =>
       featureBuilder.reset()
       featureBuilder.init(sf)
       val attr = Option(sf.getAttribute(attribute)).map(_.toString).getOrElse("")

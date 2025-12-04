@@ -17,7 +17,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.GeoMesaProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.locationtech.jts.geom.Point
 
@@ -69,7 +69,7 @@ class Point2PointProcess extends GeoMesaProcess {
     val sft = sftBuilder.buildFeatureType()
 
     val lineFeatures: Iterable[SimpleFeature] =
-      SelfClosingIterator(data.features()).toList
+      CloseableIterator(data.features()).toList
         .groupBy(f => String.valueOf(f.getAttribute(groupingFieldIndex)))
         .filter { case (_, coll) => coll.lengthCompare(minPoints) > 0 }
         .flatMap { case (_, coll) =>

@@ -13,7 +13,7 @@ import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -41,14 +41,14 @@ class AccumuloDataStoreIdlTest extends Specification with TestWithFeatureType {
       "default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
         val filter = ff.bbox("geom", -230, -110, 230, 110, srs)
         val query = new Query(sft.getTypeName, filter)
-        val results = SelfClosingIterator(fs.getFeatures(query).features).toSeq
+        val results = CloseableIterator(fs.getFeatures(query).features).toList
         results must haveLength(361)
       }
 
       "greater than 180 lon diff non-IDL-wrapping geoserver BBOX" in {
         val filter = ff.bbox("geom", -100, 1.1, 100, 4.1, srs)
         val query = new Query(sft.getTypeName, filter)
-        val results = SelfClosingIterator(fs.getFeatures(query).features).toSeq
+        val results = CloseableIterator(fs.getFeatures(query).features).toList
         results must haveLength(30)
       }
 
@@ -57,7 +57,7 @@ class AccumuloDataStoreIdlTest extends Specification with TestWithFeatureType {
         val spatial2 = ff.bbox("geom", 175.1, -30, 181.1, 30, srs)
         val filter = ff.or(spatial1, spatial2)
         val query = new Query(sft.getTypeName, filter)
-        val results = SelfClosingIterator(fs.getFeatures(query).features).toSeq
+        val results = CloseableIterator(fs.getFeatures(query).features).toList
         results must haveLength(10)
       }
 
@@ -66,7 +66,7 @@ class AccumuloDataStoreIdlTest extends Specification with TestWithFeatureType {
         val spatial2 = ff.bbox("geom", 175.1, -30, 181.1, 30, srs)
         val filter = ff.or(spatial1, spatial2)
         val query = new Query(sft.getTypeName, filter)
-        val results = SelfClosingIterator(fs.getFeatures(query).features).toSeq
+        val results = CloseableIterator(fs.getFeatures(query).features).toList
         results must haveLength(226)
       }
     }

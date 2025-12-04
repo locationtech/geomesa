@@ -14,7 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -61,7 +61,7 @@ class AccumuloDataStoreMetricsTest extends Specification with TestWithFeatureTyp
     "expose metrics on query times" in {
       val filter = ECQL.toFilter("bbox(geom,-179,-89,179,89)")
       val query = new Query(sft.getTypeName, filter)
-      val results = SelfClosingIterator(fs.getFeatures(query).features).toList
+      val results = CloseableIterator(fs.getFeatures(query).features).toList
       results must not(beEmpty)
       val metrics = readMetrics()
       metrics must contain(beMatching(s"""^geomesa_query_planning_seconds_bucket\\{.*catalog="$catalog".*store="accumulo".*\\} [1-9]+$$"""))

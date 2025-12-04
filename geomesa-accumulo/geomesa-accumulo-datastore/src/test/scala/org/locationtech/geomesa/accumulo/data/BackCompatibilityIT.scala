@@ -27,7 +27,7 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
@@ -98,7 +98,7 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
   def doQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] = {
     logger.debug(s"Running query ${ECQL.toCQL(query.getFilter)} :: " +
         Option(query.getPropertyNames).map(_.mkString(",")).getOrElse("All"))
-    SelfClosingIterator(fs.getFeatures(query).features).toList.map { f =>
+    CloseableIterator(fs.getFeatures(query).features).toList.map { f =>
       logger.debug(DataUtilities.encodeFeature(f))
       f.getID.toInt
     }
@@ -107,8 +107,8 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
   def doArrowQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] = {
     query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
     val out = new ByteArrayOutputStream
-    val results = SelfClosingIterator(fs.getFeatures(query).features)
-    results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+    CloseableIterator(fs.getFeatures(query).features)
+      .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
     SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getID.toInt)
   }
 
@@ -213,11 +213,11 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
           val filter = if (index.name == JoinIndex.name) { ECQL.toFilter("name is not null") } else { Filter.INCLUDE }
           val query = new Query(sftName, filter)
           query.getHints.put(QueryHints.QUERY_INDEX, GeoMesaFeatureIndex.identifier(index))
-          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(4)
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(4)
         }
 
         // delete the features
-        val filter = SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).map(_.getID).mkString("IN('", "', '", "')")
+        val filter = CloseableIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).map(_.getID).toList.mkString("IN('", "', '", "')")
         ds.getFeatureSource(sftName).removeFeatures(ECQL.toFilter(filter))
 
         // verify the delete
@@ -225,7 +225,7 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
           val filter = if (index.name == JoinIndex.name) { ECQL.toFilter("name is not null") } else { Filter.INCLUDE }
           val query = new Query(sftName, filter)
           query.getHints.put(QueryHints.QUERY_INDEX, GeoMesaFeatureIndex.identifier(index))
-          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) must beEmpty
+          CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
         }
       } finally {
         ds.dispose()

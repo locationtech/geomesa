@@ -16,7 +16,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -54,7 +54,7 @@ class ComplexFeatureTest extends Specification with TestWithFeatureType {
     "set and return list values" >> {
       "in java" >> {
         val query = new Query(sftName, Filter.INCLUDE)
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
         val fingers = features.head.getAttribute("fingers")
         fingers must not(beNull)
@@ -65,7 +65,7 @@ class ComplexFeatureTest extends Specification with TestWithFeatureType {
       }
       "in scala" >> {
         val query = new Query(sftName, Filter.INCLUDE)
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
         val names = features.head.getAttribute("names")
         names must not(beNull)
@@ -79,7 +79,7 @@ class ComplexFeatureTest extends Specification with TestWithFeatureType {
     "set and return map values" >> {
       "in java" >> {
         val query = new Query(sftName, Filter.INCLUDE)
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
         val metadata = features.head.getAttribute("metadata")
         metadata must not(beNull)
@@ -90,7 +90,7 @@ class ComplexFeatureTest extends Specification with TestWithFeatureType {
       }
       "in scala" >> {
         val query = new Query(sftName, Filter.INCLUDE)
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
         val skills = features.head.getAttribute("skills")
         skills must not(beNull)
@@ -104,27 +104,27 @@ class ComplexFeatureTest extends Specification with TestWithFeatureType {
     "query on list items" >> {
       "for single entries in the list" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND names = 'joe'"))
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
       }
       "for multiple entries in the list" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND fingers = 'thumb' AND fingers = 'ring'"))
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
       }
       "for ranges" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND names > 'jane'"))
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
       }
       "not match invalid filters" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND fingers = 'index'"))
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(0)
       }
       "not match invalid ranges" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND names < 'jane'"))
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(0)
       }
     }
@@ -132,19 +132,19 @@ class ComplexFeatureTest extends Specification with TestWithFeatureType {
     "query on map items" >> {
       "for keys in the map" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND skills = 'java'"))
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
       }.pendingUntilFixed("GEOMESA-454 - can't query on maps")
 
       "for values in the map" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND skills = '100'"))
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
       }.pendingUntilFixed("GEOMESA-454 - can't query on maps")
 
       "not match invalid filters" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND skills = 'fortran'"))
-        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
+        val features = CloseableIterator(fs.getFeatures(query).features).toList
         features must haveSize(0)
       }
     }

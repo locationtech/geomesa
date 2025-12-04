@@ -12,7 +12,7 @@ import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.MultiPolygon
@@ -59,7 +59,7 @@ class ShapefileConverterTest extends Specification {
 
         // shapefile converter requires the input file path in order to load the related files
         val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(shpFile))
-        val res = SelfClosingIterator(converter.process(shp.openStream(), ec)).toList
+        val res = CloseableIterator(converter.process(shp.openStream(), ec)).toList
 
         res must haveLength(52) // 50 states, DC, and puerto rico
 
@@ -90,7 +90,7 @@ class ShapefileConverterTest extends Specification {
 
         // shapefile converter requires the input file path in order to load the related files
         val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(shpFile))
-        val res = SelfClosingIterator(converter.process(shp.openStream(), ec)).toList
+        val res = CloseableIterator(converter.process(shp.openStream(), ec)).toList
 
         res must haveLength(52) // 50 states, DC, and puerto rico
 
@@ -130,7 +130,7 @@ class ShapefileConverterTest extends Specification {
         WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
           converter must not(beNull)
           val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(shpFile))
-          val res = SelfClosingIterator(converter.process(shp.openStream(), ec)).toList
+          val res = CloseableIterator(converter.process(shp.openStream(), ec)).toList
 
           // strings should be properly decoded
           res.map(_.getAttribute("name")) must containAllOf(Seq("法海寺", "རུ་ཐོག་དགོན་ (日多寺)", "Pagoda"))

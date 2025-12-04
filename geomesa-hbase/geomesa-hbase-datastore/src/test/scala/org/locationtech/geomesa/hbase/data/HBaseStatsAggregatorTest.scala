@@ -18,7 +18,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.impl._
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -84,7 +84,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     "work with the MinMax stat" in {
       foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr)")
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
         val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
         minMaxStat.bounds mustEqual (0, 298)
@@ -94,7 +94,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     "work with the IteratorStackCount stat" in {
       foreach(dataStores) { ds =>
         val q = getQuery("IteratorStackCount()")
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val isc = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[IteratorStackCount]
@@ -106,7 +106,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     "work with the Enumeration stat" in {
       foreach(dataStores) { ds =>
         val q = getQuery("Enumeration(idt)")
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val eh = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[EnumerationStat[java.lang.Integer]]
@@ -120,7 +120,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     "work with the Histogram stat" in {
       foreach(dataStores) { ds =>
         val q = getQuery("Histogram(idt,5,10,14)", Some("idt between 10 and 14"))
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val rh = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[Histogram[java.lang.Integer]]
@@ -136,7 +136,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     "work with the Histogram and Count stats" in {
       foreach(dataStores) { ds =>
         val q = getQuery("Histogram(idt,5,10,14);Count()", Some("idt between 10 and 14"))
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val ss = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[SeqStat]
@@ -157,7 +157,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     "work with the count stat" in {
       foreach(dataStores) { ds =>
         val q = getQuery("Count()", Some("idt between 10 and 14"))
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val ch = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[CountStat]
@@ -171,7 +171,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
       try {
         foreach(dataStores) { ds =>
           val q = getQuery("Count()", None)
-          val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+          val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
           val sf = results.head
           val ch = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[CountStat]
           ch.count mustEqual 150
@@ -184,7 +184,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     "work with multiple stats at once" in {
       foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr);IteratorStackCount();Enumeration(idt);Histogram(idt,5,10,14)")
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val seqStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[SeqStat]
@@ -215,7 +215,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
       foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr)")
         q.setFilter(ECQL.toFilter("bbox(geom,-80,35,-75,40)"))
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
@@ -227,7 +227,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
       foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr)")
         q.setFilter(ECQL.toFilter("IN('149', '100')"))
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
@@ -239,7 +239,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
       foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr)")
         q.setFilter(ECQL.toFilter("attr > 10"))
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
@@ -251,7 +251,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
       foreach(dataStores) { ds =>
         val q = getQuery("MinMax(idt)")
         q.setFilter(ECQL.toFilter("attr > 10"))
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Integer]]
@@ -263,7 +263,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
       foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr)")
         q.setFilter(ECQL.toFilter("idt > 10"))
-        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
 
         val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]

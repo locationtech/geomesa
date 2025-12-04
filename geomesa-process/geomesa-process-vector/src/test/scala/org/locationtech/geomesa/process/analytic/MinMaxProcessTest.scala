@@ -11,7 +11,7 @@ package org.locationtech.geomesa.process.analytic
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -39,12 +39,12 @@ class MinMaxProcessTest extends Specification {
 
   "MinMaxProcess" should {
     "manually visit a feature collection for dates" in {
-      val result = SelfClosingIterator(process.execute(fc, "dtg", null).features).toSeq
+      val result = CloseableIterator(process.execute(fc, "dtg", null).features).toList
       result must haveLength(1)
       result.head.getAttribute(0) mustEqual """{"min":"2017-05-24T00:00:00.000Z","max":"2017-05-24T00:00:09.000Z","cardinality":10}"""
     }
     "manually visit a feature collection for strings" in {
-      val result = SelfClosingIterator(process.execute(fc, "track", null).features).toSeq
+      val result = CloseableIterator(process.execute(fc, "track", null).features).toList
       result must haveLength(1)
       result.head.getAttribute(0) mustEqual """{"min":"t-0","max":"t-1","cardinality":2}"""
     }

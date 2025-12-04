@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.utils.collection
 
 import org.geotools.api.data.FeatureReader
-import org.geotools.feature.FeatureIterator
-import org.locationtech.geomesa.utils.collection.CloseableIterator.{CloseableIteratorImpl, ConcatCloseableIterator, FlatMapCloseableIterator}
-import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.geotools.api.feature.Feature
 import org.geotools.api.feature.`type`.FeatureType
 import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.feature.FeatureIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator.{CloseableIteratorImpl, ConcatCloseableIterator, FlatMapCloseableIterator}
+import org.locationtech.geomesa.utils.io.CloseQuietly
 
 import java.io.Closeable
 import scala.annotation.tailrec
@@ -25,13 +25,8 @@ object CloseableIterator {
 
   private val empty: CloseableIterator[Nothing] = apply(Iterator.empty)
 
-  // noinspection LanguageFeature
-  // implicit promoting wrapper for convenience
-  implicit def iteratorToCloseable[A](iter: Iterator[A]): CloseableIterator[A] = apply(iter)
-
   // This apply method provides us with a simple interface for creating new CloseableIterators.
-  def apply[A](iter: Iterator[A], close: => Unit = ()): CloseableIterator[A] =
-    new CloseableIteratorImpl[A](iter, close)
+  def apply[A](iter: Iterator[A], close: => Unit = ()): CloseableIterator[A] = new CloseableIteratorImpl[A](iter, close)
 
   // for wrapping java iterators
   def apply[A](iter: java.util.Iterator[A]): CloseableIterator[A] = new CloseableIteratorJavaWrapper[A](iter)
@@ -40,11 +35,9 @@ object CloseableIterator {
   def apply[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A]): CloseableIterator[A] =
     new CloseableFeatureReaderIterator(iter)
 
-  def apply(iter: FeatureIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =
-    new CloseableFeatureIterator(iter)
+  def apply(iter: FeatureIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = new CloseableFeatureIterator(iter)
 
-  def single[A](elem: A, close: => Unit = ()): CloseableIterator[A] =
-    new CloseableSingleIterator(elem, close)
+  def single[A](elem: A, close: => Unit = ()): CloseableIterator[A] = new CloseableSingleIterator(elem, close)
 
   def fill[A](length: Int, close: => Unit = ())(elem: => A): CloseableIterator[A] =
     new CloseableIteratorImpl(Iterator.fill(length)(elem), close)
@@ -57,16 +50,16 @@ object CloseableIterator {
     case c => new CloseableIteratorImpl(c.iterator, ())
   }
 
-  class CloseableIteratorImpl[A](iter: Iterator[A], closeIter: => Unit) extends CloseableIterator[A] {
+  private class CloseableIteratorImpl[A](iter: Iterator[A], closeIter: => Unit) extends CloseableIterator[A] {
     override def hasNext: Boolean = iter.hasNext
     override def next(): A = iter.next()
     override def close(): Unit = closeIter
   }
 
-  class CloseableIteratorJavaWrapper[A](iter: java.util.Iterator[A]) extends CloseableIterator[A] {
+  private class CloseableIteratorJavaWrapper[A](iter: java.util.Iterator[A]) extends CloseableIterator[A] {
     override def hasNext: Boolean = iter.hasNext
     override def next(): A = iter.next()
-    override def close(): Unit = {}
+    override def close(): Unit = Option(iter).collect { case c: Closeable => c.close() }
   }
 
   private final class CloseableFeatureReaderIterator[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A])
@@ -154,6 +147,12 @@ object CloseableIterator {
 }
 
 trait CloseableIterator[+A] extends Iterator[A] with Closeable {
+
+  override def toList: List[A] = try { super.toList } finally { close() }
+
+  override def foreach[U](f: A => U): Unit = try { super.foreach(f) } finally { close() }
+
+  override def size: Int =  try { super.size } finally { close() }
 
   override def map[B](f: A => B): CloseableIterator[B] = new CloseableIteratorImpl(super.map(f), close())
 

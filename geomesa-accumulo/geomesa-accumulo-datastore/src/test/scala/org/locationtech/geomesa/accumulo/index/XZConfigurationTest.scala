@@ -15,7 +15,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.z2.XZ2Index
 import org.locationtech.geomesa.index.index.z3.XZ3Index
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -45,7 +45,7 @@ class XZConfigurationTest extends Specification with TestWithFeatureType {
       val filter = "bbox(geom,39,19,41,23)"
       val query = new Query(sftName, ECQL.toFilter(filter))
       forall(ds.getQueryPlan(query))(_.filter.index.name mustEqual XZ2Index.name)
-      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(0 until 4)
     }
@@ -54,7 +54,7 @@ class XZConfigurationTest extends Specification with TestWithFeatureType {
       val filter = "bbox(geom,39,19,41,23) AND dtg DURING 2010-05-07T01:30:00.000Z/2010-05-07T05:30:00.000Z"
       val query = new Query(sftName, ECQL.toFilter(filter))
       forall(ds.getQueryPlan(query))(_.filter.index.name mustEqual XZ3Index.name)
-      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      val features = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveSize(2)
       features.map(_.getID.toInt) must containTheSameElementsAs(2 until 4)
     }

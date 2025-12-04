@@ -85,7 +85,7 @@ object FileSystemThreadedReader extends StrictLogging {
       threads: Int): CloseableIterator[SimpleFeature] = {
 
     if (threads < 2) {
-      readers.flatMap { case (reader, files) =>
+      CloseableIterator(readers).flatMap { case (reader, files) =>
         val mods = scala.collection.mutable.HashSet.empty[String]
         // ensure files are sorted in reverse chronological order
         CloseableIterator(files.sorted.iterator).flatMap(f => read(reader, f, mods))

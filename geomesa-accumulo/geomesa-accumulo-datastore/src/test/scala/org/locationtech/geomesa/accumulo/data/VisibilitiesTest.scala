@@ -18,7 +18,7 @@ import org.locationtech.geomesa.accumulo.util.TableManager
 import org.locationtech.geomesa.accumulo.{AccumuloContainer, TestWithFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
@@ -74,14 +74,14 @@ class VisibilitiesTest extends TestWithFeatureType {
     "keep unprivileged from reading secured features" in {
       foreach(filters) { filter =>
         val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader).toList must containTheSameElementsAs(unprivFeatures)
+        CloseableIterator(reader).toList must containTheSameElementsAs(unprivFeatures)
       }
     }
 
     "allow privileged to read secured features" in {
       foreach(filters) { filter =>
         val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader).toList must containTheSameElementsAs(privFeatures ++ unprivFeatures)
+        CloseableIterator(reader).toList must containTheSameElementsAs(privFeatures ++ unprivFeatures)
       }
     }
 
@@ -89,7 +89,7 @@ class VisibilitiesTest extends TestWithFeatureType {
       unprivDS.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore].removeFeatures(ECQL.toFilter("IN('2')"))
       foreach(filters) { filter =>
         val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader).toList must containTheSameElementsAs(privFeatures ++ unprivFeatures)
+        CloseableIterator(reader).toList must containTheSameElementsAs(privFeatures ++ unprivFeatures)
       }
     }
 
@@ -97,7 +97,7 @@ class VisibilitiesTest extends TestWithFeatureType {
       privDS.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore].removeFeatures(ECQL.toFilter("IN('2')"))
       foreach(filters) { filter =>
         val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader).toList must containTheSameElementsAs(privFeatures.take(2) ++ unprivFeatures)
+        CloseableIterator(reader).toList must containTheSameElementsAs(privFeatures.take(2) ++ unprivFeatures)
       }
     }
 
@@ -111,9 +111,9 @@ class VisibilitiesTest extends TestWithFeatureType {
       }
       foreach(filters) { filter =>
         val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(reader).toList must containTheSameElementsAs(privFeatures.take(2) ++ unprivFeatures)
+        CloseableIterator(reader).toList must containTheSameElementsAs(privFeatures.take(2) ++ unprivFeatures)
         val unprivReader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        SelfClosingIterator(unprivReader).toList must containTheSameElementsAs(privFeatures.take(1) ++ unprivFeatures)
+        CloseableIterator(unprivReader).toList must containTheSameElementsAs(privFeatures.take(1) ++ unprivFeatures)
       }
     }
 
@@ -126,11 +126,11 @@ class VisibilitiesTest extends TestWithFeatureType {
       addFeature(unsecured) // should be ok
       val query = new Query(sftName, ECQL.toFilter("IN('6')"))
       // verify we can query the feature back out
-      SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual Seq(unsecured)
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual Seq(unsecured)
       updated.getUserData.put("geomesa.vis.required", "true")
       ds.updateSchema(updated.getTypeName, updated)
       // verify ReqVisFilter prevents the feature from coming back even though it exists in the table
-      SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
+      CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
     }
   }
 }

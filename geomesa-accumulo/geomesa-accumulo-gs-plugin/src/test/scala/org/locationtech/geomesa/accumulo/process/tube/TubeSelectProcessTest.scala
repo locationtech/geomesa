@@ -22,7 +22,7 @@ import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.process.tube.{NoGapFill, TubeSelectProcess}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
@@ -83,7 +83,7 @@ class TubeSelectProcessTest extends TestWithDataStore {
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, null)
 
-      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
+      forall(CloseableIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
       results.size mustEqual 4
     }
 
@@ -108,7 +108,7 @@ class TubeSelectProcessTest extends TestWithDataStore {
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, null)
 
-      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
+      forall(CloseableIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
       results.size mustEqual 4
     }
 
@@ -137,7 +137,7 @@ class TubeSelectProcessTest extends TestWithDataStore {
       // 110 m/s times 1000 seconds is just 100km which is under 1 degree
       val results = ts.execute(tubeFeatures, features, null, 110L, 1000L, 0.0, 5, null)
 
-      forall(SelfClosingIterator(results.features()).toList) { sf =>
+      forall(CloseableIterator(results.features()).toList) { sf =>
         sf.getAttribute("type") mustEqual "b"
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
         point.getX mustEqual 40.0
@@ -162,7 +162,7 @@ class TubeSelectProcessTest extends TestWithDataStore {
       // but with buffer overlap since the features in the collection are 1 degrees apart
       val results = ts.execute(tubeFeatures, features, null, 112L, 1000L, 0.0, 5, null)
 
-      forall(SelfClosingIterator(results.features()).toList) { sf =>
+      forall(CloseableIterator(results.features()).toList) { sf =>
         sf.getAttribute("type") mustEqual "b"
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
         point.getX must beBetween(40.0, 41.0)
@@ -198,7 +198,7 @@ class TubeSelectProcessTest extends TestWithDataStore {
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, "line")
 
-      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "d")
+      forall(CloseableIterator(results.features()).toList)(_.getAttribute("type") mustEqual "d")
 
       results.size mustEqual 4
     }
@@ -262,7 +262,7 @@ class TubeSelectProcessTest extends TestWithDataStore {
       // get back type b from tube
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 1000.0, 5, "interpolated")
-      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "pool")
+      forall(CloseableIterator(results.features()).toList)(_.getAttribute("type") mustEqual "pool")
 
       results.size mustEqual poolCount
     }
@@ -301,7 +301,7 @@ class TubeSelectProcessTest extends TestWithDataStore {
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 112L, 1L, 0.0, 5, null)
 
-      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
+      forall(CloseableIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
 
       QueryProperties.QueryExactCount.threadLocalValue.set("true")
       try { results.size mustEqual 6 } finally {
@@ -348,7 +348,7 @@ class TubeSelectProcessTest extends TestWithDataStore {
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, null)
 
-      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
+      forall(CloseableIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
       results.size mustEqual 4
     }
   }

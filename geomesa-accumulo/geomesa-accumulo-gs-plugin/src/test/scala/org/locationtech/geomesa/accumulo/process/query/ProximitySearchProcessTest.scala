@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.query.ProximitySearchProcess
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Coordinate, Point}
@@ -87,7 +87,7 @@ class ProximitySearchProcessTest extends Specification with TestWithDataStore {
       val prox = new ProximitySearchProcess
 
       // note: size returns an estimated amount, instead we need to actually count the features
-      def ex(p: Double) = SelfClosingIterator(prox.execute(inputFeatures, dataFeatures, p)).toSeq
+      def ex(p: Double) = CloseableIterator(prox.execute(inputFeatures, dataFeatures, p).features()).toList
 
       ex(50.0)  must haveLength(0)
       ex(90.0)  must haveLength(0)
@@ -124,7 +124,7 @@ class ProximitySearchProcessTest extends Specification with TestWithDataStore {
 
       val prox = new ProximitySearchProcess
       // note: size returns an estimated amount, instead we need to actually count the features
-      SelfClosingIterator(prox.execute(queryLine, dataFeatures, 150000.0)).toSeq must haveLength(50)
+      CloseableIterator(prox.execute(queryLine, dataFeatures, 150000.0).features()).toList must haveLength(50)
     }
 
     "work on non-accumulo feature sources" in {

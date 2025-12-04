@@ -34,7 +34,7 @@ import org.locationtech.geomesa.index.planning.FilterSplitter
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.index.view.MergedDataStoreViewFactory
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
@@ -119,19 +119,19 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       qp.filter.index.name must beOneOf(AttributeIndex.name, JoinIndex.name)
       forall(ranges)(_.test(qp.ranges.length))
     }
-    val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
-    results.map(_.getAttribute("name").toString).toList
+    CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
+      .map(_.getAttribute("name").toString).toList
   }
 
-  def runQuery(query: Query, explain: Explainer = ExplainNull): Iterator[SimpleFeature] = {
+  def runQuery(query: Query, explain: Explainer = ExplainNull): List[SimpleFeature] = {
     forall(ds.getQueryPlan(query, explainer = explain)) { qp =>
       qp.filter.index.name must beOneOf(AttributeIndex.name, JoinIndex.name)
     }
-    SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
+    CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(ScalaSimpleFeature.copy).toList
   }
 
   def decodeArrow(reader: SimpleFeatureArrowFileReader): List[SimpleFeature] = {
-    SelfClosingIterator(reader.features()).map { f =>
+    CloseableIterator(reader.features()).map { f =>
       // round the points, as precision is lost due to the arrow encoding
       val attributes = f.getAttributes.asScala.collect {
         case p: Point => s"POINT (${Math.round(p.getX * 10) / 10d} ${Math.round(p.getY * 10) / 10d})"
@@ -169,7 +169,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
-      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX))
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(3)
@@ -184,7 +184,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       query.getHints.put(BIN_GEOM, "geom")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
-      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX))
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(3)
@@ -197,7 +197,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       query.getHints.put(BIN_TRACK, "dtg")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX))
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(3)
@@ -210,7 +210,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       query.getHints.put(BIN_TRACK, "count")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX))
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(3)
@@ -224,7 +224,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       query.getHints.put(BIN_TRACK, "count")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
-      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX))
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(3)
@@ -241,7 +241,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         query.getHints.put(ARROW_DICTIONARY_FIELDS, "name")
         val plans = Option(ds).collect { case ds: AccumuloDataStore => ds.getQueryPlan(query) }.getOrElse(Seq.empty)
         forall(plans)(_ must beAnInstanceOf[JoinPlan])
-        val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
+        val results = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
         WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
@@ -262,7 +262,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         query.getHints.put(ARROW_DICTIONARY_FIELDS, "name")
         val plans = Option(ds).collect { case ds: AccumuloDataStore => ds.getQueryPlan(query) }.getOrElse(Seq.empty)
         forall(plans)(_ must beAnInstanceOf[JoinPlan])
-        val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
+        val results = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
         WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
@@ -285,7 +285,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         query.getHints.put(ARROW_SORT_FIELD, "dtg")
         val plans = Option(ds).collect { case ds: AccumuloDataStore => ds.getQueryPlan(query) }.getOrElse(Seq.empty)
         forall(plans)(_ must beAnInstanceOf[BatchScanPlan])
-        val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
+        val results = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
         WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
@@ -304,7 +304,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         query.getHints.put(ARROW_DICTIONARY_FIELDS, "count")
         val plans = Option(ds).collect { case ds: AccumuloDataStore => ds.getQueryPlan(query) }.getOrElse(Seq.empty)
         forall(plans)(_ must beAnInstanceOf[BatchScanPlan])
-        val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
+        val results = CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
         WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
@@ -435,21 +435,21 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
     "support sampling" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a'"))
       query.getHints.put(SAMPLING, Float.box(.5f))
-      val results = runQuery(query).toList
+      val results = runQuery(query)
       results must haveLength(2)
     }
 
     "support sampling with cql" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a' AND track > 'track'"))
       query.getHints.put(SAMPLING, Float.box(.5f))
-      val results = runQuery(query).toList
+      val results = runQuery(query)
       results must haveLength(2)
     }
 
     "support sampling with transformations" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a'"), "name", "geom")
       query.getHints.put(SAMPLING, Float.box(.5f))
-      val results = runQuery(query).toList
+      val results = runQuery(query)
       results must haveLength(2)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
@@ -457,7 +457,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
     "support sampling with cql and transformations" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a' AND track > 'track'"), "name", "geom")
       query.getHints.put(SAMPLING, Float.box(.2f))
-      val results = runQuery(query).toList
+      val results = runQuery(query)
       results must haveLength(1)
       results.head.getAttributeCount mustEqual 2
     }
@@ -466,7 +466,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       val query = new Query(sftName, ECQL.toFilter("name > 'a'"))
       query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(SAMPLE_BY, "track")
-      val results = runQuery(query).toList
+      val results = runQuery(query)
       results.length must beLessThan(4) // note: due to sharding and multiple ranges, we don't get exact sampling
       results.map(_.getAttribute("track")).distinct must containTheSameElementsAs(Seq("track1", "track2"))
     }
@@ -479,7 +479,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       query.getHints.put(SAMPLING, Float.box(.5f))
       // have to evaluate attributes before pulling into collection, as the same sf is reused
-      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX))
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(2)
@@ -493,7 +493,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       query.getHints.put(DENSITY_WIDTH, 400)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
       val decode = DensityScan.decodeResult(envelope, 600, 400)
-      val results = runQuery(query).flatMap(decode).toList
+      val results = runQuery(query).flatMap(decode)
       results must containTheSameElementsAs(Seq((41.325,58.5375,1.0), (42.025,58.5375,1.0), (40.675,58.5375,1.0)))
     }
 
@@ -506,7 +506,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       query.getHints.put(DENSITY_WEIGHT, "count")
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
       val decode = DensityScan.decodeResult(envelope, 600, 400)
-      val results = runQuery(query).flatMap(decode).toList
+      val results = runQuery(query).flatMap(decode)
       results must containTheSameElementsAs(Seq((41.325,58.5375,3.0), (42.025,58.5375,4.0), (40.675,58.5375,2.0)))
     }
 
@@ -519,7 +519,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       query.getHints.put(DENSITY_WEIGHT, "age")
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
       val decode = DensityScan.decodeResult(envelope, 600, 400)
-      val results = runQuery(query).flatMap(decode).toList
+      val results = runQuery(query).flatMap(decode)
       results must containTheSameElementsAs(Seq((40.675,58.5375,21.0), (41.325,58.5375,30.0), (42.025,58.5375,0.0)))
     }
 
@@ -531,7 +531,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       query.getHints.put(DENSITY_WIDTH, 400)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
       val decode = DensityScan.decodeResult(envelope, 600, 400)
-      val results = runQuery(query).flatMap(decode).toList
+      val results = runQuery(query).flatMap(decode)
       results must containTheSameElementsAs(Seq((40.675,58.5375,1.0), (42.025,58.5375,1.0)))
     }
   }

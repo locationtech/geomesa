@@ -21,7 +21,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.process.ArrowVisitor.{ArrowManualVisitor, ArrowResult, ComplexArrowManualVisitor, SimpleArrowManualVisitor}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
@@ -87,7 +87,7 @@ class ArrowVisitor(
     sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
     sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
 
-    val features = SelfClosingIterator(source.getFeatures(query))
+    val features = CloseableIterator(source.getFeatures(query).features())
     result = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
   }
 }

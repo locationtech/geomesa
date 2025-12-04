@@ -32,7 +32,7 @@ import org.locationtech.geomesa.fs.storage.orc.io.OrcFileSystemReader
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.tools.`export`.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
 import org.specs2.runner.JUnitRunner
@@ -215,7 +215,7 @@ class AccumuloExportCommandTest extends TestWithDataStore {
 
   def readArrow(file: String): Seq[SimpleFeature] = {
     WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
-      SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList
+      CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList
     }
   }
 
@@ -292,7 +292,7 @@ class AccumuloExportCommandTest extends TestWithDataStore {
   def readShp(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
     WithStore[ShapefileDataStore](Map("url" -> URLs.fileToUrl(new File(file)))) { ds =>
       // hack - set id from original features since USE_PROVIDED_FID is not supported in shapefiles
-      SelfClosingIterator(ds.getFeatureReader).toList.map { f =>
+      CloseableIterator(ds.getFeatureReader).toList.map { f =>
         val dtg = f.getAttribute("dtg")
         val f1 = features.find(_.getAttribute("dtg") == dtg).get
         val attributes = sft.getAttributeDescriptors.asScala.map(_.getLocalName).map {
@@ -311,7 +311,7 @@ class AccumuloExportCommandTest extends TestWithDataStore {
   def readGml2(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = readGml3(file, sft)
 
   def readGml3(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    SelfClosingIterator(new GML(GML.Version.GML3).decodeFeatureIterator(new FileInputStream(file))).toList.map { f =>
+    CloseableIterator(new GML(GML.Version.GML3).decodeFeatureIterator(new FileInputStream(file))).toList.map { f =>
       ScalaSimpleFeature.copy(DataUtilities.reType(sft, f))
     }
   }

@@ -29,7 +29,7 @@ import org.locationtech.geomesa.tools.`export`.PlaybackCommand.PlaybackIterator
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.export.PlaybackCommand.PlaybackParams
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{DurationConverter, IntervalConverter}
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.Closeable
@@ -284,7 +284,7 @@ object PlaybackCommand {
             var count = 0L
 
             // populate the queue - this will block if we get too far ahead
-            SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).foreach { f =>
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).foreach { f =>
               features.put(f)
               count += 1
             }

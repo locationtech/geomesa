@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.api.NamedOptions
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
@@ -124,7 +124,7 @@ class FileSystemDataStoreTest extends Specification {
         fs.getCount(Query.ALL) must beEqualTo(10)
         fs.getBounds must equalTo(new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
 
-        val results = SelfClosingIterator(fs.getFeatures(new Query(format)).features()).toList
+        val results = CloseableIterator(fs.getFeatures(new Query(format)).features()).toList
         results must containTheSameElementsAs(features)
 
         // This shows that a new FeatureSource has a correct view of the metadata on disk
@@ -142,7 +142,7 @@ class FileSystemDataStoreTest extends Specification {
         val ds = DataStoreFinder.getDataStore(Collections.singletonMap("fs.path", dir.getPath))
         ds.getTypeNames.toList must containTheSameElementsAs(Seq(format))
 
-        val results = SelfClosingIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
         results must containTheSameElementsAs(features)
       }
     }
@@ -154,7 +154,7 @@ class FileSystemDataStoreTest extends Specification {
         val ds = DataStoreFinder.getDataStore(Map("fs.path" -> dir.getPath, "fs.read-threads" -> "4").asJava)
         ds.getTypeNames.toList must containTheSameElementsAs(Seq(format))
 
-        val results = SelfClosingIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
         results must containTheSameElementsAs(features)
 
         val dsWithNs = DataStoreFinder.getDataStore(Map("fs.path" -> dir.getPath, "fs.read-threads" -> "4", "namespace" -> "ns0").asJava)
@@ -169,7 +169,7 @@ class FileSystemDataStoreTest extends Specification {
         foreach(queries) { query =>
           val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)
           reader.getFeatureType.getName mustEqual name
-          val features = SelfClosingIterator(reader).toList
+          val features = CloseableIterator(reader).toList
           features must not(beEmpty)
           foreach(features)(_.getFeatureType.getName mustEqual name)
         }
@@ -247,7 +247,7 @@ class FileSystemDataStoreTest extends Specification {
         filters.foreach { filter =>
           transforms.foreach { transform =>
             val query = new Query(format, filter, transform: _*)
-            val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             results must haveLength(features.length)
             if (transform == null) {
               results must containTheSameElementsAs(features)
@@ -283,7 +283,7 @@ class FileSystemDataStoreTest extends Specification {
             FeatureUtils.write(writer, featureWithEmptyFid)
           }
         }
-        val results = SelfClosingIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
+        val results = CloseableIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
         results.map(_.getID) must contain(allOf(beUUID))
       }
     }
@@ -315,7 +315,7 @@ class FileSystemDataStoreTest extends Specification {
 
         foreach(filters) { filter =>
           val query = new Query(format, filter)
-          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must containTheSameElementsAs(expected)
         }
       }
@@ -359,11 +359,11 @@ class FileSystemDataStoreTest extends Specification {
 
             foreach(Seq("INCLUDE", s"bbox(geom,${env.getMinX},${env.getMinY},${env.getMaxX},${env.getMaxY})")) { filter =>
               val query = new Query(format, ECQL.toFilter(filter))
-              SelfClosingIterator(fs.getFeatures(query).features()).toList must containTheSameElementsAs(features)
+              CloseableIterator(fs.getFeatures(query).features()).toList must containTheSameElementsAs(features)
               val transform = new Query(format, ECQL.toFilter(filter), "dtg", "geom")
               val transformSft = SimpleFeatureTypes.createType(format,
                 s"dtg:Date,*geom:${sft.getGeometryDescriptor.getType.getBinding.getSimpleName}")
-              SelfClosingIterator(fs.getFeatures(transform).features()).toList must
+              CloseableIterator(fs.getFeatures(transform).features()).toList must
                   containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(transformSft, _)))
             }
           } finally {

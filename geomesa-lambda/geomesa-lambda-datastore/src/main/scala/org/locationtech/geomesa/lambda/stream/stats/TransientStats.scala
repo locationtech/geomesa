@@ -16,7 +16,7 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
 import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStatWriter, Stat}
 import org.locationtech.geomesa.lambda.stream.TransientStore
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.reflect.ClassTag
 
@@ -25,7 +25,7 @@ class TransientStats(store: TransientStore) extends GeoMesaStats {
   override val writer: GeoMesaStatWriter = NoopStatWriter
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] =
-    Some(SelfClosingIterator(store.read(Option(filter).filter(_ != Filter.INCLUDE)).iterator()).length)
+    Some(CloseableIterator(store.read(Option(filter).filter(_ != Filter.INCLUDE)).iterator()).size)
 
   override def getMinMax[T](
       sft: SimpleFeatureType,
@@ -97,7 +97,7 @@ class TransientStats(store: TransientStore) extends GeoMesaStats {
       exact: Boolean): Option[T] = {
     if (!exact) { None } else {
       val stat = Stat(sft, query).asInstanceOf[T]
-      SelfClosingIterator(store.read(Option(filter).filter(_ != Filter.INCLUDE)).iterator()).foreach(stat.observe)
+      CloseableIterator(store.read(Option(filter).filter(_ != Filter.INCLUDE)).iterator()).foreach(stat.observe)
       Some(stat)
     }
   }

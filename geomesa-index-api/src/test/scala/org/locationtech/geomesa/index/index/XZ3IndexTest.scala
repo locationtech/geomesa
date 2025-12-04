@@ -14,7 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -53,13 +53,13 @@ class XZ3IndexTest extends Specification with LazyLogging {
 
         val filter = ECQL.toFilter("bbox(geom,0,55,70,65) AND dtg during 2020-12-01T00:00:00.000Z/2020-12-31T23:59:59.999Z")
 
-        SelfClosingIterator(ds.getFeatureReader(new Query("test", filter), Transaction.AUTO_COMMIT)).toList must
+        CloseableIterator(ds.getFeatureReader(new Query("test", filter), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features)
 
         val lastDayFilter = ECQL.toFilter("bbox(geom,9,59,12,61) AND dtg during 2020-12-31T00:00:00.000Z/2020-12-31T23:59:59.999Z")
 
         val lastDayResults =
-          SelfClosingIterator(ds.getFeatureReader(new Query("test", lastDayFilter), Transaction.AUTO_COMMIT)).toList
+          CloseableIterator(ds.getFeatureReader(new Query("test", lastDayFilter), Transaction.AUTO_COMMIT)).toList
 
         lastDayResults mustEqual Seq(features.last)
       }

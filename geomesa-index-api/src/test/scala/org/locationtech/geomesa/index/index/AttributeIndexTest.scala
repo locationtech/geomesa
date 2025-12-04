@@ -22,7 +22,7 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore.TestRange
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey}
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.{ByteArrays, Cardinality}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -94,7 +94,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
           val ranges = qp.ranges.sortBy(_.start)(ByteArrays.ByteOrdering)
           forall(ranges.sliding(2).toSeq) { case Seq(left, right) => overlaps(left, right) must beFalse }
         }
-        SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toSeq
+        CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toList
       }
 
       // height filter matches bob and charles, st filters only match bob
@@ -123,7 +123,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 
       ds.getQueryPlan(q).flatMap(_.ranges) must haveLength(sft.getAttributeShards)
 
-      val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toList
+      val results = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).map(_.getID).toList
       results mustEqual Seq("bob")
     }
 
@@ -142,7 +142,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       }
 
       val query = new Query(typeName, ECQL.toFilter("name = 'alice'"))
-      val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
+      val result = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
 
       result mustEqual Seq("alice")
     }
@@ -174,7 +174,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       )
       foreach(filters) { filter =>
         val query = new Query(typeName, ECQL.toFilter(filter))
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq mustEqual features.slice(1, 2)
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual features.slice(1, 2)
       }
     }
 
@@ -214,7 +214,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
         range.start.length must beGreaterThan(12)
       }
 
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
+      val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
 
       results must containTheSameElementsAs(Seq("bob", "charles"))
     }
@@ -254,7 +254,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       }
       foreach(queries ++ withDates) { case (filter, expected) =>
         val query = new Query(typeName, ECQL.toFilter(filter))
-        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
+        val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
         results must containTheSameElementsAs(expected)
       }
     }
@@ -291,9 +291,13 @@ class AttributeIndexTest extends Specification with LazyLogging {
 
       val start = System.currentTimeMillis()
 
-      val feats = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-      while (feats.hasNext) {
-        feats.next()
+      val feats = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+      try {
+        while (feats.hasNext) {
+          feats.next()
+        }
+      } finally {
+        feats.close()
       }
 
       val time = System.currentTimeMillis() - start
@@ -352,7 +356,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       )
       foreach(filters) { filter =>
         val query = new Query(typeName, ECQL.toFilter(s"name = 'bob' and $filter"))
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual
             features.slice(2, 3)
       }
     }
@@ -370,7 +374,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 
       foreach(ds.getQueryPlan(query))(_.ranges must beEmpty)
 
-      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
+      val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
 
       results must beEmpty
     }

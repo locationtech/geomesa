@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.SchemaCompatibility
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -56,7 +56,7 @@ class GeoMesaDataStoreAlterSchemaTest extends Specification {
 
         forall(filters) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          SelfClosingIterator(reader).toList mustEqual Seq(feature)
+          CloseableIterator(reader).toList mustEqual Seq(feature)
         }
         ds.stats.getCount(sft) must beSome(1L)
 
@@ -72,7 +72,7 @@ class GeoMesaDataStoreAlterSchemaTest extends Specification {
 
         forall(filters) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
+          CloseableIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
         }
         ds.stats.getCount(sft) must beSome(1L)
         ds.stats.getMinMax[String](sft, "name", exact = false).map(_.max) must beSome("name0")
@@ -96,7 +96,7 @@ class GeoMesaDataStoreAlterSchemaTest extends Specification {
 
         forall(filters) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
+          CloseableIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
         }
         ds.stats.getCount(sft) must beSome(1L)
         ds.stats.getMinMax[String](sft, "names", exact = false).map(_.max) must beSome("name0")
@@ -122,7 +122,7 @@ class GeoMesaDataStoreAlterSchemaTest extends Specification {
 
         forall(filters) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
+          CloseableIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
         }
         ds.stats.getCount(sft) must beSome(1L)
         ds.stats.getMinMax[String](sft, "n", exact = false).map(_.max) must beSome("name0")

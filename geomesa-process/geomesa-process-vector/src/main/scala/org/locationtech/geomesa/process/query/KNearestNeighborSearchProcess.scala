@@ -26,7 +26,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.process.{FeatureResult, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.process.query.KNearestNeighborSearchProcess.KNNVisitor
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, GeometryUtils}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -94,7 +94,7 @@ object KNearestNeighborSearchProcess {
     import org.locationtech.geomesa.filter.ff
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    private lazy val queries: Seq[Point] = SelfClosingIterator(query.features()).toList.flatMap { f =>
+    private lazy val queries: Seq[Point] = CloseableIterator(query.features()).toList.flatMap { f =>
       f.getDefaultGeometry match {
         case p: Point => Some(p)
         case g => logger.warn(s"KNN query not implemented for non-point geometries, skipping this feature: $g"); None
