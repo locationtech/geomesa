@@ -7,8 +7,6 @@ on:
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
-env:
-
 jobs:
   validate-tests:
     runs-on: ubuntu-latest
