@@ -91,7 +91,7 @@ The following dependencies have been upgraded:
 * commons-lang ``3.15.0`` -> ``3.20.0``
 * commons-logging ``1.3.3`` -> ``1.3.5``
 * commons-text ``1.12.0`` -> ``1.13.0``
-* geotools ``33.2`` -> ``34.0``
+* geotools ``33.2`` -> ``34.1``
 * kafka ``3.9.0`` -> ``3.9.1``
 * micrometer ``1.15.4`` -> ``1.16.0``
 * prometheus ``1.4.1`` -> ``1.4.3``
