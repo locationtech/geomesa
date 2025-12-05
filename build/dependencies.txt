@@ -509,8 +509,8 @@ org.scala-lang.modules:scala-parser-combinators_2.12:2.3.0:provided
 org.scala-lang:scala-compiler:2.12.20:provided
 org.slf4j:jcl-over-slf4j:2.0.7:provided
 org.slf4j:slf4j-reload4j:1.7.36:provided
-org.springframework.security:spring-security-core:5.8.15:provided
-org.springframework.security:spring-security-crypto:5.8.15:provided
+org.springframework.security:spring-security-core:5.8.16:provided
+org.springframework.security:spring-security-crypto:5.8.16:provided
 org.springframework:spring-aop:5.3.39:provided
 org.springframework:spring-beans:5.3.39:provided
 org.springframework:spring-context:5.3.39:provided
