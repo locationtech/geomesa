@@ -87,13 +87,19 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
+* commons-codec ``1.17.1`` -> ``1.18.0``
+* commons-lang ``3.15.0`` -> ``3.20.0``
+* commons-logging ``1.3.3`` -> ``1.3.5``
+* commons-text ``1.12.0`` -> ``1.13.0``
 * geotools ``33.2`` -> ``34.0``
 * kafka ``3.9.0`` -> ``3.9.1``
 * micrometer ``1.15.4`` -> ``1.16.0``
 * prometheus ``1.4.1`` -> ``1.4.3``
+* rhino ``1.7.14`` -> ``1.8.1``
 * scala 2.12 ``2.12.19`` -> ``2.12.20``
 * scala 2.13 ``2.13.12`` -> ``2.13.16``
 * spark ``3.5.5`` -> ``3.5.7``
+* zookeeper ``3.9.3`` -> ``3.9.4``
 
 StrategyDecider API Update
 --------------------------

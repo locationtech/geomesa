@@ -68,18 +68,6 @@
             <version>6.1.26</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-jsr223</artifactId>
-            <version>3.0.20</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jruby</groupId>
-            <artifactId>jruby</artifactId>
-            <version>9.4.5.0</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>

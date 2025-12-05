@@ -48,8 +48,8 @@ jobs:
                 changed="true"
               fi
             done
-            if [[ "$changed" == "pom" ]]; then
-              echo "Detected pom change, double-checking dependencies"
+            if [[ -n "$changed" ]]; then
+              echo "Detected dependency change, double-checking dependencies.txt"
               mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
               ./build/scripts/calculate-cqs.sh
               git diff --exit-code --quiet build/dependencies.txt || {
@@ -57,8 +57,10 @@ jobs:
                 git diff build/dependencies.txt
                 exit 1
               }
-              echo "Dependencies are ok, skipping dash check"
-              changed="false"
+              if [[ "$changed" == "pom" ]]; then
+                echo "Dependencies are ok, skipping dash check"
+                changed="false"
+              fi
             fi
           else
             # weekly or dispatch requests
