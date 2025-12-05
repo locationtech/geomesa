@@ -14,17 +14,16 @@
 
     <properties>
         <gs.antlr.version>4.7.1</gs.antlr.version>
-        <gs.checker.qual.version>3.42.0</gs.checker.qual.version>
-        <gs.commons.codec.version>1.17.1</gs.commons.codec.version>
-        <gs.commons.io.version>2.16.1</gs.commons.io.version>
-        <gs.commons.lang.version>2.5</gs.commons.lang.version>
-        <gs.commons.lang3.version>3.15.0</gs.commons.lang3.version>
-        <gs.commons.logging.version>1.2</gs.commons.logging.version>
+        <gs.checker.qual.version>3.49.5</gs.checker.qual.version>
+        <gs.commons.codec.version>1.18.0</gs.commons.codec.version>
+        <gs.commons.io.version>2.19.0</gs.commons.io.version>
+        <gs.commons.lang3.version>3.18.0</gs.commons.lang3.version>
+        <gs.commons.logging.version>1.3.5</gs.commons.logging.version>
         <gs.commons.pool.version>1.5.4</gs.commons.pool.version>
-        <gs.commons.text.version>1.12.0</gs.commons.text.version>
-        <gs.error.prone.version>2.26.1</gs.error.prone.version>
-        <gs.jackson.version>2.17.2</gs.jackson.version>
-        <gs.jackson.databind.version>2.17.2</gs.jackson.databind.version>
+        <gs.commons.text.version>1.13.0</gs.commons.text.version>
+        <gs.error.prone.version>2.36.0</gs.error.prone.version>
+        <gs.jackson.version>2.19.0</gs.jackson.version>
+        <gs.jackson.databind.version>2.19.0</gs.jackson.databind.version>
     </properties>
 
     <dependencyManagement>
@@ -40,12 +39,6 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${gs.commons.io.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>${gs.commons.lang.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
