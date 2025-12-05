@@ -1532,18 +1532,6 @@
                 <version>1.11.0</version>
             </dependency>
             <dependency>
-                <groupId>commons-configuration</groupId>
-                <artifactId>commons-configuration</artifactId>
-                <version>1.10</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- exclude commons-beanutils-core, which doesn't exist in 1.9.3 -->
-                        <groupId>commons-beanutils</groupId>
-                        <artifactId>commons-beanutils-core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
                 <version>2.10.1</version>
