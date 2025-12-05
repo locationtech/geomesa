@@ -95,6 +95,7 @@ The following dependencies have been upgraded:
 * kafka ``3.9.0`` -> ``3.9.1``
 * micrometer ``1.15.4`` -> ``1.16.0``
 * prometheus ``1.4.1`` -> ``1.4.3``
+* rhino ``1.7.14`` -> ``1.8.1``
 * scala 2.12 ``2.12.19`` -> ``2.12.20``
 * scala 2.13 ``2.13.12`` -> ``2.13.16``
 * spark ``3.5.5`` -> ``3.5.7``

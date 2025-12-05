@@ -256,8 +256,8 @@ org.jspecify:jspecify:1.0.0:compile
 org.locationtech.jts.io:jts-io-common:1.20.0:compile
 org.locationtech.jts:jts-core:1.20.0:compile
 org.locationtech.spatial4j:spatial4j:0.8:compile
-org.mozilla:rhino-engine:1.7.14:compile
-org.mozilla:rhino:1.7.14:compile
+org.mozilla:rhino-engine:1.8.1:compile
+org.mozilla:rhino:1.8.1:compile
 org.objenesis:objenesis:2.5.1:compile
 org.objenesis:objenesis:3.3:compile
 org.parboiled:parboiled-core:1.4.1:compile

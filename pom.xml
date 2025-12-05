@@ -98,7 +98,7 @@
         <postgres.version>42.7.7</postgres.version>
         <prometheus.version>1.4.3</prometheus.version>
         <pureconfig.version>0.17.4</pureconfig.version>
-        <rhino.js.version>1.7.14</rhino.js.version>
+        <rhino.js.version>1.8.1</rhino.js.version>
         <s2.geometry.version>20250620-rc1</s2.geometry.version>
         <sizeof.version>0.4.3</sizeof.version>
         <spring.security.version>5.8.15</spring.security.version> <!-- geoserver is still on 5.x -->
