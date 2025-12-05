@@ -130,7 +130,7 @@
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.1.4</accumulo.version>
         <accumulo-20.version>2.0.1</accumulo-20.version>
-        <zookeeper.version>3.9.3</zookeeper.version>
+        <zookeeper.version>3.9.4</zookeeper.version>
         <thrift.version>0.17.0</thrift.version>
         <thrift-accumulo-20.version>0.12.0</thrift-accumulo-20.version>
         <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
@@ -226,7 +226,7 @@
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
         <test.spark.docker.tag>${spark.version}-scala${scala.binary.version}-java${jdk.version}-ubuntu</test.spark.docker.tag>
-        <test.zookeeper.docker.tag>3.9.2</test.zookeeper.docker.tag>
+        <test.zookeeper.docker.tag>3.9.4</test.zookeeper.docker.tag>
 
         <!-- documentation/readme -->
         <!-- bump version right before performing a release -->
