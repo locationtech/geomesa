@@ -99,7 +99,7 @@ The following dependencies have been upgraded:
 * scala 2.12 ``2.12.19`` -> ``2.12.20``
 * scala 2.13 ``2.13.12`` -> ``2.13.16``
 * spark ``3.5.5`` -> ``3.5.7``
-* zookeeper ``3.9,3`` -> ``3.9.4``
+* zookeeper ``3.9.3`` -> ``3.9.4``
 
 StrategyDecider API Update
 --------------------------
