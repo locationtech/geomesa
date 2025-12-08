@@ -116,13 +116,6 @@ jobs:
           set -o pipefail
           RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
           mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a test.log
-      - name: Unit tests (retry)
-        id: test-retry-retry
-        if: steps.test-retry.outcome=='failure'
-        run: |
-          set -o pipefail
-          RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a test.log
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
