@@ -86,7 +86,22 @@ jobs:
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Build with Maven
-        run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }}
+        id: compile
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} | tee -a build.log
+      - name: Build with Maven (retry)
+        if: steps.compile.outcome=='failure'
+        run: |
+          set -o pipefail
+          # retry if the failure was due to transient download errors from maven central
+          if [[ grep -q 'Could not transfer artifact .* from/to central' build.log ]]; then
+            RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+            mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a build.log
+          else
+            exit 1
+          fi
       - name: Unit tests
         id: test
         continue-on-error: true
@@ -100,14 +115,7 @@ jobs:
         run: |
           set -o pipefail
           RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS $RESUME_FROM -pl ${{ matrix.projects.list }} | tee -a test.log
-      - name: Unit tests (retry)
-        id: test-retry-retry
-        if: steps.test-retry.outcome=='failure'
-        run: |
-          set -o pipefail
-          RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS $RESUME_FROM -pl ${{ matrix.projects.list }} | tee -a test.log
+          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a test.log
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
