@@ -85,30 +85,30 @@ jobs:
           path: ~/.m2/repository/
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
-      - name: Build with Maven
+      - name: Compile
         id: compile
         continue-on-error: true
         run: |
           set -o pipefail
           mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} | tee -a build.log
-      - name: Build with Maven (retry)
+      - name: Compile (retry)
         if: steps.compile.outcome=='failure'
         run: |
           set -o pipefail
           # retry if the failure was due to transient download errors from maven central
-          if [[ grep -q 'Could not transfer artifact .* from/to central' build.log ]]; then
+          if [[ grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build.log ]]; then
             RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
             mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a build.log
           else
             exit 1
           fi
-      - name: Unit tests
+      - name: Run unit tests
         id: test
         continue-on-error: true
         run: |
           set -o pipefail
           mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} | tee -a test.log
-      - name: Unit tests (retry)
+      - name: Run unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
         continue-on-error: true
