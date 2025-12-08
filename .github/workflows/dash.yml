@@ -68,11 +68,27 @@ jobs:
             changed="true"
           fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
+      - name: Compile
+        if: steps.dependency_changes.outputs.changed == 'true'
+        id: compile
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS | tee -a build.log
+      - name: Compile (retry)
+        if: steps.compile.outcome=='failure'
+        run: |
+          set -o pipefail
+          # retry if the failure was due to transient download errors from maven central
+          if [[ grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build.log ]]; then
+            RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+            mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS $RESUME_FROM | tee -a build.log
+          else
+            exit 1
+          fi
       - name: License check
         if: steps.dependency_changes.outputs.changed == 'true'
-        run: |
-          mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
-          mvn $MAVEN_DASH_ARGS $MAVEN_CLI_OPTS
+        run: mvn $MAVEN_DASH_ARGS $MAVEN_CLI_OPTS
       - name: Show license
         if: success() || failure()
         run: |
