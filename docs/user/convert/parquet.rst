@@ -3,34 +3,34 @@
 Parquet Converter
 =================
 
-The Parquet converter handles data written by `Apache Parque <https://parquet.apache.org/>`__. To use the Parquet
-converter, specify ``type = "parquet"`` in your converter definition.
+The Parquet converter handles data written by `Apache Parque <https://parquet.apache.org/>`__.
+
+The Parquet converter supports parsing whole Parquet files. Due to the Parquet random-access API, it is important to set the
+input file path in the evaluation context. This is handled automatically by the GeoMesa CLI tools, but if used programmatically
+``"inputFilePath"`` must be set in the evaluation context global parameters.
 
 Configuration
 -------------
 
-The Parquet converter supports parsing whole Parquet files. Due to the Parquet random-access API, the file path
-must be specified in the ``EvaluationContext``. Further, pure streaming conversion is not possible (i.e. using
-bash pipe redirection into the ``ingest`` or ``convert`` command).
+The Parquet converter supports the following configuration keys:
 
-As Parquet does not define any object model, standard practice is to parse a Parquet file into Avro GenericRecords.
+=============== ======== ======= ==========================================================================================
+Key             Required Type    Description
+=============== ======== ======= ==========================================================================================
+``type``        yes      String  Must be the string ``parquet``.
+=============== ======== ======= ==========================================================================================
 
-The Avro GenericRecord being parsed is available to field transforms as ``$0``.
+Transform Functions
+-------------------
 
-Avro Paths
-----------
+As Parquet does not define any object model, standard practice is to parse Parquet files into Avro GenericRecords. The current
+Avro GenericRecord being parsed is available to field transforms as ``$0``.
 
 Because Parquet files are converted into Avro records, it is possible to use Avro paths to select elements. See
 :ref:`avro_converter` for details on Avro paths. Note that the result of an Avro path expression will be typed
 appropriately according to the Parquet column type (e.g. String, Double, List, etc).
 
-.. _parquet_converter_functions:
-
-Parquet Transform Functions
----------------------------
-
-GeoMesa defines several Parquet-specific transform functions, in addition to the ones defined under
-:ref:`avro_converter_functions`.
+In addition to the standard :ref:`converter_functions`, the Parquet converter provides the following Parquet-specific functions:
 
 parquetPoint
 ^^^^^^^^^^^^

@@ -1,23 +1,58 @@
 Extending the Converter Library
 -------------------------------
 
-There are two ways to extend the converter library - adding new
-transformation functions and adding new data formats.
+There are two ways to extend the converter library - adding new transformation functions and adding new data formats.
 
 Adding Scripting Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The easiest way to extend functionality is by defining custom Javascript functions. See
-:ref:`convert_scripting_functions` for more details.
+The easiest way to extend functionality is by defining custom Javascript functions. To define a JavaScript function, create
+a ``.js`` file with the function definition as the contents of the file. For example, if you have defined a function such as
+
+.. code-block:: javascript
+
+    function hello(s) {
+       return "hello: " + s;
+    }
+
+you can reference that function in a transform expression as ``js:hello($2)``
+
+Installing Custom Scripts
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For local usage, geomesa defines the system property ``geomesa.convert.scripts.path`` to be a colon-separated list of script
+files and/or directories containing scripts. This system property can be set when using the command line tools by setting the
+``CUSTOM_JAVA_OPTS`` environmental variable:
+
+.. code-block:: bash
+
+    CUSTOM_JAVA_OPTS="-Dgeomesa.convert.scripts.path=/path/to/script.js:/path/to/script-dir/"
+
+A more resilient method of including custom scripts is to package them as a JAR file and add it to the ``lib`` directory in
+the command-line tools. The scripts need to be placed in the JAR under the path ``geomesa-convert-scripts/``. You can manually
+create a JAR using the ``zip`` command:
+
+.. code-block:: bash
+
+    $ mkdir geomesa-convert-scripts/
+    $ mv my-script.js geomesa-convert-scripts/
+    $ zip -r my-scripts.jar geomesa-convert-scripts/
+      adding: geomesa-convert-scripts/ (stored 0%)
+      adding: geomesa-convert-scripts/my-script.js (deflated 2%)
+    $ unzip -c my-scripts.jar
+    Archive:  my-scripts.jar
+     extracting: geomesa-convert-scripts/
+      inflating: geomesa-convert-scripts/my-script.js
+    function hello(s) {
+      return "hello: " + s;
+    }
 
 Adding New Transformation Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add new transformation functions, create a
-``TransformationFunctionFactory`` and register it in
-``META-INF/services/org.locationtech.geomesa.convert2.transforms.TransformerFunctionFactory``.
-For example, here's how to add a new transformation function that
-computes a SHA-256 hash.
+To add new transformation functions, create a ``TransformationFunctionFactory`` and register it in a
+``META-INF/services/org.locationtech.geomesa.convert2.transforms.TransformerFunctionFactory`` file.
+For example, here's how to add a new transformation function that computes a SHA-256 hash:
 
 .. code-block:: scala
 
@@ -42,29 +77,17 @@ The ``sha256`` function can then be used in a field as shown.
 Adding New Data Formats
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-To add new data formats, implement the ``SimpleFeatureConverterFactory``
-and ``SimpleFeatureConverter`` interfaces and register them in
-``META-INF/services`` appropriately. See
-``org.locationtech.geomesa.convert.text.DelimitedTextConverter``
-for an example.
+To add new data formats, implement the ``SimpleFeatureConverterFactory`` and ``SimpleFeatureConverter`` interfaces and register
+them in ``META-INF/services`` appropriately. See ``org.locationtech.geomesa.convert.text.DelimitedTextConverter`` for an example.
 
 Adding Functions to the Geomesa Classpath
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After creating a JAR file with your transformation function and factory
-you can add these to the ``GEOMESA_EXTRA_CLASSPATHS`` environmental variable
-in order to expose them to the command line tools and distributed (map-reduce)
-ingest jobs.
+After creating a JAR file with your transformation function and factory, you can add these to the ``lib`` directory in
+the command-line tools.
 
-A example of ingest with a transforms on the classpath is below:
+You can verify the classpath is properly configured with the ``classpath`` command:
 
 .. code-block:: bash
 
-    GEOMESA_EXTRA_CLASSPATHS="/tmp/custom-transformer-1.0.0.jar" bin/geomesa-accumulo ingest -u <user-name>
-    -p <password> -s <sft-name> -C <converter-name> -c geomesa.catalog hdfs://localhost:9000/data/example.csv
-
-You can also verify the classpath is properly configured with the tools:
-
-.. code-block:: bash
-
-    GEOMESA_EXTRA_CLASSPATHS="/tmp/custom-transformer-1.0.0.jar" bin/geomesa-accumulo classpath
+    bin/geomesa-accumulo classpath

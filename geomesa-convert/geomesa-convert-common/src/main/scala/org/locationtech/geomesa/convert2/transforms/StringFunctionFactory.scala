@@ -51,7 +51,7 @@ class StringFunctionFactory extends TransformerFunctionFactory {
         case s: String => s
         case s => s.toString
       }
-      val toStrip = args(1).asInstanceOf[String]
+      val toStrip = if (args.lengthCompare(1) > 0) { args(1).asInstanceOf[String] } else { null }
       StringUtils.stripStart(s, toStrip)
     }
   }
@@ -62,7 +62,7 @@ class StringFunctionFactory extends TransformerFunctionFactory {
         case s: String => s
         case s => s.toString
       }
-      val toStrip = args(1).asInstanceOf[String]
+      val toStrip = if (args.lengthCompare(1) > 0) { args(1).asInstanceOf[String] } else { null }
       StringUtils.stripEnd(s, toStrip)
     }
   }

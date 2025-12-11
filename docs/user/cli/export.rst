@@ -3,6 +3,8 @@ Query and Export Commands
 
 These commands are used to query and export simple features. Required parameters are indicated with a ``*``.
 
+.. _cli_convert:
+
 ``convert``
 -----------
 

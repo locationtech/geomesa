@@ -3,25 +3,31 @@
 Avro Schema Registry Converter
 ==============================
 
-The Avro Schema Registry converter handles data written by `Apache Avro <https://avro.apache.org/>`__
-using a Confluent Schema Registry. The schema registry is a centralized store of versioned Avro schemas.
+The Avro schema registry converter handles data written by `Apache Avro <https://avro.apache.org/>`__
+using a Confluent schema registry. The schema registry is a centralized store of versioned Avro schemas.
 
-To use the Avro converter, specify ``type = "avro-schema-registry"`` in your converter definition.
-
-Note that Confluent requires Avro 1.8 and the Confluent client JARs, which are not bundled with GeoMesa.
-
+Note that the schema registry converter requires Confluent client JARs, which are not bundled by default with GeoMesa.
 
 Configuration
 -------------
 
-The Avro Schema Registry converter supports parsing Avro data using a Confluent schema registry.
-To configure the schema registry set ``schema-registry = "<URL of schema registry>"`` in your converter definition.
+The Avro schema registry converter supports the following configuration keys:
 
-The Avro record being parsed is available to field transforms as ``$1``.
+===================== ======== ======= ==========================================================================================
+Key                   Required Type    Description
+===================== ======== ======= ==========================================================================================
+``type``              yes      String  Must be the string ``avro-schema-registry``.
+``schema-registry``   yes      String  URL of the schema registry.
+===================== ======== ======= ==========================================================================================
 
-The Avro Schema Registry Converter is an extension of the :ref:`avro_converter`, therefore the :ref:`avro_converter_functions`
-can be used to extract fields out of the parsed Avro record.
+Transform Functions
+-------------------
 
+The current Avro record being parsed is available to field transforms as ``$1``. The original message bytes are available
+as ``$0``, which may be useful for generating consistent feature IDs.
+
+The Avro schema registry converter is an extension of the :ref:`avro_converter`, therefore both the standard
+:ref:`converter_functions` and the :ref:`avro_converter_functions` can be used to extract fields out of the parsed Avro record.
 
 Example Usage
 -------------
@@ -85,8 +91,8 @@ Here's a sample Avro record encoded using schema version 2: ::
       "extra": "Extra Test Field"
     }
 
-Let's say we want to convert our Avro records into simple
-features. We notice that between the two schema versions there are 3 attributes:
+Let's say we want to convert our Avro records into simple features. We notice that between the two schema versions there are
+3 attributes:
 
 -  lat
 -  lon
@@ -96,10 +102,9 @@ The following converter config would be sufficient to parse the Avro records tha
 using multiple schema version defined in the schema registry::
 
     {
-      type        =     "avro-schema-registry"
+      type = "avro-schema-registry"
       schema-registry = "http://localhost:8080"
-      sft         =     "testsft"
-      id-field    =     "uuid()"
+      id-field = "uuid()"
       fields = [
         { name = "lat",    transform = "avroPath($1, '/lat')" },
         { name = "lon",    transform = "avroPath($1, '/lon')" },

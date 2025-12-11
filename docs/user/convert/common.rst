@@ -20,37 +20,57 @@ as it consists of strongly-typed, ordered, named attributes (columns). The conve
 SimpleFeatureTypes defined in `HOCON <https://github.com/lightbend/config/blob/master/HOCON.md>`__.
 SimpleFeatureTypes should be written as objects under the path ``geomesa.sfts``.
 
-The name for the SimpleFeatureType will be the name of the HOCON element (e.g. 'example', below), or it can
-be overridden with ``type-name``.
+The following keys are supported:
 
-A SimpleFeatureType definition consists of an ``attributes`` array, and an optional ``user-data`` section.
+``type-name``
+^^^^^^^^^^^^^
 
-``attributes`` is an array of column definitions, each of which must include a ``name`` and a ``type``.
-See :ref:`attribute_types` for supported types. See :ref:`reserved-words` for names that aren't supported.
-Any additional keys beyond those two will be set as user data, and can be used to configure various
-attribute-level options.
+``type-name`` is an optional string used to specify the name for the SimpleFeatureType. If not included, the name of the
+SimpleFeatureType will be the name of the HOCON element (e.g. 'example', below).
 
-The ``user-data`` element consists of key-value pairs that will be set in the user data for the SimpleFeatureType.
-This can be used to configure various schema-level options.
+``attributes``
+^^^^^^^^^^^^^^
 
-See :ref:`index_config` for details on the configuration options available.
+``attributes`` is an array of column definitions, each item of which supports the following keys:
 
-Example::
+=============== ======== ======= =================================================================================================
+Key             Required Type    Description
+=============== ======== ======= =================================================================================================
+``name``        yes      String  The name of the attribute. See :ref:`reserved-words` for names that aren't supported.
+``type``        yes      String  The type of the attribute. See :ref:`attribute_types` for supported types.
+``default``     no       Boolean Indicates the default date and/or geometry field. At most one date and/or one geometry field may
+                                 be marked as default. Has no effect for other attribute types.
+``index``       no       String  Creates an index on the attribute. See :ref:`attribute_indices` for details.
+``cardinality`` no       String  Adds a hint used for query planning. See :ref:`attribute_cardinality` for details.
+``srid``        no       Integer The coordinate reference system, for Geometry-type attributes. Note that GeoMesa currently only
+                                 supports ``srid:4326``, i.e. latitude/longitude.
+``json``        no       Boolean Indicates that the attribute is a JSON-encoded object. See :ref:`json_attributes`.
+=============== ======== ======= =================================================================================================
 
-  geomesa = {
-    sfts = {
-      example = {
-        type-name = "example"
-        attributes = [
-          { name = "name", type = "String", index = true }
-          { name = "age", type = "Integer" }
-          { name = "dtg", type = "Date", default = true }
-          { name = "geom", type = "Point", default = true, srid = 4326 }
-        ]
-        user-data = {
-          option.one = "value"
-        }
-      }
+The above keys are the most commonly used, but see :ref:`index_config` for details on all of the available options, which
+include things like column groups, numeric precision, and cached statistics.
+
+``user-data``
+^^^^^^^^^^^^^
+
+``user-data`` is an optional object that consists of key-value pairs representing user data for the SimpleFeatureType.
+This can be used to configure various schema-level options. See :ref:`index_config` for details on configuration options.
+
+Example
+^^^^^^^
+
+::
+
+  geomesa.sfts.example = {
+    type-name = "example"
+    attributes = [
+      { name = "name", type = "String", index = true }
+      { name = "age", type = "Integer" }
+      { name = "dtg", type = "Date", default = true }
+      { name = "geom", type = "Point", default = true, srid = 4326 }
+    ]
+    user-data = {
+      option.one = "value"
     }
   }
 
@@ -65,40 +85,67 @@ Defining Converters
 -------------------
 
 A converter defines the mapping between source data (CSV, JSON, XML, etc) and a SimpleFeatureType. The converter
-accepts as input source files, and outputs GeoTools SimpleFeatures, which can then be written to GeoMesa.
-Thus, each converter corresponds to a single SimpleFeatureType, although there may be multiple converters for each
-SimpleFeatureType. The converter library supports converters defined in
-`HOCON <https://github.com/lightbend/config/blob/master/HOCON.md>`__. Converters should be written as objects under
-the path ``geomesa.converters``.
+transforms a data stream or file into GeoTools SimpleFeatures, which can then be written to GeoMesa. The converter library
+supports converters defined in `HOCON <https://github.com/lightbend/config/blob/master/HOCON.md>`__. Converters should be
+written as objects under the path ``geomesa.converters``.
 
-Converters are generally defined with a ``type`` and a ``fields`` array. Optionally,
-they may define an ``id-field``, ``user-data`` and configuration ``options``.
+Although specific converters may have additional options, the following common keys are supported:
 
-The ``type`` element specifies the type of the converter, for example 'delimited-text' or 'json'. Specific converters
-will have additional options that are not covered here. See :ref:`converters` for more information on the types available.
+``type``
+^^^^^^^^
 
-The ``fields`` array defines the attributes created by the converter. Each field consists of a ``name`` and
-an optional ``transform``. Specific converters support additional field options; see the documentation
-on each converter type for details.
+``type`` is a required key that defines the converter that will be used, such as ``json``, ``xml`` or ``avro``. See
+:ref:`converters` for a list of the available types.
 
-If the ``name`` of a field corresponds with the ``name`` of a SimpleFeatureType attribute, then it will be set as
-that attribute when converting to SimpleFeatures. Intermediate fields may be defined in order to build up
+``fields``
+^^^^^^^^^^
+
+``fields`` is a required key that defines an array of field definitions. Specific converters support additional field options,
+but all fields support the following keys:
+
+=============== ======== ======= =================================================================================================
+Key             Required Type    Description
+=============== ======== ======= =================================================================================================
+``name``        yes      String  The name of the field. If the name corresponds to an attribute in the SimpleFeatureType, it will
+                                 be used to populate that attribute.
+``transform``   no       String  Modifies the value of the field. Transforms support a simple syntax, where other fields can be
+                                 referenced by name using ``${}`` notation, and functions can be called by name with their
+                                 arguments in parenthesis ``()``. See :ref:`converter_functions` for a list of available
+                                 functions.
+=============== ======== ======= =================================================================================================
+
+Intermediate fields (fields where the ``name`` does not correspond to an attribute) may be defined in order to build up
 complex attributes, and can be referenced by name in other fields.
 
-The ``transform`` of a field can be used to reference other fields or modify the raw value extracted from the
-source data. Other fields can be referenced by name using ``$`` notation; for example, ``$age`` references the
-field named 'age'. Field names with periods or spaces can be referenced with brackets, for example ``${my.age}``.
-Transforms can also include function calls. GeoMesa includes a variety of useful transform functions, and supports
-loading custom functions from the classpath. See :ref:`converter_functions` for details.
+``id-field``
+^^^^^^^^^^^^
 
-The ``id-field`` element will set the feature ID for the SimpleFeature. It accepts any values that would normally
-be in a field ``transform``, so it can reference other fields and call transform functions. A common pattern
-is to use a hash of the entire input record for the ``id-field``; that way the feature ID is consistent if the
-same data is ingested multiple times. If the ``id-field`` is omitted, GeoMesa will generate random UUIDs for
-each feature.
+``id-field`` is an optional key that sets the feature ID for a SimpleFeature. It accepts any values that would normally be in a
+field ``transform``, so it can reference other fields and call transform functions. A common pattern is to use a hash of the
+entire input record for the ``id-field``; that way the feature ID is consistent if the same data is ingested multiple times.
+If the ``id-field`` is omitted, GeoMesa will generate a random UUID for each feature.
 
-The ``user-data`` element supports arbitrary key-value pairs that will be set in the user data for each SimpleFeature.
-For example, it could be used for :ref:`data_security`.
+``options``
+^^^^^^^^^^^
 
-The ``options`` element supports parsing and validation behavior. See :ref:`converter_validation` for details.
+``options`` is an optional key for customizing parsing and validation behavior. See :ref:`converter_validation` for details.
+In addition, specific converters may support additional option keys, which are described in the documentation for
+each converter type.
 
+``user-data``
+^^^^^^^^^^^^^
+
+``user-data`` is an optional key for an object used to set feature-level user data. The main use case is for :ref:`data_security`.
+
+``caches``
+
+``caches`` is an optional key that supports data enrichment from external sources. See :ref:`converter_caches` for details.
+
+.. _converter_metrics:
+
+Metrics
+-------
+
+Converters use the `Micrometer <https://docs.micrometer.io/micrometer/reference/>`__ library to register metrics for
+successful conversions, failed conversions, validation errors, and processing rates. See :ref:`geomesa_metrics` for details
+on exposing metrics through registries.

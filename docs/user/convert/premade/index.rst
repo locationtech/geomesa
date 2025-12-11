@@ -1,11 +1,10 @@
 .. _prepackaged_converters:
 
-Prepackaged Converter Definitions
-=================================
+Prepackaged Converters
+======================
 
-GeoMesa Tools distributions contain several prepackaged converters for common, publicly
-available data sources. These converters are bundled with the command-line tools
-in the GeoMesa binary distributions, in individual directories under ``conf/sfts``,
+The GeoMesa CLI distributions contain several prepackaged converters for publicly available data sources. These converters are
+bundled with the command-line tools in the GeoMesa binary distributions, in individual directories under ``conf/sfts``,
 which are included by the ``conf/reference.conf`` file.
 
 .. note::

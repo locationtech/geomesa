@@ -1,6 +1,10 @@
 Twitter
 =======
 
+.. warning::
+
+    This section has not been updated since Twitter rebranded to X, and some things may no longer work.
+
 Getting Twitter Data
 --------------------
 

@@ -3,9 +3,11 @@
 JDBC Converter
 ==============
 
-The JDBC converter allows you to create SimpleFeatures directly from a SQL select statement against an
-existing database, using standard JDBC libraries. To use the JDBC converter, specify ``type = "jdbc"``
-in your converter definition.
+The JDBC converter allows you to create SimpleFeatures directly by executing a SQL select statement against an
+existing database, using standard JDBC libraries.
+
+The JDBC converter takes SQL select statements as input. Because a select statement can return arbitrary columns,
+it is import to ensure that the fields returned match the converter definition.
 
 .. warning::
 
@@ -15,15 +17,24 @@ in your converter definition.
 Configuration
 -------------
 
+The JDBC converter supports the following configuration keys:
+
+=============== ======== ======= ==========================================================================================
+Key             Required Type    Description
+=============== ======== ======= ==========================================================================================
+``type``        yes      String  Must be the string ``jdbc``.
+``connection``  yes      String  The JDBC connection URL.
+=============== ======== ======= ==========================================================================================
+
+``connection``
+^^^^^^^^^^^^^^
+
 The JDBC connection string used to connect to the database must be specified using the ``connection`` element,
 for example ``jdbc:mysql://localhost/test?user=foo&password=bar``.
 
 The JDBC converter relies on standard JDBC libraries, and requires the correct JDBC driver for the database being
 used. Ensure the correct driver is on the classpath; for GeoMesa binary distributions, it can be placed in the
 ``lib`` folder.
-
-The JDBC converter takes SQL select statements as input. Because a select statement can return arbitrary columns,
-it is import to ensure that the fields returned match the converter definition.
 
 Transform Functions
 -------------------
