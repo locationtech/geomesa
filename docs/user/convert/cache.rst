@@ -1,93 +1,96 @@
-Using Caches for Enrichment
----------------------------
+.. _converter_caches:
 
-You can configure a literal cache or an external cache as a lookup table
-to populate attributes based on an id in the data. This is useful for enriching
-records with static information from an external source. In the example below,
-we use the ``cacheLookup`` function to resolve the name of a person based on the
-``number`` in each record. Each cache can be configured to expire records based
-on an ``expiration`` parameter in milliseconds.
+Enrichment Caches
+-----------------
 
-Config:
+A cache can be used to populate attributes based on the input data. This can be useful for enriching records with static
+information from an external source. For example, a user ID could be used to lookup an email address that isn't present in the
+input data.
 
-::
+Caches are defined under the key ``caches`` in the converter definition. Each cache is a named object.
 
-    {
-      type          = "xml"
-      id-field      = "uuid()"
-      feature-path  = "Feature" // optional path to feature elements
-      options = {
-        line-mode = "multi" // or "single"
-      }
-      caches = {
-        names = {
-           type = "simple"
-           data = {
-             123 = {
-                name = "Jane"
-                email = "bar@baz.com"
-             }
-             148 = {
-                name = "Mary"
-                email = "foo@bar.com"
-             }
-           }
+Caches are accessed through the ``cacheLookup`` transform function, which takes three arguments - the name of the cache (i.e.
+its key in the ``caches`` definition), an identifier used to retrieve a cached record, and a field to retrieve from the cached
+record.
+
+Static Caches
+^^^^^^^^^^^^^
+
+A simple, static cache can be defined in the converter definition itself. This may be appropriate for smaller use cases, or for
+testing.
+
+Static caches are defined with the following keys:
+
+=============== ======== ======= =================================================================================================
+Key             Required Type    Description
+=============== ======== ======= =================================================================================================
+``type``        yes      String  Must be the string ``simple``
+``data``        yes      Object  Each key in the ``data`` object is a cached record.
+=============== ======== ======= =================================================================================================
+
+For example, the following definition shows a cache of user information::
+
+    caches = {
+      users = {
+        type = "simple"
+        data = {
+          123 = {
+            name = "Jane"
+            email = "jane@example.com"
+          }
+          456 = {
+            name = "Mary"
+            email = "mary@example.com"
+          }
         }
       }
-      fields = [
-        { name = "number", path = "number",           transform = "$0::integer"       }
-        { name = "color",  path = "color",            transform = "trim($0)"          }
-        { name = "weight", path = "physical/@weight", transform = "$0::double"        }
-        { name = "source", path = "/doc/DataSource/name/text()"                       }
-        { name = "lat",    path = "geom/lat",         transform = "$0::double"        }
-        { name = "lon",    path = "geom/lon",         transform = "$0::double"        }
-        { name = "name",   transform = "cacheLookup('names', $number, 'name')"        }
-        { name = "geom",                              transform = "point($lon, $lat)" }
-      ]
     }
 
-Data:
+Redis Caches
+^^^^^^^^^^^^
 
-.. code-block:: xml
+Redis can be used for a more robust cache. A Redis cache is defined with the following keys:
 
-    <?xml version="1.0"?>
-    <doc>
-        <DataSource>
-            <name>myxml</name>
-        </DataSource>
-        <Feature>
-            <number>123</number>
-            <geom>
-                <lat>12.23</lat>
-                <lon>44.3</lon>
-            </geom>
-            <color>red</color>
-            <physical height="5'11" weight="127.5"/>
-        </Feature>
-        <Feature>
-            <number>456</number>
-            <geom>
-                <lat>20.3</lat>
-                <lon>33.2</lon>
-            </geom>
-            <color>blue</color>
-            <physical height="h2" weight="150"/>
-        </Feature>
-    </doc>
+=============== ======== ======= =================================================================================================
+Key             Required Type    Description
+=============== ======== ======= =================================================================================================
+``type``        yes      String  Must be the string ``redis``
+``redis-url``   yes      String  URL for a Redis instance
+``expiration``  no       Integer If defined, values will be cached locally for the given period. Specified as milliseconds.
+=============== ======== ======= =================================================================================================
 
+The Redis values are expected to be a hash. For example, the following Redis CLI commands would create the same user cache defined
+in the static cache example, above::
 
-To configure a Redis cache, specify the ``caches`` section as follows:
+    > HSET 123 name "Jane" email "jane@example.com"
+    > HSET 456 name "Mary" email "mary@example.com"
 
-Config:
+The cache would be defined as::
 
-::
+    caches = {
+      users = {
+        type = "redis"
+        redis-url = "redis://localhost:6379"
+        expiration = 30000
+      }
+    }
 
-    {
+Example
+^^^^^^^
+
+In the following example, we use the ``cacheLookup`` function to resolve the email of a user based on the ``userId`` in each
+record::
+
+    geomesa.converters.myconverter = {
+      fields = [
+        { name = "userId", ... }
+        { name = "email", transform = "cacheLookup('users', $userId, 'email')" }
+      ]
       caches = {
-        redis = {
-           type = "redis"
-           redis-url = "url_of_redis"
-           expiration = 30000 // milliseconds
+        users = {
+          type = "redis"
+          redis-url = "redis://localhost:6379"
+          expiration = 30000
         }
       }
     }

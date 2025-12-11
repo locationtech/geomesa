@@ -9,9 +9,7 @@
 package org.locationtech.geomesa.convert2.transforms
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.digest.MurmurHash3
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -26,9 +24,9 @@ import scala.util.control.NonFatal
 class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
   override def functions: Seq[TransformerFunction] =
-    Seq(string2Bytes, md5, uuid, uuidZ3, uuidZ3Centroid, base64, murmur3_32, murmur3_64, murmur3_128)
+    Seq(stringToBytes, md5, uuid, uuidZ3, uuidZ3Centroid, murmur3_32, murmur3_64, murmur3_128)
 
-  private val string2Bytes = TransformerFunction("string2bytes", "stringToBytes") {
+  private val stringToBytes = TransformerFunction("stringToBytes", "string2bytes") {
     args => args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8)
   }
 
@@ -53,15 +51,6 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
       case NonFatal(e) =>
         logger.warn(s"Invalid z3 values for UUID: $geom $date $interval: $e")
         UUID.randomUUID().toString
-    }
-  }
-
-  @deprecated("Replaced with base64Encode")
-  private val base64 = new NamedTransformerFunction(Seq("base64"), pure = true) {
-    override def apply(args: Array[AnyRef]): AnyRef = Base64.encodeBase64URLSafeString(args(0).asInstanceOf[Array[Byte]])
-    override def withContext(ec: EvaluationContext): TransformerFunction = {
-      logger.warn("Using deprecated function 'base64' - use 'base64Encode' instead")
-      this
     }
   }
 

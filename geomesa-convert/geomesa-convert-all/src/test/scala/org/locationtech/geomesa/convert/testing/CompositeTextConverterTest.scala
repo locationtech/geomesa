@@ -69,7 +69,7 @@ class CompositeTextConverterTest extends Specification with LazyLogging {
       | }
     """.stripMargin)
 
-  val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+  val sft = SimpleFeatureTypes.createType(ConfigFactory.load().getConfig("geomesa.sfts.testsft"))
 
   "CompositeConverter" should {
 

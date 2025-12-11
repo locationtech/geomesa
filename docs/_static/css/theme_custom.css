@@ -294,6 +294,10 @@ div.admonition.warning, div.admonition.note {
   margin-bottom: 12px;
 }
 
+.wy-table-responsive table td .line-block:last-of-type {
+  margin-bottom: 0;
+}
+
 .wy-table-responsive tr.row-even td {
   background-color: #e7f3fc !important;
 }

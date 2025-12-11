@@ -3,39 +3,39 @@
 Avro Converter
 ==============
 
-The Avro converter handles data written by `Apache Avro <https://avro.apache.org/>`__. To use the Avro converter,
-specify ``type = "avro"`` in your converter definition.
+The Avro converter handles data written by `Apache Avro <https://avro.apache.org/>`__.
 
 Configuration
 -------------
 
+The Avro converter supports the following configuration keys:
+
+=============== ======== ======= ==========================================================================================
+Key             Required Type    Description
+=============== ======== ======= ==========================================================================================
+``type``        yes      String  Must be the string ``avro``.
+``schema``      yes      String  The Avro schema used for parsing (may be omitted if using ``schema-file``).
+``schema-file`` yes      String  A pointer to an Avro schema on the classpath (may be omitted if using ``schema``).
+=============== ======== ======= ==========================================================================================
+
+``schema``/``schema-file``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 The Avro converter supports parsing whole Avro files, with the schema embedded, or Avro IPC messages with
 the schema omitted. For an embedded schema, set ``schema = "embedded"`` in your converter definition.
 For IPC messages, specify the schema in one of two ways: to use an inline schema string, set
-``schema = "<schema string>"``; to use a schema defined in a separate file, set ``schema-file = "<path to file>"``.
-
-The Avro record being parsed is available to field transforms as ``$1``.
-
-Avro Paths
-----------
-
-Avro paths are defined similarly to JSONPath or XPath, and allow you to extract specific fields out of an
-Avro record. An Avro path consists of forward-slash delimited strings. Each part of the path defines
-a field name with an optional predicate:
-
-*  ``$type=<typename>`` - match the Avro schema type name on the selected element
-*  ``[$<field>=<value>]`` - match elements with a field named "field" and a value equal to "value"
-
-For example, ``/foo$type=bar/baz[$qux=quux]``. See `Example Usage`, below, for a concrete example.
-
-Avro paths are available through the ``avroPath`` transform function, as described below.
+``schema = "<schema string>"``; or to use a schema defined in a separate file, set ``schema-file = "<path to file>"``
+(the schema file must be available on the classpath).
 
 .. _avro_converter_functions:
 
-Avro Transform Functions
-------------------------
+Transform Functions
+-------------------
 
-GeoMesa defines several Avro-specific transform functions.
+The current Avro record being parsed is available to field transforms as ``$1``. The original message bytes are available
+as ``$0``, which may be useful for generating consistent feature IDs.
+
+In addition to the standard :ref:`converter_functions`, the Avro converter provides the following Avro-specific functions:
 
 avroPath
 ^^^^^^^^
@@ -45,7 +45,16 @@ Description: Extract values from nested Avro structures.
 Usage: ``avroPath($ref, $pathString)``
 
 *  ``$ref`` - a reference object (avro root or extracted object)
-*  ``pathString`` - forward-slash delimited path strings. See `Avro Paths`, above
+*  ``pathString`` - forward-slash delimited path strings
+
+Avro paths are defined similarly to JSONPath or XPath, and allow you to extract specific fields out of an
+Avro record. An Avro path consists of forward-slash delimited strings. Each part of the path defines
+a field name with an optional predicate:
+
+*  ``$type=<typename>`` - match the Avro schema type name on the selected element
+*  ``[$<field>=<value>]`` - match elements with a field named "field" and a value equal to "value"
+
+For example, ``/foo$type=bar/baz[$qux=quux]``. See the example below for a concrete example.
 
 avroToJson
 ^^^^^^^^^^
@@ -89,7 +98,7 @@ Usage: ``avroBinaryUuid($ref)``
 Example Usage
 -------------
 
-For this example we'll use the following Avro schema in a file named ``/tmp/schema.avsc``:
+For this example we'll use the following Avro schema in a classpath file named ``schema.avsc``:
 
 ::
 
@@ -98,7 +107,8 @@ For this example we'll use the following Avro schema in a file named ``/tmp/sche
       "type": "record",
       "name": "CompositeMessage",
       "fields": [
-        { "name": "content",
+        {
+          "name": "content",
           "type": [
              {
                "name": "DataObj",
@@ -126,7 +136,7 @@ For this example we'll use the following Avro schema in a file named ``/tmp/sche
                 "fields": [{ "name": "id", "type": "int"}]
              }
           ]
-       }
+        }
       ]
     }
 
@@ -135,9 +145,9 @@ which has a nested object which is either of type ``DataObj`` or
 ``OtherObject``. As an exercise, we can use avro tools to generate some
 test data and view it::
 
-    java -jar /tmp/avro-tools-1.7.7.jar random --schema-file /tmp/schema -count 5 /tmp/avro
+    java -jar avro-tools-1.11.4.jar random --schema-file schema.avsc -count 5 /tmp/avro
 
-    $ java -jar /tmp/avro-tools-1.7.7.jar tojson /tmp/avro
+    $ java -jar /tmp/avro-tools-1.11.4.jar tojson /tmp/avro
     {"content":{"org.locationtech.DataObj":{"kvmap":[{"k":"thhxhumkykubls","v":{"double":0.8793488185997134}},{"k":"mlungpiegrlof","v":{"double":0.45718223406586045}},{"k":"mtslijkjdt","v":null}]}}}
     {"content":{"org.locationtech.OtherObject":{"id":-86025408}}}
     {"content":{"org.locationtech.DataObj":{"kvmap":[]}}}
@@ -186,7 +196,7 @@ The following converter config would be sufficient to parse the Avro::
 
     {
       type        = "avro"
-      schema-file = "/tmp/schema.avsc"
+      schema-file = "schema.avsc"
       id-field    = "uuid()"
       fields = [
         { name = "tobj", transform = "avroPath($1, '/content$type=DataObj')" },

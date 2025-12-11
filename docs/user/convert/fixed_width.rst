@@ -3,14 +3,30 @@
 Fixed-Width Text Converter
 ==========================
 
-The fixed-width text converter handles text files that follow a fixed format. To use the fixed-width
-converter, specify ``type = "fixed-width"`` in your converter definition.
+The fixed-width text converter handles text files that follow a fixed format.
 
 Configuration
 -------------
 
-``fields`` in a fixed-width converter support two additional attributes, ``start`` and ``width``. These
-define the offset and length of each field in relation to the entire record.
+The fixed-width converter supports the following configuration keys:
+
+=============== ======== ======= ==========================================================================================
+Key             Required Type    Description
+=============== ======== ======= ==========================================================================================
+``type``        yes      String  Must be the string ``fixed-width``.
+=============== ======== ======= ==========================================================================================
+
+Field Configuration
+-------------------
+
+The ``fields`` element in a fixed-width converter supports additional keys:
+
+============= ==========================================================================================================
+Key           Description
+============= ==========================================================================================================
+``start``     The starting offset of a field.
+``width``     The width/length of a field.
+============= ==========================================================================================================
 
 Transform Functions
 -------------------
@@ -31,17 +47,13 @@ a single digit prefix:
     14555
     16565
 
-The following Typesafe Config string defines an appropriate converter for taking this data and
-transforming it into our ``SimpleFeatureType``:
+The following configuration defines an appropriate converter for transforming this into our ``SimpleFeatureType``:
 
 ::
 
   geomesa.converters.example = {
-    type     = "fixed-width",
+    type = "fixed-width",
     id-field = "uuid()",
-    options = {
-      validators = []
-    }
     fields = [
       { name = "lat",  start = 1, width = 2, transform = "$0::double" },
       { name = "lon",  start = 3, width = 2, transform = "$0::double" },

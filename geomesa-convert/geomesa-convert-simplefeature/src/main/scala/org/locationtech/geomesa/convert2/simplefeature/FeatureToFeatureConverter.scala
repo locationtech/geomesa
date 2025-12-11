@@ -69,4 +69,14 @@ object FeatureToFeatureConverter {
     */
   def apply(sft: SimpleFeatureType, conf: Config): FeatureToFeatureConverter =
     SimpleFeatureConverter(sft, conf).asInstanceOf[FeatureToFeatureConverter]
+
+  /**
+   * Create a typed converter by name
+   *
+   * @param typeName simple feature type name
+   * @param converterName converter name
+   * @return
+   */
+  def apply(typeName: String, converterName: String): FeatureToFeatureConverter =
+    SimpleFeatureConverter(typeName, converterName).asInstanceOf[FeatureToFeatureConverter]
 }

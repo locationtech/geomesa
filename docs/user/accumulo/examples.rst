@@ -238,7 +238,7 @@ The config file needs to have a ``SimpleFeatureType`` defined along with a
 converter that specifies instructions on how to turn the raw data file into
 that simple feature type. See :doc:`/user/convert/index` for a more details
 on converters, including a full list of the transformation functions available
-(:doc:`/user/convert/function_overview`).
+(:doc:`/user/convert/functions`).
 
 This example uses the ``date()`` function to tell the parser what date column
 is in. The ``stringToDouble()`` and ``::double`` functions give two different

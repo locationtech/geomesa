@@ -58,7 +58,7 @@ class CastFunctionFactory extends TransformerFunctionFactory {
   }
 
   // usage: stringToBoolean($1, false)
-  private val castToBoolean = TransformerFunction.pure("toBool", "toBoolean", "stringToBool", "stringToBoolean") { args =>
+  private val castToBoolean = TransformerFunction.pure("toBool", "toBoolean", "stringToBool", "stringToBoolean", "intToBoolean") { args =>
     val default = if (args.lengthCompare(1) > 0) { args(1) } else { null }
     args(0) match {
       case b: String  => try { b.toBoolean } catch { case _: Exception => default }

@@ -36,6 +36,7 @@ class RedisEnrichmentCache(jedisPool: RedisConnectionBuilder,
       if (!localCache) {
         Caffeine.newBuilder().expireAfterWrite(0, TimeUnit.MILLISECONDS).maximumSize(0)
       } else {
+        // TODO we shouldn't allow non-expiring caches :/
         Caffeine.newBuilder()
       }
     }

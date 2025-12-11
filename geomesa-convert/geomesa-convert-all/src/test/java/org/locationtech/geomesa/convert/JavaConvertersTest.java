@@ -53,7 +53,7 @@ public class JavaConvertersTest {
             "}"
         ));
 
-        SimpleFeatureType sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"));
+        SimpleFeatureType sft = SimpleFeatureTypes.createType(ConfigFactory.load().getConfig("geomesa.sfts.testsft"));
         List<SimpleFeature> features = new ArrayList<>();
 
         try (SimpleFeatureConverter converter = SimpleFeatureConverterLoader.load(sft, conf)) {
@@ -74,5 +74,12 @@ public class JavaConvertersTest {
         Assert.assertEquals(2, features.size());
         Assert.assertEquals("1hello", features.get(0).getAttribute("phrase"));
         Assert.assertEquals("2world", features.get(1).getAttribute("phrase"));
+    }
+
+    @Test
+    public void testJavaApi2() throws IOException {
+        try (SimpleFeatureConverter converter = SimpleFeatureConverter.apply("testsft", "global1")) {
+            Assert.assertNotNull(converter);
+        }
     }
 }

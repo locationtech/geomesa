@@ -9,7 +9,7 @@ GeoMesa, and ships with the GeoMesa command-line tools. Data types are defined i
 `HOCON <https://github.com/lightbend/config/blob/master/HOCON.md>`__ format, which allows for ingesting a wide
 variety of data without any custom code.
 
-Converter definitions are provided out-of-the-box for some common open-source data sets, including Twitter and
+Converter definitions are provided out-of-the-box for some common open-source data sets, such as Open Street Map and
 GDELT; see :ref:`prepackaged_converters` for details. In addition, common file formats such as GeoJSON,
 delimited text, or self-describing Avro can often be ingested without a converter. See :ref:`cli_ingest` for
 details.
@@ -20,8 +20,10 @@ details.
     common
     parsing_and_validation
     cache
+    composite
     usage_tools
     usage_code
+    extending
     delimited_text
     json
     xml
@@ -31,9 +33,6 @@ details.
     shp
     fixed_width
     jdbc
-    composite
     feature_to_feature
+    functions
     premade/index
-    function_overview
-    function_usage
-    extending

@@ -14,10 +14,6 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTra
 
 object MiscFunctionFactory {
 
-  def intToBoolean(args: Array[Any]): Any = {
-    if (args(0) == null) null else args(0).asInstanceOf[Int] != 0
-  }
-
   def require(args: Array[Any]): Any = {
     if (args(0) == null) {
       throw new IllegalArgumentException("Required field is null")
@@ -33,11 +29,9 @@ object MiscFunctionFactory {
 
 class MiscFunctionFactory extends TransformerFunctionFactory {
 
-  override def functions: Seq[TransformerFunction] = Seq(lineNumber, require, intToBoolean)
+  override def functions: Seq[TransformerFunction] = Seq(lineNumber, require)
 
   private val lineNumber = new LineNumber(null)
 
   private val require = TransformerFunction.pure("require")(MiscFunctionFactory.require)
-
-  private val intToBoolean = TransformerFunction.pure("intToBoolean")(MiscFunctionFactory.intToBoolean)
 }

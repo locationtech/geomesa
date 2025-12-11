@@ -16,6 +16,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.serialization.{AvroSerialization, SimpleFeatureDatumReader}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Geometry, GeometryFactory}
 import org.specs2.mutable.Specification
@@ -108,8 +109,8 @@ class Version1BackwardsCompatTest extends Specification {
     f
   }
 
-  def readPipeFile(f: File, sft: SimpleFeatureType) =
-    Source.fromFile(f)(UTF8).getLines.map { line => ScalaSimpleFeature.copy(DataUtilities.createFeature(sft, line)) }.toList
+  def readPipeFile(f: File, sft: SimpleFeatureType): List[ScalaSimpleFeature] =
+    WithClose(Source.fromFile(f)(UTF8))(_.getLines).map(line => ScalaSimpleFeature.copy(DataUtilities.createFeature(sft, line))).toList
 
   def createComplicatedFeatures(numFeatures : Int): Seq[Version1ASF] = {
     val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,f8:Polygon:srid=4326"

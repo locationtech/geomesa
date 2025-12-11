@@ -8,11 +8,25 @@ native decoding of features from an input stream.
 Configuration
 -------------
 
-The feature-to-feature converter expects a ``type`` of ``simple-feature``. It also requires the input feature type to be
-defined with ``input-sft``, which must reference the name of a feature type available on the classpath - see
-:ref:`converter_sft_defs` for details on making the feature type available.
+The feature-to-feature converter supports the following configuration keys:
 
-The ``fields`` of the converter can reference the attributes of the input feature type by name, using ``$`` notation. Note
+=============== ======== ======= ==========================================================================================
+Key             Required Type    Description
+=============== ======== ======= ==========================================================================================
+``type``        yes      String  Must be the string ``simple-feature``.
+``input-sft``   yes      String  Name of a feature type available on the classpath.
+=============== ======== ======= ==========================================================================================
+
+``input-sft``
+^^^^^^^^^^^^^
+
+The input feature type must be defined with ``input-sft``, which must reference the name of a feature type available on the
+classpath - see :ref:`converter_sft_defs` for details on making the feature type available.
+
+Transform Functions
+-------------------
+
+The attributes of the input feature type can be accessed by transforms, using ``$`` notation. Note
 that the input feature type will take precedence over any converter fields when resolving attribute references. Any
 fields that have the same name as the input type will be automatically copied, unless they are explicitly redefined in the
 converter definition. The feature ID will also be copied, unless it is redefined with ``id-field``.
@@ -68,18 +82,10 @@ from one of the input fields:
     .. code-tab:: scala
 
         import org.geotools.api.feature.simple.SimpleFeature
-        import org.locationtech.geomesa.convert.ConverterConfigLoader
         import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverter
         import org.locationtech.geomesa.utils.collection.CloseableIterator
-        import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 
-        val sft = SimpleFeatureTypeLoader.sftForName("outtype").getOrElse {
-          throw new RuntimeException("Could not load feature type")
-        }
-        val conf = ConverterConfigLoader.configForName("myconverter").getOrElse {
-          throw new RuntimeException("Could not load converter definition")
-        }
-        val converter = FeatureToFeatureConverter(sft, conf)
+        val converter = FeatureToFeatureConverter("outtype", "myconverter")
         try {
           val features: Iterator[SimpleFeature] = ??? // list of input features to transform
           val iter = converter.convert(CloseableIterator(features))
@@ -94,25 +100,18 @@ from one of the input fields:
 
     .. code-tab:: java
 
-        import com.typesafe.config.Config;
         import org.geotools.api.feature.simple.SimpleFeature;
-        import org.geotools.api.feature.simple.SimpleFeatureType;
-        import org.locationtech.geomesa.convert.ConverterConfigLoader;
         import org.locationtech.geomesa.convert.EvaluationContext;
         import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverter;
         import org.locationtech.geomesa.utils.collection.CloseableIterator;
-        import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader;
 
         import java.util.List;
         import java.util.Map;
 
-        SimpleFeatureType outsft = SimpleFeatureTypeLoader.sftForName("outtype").get();
-        Config parserConf = ConverterConfigLoader.configForName("myconverter").get();
-
         List<SimpleFeature> features = ...; // list of input features to transform
 
         // use try-with-resources to clean up the converter when we're done
-        try (FeatureToFeatureConverter converter = FeatureToFeatureConverter.apply(outsft, parserConf)) {
+        try (FeatureToFeatureConverter converter = FeatureToFeatureConverter.apply("outtype", "myconverter")) {
             EvaluationContext context = converter.createEvaluationContext(Map.of());
             try (CloseableIterator<SimpleFeature> iter = converter.convert(CloseableIterator.apply(features.iterator()), ec)) {
                 while (iter.hasNext()) {

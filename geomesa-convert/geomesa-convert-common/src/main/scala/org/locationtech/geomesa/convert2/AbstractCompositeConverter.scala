@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.convert2
 
-import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 import io.micrometer.core.instrument.{Metrics, Timer}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}

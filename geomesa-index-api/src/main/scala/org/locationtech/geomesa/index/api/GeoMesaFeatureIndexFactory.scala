@@ -62,7 +62,7 @@ object GeoMesaFeatureIndexFactory {
     * @return
     */
   def indices(sft: SimpleFeatureType): Seq[IndexId] = {
-    Option(sft.getUserData.get(EnabledIndices).asInstanceOf[String]).filter(_.length > 0) match {
+    Option(sft.getUserData.get(EnabledIndices).asInstanceOf[String]).filter(_.nonEmpty) match {
       case None => factories.flatMap(_.indices(sft)).distinct
       case Some(enabled) =>
         enabled.split(",").flatMap { hint =>

@@ -1,7 +1,9 @@
-Using Converters Programmatically
----------------------------------
+Programmatic Use
+----------------
 
-Converters and SimpleFeatureTypes can be imported through maven and used directly in code::
+Converters and SimpleFeatureTypes can be imported through Maven and used directly in code:
+
+.. code-block:: xml
 
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
@@ -13,17 +15,9 @@ Converters and SimpleFeatureTypes can be imported through maven and used directl
 
     .. code-tab:: scala
 
-        import org.locationtech.geomesa.convert.ConverterConfigLoader
         import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-        import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 
-        val sft = SimpleFeatureTypeLoader.sftForName("example-csv").getOrElse {
-          throw new RuntimeException("Could not load feature type")
-        }
-        val conf = ConverterConfigLoader.configForName("example-csv").getOrElse {
-          throw new RuntimeException("Could not load converter definition")
-        }
-        val converter = SimpleFeatureConverter(sft, conf)
+        val converter = SimpleFeatureConverter("example-csv", "example-csv") // load by-name from the classpath
         try {
           val is: InputStream = ??? // load your input data
           val features = converter.process(is)
@@ -38,35 +32,21 @@ Converters and SimpleFeatureTypes can be imported through maven and used directl
 
     .. code-tab:: java
 
-        import com.typesafe.config.Config;
-        import com.typesafe.config.ConfigFactory;
         import org.geotools.api.feature.simple.SimpleFeature;
-        import org.geotools.api.feature.simple.SimpleFeatureType;
-        import org.locationtech.geomesa.convert.ConverterConfigLoader;
         import org.locationtech.geomesa.convert.EvaluationContext;
         import org.locationtech.geomesa.convert2.SimpleFeatureConverter;
-        import org.locationtech.geomesa.convert2.interop.SimpleFeatureConverterLoader;
         import org.locationtech.geomesa.utils.collection.CloseableIterator;
         import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader;
 
+        import java.io.InputStream;
         import java.util.Collections;
 
-        scala.Option<SimpleFeatureType> sftOption = SimpleFeatureTypeLoader.sftForName("example-csv");
-        if (sftOption.isEmpty()) {
-          throw new RuntimeException("Could not load feature type");
-        }
-        SimpleFeatureType sft = sftOption.get();
-
-        scala.Option<Config> confOption = ConverterConfigLoader.configForName("example-csv");
-        if (confOption.isEmpty()) {
-          throw new RuntimeException("Could not load converter definition");
-        }
-        Config conf = confOption.get();
-
+        // load by-name from the classpath
         // use try-with-resources to clean up the converter when we're done
-        try (SimpleFeatureConverter converter = SimpleFeatureConverterLoader.load(sft, conf)) {
-            InputStream in = null; // load your input data
+        try (SimpleFeatureConverter converter = SimpleFeatureConverter.apply("example-csv", "example-csv")) {
             EvaluationContext context = converter.createEvaluationContext(Collections.emptyMap());
+            InputStream in = null; // load your input data
+            // try-with-resources will also close the input stream
             try (CloseableIterator<SimpleFeature> iter = converter.process(in, context)) {
                 while (iter.hasNext()) {
                     iter.next(); // do something with the conversion result
