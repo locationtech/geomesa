@@ -15,7 +15,6 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.{StatefulEvaluationContext, Stats}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
 import org.locationtech.geomesa.convert2.Field
-import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Expression.{FunctionExpression, Literal}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
@@ -946,12 +945,15 @@ class ExpressionTest extends Specification {
       }
     }
     "convert integer to boolean" >> {
-      val trans = Expression("intToBoolean($0)")
-      trans.apply(Array(Int.box(1))) mustEqual true
-      trans.apply(Array(Int.box(0))) mustEqual false
-      trans.apply(Array(Int.box(-20))) mustEqual true
-      trans.apply(Array(Int.box(10000))) mustEqual true
-      trans.apply(Array(Double.box(2.2))) must throwA[ClassCastException]
+      foreach(Seq("intToBoolean", "toBoolean")) { expr =>
+        val trans = Expression(expr + "($0)")
+        trans.apply(Array(Int.box(1))) mustEqual true
+        trans.apply(Array(Int.box(0))) mustEqual false
+        trans.apply(Array(Int.box(-20))) mustEqual true
+        trans.apply(Array(Int.box(10000))) mustEqual true
+        trans.apply(Array(null)) must beNull
+        trans.apply(Array(Double.box(2.2))) mustEqual true
+      }
     }
     "strip quotes" >> {
       val trans = Expression("stripQuotes($0)")

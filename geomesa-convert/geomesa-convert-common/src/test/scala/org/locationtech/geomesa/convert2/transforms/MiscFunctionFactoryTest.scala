@@ -16,26 +16,6 @@ import org.specs2.runner.JUnitRunner
 class MiscFunctionFactoryTest extends Specification {
 
   "MiscFunctionFactory" >> {
-    "intToBoolean" should {
-      "convert a 0 to false" >> {
-        MiscFunctionFactory.intToBoolean(Array(Int.box(0))) mustEqual false
-      }
-      "convert a 1 to true" >> {
-        MiscFunctionFactory.intToBoolean(Array(Int.box(1))) mustEqual true
-      }
-      "convert any int other than 0 to true" >> {
-        MiscFunctionFactory.intToBoolean(Array(Int.box(1000))) mustEqual true
-        MiscFunctionFactory.intToBoolean(Array(Int.box(-2))) mustEqual true
-      }
-      "return null for null input" >> {
-        MiscFunctionFactory.intToBoolean(Array(null)) mustEqual null
-      }
-      "throw an error if faced with a non-int value" >> {
-        MiscFunctionFactory.intToBoolean(Array(Double.box(0.55567))) must throwA[ClassCastException]
-        MiscFunctionFactory.intToBoolean(Array("0")) must throwA[ClassCastException]
-      }
-    }
-
     "require" should {
       "return the passed-in argument, if it exists" >> {
         MiscFunctionFactory.require(Array("a")) mustEqual "a"
