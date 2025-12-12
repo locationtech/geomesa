@@ -96,7 +96,7 @@ jobs:
         run: |
           set -o pipefail
           # retry if the failure was due to transient download errors from maven central
-          if [[ grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build.log ]]; then
+          if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build.log; then
             RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
             mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a build.log
           else
