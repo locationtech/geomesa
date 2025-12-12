@@ -110,7 +110,7 @@ class Version1BackwardsCompatTest extends Specification {
   }
 
   def readPipeFile(f: File, sft: SimpleFeatureType): List[ScalaSimpleFeature] =
-    WithClose(Source.fromFile(f)(UTF8))(_.getLines).map(line => ScalaSimpleFeature.copy(DataUtilities.createFeature(sft, line))).toList
+    WithClose(Source.fromFile(f)(UTF8))(_.getLines.toList).map(line => ScalaSimpleFeature.copy(DataUtilities.createFeature(sft, line)))
 
   def createComplicatedFeatures(numFeatures : Int): Seq[Version1ASF] = {
     val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,f8:Polygon:srid=4326"

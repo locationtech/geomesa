@@ -111,7 +111,6 @@ jobs:
       - name: Run unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
-        continue-on-error: true
         run: |
           set -o pipefail
           RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
