@@ -531,7 +531,7 @@ object HBaseIndexAdapter extends LazyLogging {
       admin.createNamespace(NamespaceDescriptor.create(namespace).build())
     }
 
-    val builder = new TableDescriptorBuilder()
+    val builder = TableDescriptorBuilder.newBuilder(name)
     val columnFamilyDescriptors = colFamilies.map { colFamily =>
       val builder = ColumnFamilyDescriptorBuilder.newBuilder(colFamily)
       bloom.foreach(builder.setBloomFilterType)
