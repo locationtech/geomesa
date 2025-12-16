@@ -286,7 +286,7 @@ class HBaseBackCompatibilityTest extends Specification with AfterAll with LazyLo
           admin.disableTable(name)
           admin.deleteTable(name)
         }
-        HBaseVersions.createTableAsync(admin, name, cols, None, None, None, None, coprocessor, Seq.empty)
+        HBaseIndexAdapter.createTableAsync(admin, name, cols, None, None, None, None, coprocessor, Seq.empty, Map.empty)
         HBaseIndexAdapter.waitForTable(admin, name)
         WithClose(connection.getBufferedMutator(name)) { mutator =>
           mutations.foreach(mutator.mutate)

@@ -193,6 +193,22 @@ where ``<index>`` is an index name such as ``z3`` or ``id``:
     // override table names for just the z3 index
     sft.getUserData().put("index.table.prefix.z3", "geomesa_z3.custom");
 
+Configuring Index Table Properties
+----------------------------------
+
+GeoMesa allows for passing low-level table configuration properties through to the underlying database. For example, in Accumulo
+you may want to configure external compactions through ``table.compaction.dispatcher.opts.*``. Currently, this is implemented for
+Accumulo (table properties) and HBase (custom table metadata).
+
+Set any configuration properties in the feature type user data, prefixed with ``index.table.props.``. For example, following the
+example on configuring compactions in the
+`Accumulo documentation <https://accumulo.apache.org/docs/2.x/administration/compaction#configuration-1>`__, in order to set
+``table.compaction.dispatcher.opts.service=cs1``, use the key ``index.table.props.table.compaction.dispatcher.opts.service``:
+
+.. code-block:: java
+
+    sft.getUserData().put("index.table.props.table.compaction.dispatcher.opts.service", "cs1");
+
 Configuring Feature ID Encoding
 -------------------------------
 

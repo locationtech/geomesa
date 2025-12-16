@@ -61,6 +61,7 @@ object SimpleFeatureTypes {
     val TableSplitterClass    = "table.splitter.class"
     val TableSplitterOpts     = "table.splitter.options"
     val TableCacheEnabled     = "table.cache.enabled"
+    val TableProps            = "index.table.props"
     val TemporalPriority      = "geomesa.temporal.priority"
     val UpdateBackupMetadata  = "schema.update.backup.metadata"
     val UpdateRenameTables    = "schema.update.rename.tables"
@@ -84,6 +85,7 @@ object SimpleFeatureTypes {
     val PartitionTablePrefix   = "geomesa.table.prefix"
     val RemoteVersion          = "gm.remote.version" // note: doesn't start with geomesa so we don't persist it
     val PartitionTableCache    = "geomesa.table.cache"
+    val PartitionTableProps    = "geomesa.table.props"
     val KeywordsDelimiter      = "\u0000"
 
     // configs that are not normally persisted, but that we want to persist for creating partitioned tables down the line
@@ -94,6 +96,7 @@ object SimpleFeatureTypes {
     )
     val PartitionConfigPrefixMappings: Map[String, String] = Map(
       Configs.IndexTablePrefix -> PartitionTablePrefix,
+      Configs.TableProps       -> PartitionTableProps,
     )
 
     // deprecated configs that we want to re-map for back-compatibility

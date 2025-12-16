@@ -623,5 +623,23 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         }
       }
     }
+
+    "create tables with custom table options" in {
+      val configKey = "table.compaction.dispatcher.opts.service"
+      foreach(Seq(true, false)) { partitioned =>
+        val partitionOpt = if (partitioned) { ",geomesa.table.partition=time" } else { "" }
+        val sft = createNewSchema(s"$defaultSpec;index.table.props.$configKey=foo$partitionOpt")
+        if (partitioned) {
+          addFeatures(Seq.tabulate(6) { i =>
+            ScalaSimpleFeature.create(sft, i.toString, i.toString, s"POINT(45.0 4$i.0)", s"2012-01-02T05:0$i:07.000Z")
+          })
+        }
+        val index = ds.manager.indices(sft).find(_.name == "z3").orNull
+        index must not(beNull)
+        val table = index.getTableNames(None).headOption.orNull
+        table must not(beNull)
+        ds.client.tableOperations().getConfiguration(table).get(configKey) mustEqual "foo"
+      }
+    }
   }
 }

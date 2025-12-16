@@ -10,14 +10,15 @@ package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, KeyOnlyFilter, MultiRowRangeFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.io.compress.Compression
+import org.apache.hadoop.hbase.io.compress.Compression.Algorithm
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
+import org.apache.hadoop.hbase.{Coprocessor, NamespaceDescriptor, TableName}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -31,18 +32,12 @@ import org.locationtech.geomesa.hbase.aggregators.{HBaseArrowAggregator, HBaseBi
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan._
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.rpc.filter._
-import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, IndexResultsToFeatures, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.{ColumnGroups, QueryHints}
-import org.locationtech.geomesa.index.filters.{S2Filter, S3Filter, Z2Filter, Z3Filter}
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.index.s2.{S2Index, S2IndexValues}
-import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
-import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
-import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
@@ -70,7 +65,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     // the jar should be under hbase.dynamic.jars.dir to enable filters, so look there
     val dir = new Path(conf.get("hbase.dynamic.jars.dir"))
     WithClose(dir.getFileSystem(conf)) { fs =>
-      if (!fs.isDirectory(dir)) { None } else {
+      if (!fs.getFileStatus(dir).isDirectory) { None } else {
         fs.listStatus(dir).collectFirst {
           case s if distributedJarNamePattern.matcher(s.getPath.getName).matches() => s.getPath
         }
@@ -119,9 +114,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
             Some(CoprocessorClass -> coprocessorUrl)
           }
         }
+        val metadata = index.sft.getTableProps
 
         try {
-          HBaseVersions.createTableAsync(admin, name, cols, bloom, compression, encoding, None, coprocessor, splits)
+          createTableAsync(admin, name, cols, bloom, compression, encoding, None, coprocessor, splits, metadata)
         } catch {
           case _: org.apache.hadoop.hbase.TableExistsException => // ignore, another thread created it for us
         }
@@ -153,7 +149,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       def deleteOne(name: String): Unit = {
         val table = TableName.valueOf(name)
         if (admin.tableExists(table)) {
-          HBaseVersions.disableTableAsync(admin, table)
+          admin.disableTableAsync(table)
           val timeout = TableAvailabilityTimeout.toUnboundedDuration.filter(_.isFinite)
           logger.debug(s"Waiting for table '$table' to be disabled with " +
               s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
@@ -485,6 +481,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
 object HBaseIndexAdapter extends LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   private val distributedJarNamePattern = Pattern.compile("^geomesa-hbase-distributed-runtime.*\\.jar$")
 
   // these are in the geomesa-hbase-server module, so not accessible directly
@@ -498,6 +496,61 @@ object HBaseIndexAdapter extends LazyLogging {
         Durability.USE_DEFAULT
       }
     case None => Durability.USE_DEFAULT
+  }
+
+  /**
+   * Create a new table
+   *
+   * @param admin admin connection to hbase
+   * @param name table name
+   * @param colFamilies column families
+   * @param bloom bloom filter
+   * @param compression compression
+   * @param encoding data block encoding
+   * @param coprocessor coprocessor class and optional jar path
+   * @param splits initial table splits (empty for no splits)
+   */
+  def createTableAsync(
+      admin: Admin,
+      name: TableName,
+      colFamilies: Seq[Array[Byte]],
+      bloom: Option[BloomType],
+      compression: Option[Algorithm],
+      encoding: Option[DataBlockEncoding],
+      inMemory: Option[Boolean],
+      coprocessor: Option[(String, Option[Path])],
+      splits: Seq[Array[Byte]],
+      metadata: Map[String, String],
+    ): Unit = {
+
+    val namespace = name.getNamespaceAsString
+    if (namespace != null &&
+        namespace != NamespaceDescriptor.DEFAULT_NAMESPACE_NAME_STR &&
+        namespace != NamespaceDescriptor.SYSTEM_NAMESPACE_NAME_STR &&
+        Try(Option(admin.getNamespaceDescriptor(namespace))).getOrElse(None).isEmpty) {
+      admin.createNamespace(NamespaceDescriptor.create(namespace).build())
+    }
+
+    val builder = new TableDescriptorBuilder()
+    val columnFamilyDescriptors = colFamilies.map { colFamily =>
+      val builder = ColumnFamilyDescriptorBuilder.newBuilder(colFamily)
+      bloom.foreach(builder.setBloomFilterType)
+      compression.foreach(builder.setCompressionType)
+      encoding.foreach(builder.setDataBlockEncoding)
+      inMemory.foreach(builder.setInMemory)
+      builder.build()
+    }
+    builder.setColumnFamilies(columnFamilyDescriptors.asJava)
+    coprocessor.foreach { case (clas, path) =>
+      val descriptor =
+        CoprocessorDescriptorBuilder.newBuilder(clas)
+          .setPriority(Coprocessor.PRIORITY_USER)
+          .setJarPath(path.fold[String](null)(_.toString))
+          .build()
+      builder.setCoprocessor(descriptor)
+    }
+    metadata.foreach { case (k, v) => builder.setValue(k, v) }
+    admin.createTableAsync(builder.build(), splits.toArray)
   }
 
   /**
