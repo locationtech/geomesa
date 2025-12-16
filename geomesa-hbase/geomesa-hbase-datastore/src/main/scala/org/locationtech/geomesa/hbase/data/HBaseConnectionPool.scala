@@ -11,7 +11,7 @@ package org.locationtech.geomesa.hbase.data
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
+import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, HBaseAdmin}
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.token.AuthenticationTokenIdentifier
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
@@ -20,7 +20,6 @@ import org.apache.hadoop.security.{SecurityUtil, UserGroupInformation}
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConfigsParam, ConnectionParam, ZookeeperParam}
-import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.utils.hadoop.HadoopUtils
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -138,7 +137,7 @@ object HBaseConnectionPool extends LazyLogging {
   private def doCreateConnection(conf: Configuration, validate: Boolean): ConnectionWrapper = {
     if (validate) {
       logger.debug("Checking configuration availability")
-      HBaseVersions.checkAvailable(conf)
+      HBaseAdmin.available(conf)
     }
     val connection = ConnectionFactory.createConnection(conf)
     val kerberos = if (User.isHBaseSecurityEnabled(conf)) { Some(HadoopUtils.kerberosTicketRenewer()) } else { None }

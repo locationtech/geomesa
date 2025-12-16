@@ -131,6 +131,8 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
         tableOps.setProperty(table, TABLE_BLOOM_ENABLED.getKey, "true")
       }
 
+      index.sft.getTableProps.foreach { case (k, v) => tableOps.setProperty(table, k, v) }
+
       if (index.sft.isVisibilityRequired) {
         VisibilityIterator.set(tableOps, table)
       }

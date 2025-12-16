@@ -205,6 +205,8 @@ object RichSimpleFeatureType extends Conversions {
     import SimpleFeatureTypes.Configs._
     import SimpleFeatureTypes.InternalConfigs._
 
+    import scala.collection.JavaConverters._
+
     def getGeomField: String = {
       val gd = sft.getGeometryDescriptor
       if (gd == null) { null } else { gd.getLocalName }
@@ -318,6 +320,14 @@ object RichSimpleFeatureType extends Conversions {
     def isTemporalPriority: Boolean = boolean(sft.getUserData.get(TemporalPriority))
 
     def isPartitioned: Boolean = sft.getUserData.containsKey(Configs.TablePartitioning)
+
+    def getTableProps: Map[String, String] = {
+      val key = (if (sft.isPartitioned) { InternalConfigs.PartitionTableProps } else { Configs.TableProps }) + "."
+      val  props = sft.getUserData.asScala.collect {
+        case (k: String, v: String) if k.startsWith(key) => k.substring(key.length) -> v
+      }
+      props.toMap
+    }
 
     def getTablePrefix(indexName: String): Option[String] = {
       val key = if (isPartitioned) { InternalConfigs.PartitionTablePrefix } else { Configs.IndexTablePrefix }

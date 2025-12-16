@@ -179,7 +179,7 @@ Requirements:
 
 * [Git](https://git-scm.com/)
 * [Java JDK 17](https://adoptium.net/temurin/releases/)
-* [Apache Maven](https://maven.apache.org/) 3.6.3 or later
+* [Apache Maven](https://maven.apache.org/) 3.8.1 or later
 * [Docker](https://docs.docker.com/get-docker/) (only required for running unit tests)
 
 Use Git to download the source code. Navigate to the destination directory, then run:

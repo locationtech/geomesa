@@ -21,7 +21,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigsParam, HBaseCatalogParam}
-import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -286,7 +285,7 @@ class HBaseBackCompatibilityTest extends Specification with AfterAll with LazyLo
           admin.disableTable(name)
           admin.deleteTable(name)
         }
-        HBaseVersions.createTableAsync(admin, name, cols, None, None, None, None, coprocessor, Seq.empty)
+        HBaseIndexAdapter.createTableAsync(admin, name, cols, None, None, None, None, coprocessor, Seq.empty, Map.empty)
         HBaseIndexAdapter.waitForTable(admin, name)
         WithClose(connection.getBufferedMutator(name)) { mutator =>
           mutations.foreach(mutator.mutate)
