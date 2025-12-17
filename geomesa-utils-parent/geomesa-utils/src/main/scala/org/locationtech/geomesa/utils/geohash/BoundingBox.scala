@@ -69,6 +69,8 @@ case class BoundingBox(ll: Point, ur: Point) {
   // (no date line or pole wrap-arounds)
   lazy val midLon: Double = (minLon + maxLon) / 2
   lazy val midLat: Double = (minLat + maxLat) / 2
+
+  def toText: String = s"${ll.toText}, ${ur.toText}"
 }
 
 object BoundingBox {

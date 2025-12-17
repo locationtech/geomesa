@@ -16,7 +16,6 @@ Not sure where to begin? Take a look at :doc:`/user/getting_started`.
     json
     index_overview
     index_basics
-    index_ext
     index_config
     runtime_config
     query_planning
@@ -26,6 +25,7 @@ Not sure where to begin? Take a look at :doc:`/user/getting_started`.
     analytic_queries
     security
     auditing
+    metrics
     data
     reserved_words
 

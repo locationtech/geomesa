@@ -29,7 +29,7 @@ User Manual
    filesystem/index
    lambda/index
    ds_views
-   upgrade
+   upgrade/index
 
 Appendix
 --------

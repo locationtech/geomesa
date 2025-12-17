@@ -1,0 +1,34 @@
+Version 5.3.0
++++++++++++++
+
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* arrow ``18.1.0`` -> ``18.3.0``
+* geotools ``32.1`` -> ``33.1``
+* geoserver ``2.26.1`` -> ``2.27.1``
+* json4s ``3.6.12`` -> ``4.0.7``
+* json-smart ``2.5.1`` -> ``2.5.2``
+* netty ``4.1.114.Final`` -> ``4.1.121.Final``
+* orc ``1.9.5`` -> ``1.9.6``
+* parquet ``1.13.1`` -> ``1.15.2``
+* spark ``3.5.0`` -> ``3.5.5``
+
+NiFi 2 Support
+--------------
+
+GeoMesa NiFi now supports NiFi 2.x. NiFi 1.x is still supported, but note that it now requires running on Java 21+.
+
+Parquet Encoding Changes
+------------------------
+
+The default format used for writing Parquet files in the FileSystem data store has been updated to conform to the
+`GeoParquet <https://geoparquet.org/releases/v1.1.0/>`__ specification, which makes the files compatible with the
+broader ecosystem, including GeoPandas, Apache Sedona, DuckDB, and Apache Iceberg. However, older versions of
+GeoMesa will not be able to read the files. For back-compatibility, the file format may be configured to write
+the old format; see :ref:`fsds_parquet_geometries_prop` for details.
+
+As part of this change, the bundled version of Parquet has been updated to ``1.15.1``. Any files written with the
+newer version may not be readable with older versions of Parquet.
