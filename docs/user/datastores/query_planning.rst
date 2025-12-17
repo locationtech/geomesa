@@ -107,7 +107,7 @@ details on setting cardinality, see :ref:`cardinality_config`.
 .. _explain_query:
 
 Explaining Query Plans
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 GeoMesa will automatically log explain plans during query execution. This can be useful when debugging
 query issues, and can inform decisions to speed up execution time, such as when to add additional indices
@@ -138,6 +138,6 @@ Using the binary distribution, you can print out an explain plan using the ``exp
 If using query interceptors, see :ref:`query_interceptors` to enabled detailed logging on interceptor changes.
 
 GeoServer
-^^^^^^^^^
++++++++++
 
 For enabling explain logging in GeoServer, see :ref:`geoserver_explain_query`.

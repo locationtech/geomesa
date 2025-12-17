@@ -6,40 +6,40 @@ Reserved Words
 There are a number of GeoTools reserved words that cannot be used as attribute names in GeoMesa.
 Note that this list is case insensitive.
 
-* AFTER
-* AND
-* BEFORE
-* BEYOND
-* CONTAINS
-* CROSSES
-* DISJOINT
-* DOES-NOT-EXIST
-* DURING
-* DWITHIN
-* EQUALS
-* EXCLUDE
-* EXISTS
-* FALSE
-* GEOMETRYCOLLECTION
-* ID
-* INCLUDE
-* INTERSECTS
-* IS
-* LIKE
-* LINESTRING
-* MULTILINESTRING
-* MULTIPOINT
-* MULTIPOLYGON
-* NOT
-* NULL
-* OR
-* OVERLAPS
-* POINT
-* POLYGON
-* RELATE
-* TOUCHES
-* TRUE
-* WITHIN
+* ``after``
+* ``and``
+* ``before``
+* ``beyond``
+* ``contains``
+* ``crosses``
+* ``disjoint``
+* ``does-not-exist``
+* ``during``
+* ``dwithin``
+* ``equals``
+* ``exclude``
+* ``exists``
+* ``false``
+* ``geometrycollection``
+* ``id``
+* ``include``
+* ``intersects``
+* ``is``
+* ``like``
+* ``linestring``
+* ``multilinestring``
+* ``multipoint``
+* ``multipolygon``
+* ``not``
+* ``null``
+* ``or``
+* ``overlaps``
+* ``point``
+* ``polygon``
+* ``relate``
+* ``touches``
+* ``true``
+* ``within``
 
 Override
 ^^^^^^^^
