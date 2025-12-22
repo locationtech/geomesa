@@ -5,7 +5,7 @@ AWS Credentials Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The GeoMesa HBase and FileSystem processors support AWS integration through a configurable
-``AWSCredentialsProviderService``. This provides pluggable credentials for accessing S3, which
+``AwsCredentialsProviderService``. This provides pluggable credentials for accessing S3, which
 can be used as a backing object store for HBase and the FileSystem data store.
 
 GetHDFS Processor with Azure Integration
