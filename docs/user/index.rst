@@ -13,12 +13,12 @@ User Manual
    architecture
    geotools
    datastores/index
+   process/index
    cli/index
    convert/index
    geoserver
    spark/index
    nifi/index
-   process
    accumulo/index
    hbase/index
    cassandra/index

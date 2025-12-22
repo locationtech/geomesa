@@ -160,7 +160,7 @@ GeoMesa Process
 ^^^^^^^^^^^^^^^
 
 GeoMesa provides some WPS processes, such as ``geomesa:Density`` which is used to generate heat maps. In order
-to use these processes, install the GeoServer WPS plugin as described in :ref:`geomesa_process`.
+to use these processes, install the GeoServer WPS plugin as described in the GeoMesa Process :ref:`geomesa_process_install` guide.
 
 Upgrading
 ---------

@@ -5,7 +5,8 @@ Analytic Querying
 
 GeoMesa provides advanced query capabilities through GeoTools query hints. You can use these hints to control
 various aspects of query processing or to trigger distributed analytic processing. See :ref:`query_hints`
-for details on setting query hints.
+for details on setting query hints. In GeoServer, many of these queries are available as web processing services (WPS); see
+:ref:`geomesa_process` for details.
 
 .. _feature_sampling:
 

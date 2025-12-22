@@ -8,10 +8,10 @@ are then returned to GeoServer, combined there, and served. This functionality c
 
 In order to use the density process you must:
 
-* Install the server side code on your HBase cluster :ref:`hbase_deploy_distributed_runtime`
-* Register the coprocessors site wide or for the table you wish to use :ref:`registering_coprocessors`
-* Install the WPS processes in GeoServer :ref:`geomesa_process`
-* Install the heatmap SLD in GeoServer :ref:`install-heatmap-sld`
+* Install the server side code on your HBase cluster: :ref:`hbase_deploy_distributed_runtime`
+* Register the coprocessors site wide or for the table you wish to use: :ref:`registering_coprocessors`
+* Install the WPS processes in GeoServer: GeoMesa Process :ref:`geomesa_process_install`
+* Install the heatmap SLD in GeoServer: :ref:`install-heatmap-sld`
 
 .. _install-heatmap-sld:
 
