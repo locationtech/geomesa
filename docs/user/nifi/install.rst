@@ -50,7 +50,6 @@ Common NAR files:
 Datastore NAR files:
 
 * ``geomesa-hbase2-nar_{{scala_binary_version}}-{{release}}.nar`` - HBase 2.x
-* ``geomesa-accumulo20-nar_{{scala_binary_version}}-{{release}}.nar`` - Accumulo 2.0
 * ``geomesa-accumulo21-nar_{{scala_binary_version}}-{{release}}.nar`` - Accumulo 2.1
 * ``geomesa-gt-nar_{{scala_binary_version}}-{{release}}.nar`` - PostGIS
 * ``geomesa-kafka-nar_{{scala_binary_version}}-{{release}}.nar`` Kafka
@@ -59,11 +58,6 @@ Datastore NAR files:
 * ``geomesa-lambda-nar_{{scala_binary_version}}-{{release}}.nar`` Kafka (lambda architecture)
 
 The common NAR files are required for all datastores. The datastore-specific NARs can be installed as needed.
-
-.. note::
-
-  There are two Accumulo NARs that correspond to different versions.
-  Be sure to choose the appropriate NAR for your database.
 
 If you downloaded the NARs from GitHub:
 
