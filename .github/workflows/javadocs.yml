@@ -70,8 +70,23 @@ jobs:
           path: ~/.m2/repository/
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
-      - name: Build with Maven
-        run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }},geomesa-arrow/geomesa-arrow-jts
+      - name: Compile
+        id: compile
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }},geomesa-arrow/geomesa-arrow-jts | tee -a build.log
+      - name: Compile (retry)
+        if: steps.compile.outcome=='failure'
+        run: |
+          set -o pipefail
+          # retry if the failure was due to transient download errors from maven central
+          if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build.log; then
+            RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+            mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }},geomesa-arrow/geomesa-arrow-jts $RESUME_FROM | tee -a build.log
+          else
+            exit 1
+          fi
       - name: Build scaladocs
         run: mvn $MAVEN_SCALADOC_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
       - name: Build javadocs
