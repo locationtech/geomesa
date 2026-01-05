@@ -8,7 +8,6 @@ on:
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
-  pull-requests: write # for adding comments to PRs
 
 env:
   JAVA_VERSION: 17
@@ -32,8 +31,6 @@ jobs:
           path: ~/.m2/repository/
       - name: Check for dependency changes
         id: dependency_changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           changed=""
           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
@@ -56,9 +53,8 @@ jobs:
               mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
               ./build/scripts/calculate-cqs.sh
               git diff --exit-code --quiet build/dependencies.txt || {
-                echo 'Detected dependency changes - please run `./build/scripts/calculate-cqs.sh` and commit the results' | tee comment.txt
-                printf '%s\n' "$(git diff build/dependencies.txt)" | tee -a comment.txt
-                gh pr comment ${{ github.event.pull_request.number }} --body-file comment.txt
+                echo 'Detected dependency changes - please run `./build/scripts/calculate-cqs.sh` and commit the results'
+                git diff build/dependencies.txt
                 exit 1
               }
               if [[ "$changed" == "pom" ]]; then
