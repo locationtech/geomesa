@@ -66,7 +66,7 @@
 
         <!-- direct dependencies -->
         <accumulo.access.version>1.0.0-beta</accumulo.access.version>
-        <arrow.version>18.3.0</arrow.version>
+        <arrow.version>18.2.0</arrow.version>
         <avro.version>1.11.4</avro.version>
         <aws.sdk.v1.version>1.12.793</aws.sdk.v1.version> <!-- latest available as of 2025/11 -->
         <aws.sdk.version>2.38.7</aws.sdk.version> <!-- latest available as of 2025/11 -->
