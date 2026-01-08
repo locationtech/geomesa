@@ -155,9 +155,9 @@ org.apache.hbase:hbase-protocol-shaded:2.6.3-hadoop3:compile
 org.apache.hbase:hbase-protocol:2.6.3-hadoop3:compile
 org.apache.hbase:hbase-replication:2.6.3-hadoop3:compile
 org.apache.hbase:hbase-zookeeper:2.6.3-hadoop3:compile
-org.apache.orc:orc-core:nohive:1.9.7:compile
-org.apache.orc:orc-mapreduce:nohive:1.9.7:compile
-org.apache.orc:orc-shims:1.9.7:compile
+org.apache.orc:orc-core:nohive:1.9.8:compile
+org.apache.orc:orc-mapreduce:nohive:1.9.8:compile
+org.apache.orc:orc-shims:1.9.8:compile
 org.apache.parquet:parquet-avro:1.13.1:compile
 org.apache.parquet:parquet-avro:1.15.2:compile
 org.apache.parquet:parquet-column:1.15.2:compile
