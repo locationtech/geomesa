@@ -55,6 +55,8 @@ Argument                 Description
 ``-f, --feature-name *`` The name of the schema to describe
 ======================== ==================================================
 
+.. _gen_avro_schema_cli:
+
 ``gen-avro-schema``
 -------------------
 

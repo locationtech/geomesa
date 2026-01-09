@@ -7,20 +7,12 @@ Kafka Data Store
 
     GeoMesa currently supports Kafka {{kafka_supported_versions}}.
 
-The GeoMesa Kafka Data Store is an implementation of the GeoTools
-``DataStore`` interface that is backed by `Apache Kafka`_. The
-implementation supports the ability for feature producers to instantiate
-a Kafka Data Store in *producer* mode to persist data into the data
-store and for consumers to instantiate a Kafka Data Store in
-*consumer* mode to read data from the data store. The producer and
-consumer data stores can be run on separate servers. The only
-requirement is that they can connect to the same instance of Apache
-Kafka.
+The GeoMesa Kafka Data Store is an implementation of the GeoTools ``DataStore`` interface that is backed by `Apache Kafka`_.
+The Kafka data store differs from most data stores in that queries are not run against the persisted data (which is stored in
+Kafka topics). Instead, each data store will consume the data topic, keep it cached in local memory, and run queries against
+the in-memory cache.
 
 .. _Apache Kafka: https://kafka.apache.org/
-
-All of the Kafka-specific code for GeoMesa is found in the ``geomesa-kafka``
-directory of the source distribution.
 
 To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quickstart-kafka` tutorial.
 
@@ -29,14 +21,13 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
 
    install
    usage
-   producers
-   consumers
+   read_write
    geoserver
    commandline
    index_config
    data
+   message_processing
    transactional_writes
-   feature_events
    layer_views
    confluent
    streams

@@ -6,8 +6,8 @@ Kafka Topic Name
 
 Each SimpleFeatureType (or schema) will be written to a unique Kafka topic. By default, the topic name will consist of the value
 of the ``kafka.catalog.topic`` data store parameter (or ``kafka.zk.path`` if using Zookeeper), and the SimpleFeatureType name,
-separated with a ``-``. Any ``/`` characters will be replaced with ``-``. For example, with the default catalog topic
-(``geomesa-catalog``), a SimpleFeatureType name of ``foo`` would result in the topic ``geomesa-catalog-foo``.
+separated with a ``-``. For example, with the default catalog topic (``geomesa-catalog``), a SimpleFeatureType name of ``my-type``
+would result in the topic ``geomesa-catalog-my-type``.
 
 If desired, the topic name can be set to an arbitrary value by setting the user data key ``geomesa.kafka.topic``
 before calling ``createSchema``:
@@ -62,18 +62,33 @@ If upgrading from a version of GeoMesa prior to 2.1.0, the topic should be run f
 time-based retention policy before enabling compaction, as messages written with older versions of GeoMesa will
 never be compacted out.
 
+.. _kafka_serialization_format:
+
+Serialization Format
+--------------------
+
+The Kafka message serialization format may be configured with the data store parameter ``kafka.serialization.type``.
+
+By default, Kafka messages are serialized with a custom Kryo serializer. The Kryo serializer has the ability to only deserialize
+the fields of a feature that are being read, which can greatly reduce processing load when dealing with high-velocity data
+streams (where many features may not be queried before they are updated) and/or WMS (map) queries (which often only read a small
+number of attributes).
+
+For broader compatibility, Avro serialization can be used instead. Avro libraries exist in many languages, and Avro messages
+follow a defined schema that allows for cross-platform parsing. When using Avro, the message schema can be obtained through
+the :ref:`gen_avro_schema_cli` command line method.
+
+GeoMesa supports two flavors of Avro serialization, ``avro-native`` (preferred) or ``avro`` (legacy). The ``avro`` format
+is similar to ``avro-native``, but collection-type attributes (Maps and Lists) are encoded in an opaque fashion, instead
+of using native Avro collection types. It should only be used if there is a need to work with older GeoMesa versions that
+don't support ``avro-native``.
+
 Integration with Other Systems
 ------------------------------
 
 The Kafka data store is easy to integrate with by consuming the Kafka topic. The messages are a change log of
 updates. Message keys consist of the simple feature ID, as UTF-8 bytes. Message bodies are serialized simple
 features, or null to indicate deletion. The internal serialization version is set as a message header under the
-key ``"v"``.
-
-By default, message bodies are serialized with a custom Kryo serializer. For Java/Scala clients, the
-``org.locationtech.geomesa.features.kryo.KryoFeatureSerializer`` class may be used to decode messages, available
-in the ``geomesa-feature-kryo`` module through Maven. Alternatively, producers can be configured to send
-Avro-encoded messages through the ``kafka.serialization.type`` data store parameter. Avro libraries exist in many
-languages, and Avro messages follow a defined schema that allows for cross-platform parsing.
+key ``"v"``. See :ref:`kafka_serialization_format` for details on message serialization.
 
 If you are using the Confluent platform to manage Kafka, please see :ref:`confluent_kds`.

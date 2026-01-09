@@ -39,10 +39,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
         import org.locationtech.geomesa.kafka.streams.GeoMesaStreamsBuilder
 
         // these are the parameters normally passed to DataStoreFinder
-        val params = Map[String, String](
-          "kafka.brokers"    -> "localhost:9092",
-          "kafka.zookeepers" -> "localhost:2181"
-        )
+        val params = Map[String, String]("kafka.brokers" -> "localhost:9092")
 
         val builder = GeoMesaStreamsBuilder(params)
 
@@ -67,9 +64,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
         import org.locationtech.geomesa.kafka.jstreams.GeoMesaStreamsBuilder;
 
         // these are the parameters normally passed to DataStoreFinder
-        Map<String, String> params = new HashMap<>();
-        params.put("kafka.brokers", "localhost:9092");
-        params.put("kafka.zookeepers", "localhost:2181");
+        Map<String, String> params = Map.of("kafka.brokers", "localhost:9092");
 
         GeoMesaStreamsBuilder builder = GeoMesaStreamsBuilder.create(params)
 
@@ -105,10 +100,7 @@ The following shows how to persist data back to a GeoMesa topic:
         import org.locationtech.geomesa.kafka.streams.GeoMesaStreamsBuilder
 
         // these are the parameters normally passed to DataStoreFinder
-        val params = Map[String, String](
-          "kafka.brokers"    -> "localhost:9092",
-          "kafka.zookeepers" -> "localhost:2181"
-        )
+        val params = Map[String, String]("kafka.brokers" -> "localhost:9092")
 
         val builder = GeoMesaStreamsBuilder(params)
 
@@ -132,9 +124,7 @@ The following shows how to persist data back to a GeoMesa topic:
         import org.locationtech.geomesa.kafka.streams.GeoMesaMessage;
 
         // these are the parameters normally passed to DataStoreFinder
-        Map<String, String> params = new HashMap<>();
-        params.put("kafka.brokers", "localhost:9092");
-        params.put("kafka.zookeepers", "localhost:2181");
+        Map<String, String> params = Map.of("kafka.brokers", "localhost:9092");
 
         GeoMesaStreamsBuilder builder = GeoMesaStreamsBuilder.create(params)
 

@@ -36,56 +36,40 @@ as SFT attribute user data. Any additional properties on the schema will be incl
 ``geomesa.geom.format``
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Indicates that the field should be interpreted as a ``Geometry`` in the given format. Must be accompanied by the key
-``geomesa.geom.type``.
+Indicates that the field should be interpreted as a ``Geometry`` in the given format:
 
 =========== ===================== ====================================================
-Value       Schema Field Type     Description
+Value       Required Field Type   Description
 =========== ===================== ====================================================
 ``wkt``     ``STRING``            Well-Known Text representation of a ``Geometry``
 ``wkb``     ``BYTES``             Well-Known Binary representation of a ``Geometry``
 =========== ===================== ====================================================
 
+Must be accompanied by the key ``geomesa.geom.type``.
+
 ``geomesa.geom.type``
 ^^^^^^^^^^^^^^^^^^^^^
 
-Indicates that the field should be interpreted as a ``Geometry`` of the given type. Must be accompanied by the key
-``geomesa.geom.format``.
+Indicates that the field should be interpreted as a ``Geometry`` of the given type. The value must be one of the following:
+``Geometry``, ``Point``, ``LineString``, ``Polygon``, ``MultiPoint``, ``MultiLineString``, ``MultiPolygon``, ``GeometryCollection``
 
-======================== ============================
-Value                    Description
-======================== ============================
-``Geometry``             A ``Geometry``
-``Point``                A ``Point``
-``LineString``           A ``LineString``
-``Polygon``              A ``Polygon``
-``MultiPoint``           A ``MultiPoint``
-``MultiLineString``      A ``MultiLineString``
-``MultiPolygon``         A ``MultiPolygon``
-``GeometryCollection``   A ``GeometryCollection``
-======================== ============================
+Must be accompanied by the key ``geomesa.geom.format``.
 
 ``geomesa.geom.default``
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Indicates that the field represents the default ``Geometry`` for this ``SimpleFeatureType``. If the keys
 ``geomesa.geom.format`` and ``geomesa.geom.type`` are not present on the same schema field, this attribute will
-be ignored. There may only be one of these properties for a given schema.
+be ignored. The value must be either ``true`` or ``false``. There may only be one default geometry field for a given schema.
 
-=========== ===============================
-Value       Description
-=========== ===============================
-``true``    The default ``Geometry``
-``false``   Not the default ``Geometry``
-=========== ===============================
 
 ``geomesa.date.format``
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Indicates that the field should be interpreted as a ``Date`` in the given format.
+Indicates that the field should be interpreted as a ``Date`` in the given format:
 
 =========================== ===================== ====================================================
-Value                       Schema Field Type     Description
+Value                       Required Field Type   Description
 =========================== ===================== ====================================================
 ``epoch-millis``            ``LONG``              Milliseconds since the Unix epoch
 ``iso-date``                ``STRING``            Generic ISO date format
@@ -96,27 +80,14 @@ Value                       Schema Field Type     Description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Specifies that the value of this field should be used as the visibility for features of this ``SimpleFeatureType``.
-There may only be one of these properties for a given schema.
-
-============= ===================== ========================================================
-Value         Schema Field Type     Description
-============= ===================== ========================================================
-``true``      ``STRING``            Use the value of this field as the feature visibility
-``false``     ``STRING``            Do not use this field as the feature visibility
-============= ===================== ========================================================
+The value must be either ``true`` or ``false``. There may only be one visibility field for a given schema, and
+the field must be of type ``STRING``.
 
 ``geomesa.exclude.field``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Specifies whether this field should be excluded from the ``SimpleFeatureType``. All fields without this property will
-be included.
-
-=========== ===============================================
-Value       Description
-=========== ===============================================
-``true``    Exclude this field field from the SFT
-``false``   Do not exclude this field field from the SFT
-=========== ===============================================
+be included. The value must be either ``true`` or ``false``.
 
 Example GeoMesa Avro Schema
 ---------------------------

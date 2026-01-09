@@ -15,14 +15,11 @@ Use the following parameters for a Kafka data store (required parameters are mar
 ============================================ ======= ====================================================================================================
 Parameter                                    Type    Description
 ============================================ ======= ====================================================================================================
-``kafka.brokers *``                          String  Kafka brokers, e.g. ``localhost:9092``
-``kafka.zookeepers``                         String  Kafka zookeepers, e.g ``localhost:2181``, used to persist GeoMesa metadata in Zookeeper instead
-                                                     of in Kafka topics. See :ref:`no_zookeeper` for details.
-``kafka.catalog.topic``                      String  The Kafka topic used to store schema metadata (when not using Zookeeper)
-``kafka.zk.path``                            String  Zookeeper discoverable path, can be used to namespace feature types (when using Zookeeper)
+``kafka.brokers *``                          String  Kafka bootstrap servers, e.g. ``localhost:9092``
+``kafka.catalog.topic``                      String  The Kafka topic used to store schema metadata, defaults to ``geomesa-catalog``
 ``kafka.producer.config``                    String  Configuration options for kafka producer, in Java properties
                                                      format. See `Producer Configs <https://kafka.apache.org/documentation.html#producerconfigs>`_
-``kafka.producer.clear``                     Boolean Send a 'clear' message on startup. This will cause clients to ignore any data that was in the
+``kafka.producer.clear``                     Boolean Send a 'clear' message on startup. This will cause clients to drop any data that was in the
                                                      topic prior to startup
 ``kafka.consumer.config``                    String  Configuration options for kafka consumer, in Java properties
                                                      format. See `Consumer Configs <https://kafka.apache.org/documentation.html#consumerconfigs>`_
@@ -30,18 +27,18 @@ Parameter                                    Type    Description
                                                      ``1 hour``. Use ``Inf`` to read all messages. If enabled, features will not be available for query
                                                      until all existing messages are processed. However, feature listeners will still be invoked as
                                                      normal. See :ref:`kafka_initial_load`
-``kafka.consumer.count``                     Integer Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)
+``kafka.consumer.count``                     Integer Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer mode)
 ``kafka.consumer.offset-commit-interval``    String  How often to commit offsets for the consumer group, by default ``10 seconds``
 ``kafka.consumer.group-prefix``              String  Prefix to use for kafka group ID, to more easily identify particular data stores
-``kafka.consumer.start-on-demand``           Boolean The default behavior is to start consuming a topic only when that feature type is first requested.
-                                                     This can reduce load if some layers are never queried. Note that care should be taken when setting
-                                                     this to false, as the store will immediately start consuming from Kafka for all known feature types,
-                                                     which may require significant memory overhead.
-``kafka.topic.partitions``                   Integer Number of partitions to use in new kafka topics
-``kafka.topic.replication``                  Integer Replication factor to use in new kafka topics
-``kafka.topic.truncate-on-delete``           Boolean Instead of deleting the kafka topic on schema change, just truncate (delete all messages) on that kafka topic.
+``kafka.consumer.start-on-demand``           Boolean Start consuming from a topic only when the feature type is first accessed, defaults to ``true``.
+                                                     This can reduce load and memory overhead if some layers are never queried, however it may cause a
+                                                     layer to initially appear empty, until the consumers have had time to spin up
+``kafka.topic.partitions``                   Integer Number of partitions to use when creating new kafka topics
+``kafka.topic.replication``                  Integer Replication factor to use when creating new kafka topics
+``kafka.topic.truncate-on-delete``           Boolean Instead of deleting the Kafka topic when a schema is deleted, mark all messages on the topic as
+                                                     deleted but preserve the topic
 ``kafka.serialization.type``                 String  Internal serialization format to use for kafka messages. Must be one of ``kryo``, ``avro``
-                                                     or ``avro-native``
+                                                     or ``avro-native``. See :ref:`kafka_serialization_format` for additional details
 ``kafka.cache.expiry``                       String  Expire features from in-memory cache after this delay, e.g. ``10 minutes``. See :ref:`kafka_expiry`
 ``kafka.cache.expiry.dynamic``               String  Expire features dynamically based on CQL predicates. See :ref:`kafka_expiry`
 ``kafka.cache.event-time``                   String  Instead of message time, determine expiry based on feature data. See :ref:`kafka_event_time`
@@ -64,6 +61,26 @@ Parameter                                    Type    Description
 ``geomesa.query.audit``                      Boolean Audit incoming queries. By default audits are written to a log file
 ``geomesa.security.auths``                   String  Default authorizations used to query data, comma-separated
 ============================================ ======= ====================================================================================================
+
+.. _kafka_parameters_zk:
+
+Zookeeper (deprecated)
+----------------------
+
+Historically, the Kafka data store persisted schema information in Zookeeper. However, since Kafka has deprecated (in 3.x) and
+then removed (in 4.x) support for Zookeeper, GeoMesa now defaults to storing schema information in Kafka itself.
+
+For existing schemas that are persisted in Zookeeper, the following deprecated parameters can be used:
+
+==================== ======= ====================================================================================================
+Parameter            Type    Description
+==================== ======= ====================================================================================================
+``kafka.zookeepers`` String  Comma-delimited list of Zookeeper URLs, e.g ``localhost:2181``, used to persist GeoMesa metadata
+                             in Zookeeper instead of in Kafka topics
+``kafka.zk.path``    String  Zookeeper discoverable path, used to namespace feature types
+==================== ======= ====================================================================================================
+
+See :ref:`no_zookeeper` for details on migrating away from Zookeeper.
 
 Programmatic Access
 -------------------
