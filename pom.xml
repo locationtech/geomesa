@@ -168,7 +168,7 @@
         <!-- note: plugin versions are generally set to the latest available -->
         <maven.min.version>3.8.1</maven.min.version> <!-- 3.8.1 required by scala-maven-plugin -->
         <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
-        <central.publishing.maven.plugin.version>0.9.0</central.publishing.maven.plugin.version>
+        <central.publishing.maven.plugin.version>0.10.0</central.publishing.maven.plugin.version>
         <cyclonedx.maven.plugin.version>2.9.1</cyclonedx.maven.plugin.version>
         <exec.maven.plugin.version>3.5.0</exec.maven.plugin.version>
         <git.commit.id.plugin.version>9.0.2</git.commit.id.plugin.version>
