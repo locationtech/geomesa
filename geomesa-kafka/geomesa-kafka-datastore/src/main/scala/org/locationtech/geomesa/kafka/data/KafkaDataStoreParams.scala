@@ -33,7 +33,7 @@ object KafkaDataStoreParams extends NamespaceParams {
   val Brokers =
     new GeoMesaParam[String](
       "kafka.brokers",
-      "Kafka brokers",
+      "Kafka bootstrap servers",
       optional = false,
       deprecatedKeys = Seq("brokers"),
       supportsNiFiExpressions = true
@@ -42,7 +42,7 @@ object KafkaDataStoreParams extends NamespaceParams {
   val Zookeepers =
     new GeoMesaParam[String](
       "kafka.zookeepers",
-      "Kafka zookeepers",
+      "Kafka zookeepers (deprecated)",
       optional = true,
       deprecatedKeys = Seq("zookeepers"),
       supportsNiFiExpressions = true
@@ -51,7 +51,7 @@ object KafkaDataStoreParams extends NamespaceParams {
   val Catalog =
     new GeoMesaParam[String](
       "kafka.catalog.topic",
-      "Topic used for cataloging feature types, if not using Zookeeper",
+      "Topic used for cataloging feature types",
       default = DefaultCatalog,
       supportsNiFiExpressions = true
     )
@@ -59,7 +59,7 @@ object KafkaDataStoreParams extends NamespaceParams {
   val ZkPath =
     new GeoMesaParam[String](
       "kafka.zk.path",
-      "Zookeeper discoverable path (namespace), if using Zookeeper",
+      "Zookeeper discoverable path (namespace), if using Zookeeper (deprecated)",
       default = DefaultZkPath,
       deprecatedKeys = Seq("zkPath"),
       supportsNiFiExpressions = true

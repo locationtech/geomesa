@@ -22,7 +22,6 @@ To enabled layer views, use the ``kafka.layer.views`` data store parameter when 
       "  ]" +
       "}";
     Map<String, String> parameters = new HashMap<>();
-    parameters.put("kafka.zookeepers", "localhost:2181");
     parameters.put("kafka.brokers", "localhost:9092");
     parameters.put("kafka.layer.views", views);
     org.geotools.api.data.DataStore dataStore =

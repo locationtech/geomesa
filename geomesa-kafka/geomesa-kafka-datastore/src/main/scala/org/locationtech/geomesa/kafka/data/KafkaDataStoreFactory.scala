@@ -38,7 +38,7 @@ import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-class KafkaDataStoreFactory extends DataStoreFactorySpi {
+class KafkaDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams._
 
@@ -55,6 +55,9 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
         new KafkaDataStore(config, meta, serializer)
 
       case Some(zk) =>
+        logger.warn(
+          s"Using deprecated parameter `${Zookeepers.key}` - see " +
+            s"https://www.geomesa.org/documentation/stable/user/kafka/usage.html#zookeeper-deprecated")
         val meta = new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", zk, MetadataStringSerializer)
         val ds = new KafkaDataStoreWithZk(config, meta, serializer, zk)
         // migrate old schemas, if any

@@ -42,13 +42,13 @@ Setting up the Kafka Command Line Tools
 GeoMesa comes with a set of command line tools for managing Kafka features. In the Kafka distribution the
 tools are located in ``geomesa-kafka_{{scala_binary_version}}-{{release}}/bin/``.
 
-If the environment variables ``KAFKA_HOME`` and ``ZOOKEEPER_HOME`` are set, then GeoMesa will load the appropriate
+If the environment variable ``KAFKA_HOME`` is set, then GeoMesa will load the appropriate
 JARs and configuration files from those locations and no further configuration is required. Otherwise, you will
 be prompted to download the appropriate JARs the first time you invoke the tools. Environment variables can be
 specified in ``conf/*-env.sh`` and dependency versions can be specified in ``conf/dependencies.sh``.
 
 GeoMesa also provides the ability to add additional JARs to the classpath using the environmental variable
-``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
+``GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
 classpath, giving it highest precedence in the classpath. Users can provide directories of jar files or individual
 files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
 
@@ -128,20 +128,16 @@ distribution into your GeoServer's ``lib`` directory:
       geomesa-kafka_{{scala_binary_version}}-{{release}}/dist/gs-plugins/geomesa-kafka-gs-plugin_{{scala_binary_version}}-{{release}}-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
-Next, install the JARs for Kafka and Zookeeper. By default, JARs will be downloaded from Maven central. You may
+Next, install the JARs for Kafka. By default, JARs will be downloaded from Maven central. You may
 override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do not have an internet connection
 you can download the JARs manually.
 
-Edit the file ``geomesa-kafka_{{scala_binary_version}}-{{release}}/conf/dependencies.sh`` to set the versions of Kafka and Zookeeper
+Edit the file ``geomesa-kafka_{{scala_binary_version}}-{{release}}/conf/dependencies.sh`` to set the version of Kafka
 to match the target environment, and then run the script:
 
 .. code-block:: bash
 
     $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
-
-.. warning::
-
-    Ensure that the Scala version of both GeoMesa and Kafka match to avoid compatibility errors.
 
 Restart GeoServer after the JARs are installed.
 

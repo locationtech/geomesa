@@ -36,6 +36,9 @@
     <category name="org.locationtech.geomesa.tools.export.formats.FileSystemExporter$">
         <priority value="warn"/>
     </category>
+    <category name="org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory">
+        <priority value="error"/>
+    </category>
 
     <!-- suppress errors that we intentionally throw in the test suite -->
     <category name="org.locationtech.geomesa.accumulo.iterators.ArrowIterator">
