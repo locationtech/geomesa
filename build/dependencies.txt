@@ -426,8 +426,8 @@ org.apache.parquet:parquet-format-structures:1.13.1:provided
 org.apache.parquet:parquet-hadoop:1.13.1:provided
 org.apache.parquet:parquet-jackson:1.13.1:provided
 org.apache.parquet:parquet-jackson:1.15.2:provided
-org.apache.sedona:sedona-spark-3.5_2.12:1.8.0:provided
-org.apache.sedona:sedona-spark-common-3.5_2.12:1.8.0:provided
+org.apache.sedona:sedona-spark-3.5_2.12:1.8.1:provided
+org.apache.sedona:sedona-spark-common-3.5_2.12:1.8.1:provided
 org.apache.spark:spark-catalyst_2.12:3.5.7:provided
 org.apache.spark:spark-common-utils_2.12:3.5.7:provided
 org.apache.spark:spark-core_2.12:3.5.7:provided
