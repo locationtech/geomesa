@@ -372,6 +372,91 @@
         </profile>
 
         <profile>
+            <!-- for CI release builds -->
+            <id>release</id>
+            <properties>
+                <!-- we can discard the staging repo if there is an error in the build -->
+                <maven.deploy.at.end>false</maven.deploy.at.end>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>net.alchim31.maven</groupId>
+                        <artifactId>scala-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadoc</id>
+                                <goals>
+                                    <goal>doc-jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- for modules with no sources, use the regular jar plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>force-javadoc</id>
+                                <phase>${maven.empty.javadoc.phase}</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>javadoc</classifier>
+                                    <classesDirectory>${project.build.directory}</classesDirectory>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.cyclonedx</groupId>
+                        <artifactId>cyclonedx-maven-plugin</artifactId>
+                        <version>${cyclonedx.maven.plugin.version}</version>
+                        <configuration>
+                            <schemaVersion>1.4</schemaVersion>
+                            <projectType>library</projectType>
+                            <!-- this plugin has to be enabled explicitly, as central publishing skips the normal deploy phase -->
+                            <skipNotDeployed>false</skipNotDeployed>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>makeBom</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>makeBom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-java-version</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <!-- ensure that we're using the expected jdk when we release to central -->
+                                        <requireJavaVersion>
+                                            <version>[${jdk.version},${jdk.version}.1)</version>
+                                        </requireJavaVersion>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
             <!-- for publishing to the eclipse maven repositories -->
             <id>eclipse</id>
             <distributionManagement>
