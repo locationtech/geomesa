@@ -84,7 +84,7 @@ fi
 # set java opts
 GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami) -Djava.awt.headless=true\
  -Dlog4j.configuration=file://${GEOMESA_CONF_DIR}/log4j.properties -Dgeomesa.home=${%%tools.dist.name%%_HOME}\
- -Dgeomesa.log.dir=${GEOMESA_LOG_DIR}"
+ -Dgeomesa.log.dir=${GEOMESA_LOG_DIR} --add-opens=java.base/java.nio=ALL-UNNAMED"
 if [[ -f "${GEOMESA_CONF_DIR}/java-logging.properties" ]]; then
   # we have to include java.util.logging override file, slf4j can't handle it automatically
   GEOMESA_OPTS="${GEOMESA_OPTS} -Djava.util.logging.config.file=${GEOMESA_CONF_DIR}/java-logging.properties"
