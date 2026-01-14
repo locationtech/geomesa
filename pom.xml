@@ -168,7 +168,6 @@
         <!-- note: plugin versions are generally set to the latest available -->
         <maven.min.version>3.8.1</maven.min.version> <!-- 3.8.1 required by scala-maven-plugin -->
         <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
-        <central.publishing.maven.plugin.version>0.10.0</central.publishing.maven.plugin.version>
         <cyclonedx.maven.plugin.version>2.9.1</cyclonedx.maven.plugin.version>
         <exec.maven.plugin.version>3.5.0</exec.maven.plugin.version>
         <git.commit.id.plugin.version>9.0.2</git.commit.id.plugin.version>
@@ -258,117 +257,6 @@
             <properties>
                 <maven.test.debug>true</maven.test.debug>
             </properties>
-        </profile>
-
-        <profile>
-            <!-- for publishing to maven central -->
-            <id>central</id>
-            <properties>
-                <!-- we can discard the staging repo if there is an error in the build -->
-                <maven.deploy.at.end>false</maven.deploy.at.end>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>net.alchim31.maven</groupId>
-                        <artifactId>scala-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-javadoc</id>
-                                <goals>
-                                    <goal>doc-jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- for modules with no sources, use the regular jar plugin -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>force-javadoc</id>
-                                <phase>${maven.empty.javadoc.phase}</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                                <configuration>
-                                    <classifier>javadoc</classifier>
-                                    <classesDirectory>${project.build.directory}</classesDirectory>
-                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.cyclonedx</groupId>
-                        <artifactId>cyclonedx-maven-plugin</artifactId>
-                        <version>${cyclonedx.maven.plugin.version}</version>
-                        <configuration>
-                            <schemaVersion>1.4</schemaVersion>
-                            <projectType>library</projectType>
-                            <!-- this plugin has to be enabled explicitly, as central publishing skips the normal deploy phase -->
-                            <skipNotDeployed>false</skipNotDeployed>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>makeBom</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>makeBom</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-enforcer-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>enforce-java-version</id>
-                                <goals>
-                                    <goal>enforce</goal>
-                                </goals>
-                                <configuration>
-                                    <rules>
-                                        <!-- ensure that we're using the expected jdk when we release to central -->
-                                        <requireJavaVersion>
-                                            <version>[${jdk.version},${jdk.version}.1)</version>
-                                        </requireJavaVersion>
-                                    </rules>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.central</groupId>
-                        <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>${central.publishing.maven.plugin.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <autoPublish>true</autoPublish>
-                            <deploymentName>geomesa-${project.version}_${scala.binary.version}</deploymentName>
-                            <!-- handles non-scala duplicate modules between 2.12/2.13 -->
-                            <ignorePublishedComponents>true</ignorePublishedComponents>
-                            <!-- used to lookup credentials in ~/.m2/settings.xml -->
-                            <publishingServerId>sonatype</publishingServerId>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
 
         <profile>

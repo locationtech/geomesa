@@ -1,4 +1,4 @@
-name: release
+name: build-release
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 env:
   JAVA_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
-  MAVEN_RELEASE_ARGS: clean deploy -Prelease -DaltDeploymentRepository=local::file:./staging-deploy
+  MAVEN_RELEASE_ARGS: clean deploy -Prelease,python
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -31,9 +31,8 @@ jobs:
             --notes "[Release notes](https://geomesa.atlassian.net/wiki/display/GEOMESA/GeoMesa+${version}+Release+Notes)"\
             --prerelease \
             --verify-tag
-
   build:
-    name: build / ${{ matrix.scala-version }}
+    name: build-release / ${{ matrix.scala-version }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -55,25 +54,26 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          mvn $MAVEN_RELEASE_ARGS $MAVEN_CLI_OPTS | tee -a build.log
+          mvn $MAVEN_RELEASE_ARGS $MAVEN_CLI_OPTS -DaltDeploymentRepository=local::file:./staging-repo | tee -a build_${{ matrix.scala-version }}.log
       - name: Build (retry)
         if: steps.build.outcome=='failure'
         run: |
           set -o pipefail
           # retry if the failure was due to transient download errors from maven central
-          if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build.log; then
-            RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-            mvn $MAVEN_RELEASE_ARGS $MAVEN_CLI_OPTS $RESUME_FROM | tee -a build.log
+          if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build_${{ matrix.scala-version }}.log; then
+            RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build_${{ matrix.scala-version }}.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+            mvn $MAVEN_RELEASE_ARGS $MAVEN_CLI_OPTS -DaltDeploymentRepository=local::file:./staging-repo $RESUME_FROM | tee -a build_${{ matrix.scala-version }}.log
           else
             exit 1
           fi
       - name: Upload release artifacts
         run: |
           echo "Copying release artifacts"
-          tar -czf staging-deploy_${{ matrix.scala-version }}.tgz ./staging-deploy/
+          find ./staging-repo/ -name 'maven-metadata.xml*' -exec rm {} \;
+          tar -czf ${GITHUB_REF_NAME}_${{ matrix.scala-version }}-staging.tgz -C ./staging-repo/ .
           gh release upload ${GITHUB_REF_NAME} \
               --repo ${GITHUB_REPOSITORY} \
-              staging-deploy_${{ matrix.scala-version }}.tgz
+              ${GITHUB_REF_NAME}_${{ matrix.scala-version }}-staging.tgz
           while IFS= read -r -d '' file; do
             pushd "$(dirname "$file")" >/dev/null
             sha256sum "$(basename "$file")" > "$(basename "$file").sha256"
@@ -88,3 +88,9 @@ jobs:
               --repo ${GITHUB_REPOSITORY} \
               ${file}.sha256
           done < <(find geomesa-* -name '*-bin.tar.gz' -print0)
+      - name: Upload job logs
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: build-log-${{ matrix.scala-version }}
+          retention-days: 90 # max default
+          path: build_${{ matrix.scala-version }}.log
