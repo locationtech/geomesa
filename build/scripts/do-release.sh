@@ -27,58 +27,61 @@ for ex in mvn curl gpg gh; do
   fi
 done
 
-echo "Validating gh access"
-gh auth status
-
-# TODO validate sonatype auth token
-SONATYPE_AUTH="Authorization: Bearer $(printf '%s:%s' "$(grep -A2 '<id>sonatype</id>' ~/.m2/settings.xml | grep username | sed 's| *<username>\(.*\)</username>|\1|')" "$(grep -A2 '<id>sonatype</id>' ~/.m2/settings.xml | grep password | sed 's| *<password>\(.*\)</password>|\1|')" | base64)"
-
 # get current branch and version we're releasing off
 BRANCH="$(git branch --show-current)"
+read -r -p "Enter release branch (${BRANCH}): " new_branch
+if [[ -n "$new_branch" ]]; then
+  if git branch --remotes --list "*/$new_branch"; then
+    BRANCH="$new_branch"
+  else
+    echo "Error: branch '$new_branch' does not exist on remote - may need to \`git fetch\`?"
+    exit 1
+  fi
+fi
+
 VERSION="$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
 if ! [[ $VERSION =~ .*-SNAPSHOT ]]; then
   echo "Error: project version is not a SNAPSHOT"
   exit 1
 fi
 VERSION="${VERSION%-SNAPSHOT}"
+read -r -p "Enter release version (${VERSION}): " new_version
+if [[ -n "$new_version" ]]; then
+  VERSION="$new_version"
+fi
 TAG="geomesa-${VERSION}"
 
-confirm="n"
-while ! [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; do
-  read -r -p "Enter release branch (${BRANCH}): " new_branch
-  if [[ -n "$new_branch" ]]; then
-    if git branch --remotes --list "*/$new_branch"; then
-      BRANCH="$new_branch"
-    else
-      echo "Error: branch '$new_branch' does not exist on remote - may need to \`git fetch\`?"
-    fi
-  fi
-  read -r -p "Enter release version (${VERSION}): " new_version
-  if [[ -n "$new_version" ]]; then
-    VERSION="$new_version"
-    TAG="geomesa-${VERSION}"
-  fi
-  read -r -p "Releasing version ${VERSION} off branch '${BRANCH}' - continue? (y/n) " confirm
-  confirm=${confirm,,} # lower-casing
-done
+read -r -p "Releasing version ${VERSION} off branch '${BRANCH}' - continue? (y/n) " confirm
+confirm=${confirm,,} # lower-casing
+if ! [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
+  exit 1
+fi
 
 if [[ "$VERSION" =~ .*\.0 ]]; then
   # new major or minor version, bump minor version
   # shellcheck disable=SC2016
-  NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0-SNAPSHOT' | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
+  NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0-SNAPSHOT' \
+    | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
 elif [[ "$VERSION" =~ .*\.[0-9]+ ]]; then
   # bug fix, bump patch version
   # shellcheck disable=SC2016
-  NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}-SNAPSHOT' | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
+  NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}-SNAPSHOT' \
+    | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
 else
   # milestone, rc, etc, go back to original dev version
   # shellcheck disable=SC2016
-  NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-SNAPSHOT' | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
+  NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-SNAPSHOT' \
+    | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
 fi
 
-echo $VERSION
-echo $NEXT_VERSION
-exit 0
+echo "Validating gh access"
+gh auth status >/dev/null
+
+# TODO validate sonatype auth token
+SONATYPE_AUTH="Authorization: Bearer $(printf '%s:%s' \
+  "$(grep -A2 '<id>sonatype</id>' ~/.m2/settings.xml | grep username | sed 's| *<username>\(.*\)</username>|\1|')" \
+  "$(grep -A2 '<id>sonatype</id>' ~/.m2/settings.xml | grep password | sed 's| *<password>\(.*\)</password>|\1|')" \
+  | base64)"
 
 # trigger the release workflow
 echo "Triggering GitHub release workflow"
@@ -169,6 +172,9 @@ done < <(find "${VERSION}-staging" -not -name '*.sha1' -not -name '*.sha256' -no
 
 echo "Uploading Maven bundle"
 tar -czf "${VERSION}-staging.tgz" -C "${VERSION}-staging" .
+
+exit 0
+
 deployment_id="$(curl --request POST \
   --verbose \
   --header "${SONATYPE_AUTH}" \
