@@ -4,7 +4,8 @@ set -e
 set -u
 set -o pipefail
 
-REPOSITORY="locationtech/geomesa"
+#REPOSITORY="locationtech/geomesa"
+REPOSITORY="elahrvivaz/geomesa"
 
 cd "$(dirname "$0")/../.." || exit
 
@@ -31,15 +32,16 @@ done
 BRANCH="$(git branch --show-current)"
 read -r -p "Enter release branch (${BRANCH}): " new_branch
 if [[ -n "$new_branch" ]]; then
-  if git branch --remotes --list "*/$new_branch"; then
-    BRANCH="$new_branch"
-  else
-    echo "Error: branch '$new_branch' does not exist on remote - may need to \`git fetch\`?"
-    exit 1
-  fi
+  BRANCH="$new_branch"
+fi
+remote_alias="$(git remote -v | grep 'git@github.com:locationtech/geomesa.git' | head -n1 | sed s'/^\([a-zA-Z_][a-zA-Z_]*\)\s.*/\1/')"
+if [[ -z "$(git branch --remotes --list "${remote_alias}/${BRANCH}")" ]]; then
+  echo "Error: branch '${BRANCH}' does not exist on locationtech remote - may need to \`git fetch\`?"
+  exit 1
 fi
 
-VERSION="$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
+# the indentation only matches the top-level version tag
+VERSION="$(grep '^    <version>' pom.xml | head -n1 | sed -E 's|.*<version>(.*)</version>.*|\1|')"
 if ! [[ $VERSION =~ .*-SNAPSHOT ]]; then
   echo "Error: project version is not a SNAPSHOT"
   exit 1
@@ -57,12 +59,12 @@ if ! [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
   exit 1
 fi
 
-if [[ "$VERSION" =~ .*\.0 ]]; then
+if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.0$ ]]; then
   # new major or minor version, bump minor version
   # shellcheck disable=SC2016
   NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0-SNAPSHOT' \
     | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
-elif [[ "$VERSION" =~ .*\.[0-9]+ ]]; then
+elif [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   # bug fix, bump patch version
   # shellcheck disable=SC2016
   NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}-SNAPSHOT' \
@@ -74,9 +76,11 @@ else
     | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
 fi
 
+# api token needs: all repositories (or selected to include this one), actions r/w, contents r/w
 echo "Validating gh access"
 gh auth status >/dev/null
 
+echo "Validating sonatype access"
 # TODO validate sonatype auth token
 SONATYPE_AUTH="Authorization: Bearer $(printf '%s:%s' \
   "$(grep -A2 '<id>sonatype</id>' ~/.m2/settings.xml | grep username | sed 's| *<username>\(.*\)</username>|\1|')" \
@@ -113,7 +117,7 @@ echo "Found run ${run_id} - waiting for run to finish"
 gh run watch "${run_id}" \
   --repo "${REPOSITORY}" \
   --exit-status \
-  --interval 60
+  --interval 10
 
 echo -n "Waiting for GitHub release build ${TAG} run to start "
 run_id=""
@@ -137,7 +141,7 @@ echo "Found run ${run_id} - waiting for run to finish"
 gh run watch "${run_id}" \
   --repo "${REPOSITORY}" \
   --exit-status \
-  --interval 60
+  --interval 10
 
 echo "Downloading artifacts from GitHub release"
 mkdir "${VERSION}"

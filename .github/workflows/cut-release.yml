@@ -41,14 +41,14 @@ jobs:
         run: |
           # use the maven release plugin to prep the pom changes but use dryRun to skip commit and tag
           mvn $MAVEN_PREPARE_ARGS -Darguments="$MAVEN_BUILD_ARGS" $MAVEN_CLI_OPTS \
-            -Dversion="${{ github.event.inputs.version }}" \
+            -DreleaseVersion="${{ github.event.inputs.version }}" \
             -DdevelopmentVersion="${{ github.event.inputs.next_version }}"
       - name: Read release properties
         run: |
           # read the tag from release.properties
           TAG="$(grep "^scm\.tag=" release.properties | head -n1 | sed "s/.*=//")"
           echo "TAG=$TAG" >> $GITHUB_ENV
-      - name: Commit release version
+      - name: Commit release tag
         run: |
           # update README versions and commit
           for pom in pom.xml pom.xml.tag pom.xml.next; do
@@ -56,9 +56,6 @@ jobs:
           done
           # regenerates the README
           mvn clean install $MAVEN_CLI_OPTS -pl .
-          git commit -am "Set version for release ${{ github.event.inputs.version }}"
-      - name: Commit release tag
-        run: |
           find . -name pom.xml -exec mv {}.tag {} \;
           git commit -am "[maven-release-plugin] prepare release ${TAG}"
           git tag "${TAG}"
