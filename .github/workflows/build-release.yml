@@ -1,9 +1,7 @@
 name: build-release
 
 on:
-  push:
-    tags:
-      - '**'
+  workflow_dispatch:
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read

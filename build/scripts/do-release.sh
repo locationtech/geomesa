@@ -35,7 +35,6 @@ if [[ -n "$new_branch" ]]; then
   BRANCH="$new_branch"
 fi
 git fetch "git@github.com:${REPOSITORY}.git" "$BRANCH"
-COMMIT_SHA="$(git ls-remote "git@github.com:${REPOSITORY}.git" "$BRANCH" | awk '{ print $1 }' )"
 
 # the indentation only matches the top-level version tag
 VERSION="$(grep '^    <version>' pom.xml | head -n1 | sed -E 's|.*<version>(.*)</version>.*|\1|')"
@@ -84,8 +83,8 @@ SONATYPE_AUTH="Authorization: Bearer $(printf '%s:%s' \
   "$(grep -A2 '<id>sonatype</id>' ~/.m2/settings.xml | grep password | sed 's| *<password>\(.*\)</password>|\1|')" \
   | base64)"
 
-# trigger the release workflow
 echo "Triggering GitHub release workflow"
+start_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 gh workflow run cut-release.yml \
   --repo "${REPOSITORY}" \
   --ref "${BRANCH}" \
@@ -99,16 +98,15 @@ while true; do
   run_id="$(gh run list \
     --repo "${REPOSITORY}" \
     --branch "${BRANCH}" \
-    --commit "${COMMIT_SHA}" \
     --workflow cut-release.yml \
-    --jq ".[].databaseId" \
-    --json 'databaseId' \
+    --jq ".[] | select(.createdAt > ${start_utc}) | .databaseId" \
+    --json 'databaseId,createdAt' \
     --limit 1)"
   if [ -n "${run_id}" ]; then
     echo ""
     break
   fi
-  sleep 10
+  sleep 2
 done
 
 echo "Found run ${run_id} - waiting for run to finish"
@@ -116,6 +114,12 @@ gh run watch "${run_id}" \
   --repo "${REPOSITORY}" \
   --exit-status \
   --interval 10
+
+echo "Triggering GitHub release build workflow"
+start_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+gh workflow run build-release.yml \
+  --repo "${REPOSITORY}" \
+  --ref "${TAG}"
 
 echo -n "Waiting for GitHub release build ${TAG} run to start "
 run_id=""
@@ -125,14 +129,14 @@ while true; do
     --repo "${REPOSITORY}" \
     --branch "${TAG}" \
     --workflow build-release.yml \
-    --jq ".[].databaseId" \
-    --json 'databaseId' \
+    --jq ".[] | select(.createdAt > ${start_utc}) | .databaseId" \
+    --json 'databaseId,createdAt' \
     --limit 1)"
   if [ -n "${run_id}" ]; then
     echo ""
     break
   fi
-  sleep 10
+  sleep 2
 done
 
 echo "Found run ${run_id} - waiting for run to finish"
