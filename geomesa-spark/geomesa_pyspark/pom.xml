@@ -148,7 +148,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>set-package-version-prerelease</id>
+                                <id>set-package-version-rc</id>
                                 <phase>validate</phase>
                                 <goals>
                                     <goal>regex-property</goal>
@@ -156,8 +156,22 @@
                                 <configuration>
                                     <name>python.version</name>
                                     <value>${project.version}</value>
-                                    <regex>-(m|rc)\.?</regex>
-                                    <replacement>$1</replacement>
+                                    <regex>-rc\.?</regex>
+                                    <replacement>rc</replacement>
+                                    <failIfNoMatch>false</failIfNoMatch>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>set-package-version-milestone</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>regex-property</goal>
+                                </goals>
+                                <configuration>
+                                    <name>python.version</name>
+                                    <value>${project.version}</value>
+                                    <regex>-m\.?</regex>
+                                    <replacement>a</replacement>
                                     <failIfNoMatch>false</failIfNoMatch>
                                 </configuration>
                             </execution>
