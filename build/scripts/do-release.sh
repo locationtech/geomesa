@@ -30,6 +30,8 @@ done
 
 # get current branch and version we're releasing off
 BRANCH="$(git branch --show-current)"
+#TODO
+BRANCH=main
 read -r -p "Enter release branch (${BRANCH}): " new_branch
 if [[ -n "$new_branch" ]]; then
   BRANCH="$new_branch"
@@ -43,6 +45,8 @@ if ! [[ $VERSION =~ .*-SNAPSHOT ]]; then
   exit 1
 fi
 VERSION="${VERSION%-SNAPSHOT}"
+#TODO
+VERSION=6.0.0-m.0
 read -r -p "Enter release version (${VERSION}): " new_version
 if [[ -n "$new_version" ]]; then
   VERSION="$new_version"
@@ -85,7 +89,7 @@ SONATYPE_AUTH="Authorization: Bearer $(printf '%s:%s' \
 
 echo "Triggering GitHub release workflow"
 start_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-gh workflow run cut-release.yml \
+gh workflow run tag-release.yml \
   --repo "${REPOSITORY}" \
   --ref "${BRANCH}" \
   -f "version=${VERSION}" \
@@ -98,8 +102,8 @@ while true; do
   run_id="$(gh run list \
     --repo "${REPOSITORY}" \
     --branch "${BRANCH}" \
-    --workflow cut-release.yml \
-    --jq ".[] | select(.createdAt > ${start_utc}) | .databaseId" \
+    --workflow tag-release.yml \
+    --jq ".[] | select(.createdAt > \"${start_utc}\") | .databaseId" \
     --json 'databaseId,createdAt' \
     --limit 1)"
   if [ -n "${run_id}" ]; then
@@ -129,7 +133,7 @@ while true; do
     --repo "${REPOSITORY}" \
     --branch "${TAG}" \
     --workflow build-release.yml \
-    --jq ".[] | select(.createdAt > ${start_utc}) | .databaseId" \
+    --jq ".[] | select(.createdAt > \"${start_utc}\") | .databaseId" \
     --json 'databaseId,createdAt' \
     --limit 1)"
   if [ -n "${run_id}" ]; then
@@ -179,8 +183,6 @@ done < <(find "${VERSION}-staging" -not -name '*.sha1' -not -name '*.sha256' -no
 echo "Uploading Maven bundle"
 tar -czf "${VERSION}-staging.tgz" -C "${VERSION}-staging" .
 
-exit 0
-
 deployment_id="$(curl --request POST \
   --verbose \
   --header "${SONATYPE_AUTH}" \
@@ -189,6 +191,7 @@ deployment_id="$(curl --request POST \
   --form "publishingType=USER_MANAGED" \
   https://central.sonatype.com/api/v1/publisher/upload)"
 
+echo "deployment_id=$deployment_id"
 # TODO once we've verified the release process works correctly, can set publishingType=AUTOMATIC and wait for deploymentState=PUBLISHED
 
 echo "Waiting for Maven bundle to validate"
@@ -206,10 +209,12 @@ if [[ $deployment_state != VALIDATED ]]; then
   exit 1
 fi
 
+#TODO publish
+
 echo "Deleting Maven artifacts from GitHub release"
 for scala_version in 2.13 2.12; do
   gh release delete-asset "${TAG}" "${TAG}_${scala_version}-staging.tgz" \
-    --repo locationtech/geomesa \
+    --repo "${REPOSITORY}" \
     --yes
 done
 

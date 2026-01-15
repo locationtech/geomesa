@@ -70,6 +70,18 @@
 
     <profiles>
         <profile>
+            <id>skipTests</id>
+            <activation>
+                <property>
+                    <name>maven.test.skip</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
+        <profile>
             <id>python</id>
             <build>
                 <plugins>

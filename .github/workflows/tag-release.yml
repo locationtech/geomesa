@@ -1,4 +1,4 @@
-name: cut-release
+name: tag-release
 
 on:
   workflow_dispatch:
@@ -23,7 +23,7 @@ env:
 
 jobs:
   tag-release:
-    name: cut-release
+    name: tag-release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -37,7 +37,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "${{ env.JAVA_VERSION }}"
-      - name: Prepare release
+      - name: Run release plugin
         run: |
           # use the maven release plugin to prep the pom changes but use dryRun to skip commit and tag
           mvn $MAVEN_PREPARE_ARGS -Darguments="$MAVEN_BUILD_ARGS" $MAVEN_CLI_OPTS \
