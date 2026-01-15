@@ -134,7 +134,7 @@
                         <artifactId>build-helper-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>regex-property</id>
+                                <id>set-package-version-snapshot</id>
                                 <phase>validate</phase>
                                 <goals>
                                     <goal>regex-property</goal>
@@ -144,6 +144,20 @@
                                     <value>${project.version}</value>
                                     <regex>-SNAPSHOT</regex>
                                     <replacement>.dev0</replacement>
+                                    <failIfNoMatch>false</failIfNoMatch>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>set-package-version-prerelease</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>regex-property</goal>
+                                </goals>
+                                <configuration>
+                                    <name>python.version</name>
+                                    <value>${project.version}</value>
+                                    <regex>-(m|rc)\.?</regex>
+                                    <replacement>$1</replacement>
                                     <failIfNoMatch>false</failIfNoMatch>
                                 </configuration>
                             </execution>
