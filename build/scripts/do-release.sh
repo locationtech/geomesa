@@ -32,7 +32,7 @@ done
 BRANCH="$(git branch --show-current)"
 #TODO
 BRANCH=main
-read -r -p "Enter release branch (${BRANCH}): " new_branch
+read -r -p "Enter release branch: (${BRANCH}) " new_branch
 if [[ -n "$new_branch" ]]; then
   BRANCH="$new_branch"
 fi
@@ -47,7 +47,7 @@ fi
 VERSION="${VERSION%-SNAPSHOT}"
 #TODO
 VERSION=6.0.0-m.0
-read -r -p "Enter release version (${VERSION}): " new_version
+read -r -p "Enter release version: (${VERSION}) " new_version
 if [[ -n "$new_version" ]]; then
   VERSION="$new_version"
 fi
@@ -103,7 +103,7 @@ while true; do
     --repo "${REPOSITORY}" \
     --branch "${BRANCH}" \
     --workflow tag-release.yml \
-    --jq ".[] | select(.createdAt > \"${start_utc}\") | .databaseId" \
+    --jq ".[] | select(.createdAt >= \"${start_utc}\") | .databaseId" \
     --json 'databaseId,createdAt' \
     --limit 1)"
   if [ -n "${run_id}" ]; then
@@ -133,7 +133,7 @@ while true; do
     --repo "${REPOSITORY}" \
     --branch "${TAG}" \
     --workflow build-release.yml \
-    --jq ".[] | select(.createdAt > \"${start_utc}\") | .databaseId" \
+    --jq ".[] | select(.createdAt >= \"${start_utc}\") | .databaseId" \
     --json 'databaseId,createdAt' \
     --limit 1)"
   if [ -n "${run_id}" ]; then

@@ -265,7 +265,6 @@
             <properties>
                 <!-- we can discard the staging repo if there is an error in the build -->
                 <maven.deploy.at.end>false</maven.deploy.at.end>
-                <maven.test.skip>true</maven.test.skip>
             </properties>
             <build>
                 <plugins>
