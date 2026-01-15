@@ -47,7 +47,7 @@ jobs:
           java-version: "${{ env.JAVA_VERSION }}"
       - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 #v6.1.0
         with:
-          python-version: 3.10
+          python-version: "3.10"
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Build
