@@ -34,11 +34,8 @@ read -r -p "Enter release branch (${BRANCH}): " new_branch
 if [[ -n "$new_branch" ]]; then
   BRANCH="$new_branch"
 fi
-remote_alias="$(git remote -v | grep 'git@github.com:locationtech/geomesa.git' | head -n1 | sed s'/^\([a-zA-Z_][a-zA-Z_]*\)\s.*/\1/')"
-if [[ -z "$(git branch --remotes --list "${remote_alias}/${BRANCH}")" ]]; then
-  echo "Error: branch '${BRANCH}' does not exist on locationtech remote - may need to \`git fetch\`?"
-  exit 1
-fi
+git fetch "git@github.com:${REPOSITORY}.git" "$BRANCH"
+COMMIT_SHA="$(git ls-remote "git@github.com:${REPOSITORY}.git" "$BRANCH" | awk '{ print $1 }' )"
 
 # the indentation only matches the top-level version tag
 VERSION="$(grep '^    <version>' pom.xml | head -n1 | sed -E 's|.*<version>(.*)</version>.*|\1|')"
@@ -102,6 +99,7 @@ while true; do
   run_id="$(gh run list \
     --repo "${REPOSITORY}" \
     --branch "${BRANCH}" \
+    --commit "${COMMIT_SHA}" \
     --workflow cut-release.yml \
     --jq ".[].databaseId" \
     --json 'databaseId' \
