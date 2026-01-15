@@ -56,7 +56,7 @@
 
     <profiles>
         <profile>
-            <id>central</id>
+            <id>release</id>
             <build>
                 <plugins>
                     <!-- since no scala, have to use the regular javadoc plugin -->
