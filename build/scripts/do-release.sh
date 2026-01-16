@@ -4,29 +4,11 @@ set -e
 set -u
 set -o pipefail
 
-#REPOSITORY="locationtech/geomesa"
-REPOSITORY="elahrvivaz/geomesa"
-
 cd "$(dirname "$0")/../.." || exit
-
-usage() {
-  echo "Usage: $(basename "$0") [-h|--help]
-flags:
-  -h| --help  Display this usage
-" 1>&2
-}
-
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-  usage
-  exit 0
-elif [[ ($# -ne 0) ]]; then
-  usage
-  exit 1
-fi
 
 checkExecutables() {
   local err=""
-  for ex in git mvn curl gpg gh jq; do
+  for ex in git mvn curl gpg gh jq sha256sum; do
     if ! [[ $(which "$ex") ]]; then
       err="$err, '$ex'"
     fi
@@ -37,70 +19,154 @@ checkExecutables() {
   fi
 }
 
+checkExecutables
+
+REPOSITORY="locationtech/geomesa"
+# the indentation only matches the top-level version tag
+VERSION="$(grep '^    <version>' pom.xml | head -n1 | sed -E 's|.*<version>(.*)</version>.*|\1|')"
+if [[ $VERSION =~ .*-SNAPSHOT ]]; then
+  VERSION="${VERSION%-SNAPSHOT}"
+else
+  VERSION=""
+fi
+
+usage() {
+  echo "Usage: $(basename "$0") [--help] [--repo REPOSITORY] [--version VERSION]
+flags:
+  --help               Display this usage
+  --version <VERSION>  The version to release (default: $VERSION)
+  --repo <REPOSITORY>  The GitHub repository used to run the release (default: $REPOSITORY)
+  --branch <BRANCH>    The git branch to release off (default depends on the release version)
+" 1>&2
+}
+
+# parse command line arguments
+version_flag=""
+branch_flag=""
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --help)
+      usage
+      exit 0
+      ;;
+    --repo)
+      if [[ -n "$2" && "$2" != -* ]]; then
+        REPOSITORY="$2"
+        shift 2
+      else
+        echo "Error: --repo requires a repository argument" >&2
+        usage
+        exit 1
+      fi
+      ;;
+    --version)
+      if [[ -n "$2" && "$2" != -* ]]; then
+        version_flag="$2"
+        shift 2
+      else
+        echo "Error: --version requires a version argument" >&2
+        usage
+        exit 1
+      fi
+      ;;
+    --branch)
+      if [[ -n "$2" && "$2" != -* ]]; then
+        branch_flag="$2"
+        shift 2
+      else
+        echo "Error: --branch requires a repository argument" >&2
+        usage
+        exit 1
+      fi
+      ;;
+    *)
+      echo "Error: Unknown option $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
 # Progress wheel spinner
-spin_chars='\|/-'
+spin_chars='\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-'
 spin_index=0
 spin() {
   printf "\b%s" "${spin_chars:$spin_index:1}"
-  spin_index=$(( (spin_index + 1) % 4 ))
+  spin_index=$(( (spin_index + 1) % 100 ))
+}
+# rotate the spinner and sleep
+# args: $1 - how many seconds will pass before spin_index = 0, max 10
+spin_sleep() {
+  local mod="${1}0"
+  printf "\b%s" "${spin_chars:$spin_index:1}"
+  spin_index=$(( (spin_index + 1) % mod ))
+  sleep 0.1
 }
 
-checkExecutables
+if [[ -n "${version_flag}" ]]; then
+  VERSION="${version_flag}"
+elif [[ -z "${VERSION}" ]]; then
+  while [[ -z "${VERSION}" ]]; do
+    read -r -p "Enter release version: " VERSION
+  done
+else
+  read -r -p "Enter release version: (${VERSION}) " new_version
+  if [[ -n "$new_version" ]]; then
+    VERSION="$new_version"
+  fi
+fi
 
-# get current branch and version we're releasing off
-BRANCH="$(git branch --show-current)"
-read -r -p "Enter release branch: (${BRANCH}) " new_branch
-if [[ -n "$new_branch" ]]; then
-  BRANCH="$new_branch"
-fi
-git fetch "git@github.com:${REPOSITORY}.git" "$BRANCH"
-
-# the indentation only matches the top-level version tag
-VERSION="$(grep '^    <version>' pom.xml | head -n1 | sed -E 's|.*<version>(.*)</version>.*|\1|')"
-if ! [[ $VERSION =~ .*-SNAPSHOT ]]; then
-  echo "Error: project version is not a SNAPSHOT"
-  exit 1
-fi
-VERSION="${VERSION%-SNAPSHOT}"
-read -r -p "Enter release version: (${VERSION}) " new_version
-if [[ -n "$new_version" ]]; then
-  VERSION="$new_version"
-fi
 TAG="geomesa-${VERSION}"
 RELEASE_DIR="${VERSION}"
-STAGING_DIR="${VERSION}-staging"
-
-read -r -p "Releasing version ${VERSION} off branch '${BRANCH}' - continue? (Yes) " confirm
-confirm=${confirm,,} # lower-casing
-if ! [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
-  exit 0
-fi
-
-if [[ -d "${RELEASE_DIR}" ]] || [[ -d "${STAGING_DIR}" ]]; then
-  if [[ -d "${RELEASE_DIR}" ]]; then
-    echo "Found existing release directory ${RELEASE_DIR} - please delete or rename it to continue"
-  fi
-  if [[ -d "${STAGING_DIR}" ]]; then
-    echo "Found existing staging directory ${STAGING_DIR} - please delete or rename it to continue"
-  fi
-  exit 1
-fi
+STAGING_DIR="${VERSION}/staging"
 
 if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.0$ ]]; then
   # new major or minor version, bump minor version
   # shellcheck disable=SC2016
   NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0-SNAPSHOT' \
     | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
+  BRANCH="main"
 elif [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   # bug fix, bump patch version
   # shellcheck disable=SC2016
   NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}-SNAPSHOT' \
     | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
+  BRANCH="${NEXT_VERSION%.*}.x"
 else
   # milestone, rc, etc, go back to original dev version
   # shellcheck disable=SC2016
   NEXT_VERSION="$(echo '${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-SNAPSHOT' \
     | mvn build-helper:parse-version help:evaluate -N -q -DforceStdout -DversionString="$VERSION")"
+  BRANCH="main"
+fi
+
+if [[ -n "${branch_flag}" ]]; then
+  BRANCH="${branch_flag}"
+else
+  read -r -p "Enter branch to release off of: (${BRANCH}) " new_branch
+  if [[ -n "$new_branch" ]]; then
+    BRANCH="$new_branch"
+  fi
+fi
+
+# ensure the branch exists
+git fetch -q "git@github.com:${REPOSITORY}.git" "$BRANCH"
+
+read -r -p "Releasing version ${VERSION} off branch '${BRANCH}' in repository https://github.com/${REPOSITORY} - continue? (Yes) " confirm
+confirm=${confirm,,} # lower-casing
+if ! [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
+  exit 0
+fi
+
+if [[ -d "${RELEASE_DIR}" ]]; then
+  read -r -p "Found existing release directory ${RELEASE_DIR} - to delete it, enter DELETE: " confirm
+  if [[ "$confirm" == "DELETE" ]]; then
+    rm -rf "${RELEASE_DIR}"
+    echo "Deleted ${RELEASE_DIR}"
+  else
+    echo "Please rename, move or delete the directory and re-run"
+    exit 1
+  fi
 fi
 
 # api token needs: all repositories (or selected to include this one), actions r/w, contents r/w
@@ -122,10 +188,10 @@ gh workflow run tag-release.yml \
   -f "version=${VERSION}" \
   -f "next_version=${NEXT_VERSION}"
 
-echo -n "Waiting for release tagging run to start "
+echo -n "Waiting for release tagging run to start  "
 run_id=""
 while true; do
-  spin
+  spin_sleep 2
   if [[ spin_index -eq 0 ]]; then
     run_id="$(gh run list \
       --repo "${REPOSITORY}" \
@@ -139,7 +205,6 @@ while true; do
       break
     fi
   fi
-  sleep 1
 done
 
 echo "Found run ${run_id} - waiting for run to finish"
@@ -154,10 +219,10 @@ gh workflow run build-release.yml \
   --repo "${REPOSITORY}" \
   --ref "${TAG}"
 
-echo -n "Waiting for release build run to start "
+echo -n "Waiting for release build run to start  "
 run_id=""
 while true; do
-  spin
+  spin_sleep 2
   if [[ spin_index -eq 0 ]]; then
     run_id="$(gh run list \
       --repo "${REPOSITORY}" \
@@ -171,7 +236,6 @@ while true; do
       break
     fi
   fi
-  sleep 1
 done
 
 echo "Found run ${run_id} - waiting for run to finish"
@@ -193,32 +257,32 @@ for scala_version in 2.13 2.12; do
   tar -xf "${RELEASE_DIR}/${TAG}_${scala_version}-staging.tgz" -C "${STAGING_DIR}"
 done
 
-echo "Verifying downloaded artifacts"
+echo "Verifying downloaded artifacts  "
 while IFS= read -r -d '' file; do
   spin
   pushd "$(dirname "$file")" >/dev/null
   sha256sum -c "$(basename "$file")" >/dev/null
   popd >/dev/null
-done < <(find "${RELEASE_DIR}" -type f -name '*.sha256' -print0)
+done < <(find "${RELEASE_DIR}" -maxdepth 1 -type f -name '*.sha256' -print0)
 while IFS= read -r -d '' file; do
   spin
   echo "$(cat "$file") $file" | sha256sum -c >/dev/null
 done < <(find "${STAGING_DIR}" -type f -name '*.sha256' -print0)
 
-echo "Signing binary artifacts "
+echo "Signing binary artifacts  "
 while IFS= read -r -d '' file; do
   spin
   gpg --armor --detach-sign "$file"
-done < <(find "${RELEASE_DIR}" -name '*-bin.tar.gz' -print0)
+done < <(find "${RELEASE_DIR}" -maxdepth 1 -name '*-bin.tar.gz' -print0)
 echo ""
 
 echo "Uploading signatures to GitHub release"
 # shellcheck disable=SC2046
 gh release upload "${TAG}" \
   --repo "${REPOSITORY}" \
-  $(find "${RELEASE_DIR}" -name '*-bin.tar.gz.asc')
+  $(find "${RELEASE_DIR}" -maxdepth 1 -name '*-bin.tar.gz.asc')
 
-echo -n "Signing Maven artifacts "
+echo -n "Signing Maven artifacts  "
 while IFS= read -r -d '' file; do
   spin
   gpg --armor --detach-sign "$file"
@@ -244,8 +308,7 @@ echo -n "Deployment ${deployment_id} submitted - waiting for deployment to publi
 # TODO once we've verified the release process works correctly, can set publishingType=AUTOMATIC and wait for deploymentState=PUBLISHED
 deployment_state=PENDING # valid states: PENDING VALIDATING VALIDATED PUBLISHING PUBLISHED FAILED
 while [[ $deployment_state =~ PENDING|VALIDATING ]]; do
-  spin
-  sleep 1
+  spin_sleep 5
   if [[ spin_index -eq 0 ]]; then
     deployment_state="$(curl \
       --silent \
@@ -263,6 +326,7 @@ if [[ "${deployment_state}" != VALIDATED ]]; then
   echo "Deployment failed to publish - status is ${deployment_state}"
   exit 1
 fi
+rm .deployment_id
 
 echo "Deleting Maven artifacts from GitHub release"
 for scala_version in 2.13 2.12; do
@@ -286,7 +350,7 @@ gh workflow run release-docs.yml \
 echo -n "Waiting for documentation run to start "
 run_id=""
 while true; do
-  spin
+  spin_sleep 2
   if [[ spin_index -eq 0 ]]; then
     run_id="$(gh run list \
       --repo "geomesa/geomesa.github.io" \
@@ -300,7 +364,6 @@ while true; do
       break
     fi
   fi
-  sleep 1
 done
 
 echo "Found run ${run_id} - waiting for run to finish"
