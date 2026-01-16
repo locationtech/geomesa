@@ -9,7 +9,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 env:
   JAVA_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
-  MAVEN_RELEASE_ARGS: clean deploy -Prelease,python -Dmaven.test.skip -Daether.checksums.algorithms=SHA-256
+  MAVEN_RELEASE_ARGS: clean deploy -Prelease,python -Dmaven.test.skip -Daether.checksums.algorithms=MD5,SHA-1,SHA-256
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:

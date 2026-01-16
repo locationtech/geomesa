@@ -201,7 +201,7 @@ while true; do
       --json 'databaseId,createdAt' \
       --limit 1)"
     if [ -n "${run_id}" ]; then
-      echo ""
+      printf "\b- done\n"
       break
     fi
   fi
@@ -232,7 +232,7 @@ while true; do
       --json 'databaseId,createdAt' \
       --limit 1)"
     if [ -n "${run_id}" ]; then
-      echo ""
+      printf "\b- done\n"
       break
     fi
   fi
@@ -257,7 +257,7 @@ for scala_version in 2.13 2.12; do
   tar -xf "${RELEASE_DIR}/${TAG}_${scala_version}-staging.tgz" -C "${STAGING_DIR}"
 done
 
-echo "Verifying downloaded artifacts  "
+echo -n "Verifying downloaded artifacts  "
 while IFS= read -r -d '' file; do
   spin
   pushd "$(dirname "$file")" >/dev/null
@@ -266,15 +266,16 @@ while IFS= read -r -d '' file; do
 done < <(find "${RELEASE_DIR}" -maxdepth 1 -type f -name '*.sha256' -print0)
 while IFS= read -r -d '' file; do
   spin
-  echo "$(cat "$file") $file" | sha256sum -c >/dev/null
+  echo "$(cat "$file") ${file%.sha256}" | sha256sum -c >/dev/null
 done < <(find "${STAGING_DIR}" -type f -name '*.sha256' -print0)
+printf "\b- done\n"
 
-echo "Signing binary artifacts  "
+echo -n "Signing binary artifacts  "
 while IFS= read -r -d '' file; do
   spin
   gpg --armor --detach-sign "$file"
 done < <(find "${RELEASE_DIR}" -maxdepth 1 -name '*-bin.tar.gz' -print0)
-echo ""
+printf "\b- done\n"
 
 echo "Uploading signatures to GitHub release"
 # shellcheck disable=SC2046
@@ -287,13 +288,13 @@ while IFS= read -r -d '' file; do
   spin
   gpg --armor --detach-sign "$file"
 done < <(find "${STAGING_DIR}" -type f -not -name '*.sha1' -not -name '*.sha256' -not -name '*.sha512' -not -name '*.md5' -print0)
-echo ""
+printf "\b- done\n"
 
 echo "Creating Maven bundle for upload"
 # note: can't have a leading "./" in the path names inside the tar file, or sonatype validation will fail
 tar -czf "${STAGING_DIR}.tgz" -C "${STAGING_DIR}" org
 
-echo "Uploading Maven bundle to sonatype"
+echo "Uploading Maven bundle to central.sonatype.com"
 curl \
   --header "${SONATYPE_AUTH}" \
   --form "bundle=@${STAGING_DIR}.tgz" \
@@ -304,7 +305,7 @@ curl \
   https://central.sonatype.com/api/v1/publisher/upload
 deployment_id="$(cat .deployment_id)"
 
-echo -n "Deployment ${deployment_id} submitted - waiting for deployment to publish "
+echo -n "Deployment ${deployment_id} submitted - waiting for deployment to publish  "
 # TODO once we've verified the release process works correctly, can set publishingType=AUTOMATIC and wait for deploymentState=PUBLISHED
 deployment_state=PENDING # valid states: PENDING VALIDATING VALIDATED PUBLISHING PUBLISHED FAILED
 while [[ $deployment_state =~ PENDING|VALIDATING ]]; do
@@ -319,7 +320,7 @@ while [[ $deployment_state =~ PENDING|VALIDATING ]]; do
       | jq '.deploymentState' | sed "s/[\"']//g")"
   fi
 done
-echo ""
+printf "\b- done\n"
 
 # TODO PUBLISHED
 if [[ "${deployment_state}" != VALIDATED ]]; then
@@ -360,7 +361,7 @@ while true; do
       --json 'databaseId,createdAt' \
       --limit 1)"
     if [ -n "${run_id}" ]; then
-      echo ""
+      printf "\b- done\n"
       break
     fi
   fi
