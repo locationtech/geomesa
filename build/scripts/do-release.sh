@@ -11,27 +11,44 @@ cd "$(dirname "$0")/../.." || exit
 
 usage() {
   echo "Usage: $(basename "$0") [-h|--help]
-where :
-  -h| --help Display this help text
+flags:
+  -h| --help  Display this usage
 " 1>&2
-  exit 1
 }
 
-if [[ ($# -ne 0) ]]; then
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
   usage
+  exit 0
+elif [[ ($# -ne 0) ]]; then
+  usage
+  exit 1
 fi
 
-for ex in mvn curl gpg gh; do
-  if ! [[ $(which "$ex") ]]; then
-    echo "Error: required executable '$ex' not found"
+checkExecutables() {
+  local err=""
+  for ex in git mvn curl gpg gh jq; do
+    if ! [[ $(which "$ex") ]]; then
+      err="$err, '$ex'"
+    fi
+  done
+  if [[ -n "$err" ]]; then
+    echo "Error: required executable(s) ${ex:2} not found - please install them and re-run"
     exit 1
   fi
-done
+}
+
+# Progress wheel spinner
+spin_chars='\|/-'
+spin_index=0
+spin() {
+  printf "\b%s" "${spin_chars:$spin_index:1}"
+  spin_index=$(( (spin_index + 1) % 4 ))
+}
+
+checkExecutables
 
 # get current branch and version we're releasing off
 BRANCH="$(git branch --show-current)"
-#TODO
-BRANCH=main
 read -r -p "Enter release branch: (${BRANCH}) " new_branch
 if [[ -n "$new_branch" ]]; then
   BRANCH="$new_branch"
@@ -45,17 +62,27 @@ if ! [[ $VERSION =~ .*-SNAPSHOT ]]; then
   exit 1
 fi
 VERSION="${VERSION%-SNAPSHOT}"
-#TODO
-VERSION=6.0.0-m.0
 read -r -p "Enter release version: (${VERSION}) " new_version
 if [[ -n "$new_version" ]]; then
   VERSION="$new_version"
 fi
 TAG="geomesa-${VERSION}"
+RELEASE_DIR="${VERSION}"
+STAGING_DIR="${VERSION}-staging"
 
-read -r -p "Releasing version ${VERSION} off branch '${BRANCH}' - continue? (y/n) " confirm
+read -r -p "Releasing version ${VERSION} off branch '${BRANCH}' - continue? (Yes) " confirm
 confirm=${confirm,,} # lower-casing
 if ! [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
+  exit 0
+fi
+
+if [[ -d "${RELEASE_DIR}" ]] || [[ -d "${STAGING_DIR}" ]]; then
+  if [[ -d "${RELEASE_DIR}" ]]; then
+    echo "Found existing release directory ${RELEASE_DIR} - please delete or rename it to continue"
+  fi
+  if [[ -d "${STAGING_DIR}" ]]; then
+    echo "Found existing staging directory ${STAGING_DIR} - please delete or rename it to continue"
+  fi
   exit 1
 fi
 
@@ -87,7 +114,7 @@ SONATYPE_AUTH="Authorization: Bearer $(printf '%s:%s' \
   "$(grep -A2 '<id>sonatype</id>' ~/.m2/settings.xml | grep password | sed 's| *<password>\(.*\)</password>|\1|')" \
   | base64)"
 
-echo "Triggering GitHub release workflow"
+echo "Triggering release tagging workflow"
 start_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 gh workflow run tag-release.yml \
   --repo "${REPOSITORY}" \
@@ -95,22 +122,24 @@ gh workflow run tag-release.yml \
   -f "version=${VERSION}" \
   -f "next_version=${NEXT_VERSION}"
 
-echo -n "Waiting for run to start "
+echo -n "Waiting for release tagging run to start "
 run_id=""
 while true; do
-  echo -n "."
-  run_id="$(gh run list \
-    --repo "${REPOSITORY}" \
-    --branch "${BRANCH}" \
-    --workflow tag-release.yml \
-    --jq ".[] | select(.createdAt >= \"${start_utc}\") | .databaseId" \
-    --json 'databaseId,createdAt' \
-    --limit 1)"
-  if [ -n "${run_id}" ]; then
-    echo ""
-    break
+  spin
+  if [[ spin_index -eq 0 ]]; then
+    run_id="$(gh run list \
+      --repo "${REPOSITORY}" \
+      --branch "${BRANCH}" \
+      --workflow tag-release.yml \
+      --jq ".[] | select(.createdAt >= \"${start_utc}\") | .databaseId" \
+      --json 'databaseId,createdAt' \
+      --limit 1)"
+    if [ -n "${run_id}" ]; then
+      echo ""
+      break
+    fi
   fi
-  sleep 2
+  sleep 1
 done
 
 echo "Found run ${run_id} - waiting for run to finish"
@@ -119,28 +148,30 @@ gh run watch "${run_id}" \
   --exit-status \
   --interval 10
 
-echo "Triggering GitHub release build workflow"
+echo "Triggering release build workflow"
 start_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 gh workflow run build-release.yml \
   --repo "${REPOSITORY}" \
   --ref "${TAG}"
 
-echo -n "Waiting for GitHub release build ${TAG} run to start "
+echo -n "Waiting for release build run to start "
 run_id=""
 while true; do
-  echo -n "."
-  run_id="$(gh run list \
-    --repo "${REPOSITORY}" \
-    --branch "${TAG}" \
-    --workflow build-release.yml \
-    --jq ".[] | select(.createdAt >= \"${start_utc}\") | .databaseId" \
-    --json 'databaseId,createdAt' \
-    --limit 1)"
-  if [ -n "${run_id}" ]; then
-    echo ""
-    break
+  spin
+  if [[ spin_index -eq 0 ]]; then
+    run_id="$(gh run list \
+      --repo "${REPOSITORY}" \
+      --branch "${TAG}" \
+      --workflow build-release.yml \
+      --jq ".[] | select(.createdAt >= \"${start_utc}\") | .databaseId" \
+      --json 'databaseId,createdAt' \
+      --limit 1)"
+    if [ -n "${run_id}" ]; then
+      echo ""
+      break
+    fi
   fi
-  sleep 2
+  sleep 1
 done
 
 echo "Found run ${run_id} - waiting for run to finish"
@@ -150,66 +181,88 @@ gh run watch "${run_id}" \
   --interval 10
 
 echo "Downloading artifacts from GitHub release"
-mkdir "${VERSION}"
+mkdir "${RELEASE_DIR}"
 gh release download "${TAG}" \
   --repo "${REPOSITORY}" \
-  --dir "${VERSION}" \
+  --dir "${RELEASE_DIR}" \
   --skip-existing
 
-echo "Signing binary artifacts"
-while IFS= read -r -d '' file; do
-  pushd "$(dirname "$file")" >/dev/null
-  gpg --armor --detach-sign "$(basename "$file")"
-  gh release upload "${TAG}" \
-    --repo "${REPOSITORY}" \
-    "$(basename "$file").asc"
-  sleep 1
-  popd >/dev/null
-done < <(find "${VERSION}" -name '*-bin.tar.gz' -print0)
-
-echo "Merging Maven release bundles"
-mkdir "${VERSION}-staging"
+echo "Extracting Maven release bundles"
+mkdir "${STAGING_DIR}"
 for scala_version in 2.13 2.12; do
-  tar -xf "${VERSION}/${TAG}_${scala_version}-staging.tgz" -C "${VERSION}-staging"
+  tar -xf "${RELEASE_DIR}/${TAG}_${scala_version}-staging.tgz" -C "${STAGING_DIR}"
 done
 
-echo "Signing Maven artifacts"
+echo "Verifying downloaded artifacts"
 while IFS= read -r -d '' file; do
+  spin
   pushd "$(dirname "$file")" >/dev/null
-  gpg --armor --detach-sign "$(basename "$file")"
+  sha256sum -c "$(basename "$file")" >/dev/null
   popd >/dev/null
-done < <(find "${VERSION}-staging" -not -name '*.sha1' -not -name '*.sha256' -not -name '*.sha512' -not -name '*.md5' -print0)
+done < <(find "${RELEASE_DIR}" -type f -name '*.sha256' -print0)
+while IFS= read -r -d '' file; do
+  spin
+  echo "$(cat "$file") $file" | sha256sum -c >/dev/null
+done < <(find "${STAGING_DIR}" -type f -name '*.sha256' -print0)
 
-echo "Uploading Maven bundle"
-tar -czf "${VERSION}-staging.tgz" -C "${VERSION}-staging" .
+echo "Signing binary artifacts "
+while IFS= read -r -d '' file; do
+  spin
+  gpg --armor --detach-sign "$file"
+done < <(find "${RELEASE_DIR}" -name '*-bin.tar.gz' -print0)
+echo ""
 
-deployment_id="$(curl --request POST \
-  --verbose \
+echo "Uploading signatures to GitHub release"
+# shellcheck disable=SC2046
+gh release upload "${TAG}" \
+  --repo "${REPOSITORY}" \
+  $(find "${RELEASE_DIR}" -name '*-bin.tar.gz.asc')
+
+echo -n "Signing Maven artifacts "
+while IFS= read -r -d '' file; do
+  spin
+  gpg --armor --detach-sign "$file"
+done < <(find "${STAGING_DIR}" -type f -not -name '*.sha1' -not -name '*.sha256' -not -name '*.sha512' -not -name '*.md5' -print0)
+echo ""
+
+echo "Creating Maven bundle for upload"
+# note: can't have a leading "./" in the path names inside the tar file, or sonatype validation will fail
+tar -czf "${STAGING_DIR}.tgz" -C "${STAGING_DIR}" org
+
+echo "Uploading Maven bundle to sonatype"
+curl \
   --header "${SONATYPE_AUTH}" \
-  --form "bundle=@${VERSION}-staging.tgz" \
+  --form "bundle=@${STAGING_DIR}.tgz" \
   --form "name=${TAG}" \
   --form "publishingType=USER_MANAGED" \
-  https://central.sonatype.com/api/v1/publisher/upload)"
+  --progress-bar \
+  -o .deployment_id \
+  https://central.sonatype.com/api/v1/publisher/upload
+deployment_id="$(cat .deployment_id)"
 
-echo "deployment_id=$deployment_id"
+echo -n "Deployment ${deployment_id} submitted - waiting for deployment to publish "
 # TODO once we've verified the release process works correctly, can set publishingType=AUTOMATIC and wait for deploymentState=PUBLISHED
-
-echo "Waiting for Maven bundle to validate"
 deployment_state=PENDING # valid states: PENDING VALIDATING VALIDATED PUBLISHING PUBLISHED FAILED
 while [[ $deployment_state =~ PENDING|VALIDATING ]]; do
-  sleep 10
-  deployment_state="$(curl --request POST \
-    --header "${SONATYPE_AUTH}" \
-    "https://central.sonatype.com/api/v1/publisher/status?id=${deployment_id}" \
-    | jq '.deploymentState')"
+  spin
+  sleep 1
+  if [[ spin_index -eq 0 ]]; then
+    deployment_state="$(curl \
+      --silent \
+      --show-error \
+      --request POST \
+      --header "${SONATYPE_AUTH}" \
+      "https://central.sonatype.com/api/v1/publisher/status?id=${deployment_id}" \
+      | jq '.deploymentState' | sed "s/[\"']//g")"
+  fi
 done
+echo ""
 
-if [[ $deployment_state != VALIDATED ]]; then
-  echo "Deployment failed to validate - status is ${deployment_state}"
+# TODO PUBLISHED
+if [[ "${deployment_state}" != VALIDATED ]]; then
+  echo "Deployment failed to publish - status is ${deployment_state}"
   exit 1
 fi
-
-#TODO publish
 
 echo "Deleting Maven artifacts from GitHub release"
 for scala_version in 2.13 2.12; do
@@ -223,4 +276,37 @@ gh release edit "${TAG}" \
   --repo "${REPOSITORY}" \
   --draft=false
 
-echo "Done"
+echo "Triggering release documentation workflow"
+start_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+gh workflow run release-docs.yml \
+  --repo "geomesa/geomesa.github.io" \
+  --ref main \
+  -f "tag=${TAG}"
+
+echo -n "Waiting for documentation run to start "
+run_id=""
+while true; do
+  spin
+  if [[ spin_index -eq 0 ]]; then
+    run_id="$(gh run list \
+      --repo "geomesa/geomesa.github.io" \
+      --branch main \
+      --workflow release-docs.yml \
+      --jq ".[] | select(.createdAt >= \"${start_utc}\") | .databaseId" \
+      --json 'databaseId,createdAt' \
+      --limit 1)"
+    if [ -n "${run_id}" ]; then
+      echo ""
+      break
+    fi
+  fi
+  sleep 1
+done
+
+echo "Found run ${run_id} - waiting for run to finish"
+gh run watch "${run_id}" \
+  --repo "geomesa/geomesa.github.io" \
+  --exit-status \
+  --interval 10
+
+echo "Release complete"
