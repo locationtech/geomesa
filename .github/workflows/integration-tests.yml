@@ -1,0 +1,68 @@
+name: integration-tests
+
+on:
+  push:
+    branches:
+      - main
+      - '[0-9]+.[0-9]+.x'
+    tags:
+      - '**'
+  pull_request:
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+env:
+  JAVA_VERSION: 17
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
+  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes
+  MAVEN_IT_COMPILE_ARGS: test -Dmaven.main.skip -DskipTests
+  MAVEN_IT_TEST_ARGS: failsafe:integration-test failsafe:verify
+
+jobs:
+  integration-tests:
+    name: test / ${{ matrix.projects.name }} / ${{ matrix.scala-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
+        projects:
+          - name: accumulo-ds
+            list: geomesa-accumulo/geomesa-accumulo-datastore
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+        with:
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
+      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          key: ${{ hashFiles('**/pom.xml') }}-it-${{ matrix.scala-version }}-${{ matrix.projects.name }}
+          path: ~/.m2/repository/
+      - name: Set Scala version
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
+      - name: Compile
+        id: compile
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} | tee -a build.log
+      - name: Compile (retry)
+        if: steps.compile.outcome=='failure'
+        run: |
+          set -o pipefail
+          # retry if the failure was due to transient download errors from maven central
+          if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build.log; then
+            RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+            mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a build.log
+          else
+            exit 1
+          fi
+      - name: Compile integration tests
+        run: mvn $MAVEN_IT_COMPILE_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
+      - name: Run integration tests
+        run: mvn $MAVEN_IT_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: rm -rf ~/.m2/repository/org/locationtech/geomesa

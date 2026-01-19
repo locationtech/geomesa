@@ -1,0 +1,105 @@
+name: dash
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 21 * * 0'
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+env:
+  JAVA_VERSION: 17
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
+  MAVEN_COMPILE_NO_OP_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip
+  MAVEN_DASH_ARGS: org.eclipse.dash:license-tool-plugin:license-check -Ddash.fail=true -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa
+
+jobs:
+  license-check:
+    name: license-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+        with:
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
+      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          key: ${{ hashFiles('**/pom.xml') }}-dash
+          path: ~/.m2/repository/
+      - name: Check for dependency changes
+        id: dependency_changes
+        run: |
+          changed=""
+          if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
+            echo "Checking for dependency changes"
+            # get the changed files
+            git fetch --depth=1 origin ${{ github.base_ref }}
+            IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only origin/${{ github.base_ref }} && printf '\0' )
+            echo "Changed files:"
+            for file in "${changedFiles[@]}"; do
+              echo "  $file"
+              if [[ -z "$changed" ]] && [[ $file =~ .*pom.xml ]]; then
+                changed="pom"
+              elif [[ "$file" == "build/dependencies.txt" ]]; then
+                echo "Detected dependency change"
+                changed="true"
+              fi
+            done
+            if [[ -n "$changed" ]]; then
+              echo "Detected dependency change, double-checking dependencies.txt"
+              mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
+              ./build/scripts/calculate-cqs.sh
+              git diff --exit-code --quiet build/dependencies.txt || {
+                echo 'Detected dependency changes - please run `./build/scripts/calculate-cqs.sh` and commit the results'
+                git diff build/dependencies.txt
+                exit 1
+              }
+              if [[ "$changed" == "pom" ]]; then
+                echo "Dependencies are ok, skipping dash check"
+                changed="false"
+              fi
+            fi
+          else
+            # weekly or dispatch requests
+            echo "Always running dash check for scheduled jobs"
+            changed="true"
+          fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+      - name: Compile
+        if: steps.dependency_changes.outputs.changed == 'true'
+        id: compile
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS | tee -a build.log
+      - name: Compile (retry)
+        if: steps.compile.outcome=='failure'
+        run: |
+          set -o pipefail
+          # retry if the failure was due to transient download errors from maven central
+          if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build.log; then
+            RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+            mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS $RESUME_FROM | tee -a build.log
+          else
+            exit 1
+          fi
+      - name: License check
+        if: steps.dependency_changes.outputs.changed == 'true'
+        run: mvn $MAVEN_DASH_ARGS $MAVEN_CLI_OPTS
+      - name: Show license
+        if: success() || failure()
+        run: |
+          if [[ -f target/dash/summary ]]; then
+            cat target/dash/summary
+          else
+            echo "No dependency changes detected - skipping license check"
+          fi
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: |
+          if [[ -d ~/.m2/repository/org/locationtech/geomesa ]]; then
+            rm -rf ~/.m2/repository/org/locationtech/geomesa
+          fi
