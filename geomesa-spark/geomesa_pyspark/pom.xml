@@ -70,6 +70,18 @@
 
     <profiles>
         <profile>
+            <id>skipTests</id>
+            <activation>
+                <property>
+                    <name>maven.test.skip</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
+        <profile>
             <id>python</id>
             <build>
                 <plugins>
@@ -122,7 +134,7 @@
                         <artifactId>build-helper-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>regex-property</id>
+                                <id>set-package-version-snapshot</id>
                                 <phase>validate</phase>
                                 <goals>
                                     <goal>regex-property</goal>
@@ -132,6 +144,34 @@
                                     <value>${project.version}</value>
                                     <regex>-SNAPSHOT</regex>
                                     <replacement>.dev0</replacement>
+                                    <failIfNoMatch>false</failIfNoMatch>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>set-package-version-rc</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>regex-property</goal>
+                                </goals>
+                                <configuration>
+                                    <name>python.version</name>
+                                    <value>${project.version}</value>
+                                    <regex>-rc\.?</regex>
+                                    <replacement>rc</replacement>
+                                    <failIfNoMatch>false</failIfNoMatch>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>set-package-version-milestone</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>regex-property</goal>
+                                </goals>
+                                <configuration>
+                                    <name>python.version</name>
+                                    <value>${project.version}</value>
+                                    <regex>-m\.?</regex>
+                                    <replacement>a</replacement>
                                     <failIfNoMatch>false</failIfNoMatch>
                                 </configuration>
                             </execution>

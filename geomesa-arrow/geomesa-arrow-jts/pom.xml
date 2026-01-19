@@ -56,7 +56,7 @@
 
     <profiles>
         <profile>
-            <id>central</id>
+            <id>release</id>
             <build>
                 <plugins>
                     <!-- since no scala, have to use the regular javadoc plugin -->
@@ -69,6 +69,24 @@
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <!-- required to build site javadocs with mixed scala sources -->
+                        <executions>
+                            <execution>
+                                <id>generate-classpath</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>build-classpath</goal>
+                                </goals>
+                                <configuration>
+                                    <outputFile>${project.build.directory}/module-classpath</outputFile>
+                                    <outputProperty>dep.cp</outputProperty>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

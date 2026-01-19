@@ -1,0 +1,70 @@
+name: tag-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'GeoMesa release version'
+        required: true
+        type: string
+      next_version:
+        description: 'Next development version'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  JAVA_VERSION: 17
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
+  MAVEN_PREPARE_ARGS: release:prepare -DdryRun=true -DautoVersionSubmodules=true
+  MAVEN_BUILD_ARGS: -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip -Dmaven.javadoc.skip=true
+
+jobs:
+  tag-release:
+    name: tag-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Configure git user
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email '7715322+elahrvivaz@users.noreply.github.com'
+      - uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+        with:
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
+      - name: Run release plugin
+        run: |
+          # use the maven release plugin to prep the pom changes but use dryRun to skip commit and tag
+          mvn $MAVEN_PREPARE_ARGS -Darguments="$MAVEN_BUILD_ARGS" $MAVEN_CLI_OPTS \
+            -DreleaseVersion="${{ github.event.inputs.version }}" \
+            -DdevelopmentVersion="${{ github.event.inputs.next_version }}"
+      - name: Read release properties
+        run: |
+          # read the tag from release.properties
+          TAG="$(grep "^scm\.tag=" release.properties | head -n1 | sed "s/.*=//")"
+          echo "TAG=$TAG" >> $GITHUB_ENV
+      - name: Commit release tag
+        run: |
+          # update README versions and commit
+          for pom in pom.xml pom.xml.tag pom.xml.next; do
+            sed -i "s|<geomesa\.release\.version>.*|<geomesa.release.version>${{ github.event.inputs.version }}</geomesa.release.version>|" "$pom"
+          done
+          # regenerates the README
+          mvn clean install $MAVEN_CLI_OPTS -pl .
+          find . -name pom.xml -exec mv {}.tag {} \;
+          git commit -am "[maven-release-plugin] prepare release ${TAG}"
+          git tag "${TAG}"
+      - name: Commit next development version
+        run: |
+          find . -name pom.xml -exec mv {}.next {} \;
+          git commit -am "[maven-release-plugin] prepare for next development iteration"
+      - name: Push commits and tags
+        run: |
+          # push commits and tags
+          git push origin "${GITHUB_REF_NAME}"
+          git push origin "${TAG}"
