@@ -71,23 +71,19 @@ jobs:
         run: |
           echo "Copying release artifacts"
           find ./staging-repo/ -name 'maven-metadata.xml*' -exec rm {} \;
-          tar -czf ${GITHUB_REF_NAME}_${{ matrix.scala-version }}-staging.tgz -C ./staging-repo/ .
-          gh release upload ${GITHUB_REF_NAME} \
+          tar -czf "${GITHUB_REF_NAME}_${{ matrix.scala-version }}-staging.tgz" -C ./staging-repo/ .
+          gh release upload "${GITHUB_REF_NAME}" \
               --repo ${GITHUB_REPOSITORY} \
-              ${GITHUB_REF_NAME}_${{ matrix.scala-version }}-staging.tgz
+              "${GITHUB_REF_NAME}_${{ matrix.scala-version }}-staging.tgz"
           while IFS= read -r -d '' file; do
             pushd "$(dirname "$file")" >/dev/null
             sha256sum "$(basename "$file")" > "$(basename "$file").sha256"
             popd >/dev/null
             # GitHub CLI does not respect their own rate limits: https://github.com/cli/cli/issues/9586
             sleep 1
-            gh release upload ${GITHUB_REF_NAME} \
+            gh release upload "${GITHUB_REF_NAME}" \
               --repo ${GITHUB_REPOSITORY} \
-              $file
-            sleep 1
-            gh release upload ${GITHUB_REF_NAME} \
-              --repo ${GITHUB_REPOSITORY} \
-              ${file}.sha256
+              "${file}" "${file}.sha256"
           done < <(find geomesa-* -name '*-bin.tar.gz' -print0)
       - name: Upload job logs
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

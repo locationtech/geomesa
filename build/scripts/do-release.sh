@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+# Script to cut a release
+#
+# This script requires `gpg` for signing artifacts. It also requires access/credentials to GitHub using the `gh` CLI tool, and
+# Sonatype for publishing. Sonatype credentials will be pulled from the user's '~/.m2/settings.xml'.
+#
+# The script performs the following steps:
+# * Trigger GitHub actions to tag and build the release
+# * Download the release artifacts and sign them with the developer's gpg key
+# * Publish the Maven artifacts to Maven central
+# * Publish the binary distribution bundles to a GitHub release
+# * Trigger a GitHub action to publish the release docs to geomesa.org
+
 set -e
 set -u
 set -o pipefail
@@ -31,7 +43,7 @@ else
 fi
 
 usage() {
-  echo "Usage: $(basename "$0") [--help] [--repo REPOSITORY] [--version VERSION]
+  echo "Usage: $(basename "$0") [--help] [--repo <REPOSITORY>] [--version <VERSION>] [--branch <BRANCH>]
 flags:
   --help               Display this usage
   --version <VERSION>  The version to release (default: $VERSION)
@@ -302,7 +314,7 @@ echo "Creating Maven bundle for upload"
 # note: can't have a leading "./" in the path names inside the tar file, or sonatype validation will fail
 tar -czf "${STAGING_DIR}.tgz" -C "${STAGING_DIR}" org
 
-echo "Uploading Maven bundle to central.sonatype.com"
+echo "Uploading Maven bundle to sonatype"
 curl \
   --header "${SONATYPE_AUTH}" \
   --form "bundle=@${STAGING_DIR}.tgz" \
@@ -336,7 +348,7 @@ if [[ "${deployment_state}" != PUBLISHED ]]; then
 fi
 rm .deployment_id
 
-echo "Deleting redundant Maven artifacts from GitHub release"
+echo "Deleting Maven staging artifacts from GitHub release"
 for scala_version in 2.13 2.12; do
   gh release delete-asset "${TAG}" "${TAG}_${scala_version}-staging.tgz" \
     --repo "${REPOSITORY}" \

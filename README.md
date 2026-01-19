@@ -221,7 +221,8 @@ To build for a different Scala version (e.g. 2.13), run the following script, th
 
 ### Building on OS X
 
-When building on OS X and using Docker Desktop in a non-default configuration, you may need to edit `~/.testcontainers.properties` to contain the following:
+When building on OS X and using Docker Desktop in a non-default configuration, you may need to edit
+`~/.testcontainers.properties` to contain the following:
 
 ```
 docker.client.strategy=org.testcontainers.dockerclient.UnixSocketClientProviderStrategy
