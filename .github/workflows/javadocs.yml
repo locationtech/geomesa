@@ -64,7 +64,7 @@ jobs:
           java-version: "${{ env.JAVA_VERSION }}"
       - name: Generate cache key
         run: echo "MOD_SELECTOR=$(echo '${{ matrix.projects.list }}' | sed 's/[^a-zA-Z0-9_.-]/-/g' | head -c 256)" >> "$GITHUB_ENV"
-      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+      - uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
         with:
           key: ${{ hashFiles('**/pom.xml') }}-javadocs-${{ matrix.scala-version }}-${{ env.MOD_SELECTOR }}
           path: ~/.m2/repository/
