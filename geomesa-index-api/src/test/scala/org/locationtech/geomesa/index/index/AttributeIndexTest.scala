@@ -129,10 +129,10 @@ class AttributeIndexTest extends Specification with LazyLogging {
 
     "correctly set index ranges without a secondary key" in {
       val spec = "name:String,age:Int,height:Float,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='attr:name'"
-      val sft = SimpleFeatureTypes.createType(typeName, spec)
 
       val ds = new TestGeoMesaDataStore(true)
-      ds.createSchema(sft)
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, spec))
+      val sft = ds.getSchema(typeName)
 
       ds.manager.indices(sft) must haveLength(1)
       ds.manager.indices(sft).flatMap(_.attributes) mustEqual Seq("name")

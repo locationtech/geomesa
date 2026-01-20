@@ -184,8 +184,8 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "create a schema with custom record splitting options with table sharing off" in {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.options='id.pattern:[a-z][0-9]'"
-      val sft = SimpleFeatureTypes.createType("customsplit", spec)
-      ds.createSchema(sft)
+      ds.createSchema(SimpleFeatureTypes.createType("customsplit", spec))
+      val sft = ds.getSchema("customsplit")
       val recTables = ds.manager.indices(sft).find(_.name == IdIndex.name).toSeq.flatMap(_.getTableNames())
       recTables must not(beEmpty)
       foreach(recTables) { recTable =>
@@ -308,8 +308,8 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should end up hex encoded
       val sftName = "nihao你好"
-      val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=join,dtg:Date,*geom:Point:srid=4326")
-      ds.createSchema(sft)
+      ds.createSchema(SimpleFeatureTypes.createType(sftName, s"name:String:index=join,dtg:Date,*geom:Point:srid=4326"))
+      val sft = ds.getSchema(sftName)
 
       // encode groups of 2 hex chars since we are doing multibyte chars
       def enc(s: String): String = Hex.encodeHex(s.getBytes("UTF8")).grouped(2)
@@ -525,8 +525,8 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val catalog = "AccumuloDataStoreDeleteAllTablesTest"
       // note the table needs to be different to prevent testing errors
       val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)).asJava).asInstanceOf[AccumuloDataStore]
-      val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326")
-      ds.createSchema(sft)
+      ds.createSchema(SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326"))
+      val sft = ds.getSchema(catalog)
       val tables = ds.getAllIndexTableNames(sft.getTypeName) ++ Seq(catalog)
       tables must haveSize(5)
       ds.client.tableOperations().list().asScala.toSeq must containAllOf(tables)

@@ -75,7 +75,7 @@ class GeoMesaDataSource extends DataSourceRegister
       } else {
         rddSft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
         ds.createSchema(rddSft)
-        rddSft
+        ds.getSchema(rddSft.getTypeName)
       }
     }
 

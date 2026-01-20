@@ -113,16 +113,17 @@ trait IngestCommand[DS <: DataStore]
       IngestCommand.getSftAndConverter(params, inputs, format, Some(ds)).get.foreach { case (sft, converter) =>
         val start = System.currentTimeMillis()
         // create schema for the feature prior to ingest
-        val existing = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        var existing = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         if (existing == null) {
           Command.user.info(s"Creating schema '${sft.getTypeName}'")
           setBackendSpecificOptions(sft)
           ds.createSchema(sft)
+          existing = ds.getSchema(sft.getTypeName)
         } else {
           // note: sft will have been loaded from the datastore if it already exists, so will match existing
           Command.user.info(s"Schema '${sft.getTypeName}' exists")
         }
-        val result = startIngest(mode, ds, sft, converter, inputs)
+        val result = startIngest(mode, ds, existing, converter, inputs)
         if (params.waitForCompletion) {
           result.await(TerminalCallback()) match {
             case JobSuccess(message, counts) =>

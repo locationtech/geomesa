@@ -174,8 +174,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       val catalog = "AccumuloDataStoreTotalDeleteTest"
       val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
-      val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326")
-      ds.createSchema(sft)
+      ds.createSchema(SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326"))
+      val sft = ds.getSchema(catalog)
       val tables = ds.manager.indices(sft).flatMap(_.getTableNames()) ++ Seq(catalog, s"${catalog}_stats")
       tables must haveSize(6)
       forall(tables)(tableOps.exists(_) must beTrue)
