@@ -8,8 +8,13 @@
 
 package org.locationtech.geomesa.kafka
 
+import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
 import org.apache.kafka.clients.producer.Producer
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.utils.concurrent.LazyCloseable
+import org.locationtech.geomesa.utils.io.WithClose
+
+import java.util.Properties
 
 package object data {
 
@@ -18,4 +23,12 @@ package object data {
 
   class LazyProducer(create: => Producer[Array[Byte], Array[Byte]])
       extends LazyCloseable[Producer[Array[Byte], Array[Byte]]](create)
+
+  private[data] def adminClientOp[V](config: KafkaDataStoreConfig)(fn: AdminClient => V): V = {
+    val props = new Properties()
+    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
+    config.consumers.properties.foreach { case (k, v) => props.put(k, v) }
+    config.producers.properties.foreach { case (k, v) => props.put(k, v) }
+    WithClose(AdminClient.create(props)) { admin => fn(admin) }
+  }
 }

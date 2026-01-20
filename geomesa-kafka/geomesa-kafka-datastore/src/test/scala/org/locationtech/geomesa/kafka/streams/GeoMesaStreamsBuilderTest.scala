@@ -50,23 +50,22 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
     ScalaSimpleFeature.create(sft, s"id$i", s"name$i", i % 2, s"2022-04-27T00:00:0$i.00Z", s"POINT(1 $i)")
   }
 
-  private val zkPaths = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
+  private val catalogs = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
 
-  def getParams(zkPath: String): Map[String, String] = {
-    require(zkPaths.add(zkPath), s"zk path '$zkPath' is reused between tests, may cause conflicts")
+  def getParams(catalog: String): Map[String, String] = {
+    require(catalogs.add(catalog), s"Catalog '$catalog' is reused between tests, may cause conflicts")
     Map(
       "kafka.brokers"            -> brokers,
-      "kafka.zookeepers"         -> zookeepers,
       "kafka.topic.partitions"   -> "1",
       "kafka.topic.replication"  -> "1",
       "kafka.consumer.read-back" -> "Inf",
-      "kafka.zk.path"            -> zkPath
+      "kafka.catalog.topic"      -> s"geomesa-catalog-$catalog"
     )
   }
 
   "GeoMesaStreamsBuilder" should {
     "read from geomesa topics" in {
-      val params = getParams("word/count")
+      val params = getParams("word-count")
       // write features to the embedded kafka
       val kryoTopic = WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
         ds.createSchema(sft)
@@ -147,7 +146,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
     }
 
     "write to geomesa topics" in {
-      val params = getParams("write/test")
+      val params = getParams("write-test")
       // create the output feature type and topic
       val kryoTopic = WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
         ds.createSchema(sft)
