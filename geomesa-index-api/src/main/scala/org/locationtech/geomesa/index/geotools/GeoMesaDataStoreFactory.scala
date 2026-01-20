@@ -15,7 +15,7 @@ import org.locationtech.geomesa.index.conf.{QueryProperties, StatsProperties}
 import org.locationtech.geomesa.metrics.micrometer.RegistryFactory
 import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchFactory
 import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory
-import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityParams}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam._
 
@@ -158,7 +158,7 @@ object GeoMesaDataStoreFactory {
   }
 
   // noinspection TypeAnnotation
-  trait GeoMesaDataStoreParams extends NamespaceParams {
+  trait GeoMesaDataStoreParams extends SecurityParams with NamespaceParams {
 
     protected def looseBBoxDefault = true
 

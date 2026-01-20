@@ -16,14 +16,15 @@ import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.memory.index.impl.SizeSeparatedBucketIndex
+import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, ReadWriteFlag}
 
 import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 import java.util.{Locale, Properties}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
-object KafkaDataStoreParams extends NamespaceParams {
+object KafkaDataStoreParams extends SecurityParams with NamespaceParams {
   // deprecated lookups
   private val DeprecatedProducer = ConvertedParam[java.lang.Integer, java.lang.Boolean]("isProducer", v => if (v) { 0 } else { 1 })
   private val DeprecatedOffset = ConvertedParam[Duration, String]("autoOffsetReset", v => if ("earliest".equalsIgnoreCase(v)) { Duration.Inf } else { null })
@@ -301,7 +302,8 @@ object KafkaDataStoreParams extends NamespaceParams {
   val AuditQueries: GeoMesaParam[java.lang.Boolean] = GeoMesaDataStoreFactory.AuditQueriesParam
   val MetricsRegistry: GeoMesaDataStoreFactory.MetricsRegistryParam = GeoMesaDataStoreFactory.MetricsRegistryParam
   val MetricsRegistryConfig: GeoMesaParam[Config] = GeoMesaDataStoreFactory.MetricsRegistryConfigParam
-  val Authorizations: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
+  @deprecated("Use AuthsParam instead")
+  val Authorizations: GeoMesaParam[String] = AuthsParam
 
   val ExecutorTicker =
     new GeoMesaParam[(ScheduledExecutorService, Ticker)](

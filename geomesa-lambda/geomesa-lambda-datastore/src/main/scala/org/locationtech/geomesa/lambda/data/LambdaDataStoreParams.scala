@@ -12,7 +12,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.{LambdaConfig, PersistenceConfig}
 import org.locationtech.geomesa.lambda.data.LambdaDataStoreFactory.Params
 import org.locationtech.geomesa.lambda.stream.OffsetManager
-import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import java.time.Clock
@@ -20,7 +19,7 @@ import java.util.Properties
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
-object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
+object LambdaDataStoreParams extends GeoMesaDataStoreParams {
 
   // note: this class is kept separate to avoid any runtime dependencies on Accumulo
 
@@ -113,6 +112,8 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
       "The frequency of committing offsets for the Kafka consumer",
       default = Duration(10, TimeUnit.SECONDS)
     )
+
+  val ForceEmptyAuthsParam: GeoMesaParam[java.lang.Boolean] = org.locationtech.geomesa.security.ForceEmptyAuthsParam
 
   def parse(params: java.util.Map[String, _], namespace: String): LambdaConfig = {
     val brokers = BrokersParam.lookup(params)

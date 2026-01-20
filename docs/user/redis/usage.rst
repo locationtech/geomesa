@@ -27,8 +27,9 @@ Parameter                              Type    Description
 ``geomesa.stats.enable``               Boolean Toggle collection of statistics for newly created feature types
 ``geomesa.query.audit``                Boolean Audit queries being run. Queries will be written to a log file
 ``geomesa.query.loose-bounding-box``   Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
-``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries
-``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
+``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries. See
+                                               :ref:`reading_vis_labels` for details
+``geomesa.security.auth-provider``     String  Class name for an ``AuthorizationsProvider`` implementation
 ``geomesa.partition.scan.parallel``    Boolean For partitioned schemas, execute scans in parallel instead of sequentially
 ``geomesa.metrics.registry``           String  Specify the type of registry used to publish metrics. Must be one of ``none``,
                                                ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.

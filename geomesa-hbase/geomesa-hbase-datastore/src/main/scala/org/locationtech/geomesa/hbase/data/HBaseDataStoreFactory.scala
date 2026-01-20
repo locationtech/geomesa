@@ -16,7 +16,6 @@ import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
-import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
 import org.locationtech.geomesa.index.audit.AuditWriter
@@ -25,7 +24,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, MetricsConfig}
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import java.awt.RenderingHints
@@ -150,6 +148,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       LooseBBoxParam,
       PartitionParallelScansParam,
       AuthsParam,
+      AuthProviderParam,
       ForceEmptyAuthsParam
     )
 

@@ -12,11 +12,10 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.client.Connection
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
-import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ReadWriteFlag, SystemPropertyBooleanParam, SystemPropertyIntegerParam}
 
-object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
+object HBaseDataStoreParams extends GeoMesaDataStoreParams {
 
   val HBaseCatalogParam =
     new GeoMesaParam[String](
@@ -167,4 +166,6 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       systemProperty = Some(SystemPropertyBooleanParam(HBaseSystemProperties.YieldPartialResultsProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
+
+  val ForceEmptyAuthsParam: GeoMesaParam[java.lang.Boolean] = org.locationtech.geomesa.security.ForceEmptyAuthsParam
 }

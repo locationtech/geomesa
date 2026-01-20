@@ -10,7 +10,6 @@ package org.locationtech.geomesa.redis
 
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
-import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import redis.clients.jedis.JedisPool
@@ -31,7 +30,7 @@ package object data extends LazyLogging {
       backoffs(RedisSystemProperties.TransactionBackoff.default)
   }
 
-  object RedisDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
+  object RedisDataStoreParams extends GeoMesaDataStoreParams {
     // disable loose bbox by default, since we don't have any z-iterators
     override protected def looseBBoxDefault = false
 

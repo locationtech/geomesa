@@ -69,6 +69,8 @@ For example, if your feature type has four attributes:
     // or, equivalently:
     feature.getUserData().put("geomesa.feature.visibility", "admin,user,admin,user");
 
+.. _reading_vis_labels:
+
 Reading Visibility Labels
 -------------------------
 
@@ -77,9 +79,11 @@ Authorizations are a list of tags, corresponding to the visibility label tags be
 user might have an authorization of ``user``, while an admin user might have an authorization of ``admin,user``.
 Authorizations are simple string matches. They can be thought of as roles, although there is no hierarchy.
 
-When running a query, GeoMesa supports a pluggable service provider interface for determining which authorizations
-to use. Since different environments have different security architectures, there is no default implementation
-available; users must provide their own service provider.
+Authorizations Providers
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+GeoMesa supports a pluggable service provider interface for determining which authorizations to use when running a query.
+Since different environments have different security architectures, users must generally write their own authorization provider.
 
 Providers must implement the following interface:
 
@@ -115,6 +119,23 @@ The GeoMesa data store will call ``configure()`` on the ``AuthorizationsProvider
 implementation, passing in the parameter map from the call to ``DataStoreFinder.getDataStore(Map params)``.
 This allows the ``AuthorizationsProvider`` to configure itself based on the environment.
 
+.. note::
+
+    The parameter ``geomesa.security.auths`` can be used to further restrict the authorizations used. If configured, this
+    value will be intersected with the authorizations returned by the provider:
+
+    .. code-block:: java
+
+        // create a map containing connection parameters for the GeoMesa data store
+        Map<String, String> params = ...
+        params.put("geomesa.security.auths", "user,admin"); // max set of auths that will be used for queries
+        DataStore dataStore = DataStoreFinder.getDataStore(params);
+
+For examples on implementing an ``AuthorizationsProvider`` see the :ref:`accumulo_tutorials_security` tutorials.
+
+Selecting a Provider
+^^^^^^^^^^^^^^^^^^^^
+
 To ensure that the correct ``AuthorizationsProvider`` is used, GeoMesa will throw an exception if multiple
 third-party service providers are found on the classpath. In this scenario, the particular service
 provider class to use can be specified by the following system property:
@@ -124,16 +145,28 @@ provider class to use can be specified by the following system property:
     // equivalent to "geomesa.auth.provider.impl"
     org.locationtech.geomesa.security.AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY
 
+Alternatively, the fully qualified provider class name can be specified in the data store parameters:
+
+.. code-block:: java
+
+    // create a map containing connection parameters for the GeoMesa data store
+    Map<String, String> params = ...
+    params.put("geomesa.security.auths.provider", "com.example.auths.MyAuthProvider");
+    DataStore ds = DataStoreFinder.getDataStore(params);
+
+Default Provider
+^^^^^^^^^^^^^^^^
+
 For simple scenarios, the set of authorizations to apply to all queries can be specified when creating
 the GeoMesa data store by using the ``geomesa.security.auths`` configuration parameter. This will use a
 default ``AuthorizationsProvider`` implementation provided by GeoMesa.
 
 .. code-block:: java
 
-    // create a map containing initialization data for the GeoMesa data store
-    Map<String, String> configuration = ...
-    configuration.put("geomesa.security.auths", "user,admin");
-    DataStore dataStore = DataStoreFinder.getDataStore(configuration);
+    // create a map containing connection parameters for the GeoMesa data store
+    Map<String, String> params = ...
+    params.put("geomesa.security.auths", "user,admin");
+    DataStore dataStore = DataStoreFinder.getDataStore(params);
 
 .. warning::
 
@@ -143,5 +176,3 @@ default ``AuthorizationsProvider`` implementation provided by GeoMesa.
 
     In addition, please note that the authorizations used in any scenario cannot exceed
     the authorizations of the underlying Accumulo or HBase connection.
-
-For examples on implementing an ``AuthorizationsProvider`` see the :ref:`accumulo_tutorials_security` tutorials.

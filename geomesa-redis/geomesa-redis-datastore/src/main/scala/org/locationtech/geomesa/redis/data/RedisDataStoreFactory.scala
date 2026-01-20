@@ -82,7 +82,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       LooseBBoxParam,
       PartitionParallelScansParam,
       AuthsParam,
-      ForceEmptyAuthsParam
+      AuthProviderParam,
     )
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =

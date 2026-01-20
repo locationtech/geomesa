@@ -142,7 +142,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
         // check a second time now that we have the lock
         if (getSchema(schema.getTypeName) == null) {
           // ensure that we have a mutable type so we can set user data
-          val sft = SimpleFeatureTypes.mutable(schema)
+          val sft = SimpleFeatureTypes.copy(schema)
           // inspect and update the simple feature type for various components
           // do this before anything else so that any modifications will be in place
           GeoMesaSchemaValidator.validate(sft)

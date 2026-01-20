@@ -53,8 +53,12 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     val readThreads = ReadThreadsParam.lookup(params)
     val writeTimeout = WriteTimeoutParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite)
-    AuthsParam.lookupOpt(params).foreach { auths =>
-      conf.set(AuthsParam.key, auths)
+    AuthsParam.lookupOpt(params).foreach(conf.set(AuthsParam.key, _))
+    params.get(AuthProviderParam.key) match {
+      case null => // no-op
+      case clas: String => conf.set(AuthProviderParam.key, clas)
+      case p =>
+        throw new IllegalArgumentException(s"Parameter '${AuthProviderParam.key}' only supports a class name, but received: ${p.getClass}")
     }
 
     val namespace = NamespaceParam.lookupOpt(params)
@@ -98,6 +102,7 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigPathsParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigsParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.AuthsParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.AuthProviderParam,
     )
 
   // lazy to avoid masking classpath errors with missing hadoop

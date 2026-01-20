@@ -12,6 +12,7 @@ import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
+import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -23,7 +24,7 @@ import scala.concurrent.duration.Duration
 
 object FileSystemDataStoreParams extends FileSystemDataStoreParams
 
-trait FileSystemDataStoreParams extends NamespaceParams {
+trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
 
   import scala.collection.JavaConverters._
 
@@ -83,8 +84,6 @@ trait FileSystemDataStoreParams extends NamespaceParams {
     )
 
   val QueryTimeoutParam: GeoMesaParam[Duration] = GeoMesaDataStoreFactory.QueryTimeoutParam
-
-  val AuthsParam: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
 
   @deprecated("ConfigsParam")
   val ConfParam =

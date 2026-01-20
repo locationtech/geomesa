@@ -100,6 +100,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       PartitionParallelScansParam,
       QueryConsistencyParam,
       AuthsParam,
+      AuthProviderParam,
       ForceEmptyAuthsParam
     )
 
