@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kafka.data
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, Ticker}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
+import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG
 import org.apache.kafka.clients.consumer.{Consumer, KafkaConsumer}
 import org.apache.kafka.clients.producer.ProducerConfig.{ACKS_CONFIG, PARTITIONER_CLASS_CONFIG}
@@ -44,7 +44,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TableS
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.TableSharingPrefix
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, Transform}
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.{Closeable, IOException, StringReader}
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
@@ -212,10 +212,7 @@ class KafkaDataStore(
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
-    if (layerViewLookup.contains(sft.getTypeName)) {
-      throw new IllegalArgumentException(
-        s"Schema '${sft.getTypeName}' is a read-only view of '${layerViewLookup(sft.getTypeName)}'")
-    }
+    requireNotLayerView(sft.getTypeName)
     val topic = KafkaDataStore.topic(sft)
     if (topic == null) {
       throw new IllegalArgumentException(s"Topic must be defined in user data under '$TopicKey'")
@@ -231,12 +228,7 @@ class KafkaDataStore(
   // create kafka topic
   override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
     val topic = KafkaDataStore.topic(sft)
-    val props = new Properties()
-    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
-    config.consumers.properties.foreach { case (k, v) => props.put(k, v) }
-    config.producers.properties.foreach { case (k, v) => props.put(k, v) }
-
-    WithClose(AdminClient.create(props)) { admin =>
+    adminClientOp(config) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
         logger.warn(
           s"Topic [$topic] already exists - it may contain invalid data and/or not " +
@@ -251,36 +243,21 @@ class KafkaDataStore(
   }
 
   // invalidate any cached consumers in order to reload the new schema
-  override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
-    Option(caches.getIfPresent(sft.getTypeName)).foreach { cache =>
-      cache.close()
-      caches.invalidate(sft.getTypeName)
-    }
-  }
+  override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit =
+    closeCache(sft.getTypeName)
 
   // stop consumers and delete kafka topic
   override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit = {
-    if (layerViewLookup.contains(sft.getTypeName)) {
-      throw new IllegalArgumentException(
-        s"Schema '${sft.getTypeName}' is a read-only view of '${layerViewLookup(sft.getTypeName)}'")
-    }
-    Option(caches.getIfPresent(sft.getTypeName)).foreach { cache =>
-      cache.close()
-      caches.invalidate(sft.getTypeName)
-    }
+    requireNotLayerView(sft.getTypeName)
+    closeCache(sft.getTypeName)
     val topic = KafkaDataStore.topic(sft)
-    val props = new Properties()
-    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
-    config.consumers.properties.foreach { case (k, v) => props.put(k, v) }
-    config.producers.properties.foreach { case (k, v) => props.put(k, v) }
-
-    WithClose(AdminClient.create(props)) { admin =>
+    adminClientOp(config) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
         if (config.onSchemaDeleteTruncate) {
-          logger.info(s"Truncating topic $topic")
-          KafkaTruncateTopic(admin).truncate(topic)
+          logger.debug(s"Truncating topic $topic")
+          TruncateTopic.apply(admin, topic)
         } else {
-          logger.info(s"Deleting topic $topic")
+          logger.debug(s"Deleting topic $topic")
           admin.deleteTopics(Collections.singletonList(topic)).all().get
         }
       } else {
@@ -315,10 +292,7 @@ class KafkaDataStore(
       sft: SimpleFeatureType,
       transaction: Transaction,
       filter: Option[Filter]): FlushableFeatureWriter = {
-    if (layerViewLookup.contains(sft.getTypeName)) {
-      throw new IllegalArgumentException(
-        s"Schema '${sft.getTypeName}' is a read-only view of '${layerViewLookup(sft.getTypeName)}'")
-    }
+    requireNotLayerView(sft.getTypeName)
     val producer = getTransactionalProducer(sft, transaction)
     val vis = sft.isVisibilityRequired
     val serializer = serialization.apply(sft)
@@ -388,6 +362,20 @@ class KafkaDataStore(
           throw new IllegalStateException(
             s"Could not find layer view for typeName '$typeName' in cache ${caches.get(orig)}")
         }
+    }
+  }
+
+  private def closeCache(typeName: String): Unit = {
+    Option(caches.getIfPresent(typeName)).foreach { cache =>
+      cache.close()
+      caches.invalidate(typeName)
+    }
+  }
+
+  @throws[IllegalArgumentException]
+  private def requireNotLayerView(typeName: String): Unit = {
+    if (layerViewLookup.contains(typeName)) {
+      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
     }
   }
 }

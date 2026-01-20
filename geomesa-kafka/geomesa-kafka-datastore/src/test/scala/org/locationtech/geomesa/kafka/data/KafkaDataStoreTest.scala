@@ -8,22 +8,15 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import org.apache.commons.lang3.StringUtils
-import org.apache.curator.framework.CuratorFrameworkFactory
-import org.apache.curator.retry.ExponentialBackoffRetry
-import org.apache.kafka.clients.CommonClientConfigs
-import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, ListOffsetsResult, NewTopic, OffsetSpec, TopicDescription}
-import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
+import org.apache.kafka.clients.admin._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.config.ConfigResource
-import org.apache.kafka.common.serialization.StringSerializer
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.data._
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -33,12 +26,12 @@ import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledEx
 import org.locationtech.geomesa.kafka.KafkaContainerTest
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
+import org.locationtech.geomesa.kafka.data.KafkaDataStoreTest.TestAuthsProvider
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.memory.index.impl.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Point
@@ -47,7 +40,6 @@ import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
 import java.net.{ServerSocket, URL}
-import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
 import java.util.{Collections, Date, Properties}
@@ -67,215 +59,147 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     "kafka.consumer.read-back" -> "Inf"
   )
 
-  val gf = JTSFactoryFinder.getGeometryFactory
-  val paths = new AtomicInteger(0)
+  private val catalogs = new AtomicInteger(0)
 
-  def getUniquePath: String = s"geomesa/${paths.getAndIncrement()}/test/"
+  private val sft = SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
-  def getStore(zkPath: String, consumers: Int, extras: Map[String, AnyRef] = Map.empty): KafkaDataStore = {
-    val catalog = if (extras.contains("kafka.zookeepers")) { KafkaDataStoreParams.ZkPath } else { KafkaDataStoreParams.Catalog }
-    val params = baseParams ++ Map(catalog.key -> zkPath, "kafka.consumer.count" -> consumers) ++ extras
-    DataStoreFinder.getDataStore(params.asJava).asInstanceOf[KafkaDataStore]
+  private val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+  private val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+  private val f2 = ScalaSimpleFeature.create(sft, "do", "doe", 40, "2017-01-03T00:00:00.000Z", "POINT (10 10)")
+
+  def newCatalog: String = s"geomesa-${catalogs.getAndIncrement()}-test"
+
+  def getStore(
+      catalog: String = newCatalog,
+      consumers: Int = 1,
+      extras: Map[String, AnyRef] = Map.empty,
+      metadataExpiry: String = null): KafkaDataStore = {
+    val params = baseParams ++ Map("kafka.catalog.topic" -> catalog, "kafka.consumer.count" -> consumers) ++ extras
+    Option(metadataExpiry).foreach(e => TableBasedMetadata.Expiry.threadLocalValue.set(e))
+    try {
+      DataStoreFinder.getDataStore(params.asJava).asInstanceOf[KafkaDataStore]
+    } finally {
+      TableBasedMetadata.Expiry.threadLocalValue.remove()
+    }
   }
 
-  def createStorePair(params: Map[String, AnyRef] = Map.empty): (KafkaDataStore, KafkaDataStore, SimpleFeatureType) = {
-    // note: the topic gets set in the user data, so don't re-use the same sft instance
-    val sft = SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val path = getUniquePath
-    (getStore(path, 0, params), getStore(path, 1, params), sft)
+  def createStorePair(
+      params: Map[String, AnyRef] = Map.empty,
+      metadataExpiry: String = null,
+      sft: SimpleFeatureType = this.sft): (KafkaDataStore, KafkaDataStore) = {
+    val catalog = newCatalog
+    val producer = getStore(catalog, 0, params, metadataExpiry)
+    producer.createSchema(sft)
+    (producer, getStore(catalog, 1, params, metadataExpiry))
   }
 
   "KafkaDataStore" should {
 
     "return correctly from canProcess" >> {
-      import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams._
-      val factory = new KafkaDataStoreFactory
-      factory.canProcess(Collections.emptyMap[String, java.io.Serializable]) must beFalse
-      factory.canProcess(Map[String, java.io.Serializable](Brokers.key -> "test", Zookeepers.key -> "test").asJava) must beTrue
+      val factory = new KafkaDataStoreFactory()
+      factory.canProcess(Collections.emptyMap[String, String]) must beFalse
+      factory.canProcess(java.util.Map.of("kafka.brokers", "test")) must beTrue
     }
 
     "handle old read-back params" >> {
-      val deprecated = Seq(
-        "autoOffsetReset" -> "earliest",
-        "autoOffsetReset" -> "latest",
-        "kafka.consumer.from-beginning" -> "true",
-        "kafka.consumer.from-beginning" -> "false"
-      )
-      foreach(deprecated) { case (k, v) =>
-        KafkaDataStoreParams.ConsumerReadBack.lookupOpt(Collections.singletonMap(k, v)) must not(throwAn[Exception])
-      }
+      KafkaDataStoreParams.ConsumerReadBack.lookup(java.util.Map.of("autoOffsetReset", "earliest")) mustEqual Duration.Inf
+      KafkaDataStoreParams.ConsumerReadBack.lookup(java.util.Map.of("autoOffsetReset", "latest")) must beNull
+      KafkaDataStoreParams.ConsumerReadBack.lookup(java.util.Map.of("kafka.consumer.from-beginning", "true")) mustEqual Duration.Inf
+      KafkaDataStoreParams.ConsumerReadBack.lookup(java.util.Map.of("kafka.consumer.from-beginning", "false")) must beNull
     }
 
-    "create unique topics based on zkPath" >> {
-      val path = s"geomesa/topics/test/${paths.getAndIncrement()}"
-      val ds = getStore(path, 0)
-      try {
-        ds.createSchema(SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"))
-        ds.getSchema("kafka").getUserData.get(KafkaDataStore.TopicKey) mustEqual s"$path-kafka".replaceAll("/", "-")
-        ds.getSchema("kafka").getUserData.get(KafkaDataStore.PartitioningKey) mustEqual KafkaDataStore.PartitioningDefault
-      } finally {
-        ds.dispose()
+    "create unique topics based on catalog" >> {
+      val path = s"geomesa-catalog-${catalogs.getAndIncrement()}-unique"
+      WithClose(getStore(path, 0)) { ds =>
+        ds.createSchema(sft)
+        ds.getSchema(sft.getTypeName).getUserData.get(KafkaDataStore.TopicKey) mustEqual s"$path-${sft.getTypeName}"
+
       }
     }
 
     "use default kafka partitioning" >> {
-      val path = s"geomesa/topics/test/${paths.getAndIncrement()}"
-      val ds = getStore(path, 0)
-      try {
-        ds.createSchema(SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"))
-        KafkaDataStore.usesDefaultPartitioning(ds.getSchema("kafka")) must beTrue
-      } finally {
-        ds.dispose()
+      WithClose(getStore(consumers = 0)) { ds =>
+        ds.createSchema(sft)
+        ds.getSchema(sft.getTypeName).getUserData.get(KafkaDataStore.PartitioningKey) mustEqual KafkaDataStore.PartitioningDefault
+        KafkaDataStore.usesDefaultPartitioning(ds.getSchema(sft.getTypeName)) must beTrue
       }
     }
 
     "use namespaces" >> {
-      import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams._
-      val path = s"geomesa/namespace/test/${paths.getAndIncrement()}"
-      val ds = getStore(path, 0, Map(NamespaceParam.key -> "ns0"))
-      try {
-        ds.createSchema(SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"))
-        ds.getSchema("kafka").getName.getNamespaceURI mustEqual "ns0"
-        ds.getSchema("kafka").getName.getLocalPart mustEqual "kafka"
-      } finally {
-        ds.dispose()
+      val catalog = newCatalog
+      WithClose(getStore(catalog, 0, Map("namespace" -> "ns0"))) { ds =>
+        ds.createSchema(sft)
+        ds.getSchema(sft.getTypeName).getName.getNamespaceURI mustEqual "ns0"
+        ds.getSchema(sft.getTypeName).getName.getLocalPart mustEqual "kafka"
       }
-      val ds2 = getStore(path, 0, Map(NamespaceParam.key -> "ns1"))
-      try {
-        ds2.getSchema("kafka").getName.getNamespaceURI mustEqual "ns1"
-        ds2.getSchema("kafka").getName.getLocalPart mustEqual "kafka"
-      } finally {
-        ds2.dispose()
+      WithClose(getStore(catalog, 0, Map("namespace" -> "ns1"))) { ds =>
+        ds.getSchema(sft.getTypeName).getName.getNamespaceURI mustEqual "ns1"
+        ds.getSchema(sft.getTypeName).getName.getLocalPart mustEqual "kafka"
       }
     }
 
     "allow schemas to be created and deleted" >> {
-      foreach(Seq(true, false)) { zk =>
-        TableBasedMetadata.Expiry.threadLocalValue.set("10ms")
-        val (producer, consumer, _) = try {
-          createStorePair(if (zk) { Map("kafka.zookeepers" -> zookeepers) } else { Map.empty[String, String] })
-        } finally {
-          TableBasedMetadata.Expiry.threadLocalValue.remove()
+      val sft = SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.foo='bar'")
+      val (producer, consumer) = createStorePair(metadataExpiry = "10ms", sft = sft)
+      try {
+        val topic = s"${producer.config.catalog}-${sft.getTypeName}"
+        foreach(Seq(producer, consumer)) { ds =>
+          eventually(40, 100.millis)(ds.getTypeNames.toSeq mustEqual Seq(sft.getTypeName))
+          val schema = ds.getSchema(sft.getTypeName)
+          schema must not(beNull)
+          SimpleFeatureTypes.encodeType(schema) mustEqual SimpleFeatureTypes.encodeType(sft)
+          schema.getUserData.get("geomesa.foo") mustEqual "bar"
+          schema.getUserData.get(KafkaDataStore.TopicKey) mustEqual topic
         }
-        consumer must not(beNull)
-        producer must not(beNull)
-        try {
-          val sft = SimpleFeatureTypes.createImmutableType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.foo='bar'")
-          val topic = s"${producer.config.catalog}-${sft.getTypeName}".replaceAll("/", "-")
-          producer.createSchema(sft)
-          consumer.metadata.resetCache()
-          foreach(Seq(producer, consumer)) { ds =>
-            ds.getTypeNames.toSeq mustEqual Seq(sft.getTypeName)
-            val schema = ds.getSchema(sft.getTypeName)
-            schema must not(beNull)
-            schema mustEqual sft
-            schema.getUserData.get("geomesa.foo") mustEqual "bar"
-            schema.getUserData.get(KafkaDataStore.TopicKey) mustEqual topic
-          }
 
-          val props = Collections.singletonMap[String, AnyRef](AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
-          WithClose(AdminClient.create(props)) { admin =>
-            admin.listTopics().names().get.asScala must contain(topic)
-          }
-          consumer.removeSchema(sft.getTypeName)
-          foreach(Seq(consumer, producer)) { ds =>
-            eventually(40, 100.millis)(ds.getTypeNames.toSeq must beEmpty)
-            ds.getSchema(sft.getTypeName) must beNull
-          }
-          WithClose(AdminClient.create(props)) { admin =>
-            eventually(40, 100.millis)(admin.listTopics().names().get.asScala must not(contain(topic)))
-          }
-        } finally {
-          consumer.dispose()
-          producer.dispose()
+        val props = Collections.singletonMap[String, AnyRef](AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
+        WithClose(AdminClient.create(props)) { admin =>
+          admin.listTopics().names().get.asScala must contain(topic)
         }
+        consumer.removeSchema(sft.getTypeName)
+        foreach(Seq(consumer, producer)) { ds =>
+          eventually(40, 100.millis)(ds.getTypeNames.toSeq must beEmpty)
+          ds.getSchema(sft.getTypeName) must beNull
+        }
+        WithClose(AdminClient.create(props)) { admin =>
+          eventually(40, 100.millis)(admin.listTopics().names().get.asScala must not(contain(topic)))
+        }
+      } finally {
+        consumer.dispose()
+        producer.dispose()
       }
     }
 
-    "allow schemas to be created and truncated" >> {
-
-      foreach(Seq(true, false)) { zk =>
-        TableBasedMetadata.Expiry.threadLocalValue.set("10ms")
-        val (producer, consumer, _) = try {
-          createStorePair(if (zk) {
-            Map(
-              "kafka.zookeepers" -> zookeepers,
-              "kafka.topic.truncate-on-delete" -> "true"
-            )
-          } else {
-            Map(
-              "kafka.topic.truncate-on-delete" -> "true"
-            )
-          })
-        } finally {
-          TableBasedMetadata.Expiry.threadLocalValue.remove()
+    "allow schemas to be truncated on delete" >> {
+      WithClose(getStore(extras = Map("kafka.topic.truncate-on-delete" -> "true"), metadataExpiry = "10ms")) { ds=>
+        ds.createSchema(sft)
+        val topic = ds.getSchema(sft.getTypeName).getUserData.get(KafkaDataStore.TopicKey).asInstanceOf[String]
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
-        consumer must not(beNull)
-        producer must not(beNull)
+        WithClose(AdminClient.create(Collections.singletonMap[String, AnyRef](AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers))) { admin =>
+          admin.listTopics().names().get.asScala must contain(topic)
+          val partition = new TopicPartition(topic, 0)
+          val startOffset = admin.listOffsets(java.util.Map.of(partition, OffsetSpec.earliest())).partitionResult(partition).get.offset()
 
-        try {
-          val sft = SimpleFeatureTypes.createImmutableType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.foo='bar'")
-          producer.createSchema(sft)
-          consumer.metadata.resetCache()
-          foreach(Seq(producer, consumer)) { ds =>
-            ds.getTypeNames.toSeq mustEqual Seq(sft.getTypeName)
-            val schema = ds.getSchema(sft.getTypeName)
-            schema must not(beNull)
-            schema mustEqual sft
-          }
-          val topic = producer.getSchema(sft.getTypeName).getUserData.get(KafkaDataStore.TopicKey).asInstanceOf[String]
+          ds.removeSchema(sft.getTypeName)
 
-          val props = Collections.singletonMap[String, AnyRef](AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
-          WithClose(AdminClient.create(props)) { admin =>
-            admin.listTopics().names().get.asScala must contain(topic)
-          }
+          // topic should still exist
+          admin.listTopics().names().get.asScala must contain(topic)
 
-
-          val pprops = Map[String, Object](
-            CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG -> brokers,
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG -> classOf[StringSerializer].getName,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG -> classOf[StringSerializer].getName
-          ).asJava
-          WithClose(new KafkaProducer[String, String](pprops)) { p =>
-            p.send(new ProducerRecord(topic, null, "dummy1"))
-            p.send(new ProducerRecord(topic, null, "dummy2"))
-            p.flush()
-          }
-
-          consumer.removeSchema(sft.getTypeName)
-          foreach(Seq(consumer, producer)) { ds =>
-            eventually(40, 100.millis)(ds.getTypeNames.toSeq must beEmpty)
-            ds.getSchema(sft.getTypeName) must beNull
-          }
-          WithClose(AdminClient.create(props)) { admin =>
-            // topic is not deleted, so it should remain.
-            admin.listTopics().names().get.asScala must (contain(topic))
-
-            var topicInfo: TopicDescription = admin.describeTopics(Collections.singleton(topic)).allTopicNames().get().get(topic)
-            val pl: Seq[TopicPartition] = topicInfo.partitions().asScala.map(info => new TopicPartition(topic, info.partition())).toList
-            val e: Map[TopicPartition, ListOffsetsResult.ListOffsetsResultInfo] = admin.listOffsets(pl.map(tp => tp -> OffsetSpec.earliest()).toMap.asJava).all().get().asScala.toMap
-            val l: Map[TopicPartition, ListOffsetsResult.ListOffsetsResultInfo] = admin.listOffsets(pl.map(tp => tp -> OffsetSpec.latest()).toMap.asJava).all().get().asScala.toMap
-
-            // the earliest offset must not match the latest offset, since all others were deleted, when the topic was truncated.
-            e(new TopicPartition(topic, 0)).offset() must beGreaterThan(1L)
-            l(new TopicPartition(topic, 0)).offset() must beGreaterThan(1L)
-
-          }
-        } finally {
-          consumer.dispose()
-          producer.dispose()
+          // ensure that the latest offset is past the features we deleted
+          val earliest = admin.listOffsets(java.util.Map.of(partition, OffsetSpec.earliest())).partitionResult(partition).get.offset()
+          earliest must beGreaterThanOrEqualTo(startOffset + 2)
+          val latest = admin.listOffsets(java.util.Map.of(partition, OffsetSpec.latest())).partitionResult(partition).get.offset()
+          earliest mustEqual latest
         }
       }
     }
 
     "support multiple stores creating schemas on the same catalog topic" >> {
-      val (producer, consumer, sft) = createStorePair()
+      val (producer, consumer) = createStorePair()
       val sft2 = SimpleFeatureTypes.renameSft(sft, "consumer")
-
-      consumer must not(beNull)
-      producer must not(beNull)
       try {
-        producer.createSchema(sft)
         consumer.createSchema(sft2)
         foreach(Seq(producer, consumer)) { ds =>
           ds.metadata.resetCache()
@@ -289,19 +213,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
     "write/update/read/delete features" >> {
       foreach(Seq(true, false)) { cqEngine =>
-        val params = if (cqEngine) {
-          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
-        } else {
-          Map.empty[String, String]
-        }
-        val (producer, consumer, sft) = createStorePair(params)
+        val params = if (cqEngine) { Map("kafka.index.cqengine" -> "geom:default,name:unique") } else { Map.empty[String, String] }
+        val (producer, consumer) = createStorePair(params)
         try {
-          producer.createSchema(sft)
-          consumer.metadata.resetCache()
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
-
-          val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
-          val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
 
           // initial write
           WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
@@ -349,16 +264,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     }
 
     "support metrics" >> {
-      val port = getFreePort
+      val port = KafkaDataStoreTest.getFreePort
       val params = Map("geomesa.metrics.registry" -> "prometheus", "geomesa.metrics.registry.config" -> s"port = $port")
-      val (producer, consumer, sft) = createStorePair(params)
+      val (producer, consumer) = createStorePair(params)
       try {
-        producer.createSchema(sft)
-        consumer.metadata.resetCache()
         val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
-
-        val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
-        val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
 
         // initial write
         WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
@@ -393,24 +303,13 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
     "support topic read-back" >> {
       foreach(Seq(true, false)) { cqEngine =>
-        val params = if (cqEngine) {
-          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
-        } else {
-          Map.empty[String, String]
-        }
-        val (producer, consumer, sft) = createStorePair(params ++ Map("kafka.consumer.read-back" -> "Inf"))
+        val params = if (cqEngine) { Map("kafka.index.cqengine" -> "geom:default,name:unique") } else { Map.empty[String, String] }
+        val (producer, consumer) = createStorePair(params ++ Map("kafka.consumer.read-back" -> "Inf"))
         try {
-          producer.createSchema(sft)
-
-          val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
-          val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
-
           // initial write
           WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
             Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
-
-          consumer.metadata.resetCache()
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
           eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must containTheSameElementsAs(Seq(f0, f1)))
         } finally {
@@ -422,18 +321,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
     "support topic read-back with multiple partitions, some empty" >> {
       val params = Map("kafka.consumer.read-back" -> "2 minutes", "kafka.topic.partitions" -> "2")
-      val (producer, consumer, sft) = createStorePair(params)
+      val (producer, consumer) = createStorePair(params)
       try {
-        producer.createSchema(sft)
-
-        val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
-
         // initial write
         WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           Seq(f0).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
-
-        consumer.metadata.resetCache()
         val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
         eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList mustEqual Seq(f0))
       } finally {
@@ -446,21 +339,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       import org.locationtech.geomesa.security.AuthProviderParam
 
       foreach(Seq(true, false)) { cqEngine =>
-        var auths: Set[String] = null
-        val provider = new AuthorizationsProvider() {
-          import scala.collection.JavaConverters._
-          override def getAuthorizations: java.util.List[String] = auths.toList.asJava
-          override def configure(params: java.util.Map[String, _]): Unit = {}
-        }
-        val params = if (cqEngine) {
-          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
-        } else {
-          Map.empty[String, String]
-        }
-        val (producer, consumer, sft) = createStorePair(params + (AuthProviderParam.key -> provider))
+        val provider = new TestAuthsProvider()
+        val params = if (cqEngine) { Map("kafka.index.cqengine" -> "geom:default,name:unique") } else { Map.empty[String, String] }
+        val (producer, consumer) = createStorePair(params + (AuthProviderParam.key -> provider))
         try {
-          producer.createSchema(sft)
-          consumer.metadata.resetCache()
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
 
           val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
@@ -477,17 +359,17 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           q.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
 
           // admin user
-          auths = Set("USER", "ADMIN")
+          provider.auths.addAll(java.util.List.of("USER", "ADMIN"))
           eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must containTheSameElementsAs(Seq(f0, f1)))
           store.getCount(q) mustEqual 2
 
           // regular user
-          auths = Set("USER")
+          provider.auths.remove("ADMIN")
           CloseableIterator(store.getFeatures.features).toList mustEqual Seq(f0)
           store.getCount(q) mustEqual 1
 
           // unauthorized
-          auths = Set.empty
+          provider.auths.clear()
           CloseableIterator(store.getFeatures.features).toList must beEmpty
         } finally {
           consumer.dispose()
@@ -497,15 +379,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     }
 
     "require visibilities on write" >> {
-      val (producer, consumer, sft) = createStorePair()
+      val sft = SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.vis.required=true")
+      val (producer, consumer) = createStorePair(sft = sft)
       try {
-        sft.getUserData.put(Configs.RequireVisibility, "true")
-        producer.createSchema(sft)
-        consumer.metadata.resetCache()
-
         val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
         val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
-
         WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true)) must throwAn[IllegalArgumentException]
           f0.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "USER")
@@ -520,11 +398,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
     "write/read json array attributes" >> {
       val sft = SimpleFeatureTypes.createType("kafka", "name:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val path = getUniquePath
-      val (producer, consumer) = (getStore(path, 0), getStore(path, 1))
+      val (producer, consumer) = createStorePair(sft = sft)
       try {
-        producer.createSchema(sft)
-        consumer.metadata.resetCache()
         val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
 
         val f0 = ScalaSimpleFeature.create(sft, "sm", "[\"smith1\",\"smith2\"]", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
@@ -550,11 +425,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           SimpleFeatureTypes.createType(
             "kafka",
             "names:List[String],props:Map[String,String],uuid:UUID,dtg:Date,*geom:Point:srid=4326")
-        val path = getUniquePath
-        val (producer, consumer) = (getStore(path, 0, params), getStore(path, 1, params))
+        val (producer, consumer) = createStorePair(params, sft = sft)
         try {
-          producer.createSchema(sft)
-          consumer.metadata.resetCache()
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
 
           val f0 =
@@ -594,22 +466,16 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       foreach(Seq(true, false)) { cqEngine =>
         val executor = mock[ScheduledExecutorService]
         val ticker = new MockTicker()
-        val params = if (cqEngine) {
-          Map("kafka.cache.expiry" -> "100ms",
+        val params = {
+          val base = Map(
+            "kafka.cache.expiry" -> "100ms",
             "kafka.cache.executor" -> (executor, ticker),
-            "kafka.index.cqengine" -> "geom:default,name:unique",
-            "kafka.zookeepers" -> zookeepers)
-        } else {
-          Map("kafka.cache.expiry" -> "100ms", "kafka.cache.executor" -> (executor, ticker))
+          )
+          if (cqEngine) { base + ("kafka.index.cqengine" -> "geom:default,name:unique") } else { base }
         }
-        val (producer, consumer, sft) = createStorePair(params)
+        val (producer, consumer) = createStorePair(params)
         try {
-          producer.createSchema(sft)
-          consumer.metadata.resetCache()
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
-
-          val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
-          val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
 
           val bbox = ECQL.toFilter("bbox(geom,-10,-10,10,10)")
 
@@ -661,16 +527,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
             "kafka.cache.expiry"         -> "300ms",
             "kafka.cache.executor"       -> (executor, ticker)
           )
-          if (cqEngine) {
-            base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
-          } else {
-            base
-          }
+          if (cqEngine) { base + ("kafka.index.cqengine" -> "geom:default,name:unique") } else { base }
         }
-        val (producer, consumer, sft) = createStorePair(params)
+        val (producer, consumer) = createStorePair(params)
         try {
-          producer.createSchema(sft)
-          consumer.metadata.resetCache()
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
 
           val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
@@ -760,15 +620,9 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
     "clear on startup" >> {
       val params = Map("kafka.producer.clear" -> "true")
-      val (producer, consumer, sft) = createStorePair(params)
+      val (producer, consumer) = createStorePair(params)
       try {
-        producer.createSchema(sft)
-        consumer.metadata.resetCache()
         val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
-
-        val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
-        val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
-        val f2 = ScalaSimpleFeature.create(sft, "do", "doe", 40, "2017-01-03T00:00:00.000Z", "POINT (10 10)")
 
         // initial write
         WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
@@ -794,7 +648,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     }
 
     "support listeners" >> {
-      val (producer, consumer, sft) = createStorePair()
+      val (producer, consumer) = createStorePair()
       try {
         val id = "fid-0"
         val numUpdates = 1
@@ -812,8 +666,6 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           }
         }
 
-        producer.createSchema(sft)
-        consumer.metadata.resetCache()
         val consumerStore = consumer.getFeatureSource(sft.getTypeName)
         consumerStore.addFeatureListener(listener)
 
@@ -838,7 +690,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
-      val (producer, consumer, sft) = createStorePair(params)
+      val (producer, consumer) = createStorePair(params)
       try {
         val id = "fid-0"
         val numUpdates = 1
@@ -856,8 +708,6 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           }
         }
 
-        producer.createSchema(sft)
-        consumer.metadata.resetCache()
         val consumerStore = consumer.getFeatureSource(sft.getTypeName)
         consumerStore.addFeatureListener(listener)
 
@@ -881,12 +731,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     }
 
     "support transactions" >> {
-      val (producer, consumer, _) = createStorePair()
+      val (producer, consumer) = createStorePair()
       try {
-        val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-        producer.createSchema(sft)
-        consumer.metadata.resetCache()
-
         val features = Seq.tabulate(10) { i =>
           ScalaSimpleFeature.create(sft, s"$i", s"name$i", i, f"2018-01-01T$i%02d:00:00.000Z", s"POINT (4$i 55)")
         }
@@ -940,12 +786,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           |}
           |
           |""".stripMargin
-      val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "test")
+      val (producer, consumer) =
+        createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views), sft = sft)
       try {
-        val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-        producer.createSchema(sft)
-        consumer.metadata.resetCache()
-
         val sft2 = SimpleFeatureTypes.createType("test2", "name:String,dtg:Date,*geom:Point:srid=4326")
         val sft3 = SimpleFeatureTypes.createType("test3", "derived:String,dtg:Date,*geom:Point:srid=4326")
         val sft4 = SimpleFeatureTypes.createType("test4", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
@@ -1033,7 +877,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         KafkaDataStoreParams.ConsumerCount.key -> "2",
         KafkaDataStoreParams.TopicPartitions.key -> "2"
       )
-      val (producer, consumer, sft) = createStorePair(params)
+      val (producer, consumer) = createStorePair(params)
       try {
         val id = "fid-0"
         val numUpdates = 3
@@ -1094,7 +938,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         KafkaDataStoreParams.ConsumerCount.key -> "2",
         KafkaDataStoreParams.TopicPartitions.key -> "2"
       )
-      val (producer, consumer, sft) = createStorePair(params)
+      val (producer, consumer) = createStorePair(params)
       try {
         val id = "fid-0"
         val numUpdates = 3
@@ -1155,42 +999,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
     }
 
-    "migrate old kafka data store schemas" >> {
-      val spec = "test:String,dtg:Date,*location:Point:srid=4326"
-
-      val path = s"geomesa/migrate/test/${paths.getAndIncrement()}"
-      val client = CuratorFrameworkFactory.builder()
-          .namespace(path)
-          .connectString(zookeepers)
-          .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-          .build()
-      client.start()
-
-      try {
-        client.create.forPath("/test", s"$spec;geomesa.index.dtg=dtg".getBytes(StandardCharsets.UTF_8))
-        client.create.forPath("/test/Topic", "test-topic".getBytes(StandardCharsets.UTF_8))
-
-        val ds = getStore(path, 0, Map("kafka.zookeepers" -> zookeepers))
-        try {
-          ds.getTypeNames.toSeq mustEqual Seq("test")
-          val sft = ds.getSchema("test")
-          sft must not(beNull)
-          KafkaDataStore.topic(sft) mustEqual "test-topic"
-          SimpleFeatureTypes.encodeType(sft) mustEqual spec
-
-          client.checkExists().forPath("/test") must beNull
-        } finally {
-          ds.dispose()
-        }
-      } finally {
-        client.close()
-      }
-    }
-
     "configure topics by feature type" in {
-      val ds = getStore(getUniquePath, 0)
+      val ds = getStore(consumers = 0)
       try {
-        val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;")
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "test")
         sft.getUserData.put("kafka.topic.config", "cleanup.policy=compact\nretention.ms=86400000")
         ds.createSchema(sft)
         val topic = KafkaDataStore.topic(ds.getSchema(sft.getTypeName))
@@ -1213,21 +1025,20 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     "update compaction policy for catalog topics if not set" in {
       val props = new Properties()
       props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
-      val path = getUniquePath
-      val topic = StringUtils.strip(path, " /").replace("/", "-")
-      //Create the topic
+      val catalog = newCatalog
+      // create the topic
       WithClose(AdminClient.create(props)) { admin =>
-        val newTopic = new NewTopic(topic, 1, 1.toShort)
+        val newTopic = new NewTopic(catalog, 1, 1.toShort)
         admin.createTopics(Collections.singletonList(newTopic)).all().get
       }
-      val ds = getStore(path, 0)
+      val ds = getStore(catalog, 0)
       try {
-        ds.getTypeNames
-        //Verify the compaction policy
+        ds.getTypeNames()
+        // verify the compaction policy
         WithClose(AdminClient.create(props)) { admin =>
           val configs =
-            admin.describeConfigs(Collections.singletonList(new ConfigResource(ConfigResource.Type.TOPIC, topic)))
-          val config = configs.values().get(new ConfigResource(ConfigResource.Type.TOPIC, topic)).get()
+            admin.describeConfigs(Collections.singletonList(new ConfigResource(ConfigResource.Type.TOPIC, catalog)))
+          val config = configs.values().get(new ConfigResource(ConfigResource.Type.TOPIC, catalog)).get()
           config must not(beNull)
           config.entries().asScala.map(e => e.name() -> e.value()).toMap must
             containAllOf(Seq("cleanup.policy" -> "compact"))
@@ -1237,20 +1048,6 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
     }
 
-  }
-
-  "KafkaDataStoreFactory" should {
-    "clean zkPath" >> {
-      def getNamespace(path: java.io.Serializable): String =
-        KafkaDataStoreFactory.createZkNamespace(Map(KafkaDataStoreParams.ZkPath.getName -> path).asJava)
-
-      // a well formed path starts does not start or end with a /
-      getNamespace("foo/bar/baz") mustEqual "foo/bar/baz"
-      getNamespace("foo/bar/baz/") mustEqual "foo/bar/baz" // trailing slash
-      getNamespace("/foo/bar/baz") mustEqual "foo/bar/baz" // leading slash
-      getNamespace("/foo/bar/baz/") mustEqual "foo/bar/baz" // both leading and trailing slash
-      forall(Seq("/", "//", "", null))(n => getNamespace(n) mustEqual KafkaDataStoreFactory.DefaultZkPath) // empty
-    }
     "Parse SSI tiers" >> {
       val key = KafkaDataStoreParams.IndexTiers.getName
       KafkaDataStoreFactory.parseSsiTiers(Collections.emptyMap()) mustEqual SizeSeparatedBucketIndex.DefaultTiers
@@ -1259,14 +1056,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       KafkaDataStoreFactory.parseSsiTiers(Collections.singletonMap(key, "1:2,3:4")) mustEqual Seq((1d, 2d), (3d, 4d))
       KafkaDataStoreFactory.parseSsiTiers(Collections.singletonMap(key, "3:4,1:2")) mustEqual Seq((1d, 2d), (3d, 4d))
     }
-  }
 
-  "KafkaFeatureSource" should {
     "handle Query instances with null TypeName (GeoServer querylayer extension implementation nuance)" >> {
-      val (producer, consumer, sft) = createStorePair()
+      val (producer, consumer) = createStorePair()
       try {
-        producer.createSchema(sft)
-        consumer.metadata.resetCache()
         val fs = consumer.getFeatureSource(sft.getTypeName)
         val q = new Query(null, Filter.INCLUDE)
         fs.getFeatures(q).features().close() must not(throwA[NullPointerException])
@@ -1275,6 +1068,15 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         consumer.dispose()
       }
     }
+  }
+}
+
+object KafkaDataStoreTest {
+
+  class TestAuthsProvider extends AuthorizationsProvider {
+    val auths: java.util.List[String] = new java.util.ArrayList[String]()
+    override def getAuthorizations: java.util.List[String] = auths
+    override def configure(params: java.util.Map[String, _]): Unit = {}
   }
 
   private def getFreePort: Int = {

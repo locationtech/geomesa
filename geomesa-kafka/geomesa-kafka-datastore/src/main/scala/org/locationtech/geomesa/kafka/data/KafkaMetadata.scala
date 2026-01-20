@@ -17,7 +17,7 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.versions.{KafkaAdminVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, LazyCloseable}
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.Closeable
 import java.nio.charset.StandardCharsets
@@ -25,7 +25,7 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.{Collections, Properties, UUID}
+import java.util.{Collections, UUID}
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -48,7 +48,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
   private val consumer = new LazyCloseable(new TopicMap())
 
   override protected def checkIfTableExists: Boolean = {
-    adminClientOp { adminClient =>
+    adminClientOp(config) { adminClient =>
       val exists = adminClient.listTopics().names().get.contains(config.catalog)
       if (exists){
         // ensure that the topic has compaction enabled, in case it was created externally
@@ -62,7 +62,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
     val newTopic =
       new NewTopic(config.catalog, 1, config.topics.replication.toShort)
           .configs(Collections.singletonMap(CleanupPolicyConfig, CompactCleanupPolicy))
-    adminClientOp { adminClient =>
+    adminClientOp(config) { adminClient =>
       try {
         adminClient.createTopics(Collections.singletonList(newTopic)).all().get()
       } catch {
@@ -121,14 +121,6 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
       val alterOps = Collections.singleton(new AlterConfigOp(catalogConfigEntry, AlterConfigOp.OpType.SET))
       adminClient.incrementalAlterConfigs(Collections.singletonMap(catalogResource, alterOps)).all().get()
     }
-  }
-
-  private def adminClientOp[V](fn: AdminClient => V): V = {
-    val props = new Properties()
-    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
-    config.consumers.properties.foreach { case (k, v) => props.put(k, v) }
-    config.producers.properties.foreach { case (k, v) => props.put(k, v) }
-    WithClose(AdminClient.create(props)) { admin => fn(admin) }
   }
 
   /**
