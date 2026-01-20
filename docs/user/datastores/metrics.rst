@@ -1,7 +1,7 @@
 .. _geomesa_metrics:
 
-DataStore Metrics
-=================
+Data Store Metrics
+==================
 
 GeoMesa has initial support for `Micrometer <https://docs.micrometer.io/micrometer/reference/>`__ metrics. Currently,
 metrics can integrate with either Prometheus or Cloudwatch. Creating registries is idempotent, as long as the

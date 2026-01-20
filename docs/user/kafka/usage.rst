@@ -59,7 +59,9 @@ Parameter                                    Type    Description
 ``geomesa.metrics.registry.config``          String  Override the default registry config. See :ref:`geomesa_metrics` for configuration details.
 ``geomesa.query.loose-bounding-box``         Boolean Use loose bounding boxes, which offer improved performance but are not exact
 ``geomesa.query.audit``                      Boolean Audit incoming queries. By default audits are written to a log file
-``geomesa.security.auths``                   String  Default authorizations used to query data, comma-separated
+``geomesa.security.auths``                   String  Comma-delimited superset of authorizations that will be used for queries. See
+                                                     :ref:`reading_vis_labels` for details
+``geomesa.security.auth-provider``           String  Class name for an ``AuthorizationsProvider`` implementation
 ============================================ ======= ====================================================================================================
 
 .. _kafka_parameters_zk:

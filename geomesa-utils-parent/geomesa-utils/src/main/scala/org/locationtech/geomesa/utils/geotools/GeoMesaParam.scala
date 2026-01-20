@@ -17,6 +17,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{DeprecatedParam, Re
 import org.locationtech.geomesa.utils.text.DurationParsing
 
 import java.io.{IOException, StringReader, StringWriter}
+import java.lang.reflect.Modifier
 import java.util.{Collections, Properties}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.reflect.ClassTag
@@ -122,7 +123,7 @@ class GeoMesaParam[T <: AnyRef](
       lookUp(params)
     } else if (deprecated.exists(params.containsKey)) {
       val oldKey = deprecated.find(params.containsKey).get
-      deprecationWarning(oldKey)
+      logger.warn(s"Parameter '$oldKey' is deprecated, please use '$key' instead")
       if (deprecatedKeys.contains(oldKey)) {
         lookUp(Collections.singletonMap(key, params.get(oldKey)))
       } else {
@@ -156,13 +157,23 @@ class GeoMesaParam[T <: AnyRef](
     */
   def lookupOpt(params: java.util.Map[String, _]): Option[T] = Option(lookup(params))
 
-  /**
-    * Logs a warning about deprecated parameter keys
-    *
-    * @param deprecated deprecated key found
-    */
-  def deprecationWarning(deprecated: String): Unit =
-    logger.warn(s"Parameter '$deprecated' is deprecated, please use '$key' instead")
+  // handle FQDN for interface classes, instead of the `new Class(String)` constructor that geotools tries
+  override def parse(text: String): AnyRef = {
+    try {
+      super.parse(text)
+    } catch {
+      case NonFatal(e) =>
+        try {
+          val modifiers = ct.runtimeClass.getModifiers
+          if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers)) {
+            return Class.forName(text).getConstructor().newInstance().asInstanceOf[AnyRef]
+          }
+        } catch {
+          case NonFatal(suppressed) => e.addSuppressed(suppressed)
+        }
+        throw e
+    }
+  }
 
   override def text(value: AnyRef): String = super.text(fromTypedValue(value.asInstanceOf[T]))
 }

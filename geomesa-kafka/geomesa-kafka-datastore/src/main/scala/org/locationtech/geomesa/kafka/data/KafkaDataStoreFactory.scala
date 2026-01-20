@@ -129,7 +129,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.MetricsRegistryConfig,
       KafkaDataStoreParams.AuditQueries,
       KafkaDataStoreParams.LooseBBox,
-      KafkaDataStoreParams.Authorizations
+      KafkaDataStoreParams.AuthsParam,
+      KafkaDataStoreParams.AuthProviderParam,
     )
 
   override def canProcess(params: java.util.Map[String, _]): Boolean = {

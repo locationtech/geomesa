@@ -12,7 +12,6 @@ package org.locationtech.geomesa.accumulo.data
 import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel
 import org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
-import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ReadWriteFlag, SystemPropertyBooleanParam, SystemPropertyStringParam}
@@ -20,7 +19,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ReadWriteFlag, Syst
 import java.util.Locale
 
 // keep params in a separate object so we don't require accumulo classes on the build path to access it
-object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
+object AccumuloDataStoreParams extends GeoMesaDataStoreParams {
 
   val InstanceNameParam =
     new GeoMesaParam[String](
@@ -143,4 +142,6 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
       systemProperty = Some(SystemPropertyBooleanParam(RemoteProcessingProperties.RemoteStatsProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
+
+  val ForceEmptyAuthsParam: GeoMesaParam[java.lang.Boolean] = org.locationtech.geomesa.security.ForceEmptyAuthsParam
 }

@@ -17,9 +17,9 @@ Parameter                              Type    Description
 ``accumulo.password``                  String  The password for the Accumulo user
 ``accumulo.keytab.path``               String  Path to a Kerberos keytab file containing an entry for the specified user
 ``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for
-                                               queries via Accumulo
-``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
+                                               queries via Accumulo. See :ref:`reading_vis_labels` for details
 ``geomesa.security.auth-provider``     String  Class name for an ``AuthorizationsProvider`` implementation
+``geomesa.security.force-empty-auths`` Boolean Don't use implicit authorizations from the underlying Accumulo user
 ``geomesa.query.audit``                Boolean Audit queries being run. Queries will be stored in a ``<catalog>_queries`` table
 ``geomesa.query.timeout``              String  The max time a query will be allowed to run before being killed. The
                                                timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``

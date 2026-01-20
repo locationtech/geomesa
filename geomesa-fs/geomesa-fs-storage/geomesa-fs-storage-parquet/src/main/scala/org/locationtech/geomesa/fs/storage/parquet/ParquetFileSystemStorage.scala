@@ -26,23 +26,25 @@ import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, FileValidationEnabled}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.FileValidationObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter, SimpleFeatureParquetSchema}
-import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
+import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
 import org.locationtech.geomesa.utils.io.WithClose
 
-import java.util.Collections
 import scala.util.control.NonFatal
 
 /**
-  *
-  * @param context file system context
-  * @param metadata metadata
-  */
+ * ParquetFileSystemStorage
+ *
+ * @param context file system context
+ * @param metadata metadata
+ */
 class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
     extends AbstractFileSystemStorage(context, metadata, ParquetFileSystemStorage.FileExtension) {
 
+  import scala.collection.JavaConverters._
+
   private val authProvider: AuthorizationsProvider =
     AuthUtils.getProvider(
-      Collections.emptyMap[String, String](),
+      Option(context.conf.get(AuthProviderParam.key)).map(p => AuthProviderParam.key -> p).toMap.asJava,
       context.conf.get(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
     )
 

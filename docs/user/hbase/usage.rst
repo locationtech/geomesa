@@ -20,8 +20,10 @@ Parameter                                    Type    Description
 ``hbase.remote.filtering``                   Boolean Can be used to disable remote filtering and coprocessors, for environments
                                                      where custom code can't be installed
 ``hbase.security.enabled``                   Boolean Enable HBase security (visibilities)
-``geomesa.security.auths``                   String  Comma-delimited superset of authorizations that will be used for queries
-``geomesa.security.force-empty-auths``       Boolean Forces authorizations to be empty
+``geomesa.security.auths``                   String  Comma-delimited superset of authorizations that will be used for queries. See
+                                                     :ref:`reading_vis_labels` for details
+``geomesa.security.auth-provider``           String  Class name for an ``AuthorizationsProvider`` implementation
+``geomesa.security.force-empty-auths``       Boolean Don't use implicit authorizations from the underlying HBase user
 ``geomesa.query.audit``                      Boolean Audit queries being run. Queries will be written to a log file
 ``geomesa.query.timeout``                    String  The max time a query will be allowed to run before being killed. The
                                                      timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``

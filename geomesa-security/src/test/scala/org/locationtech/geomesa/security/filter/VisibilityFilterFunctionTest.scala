@@ -37,7 +37,7 @@ class VisibilityFilterFunctionTest extends Specification {
 
   def featureWithUserData(vis: String): SimpleFeature = {
     val f = new SimpleFeatureImpl(Array.ofDim(2), testSft, new FeatureIdImpl(""), false)
-    f.visibility = vis
+    SecurityUtils.setFeatureVisibility(f, vis)
     f
   }
 

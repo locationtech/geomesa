@@ -21,7 +21,7 @@ package object security {
   val AuthsParam =
     new GeoMesaParam[String](
       "geomesa.security.auths",
-      "Super-set of authorizations that will be used for queries. The actual authorizations might differ, depending on the authorizations provider, but will be outside this set. Comma-delimited.",
+      "Super-set of authorizations that will be used for queries. The actual authorizations might differ, depending on the authorizations provider, but will not be outside this set. Comma-delimited.",
       deprecatedKeys = Seq("auths"),
       supportsNiFiExpressions = true,
       readWrite = ReadWriteFlag.ReadUpdate
@@ -36,17 +36,19 @@ package object security {
       readWrite = ReadWriteFlag.ReadUpdate
     )
 
-  val AuthProviderParam =
+  val AuthProviderParam: GeoMesaParam[AuthorizationsProvider] =
     new GeoMesaParam[AuthorizationsProvider](
       "geomesa.security.auths.provider",
       "Authorizations provider",
       deprecatedKeys = Seq("authProvider"),
       readWrite = ReadWriteFlag.ReadUpdate
-    )
+    ) {
+      override def text(value: AnyRef): String = value.getClass.getName
+    }
 
   trait SecurityParams {
     val AuthsParam: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
-    val ForceEmptyAuthsParam: GeoMesaParam[java.lang.Boolean] = org.locationtech.geomesa.security.ForceEmptyAuthsParam
+    val AuthProviderParam: GeoMesaParam[AuthorizationsProvider] = org.locationtech.geomesa.security.AuthProviderParam
   }
 
   @deprecated("Use org.locationtech.geomesa.security.SecurityUtils directly")

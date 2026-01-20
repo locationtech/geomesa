@@ -175,7 +175,7 @@ class HBaseVisibilityTest extends Specification with BeforeAfterAll with LazyLog
         sf.setAttribute(0, d.id)
         sf.setAttribute(1, d.dtg)
         sf.setAttribute(2, d.wkt)
-        sf.visibility = d.vis
+        SecurityUtils.setFeatureVisibility(sf, d.vis)
         sf: SimpleFeature
       }
 
@@ -274,7 +274,7 @@ class HBaseVisibilityTest extends Specification with BeforeAfterAll with LazyLog
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, f"2014-01-${i + 1}%02dT00:00:01.000Z")
         sf.setAttribute(2, s"POINT(4$i 5$i)")
-        if (i < 5) sf.visibility = "admin|vis1|super" else sf.visibility = "(admin|vis1)&super"
+        SecurityUtils.setFeatureVisibility(sf, if (i < 5) { "admin|vis1|super" } else { "(admin|vis1)&super" })
         sf: SimpleFeature
       }
 

@@ -14,7 +14,6 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, Accumul
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.lambda.data.LambdaDataStoreParams.OffsetManagerParam
 import org.locationtech.geomesa.lambda.stream.ZookeeperOffsetManager
-import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import java.awt.RenderingHints.Key
@@ -93,7 +92,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       Seq(Params.Accumulo.ZookeepersParam, ZookeepersParam).exists(_.exists(params))
 
   // noinspection TypeAnnotation
-  object Params extends GeoMesaDataStoreParams with SecurityParams {
+  object Params extends GeoMesaDataStoreParams {
 
     object Accumulo {
       val InstanceParam      = copy(AccumuloDataStoreParams.InstanceNameParam)

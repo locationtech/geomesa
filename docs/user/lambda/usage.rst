@@ -26,9 +26,10 @@ Parameter                              Type    Description
 ``lambda.expiry``                      String  A duration for how long features are kept in memory before being persisted (e.g. ``10 minutes``).
 ``lambda.persist``                     Boolean Whether this instance should participate in persisting expired features to Accumulo
 ``lambda.persist.batch.size``          Integer Maximum number of features to persist at one time, default 100
-``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries via Accumulo
-``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
+``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries. See
+                                               :ref:`reading_vis_labels` for details
 ``geomesa.security.auth-provider``     String  Class name for an ``AuthorizationsProvider`` implementation
+``geomesa.security.force-empty-auths`` Boolean Don't use implicit authorizations from the underlying Accumulo user
 ``geomesa.query.audit``                Boolean Audit queries being run. Queries will be stored in a ``<catalog>_queries`` table
 ``geomesa.query.timeout``              String  The max time a query will be allowed to run before being killed. The
                                                timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
