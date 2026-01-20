@@ -242,7 +242,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
         val topics = consumer.assignment()
         consumer.unsubscribe()
         if (!topics.isEmpty) {
-          Try(adminClientOp(KafkaAdminVersions.deleteConsumerGroupOffsets(_, groupId, topics))).failed.foreach { e =>
+          Try(adminClientOp(config)(KafkaAdminVersions.deleteConsumerGroupOffsets(_, groupId, topics))).failed.foreach { e =>
             logger.warn("Error deleting consumer group offsets:", e)
           }
         }
