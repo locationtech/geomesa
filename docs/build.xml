@@ -1,12 +1,7 @@
 <project name="docs" default="html">
   <target name="init">
-    <property environment="env"></property>
+    <property environment="env"/>
     <property name="sphinx.binary" value="sphinx-build"/>
-
-    <condition property="sphinx.available">
-      <available file="${sphinx.binary}" filepath="${env.PATH}"/>
-    </condition>
-
     <condition property="build.directory" value="${build.directory}" else="${basedir}/target">
       <isset property="build.directory"/>
     </condition>
@@ -15,7 +10,7 @@
   <target name="clean" depends="init">
     <delete includeemptydirs="true">
       <fileset dir="${build.directory}" defaultexcludes="false">
-        <include name="**/"></include>
+        <include name="**/"/>
       </fileset>
     </delete>
   </target>
@@ -50,7 +45,7 @@
     </antcall>
   </target>
 
-  <target name="sphinx" if="sphinx.available">
+  <target name="sphinx">
     <exec executable="${sphinx.binary}" failonerror="true" dir="${basedir}/${id}">
       <arg line="-W -b ${build} -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/${build}&quot;" />
     </exec>
