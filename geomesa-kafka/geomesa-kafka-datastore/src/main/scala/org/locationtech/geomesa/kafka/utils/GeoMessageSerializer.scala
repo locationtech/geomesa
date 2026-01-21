@@ -71,6 +71,9 @@ object GeoMessageSerializer {
 
   private val Empty = Array.empty[Byte]
 
+  private[kafka] val DefaultOpts: Set[SerializationOption] =
+    SerializationOption.builder.withoutId.withUserData.immutable.build()
+
   /**
    * Create a message serializer
    *
@@ -83,8 +86,9 @@ object GeoMessageSerializer {
       sft: SimpleFeatureType,
       serialization: SerializationType = SerializationType.KRYO,
       opts: Set[SerializationOption] = Set.empty): GeoMessageSerializer = {
-    val options = SerializationOption.builder.withoutId.withUserData.immutable.build() ++ opts
+    val options = DefaultOpts ++ opts
     val kryoSerializer = KryoFeatureSerializer.builder(sft).opts(options).build()
+    // note: native vs non-native deserialization is handled automatically by the avro serializer, regardless of opts
     val avroSerializer = AvroFeatureSerializer.builder(sft).opts(options).build()
     val (serializer, version) = serialization match {
       case SerializationType.KRYO => (kryoSerializer, KryoVersion)
