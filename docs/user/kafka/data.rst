@@ -75,13 +75,19 @@ streams (where many features may not be queried before they are updated) and/or 
 number of attributes).
 
 For broader compatibility, Avro serialization can be used instead. Avro libraries exist in many languages, and Avro messages
-follow a defined schema that allows for cross-platform parsing. When using Avro, the message schema can be obtained through
-the :ref:`gen_avro_schema_cli` command line method.
+follow a defined schema that allows for cross-platform parsing. GeoMesa supports two flavors of Avro serialization,
+``avro-native`` (preferred) or ``avro`` (legacy). The ``avro`` format is similar to ``avro-native``, but collection-type
+attributes (Maps and Lists) are encoded in an opaque fashion, instead of using native Avro collection types (if there are no
+collection types in a schema, then ``avro`` and ``avro-native`` are equivalent). Non-native ``avro`` should only be
+used if there is a need to work with older GeoMesa versions that don't support ``avro-native``.
 
-GeoMesa supports two flavors of Avro serialization, ``avro-native`` (preferred) or ``avro`` (legacy). The ``avro`` format
-is similar to ``avro-native``, but collection-type attributes (Maps and Lists) are encoded in an opaque fashion, instead
-of using native Avro collection types. It should only be used if there is a need to work with older GeoMesa versions that
-don't support ``avro-native``.
+When using Avro, the message schemas can be obtained by consuming the GeoMesa catalog topic. Alternatively, the schemas can also
+be obtained through the :ref:`gen_avro_schema_cli` command line method.
+
+.. warning::
+
+  Messages on a GeoMesa topic may have different serialization schemes, depending on the configuration of any data
+  stores producing records. If reading messages directly with Avro, care should be taken to ensure a consistent scheme.
 
 Integration with Other Systems
 ------------------------------

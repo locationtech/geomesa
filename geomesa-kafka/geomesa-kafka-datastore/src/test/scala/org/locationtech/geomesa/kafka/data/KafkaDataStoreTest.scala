@@ -419,45 +419,36 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     }
 
     "write/read avro collection attributes" >> {
+      val catalog = newCatalog
+      val sft =
+        SimpleFeatureTypes.createType("kafka", "names:List[String],props:Map[String,String],uuid:UUID,dtg:Date,*geom:Point:srid=4326")
+      val features = Seq(
+        ScalaSimpleFeature.create(sft, "sm", List("smith1", "smith2"), Map("s" -> "smith"),
+          "8e619e92-e894-4553-b65d-ce65681a75f4", "2017-01-01T00:00:00.000Z", "POINT (0 0)"),
+        ScalaSimpleFeature.create(sft, "jo", List("jones"), Map("j1" -> "jones1", "j2" -> "jones2"),
+          "d6505c88-c5ea-4bb3-99d7-26af5b531eda", "2017-01-02T00:00:00.000Z", "POINT (-10 -10)"),
+        ScalaSimpleFeature.create(sft, "wi", List("wilson"), Map("w1" -> "wilson1"),
+          "d6505c88-c5ea-4bb3-99d7-26af5b531edb", "2017-01-03T00:00:00.000Z", "POINT (10 10)")
+      )
+      KafkaDataStoreParams.SerializationTypes.Types must haveLength(features.length)
+      KafkaDataStoreParams.SerializationTypes.Types.zip(features).foreach { case (serde, f) =>
+        val params = Map(KafkaDataStoreParams.SerializationType.key -> serde)
+        WithClose(getStore(catalog, 0, params)) { producer =>
+          if (!producer.getTypeNames.contains(sft.getTypeName)) {
+            producer.createSchema(sft)
+          }
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            FeatureUtils.write(writer, f, useProvidedFid = true)
+          }
+        }
+      }
+
       foreach(KafkaDataStoreParams.SerializationTypes.Types) { serde =>
         val params = Map(KafkaDataStoreParams.SerializationType.key -> serde)
-        val sft =
-          SimpleFeatureTypes.createType(
-            "kafka",
-            "names:List[String],props:Map[String,String],uuid:UUID,dtg:Date,*geom:Point:srid=4326")
-        val (producer, consumer) = createStorePair(params, sft = sft)
-        try {
+        WithClose(getStore(catalog, 1, params)) { consumer =>
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
-
-          val f0 =
-            ScalaSimpleFeature.create(
-              sft,
-              "sm",
-              List("smith1", "smith2"),
-              Map("s" -> "smith"),
-              "8e619e92-e894-4553-b65d-ce65681a75f4",
-              "2017-01-01T00:00:00.000Z",
-              "POINT (0 0)")
-          val f1 =
-            ScalaSimpleFeature.create(
-              sft,
-              "jo",
-              List("jones"),
-              Map("j1" -> "jones1", "j2" -> "jones2"),
-              "d6505c88-c5ea-4bb3-99d7-26af5b531eda",
-              "2017-01-02T00:00:00.000Z",
-              "POINT (-10 -10)")
-
-          // initial write
-          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
-          }
-
           eventually(40, 100.millis)(CloseableIterator(store.getFeatures.features).toList must
-              containTheSameElementsAs(Seq(f0, f1)))
-        } finally {
-          consumer.dispose()
-          producer.dispose()
+            containTheSameElementsAs(features))
         }
       }
     }

@@ -19,6 +19,8 @@ import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySe
 import org.geotools.api.data.{Query, SimpleFeatureStore, Transaction}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.features.SerializationOption
+import org.locationtech.geomesa.features.avro.serialization.AvroSerialization
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.audit.AuditWriter
@@ -33,9 +35,9 @@ import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter._
 import org.locationtech.geomesa.kafka.index._
-import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsumer
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.{GeoMessagePartitioner, GeoMessageSerializerFactory}
+import org.locationtech.geomesa.kafka.utils.{GeoMessageProcessor, GeoMessageSerializer}
 import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -210,21 +212,6 @@ class KafkaDataStore(
     sft.getUserData.remove(TableSharingPrefix)
   }
 
-  @throws(classOf[IllegalArgumentException])
-  override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
-    requireNotLayerView(sft.getTypeName)
-    val topic = KafkaDataStore.topic(sft)
-    if (topic == null) {
-      throw new IllegalArgumentException(s"Topic must be defined in user data under '$TopicKey'")
-    } else if (topic != KafkaDataStore.topic(previous)) {
-      if (topic.contains("/")) {
-        throw new IllegalArgumentException(s"Topic cannot contain '/': $topic")
-      }
-      onSchemaDeleted(previous)
-      onSchemaCreated(sft)
-    }
-  }
-
   // create kafka topic
   override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
     val topic = KafkaDataStore.topic(sft)
@@ -239,6 +226,26 @@ class KafkaDataStore(
               .configs(KafkaDataStore.topicConfig(sft))
         admin.createTopics(Collections.singletonList(newTopic)).all().get
       }
+    }
+    metadata.insert(sft.getTypeName,
+      Map("avro-schema-native" -> Set(SerializationOption.NativeCollections), "avro-schema" -> Set.empty).mapValues { opts =>
+        AvroSerialization(sft, GeoMessageSerializer.DefaultOpts ++ opts).schema.toString()
+      }
+    )
+  }
+
+  @throws(classOf[IllegalArgumentException])
+  override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+    requireNotLayerView(sft.getTypeName)
+    val topic = KafkaDataStore.topic(sft)
+    if (topic == null) {
+      throw new IllegalArgumentException(s"Topic must be defined in user data under '$TopicKey'")
+    } else if (topic != KafkaDataStore.topic(previous)) {
+      if (topic.contains("/")) {
+        throw new IllegalArgumentException(s"Topic cannot contain '/': $topic")
+      }
+      onSchemaDeleted(previous)
+      onSchemaCreated(sft)
     }
   }
 
