@@ -228,8 +228,8 @@ class KafkaDataStore(
       }
     }
     metadata.insert(sft.getTypeName,
-      Map("avro-schema-native" -> Set(SerializationOption.NativeCollections), "avro-schema" -> Set.empty).mapValues { opts =>
-        AvroSerialization(sft, GeoMessageSerializer.DefaultOpts ++ opts).schema.toString()
+      Map("avro-schema-native" -> Set(SerializationOption.NativeCollections), "avro-schema" -> Set.empty).map { case (k, opts) =>
+        k -> AvroSerialization(sft, GeoMessageSerializer.DefaultOpts ++ opts).schema.toString()
       }
     )
   }
