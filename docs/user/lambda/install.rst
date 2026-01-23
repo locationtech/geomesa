@@ -67,13 +67,6 @@ files using a colon (``:``) as a delimiter. These entries will also be added the
 
     See :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
 
-Due to licensing restrictions, dependencies for shape file support must be separately installed.
-Do this with the following command:
-
-.. code-block:: bash
-
-    $ ./bin/install-shapefile-support.sh
-
 Test the command that invokes the GeoMesa Tools:
 
 .. code-block:: bash

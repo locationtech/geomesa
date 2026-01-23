@@ -183,13 +183,6 @@ GeoMesa also provides the ability to add additional JARs to the classpath using 
 classpath, giving it highest precedence in the classpath. Users can provide directories of jar files or individual
 files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
 
-Due to licensing restrictions, dependencies for shape file support must be separately installed.
-Do this with the following command:
-
-.. code-block:: bash
-
-    $ ./bin/install-shapefile-support.sh
-
 For logging, see :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
 
 Use the ``geomesa-hbase classpath`` command to print the final classpath that will be used when executing GeoMesa

@@ -59,13 +59,6 @@ The output should look like this::
 
 For more details on the available commands, see :ref:`redis_tools`.
 
-Due to licensing restrictions, dependencies for shape file support must be separately installed.
-Do this with the following command:
-
-.. code-block:: bash
-
-    $ ./bin/install-shapefile-support.sh
-
 Use the ``geomesa-redis classpath`` command in order to see what JARs are being used.
 
 If the classpath needs to be modified, ``geomesa-redis`` will pull additional entries from the
