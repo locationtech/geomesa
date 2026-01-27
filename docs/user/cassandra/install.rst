@@ -92,13 +92,6 @@ the necessary JARs. You may also do this manually using the scripts provided wit
 
     $ ./bin/install-dependencies.sh
 
-Due to licensing restrictions, dependencies for shape file support must be separately installed.
-Do this with the following command:
-
-.. code-block:: bash
-
-    $ ./bin/install-shapefile-support.sh
-
 Run ``geomesa-cassandra`` without arguments to confirm that the tools work.
 
 .. code::

@@ -49,13 +49,6 @@ you will need to copy the appropriate JARs into the tools ``lib`` folder.
     ``geomesa-gt`` will load JARs from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable
     into the class path. Use the ``geomesa-gt classpath`` command in order to see what JARs are being used.
 
-Due to licensing restrictions, dependencies for shape file support must be separately installed.
-Do this with the following command:
-
-.. code-block:: bash
-
-    $ ./bin/install-shapefile-support.sh
-
 Run ``geomesa-gt`` without arguments to confirm that the tools work.
 
 .. code::
