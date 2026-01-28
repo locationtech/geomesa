@@ -50,16 +50,44 @@
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>regex-property</id>
-                        <phase>validate</phase>
+                        <id>set-package-version-dev</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>regex-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>python.version.dev</name>
+                            <value>${project.version}</value>
+                            <regex>-SNAPSHOT</regex>
+                            <replacement>.dev0</replacement>
+                            <failIfNoMatch>false</failIfNoMatch>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>set-package-version-rc</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>regex-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>python.version.rc</name>
+                            <value>${python.version.dev}</value>
+                            <regex>-rc\.?</regex>
+                            <replacement>rc</replacement>
+                            <failIfNoMatch>false</failIfNoMatch>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>set-package-version-alpha</id>
+                        <phase>initialize</phase>
                         <goals>
                             <goal>regex-property</goal>
                         </goals>
                         <configuration>
                             <name>python.version</name>
-                            <value>${project.version}</value>
-                            <regex>-SNAPSHOT</regex>
-                            <replacement>.dev0</replacement>
+                            <value>${python.version.rc}</value>
+                            <regex>-m\.?</regex>
+                            <replacement>a</replacement>
                             <failIfNoMatch>false</failIfNoMatch>
                         </configuration>
                     </execution>
@@ -115,15 +143,17 @@
                                 </goals>
                                 <configuration>
                                     <skip>${skipTests}</skip>
-                                    <workingDirectory>${project.basedir}/src/test/python</workingDirectory>
+                                    <workingDirectory>${project.basedir}</workingDirectory>
                                     <arguments>
                                         <argument>-m</argument>
                                         <argument>unittest</argument>
                                         <argument>discover</argument>
                                         <argument>-v</argument>
+                                        <argument>-s</argument>
+                                        <argument>${project.basedir}/src/test/python</argument>
                                     </arguments>
                                     <environmentVariables>
-                                        <PYTHONPATH>${project.basedir}/src/main/python/</PYTHONPATH>
+                                        <PYTHONPATH>${project.build.directory}/python</PYTHONPATH>
                                     </environmentVariables>
                                 </configuration>
                             </execution>
@@ -133,48 +163,6 @@
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>build-helper-maven-plugin</artifactId>
                         <executions>
-                            <execution>
-                                <id>set-package-version-snapshot</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>regex-property</goal>
-                                </goals>
-                                <configuration>
-                                    <name>python.version</name>
-                                    <value>${project.version}</value>
-                                    <regex>-SNAPSHOT</regex>
-                                    <replacement>.dev0</replacement>
-                                    <failIfNoMatch>false</failIfNoMatch>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>set-package-version-rc</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>regex-property</goal>
-                                </goals>
-                                <configuration>
-                                    <name>python.version</name>
-                                    <value>${project.version}</value>
-                                    <regex>-rc\.?</regex>
-                                    <replacement>rc</replacement>
-                                    <failIfNoMatch>false</failIfNoMatch>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>set-package-version-milestone</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>regex-property</goal>
-                                </goals>
-                                <configuration>
-                                    <name>python.version</name>
-                                    <value>${project.version}</value>
-                                    <regex>-m\.?</regex>
-                                    <replacement>a</replacement>
-                                    <failIfNoMatch>false</failIfNoMatch>
-                                </configuration>
-                            </execution>
                             <execution>
                                 <id>attach-artifacts</id>
                                 <phase>package</phase>
