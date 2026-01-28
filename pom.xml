@@ -171,6 +171,7 @@
         <cyclonedx.maven.plugin.version>2.9.1</cyclonedx.maven.plugin.version>
         <exec.maven.plugin.version>3.5.0</exec.maven.plugin.version>
         <git.commit.id.plugin.version>9.0.2</git.commit.id.plugin.version>
+        <jacoco.maven.plugin.version>0.8.14</jacoco.maven.plugin.version>
         <license.maven.plugin.version>5.0.0</license.maven.plugin.version>
         <maven.antrun.plugin.version>3.2.0</maven.antrun.plugin.version>
         <maven.assembly.plugin.version>3.8.0</maven.assembly.plugin.version>
@@ -365,8 +366,9 @@
             <properties>
                 <maven.assembly.skip>true</maven.assembly.skip>
                 <maven.source.skip>true</maven.source.skip>
-                <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
-                <skipTests>true</skipTests>
+                <skipTests>true</skipTests>  <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
+                <jacoco.skip>true</jacoco.skip> <!-- skip jacoco, re-enabled in the scoverage forked build -->
+                <jacoco.argLine/> <!-- placeholder -->
                 <test.fork.count>1</test.fork.count>
             </properties>
             <build>
@@ -383,6 +385,54 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <!-- explicitly include all java classes here - only way to avoid scala classes
+                                     showing up (all with zero coverage) -->
+                                <include>**/interop/*</include>
+                                <include>**/arrow/jts/*</include>
+                                <include>**/arrow/jts/impl/*</include>
+                                <include>**/hbase/proto/*</include>
+                                <include>**/kafka/jstreams/*</include>
+                                <include>**/memory/cqengine/attribute/*</include>
+                                <include>**/memory/cqengine/index/*</include>
+                                <include>**/memory/cqengine/index/param/*</include>
+                                <include>**/memory/cqengine/query/*</include>
+                                <include>**/utils/audit/*</include>
+                            </includes>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>jacoco-prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                                <phase>process-test-classes</phase>
+                                <configuration>
+                                    <!-- sets the jacoco agent args into this property for appending to our test args later -->
+                                    <propertyName>jacoco.argLine</propertyName>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>jacoco-report</id>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <!-- add the jacoco agent arguments -->
+                            <argLine>${jacoco.argLine} ${maven.test.jvmargs}</argLine>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -2993,8 +3043,13 @@
                     <version>${scoverage.maven.plugin.version}</version>
                     <configuration>
                         <aggregate>true</aggregate>
-                        <additionalForkedProjectProperties>skipTests=false;maven.test.failure.ignore=true</additionalForkedProjectProperties>
+                        <additionalForkedProjectProperties>skipTests=false;maven.test.failure.ignore=true;jacoco.skip=false</additionalForkedProjectProperties>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.maven.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -3245,6 +3300,17 @@
                     <reportSet>
                         <reports>
                             <report>report-only</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
                         </reports>
                     </reportSet>
                 </reportSets>
