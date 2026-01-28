@@ -388,22 +388,6 @@
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                        <configuration>
-                            <includes>
-                                <!-- explicitly include all java classes here - only way to avoid scala classes
-                                     showing up (all with zero coverage) -->
-                                <include>**/interop/*</include>
-                                <include>**/arrow/jts/*</include>
-                                <include>**/arrow/jts/impl/*</include>
-                                <include>**/hbase/proto/*</include>
-                                <include>**/kafka/jstreams/*</include>
-                                <include>**/memory/cqengine/attribute/*</include>
-                                <include>**/memory/cqengine/index/*</include>
-                                <include>**/memory/cqengine/index/param/*</include>
-                                <include>**/memory/cqengine/query/*</include>
-                                <include>**/utils/audit/*</include>
-                            </includes>
-                        </configuration>
                         <executions>
                             <execution>
                                 <id>jacoco-prepare-agent</id>
@@ -3049,6 +3033,21 @@
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${jacoco.maven.plugin.version}</version>
+                    <configuration>
+                        <!-- explicitly include all java classes here - only way to avoid scala classes showing up (all with zero coverage) -->
+                        <includes>
+                            <include>**/interop/*</include>
+                            <include>**/arrow/jts/*</include>
+                            <include>**/arrow/jts/impl/*</include>
+                            <include>**/hbase/proto/*</include>
+                            <include>**/kafka/jstreams/*</include>
+                            <include>**/memory/cqengine/attribute/*</include>
+                            <include>**/memory/cqengine/index/*</include>
+                            <include>**/memory/cqengine/index/param/*</include>
+                            <include>**/memory/cqengine/query/*</include>
+                            <include>**/utils/audit/*</include>
+                        </includes>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
