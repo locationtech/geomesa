@@ -31,7 +31,7 @@ def configure(jars=[], packages=[], files=[], spark_home=None, spark_master='yar
     
     py_files = pyspark_lib_zips + process_executor_packages(packages, tmp_path)
 
-    assert spark_master is 'yarn', 'only yarn master is supported with this release'
+    assert spark_master == 'yarn', 'only yarn master is supported with this release'
 
     import pyspark
     import geomesa_pyspark.types
