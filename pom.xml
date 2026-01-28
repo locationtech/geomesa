@@ -368,7 +368,6 @@
                 <maven.source.skip>true</maven.source.skip>
                 <skipTests>true</skipTests>  <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
                 <jacoco.skip>true</jacoco.skip> <!-- skip jacoco, re-enabled in the scoverage forked build -->
-                <jacoco.argLine/> <!-- placeholder -->
                 <test.fork.count>1</test.fork.count>
             </properties>
             <build>
