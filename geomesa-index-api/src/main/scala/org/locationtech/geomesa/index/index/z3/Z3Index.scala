@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.index
 package z3
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
@@ -37,6 +38,7 @@ class Z3Index protected (
 
 object Z3Index extends ConfiguredIndex {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name = "z3"
@@ -48,4 +50,7 @@ object Z3Index extends ConfiguredIndex {
   override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = {
     if (sft.isPoints && sft.getDtgField.isDefined) { Seq(Seq(sft.getGeomField, sft.getDtgField.get)) } else { Seq.empty }
   }
+
+  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]] =
+    if (primary.isPoint) { sft.getDtgField.map(dtg => Seq(primary.getLocalName, dtg)) } else { None }
 }

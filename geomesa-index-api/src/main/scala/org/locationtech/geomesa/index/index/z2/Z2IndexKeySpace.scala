@@ -143,9 +143,10 @@ class Z2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
 
 object Z2IndexKeySpace extends IndexKeySpaceFactory[Z2IndexValues, Long] {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
-    attributes.lengthCompare(1) == 0 && sft.indexOf(attributes.head) != -1 &&
-        classOf[Point].isAssignableFrom(sft.getDescriptor(attributes.head).getType.getBinding)
+    attributes.lengthCompare(1) == 0 && sft.indexOf(attributes.head) != -1 && sft.getDescriptor(attributes.head).isPoint
 
   override def apply(sft: SimpleFeatureType, attributes: Seq[String], tier: Boolean): Z2IndexKeySpace = {
     val shards = if (tier) { NoShardStrategy } else { Z2ShardStrategy(sft) }

@@ -9,10 +9,12 @@
 package org.locationtech.geomesa.index.index
 package s2
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.ShardStrategy.Z2ShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
@@ -38,6 +40,8 @@ class S2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, versio
 
 object S2Index extends ConfiguredIndex {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
   override val name = "s2"
   override val version = 1
 
@@ -45,4 +49,6 @@ object S2Index extends ConfiguredIndex {
     S2IndexKeySpace.supports(sft, attributes)
 
   override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = Seq.empty
+  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]] =
+    Z2Index.defaults(sft, primary)
 }

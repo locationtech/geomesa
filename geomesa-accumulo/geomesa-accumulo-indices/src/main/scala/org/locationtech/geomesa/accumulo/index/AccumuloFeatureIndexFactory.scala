@@ -8,45 +8,66 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.accumulo.index.legacy._
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey}
+import org.locationtech.geomesa.index.index.{ConfiguredIndex, DefaultFeatureIndexFactory}
 import org.locationtech.geomesa.utils.conf.IndexId
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
+import org.locationtech.geomesa.utils.index.IndexCoverage
 
 /**
   * Feature index factory that provides attribute join indices
   */
-class AccumuloFeatureIndexFactory extends GeoMesaFeatureIndexFactory {
+class AccumuloFeatureIndexFactory extends DefaultFeatureIndexFactory {
 
-  override def indices(sft: SimpleFeatureType, hint: Option[String]): Seq[IndexId] = {
-    def defaults: Seq[IndexId] = JoinIndex.defaults(sft).map(IndexId(JoinIndex.name, JoinIndex.version, _))
-    hint match {
-      case None => defaults
-      case Some(h) =>
-        lazy val Array(name, attributes @ _*) = h.split(":")
-        if (h.equalsIgnoreCase(JoinIndex.name) || h.equalsIgnoreCase(AttributeIndex.name)) {
-          defaults
-        } else if (name.equalsIgnoreCase(JoinIndex.name) && JoinIndex.supports(sft, attributes)) {
-          Seq(IndexId(JoinIndex.name, JoinIndex.version, attributes))
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
+
+  override protected val available: Seq[ConfiguredIndex] = Seq(JoinIndex)
+
+  override def defaults(sft: SimpleFeatureType, descriptor: AttributeDescriptor): Seq[IndexId] = Seq.empty
+
+  override def fromIndexFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId] = {
+    if (flag.equalsIgnoreCase(AttributeIndex.name)) {
+      sft.getAttributeDescriptors.asScala.flatMap { d =>
+        if (Option(d.getUserData.get(AttributeOptions.OptIndex)).exists(_.toString.equalsIgnoreCase(IndexCoverage.JOIN.toString))) {
+          val secondary = sft.getDtgField.filter(_ != d.getLocalName).orElse(Option(sft.getGeomField))
+          Some(IndexId(JoinIndex.name, JoinIndex.version, Seq(d.getLocalName) ++ secondary))
         } else {
-          Seq.empty
+          None
         }
-    }
-  }
-
-  override def available(sft: SimpleFeatureType): Seq[(String, Int)] = {
-    if (JoinIndex.defaults(sft).exists(JoinIndex.supports(sft, _))) {
-      Seq((JoinIndex.name, JoinIndex.version))
+      }
     } else {
-      Seq.empty
+      // will handle "join"
+      super.fromIndexFlag(sft, flag)
     }
   }
 
-  override def create[T, U](ds: GeoMesaDataStore[_],
-                            sft: SimpleFeatureType,
-                            index: IndexId): Option[GeoMesaFeatureIndex[T, U]] = {
+  override def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Option[IndexId] = {
+    if (flag.equalsIgnoreCase(IndexCoverage.JOIN.toString)) {
+      if (AttributeIndexKey.encodable(descriptor)) {
+        val attr = descriptor.getLocalName
+        sft.getDtgField.filter(_ != attr) match {
+          case None => Some(IndexId(JoinIndex.name, JoinIndex.version, Seq(attr) ++ Option(sft.getGeomField)))
+          case Some(dtg) => Some(IndexId(JoinIndex.name, JoinIndex.version, Seq(attr, dtg)))
+        }
+      } else {
+        throw new IllegalArgumentException(
+          s"Attribute '${descriptor.getLocalName}' is configured for indexing but it is not a supported type: " +
+            descriptor.getType.getBinding.getName)
+      }
+    } else {
+      // will handle "join:<attributes>"
+      super.fromAttributeFlag(sft, descriptor, flag)
+    }
+  }
+
+  override def create[T, U](ds: GeoMesaDataStore[_], sft: SimpleFeatureType, index: IndexId): Option[GeoMesaFeatureIndex[T, U]] = {
     val idx = if (index.name == JoinIndex.name) {
       val Seq(attribute, secondary @ _*) = index.attributes
       index.version match {

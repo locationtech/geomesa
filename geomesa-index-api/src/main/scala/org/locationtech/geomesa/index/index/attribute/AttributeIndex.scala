@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.index.attribute
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
@@ -81,18 +82,30 @@ object AttributeIndex extends ConfiguredIndex {
     }
   }
 
-  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = {
-    sft.getAttributeDescriptors.asScala.flatMap { d =>
+  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] =
+    defaults(sft, f => f.equalsIgnoreCase(IndexCoverage.FULL.toString) || java.lang.Boolean.valueOf(f))
+
+  def defaults(sft: SimpleFeatureType, flagCheck: String => Boolean): Seq[Seq[String]] = {
+    sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
       val index = d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]
-      if (index != null &&
-          (index.equalsIgnoreCase(IndexCoverage.FULL.toString) || java.lang.Boolean.valueOf(index)) &&
-          AttributeIndexKey.encodable(d)) {
-        Seq(Seq(d.getLocalName) ++ Option(sft.getGeomField) ++ sft.getDtgField.filter(_ != d.getLocalName))
+      if (index != null && flagCheck(index) && AttributeIndexKey.encodable(d)) {
+        Seq(defaultTiers(sft, d))
       } else {
         Seq.empty
       }
-    }.toSeq
+    }
   }
+
+  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]] = {
+    if (AttributeIndexKey.encodable(primary)) {
+      Some(defaultTiers(sft, primary))
+    } else {
+      None
+    }
+  }
+
+  private def defaultTiers(sft: SimpleFeatureType, primary: AttributeDescriptor): Seq[String] =
+    Seq(primary.getLocalName) ++ sft.getDtgField.filter(_ != primary.getLocalName).orElse(Option(sft.getGeomField))
 
   /**
     * Checks if the given field is attribute indexed

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.index
 package z2
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.ShardStrategy.Z2ShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
@@ -31,6 +32,7 @@ class XZ2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, versi
 
 object XZ2Index extends ConfiguredIndex {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name = "xz2"
@@ -41,4 +43,7 @@ object XZ2Index extends ConfiguredIndex {
 
   override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] =
     if (sft.nonPoints) { Seq(Seq(sft.getGeomField)) } else { Seq.empty }
+
+  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]] =
+    if (primary.isGeometryWithExtents) { Some(Seq(primary.getLocalName)) } else { None }
 }

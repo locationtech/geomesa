@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.index.id
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -31,11 +32,16 @@ class IdIndex protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, versio
 
 object IdIndex extends ConfiguredIndex {
 
+  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.EnableFidIndex
+
   override val name = "id"
   override val version = 4
 
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
     IdIndexKeySpace.supports(sft, attributes)
 
-  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = Seq(Seq.empty)
+  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] =
+    if (Option(sft.getUserData.get(EnableFidIndex)).exists(_.toString.equalsIgnoreCase("false"))) { Seq.empty } else { Seq(Seq.empty) }
+
+  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]] = None
 }

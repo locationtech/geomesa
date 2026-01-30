@@ -40,7 +40,6 @@ object SimpleFeatureSpecConfig {
     * @return
     */
   def parse(conf: Config, path: Option[String]): (Option[String], SimpleFeatureSpec) = {
-
     val toParse = path.filter(conf.hasPath) match {
       case Some(p) => conf.withFallback(conf.getConfig(p))
       case None    => conf

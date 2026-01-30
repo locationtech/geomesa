@@ -317,7 +317,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
         try { manager.indices(sft) } catch {
           case NonFatal(e) =>
             val versions = sft.getIndices.map(i => s"${i.name}:${i.version}").mkString(",")
-            val available = GeoMesaFeatureIndexFactory.available(sft).map(i => s"${i._1}:${i._2}").mkString(",")
+            val available = GeoMesaFeatureIndexFactory.all().map(i => s"${i.name}:${i.version}").mkString(",")
             logger.error(s"Trying to access schema ${sft.getTypeName} with invalid index versions '$versions' - " +
                 s"available indices are '$available'", e)
             throw new IllegalStateException(s"The schema ${sft.getTypeName} was written with a newer " +

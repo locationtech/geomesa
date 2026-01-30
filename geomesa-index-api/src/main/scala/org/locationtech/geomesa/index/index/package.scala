@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -52,6 +53,15 @@ package object index {
       * @return groups of attributes that could be used with this index
       */
     def defaults(sft: SimpleFeatureType): Seq[Seq[String]]
+
+    /**
+     * Gets the default attributes that could be used with this index
+     *
+     * @param sft simple feature type
+     * @param primary the primary attribute to use in the index
+     * @return group of attributes that could be used with this index, if it's supported
+     */
+    def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]]
   }
 
   /**
