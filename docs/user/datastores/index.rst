@@ -15,8 +15,7 @@ Not sure where to begin? Take a look at :doc:`/user/getting_started`.
     attributes
     json
     index_overview
-    index_basics
-    index_customization
+    index_creation
     index_config
     runtime_config
     query_planning

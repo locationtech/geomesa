@@ -7,7 +7,7 @@ GeoMesa uses a number of different indices in order to satisfy various search pr
 has an identifier (in brackets) which is used to reference it in configuration options.
 
 By default, GeoMesa will create several indices based on the default geometry and date. For advanced use
-cases, the indices may be specified through :ref:`index_customization`.
+cases, see :ref:`specifying_indices`.
 
 - ``z2`` - the Z2 index uses a two-dimensional Z-order curve to index latitude and longitude
   for point data. This index will be created if the feature type has the geometry type
