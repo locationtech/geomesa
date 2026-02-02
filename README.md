@@ -34,13 +34,13 @@ geospatial analytics.
 ## Downloads
 
 **Latest release: [5.4.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.4.0)** &nbsp;-&nbsp;
-  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-accumulo_2.13-5.4.0-bin.tar.gz) |
-  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-hbase_2.13-5.4.0-bin.tar.gz) |
-  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-cassandra_2.13-5.4.0-bin.tar.gz) |
-  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-kafka_2.13-5.4.0-bin.tar.gz) |
-  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-redis_2.13-5.4.0-bin.tar.gz) |
-  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-fs_2.13-5.4.0-bin.tar.gz) |
-  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-gt_2.13-5.4.0-bin.tar.gz)
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-accumulo_2.12-5.4.0-bin.tar.gz) |
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-hbase_2.12-5.4.0-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-cassandra_2.12-5.4.0-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-kafka_2.12-5.4.0-bin.tar.gz) |
+  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-redis_2.12-5.4.0-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-fs_2.12-5.4.0-bin.tar.gz) |
+  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-gt_2.12-5.4.0-bin.tar.gz)
 
 ### Verifying Downloads
 
@@ -49,7 +49,7 @@ import the appropriate key then verify:
 
 ```bash
 gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
-gpg --verify geomesa-accumulo_2.13-5.4.0-bin.tar.gz.asc geomesa-accumulo_2.13-5.4.0-bin.tar.gz
+gpg --verify geomesa-accumulo_2.12-5.4.0-bin.tar.gz.asc geomesa-accumulo_2.12-5.4.0-bin.tar.gz
 ```
 
 The keys used for signing are:
@@ -67,7 +67,7 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
-  <artifactId>geomesa-accumulo-datastore_2.13</artifactId>
+  <artifactId>geomesa-accumulo-datastore_2.12</artifactId>
   <version>5.4.0</version>
 </dependency>
 ```
@@ -79,7 +79,7 @@ GeoMesa provides a bill-of-materials module, which can simplify version manageme
   <dependencies>
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
-      <artifactId>geomesa-bom_2.13</artifactId>
+      <artifactId>geomesa-bom_2.12</artifactId>
       <version>5.4.0</version>
       <type>pom</type>
       <scope>import</scope>
@@ -116,7 +116,7 @@ DataStore implementations:
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
-  <artifactId>geomesa-gt-spark_2.13</artifactId>
+  <artifactId>geomesa-gt-spark_2.12</artifactId>
   <classifier>runtime</classifier>
   <version>5.4.0</version>
   <exclusions>

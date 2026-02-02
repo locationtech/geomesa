@@ -3,12 +3,12 @@
 
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-metrics_2.13</artifactId>
+        <artifactId>geomesa-metrics_2.12</artifactId>
         <version>6.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-metrics-micrometer_2.13</artifactId>
+    <artifactId>geomesa-metrics-micrometer_2.12</artifactId>
     <name>GeoMesa Metrics Micrometer</name>
 
     <dependencies>
