@@ -105,8 +105,8 @@ object AttributeIndex extends ConfiguredIndex {
             } else if (version.isDefined && supports(sft, Seq(d.getLocalName) ++ secondary.tail)) {
               Seq(IndexId(index.name, version.get, Seq(d.getLocalName) ++ secondary.tail))
             } else {
-              // TODO throw error?
-              Seq.empty
+              throw new IllegalArgumentException(
+                s"Attribute '${d.getLocalName}' is configured for indexing but index is not supported: $flag")
             }
           } else {
             Seq.empty
@@ -123,9 +123,8 @@ object AttributeIndex extends ConfiguredIndex {
       None
     }
   }
-// TODO revert the default secondary index tier and see if tests pass
+
   private def defaultTiers(sft: SimpleFeatureType, primary: AttributeDescriptor): Seq[String] =
-//    Seq(primary.getLocalName) ++ sft.getDtgField.filter(_ != primary.getLocalName).orElse(Option(sft.getGeomField))
     Seq(primary.getLocalName) ++ Seq(sft.getGeomField).filter(_ != null) ++ sft.getDtgField.filter(_ != primary.getLocalName)
 
   /**
