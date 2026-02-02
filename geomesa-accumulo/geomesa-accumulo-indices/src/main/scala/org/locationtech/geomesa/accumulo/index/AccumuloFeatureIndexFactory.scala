@@ -32,7 +32,7 @@ class AccumuloFeatureIndexFactory extends DefaultFeatureIndexFactory {
 
   override def fromIndexFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId] = {
     if (flag.equalsIgnoreCase(AttributeIndex.name)) {
-      sft.getAttributeDescriptors.asScala.flatMap { d =>
+      sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
         if (Option(d.getUserData.get(AttributeOptions.OptIndex)).exists(_.toString.equalsIgnoreCase(IndexCoverage.JOIN.toString))) {
           joinIndex(sft, d)
         } else {

@@ -8,7 +8,7 @@
     <inceptionYear>2013</inceptionYear>
 
     <groupId>org.locationtech.geomesa</groupId>
-    <artifactId>geomesa_2.12</artifactId>
+    <artifactId>geomesa_2.13</artifactId>
     <packaging>pom</packaging>
     <version>6.0.0-SNAPSHOT</version>
 
@@ -52,8 +52,8 @@
 
         <!-- java/scala -->
         <jdk.version>17</jdk.version>
-        <scala.version>2.12.20</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
-        <scala.binary.version>2.12</scala.binary.version>
+        <scala.version>2.13.16</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
+        <scala.binary.version>2.13</scala.binary.version>
         <scala.xml.version>2.2.0</scala.xml.version>
         <scala.parsers.version>2.3.0</scala.parsers.version>
 
@@ -3273,7 +3273,7 @@
                                     <excludes combine.children="append">
                                         <exclude>*:*_2.10</exclude>
                                         <exclude>*:*_2.11</exclude>
-                                        <exclude>*:*_2.13</exclude>
+                                        <exclude>*:*_2.12</exclude>
                                         <exclude>*:*_3</exclude>
                                         <exclude>log4j:*</exclude>
                                         <exclude>org.slf4j:slf4j-log4j12</exclude>
