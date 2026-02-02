@@ -120,59 +120,6 @@ key ``geomesa.index.dtg``. If you would prefer to not index any date, you may di
     // disable indexing by date
     sft2.getUserData().put("geomesa.ignore.dtg", true);
 
-.. _customizing_index_creation:
-
-Customizing Index Creation
---------------------------
-
-Instead of using the default indices, you may specify the exact indices to create. This may be used to create
-fewer indices (to speed up ingestion, or because you are only using certain query patterns), or to create additional
-indices (for example on non-default geometries or dates).
-
-The indices are created when calling ``createSchema``. If nothing is specified, the Z2, Z3 (or XZ2 and XZ3
-depending on geometry type) and ID indices will all be created, as well as any attribute indices you have defined.
-
-.. warning::
-
-    Certain queries may be much slower if you disable an index.
-
-To configure the indices, you may set a user data value in your simple feature type. The user data key is
-``geomesa.indices.enabled``, and it should contain a comma-delimited list containing a subset of index
-identifiers, as specified in :ref:`index_overview`.
-
-In addition to specifying which types of indices to create, you may optionally specify the exact attributes that will
-be used in each index, by appending them with ``:``\ s after the index name. The following example shows two index
-configurations. The first configuration has a single Z3 index that includes the default attributes. The second
-configuration has two Z3 indices on different geometries, as well as an attribute index on name which includes
-a secondary index on dtg.
-
-.. code-block:: java
-
-    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
-
-    String spec = "name:String,dtg:Date,*start:Point:srid=4326,end:Point:srid=4326";
-    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
-    // enable a default z3 index on start + dtg
-    sft.getUserData().put("geomesa.indices.enabled", "z3");
-    // alternatively, enable a z3 index on start + dtg, end + dtg, and an attribute index on
-    // name with a secondary index on dtg. note that this overrides the previous configuration
-    sft.getUserData().put("geomesa.indices.enabled", "z3:start:dtg,z3:end:dtg,attr:name:dtg");
-
-See :ref:`set_sft_options` for details on setting user data. If you are using the GeoMesa ``SchemaBuilder``,
-you may instead call the ``indexes`` methods:
-
-.. code-block:: scala
-
-    import org.locationtech.geomesa.utils.geotools.SchemaBuilder
-
-    val sft = SchemaBuilder.builder()
-        .addString("name")
-        .addDate("dtg")
-        .addPoint("geom", default = true)
-        .userData
-        .indices(List("id", "z3", "attr"))
-        .build("mySft")
-
 Configuring Index Table Names
 -----------------------------
 

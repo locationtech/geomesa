@@ -47,13 +47,15 @@ object DefaultFeatureIndexFactory extends DefaultFeatureIndexFactory {
     }
   }
 
-  override def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Option[IndexId] = {
+  override def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Seq[IndexId] = {
     if (java.lang.Boolean.valueOf(flag) || flag.equalsIgnoreCase(IndexCoverage.FULL.toString)) {
-      Stream(Z3Index, XZ3Index, Z2Index, XZ2Index, AttributeIndex).flatMap(_.defaults(sft, descriptor)).headOption.orElse {
+      val indices = Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, AttributeIndex).flatMap(_.defaults(sft, descriptor))
+      if (indices.isEmpty) {
         throw new IllegalArgumentException(
           s"Attribute '${descriptor.getLocalName}' is configured for indexing but it is not a supported type: " +
             descriptor.getType.getBinding.getName)
       }
+      indices
     } else {
       super.fromAttributeFlag(sft, descriptor, flag)
     }
@@ -140,13 +142,13 @@ trait DefaultFeatureIndexFactory extends GeoMesaFeatureIndexFactory with LazyLog
     }
   }
 
-  override def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Option[IndexId] = {
+  override def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Seq[IndexId] = {
     if (flag.equalsIgnoreCase("false") || flag.equalsIgnoreCase("none")) {
-      Some(IndexId(EmptyIndex.name, EmptyIndex.version, Seq(descriptor.getLocalName)))
+      Seq(IndexId(EmptyIndex.name, EmptyIndex.version, Seq(descriptor.getLocalName)))
     } else {
       // check for name:attr[:attr] and name:version[:attr]
       val Array(name, secondary@_*) = flag.split(":")
-      available.find(_.name.equalsIgnoreCase(name)).flatMap { i =>
+      available.find(_.name.equalsIgnoreCase(name)).toSeq.flatMap { i =>
         lazy val version = Try(secondary.head.toInt).toOption
         if (secondary.isEmpty) {
           i.defaults(sft, descriptor)

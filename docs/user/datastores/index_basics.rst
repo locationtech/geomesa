@@ -6,7 +6,7 @@ Index Basics
 GeoMesa will create various indices for a given ``SimpleFeatureType`` schema (see :ref:`index_overview`). This
 allows the execution of a variety of queries in a optimized manner. GeoMesa will make a best effort to determine
 the attributes used for indexing. The attributes to use can also be specified as part of the ``SimpleFeatureType`` -
-see :ref:`customizing_index_creation` for details.
+see :ref:`index_customization` for details.
 
 Spatial Index (Z2/XZ2)
 ----------------------
@@ -75,26 +75,7 @@ and date attributes will be used to create a secondary Z3 or XZ3 index.
   cannot.
 
 Instead of using the default, different secondary index structures can be configured by specifying the attributes
-to use. To customize the secondary index, the indices must be configured through :ref:`customizing_index_creation`.
-If a geometry and date attribute are specified, the secondary index will be Z3 of XZ3, as appropriate.
-If just a geometry is specified, the secondary index will be Z2 of XZ2, as appropriate. If just a date
-is specified, the secondary index will be an ordered temporal index.
-
-For example, all of the following are valid ways to configure an index on a 'name' attribute, assuming
-a geometry attribute named 'geom' and a date attribute named 'dtg':
-
-.. code-block:: java
-
-    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
-
-    String spec = "name:String,dtg:Date,*geom:Point:srid=4326";
-    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
-    // enable a default z3 and a default attribute index
-    sft.getUserData().put("geomesa.indices.enabled", "z3,attr:name");
-    // or, enable a default z3 and an attribute index with a Z2 secondary index
-    sft.getUserData().put("geomesa.indices.enabled", "z3,attr:name:geom");
-    // or, enable a default z3 and an attribute index with a temporal secondary index
-    sft.getUserData().put("geomesa.indices.enabled", "z3,attr:name:dtg");
+to use. To customize the secondary index, see :ref:`index_customization`.
 
 To prioritize certain attributes over others, see :ref:`attribute_cardinality`.
 
@@ -226,7 +207,7 @@ index, implement ``org.locationtech.geomesa.index.api.GeoMesaFeatureIndexFactory
 `Java documentation <https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.
 
 Once an index is registered, it can be enabled through the ``SimpleFeatureType`` user data, as described in
-:ref:`customizing_index_creation`.
+:ref:`index_customization`.
 
 Some additional indices are provided out-of-the-box:
 

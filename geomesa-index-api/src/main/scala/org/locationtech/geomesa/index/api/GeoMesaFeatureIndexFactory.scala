@@ -48,7 +48,7 @@ trait GeoMesaFeatureIndexFactory {
    * @param flag index flag
    * @return
    */
-  def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Option[IndexId]
+  def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Seq[IndexId]
 
   /**
    * Gets default indices for an attribute
