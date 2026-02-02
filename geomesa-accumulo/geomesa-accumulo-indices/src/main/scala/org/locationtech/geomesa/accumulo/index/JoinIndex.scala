@@ -49,9 +49,9 @@ object JoinIndex extends ConfiguredIndex {
 
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean = AttributeIndex.supports(sft, attributes)
 
-  override def defaults(sft: SimpleFeatureType): Seq[IndexId] =
+  override def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId] =
     AttributeIndex.defaults(sft, this, _.equalsIgnoreCase(IndexCoverage.JOIN.toString))
 
-  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] =
-    AttributeIndex.defaults(sft, primary).map(_.copy(name = name, version = version))
+  override def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] =
+    AttributeIndex.indexFor(sft, primary).map(_.copy(name = name, version = version))
 }

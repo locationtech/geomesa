@@ -45,7 +45,7 @@ object S2Index extends ConfiguredIndex {
   override val version = 1
 
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean = S2IndexKeySpace.supports(sft, attributes)
-  override def defaults(sft: SimpleFeatureType): Seq[IndexId] = Seq.empty
-  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] =
-    Z2Index.defaults(sft, primary).map(_.copy(name = name, version = version))
+  override def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId] = Seq.empty
+  override def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] =
+    Z2Index.indexFor(sft, primary).map(_.copy(name = name, version = version))
 }

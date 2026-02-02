@@ -85,7 +85,7 @@ object AttributeIndex extends ConfiguredIndex {
     }
   }
 
-  override def defaults(sft: SimpleFeatureType): Seq[IndexId] =
+  override def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId] =
     defaults(sft, this, f => f.equalsIgnoreCase(IndexCoverage.FULL.toString) || java.lang.Boolean.valueOf(f))
 
   def defaults(sft: SimpleFeatureType, index: NamedIndex, flagCheck: String => Boolean): Seq[IndexId] = {
@@ -116,7 +116,7 @@ object AttributeIndex extends ConfiguredIndex {
     }
   }
 
-  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] = {
+  override def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] = {
     if (AttributeIndexKey.encodable(primary)) {
       Some(IndexId(name, version, defaultTiers(sft, primary)))
     } else {

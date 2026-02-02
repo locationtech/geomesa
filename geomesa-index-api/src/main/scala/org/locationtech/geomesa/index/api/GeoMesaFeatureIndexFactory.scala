@@ -13,11 +13,13 @@ import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
+import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.index.{DefaultFeatureIndexFactory, EmptyIndex, NamedIndex}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 
 /**
   * Factory for feature index implementations
@@ -38,7 +40,7 @@ trait GeoMesaFeatureIndexFactory {
    * @param flag index flag
    * @return
    */
-  def fromIndexFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId]
+  def fromFeatureFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId]
 
   /**
    * Gets an index based on an attribute-level index flag
@@ -49,15 +51,6 @@ trait GeoMesaFeatureIndexFactory {
    * @return
    */
   def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Seq[IndexId]
-
-  /**
-   * Gets default indices for an attribute
-   *
-   * @param sft simple feature type
-   * @param descriptor attribute
-   * @return
-   */
-  def defaults(sft: SimpleFeatureType, descriptor: AttributeDescriptor): Seq[IndexId]
 
   /**
     * Gets the names and versions of available indices, based on the schema attributes. Can be used with
@@ -75,7 +68,7 @@ trait GeoMesaFeatureIndexFactory {
    * @param sft simple feature type
    * @return
    */
-  @deprecated("Replaced with fromIndexFlag, fromAttributeFlag and defaults")
+  @deprecated("Replaced with fromIndexFlag and fromAttributeFlag")
   def indices(sft: SimpleFeatureType, hint: Option[String]): Seq[IndexId]
 
   /**
@@ -93,6 +86,9 @@ trait GeoMesaFeatureIndexFactory {
 
 object GeoMesaFeatureIndexFactory extends LazyLogging {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   import scala.collection.JavaConverters._
 
   private val factories = ServiceLoader.load[GeoMesaFeatureIndexFactory]() :+ DefaultFeatureIndexFactory
@@ -109,7 +105,7 @@ object GeoMesaFeatureIndexFactory extends LazyLogging {
       enabled
     } else {
       // add in the ID index since there's no attribute descriptor for it
-      fromAttributeFlags(sft) ++ IdIndex.defaults(sft)
+      fromAttributeFlags(sft) ++ IdIndex.defaultIndicesFor(sft)
     }
   }
 
@@ -120,8 +116,8 @@ object GeoMesaFeatureIndexFactory extends LazyLogging {
    * @return
    */
   private def fromIndexFlags(sft: SimpleFeatureType): Seq[IndexId] = {
-    splitFlag(sft.getUserData.get(Configs.EnabledIndices)).flatMap { flag =>
-      val indices = factories.flatMap(_.fromIndexFlag(sft, flag))
+    Option(sft.getUserData.get(Configs.EnabledIndices)).toSeq.flatMap(_.asInstanceOf[String].split(",").map(_.trim)).flatMap { flag =>
+      val indices = factories.flatMap(_.fromFeatureFlag(sft, flag))
       if (indices.isEmpty) {
         throw new IllegalArgumentException(
           s"Invalid index flag '$flag' does not exist or does not support the schema: ${SimpleFeatureTypes.encodeType(sft)}")
@@ -138,7 +134,7 @@ object GeoMesaFeatureIndexFactory extends LazyLogging {
    */
   private def fromAttributeFlags(sft: SimpleFeatureType): Seq[IndexId] = {
     sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
-      val indices = splitFlag(d.getUserData.get(AttributeOptions.OptIndex)).flatMap { flag =>
+      val indices = d.getIndexFlags.flatMap { flag =>
         val indices = factories.flatMap(_.fromAttributeFlag(sft, d, flag))
         if (indices.isEmpty) {
           throw new IllegalArgumentException(
@@ -147,15 +143,14 @@ object GeoMesaFeatureIndexFactory extends LazyLogging {
         }
         indices
       }
-      if (indices.isEmpty) {
-        factories.flatMap(_.defaults(sft, d))
+      if (indices.isEmpty && sft.getGeomField == d.getLocalName) {
+        // add in default indices on geom
+        Seq(Z3Index, XZ3Index, Z2Index, XZ2Index).flatMap(i => i.indexFor(sft, d))
       } else {
         indices.filterNot(_.name == EmptyIndex.name)
       }
     }
   }
-
-  private def splitFlag(flag: AnyRef): Seq[String] = Option(flag).toSeq.flatMap(_.asInstanceOf[String].split(",").map(_.trim))
 
   /**
     * Gets the names of available indices, based on the schema attributes. Can be used with 'geomesa.indices.enabled'

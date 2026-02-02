@@ -35,7 +35,7 @@ class SchemaBuilder extends AbstractSchemaBuilder[AttributeBuilder, UserDataBuil
   override protected def createUserDataBuilder(userData: StringBuilder): UserDataBuilder =
     new UserDataBuilder(this, userData)
 }
-// TODO index flags
+
 object SchemaBuilder {
 
   def builder(): SchemaBuilder = new SchemaBuilder

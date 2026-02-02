@@ -41,7 +41,7 @@ object IdIndex extends ConfiguredIndex {
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
     IdIndexKeySpace.supports(sft, attributes)
 
-  override def defaults(sft: SimpleFeatureType): Seq[IndexId] = {
+  override def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId] = {
     if (Option(sft.getUserData.get(EnableFidIndex)).exists(_.toString.equalsIgnoreCase("false"))) {
       Seq.empty
     } else {
@@ -49,5 +49,5 @@ object IdIndex extends ConfiguredIndex {
     }
   }
 
-  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] = None
+  override def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] = None
 }

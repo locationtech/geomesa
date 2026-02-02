@@ -48,7 +48,7 @@ object XZ3Index extends ConfiguredIndex {
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
     XZ3IndexKeySpace.supports(sft, attributes)
 
-  override def defaults(sft: SimpleFeatureType): Seq[IndexId] = {
+  override def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId] = {
     if (sft.nonPoints && sft.getDtgField.isDefined) {
       Seq(IndexId(name, version, Seq(sft.getGeomField, sft.getDtgField.get)))
     } else {
@@ -56,7 +56,7 @@ object XZ3Index extends ConfiguredIndex {
     }
   }
 
-  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] = {
+  override def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] = {
     if (primary.isGeometryWithExtents && sft.getDtgField.isDefined) {
       Some(IndexId(name, version, Seq(primary.getLocalName, sft.getDtgField.get)))
     } else {

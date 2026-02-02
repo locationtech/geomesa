@@ -45,7 +45,7 @@ object S3Index extends ConfiguredIndex {
   override val version = 1
 
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean = S3IndexKeySpace.supports(sft, attributes)
-  override def defaults(sft: SimpleFeatureType): Seq[IndexId] = Seq.empty
-  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] =
-    Z3Index.defaults(sft, primary).map(_.copy(name = name, version = version))
+  override def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId] = Seq.empty
+  override def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] =
+    Z3Index.indexFor(sft, primary).map(_.copy(name = name, version = version))
 }

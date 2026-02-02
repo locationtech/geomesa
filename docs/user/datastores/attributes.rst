@@ -87,18 +87,14 @@ If you are using TypeSafe configuration files to define your simple feature type
 
 .. code-block:: javascript
 
-    geomesa {
-      sfts {
-        mySft = {
-          attributes = [
-            { name = name, type = String             }
-            { name = dtg,  type = Date               }
-            { name = geom, type = Point, srid = 4326 }
-          ]
-          user-data = {
-            option.one = "foo"
-          }
-        }
+    geomesa.sfts.mySft = {
+      attributes = [
+        { name = name, type = String             }
+        { name = dtg,  type = Date               }
+        { name = geom, type = Point, srid = 4326 }
+      ]
+      user-data = {
+        option.one = "foo"
       }
     }
 
@@ -135,14 +131,10 @@ elements:
 
 .. code-block:: javascript
 
-    geomesa {
-      sfts {
-        "mySft" = {
-          attributes = [
-            { name = name, type = String, index = true }
-            { name = dtg,  type = Date                 }
-            { name = geom, type = Point, srid = 4326   }
-          ]
-        }
-      }
+    geomesa.sfts.mySft = {
+      attributes = [
+        { name = name, type = String, index = true }
+        { name = dtg,  type = Date                 }
+        { name = geom, type = Point, srid = 4326   }
+      ]
     }

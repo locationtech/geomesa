@@ -116,6 +116,7 @@ Examples
             .addInt("age").withIndex() // creates an attribute index on age, with a default secondary index
             .addDate("dtg") // not a primary index
             .addPoint("geom", default = true).withIndices("z3:dtg", "z2") // creates a z3 index with dtg, and a z2 index
+            .userData
             .disableIdIndex() // disables the ID index
             .build("mySft")
 

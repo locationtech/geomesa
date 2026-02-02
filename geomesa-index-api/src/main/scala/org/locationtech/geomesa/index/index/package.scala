@@ -48,21 +48,21 @@ package object index {
     def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean
 
     /**
-      * Gets the default attributes that could be used with this index
+      * Gets the index ids that could be used with this index, based on default attributes in the feature type
       *
       * @param sft simple feature type
-      * @return groups of attributes that could be used with this index
+      * @return index ids that could be used with this index
       */
-    def defaults(sft: SimpleFeatureType): Seq[IndexId]
+    def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId]
 
     /**
-     * Gets the default attributes that could be used with this index
+     * Gets the id for an index on this attribute, if it's supported by this index
      *
      * @param sft simple feature type
      * @param primary the primary attribute to use in the index
-     * @return group of attributes that could be used with this index, if it's supported
+     * @return index id that could be used with this index, if it's supported
      */
-    def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId]
+    def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId]
   }
 
   /**

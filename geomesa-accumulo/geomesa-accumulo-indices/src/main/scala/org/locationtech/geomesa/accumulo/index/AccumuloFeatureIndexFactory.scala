@@ -28,9 +28,7 @@ class AccumuloFeatureIndexFactory extends DefaultFeatureIndexFactory {
 
   override protected val available: Seq[ConfiguredIndex] = Seq(JoinIndex)
 
-  override def defaults(sft: SimpleFeatureType, descriptor: AttributeDescriptor): Seq[IndexId] = Seq.empty
-
-  override def fromIndexFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId] = {
+  override def fromFeatureFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId] = {
     if (flag.equalsIgnoreCase(AttributeIndex.name)) {
       sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
         if (Option(d.getUserData.get(AttributeOptions.OptIndex)).exists(_.toString.equalsIgnoreCase(IndexCoverage.JOIN.toString))) {
@@ -41,7 +39,7 @@ class AccumuloFeatureIndexFactory extends DefaultFeatureIndexFactory {
       }
     } else {
       // will handle "join"
-      super.fromIndexFlag(sft, flag)
+      super.fromFeatureFlag(sft, flag)
     }
   }
 
@@ -55,7 +53,7 @@ class AccumuloFeatureIndexFactory extends DefaultFeatureIndexFactory {
   }
 
   private def joinIndex(sft: SimpleFeatureType, descriptor: AttributeDescriptor): IndexId =
-    JoinIndex.defaults(sft, descriptor).getOrElse {
+    JoinIndex.indexFor(sft, descriptor).getOrElse {
       throw new IllegalArgumentException(
         s"Attribute '${descriptor.getLocalName}' is configured for join indexing but it is not a supported type: " +
           descriptor.getType.getBinding.getName)

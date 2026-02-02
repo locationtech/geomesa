@@ -33,23 +33,12 @@ import scala.util.Try
   */
 object DefaultFeatureIndexFactory extends DefaultFeatureIndexFactory {
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
   override protected val available: Seq[ConfiguredIndex] =
     Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, S3Index, S2Index, IdIndex, AttributeIndex)
 
-  override def defaults(sft: SimpleFeatureType, descriptor: AttributeDescriptor): Seq[IndexId] = {
-    // add in default indices on geom
-    if (sft.getGeomField == descriptor.getLocalName) {
-      Seq(Z3Index, XZ3Index, Z2Index, XZ2Index).flatMap(i => i.defaults(sft, descriptor))
-    } else {
-      Seq.empty
-    }
-  }
-
   override def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Seq[IndexId] = {
     if (java.lang.Boolean.valueOf(flag) || flag.equalsIgnoreCase(IndexCoverage.FULL.toString)) {
-      val indices = Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, AttributeIndex).flatMap(_.defaults(sft, descriptor))
+      val indices = Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, AttributeIndex).flatMap(_.indexFor(sft, descriptor))
       if (indices.isEmpty) {
         throw new IllegalArgumentException(
           s"Attribute '${descriptor.getLocalName}' is configured for indexing but it is not a supported type: " +
@@ -125,13 +114,13 @@ trait DefaultFeatureIndexFactory extends GeoMesaFeatureIndexFactory with LazyLog
   override def indices(sft: SimpleFeatureType, hint: Option[String]): Seq[IndexId] =
     GeoMesaFeatureIndexFactory.indices(sft).filter(id => available.exists(_.name == id.name))
 
-  override def fromIndexFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId] = {
+  override def fromFeatureFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId] = {
     // check for name:attr[:attr] and name:version[:attr]
     val Array(name, secondary@_*) = flag.split(":")
     available.find(_.name.equalsIgnoreCase(name)).toSeq.flatMap { i =>
       lazy val version = Try(secondary.head.toInt).toOption
       if (secondary.isEmpty) {
-        i.defaults(sft)
+        i.defaultIndicesFor(sft)
       } else if (i.supports(sft, secondary)) {
         Some(IndexId(i.name, i.version, secondary))
       } else if (version.isDefined && i.supports(sft, secondary.tail)) {
@@ -151,7 +140,7 @@ trait DefaultFeatureIndexFactory extends GeoMesaFeatureIndexFactory with LazyLog
       available.find(_.name.equalsIgnoreCase(name)).toSeq.flatMap { i =>
         lazy val version = Try(secondary.head.toInt).toOption
         if (secondary.isEmpty) {
-          i.defaults(sft, descriptor)
+          i.indexFor(sft, descriptor)
         } else if (i.supports(sft, Seq(descriptor.getLocalName) ++ secondary)) {
           Some(IndexId(i.name, i.version, Seq(descriptor.getLocalName) ++ secondary))
         } else if (version.isDefined && i.supports(sft, Seq(descriptor.getLocalName) ++ secondary.tail)) {
