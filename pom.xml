@@ -177,7 +177,7 @@
         <maven.assembly.plugin.version>3.8.0</maven.assembly.plugin.version>
         <maven.checkstyle.plugin.version>3.6.0</maven.checkstyle.plugin.version>
         <maven.clean.plugin.version>3.5.0</maven.clean.plugin.version>
-        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
+        <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
         <maven.dependency.plugin.version>3.9.0</maven.dependency.plugin.version>
         <maven.deploy.plugin.version>3.1.4</maven.deploy.plugin.version>
         <maven.enforcer.plugin.version>3.6.2</maven.enforcer.plugin.version>
@@ -193,7 +193,7 @@
         <maven.site.plugin.version>3.21.0</maven.site.plugin.version>
         <maven.source.plugin.version>3.4.0</maven.source.plugin.version>
         <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
-        <scala.maven.plugin.version>4.9.8</scala.maven.plugin.version>
+        <scala.maven.plugin.version>4.9.9</scala.maven.plugin.version>
         <scoverage.maven.plugin.version>2.1.0</scoverage.maven.plugin.version>
 
         <!-- maven properties -->
