@@ -333,9 +333,11 @@ package object dialect {
       //  val includes =
       //    Seq(dtg) ++ sft.getAttributeDescriptors.asScala.collect { case d if d.isIndexValue() => ColumnName(d) }
       //    .distinct
-      def indexed(d: AttributeDescriptor): Boolean = d.getLocalName != geom.raw && d.getLocalName != dtg.raw &&
+      def indexed(d: AttributeDescriptor): Boolean =
+        d.getLocalName != geom.raw && d.getLocalName != dtg.raw &&
           Option(d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]).exists { i =>
-            Seq("true", IndexCoverage.FULL, IndexCoverage.JOIN).map(_.toString).exists(_.equalsIgnoreCase(i))
+            // accept any index flags, so config can be consistent across data stores
+            !i.isBlank && !"false".equalsIgnoreCase(i) && !"none".equalsIgnoreCase(i)
           }
 
       val indices = sft.getAttributeDescriptors.asScala.collect { case d if indexed(d) => ColumnName(d) }

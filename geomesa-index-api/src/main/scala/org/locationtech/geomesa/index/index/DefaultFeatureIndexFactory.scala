@@ -33,7 +33,7 @@ import scala.util.Try
   */
 object DefaultFeatureIndexFactory extends DefaultFeatureIndexFactory {
 
-  override protected val available: Seq[ConfiguredIndex] =
+  override val all: Seq[ConfiguredIndex] =
     Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, S3Index, S2Index, IdIndex, AttributeIndex)
 
   override def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Seq[IndexId] = {
@@ -107,17 +107,12 @@ object DefaultFeatureIndexFactory extends DefaultFeatureIndexFactory {
  */
 trait DefaultFeatureIndexFactory extends GeoMesaFeatureIndexFactory with LazyLogging {
 
-  protected val available: Seq[ConfiguredIndex]
-
-  override def all(): Seq[NamedIndex] = available
-
-  override def indices(sft: SimpleFeatureType, hint: Option[String]): Seq[IndexId] =
-    GeoMesaFeatureIndexFactory.indices(sft).filter(id => available.exists(_.name == id.name))
+  override def all(): Seq[ConfiguredIndex]
 
   override def fromFeatureFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId] = {
     // check for name:attr[:attr] and name:version[:attr]
     val Array(name, secondary@_*) = flag.split(":")
-    available.find(_.name.equalsIgnoreCase(name)).toSeq.flatMap { i =>
+    all().find(_.name.equalsIgnoreCase(name)).toSeq.flatMap { i =>
       lazy val version = Try(secondary.head.toInt).toOption
       if (secondary.isEmpty) {
         i.defaultIndicesFor(sft)
@@ -137,7 +132,7 @@ trait DefaultFeatureIndexFactory extends GeoMesaFeatureIndexFactory with LazyLog
     } else {
       // check for name:attr[:attr] and name:version[:attr]
       val Array(name, secondary@_*) = flag.split(":")
-      available.find(_.name.equalsIgnoreCase(name)).toSeq.flatMap { i =>
+      all().find(_.name.equalsIgnoreCase(name)).toSeq.flatMap { i =>
         lazy val version = Try(secondary.head.toInt).toOption
         if (secondary.isEmpty) {
           i.indexFor(sft, descriptor)

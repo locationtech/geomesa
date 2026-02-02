@@ -26,7 +26,7 @@ class AccumuloFeatureIndexFactory extends DefaultFeatureIndexFactory {
 
   import scala.collection.JavaConverters._
 
-  override protected val available: Seq[ConfiguredIndex] = Seq(JoinIndex)
+  override val all: Seq[ConfiguredIndex] = Seq(JoinIndex)
 
   override def fromFeatureFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId] = {
     if (flag.equalsIgnoreCase(AttributeIndex.name)) {

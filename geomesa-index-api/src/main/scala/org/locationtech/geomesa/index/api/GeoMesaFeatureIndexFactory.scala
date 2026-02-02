@@ -15,7 +15,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
-import org.locationtech.geomesa.index.index.{DefaultFeatureIndexFactory, EmptyIndex, NamedIndex}
+import org.locationtech.geomesa.index.index.{ConfiguredIndex, DefaultFeatureIndexFactory, EmptyIndex, NamedIndex}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -25,6 +25,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
   * Factory for feature index implementations
   */
 trait GeoMesaFeatureIndexFactory {
+
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
 
   /**
    * Gets all indices supported by this factory
@@ -69,7 +74,21 @@ trait GeoMesaFeatureIndexFactory {
    * @return
    */
   @deprecated("Replaced with fromIndexFlag and fromAttributeFlag")
-  def indices(sft: SimpleFeatureType, hint: Option[String]): Seq[IndexId]
+  def indices(sft: SimpleFeatureType, hint: Option[String]): Seq[IndexId] = {
+    hint match {
+      case Some(h) => fromFeatureFlag(sft, h)
+      case None =>
+        sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
+          val indices = d.getIndexFlags.flatMap(fromAttributeFlag(sft, d, _))
+          if (indices.isEmpty && sft.getGeomField == d.getLocalName) {
+            // add in default indices on geom
+            all().collect { case i: ConfiguredIndex => i.indexFor(sft, d) }.flatten
+          } else {
+            indices.filterNot(_.name == EmptyIndex.name)
+          }
+        }
+    }
+  }
 
   /**
     * Create an index instance
