@@ -15,6 +15,7 @@ import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
 class XZ3Index protected (
@@ -47,9 +48,19 @@ object XZ3Index extends ConfiguredIndex {
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
     XZ3IndexKeySpace.supports(sft, attributes)
 
-  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] =
-    if (sft.nonPoints && sft.getDtgField.isDefined) { Seq(Seq(sft.getGeomField, sft.getDtgField.get)) } else { Seq.empty }
+  override def defaults(sft: SimpleFeatureType): Seq[IndexId] = {
+    if (sft.nonPoints && sft.getDtgField.isDefined) {
+      Seq(IndexId(name, version, Seq(sft.getGeomField, sft.getDtgField.get)))
+    } else {
+      Seq.empty
+    }
+  }
 
-  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]] =
-    if (primary.isGeometryWithExtents) { sft.getDtgField.map(dtg => Seq(primary.getLocalName, dtg)) } else { None }
+  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] = {
+    if (primary.isGeometryWithExtents && sft.getDtgField.isDefined) {
+      Some(IndexId(name, version, Seq(primary.getLocalName, sft.getDtgField.get)))
+    } else {
+      None
+    }
+  }
 }

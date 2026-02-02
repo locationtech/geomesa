@@ -15,6 +15,7 @@ import org.locationtech.geomesa.index.api.{RowKeyValue, WritableFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.ConfiguredIndex
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey, AttributeIndexKeySpace}
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.index.IndexCoverage
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
@@ -46,12 +47,11 @@ object JoinIndex extends ConfiguredIndex {
   override val name: String = AttributeIndex.JoinIndexName
   override val version: Int = 8
 
-  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
-    AttributeIndex.supports(sft, attributes)
+  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean = AttributeIndex.supports(sft, attributes)
 
-  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] =
-    AttributeIndex.defaults(sft, _.equalsIgnoreCase(IndexCoverage.JOIN.toString))
+  override def defaults(sft: SimpleFeatureType): Seq[IndexId] =
+  AttributeIndex.defaults(sft, this, _.equalsIgnoreCase(IndexCoverage.JOIN.toString))
 
-  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]] =
-    AttributeIndex.defaults(sft, primary)
+  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] =
+    AttributeIndex.defaults(sft, primary).map(_.copy(name = name, version = version))
 }

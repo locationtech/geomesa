@@ -14,6 +14,7 @@ import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.ConfiguredIndex
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
 class IdIndex protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, mode: IndexMode)
@@ -40,8 +41,13 @@ object IdIndex extends ConfiguredIndex {
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
     IdIndexKeySpace.supports(sft, attributes)
 
-  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] =
-    if (Option(sft.getUserData.get(EnableFidIndex)).exists(_.toString.equalsIgnoreCase("false"))) { Seq.empty } else { Seq(Seq.empty) }
+  override def defaults(sft: SimpleFeatureType): Seq[IndexId] = {
+    if (Option(sft.getUserData.get(EnableFidIndex)).exists(_.toString.equalsIgnoreCase("false"))) {
+      Seq.empty
+    } else {
+      Seq(IndexId(name, version, Seq.empty))
+    }
+  }
 
-  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]] = None
+  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] = None
 }

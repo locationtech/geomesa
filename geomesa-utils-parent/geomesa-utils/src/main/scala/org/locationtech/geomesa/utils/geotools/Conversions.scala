@@ -188,6 +188,9 @@ object RichAttributeDescriptors extends Conversions {
         case Some(p) => throw new IllegalArgumentException(s"Invalid geometry precision: ${p.mkString(",")}")
       }
     }
+
+    def getIndexFlags: Seq[String] =
+      Option(ad.getUserData.get(OptIndex)).toSeq.flatMap(_.asInstanceOf[String].split(",").map(_.trim))
   }
 
   implicit class RichAttributeTypeBuilder(val builder: AttributeTypeBuilder) extends AnyVal {

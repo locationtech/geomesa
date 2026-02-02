@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.{DefaultFeatureIndexFactory, EmptyIndex, NamedIndex}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
@@ -110,7 +109,7 @@ object GeoMesaFeatureIndexFactory extends LazyLogging {
       enabled
     } else {
       // add in the ID index since there's no attribute descriptor for it
-      fromAttributeFlags(sft) ++ IdIndex.defaults(sft).map(IndexId(IdIndex.name, IdIndex.version, _))
+      fromAttributeFlags(sft) ++ IdIndex.defaults(sft)
     }
   }
 
@@ -124,12 +123,8 @@ object GeoMesaFeatureIndexFactory extends LazyLogging {
     splitFlag(sft.getUserData.get(Configs.EnabledIndices)).flatMap { flag =>
       val indices = factories.flatMap(_.fromIndexFlag(sft, flag))
       if (indices.isEmpty) {
-        if (flag == AttributeIndex.name) {
-          logger.warn(s"Found configured $flag index but no attributes are flagged for indexing")
-        } else {
-          throw new IllegalArgumentException(
-            s"Invalid index flag '$flag' does not exist or does not support the schema: ${SimpleFeatureTypes.encodeType(sft)}")
-        }
+        throw new IllegalArgumentException(
+          s"Invalid index flag '$flag' does not exist or does not support the schema: ${SimpleFeatureTypes.encodeType(sft)}")
       }
       indices
     }

@@ -16,6 +16,7 @@ import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
 class S3Index protected (
@@ -43,10 +44,8 @@ object S3Index extends ConfiguredIndex {
   override val name = "s3"
   override val version = 1
 
-  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
-    S3IndexKeySpace.supports(sft, attributes)
-
-  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = Seq.empty
-  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]] =
-    Z3Index.defaults(sft, primary)
+  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean = S3IndexKeySpace.supports(sft, attributes)
+  override def defaults(sft: SimpleFeatureType): Seq[IndexId] = Seq.empty
+  override def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] =
+    Z3Index.defaults(sft, primary).map(_.copy(name = name, version = version))
 }

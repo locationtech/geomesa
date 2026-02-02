@@ -13,8 +13,8 @@ import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.attribute.legacy._
-import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.id.legacy.{IdIndexV1, IdIndexV2, IdIndexV3}
 import org.locationtech.geomesa.index.index.s2.S2Index
@@ -33,7 +33,6 @@ import scala.util.Try
   */
 object DefaultFeatureIndexFactory extends DefaultFeatureIndexFactory {
 
-  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override protected val available: Seq[ConfiguredIndex] =
@@ -42,8 +41,7 @@ object DefaultFeatureIndexFactory extends DefaultFeatureIndexFactory {
   override def defaults(sft: SimpleFeatureType, descriptor: AttributeDescriptor): Seq[IndexId] = {
     // add in default indices on geom
     if (sft.getGeomField == descriptor.getLocalName) {
-      Seq(Z3Index, XZ3Index, Z2Index, XZ2Index)
-        .flatMap(i => i.defaults(sft, descriptor).map(IndexId(i.name, i.version, _)))
+      Seq(Z3Index, XZ3Index, Z2Index, XZ2Index).flatMap(i => i.defaults(sft, descriptor))
     } else {
       Seq.empty
     }
@@ -51,23 +49,7 @@ object DefaultFeatureIndexFactory extends DefaultFeatureIndexFactory {
 
   override def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Option[IndexId] = {
     if (java.lang.Boolean.valueOf(flag) || flag.equalsIgnoreCase(IndexCoverage.FULL.toString)) {
-      val attr = descriptor.getLocalName
-      if (descriptor.isPoint) {
-        sft.getDtgField match {
-          case None => Some(IndexId(Z2Index.name, Z2Index.version, Seq(attr)))
-          case Some(dtg) => Some(IndexId(Z3Index.name, Z3Index.version, Seq(attr, dtg)))
-        }
-      } else if (descriptor.isGeometry) {
-        sft.getDtgField match {
-          case None => Some(IndexId(XZ2Index.name, XZ2Index.version, Seq(attr)))
-          case Some(dtg) => Some(IndexId(XZ3Index.name, XZ3Index.version, Seq(attr, dtg)))
-        }
-      } else if (AttributeIndexKey.encodable(descriptor)) {
-        sft.getDtgField.filter(_ != attr) match {
-          case None => Some(IndexId(AttributeIndex.name, AttributeIndex.version, Seq(attr) ++ Option(sft.getGeomField)))
-          case Some(dtg) => Some(IndexId(AttributeIndex.name, AttributeIndex.version, Seq(attr, dtg)))
-        }
-      } else {
+      Stream(Z3Index, XZ3Index, Z2Index, XZ2Index, AttributeIndex).flatMap(_.defaults(sft, descriptor)).headOption.orElse {
         throw new IllegalArgumentException(
           s"Attribute '${descriptor.getLocalName}' is configured for indexing but it is not a supported type: " +
             descriptor.getType.getBinding.getName)
@@ -147,7 +129,7 @@ trait DefaultFeatureIndexFactory extends GeoMesaFeatureIndexFactory with LazyLog
     available.find(_.name.equalsIgnoreCase(name)).toSeq.flatMap { i =>
       lazy val version = Try(secondary.head.toInt).toOption
       if (secondary.isEmpty) {
-        i.defaults(sft).map(IndexId(i.name, i.version, _))
+        i.defaults(sft)
       } else if (i.supports(sft, secondary)) {
         Some(IndexId(i.name, i.version, secondary))
       } else if (version.isDefined && i.supports(sft, secondary.tail)) {
@@ -167,7 +149,7 @@ trait DefaultFeatureIndexFactory extends GeoMesaFeatureIndexFactory with LazyLog
       available.find(_.name.equalsIgnoreCase(name)).flatMap { i =>
         lazy val version = Try(secondary.head.toInt).toOption
         if (secondary.isEmpty) {
-          i.defaults(sft, descriptor).map(IndexId(i.name, i.version, _))
+          i.defaults(sft, descriptor)
         } else if (i.supports(sft, Seq(descriptor.getLocalName) ++ secondary)) {
           Some(IndexId(i.name, i.version, Seq(descriptor.getLocalName) ++ secondary))
         } else if (version.isDefined && i.supports(sft, Seq(descriptor.getLocalName) ++ secondary.tail)) {

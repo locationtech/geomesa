@@ -12,6 +12,7 @@ import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.utils.conf.IndexId
 
 import java.time.ZonedDateTime
 
@@ -52,7 +53,7 @@ package object index {
       * @param sft simple feature type
       * @return groups of attributes that could be used with this index
       */
-    def defaults(sft: SimpleFeatureType): Seq[Seq[String]]
+    def defaults(sft: SimpleFeatureType): Seq[IndexId]
 
     /**
      * Gets the default attributes that could be used with this index
@@ -61,7 +62,7 @@ package object index {
      * @param primary the primary attribute to use in the index
      * @return group of attributes that could be used with this index, if it's supported
      */
-    def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[Seq[String]]
+    def defaults(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId]
   }
 
   /**
