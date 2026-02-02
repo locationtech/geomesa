@@ -137,7 +137,7 @@ object GeoMesaFeatureIndexFactory extends LazyLogging {
    * @return
    */
   private def fromAttributeFlags(sft: SimpleFeatureType): Seq[IndexId] = {
-    sft.getAttributeDescriptors.asScala.flatMap { d =>
+    sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
       val indices = splitFlag(d.getUserData.get(AttributeOptions.OptIndex)).flatMap { flag =>
         val indices = factories.flatMap(_.fromAttributeFlag(sft, d, flag))
         if (indices.isEmpty) {
