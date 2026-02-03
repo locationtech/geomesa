@@ -30,13 +30,14 @@ object FastConverter extends StrictLogging {
 
   val ConverterCacheExpiry: SystemProperty = SystemProperty("geomesa.type.converter.cache.expiry", "1 hour")
 
+  private val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray
+  logger.debug(s"Loaded ${factories.length} converter factories: ${factories.map(_.getClass.getName).mkString(", ")}")
+
   private val cache: LoadingCache[(Class[_], Class[_]), Array[Converter]] =
-    Caffeine.newBuilder().expireAfterWrite(ConverterCacheExpiry.toDuration.get.toMillis, TimeUnit.MILLISECONDS).build(
+    Caffeine.newBuilder().expireAfterAccess(ConverterCacheExpiry.toDuration.get.toMillis, TimeUnit.MILLISECONDS).build(
       new CacheLoader[(Class[_], Class[_]), Array[Converter]]() {
         override def load(key: (Class[_], Class[_])): Array[Converter] = {
           val (from, to) = key
-          val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray
-          logger.debug(s"Loaded ${factories.length} converter factories: ${factories.map(_.getClass.getName).mkString(", ")}")
           val converters = factories.flatMap(factory => Option(factory.createConverter(from, to, null)))
           logger.debug(
             s"Found ${converters.length} converters for ${from.getName}->${to.getName}: " +
