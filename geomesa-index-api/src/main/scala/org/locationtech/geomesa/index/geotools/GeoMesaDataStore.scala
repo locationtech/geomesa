@@ -501,12 +501,25 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
     def remapCol(name: String): String = colMap.getOrElse(name, name)
 
-    val allIndices =
-      (previous.getIndices ++ sft.getIndices).map(i => i.copy(attributes = i.attributes.map(remapCol))) ++
-        GeoMesaFeatureIndexFactory.indices(sft)
-    val indices = allIndices.foldLeft(Seq.empty[IndexId]) { (sum, next) =>
-      // note: ignore index version
-      if (sum.exists(i => i.name == next.name && i.attributes == next.attributes)) { sum } else { sum :+ next }
+    val indices = {
+      // set directly in the sft
+      val explicitIndices = (previous.getIndices ++ sft.getIndices).map(i => i.copy(attributes = i.attributes.map(remapCol)))
+      // set in index flags or geomesa.indices.enabled
+      val configuredIndices =
+        // don't add in a fid index unless explicitly enabled
+        if (sft.getUserData.get(Configs.EnableFidIndex) == null) {
+          GeoMesaFeatureIndexFactory.indices(sft).filterNot(_.name == IdIndex.name)
+        } else {
+          GeoMesaFeatureIndexFactory.indices(sft)
+        }
+      // get the unique indices - note: ignores index version
+      (explicitIndices ++ configuredIndices).foldLeft(Seq.empty[IndexId]) { (sum, next) =>
+        if (sum.exists(i => i.name == next.name && i.attributes == next.attributes)) {
+          sum
+        } else {
+          sum :+ next
+        }
+      }
     }
     sft.setIndices(indices.distinct)
 
