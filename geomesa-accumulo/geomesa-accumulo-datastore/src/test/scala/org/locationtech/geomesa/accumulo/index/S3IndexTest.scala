@@ -16,6 +16,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_LABEL, BIN_SORT, BIN_TRACK, SAMPLE_BY, SAMPLING}
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.index.s3.S3Index
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -26,7 +27,7 @@ import java.util.Date
 @RunWith(classOf[JUnitRunner])
 class S3IndexTest extends TestWithFeatureType {
 
-  override val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled=s3:geom:dtg"
+  override val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326:index=s3;id.index.enabled=false"
 
   val features =
     (0 until 10).map { i =>
@@ -48,6 +49,12 @@ class S3IndexTest extends TestWithFeatureType {
     execute(new Query(sft.getTypeName, ECQL.toFilter(ecql), transforms.orNull: _*))
 
   "S3Index" should {
+    "only create the s3 index" >> {
+      val indices = ds.manager.indices(sft)
+      indices must haveLength(1)
+      indices.head.name mustEqual S3Index.name
+    }
+
     "return all features for inclusive filter" >> {
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
