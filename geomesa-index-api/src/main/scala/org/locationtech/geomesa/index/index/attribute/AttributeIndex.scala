@@ -125,7 +125,7 @@ object AttributeIndex extends ConfiguredIndex {
   }
 
   private def defaultTiers(sft: SimpleFeatureType, primary: AttributeDescriptor): Seq[String] =
-    Seq(primary.getLocalName) ++ Seq(sft.getGeomField).filter(_ != null) ++ sft.getDtgField.filter(_ != primary.getLocalName)
+    Seq(primary.getLocalName) ++ sft.getDtgField.filter(_ != primary.getLocalName).orElse(Option(sft.getGeomField))
 
   /**
     * Checks if the given field is attribute indexed

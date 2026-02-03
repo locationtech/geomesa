@@ -74,7 +74,7 @@ class AccumuloDataStoreAtomicWriteTest extends Specification with TestWithMultip
                   ConditionalWriteStatus("id", "insert", ConditionalWriter.Status.REJECTED),
                   ConditionalWriteStatus("z2:geom", "insert", ConditionalWriter.Status.REJECTED),
                   ConditionalWriteStatus("z3:geom:dtg", "insert", ConditionalWriter.Status.REJECTED),
-                  ConditionalWriteStatus("attr:name:geom:dtg", "insert", ConditionalWriter.Status.REJECTED),
+                  ConditionalWriteStatus("attr:name:dtg", "insert", ConditionalWriter.Status.REJECTED),
                 )
               )
           }
@@ -160,7 +160,7 @@ class AccumuloDataStoreAtomicWriteTest extends Specification with TestWithMultip
                 ConditionalWriteStatus("id", "update", ConditionalWriter.Status.REJECTED),
                 ConditionalWriteStatus("z2:geom", "delete", ConditionalWriter.Status.REJECTED),
                 ConditionalWriteStatus("z3:geom:dtg", "delete", ConditionalWriter.Status.REJECTED),
-                ConditionalWriteStatus("attr:name:geom:dtg", "delete", ConditionalWriter.Status.REJECTED),
+                ConditionalWriteStatus("attr:name:dtg", "delete", ConditionalWriter.Status.REJECTED),
               )
             )
         }
@@ -198,7 +198,7 @@ class AccumuloDataStoreAtomicWriteTest extends Specification with TestWithMultip
                 ConditionalWriteStatus("id", "delete", ConditionalWriter.Status.REJECTED),
                 ConditionalWriteStatus("z2:geom", "delete", ConditionalWriter.Status.REJECTED),
                 ConditionalWriteStatus("z3:geom:dtg", "delete", ConditionalWriter.Status.REJECTED),
-                ConditionalWriteStatus("attr:name:geom:dtg", "delete", ConditionalWriter.Status.REJECTED),
+                ConditionalWriteStatus("attr:name:dtg", "delete", ConditionalWriter.Status.REJECTED),
               )
             )
         }
