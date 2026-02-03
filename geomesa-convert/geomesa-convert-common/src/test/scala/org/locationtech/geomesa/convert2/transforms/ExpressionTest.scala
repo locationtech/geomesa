@@ -502,6 +502,11 @@ class ExpressionTest extends Specification {
       res must not(beNull)
       res.getClass mustEqual classOf[String]
     }
+    "parse uuids" >> {
+      val exp = Expression("uuid($0)")
+      val res = exp.apply(Array("5ff7db5a-64e1-4459-840e-e994f293dace"))
+      res mustEqual java.util.UUID.fromString("5ff7db5a-64e1-4459-840e-e994f293dace")
+    }
     "generate z3 uuids" >> {
       val exp = Expression("uuidZ3($0, $1, 'week')")
       val geom = WKTUtils.read("POINT (103 1)")

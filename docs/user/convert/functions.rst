@@ -862,10 +862,14 @@ Creates a 128-bit murmur3 hash from a string or byte array, returned as a hex st
     <details>
       <summary><code class="docutils literal notranslate">uuid</code></summary>
 
-Generates a random UUID, returned as a string.
+Parses or generates a UUID. Without arguments, will return a random UUID as a string, useful for feature IDs. With an argument,
+it will parse the value into a ``java.util.UUID``, useful for UUID-type attributes.
 
 ============ =========================================================================================
 **Function** | ``uuid()``
+             | ``uuid($value)``
+**Usage**    | ``uuid()``
+             | ``uuid('5ff7db5a-64e1-4459-840e-e994f293dace')``
 ============ =========================================================================================
 
 .. raw:: html

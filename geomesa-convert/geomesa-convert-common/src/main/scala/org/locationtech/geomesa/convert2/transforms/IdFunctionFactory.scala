@@ -30,7 +30,15 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
     args => args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8)
   }
 
-  private val uuid = TransformerFunction("uuid") { _ => UUID.randomUUID().toString }
+  private val uuid = TransformerFunction("uuid") { args =>
+    if (args == null || args.isEmpty) {
+      UUID.randomUUID().toString
+    } else if (args(0) == null) {
+      null
+    } else {
+      UUID.fromString(args(0).toString)
+    }
+  }
 
   private val uuidZ3 = TransformerFunction("uuidZ3") { args =>
     val geom = args(0).asInstanceOf[Point]

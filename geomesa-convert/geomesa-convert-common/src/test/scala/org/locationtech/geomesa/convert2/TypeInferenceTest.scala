@@ -52,8 +52,7 @@ class TypeInferenceTest extends Specification with LazyLogging {
   private def inferRowWithNames(row: Seq[(String, Any)]): Seq[InferredType] =
     TypeInference.infer(row.map(v => PathWithValues(v._1, Seq(v._2))), Left("")).types.map(_.inferredType)
 
-  private def inferRowTypes(row: Seq[Any]): Seq[ObjectType] =
-    TypeInference.infer(row.map(v => PathWithValues("", Seq(v))), Left("")).types.map(_.inferredType.typed)
+  private def inferRowTypes(row: Seq[Any]): Seq[ObjectType] = inferRow(row).map(_.typed)
 
   private def inferColType(values: Seq[Any], failureRate: Option[Float] = None): ObjectType = {
     val in = Seq(PathWithValues("", values))
@@ -76,12 +75,15 @@ class TypeInferenceTest extends Specification with LazyLogging {
       types mustEqual Seq(STRING, INT, LONG, DOUBLE, BOOLEAN, DOUBLE)
     }
     "infer complex types" in {
-      val types = inferRowTypes(Seq(new Date(), Array[Byte](0), uuid))
-      types mustEqual Seq(DATE, BYTES, UUID)
+      val inferred = inferRow(Seq(new Date(), Array[Byte](0), uuid))
+      inferred.map(_.typed) mustEqual Seq(DATE, BYTES, UUID)
+      inferred.last.transform mustEqual TypeInference.IdentityTransform
+
     }
     "infer complex types from strings" in {
-      val types = inferRowTypes(Seq("2018-01-01T00:00:00.000Z", uuidString))
-      types mustEqual Seq(DATE, UUID)
+      val inferred = inferRow(Seq("2018-01-01T00:00:00.000Z", uuidString))
+      inferred.map(_.typed) mustEqual Seq(DATE, UUID)
+      inferred.last.transform mustEqual TypeInference.FunctionTransform("uuid(", ")")
     }
     "infer geometry types" in {
       val types = inferRowTypes(Seq(point, lineString, polygon, multiPoint, multiLineString, multiPolygon, geometryCollection))
