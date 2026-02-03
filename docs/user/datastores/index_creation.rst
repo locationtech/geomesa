@@ -96,11 +96,11 @@ Examples
         import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
 
         // creates a default attribute index on name and an implicit default z3 and z2 index on geom
-        String spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4325";
+        String spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326";
         // creates an attribute index on name (with a secondary date index), and a z3 index on geom and dtg
-        spec = "name:String:index='attr:dtg',dtg:Date,*geom:Point:srid=4325:index='z3:dtg'";
+        spec = "name:String:index='attr:dtg',dtg:Date,*geom:Point:srid=4326:index='z3:dtg'";
         // creates an attribute index on name (with a secondary date index), and a z3 index on geom and dtg and disables the ID index
-        spec = "name:String:index='attr:dtg',dtg:Date,*geom:Point:srid=4325:index='z3:dtg';id.index.enabled=false";
+        spec = "name:String:index='attr:dtg',dtg:Date,*geom:Point:srid=4326:index='z3:dtg';id.index.enabled=false";
 
         SimpleFeatureType sft = SimpleFeatureTypes.createType("myType", spec);
         // alternatively, set user data after parsing the type string (but before calling "createSchema")

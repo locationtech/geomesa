@@ -431,6 +431,6 @@ object TypeInference {
       Try(s.toBoolean).toOption.map(_ => InferredType("", BOOLEAN, CastToBoolean))
 
     private def tryUuidParsing(s: String): Option[InferredType] =
-      Try(java.util.UUID.fromString(s)).toOption.map(_ => InferredType("", UUID, IdentityTransform))
+      Try(java.util.UUID.fromString(s)).toOption.map(_ => InferredType("", UUID, FunctionTransform("uuid(", ")")))
   }
 }
