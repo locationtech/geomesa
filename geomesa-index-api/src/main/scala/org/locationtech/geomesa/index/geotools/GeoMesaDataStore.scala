@@ -35,7 +35,7 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.IOException
-import java.util.Collections
+import java.util.{Collections, Locale}
 import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -507,7 +507,9 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
       // set in index flags or geomesa.indices.enabled
       val configuredIndices =
         // don't add in a fid index unless explicitly enabled
-        if (sft.getUserData.get(Configs.EnableFidIndex) == null) {
+        if (sft.getUserData.get(Configs.EnableFidIndex) == null &&
+            Option(sft.getUserData.get(Configs.EnabledIndices))
+              .forall(!_.toString.split(",").map(_.trim.toLowerCase(Locale.US)).exists(_.matches(s"^${IdIndex.name}:?")))) {
           GeoMesaFeatureIndexFactory.indices(sft).filterNot(_.name == IdIndex.name)
         } else {
           GeoMesaFeatureIndexFactory.indices(sft)
