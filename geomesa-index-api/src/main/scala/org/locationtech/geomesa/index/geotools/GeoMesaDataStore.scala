@@ -523,7 +523,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
         }
       }
     }
-    sft.setIndices(indices.distinct)
+    sft.setIndices(indices)
 
     // preserve any existing user data but overwrite any keys we redefine
     val userData = new java.util.HashMap[AnyRef, AnyRef](previous.getUserData)
