@@ -79,7 +79,7 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
 
     "add another empty index" >> {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-      val updated = SimpleFeatureTypes.mutable(sft)
+      val updated = SimpleFeatureTypes.copy(sft)
       updated.setIndices(sft.getIndices :+ IndexId(Z2Index.name, Z2Index.version, Seq("geom"), IndexMode.ReadWrite))
       ds.updateSchema(sftName, updated)
       val indices = ds.manager.indices(updated)
