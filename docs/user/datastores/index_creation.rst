@@ -1,12 +1,12 @@
-.. _index_basics:
+.. _creating_indices:
 
-Index Basics
-============
+Creating Indices
+================
 
 GeoMesa will create various indices for a given ``SimpleFeatureType`` schema (see :ref:`index_overview`). This
 allows the execution of a variety of queries in a optimized manner. GeoMesa will make a best effort to determine
 the attributes used for indexing. The attributes to use can also be specified as part of the ``SimpleFeatureType`` -
-see :ref:`customizing_index_creation` for details.
+see :ref:`specifying_indices` for details.
 
 Spatial Index (Z2/XZ2)
 ----------------------
@@ -27,42 +27,22 @@ set explicitly. See :ref:`set_date_attribute` for details on setting the indexed
 ID Index
 --------
 
-GeoMesa will always create an ID index on ``SimpleFeature.getID()``, unless explicitly disabled.
+GeoMesa will always create an ID index on ``SimpleFeature.getID()``, unless explicitly disabled. See :ref:`specifying_indices`,
+below, for details on disabling the ID index.
 
 .. _attribute_indices:
 
 Attribute Index
 ---------------
 
-Some queries are slow to answer using the default indices. For example, with twitter data you
-might want to return all tweets for a given user. To speed up this type of query, any
-attribute in your simple feature type may be indexed individually.
+Some queries are slow to answer using the default indices. For example, with GPS data with you might want to return all records
+associated with a given trip based on a trip identifier. To speed up this type of query, any attribute in your simple feature
+type may be indexed individually. See :ref:`specifying_indices`, below, for details on configuring attribute indices.
 
-To index an attribute, add an ``index`` key to the attribute descriptor user data with a value of ``true``.
+.. warning::
 
-.. note::
-
-    Accumulo data stores have an additional option to create reduced 'join' attribute indices, which can
-    save space. See :ref:`accumulo_attribute_indices` for details.
-
-.. tabs::
-
-    .. code-tab:: java
-
-        SimpleFeatureType sft = ...
-        sft.getDescriptor("name").getUserData().put("index", "true");
-
-    .. code-tab:: scala SchemaBuilder
-
-        import org.locationtech.geomesa.utils.geotools.SchemaBuilder
-
-        val sft = SchemaBuilder.builder()
-            .addString("name").withIndex()
-            .addDate("dtg")
-            .addPoint("geom", default = true)
-            .build("mySft")
-
-Setting the user data can be done in multiple ways. See :ref:`set_sft_options` for more details.
+  List type attributes may be indexed, but querying a list-type index may result in duplicate results. If
+  duplicate results are a problem, users should implement their own de-duplication logic for list queries.
 
 Attribute indices also support a secondary, tiered index structure. This can improve attribute queries
 that also contain a spatial and/or temporal predicate. Unless configured differently, the default geometry
@@ -74,34 +54,124 @@ and date attributes will be used to create a secondary Z3 or XZ3 index.
   ``name = 'bob'`` can take advantage of a secondary index, but ``name ilike 'bo%'`` and ``name > 'bo'``
   cannot.
 
-Instead of using the default, different secondary index structures can be configured by specifying the attributes
-to use. To customize the secondary index, the indices must be configured through :ref:`customizing_index_creation`.
-If a geometry and date attribute are specified, the secondary index will be Z3 of XZ3, as appropriate.
-If just a geometry is specified, the secondary index will be Z2 of XZ2, as appropriate. If just a date
+To prioritize certain attributes over others, see :ref:`attribute_cardinality`.
+
+.. _specifying_indices:
+
+Specifying the Indices to Include
+---------------------------------
+
+Instead of using the default indices, you may specify the exact indices to create. This may be used to create fewer indices
+(to speed up ingestion, or because you are only using certain query patterns), or to create additional indices (for example on
+non-default geometries or dates).
+
+.. warning::
+
+    Certain queries may be much slower if you disable an index.
+
+Indices are configured using the attribute-level user-data key ``index``. An index may be identified in several ways:
+
+* The string ``true``, which will select an index based on the attribute type
+* The string ``none`` or ``false``, which will disable any default index on the attribute
+* Name of an index, e.g. ``z3`` or ``attr``, which will use the default secondary attributes for the index type
+* Name of an index, plus any secondary attributes, e.g. ``z3:dtg`` or ``attr:geom:dtg``
+* Name of an index, version of the index, plus any secondary attributes, e.g. ``z3:7:dtg`` or ``attr:8:geom:dtg``
+
+Multiple indices on a single attribute may be separated with a comma (``,``).
+
+For attribute indices, if secondary geometry and date attributes are specified, the secondary index will be Z3 or XZ3, as
+appropriate. If just a geometry is specified, the secondary index will be Z2 or XZ2, as appropriate. If just a date
 is specified, the secondary index will be an ordered temporal index.
 
-For example, all of the following are valid ways to configure an index on a 'name' attribute, assuming
-a geometry attribute named 'geom' and a date attribute named 'dtg':
+The ID index does not correspond to any attribute, but it can be disabled through the feature-level user-data key
+``id.index.enabled=false``.
+
+Examples
+^^^^^^^^
+
+.. tabs::
+
+    .. code-tab:: java
+
+        import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
+
+        // creates a default attribute index on name and an implicit default z3 and z2 index on geom
+        String spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4325";
+        // creates an attribute index on name (with a secondary date index), and a z3 index on geom and dtg
+        spec = "name:String:index='attr:dtg',dtg:Date,*geom:Point:srid=4325:index='z3:dtg'";
+        // creates an attribute index on name (with a secondary date index), and a z3 index on geom and dtg and disables the ID index
+        spec = "name:String:index='attr:dtg',dtg:Date,*geom:Point:srid=4325:index='z3:dtg';id.index.enabled=false";
+
+        SimpleFeatureType sft = SimpleFeatureTypes.createType("myType", spec);
+        // alternatively, set user data after parsing the type string (but before calling "createSchema")
+        sft.getDescriptor("name").getUserData().put("index", "true");
+
+    .. code-tab:: scala SchemaBuilder
+
+        import org.locationtech.geomesa.utils.geotools.SchemaBuilder
+
+        val sft =
+          SchemaBuilder.builder()
+            .addString("name").withIndex("attr:dtg") // creates an attribute index on name, with a secondary date index
+            .addInt("age").withIndex() // creates an attribute index on age, with a default secondary index
+            .addDate("dtg") // not a primary index
+            .addPoint("geom", default = true).withIndices("z3:dtg", "z2") // creates a z3 index with dtg, and a z2 index
+            .userData
+            .disableIdIndex() // disables the ID index
+            .build("mySft")
+
+    .. code-tab:: javascript Config
+
+        {
+          type-name = myType
+          attributes = [
+            { name = "name", type = "String", index = "attr:dtg" } // creates an attribute index on name, with a secondary date index
+            { name = "age", type = "Int", index = "true" } // creates an attribute index on age, with a default secondary index
+            { name = "dtg", type = "Date" } // not a primary index
+            { name = "geom", type = "Point", srid = "4326", index = "z3:dtg,z2" } // creates a z3 index with dtg, and a z2 index
+          ]
+          user-data = {
+            "id.index.enabled" = "false" // disables the default ID index
+          }
+        }
+
+Feature-Level Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Instead of configuring individual attributes, you may set a top-level user data value in your simple feature type using the key
+``geomesa.indices.enabled``. The value should contain a comma-delimited list containing a subset of index identifiers, as
+specified in :ref:`index_overview` (and optionally an index version and/or list of attributes to include in the index, as
+detailed above). If the ``attr`` index is specified without any attributes, then attribute-level ``index`` flags will be
+examined to determine the attributes to index. Otherwise, any other attribute-level configuration will be ignored when
+using ``geomesa.indices.enabled``.
 
 .. code-block:: java
 
     import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
 
-    String spec = "name:String,dtg:Date,*geom:Point:srid=4326";
+    String spec = "name:String,dtg:Date,*start:Point:srid=4326,end:Point:srid=4326";
     SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
-    // enable a default z3 and a default attribute index
-    sft.getUserData().put("geomesa.indices.enabled", "z3,attr:name");
-    // or, enable a default z3 and an attribute index with a Z2 secondary index
-    sft.getUserData().put("geomesa.indices.enabled", "z3,attr:name:geom");
-    // or, enable a default z3 and an attribute index with a temporal secondary index
-    sft.getUserData().put("geomesa.indices.enabled", "z3,attr:name:dtg");
+    // enable a default z3 index on start + dtg
+    sft.getUserData().put("geomesa.indices.enabled", "z3");
+    // alternatively, enable a z3 index on start + dtg, end + dtg, and an attribute index on
+    // name with a secondary index on dtg. note that this overrides the previous configuration
+    sft.getUserData().put("geomesa.indices.enabled", "z3:start:dtg,z3:end:dtg,attr:name:dtg");
 
-To prioritize certain attributes over others, see :ref:`attribute_cardinality`.
+See :ref:`set_sft_options` for details on setting user data. If you are using the GeoMesa ``SchemaBuilder``,
+you may instead call the ``indices`` method:
 
-.. warning::
+.. code-block:: scala
 
-  List type attributes may be indexed, but querying a list-type index may result in duplicate results. If
-  duplicate results are a problem, users should implement their own de-duplication logic for list queries.
+    import org.locationtech.geomesa.utils.geotools.SchemaBuilder
+
+    val sft =
+      SchemaBuilder.builder()
+        .addString("name")
+        .addDate("dtg")
+        .addPoint("geom", default = true)
+        .userData
+        .indices(List("id", "z3", "attr"))
+        .build("mySft")
 
 .. _index_versioning:
 
@@ -205,16 +275,11 @@ The following versions are available:
         ============= =============== =================================================================
 
 
-The version numbers here may not correspond exactly to schemas created with GeoMesa versions prior to 2.3.0, as
-each back-end implementation initially had its own versioning scheme. However, the implementation for each index
-was consistent across back-ends in a given GeoMesa release, so if you know the GeoMesa version you can determine
-the index format from the tables above. Refer to the archived `GeoMesa 2.2 documentation`_ to see the
-back-end-specific index version numbers.
+The version numbers here may not correspond exactly to schemas created with GeoMesa versions prior to 2.3.0, as each back-end
+implementation initially had its own versioning scheme.
 
-.. _GeoMesa 2.2 documentation: https://www.geomesa.org/documentation/2.2/user/datastores/index_basics.html#index-versioning
-
-Note that GeoMesa versions prior to 1.2.2 included a geohash index. That index has been replaced with
-the Z indices and is no longer supported.
+Note that GeoMesa versions prior to 1.2.2 included a geohash index. That index has been replaced with the Z indices and is no
+longer supported.
 
 Additional Index Implementations
 --------------------------------
@@ -226,7 +291,7 @@ index, implement ``org.locationtech.geomesa.index.api.GeoMesaFeatureIndexFactory
 `Java documentation <https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.
 
 Once an index is registered, it can be enabled through the ``SimpleFeatureType`` user data, as described in
-:ref:`customizing_index_creation`.
+:ref:`specifying_indices`.
 
 Some additional indices are provided out-of-the-box:
 

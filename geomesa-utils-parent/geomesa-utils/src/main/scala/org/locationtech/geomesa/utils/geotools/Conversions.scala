@@ -175,6 +175,10 @@ object RichAttributeDescriptors extends Conversions {
     def isMap: Boolean = classOf[java.util.Map[_, _]].isAssignableFrom(ad.getType.getBinding)
     def isMultiValued: Boolean = isList || isMap
 
+    def isPoint: Boolean = classOf[Point].isAssignableFrom(ad.getType.getBinding)
+    def isGeometry: Boolean = classOf[Geometry].isAssignableFrom(ad.getType.getBinding)
+    def isGeometryWithExtents: Boolean = isGeometry && !isPoint
+
     def getPrecision: GeometryPrecision = {
       Option(ad.getUserData.get(OptPrecision).asInstanceOf[String]).map(_.split(',')) match {
         case None => GeometryPrecision.FullPrecision
@@ -184,6 +188,9 @@ object RichAttributeDescriptors extends Conversions {
         case Some(p) => throw new IllegalArgumentException(s"Invalid geometry precision: ${p.mkString(",")}")
       }
     }
+
+    def getIndexFlags: Seq[String] =
+      Option(ad.getUserData.get(OptIndex)).toSeq.flatMap(_.asInstanceOf[String].split(",").map(_.trim))
   }
 
   implicit class RichAttributeTypeBuilder(val builder: AttributeTypeBuilder) extends AnyVal {

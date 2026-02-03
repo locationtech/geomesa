@@ -361,7 +361,24 @@ object SchemaBuilder {
       *
       * @return attribute builder for chaining calls
       */
-    def withIndex(): A = withOption(AttributeOptions.OptIndex, "true")
+    def withIndex(): A = withIndex("true")
+
+    /**
+     * Add an index on the current attribute, to facilitate  querying on that attribute
+     *
+     * @param index index identifier
+     * @return attribute builder for chaining calls
+     */
+    def withIndex(index: String): A = withOption(AttributeOptions.OptIndex, index)
+
+    /**
+     * Add an index on the current attribute, to facilitate  querying on that attribute
+     *
+     * @param index index identifier
+     * @param indices additional index identifiers
+     * @return attribute builder for chaining calls
+     */
+    def withIndices(index: String, indices: String*): A = withIndex((Seq(index) ++ indices).mkString(","))
 
     /**
       * Add an index on the current attribute, to facilitate querying on that attribute
@@ -429,6 +446,13 @@ object SchemaBuilder {
       * @return user data builder for chaining calls
       */
     def indices(names: List[String]): U = userData(Configs.EnabledIndices, names.mkString(","))
+
+    /**
+     * Disable the default ID index
+     *
+     * @return user data builder for chaining calls
+     */
+    def disableIdIndex(): U = userData(Configs.EnableFidIndex, "false")
 
     /**
       * Disable indexing on the default date field. If the default date field has not been specified,

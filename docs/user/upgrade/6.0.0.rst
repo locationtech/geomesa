@@ -94,6 +94,8 @@ Deprecated Classes
 Deprecated Methods
 ------------------
 
+* ``org.locationtech.geomesa.index.api.GeoMesaFeatureIndexFactory.available``
+* ``org.locationtech.geomesa.index.api.GeoMesaFeatureIndexFactory.indices``
 * ``org.locationtech.geomesa.index.planning.StrategyDecider.selectFilterPlan``
 
 Internal API Changes

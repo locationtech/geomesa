@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.index
 
+import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -22,29 +24,33 @@ import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.legacy._
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.utils.conf.IndexId
+import org.locationtech.geomesa.utils.index.IndexCoverage
 
 import scala.util.Try
 
 /**
   * Feature index factory providing the default indices shipped with geomesa. Note: this class is not SPI loaded
   */
-object DefaultFeatureIndexFactory extends GeoMesaFeatureIndexFactory {
+object DefaultFeatureIndexFactory extends DefaultFeatureIndexFactory {
 
-  private val available = Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, S3Index, S2Index, IdIndex, AttributeIndex)
+  override val all: Seq[ConfiguredIndex] =
+    Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, S3Index, S2Index, IdIndex, AttributeIndex)
 
-  override def indices(sft: SimpleFeatureType, hint: Option[String]): Seq[IndexId] = {
-    hint match {
-      case None => available.flatMap(i => i.defaults(sft).map(IndexId(i.name, i.version, _)))
-      case Some(h) => fromId(h).orElse(fromName(sft, h)).orElse(fromNameAndAttributes(sft, h)).getOrElse(Seq.empty)
+  override def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Seq[IndexId] = {
+    if (java.lang.Boolean.valueOf(flag) || flag.equalsIgnoreCase(IndexCoverage.FULL.toString)) {
+      val indices = Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, AttributeIndex).flatMap(_.indexFor(sft, descriptor))
+      if (indices.isEmpty) {
+        throw new IllegalArgumentException(
+          s"Attribute '${descriptor.getLocalName}' is configured for indexing but it is not a supported type: " +
+            descriptor.getType.getBinding.getName)
+      }
+      indices
+    } else {
+      super.fromAttributeFlag(sft, descriptor, flag)
     }
   }
 
-  override def available(sft: SimpleFeatureType): Seq[(String, Int)] =
-    available.collect { case i if i.defaults(sft).exists(i.supports(sft, _)) => (i.name, i.version) }
-
-  override def create[T, U](ds: GeoMesaDataStore[_],
-                            sft: SimpleFeatureType,
-                            index: IndexId): Option[GeoMesaFeatureIndex[T, U]] = {
+  override def create[T, U](ds: GeoMesaDataStore[_], sft: SimpleFeatureType, index: IndexId): Option[GeoMesaFeatureIndex[T, U]] = {
 
     import org.locationtech.geomesa.index.index.attribute.{AttributeIndex => AtIndex}
 
@@ -94,22 +100,50 @@ object DefaultFeatureIndexFactory extends GeoMesaFeatureIndexFactory {
     }
     idx.asInstanceOf[Option[GeoMesaFeatureIndex[T, U]]]
   }
+}
 
-  private def fromId(hint: String): Option[Seq[IndexId]] = Try(Seq(IndexId.id(hint))).toOption
+/**
+ * Base feature index factory trait
+ */
+trait DefaultFeatureIndexFactory extends GeoMesaFeatureIndexFactory with LazyLogging {
 
-  private def fromName(sft: SimpleFeatureType, hint: String): Option[Seq[IndexId]] = {
-    available.find(i => hint.equalsIgnoreCase(i.name)).flatMap { i =>
-      val defaults = i.defaults(sft).collect {
-        case attributes if i.supports(sft, attributes) => IndexId(i.name, i.version, attributes)
+  override def all(): Seq[ConfiguredIndex]
+
+  override def fromFeatureFlag(sft: SimpleFeatureType, flag: String): Seq[IndexId] = {
+    // check for name:attr[:attr] and name:version[:attr]
+    val Array(name, secondary@_*) = flag.split(":")
+    all().find(_.name.equalsIgnoreCase(name)).toSeq.flatMap { i =>
+      lazy val version = Try(secondary.head.toInt).toOption
+      if (secondary.isEmpty) {
+        i.defaultIndicesFor(sft)
+      } else if (i.supports(sft, secondary)) {
+        Some(IndexId(i.name, i.version, secondary))
+      } else if (version.isDefined && i.supports(sft, secondary.tail)) {
+        Some(IndexId(i.name, version.get, secondary.tail))
+      } else {
+        None
       }
-      if (defaults.isEmpty) { None } else { Some(defaults) }
     }
   }
 
-  private def fromNameAndAttributes(sft: SimpleFeatureType, hint: String): Option[Seq[IndexId]] = {
-    val Array(name, attributes @ _*) = hint.split(":")
-    available.find(i => name.equalsIgnoreCase(i.name)).flatMap { i =>
-      if (i.supports(sft, attributes)) { Some(Seq(IndexId(i.name, i.version, attributes))) } else { None }
+  override def fromAttributeFlag(sft: SimpleFeatureType, descriptor: AttributeDescriptor, flag: String): Seq[IndexId] = {
+    if (flag.equalsIgnoreCase("false") || flag.equalsIgnoreCase("none")) {
+      Seq(IndexId(EmptyIndex.name, EmptyIndex.version, Seq(descriptor.getLocalName)))
+    } else {
+      // check for name:attr[:attr] and name:version[:attr]
+      val Array(name, secondary@_*) = flag.split(":")
+      all().find(_.name.equalsIgnoreCase(name)).toSeq.flatMap { i =>
+        lazy val version = Try(secondary.head.toInt).toOption
+        if (secondary.isEmpty) {
+          i.indexFor(sft, descriptor)
+        } else if (i.supports(sft, Seq(descriptor.getLocalName) ++ secondary)) {
+          Some(IndexId(i.name, i.version, Seq(descriptor.getLocalName) ++ secondary))
+        } else if (version.isDefined && i.supports(sft, Seq(descriptor.getLocalName) ++ secondary.tail)) {
+          Some(IndexId(i.name, version.get, Seq(descriptor.getLocalName) ++ secondary.tail))
+        } else {
+          None
+        }
+      }
     }
   }
 }

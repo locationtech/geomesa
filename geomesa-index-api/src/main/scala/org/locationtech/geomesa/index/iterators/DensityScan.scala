@@ -22,8 +22,7 @@ import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
 import org.locationtech.geomesa.index.iterators.DensityScan.{DensityScanResult, GeometryRenderer}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, RenderingGrid}
-import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, RenderingGrid, SimpleFeatureTypes}
 import org.locationtech.jts.geom._
 
 trait DensityScan extends AggregatingScan[DensityScanResult] {

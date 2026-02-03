@@ -8,13 +8,14 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.api.{RowKeyValue, WritableFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.ConfiguredIndex
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey, AttributeIndexKeySpace}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.index.IndexCoverage
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
@@ -38,10 +39,6 @@ class JoinIndex(ds: GeoMesaDataStore[_],
 
 object JoinIndex extends ConfiguredIndex {
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-  import scala.collection.JavaConverters._
-
   // hook to allow for not returning join plans
   val AllowJoinPlans: ThreadLocal[Boolean] = new ThreadLocal[Boolean] {
     override def initialValue: Boolean = true
@@ -50,17 +47,11 @@ object JoinIndex extends ConfiguredIndex {
   override val name: String = AttributeIndex.JoinIndexName
   override val version: Int = 8
 
-  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
-    AttributeIndex.supports(sft, attributes)
+  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean = AttributeIndex.supports(sft, attributes)
 
-  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = {
-    sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
-      val index = d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]
-      if (index != null && index.equalsIgnoreCase(IndexCoverage.JOIN.toString) && AttributeIndexKey.encodable(d)) {
-        Seq(Seq(d.getLocalName) ++ Option(sft.getGeomField) ++ sft.getDtgField.filter(_ != d.getLocalName))
-      } else {
-        Seq.empty
-      }
-    }
-  }
+  override def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId] =
+    AttributeIndex.defaults(sft, this, _.equalsIgnoreCase(IndexCoverage.JOIN.toString))
+
+  override def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] =
+    AttributeIndex.indexFor(sft, primary).map(_.copy(name = name, version = version))
 }

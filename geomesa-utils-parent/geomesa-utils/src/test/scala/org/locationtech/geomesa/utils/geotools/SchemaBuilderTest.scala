@@ -45,6 +45,20 @@ class SchemaBuilderTest extends Specification {
       spec mustEqual expected
     }
 
+    "provide advanced index config" in {
+      val spec =
+        SchemaBuilder.builder()
+          .addString("name").withIndex("attr:dtg") // creates an attribute index on name, with a secondary date index
+          .addInt("age").withIndex() // creates an attribute index on age, with a default secondary index
+          .addDate("dtg") // not a primary index
+          .addPoint("geom", default = true).withIndices("z3:dtg", "z2") // creates a z3 index with dtg, and a z2 index
+          .userData
+          .disableIdIndex() // disables the ID index
+          .spec
+      spec mustEqual
+        "name:String:index='attr:dtg',age:Int:index=true,dtg:Date,*geom:Point:srid=4326:index='z3:dtg,z2';id.index.enabled='false'"
+    }
+
     // Example of fold...also can do more complex things like zipping to automatically build SFTs
     "work with foldLeft" in {
       val spec = ('a' to 'z').foldLeft(SchemaBuilder.builder()) { case (builder, name) =>

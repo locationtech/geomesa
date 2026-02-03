@@ -52,5 +52,89 @@ Bytes              byte[]                                         No
 
 Notes
 ^^^^^
-* For details on indexing, see :ref:`index_basics`.
+* For details on indexing, see :ref:`creating_indices`.
 * Container types (List and Map) must be parameterized with non-container types from the above table.
+
+.. _set_sft_options:
+
+Setting Schema Options
+----------------------
+
+Most configuration options for a feature type are specified through "user data", either on the ``SimpleFeatureType`` or on a
+particular attribute. Setting the user data can be done in multiple ways.
+
+If you are using a string to indicate your ``SimpleFeatureType``, you can append the type-level options to the end of
+the string, like so:
+
+.. code-block:: java
+
+    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
+
+    // append the user-data values to the end of the string, separated by a semi-colon
+    String spec = "name:String,dtg:Date,*geom:Point:srid=4326;option.one='foo',option.two='bar'";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+
+If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
+you may set the values directly in the feature type:
+
+.. code-block:: java
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getUserData().put("option.one", "foo");
+
+If you are using TypeSafe configuration files to define your simple feature type, you may include a ``user-data`` key:
+
+.. code-block:: javascript
+
+    geomesa.sfts.mySft = {
+      attributes = [
+        { name = name, type = String             }
+        { name = dtg,  type = Date               }
+        { name = geom, type = Point, srid = 4326 }
+      ]
+      user-data = {
+        option.one = "foo"
+      }
+    }
+
+.. _attribute_options:
+
+Setting Attribute Options
+-------------------------
+
+In addition to schema-level user data, each attribute also has user data associated with it. Just like
+the schema options, attribute user data can be set in multiple ways.
+
+If you are using a string to indicate your ``SimpleFeatureType``, you can append the attribute options after the attribute type,
+separated with a colon:
+
+.. code-block:: java
+
+    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
+
+    // append the user-data after the attribute type, separated by a colon
+    String spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+
+If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``, you may set the user
+data directly in the attribute descriptor:
+
+.. code-block:: java
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getDescriptor("name").getUserData().put("index", "true");
+
+If you are using TypeSafe configuration files to define your simple feature type, you may add user data keys to the attribute
+elements:
+
+.. code-block:: javascript
+
+    geomesa.sfts.mySft = {
+      attributes = [
+        { name = name, type = String, index = true }
+        { name = dtg,  type = Date                 }
+        { name = geom, type = Point, srid = 4326   }
+      ]
+    }

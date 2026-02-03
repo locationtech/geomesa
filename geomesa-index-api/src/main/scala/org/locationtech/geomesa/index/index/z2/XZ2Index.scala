@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.index.index
 package z2
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.ShardStrategy.Z2ShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
 class XZ2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, geom: String, mode: IndexMode)
@@ -31,6 +33,7 @@ class XZ2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, versi
 
 object XZ2Index extends ConfiguredIndex {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name = "xz2"
@@ -39,6 +42,9 @@ object XZ2Index extends ConfiguredIndex {
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
     XZ2IndexKeySpace.supports(sft, attributes)
 
-  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] =
-    if (sft.nonPoints) { Seq(Seq(sft.getGeomField)) } else { Seq.empty }
+  override def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId] =
+    if (sft.nonPoints) { Seq(IndexId(name, version, Seq(sft.getGeomField))) } else { Seq.empty }
+
+  override def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] =
+    if (primary.isGeometryWithExtents) { Some(IndexId(name, version, Seq(primary.getLocalName))) } else { None }
 }

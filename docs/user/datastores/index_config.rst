@@ -5,112 +5,19 @@ Index Configuration
 
 GeoMesa exposes a variety of configuration options that can be used to customize and optimize a given installation.
 
-.. _set_sft_options:
-
-Setting Schema Options
-----------------------
-
 Static properties of a ``SimpleFeatureType`` must be set when calling ``createSchema``, and can't be changed
 afterwards. Most properties are controlled through user-data values, either on the ``SimpleFeatureType``
-or on a particular attribute. Setting the user data can be done in multiple ways.
-
-If you are using a string to indicate your ``SimpleFeatureType`` (e.g. through the command line tools,
-or when using ``SimpleFeatureTypes.createType``), you can append the type-level options to the end of
-the string, like so:
-
-.. code-block:: java
-
-    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
-
-    // append the user-data values to the end of the string, separated by a semi-colon
-    String spec = "name:String,dtg:Date,*geom:Point:srid=4326;option.one='foo',option.two='bar'";
-    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
-
-If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
-you may set the values directly in the feature type:
-
-.. code-block:: java
-
-    // set the hint directly
-    SimpleFeatureType sft = ...
-    sft.getUserData().put("option.one", "foo");
-
-If you are using TypeSafe configuration files to define your simple feature type, you may include
-a 'user-data' key:
-
-.. code-block:: javascript
-
-    geomesa {
-      sfts {
-        "mySft" = {
-          attributes = [
-            { name = name, type = String             }
-            { name = dtg,  type = Date               }
-            { name = geom, type = Point, srid = 4326 }
-          ]
-          user-data = {
-            option.one = "foo"
-          }
-        }
-      }
-    }
-
-.. _attribute_options:
-
-Setting Attribute Options
--------------------------
-
-In addition to schema-level user data, each attribute also has user data associated with it. Just like
-the schema options, attribute user data can be set in multiple ways.
-
-If you are using a string to indicate your ``SimpleFeatureType`` (e.g. through the command line tools,
-or when using ``SimpleFeatureTypes.createType``), you can append the attribute options after the attribute type,
-separated with a colon:
-
-.. code-block:: java
-
-    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
-
-    // append the user-data after the attribute type, separated by a colon
-    String spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326";
-    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
-
-If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
-you may set the user data directly in the attribute descriptor:
-
-.. code-block:: java
-
-    // set the hint directly
-    SimpleFeatureType sft = ...
-    sft.getDescriptor("name").getUserData().put("index", "true");
-
-If you are using TypeSafe configuration files to define your simple feature type, you may add user data keys
-to the attribute elements:
-
-.. code-block:: javascript
-
-    geomesa {
-      sfts {
-        "mySft" = {
-          attributes = [
-            { name = name, type = String, index = true }
-            { name = dtg,  type = Date                 }
-            { name = geom, type = Point, srid = 4326   }
-          ]
-        }
-      }
-    }
+or on a particular attribute. See :ref:`set_sft_options` for details on setting user data.
 
 .. _set_date_attribute:
 
-Setting the Indexed Date Attribute
-----------------------------------
+Default Date Attribute
+----------------------
 
 For schemas that contain a date attribute, GeoMesa will use the attribute as part of the primary Z3/XZ3 index.
 If a schema contains more than one date attribute, you may specify which attribute to use through the user-data
 key ``geomesa.index.dtg``. If you would prefer to not index any date, you may disable it through the key
 ``geomesa.ignore.dtg``. If nothing is specified, the first declared date attribute will be used.
-
 
 .. code-block:: java
 
@@ -120,61 +27,8 @@ key ``geomesa.index.dtg``. If you would prefer to not index any date, you may di
     // disable indexing by date
     sft2.getUserData().put("geomesa.ignore.dtg", true);
 
-.. _customizing_index_creation:
-
-Customizing Index Creation
---------------------------
-
-Instead of using the default indices, you may specify the exact indices to create. This may be used to create
-fewer indices (to speed up ingestion, or because you are only using certain query patterns), or to create additional
-indices (for example on non-default geometries or dates).
-
-The indices are created when calling ``createSchema``. If nothing is specified, the Z2, Z3 (or XZ2 and XZ3
-depending on geometry type) and ID indices will all be created, as well as any attribute indices you have defined.
-
-.. warning::
-
-    Certain queries may be much slower if you disable an index.
-
-To configure the indices, you may set a user data value in your simple feature type. The user data key is
-``geomesa.indices.enabled``, and it should contain a comma-delimited list containing a subset of index
-identifiers, as specified in :ref:`index_overview`.
-
-In addition to specifying which types of indices to create, you may optionally specify the exact attributes that will
-be used in each index, by appending them with ``:``\ s after the index name. The following example shows two index
-configurations. The first configuration has a single Z3 index that includes the default attributes. The second
-configuration has two Z3 indices on different geometries, as well as an attribute index on name which includes
-a secondary index on dtg.
-
-.. code-block:: java
-
-    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
-
-    String spec = "name:String,dtg:Date,*start:Point:srid=4326,end:Point:srid=4326";
-    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
-    // enable a default z3 index on start + dtg
-    sft.getUserData().put("geomesa.indices.enabled", "z3");
-    // alternatively, enable a z3 index on start + dtg, end + dtg, and an attribute index on
-    // name with a secondary index on dtg. note that this overrides the previous configuration
-    sft.getUserData().put("geomesa.indices.enabled", "z3:start:dtg,z3:end:dtg,attr:name:dtg");
-
-See :ref:`set_sft_options` for details on setting user data. If you are using the GeoMesa ``SchemaBuilder``,
-you may instead call the ``indexes`` methods:
-
-.. code-block:: scala
-
-    import org.locationtech.geomesa.utils.geotools.SchemaBuilder
-
-    val sft = SchemaBuilder.builder()
-        .addString("name")
-        .addDate("dtg")
-        .addPoint("geom", default = true)
-        .userData
-        .indices(List("id", "z3", "attr"))
-        .build("mySft")
-
-Configuring Index Table Names
------------------------------
+Index Table Names
+-----------------
 
 The names used for index tables attempt to be unique, usually being composed of the catalog table name, the feature type name,
 and the index identifier. In certain situations, it may be useful to modify the index table names. For example, in Accumulo
@@ -193,8 +47,8 @@ where ``<index>`` is an index name such as ``z3`` or ``id``:
     // override table names for just the z3 index
     sft.getUserData().put("index.table.prefix.z3", "geomesa_z3.custom");
 
-Configuring Index Table Properties
-----------------------------------
+Index Table Properties
+----------------------
 
 GeoMesa allows for passing low-level table configuration properties through to the underlying database. For example, in Accumulo
 you may want to configure external compactions through ``table.compaction.dispatcher.opts.*``. Currently, this is implemented for
@@ -209,8 +63,8 @@ example on configuring compactions in the
 
     sft.getUserData().put("index.table.props.table.compaction.dispatcher.opts.service", "cs1");
 
-Configuring Feature ID Encoding
--------------------------------
+Feature ID Encoding
+-------------------
 
 While feature IDs can be any string, a common use case is to use UUIDs. A UUID is a globally unique, specially
 formatted string composed of hex characters in the format ``{8}-{4}-{4}-{4}-{12}``, for example
@@ -242,8 +96,8 @@ provide some benefit when exporting data in certain formats (e.g. Arrow):
     Ensure that you use valid UUIDs if you indicate that you are using them. Otherwise you will experience
     exceptions writing and/or reading data.
 
-Configuring Geometry Serialization
-----------------------------------
+Geometry Serialization
+----------------------
 
 By default, geometries are serialized using a modified version of the well-known binary (WKB) format. Alternatively,
 geometries may be serialized using the
@@ -274,8 +128,8 @@ TWKB serialization can be set when creating a new schema, but can also be enable
 
 See :ref:`attribute_options` for details on how to set attribute options.
 
-Configuring Column Groups
--------------------------
+Column Groups
+-------------
 
 For back-ends that support it (currently HBase and Accumulo), subsets of attributes may be replicated into
 separate column groups. When possible, only the reduced column groups will be scanned for a query, which avoids
@@ -334,8 +188,8 @@ will throw an exception when creating the schema. Currently, the reserved groups
 
 .. _configuring_z_shards:
 
-Configuring Z-Index Shards
---------------------------
+Z-Index Shards
+--------------
 
 GeoMesa allows configuration of the number of shards (or splits) into which the Z2/Z3/XZ2/XZ3 indices are
 divided. This parameter may be changed individually for each ``SimpleFeatureType``. If nothing is specified,
@@ -348,7 +202,7 @@ reduce performance, as it requires more calculations to be performed per query.
 
 The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
 user data using the keys ``geomesa.z2.splits`` or ``geomesa.z3.splits`` for two and three dimensional indices
-respectively. See :ref:`set_sft_options` for details on setting user data.
+respectively.
 
 .. code-block:: java
 
@@ -356,8 +210,8 @@ respectively. See :ref:`set_sft_options` for details on setting user data.
 
 .. _customizing_z_index:
 
-Configuring Z-Index Time Interval
----------------------------------
+Z-Index Time Interval
+---------------------
 
 GeoMesa uses a z-curve index for time-based queries. By default, time is split into week-long chunks and indexed
 per week. If your queries are typically much larger or smaller than one week, you may wish to partition at a
@@ -370,7 +224,7 @@ per week partitioning tends to provides a good balance for most scenarios. Note 
 depends on query patterns, not the distribution of data.
 
 The time interval is set when calling ``createSchema``. It may be specified through the simple feature type
-user data using the key ``geomesa.z3.interval``.  See :ref:`set_sft_options` for details on setting user data.
+user data using the key ``geomesa.z3.interval``:
 
 .. code-block:: java
 
@@ -378,8 +232,8 @@ user data using the key ``geomesa.z3.interval``.  See :ref:`set_sft_options` for
 
 .. _customizing_xz_index:
 
-Configuring XZ-Index Precision
-------------------------------
+XZ-Index Precision
+------------------
 
 GeoMesa uses an extended z-curve index for storing geometries with extents. The index can be customized
 by specifying the resolution level used to store geometries. By default, the resolution level is 12. If
@@ -397,10 +251,8 @@ details on setting user data.
 For more information on resolution level (g), see
 "XZ-Ordering: A Space-Filling Curve for Objects with Spatial Extension" by Böhm, Klump and Kriegel.
 
-.. _configuring_attr_shards:
-
-Configuring Attribute Index Shards
-----------------------------------
+Attribute Index Shards
+----------------------
 
 GeoMesa allows configuration of the number of shards (or splits) into which the attribute indices are
 divided. This parameter may be changed individually for each ``SimpleFeatureType``. If nothing is specified,
@@ -409,7 +261,7 @@ GeoMesa will default to 4 shards. The number of shards must be between 1 and 127
 See :ref:`configuring_z_shards` for more background on shards.
 
 The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
-user data using the key ``geomesa.attr.splits``. See :ref:`set_sft_options` for details on setting user data.
+user data using the key ``geomesa.attr.splits``:
 
 .. code-block:: java
 
@@ -417,8 +269,8 @@ user data using the key ``geomesa.attr.splits``. See :ref:`set_sft_options` for 
 
 .. _cardinality_config:
 
-Configuring Attribute Cardinality
----------------------------------
+Attribute Cardinality
+---------------------
 
 GeoMesa allows attributes to be marked as either high or low cardinality. If set, this hint will be used in
 query planning. For more information, see :ref:`attribute_cardinality`.
@@ -447,8 +299,8 @@ To set the cardinality of an attribute, use the key ``cardinality`` on the attri
 
 .. _partitioned_indices:
 
-Configuring Partitioned Indices
--------------------------------
+Partitioned Indices
+-------------------
 
 To help with large data sets, GeoMesa can partition each index into separate tables, based on the attributes of
 each feature. Having multiple tables for a single index can make it simpler to manage a cluster, for example by
@@ -493,8 +345,8 @@ for details.
 
 .. _table_split_config:
 
-Configuring Index Splits
-------------------------
+Index Table Splits
+------------------
 
 When planning to ingest large amounts of data, if the distribution is known up front, it can be useful to
 pre-split tables before writing. This provides parallelism across a cluster from the start, and doesn't
@@ -624,19 +476,19 @@ Full Example
     sft.getUserData().put("table.splitter.options",
         "id.pattern:[0-9a-f],attr.name.pattern:[a-z],z3.min:2018-01-01,z3.max:2018-01-31,z3.bits:2,z2.bits:4");
 
-Configuring Query Interceptors
-------------------------------
+Query Interceptors
+------------------
 GeoMesa provides a chance for custom logic to be applied to a query before executing it via
 query interceptors and guards.  A full discussion of their use and configuration is at :ref:`query_interceptors`.
 
 .. _stat_config:
 
-Configuring Cached Statistics
------------------------------
+Cached Statistics
+-----------------
 
 GeoMesa will collect and store summary statistics for attributes during ingest, which are then available for
 lookup and/or query planning. Stat generation can be enabled or disabled through the simple feature type
-user data using the key ``geomesa.stats.enable``. See :ref:`set_sft_options` for details on setting user data.
+user data using the key ``geomesa.stats.enable``.
 
 .. note::
 
@@ -663,8 +515,8 @@ For example:
 
 See :ref:`cli_analytic` and :ref:`stats_api` for information on reading cached stats.
 
-Configuring Temporal Priority
------------------------------
+Temporal Priority
+-----------------
 
 For some large time-based datasets, an index that leverages a temporal predicate will almost always be faster
 to query than one that doesn't. A schema can be configured to prioritize temporal predicates by setting the
@@ -678,8 +530,8 @@ This may be configured before calling ``createSchema``, or updated by calling ``
 
 .. _required_vis_config:
 
-Configuring Required Visibilities
----------------------------------
+Required Visibilities
+---------------------
 
 GeoMesa supports :ref:`data_security` through the use of visibility labels to secure access to sensitive data.
 To help prevent data spills, a schema can be configured to reject any writes that don't contain valid visibilities.
@@ -698,6 +550,15 @@ to the underlying database.
 In Accumulo data stores, setting this configuration will also set the Accumulo ``ReqVisFilter`` on all data
 tables, which will prevent any unlabelled data from being returned in queries.
 
+Disabling the Feature ID Index
+------------------------------
+
+The default ID index can be disabled through the user-data key ``id.index.enabled``:
+
+.. code-block:: java
+
+    sft.getUserData().put("id.index.enabled", "false");
+
 Mixed Geometry Types
 --------------------
 
@@ -709,8 +570,7 @@ features), you must explicitly enable "mixed" indexing mode. All other geometry 
 ``LineString``, ``Polygon``, etc) are not affected.
 
 Mixed geometries must be declared when calling ``createSchema``. It may be specified through
-the simple feature type user data using the key ``geomesa.mixed.geometries``. See :ref:`set_sft_options` for
-details on setting user data.
+the simple feature type user data using the key ``geomesa.mixed.geometries``:
 
 .. code-block:: java
 

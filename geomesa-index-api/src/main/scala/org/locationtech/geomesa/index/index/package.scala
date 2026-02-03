@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.index
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.utils.conf.IndexId
 
 import java.time.ZonedDateTime
 
@@ -46,12 +48,21 @@ package object index {
     def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean
 
     /**
-      * Gets the default attributes that could be used with this index
+      * Gets the index ids that could be used with this index, based on default attributes in the feature type
       *
       * @param sft simple feature type
-      * @return groups of attributes that could be used with this index
+      * @return index ids that could be used with this index
       */
-    def defaults(sft: SimpleFeatureType): Seq[Seq[String]]
+    def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId]
+
+    /**
+     * Gets the id for an index on this attribute, if it's supported by this index
+     *
+     * @param sft simple feature type
+     * @param primary the primary attribute to use in the index
+     * @return index id that could be used with this index, if it's supported
+     */
+    def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId]
   }
 
   /**

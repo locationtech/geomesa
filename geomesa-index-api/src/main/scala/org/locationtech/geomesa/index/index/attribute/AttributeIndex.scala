@@ -8,17 +8,20 @@
 
 package org.locationtech.geomesa.index.index.attribute
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.ConfiguredIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2IndexKeySpace, Z2IndexKeySpace}
 import org.locationtech.geomesa.index.index.z3.{XZ3IndexKeySpace, Z3IndexKeySpace}
+import org.locationtech.geomesa.index.index.{ConfiguredIndex, NamedIndex}
 import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.index.IndexCoverage
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+
+import scala.util.Try
 
 /**
   * Attribute index with configurable secondary index tiering. Each attribute has its own table
@@ -61,6 +64,7 @@ class AttributeIndex protected (
 
 object AttributeIndex extends ConfiguredIndex {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
@@ -81,18 +85,47 @@ object AttributeIndex extends ConfiguredIndex {
     }
   }
 
-  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = {
-    sft.getAttributeDescriptors.asScala.flatMap { d =>
-      val index = d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]
-      if (index != null &&
-          (index.equalsIgnoreCase(IndexCoverage.FULL.toString) || java.lang.Boolean.valueOf(index)) &&
-          AttributeIndexKey.encodable(d)) {
-        Seq(Seq(d.getLocalName) ++ Option(sft.getGeomField) ++ sft.getDtgField.filter(_ != d.getLocalName))
-      } else {
-        Seq.empty
+  override def defaultIndicesFor(sft: SimpleFeatureType): Seq[IndexId] =
+    defaults(sft, this, f => f.equalsIgnoreCase(IndexCoverage.FULL.toString) || java.lang.Boolean.valueOf(f))
+
+  def defaults(sft: SimpleFeatureType, index: NamedIndex, flagCheck: String => Boolean): Seq[IndexId] = {
+    sft.getAttributeDescriptors.asScala.toSeq.filter(AttributeIndexKey.encodable).flatMap { d =>
+      d.getIndexFlags.flatMap { flag =>
+        if (flag.equalsIgnoreCase(index.name) || flagCheck(flag)) {
+          Seq(IndexId(index.name, index.version, defaultTiers(sft, d)))
+        } else {
+          // check for name:attr[:attr] and name:version[:attr]
+          val Array(name, secondary@_*) = flag.split(":")
+          if (name.equalsIgnoreCase(index.name)) {
+            lazy val version = Try(secondary.head.toInt).toOption
+            if (secondary.isEmpty) {
+              Seq(IndexId(index.name, index.version, defaultTiers(sft, d)))
+            } else if (supports(sft, Seq(d.getLocalName) ++ secondary)) {
+              Seq(IndexId(index.name, index.version, Seq(d.getLocalName) ++ secondary))
+            } else if (version.isDefined && supports(sft, Seq(d.getLocalName) ++ secondary.tail)) {
+              Seq(IndexId(index.name, version.get, Seq(d.getLocalName) ++ secondary.tail))
+            } else {
+              throw new IllegalArgumentException(
+                s"Attribute '${d.getLocalName}' is configured for indexing but index is not supported: $flag")
+            }
+          } else {
+            Seq.empty
+          }
+        }
       }
-    }.toSeq
+    }
   }
+
+  override def indexFor(sft: SimpleFeatureType, primary: AttributeDescriptor): Option[IndexId] = {
+    if (AttributeIndexKey.encodable(primary)) {
+      Some(IndexId(name, version, defaultTiers(sft, primary)))
+    } else {
+      None
+    }
+  }
+
+  private def defaultTiers(sft: SimpleFeatureType, primary: AttributeDescriptor): Seq[String] =
+    Seq(primary.getLocalName) ++ Seq(sft.getGeomField).filter(_ != null) ++ sft.getDtgField.filter(_ != primary.getLocalName)
 
   /**
     * Checks if the given field is attribute indexed
