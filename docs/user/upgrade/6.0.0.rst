@@ -21,8 +21,8 @@ Default Secondary Attribute Index Changes
 -----------------------------------------
 
 When creating attribute indices, the default secondary index will now be a date-only index, instead of a spatio-temporal index
-(e.g. ``attr:foo:dtg`` instead of ``attr:foo:geom:dtg``). The old behavior can still be achieved by fully specifying the
-secondary attributes - see :ref:`customizing_index_creation` for details.
+(e.g. ``attr:foo:dtg`` instead of ``attr:foo:geom:dtg``). The old behavior can still be achieved by configuring secondary
+attributes - see :ref:`specifying_indices` for details.
 
 Dependency Version Upgrades
 ---------------------------
