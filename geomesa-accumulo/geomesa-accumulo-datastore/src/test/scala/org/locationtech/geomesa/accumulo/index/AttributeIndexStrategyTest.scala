@@ -35,7 +35,7 @@ import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.index.view.MergedDataStoreViewFactory
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -51,10 +51,22 @@ import scala.collection.JavaConverters._
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexStrategyTest extends Specification with TestWithFeatureType with LazyLogging {
 
-  override val spec = "name:String:index=full,age:Integer:index=join,count:Long:index=join," +
-      "weight:Double:index=join,height:Float:index=join,admin:Boolean:index=join," +
-      "*geom:Point:srid=4326,dtg:Date,indexedDtg:Date:index=join,fingers:List[String]:index=join," +
-      "toes:List[Double]:index=join,track:String,geom2:Point:srid=4326;geomesa.indexes.enabled='attr,id'"
+  override val spec =
+    SchemaBuilder.builder()
+      .addString("name").withIndex("attr:geom:dtg")
+      .addInt("age").withIndex("join:geom:dtg")
+      .addLong("count").withIndex("join:geom:dtg")
+      .addDouble("weight").withIndex("join:geom:dtg")
+      .addFloat("height").withIndex("join:geom:dtg")
+      .addBoolean("admin").withIndex("join:geom:dtg")
+      .addPoint("geom", default = true).withIndex("none")
+      .addDate("dtg", default = true)
+      .addDate("indexedDtg").withIndex("join:geom:dtg")
+      .addList[String]("fingers").withIndex("join:geom:dtg")
+      .addList[Double]("toes").withIndex("join:geom:dtg")
+      .addString("track")
+      .addPoint("geom2").withIndex("none")
+      .spec
 
   val aliceGeom   = WKTUtils.read("POINT(45.0 49.0)")
   val billGeom    = WKTUtils.read("POINT(46.0 49.0)")

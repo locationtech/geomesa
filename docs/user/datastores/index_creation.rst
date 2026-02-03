@@ -44,9 +44,9 @@ type may be indexed individually. See :ref:`specifying_indices`, below, for deta
   List type attributes may be indexed, but querying a list-type index may result in duplicate results. If
   duplicate results are a problem, users should implement their own de-duplication logic for list queries.
 
-Attribute indices also support a secondary, tiered index structure. This can improve attribute queries
-that also contain a spatial and/or temporal predicate. Unless configured differently, the default geometry
-and date attributes will be used to create a secondary Z3 or XZ3 index.
+Attribute indices also support a secondary, tiered index structure. This can improve attribute queries that also contain a
+spatial and/or temporal predicate. Unless configured differently, the default date attribute will be used to create a secondary
+temporal index.
 
 .. note::
 
@@ -81,7 +81,7 @@ Multiple indices on a single attribute may be separated with a comma (``,``).
 
 For attribute indices, if secondary geometry and date attributes are specified, the secondary index will be Z3 or XZ3, as
 appropriate. If just a geometry is specified, the secondary index will be Z2 or XZ2, as appropriate. If just a date
-is specified, the secondary index will be an ordered temporal index.
+is specified, the secondary index will be a temporal index.
 
 The ID index does not correspond to any attribute, but it can be disabled through the feature-level user-data key
 ``id.index.enabled=false``.

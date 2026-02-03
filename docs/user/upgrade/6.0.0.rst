@@ -17,6 +17,13 @@ Kafka Zookeeper Deprecation
 As Kafka 4+ no longer supports Zookeeper, GeoMesa has deprecated support for using Zookeeper with the Kafka data store. See
 :ref:`no_zookeeper` for details on migrating.
 
+Default Secondary Attribute Index Changes
+-----------------------------------------
+
+When creating attribute indices, the default secondary index will now be a date-only index, instead of a spatio-temporal index
+(e.g. ``attr:foo:dtg`` instead of ``attr:foo:geom:dtg``). The old behavior can still be achieved by configuring secondary
+attributes - see :ref:`specifying_indices` for details.
+
 Dependency Version Upgrades
 ---------------------------
 
