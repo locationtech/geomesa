@@ -11,7 +11,6 @@ package org.locationtech.geomesa.index.geotools
 import com.github.benmanes.caffeine.cache.{AsyncCacheLoader, AsyncLoadingCache, CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
-import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.FlushableFeatureWriter
@@ -20,7 +19,6 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.{SchemaCompatibility, VersionKey}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.planning.DataStoreQueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
@@ -37,7 +35,7 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.IOException
-import java.util.Collections
+import java.util.{Collections, Locale}
 import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -503,42 +501,29 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
     def remapCol(name: String): String = colMap.getOrElse(name, name)
 
-    // check for attributes flagged 'index' and convert them to sft-level user data
-    def indexed(d: AttributeDescriptor): Boolean = {
-      d.getUserData.get(AttributeOptions.OptIndex) match {
-        case i: String if Seq("true", "full").exists(_.equalsIgnoreCase(i)) => true
-        case i if i == null || Seq("false", "none").exists(_.equalsIgnoreCase(i.toString)) => false
-        case i => throw new IllegalArgumentException(s"Configured index coverage '$i' is not valid: expected 'true'")
-      }
-    }
-    sft.getAttributeDescriptors.asScala.foreach { d =>
-      if (indexed(d)) {
-        val existing = {
-          val explicit = sft.getIndices
-          if (explicit.nonEmpty) { explicit } else { previous.getIndices }
-        }
-        if (!existing.exists(e => e.name == AttributeIndex.name && remapCol(e.attributes.head) == d.getLocalName)) {
-          val fields = Seq(d.getLocalName) ++ Option(sft.getGeomField) ++ sft.getDtgField
-          val id = IndexId(AttributeIndex.name, AttributeIndex.version, fields, IndexMode.ReadWrite)
-          sft.setIndices(existing :+ id)
-        }
-      }
-    }
-
-    // check for new indices and 'enabled indices' changes
     val indices = {
-      val enabled = if (!sft.getUserData.containsKey(Configs.EnabledIndices)) { Seq.empty } else {
-        GeoMesaFeatureIndexFactory.indices(sft)
-      }
-      val remapped = (previous.getIndices ++ sft.getIndices).map(i => i.copy(attributes = i.attributes.map(remapCol)))
-      (remapped ++ enabled).foldLeft(Seq.empty[IndexId]) { (sum, next) =>
-        // note: ignore index version
-        if (sum.exists(i => i.name == next.name && i.attributes == next.attributes)) { sum } else { sum :+ next }
+      // set directly in the sft
+      val explicitIndices = (previous.getIndices ++ sft.getIndices).map(i => i.copy(attributes = i.attributes.map(remapCol)))
+      // set in index flags or geomesa.indices.enabled
+      val configuredIndices =
+        // don't add in a fid index unless explicitly enabled
+        if (sft.getUserData.get(Configs.EnableFidIndex) == null &&
+            Option(sft.getUserData.get(Configs.EnabledIndices))
+              .forall(!_.toString.split(",").map(_.trim.toLowerCase(Locale.US)).exists(_.matches(s"^${IdIndex.name}:?")))) {
+          GeoMesaFeatureIndexFactory.indices(sft).filterNot(_.name == IdIndex.name)
+        } else {
+          GeoMesaFeatureIndexFactory.indices(sft)
+        }
+      // get the unique indices - note: ignores index version
+      (explicitIndices ++ configuredIndices).foldLeft(Seq.empty[IndexId]) { (sum, next) =>
+        if (sum.exists(i => i.name == next.name && i.attributes == next.attributes)) {
+          sum
+        } else {
+          sum :+ next
+        }
       }
     }
-    if (indices != previous.getIndices) {
-      sft.setIndices(indices)
-    }
+    sft.setIndices(indices)
 
     // preserve any existing user data but overwrite any keys we redefine
     val userData = new java.util.HashMap[AnyRef, AnyRef](previous.getUserData)

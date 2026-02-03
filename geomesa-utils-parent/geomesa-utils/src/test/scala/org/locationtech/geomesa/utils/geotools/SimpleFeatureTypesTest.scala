@@ -34,7 +34,7 @@ class SimpleFeatureTypesTest extends Specification {
 
   "SimpleFeatureTypes" should {
     "create an sft that" >> {
-      val sft = SimpleFeatureTypes.createType("testing", "id:Integer,dtg:Date,*geom:Point:srid=4326:index=true")
+      val sft = SimpleFeatureTypes.createType("testing", "id:Integer,dtg:Date,*geom:Point:srid=4326")
       "has name \'test\'"  >> { sft.getTypeName mustEqual "testing" }
       "has three attributes" >> { sft.getAttributeCount must be_==(3) }
       "has an id attribute which is " >> {
@@ -46,9 +46,10 @@ class SimpleFeatureTypesTest extends Specification {
         val geomDescriptor = sft.getGeometryDescriptor
         geomDescriptor.getLocalName must be equalTo "geom"
       }
-      "not include index flag for geometry" >> {
+      "include index flag for geometry" >> {
+        val sft = SimpleFeatureTypes.createType("testing", "id:Integer,dtg:Date,*geom:Point:srid=4326:index=true")
         val geomDescriptor = sft.getGeometryDescriptor
-        geomDescriptor.getUserData.get("index") must beNull
+        geomDescriptor.getUserData.get("index") mustEqual "true"
       }
       "encode an sft properly" >> {
         SimpleFeatureTypes.encodeType(sft) must be equalTo s"id:Integer,dtg:Date,*geom:Point:srid=4326"
@@ -139,7 +140,7 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "return the indexed attributes (not including the default geometry)" >> {
-      val sft = SimpleFeatureTypes.createType("testing", "id:Integer:index=false,dtg:Date:index=true,*geom:Point:srid=4326:index=true")
+      val sft = SimpleFeatureTypes.createType("testing", "id:Integer:index=false,dtg:Date:index=true,*geom:Point:srid=4326")
       val indexed = sft.getAttributeDescriptors.asScala.collect {
         case d if java.lang.Boolean.valueOf(d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]) => d.getLocalName
       }
