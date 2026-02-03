@@ -35,11 +35,11 @@ class ConfigurableIndicesTest extends Specification with LazyLogging {
         // creates a default attribute index on name and an implicit default z3 and z2 index on geom
         ds.createSchema(SimpleFeatureTypes.createType("test1", "name:String:index=true,dtg:Date,*geom:Point:srid=4326"))
         // creates an attribute index on name (with a secondary date index), and a z3 index on geom and dtg
-        ds.createSchema(SimpleFeatureTypes.createType("test2", "name:String:index='attr:dtg',dtg:Date,*geom:Point:srid=4326:index='z3:dtg'"))
+        ds.createSchema(SimpleFeatureTypes.createType("test2", "name:String:index='attr:geom:dtg',dtg:Date,*geom:Point:srid=4326:index='z3:dtg'"))
         // creates an attribute index on name (with a secondary date index), and a z3 index on geom and dtg and disables the ID index
         ds.createSchema(SimpleFeatureTypes.createType("test3", "name:String:index='attr:dtg',dtg:Date,*geom:Point:srid=4326:index='z3:dtg';id.index.enabled=false"))
-        getIndexConfig(ds.getSchema("test1")) mustEqual Seq("attr=name:geom:dtg", "id=", "z2=geom", "z3=geom:dtg")
-        getIndexConfig(ds.getSchema("test2")) mustEqual Seq("attr=name:dtg", "id=", "z3=geom:dtg")
+        getIndexConfig(ds.getSchema("test1")) mustEqual Seq("attr=name:dtg", "id=", "z2=geom", "z3=geom:dtg")
+        getIndexConfig(ds.getSchema("test2")) mustEqual Seq("attr=name:geom:dtg", "id=", "z3=geom:dtg")
         getIndexConfig(ds.getSchema("test3")) mustEqual Seq("attr=name:dtg", "z3=geom:dtg")
       }
     }
@@ -47,7 +47,7 @@ class ConfigurableIndicesTest extends Specification with LazyLogging {
     "support configurable indices with SchemaBuilder" in {
       val sft =
         SchemaBuilder.builder()
-          .addString("name").withIndex("attr:dtg") // creates an attribute index on name, with a secondary date index
+          .addString("name").withIndex("attr:geom:dtg") // creates an attribute index on name, with a secondary date index
           .addInt("age").withIndex() // creates an attribute index on age, with a default secondary index
           .addDate("dtg") // not a primary index
           .addPoint("geom", default = true).withIndices("z3:dtg", "z2") // creates a z3 index with dtg, and a z2 index
@@ -56,7 +56,7 @@ class ConfigurableIndicesTest extends Specification with LazyLogging {
           .build("test1")
       WithClose(new TestGeoMesaDataStore(true)) { ds =>
         ds.createSchema(sft)
-        getIndexConfig(ds.getSchema("test1")) mustEqual Seq("attr=age:geom:dtg", "attr=name:dtg", "z2=geom", "z3=geom:dtg")
+        getIndexConfig(ds.getSchema("test1")) mustEqual Seq("attr=age:dtg", "attr=name:geom:dtg", "z2=geom", "z3=geom:dtg")
       }
     }
 
@@ -65,7 +65,7 @@ class ConfigurableIndicesTest extends Specification with LazyLogging {
         s"""{
            |  type-name = test1
            |  attributes = [
-           |    { name = "name", type = "String", index = "attr:dtg" } // creates an attribute index on name, with a secondary date index
+           |    { name = "name", type = "String", index = "attr:geom:dtg" } // creates an attribute index on name, with a secondary date index
            |    { name = "age", type = "Int", index = "true" } // creates an attribute index on age, with a default secondary index
            |    { name = "dtg", type = "Date" } // not a primary index
            |    { name = "geom", type = "Point", srid = "4326", index = "z3:dtg,z2" } // creates a z3 index with dtg, and a z2 index
@@ -78,7 +78,7 @@ class ConfigurableIndicesTest extends Specification with LazyLogging {
       val sft = SimpleFeatureTypes.createType(ConfigFactory.parseString(config), path = None)
       WithClose(new TestGeoMesaDataStore(true)) { ds =>
         ds.createSchema(sft)
-        getIndexConfig(ds.getSchema("test1")) mustEqual Seq("attr=age:geom:dtg", "attr=name:dtg", "z2=geom", "z3=geom:dtg")
+        getIndexConfig(ds.getSchema("test1")) mustEqual Seq("attr=age:dtg", "attr=name:geom:dtg", "z2=geom", "z3=geom:dtg")
       }
     }
   }
