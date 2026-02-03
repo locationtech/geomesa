@@ -121,7 +121,7 @@ object SimpleFeatureSpec {
     protected def builderHook(builder: AttributeTypeBuilder): Unit = {}
   }
 
-  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.{OptDefault, OptIndex, OptSrid}
+  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.{OptDefault, OptSrid}
 
   private val simpleOptionPattern = Pattern.compile("[a-zA-Z0-9_]+")
 
@@ -189,10 +189,9 @@ object SimpleFeatureSpec {
     }
 
     // default geoms are indicated by the *
-    // we don't allow attribute indexing for geometries
-    override protected def specOptions: Map[String, String] = options - OptDefault - OptIndex
-    override protected def configOptions: Map[String, String] = options - OptIndex
-    override protected def descriptorOptions: Map[String, String] = options - OptIndex
+    override protected def specOptions: Map[String, String] = options - OptDefault
+    override protected def configOptions: Map[String, String] = options
+    override protected def descriptorOptions: Map[String, String] = options
   }
 
   /**
