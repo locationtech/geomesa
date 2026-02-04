@@ -53,6 +53,18 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
       foreach(z3Tables)(t => ds.client.tableOperations().exists(t) must beTrue)
     }
 
+    "support attribute level configuration" >> {
+      val typeName = this.sft.getTypeName + "_attr"
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String,dtg:Date,*geom:Point:srid=4326:index=z3;id.index.enabled=false"))
+      val sft = ds.getSchema(typeName)
+      val indices = ds.manager.indices(sft)
+      indices must haveLength(1)
+      indices.head.name mustEqual Z3Index.name
+      val z3Tables = indices.head.getTableNames()
+      z3Tables must not(beEmpty)
+      foreach(z3Tables)(t => ds.client.tableOperations().exists(t) must beTrue)
+    }
+
     "be able to use z3 for spatial queries" >> {
       val filter = "BBOX(geom,40,50,50,60)"
       val query = new Query(sftName, ECQL.toFilter(filter))

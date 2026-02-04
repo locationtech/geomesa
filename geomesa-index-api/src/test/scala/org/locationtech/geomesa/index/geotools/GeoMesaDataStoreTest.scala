@@ -116,7 +116,7 @@ class GeoMesaDataStoreTest extends Specification {
     }
     "block queries which would cause a full table scan" in {
       val sft = SimpleFeatureTypes.createType("61b44359ddb84822983587389d6a28a4",
-        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
+        "name:String:index=true,age:Int,dtg:Date,*geom:Point:srid=4326:index=z3")
       sft.getUserData.put("geomesa.query.interceptors",
         "org.locationtech.geomesa.index.planning.guard.FullTableScanQueryGuard")
 
@@ -165,7 +165,7 @@ class GeoMesaDataStoreTest extends Specification {
     }
     "block queries which would cause a full table scan via sys props" in {
       val sft = SimpleFeatureTypes.createType("test",
-        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
+        "name:String:index=true,age:Int,dtg:Date,*geom:Point:srid=4326:index=z3")
 
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft)
