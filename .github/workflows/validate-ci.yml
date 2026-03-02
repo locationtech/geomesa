@@ -11,7 +11,7 @@ jobs:
   validate-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Validate project list
         run: |
           while IFS= read -r -d '' pom; do
@@ -28,7 +28,7 @@ jobs:
   validate-integration-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Validate project list
         run: |
           while IFS= read -r -d '' test_class; do
@@ -43,7 +43,7 @@ jobs:
   validate-javadocs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Validate project list
         run: |
           while IFS= read -r -d '' pom; do
@@ -58,7 +58,7 @@ jobs:
   validate-spark:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Validate project list
         run: |
           while IFS= read -r -d '' test_class; do
