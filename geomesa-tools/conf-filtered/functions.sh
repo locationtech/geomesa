@@ -182,7 +182,7 @@ function download_urls() {
     fname="$(basename "$url")" # filename we'll save to
     tmpfile=$(mktemp)
     # -sS disables progress meter but keeps error messages, -f don't save failed files, -o write to destination file, -L follow redirects
-    downloads+=("(echo >&2 fetching $fname && curl -LsSfo '$tmpfile' '$url' && mv '$tmpfile' '${dest}/${fname}' && chmod 644 '${dest}/${fname}') || echo [ERROR] Failed to fetch $fname")
+    downloads+=("(echo >&2 fetching $fname && curl -LsSfo '$tmpfile' '$url' && mv '$tmpfile' '${dest}/${fname}' && chmod 644 '${dest}/${fname}') || (export error=\$?; echo [ERROR] Failed to fetch $fname; exit \$error)")
   done
   # pass to xargs to run with 4 threads
   # delimit with null char to avoid issues with spaces
