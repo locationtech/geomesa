@@ -13,98 +13,78 @@
     <packaging>pom</packaging>
 
     <properties>
-        <gs.antlr.version>4.7.1</gs.antlr.version>
-        <gs.checker.qual.version>3.49.5</gs.checker.qual.version>
-        <gs.commons.codec.version>1.18.0</gs.commons.codec.version>
-        <gs.commons.io.version>2.19.0</gs.commons.io.version>
-        <gs.commons.lang3.version>3.18.0</gs.commons.lang3.version>
-        <gs.commons.logging.version>1.3.5</gs.commons.logging.version>
-        <gs.commons.pool.version>1.5.4</gs.commons.pool.version>
-        <gs.commons.text.version>1.13.0</gs.commons.text.version>
-        <gs.error.prone.version>2.36.0</gs.error.prone.version>
-        <gs.jackson.version>2.19.0</gs.jackson.version>
-        <gs.jackson.databind.version>2.19.0</gs.jackson.databind.version>
+        <antlr.version>4.7.1</antlr.version>
+        <commons.pool.version>1.5.4</commons.pool.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <!-- dependencies already in geoserver -->
+            <!-- note: these versions don't align with the actual versions in the geoserver war -->
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
-                <version>${gs.commons.codec.version}</version>
+                <version>${commons.codec.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>${gs.commons.io.version}</version>
+                <version>${commons.io.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>${gs.commons.lang3.version}</version>
+                <version>${commons.lang3.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-logging</groupId>
                 <artifactId>commons-logging</artifactId>
-                <version>${gs.commons.logging.version}</version>
+                <version>${commons.logging.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
-                <version>${gs.commons.pool.version}</version>
+                <version>${commons.pool.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
-                <version>${gs.commons.text.version}</version>
+                <version>${commons.text.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${gs.jackson.version}</version>
+                <version>${fasterxml.jackson.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>${gs.jackson.version}</version>
+                <version>${fasterxml.jackson.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${gs.jackson.databind.version}</version>
+                <version>${fasterxml.jackson.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-xml</artifactId>
-                <version>${gs.jackson.version}</version>
+                <version>${fasterxml.jackson.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
-                <version>${gs.jackson.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.google.errorprone</groupId>
-                <artifactId>error_prone_annotations</artifactId>
-                <version>${gs.error.prone.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.checkerframework</groupId>
-                <artifactId>checker-qual</artifactId>
-                <version>${gs.checker.qual.version}</version>
+                <version>${fasterxml.jackson.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -224,7 +204,7 @@
             <dependency>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-runtime</artifactId>
-                <version>${gs.antlr.version}</version>
+                <version>${antlr.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
