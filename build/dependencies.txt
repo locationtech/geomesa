@@ -288,7 +288,6 @@ com.amazonaws:jmespath-java:1.12.793:provided
 com.datastax.cassandra:cassandra-driver-core:3.11.5:provided
 com.datastax.cassandra:cassandra-driver-mapping:3.11.5:provided
 com.eclipsesource.minimal-json:minimal-json:0.9.5:provided
-com.fasterxml.jackson.core:jackson-annotations:2.21.1:provided
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.21.1:provided
 com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.21.1:provided
 com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:2.21.1:provided
