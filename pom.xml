@@ -106,7 +106,7 @@
 
         <!-- standardized transitive dependencies -->
         <aircompressor.version>0.27</aircompressor.version>
-        <fasterxml.jackson.version>2.19.0</fasterxml.jackson.version> <!-- used by geoserver, spark and arrow -->
+        <fasterxml.jackson.version>2.21.1</fasterxml.jackson.version> <!-- used by geoserver, spark and arrow -->
         <h2.version>2.2.224</h2.version>
         <hsql.version>2.7.2</hsql.version>
         <jetty.version>9.4.57.v20241219</jetty.version>
