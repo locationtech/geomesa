@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.fs.storage.common
 
 import com.typesafe.scalalogging.StrictLogging
-import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFileAction, StorageFilePath}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFileAction}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.PhaserUtils
 import org.locationtech.geomesa.utils.io.WithClose
@@ -81,7 +80,7 @@ class FileSystemThreadedReader private (es: ExecutorService, phaser: Phaser, que
 object FileSystemThreadedReader extends StrictLogging {
 
   def apply(
-      readers: Iterator[(FileSystemPathReader, Seq[StorageFilePath])],
+      readers: Iterator[(FileSystemPathReader, Seq[StorageFile])],
       threads: Int): CloseableIterator[SimpleFeature] = {
 
     if (threads < 2) {
@@ -107,16 +106,16 @@ object FileSystemThreadedReader extends StrictLogging {
         var parties = 0 // track registered parties
         readers.foreach { case (reader, files) =>
           // group our files by actions which can be parallelized
-          val groups = scala.collection.mutable.ListBuffer.empty[Seq[StorageFilePath]]
-          var group = scala.collection.mutable.ArrayBuffer.empty[StorageFilePath]
+          val groups = scala.collection.mutable.ListBuffer.empty[Seq[StorageFile]]
+          var group = scala.collection.mutable.ArrayBuffer.empty[StorageFile]
           // ensure files are sorted in reverse chronological order
           files.sorted.foreach { file =>
-            if (file.file.action == StorageFileAction.Append) {
+            if (file.action == StorageFileAction.Append) {
               group += file
             } else {
               if (group.nonEmpty) {
                 groups += group.toSeq
-                group = scala.collection.mutable.ArrayBuffer.empty[StorageFilePath]
+                group = scala.collection.mutable.ArrayBuffer.empty[StorageFile]
               }
               groups += Seq(file)
             }
@@ -154,13 +153,13 @@ object FileSystemThreadedReader extends StrictLogging {
     */
   private def read(
       reader: FileSystemPathReader,
-      file: StorageFilePath,
+      file: StorageFile,
       mods: scala.collection.mutable.Set[String]): CloseableIterator[SimpleFeature] = {
-    file.file.action match {
-      case StorageFileAction.Append => new AppendingReaderIterator(reader, file.path, mods)
-      case StorageFileAction.Modify => new ModifyingReaderIterator(reader, file.path, mods)
-      case StorageFileAction.Delete => new DeletingReaderIterator(reader, file.path, mods)
-      case _ => throw new UnsupportedOperationException(s"Unexpected storage action: ${file.file.action}")
+    file.action match {
+      case StorageFileAction.Append => new AppendingReaderIterator(reader, file.file, mods)
+      case StorageFileAction.Modify => new ModifyingReaderIterator(reader, file.file, mods)
+      case StorageFileAction.Delete => new DeletingReaderIterator(reader, file.file, mods)
+      case _ => throw new UnsupportedOperationException(s"Unexpected storage action: ${file.action}")
     }
   }
 
@@ -180,8 +179,8 @@ object FileSystemThreadedReader extends StrictLogging {
       es: ExecutorService,
       phaser: Phaser,
       reader: FileSystemPathReader,
-      group: Seq[StorageFilePath],
-      chain: Seq[Seq[StorageFilePath]],
+      group: Seq[StorageFile],
+      chain: Seq[Seq[StorageFile]],
       queue: BlockingQueue[SimpleFeature],
       mods: scala.collection.mutable.Set[String] = scala.collection.mutable.HashSet.empty[String]
     ) extends Runnable {
@@ -204,7 +203,7 @@ object FileSystemThreadedReader extends StrictLogging {
       try {
         group.foreach { file =>
           child.register() // register new task
-          es.submit(new ReaderTask(child, queue, file.path, read(reader, file, mods)))
+          es.submit(new ReaderTask(child, queue, file.file, read(reader, file, mods)))
         }
       } finally {
         child.arriveAndDeregister()
@@ -217,13 +216,13 @@ object FileSystemThreadedReader extends StrictLogging {
     *
     * @param phaser phaser for tracking completion of this task
     * @param queue result queue
-    * @param path file path (for logging)
+    * @param file file path (for logging)
     * @param iter lazily evaluated iterator for reading the path
     */
   private class ReaderTask(
       phaser: Phaser,
       queue: BlockingQueue[SimpleFeature],
-      path: Path,
+      file: String,
       iter: => CloseableIterator[SimpleFeature]
     ) extends Runnable {
 
@@ -231,7 +230,7 @@ object FileSystemThreadedReader extends StrictLogging {
       try {
         WithClose(iter)(_.foreach(queue.put))
       } catch {
-        case NonFatal(e) => logger.error(s"Error reading file $path", e)
+        case NonFatal(e) => logger.error(s"Error reading file $file", e)
       } finally {
         phaser.arriveAndDeregister()
       }
@@ -242,21 +241,21 @@ object FileSystemThreadedReader extends StrictLogging {
     * Reads a file, skipping features marked as modified
     *
     * @param reader reader
-    * @param path file path
+    * @param file file path
     * @param mods set of modified feature IDs that shouldn't be returned
     */
   private class AppendingReaderIterator(
       reader: FileSystemPathReader,
-      path: Path,
+      file: String,
       mods: scala.collection.Set[String]
     ) extends CloseableIterator[SimpleFeature] {
 
-    logger.debug(s"Reading file $path")
+    logger.debug(s"Reading file $file")
 
     private var count = 0
 
     private val delegate = {
-      val iter = CloseableIterator.wrap(reader.read(path))
+      val iter = CloseableIterator.wrap(reader.read(file))
       if (mods.isEmpty) {
         iter
       } else {
@@ -273,30 +272,29 @@ object FileSystemThreadedReader extends StrictLogging {
     }
 
     override def close(): Unit = {
-      logger.debug(s"File $path produced $count records")
+      logger.debug(s"File $file produced $count records")
       delegate.close()
     }
   }
-
 
   /**
     * Reads a file, skipping features marked as modified
     *
     * @param reader reader
-    * @param path file path
+    * @param file file path
     * @param mods set of modified feature IDs that shouldn't be returned
     */
   private class ModifyingReaderIterator(
       reader: FileSystemPathReader,
-      path: Path,
+      file: String,
       mods: scala.collection.mutable.Set[String]
     ) extends CloseableIterator[SimpleFeature] {
 
-    logger.debug(s"Reading modifying file $path")
+    logger.debug(s"Reading modifying file $file")
 
     private var count = 0
 
-    private val delegate = CloseableIterator.wrap(reader.read(path)).filter { f => count += 1; mods.add(f.getID) }
+    private val delegate = CloseableIterator.wrap(reader.read(file)).filter { f => count += 1; mods.add(f.getID) }
 
     override def hasNext: Boolean = delegate.hasNext
 
@@ -306,7 +304,7 @@ object FileSystemThreadedReader extends StrictLogging {
     }
 
     override def close(): Unit = {
-      logger.debug(s"File $path produced $count modified records")
+      logger.debug(s"File $file produced $count modified records")
       delegate.close()
     }
   }
@@ -320,23 +318,23 @@ object FileSystemThreadedReader extends StrictLogging {
     */
   private class DeletingReaderIterator(
       reader: FileSystemPathReader,
-      path: Path,
+      file: String,
       mods: scala.collection.mutable.Set[String]
     ) extends CloseableIterator[SimpleFeature] {
 
-    logger.debug(s"Reading deleting file $path")
+    logger.debug(s"Reading deleting file $file")
 
     try {
       var count = 0
-      WithClose(reader.read(path)) { features =>
+      WithClose(reader.read(file)) { features =>
         while (features.hasNext) {
           mods.add(features.next().getID)
           count += 1
         }
       }
-      logger.debug(s"File $path produced $count deleted records")
+      logger.debug(s"File $file produced $count deleted records")
     } catch {
-      case NonFatal(e) => logger.error(s"Error reading deleting file $path", e)
+      case NonFatal(e) => logger.error(s"Error reading deleting file $file", e)
     }
 
     override def hasNext: Boolean = false

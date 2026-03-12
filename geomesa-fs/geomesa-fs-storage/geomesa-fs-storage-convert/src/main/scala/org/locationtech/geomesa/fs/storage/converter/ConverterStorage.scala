@@ -13,11 +13,10 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFilePath}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.PathFiltering
 
 class ConverterStorage(context: FileSystemContext,
@@ -39,20 +38,10 @@ class ConverterStorage(context: FileSystemContext,
   override protected def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader = {
-    new ConverterFileSystemReader(context.fs, converter, filter, transform, pathFiltering)
+    new ConverterFileSystemReader(context.fs, context.root, converter, filter, transform, pathFiltering)
   }
 
-  override def getFilePaths(partition: String): Seq[StorageFilePath] = {
-    val path = new Path(context.root, partition)
-    if (metadata.leafStorage) { Seq(StorageFilePath(StorageFile(path.getName, 0L), path)) } else {
-      PathCache.list(context.fs, path).map(p => StorageFilePath(StorageFile(p.getPath.getName, 0L), p.getPath)).toList
-    }
-  }
-
-  override def getWriter(partition: String): FileSystemWriter =
-    throw new UnsupportedOperationException("Converter storage does not support feature writing")
-
-  override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
+  override def compact(partition: Partition, fileSize: Option[Long], threads: Int): Unit =
     throw new UnsupportedOperationException("Converter storage does not support compactions")
 }
 

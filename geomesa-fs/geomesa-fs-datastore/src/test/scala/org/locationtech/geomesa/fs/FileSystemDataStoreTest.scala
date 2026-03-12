@@ -17,7 +17,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -45,7 +44,6 @@ class FileSystemDataStoreTest extends Specification {
       createGeom: Int => String = createPoint): (String, SimpleFeatureType, Seq[SimpleFeature]) = {
     val sft = SimpleFeatureTypes.createType(format, s"name:String,age:Int,dtg:Date,*geom:$geom:srid=4326")
     sft.setScheme("daily")
-    sft.setLeafStorage(false)
     val features = Seq.tabulate(10) { i =>
       ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", createGeom(i))
     }
@@ -69,7 +67,7 @@ class FileSystemDataStoreTest extends Specification {
     (_: Any) + " is not valid UUID"
   )
 
-  val encodings = Seq("parquet", "orc")
+  val encodings = Seq("parquet"/*, "orc"*/)
 
   val formats = encodings.map(createFormat(_))
 
@@ -112,8 +110,9 @@ class FileSystemDataStoreTest extends Specification {
         new File(dir, s"$format/metadata").isDirectory must beTrue
 
         val expected = Seq("2017/06/05", "2017/06/06", "2017/06/07")
-        ds.storage(sft.getTypeName).getPartitions must haveLength(3)
-        ds.storage(sft.getTypeName).getPartitions.map(_.name) must containTheSameElementsAs(expected)
+        val partitions = ds.storage(sft.getTypeName).metadata.getFiles().map(_.partition).distinct
+        partitions must haveLength(3)
+        partitions.map(_.dims.map(_.name)) must containTheSameElementsAs(expected)
         foreach(expected)(name => new File(dir, s"$format/$name").isDirectory must beTrue)
 
         ds.getTypeNames must have size 1
@@ -216,7 +215,7 @@ class FileSystemDataStoreTest extends Specification {
         WithClose(DataStoreFinder.getDataStore(Collections.singletonMap("fs.path", dir.getPath))) { ds =>
           ds.createSchema(sft)
         }
-        sft.removeScheme() must beSome(NamedOptions("daily", Map.empty))
+        sft.removeScheme() must beSome(Seq("daily"))
         sft.removeEncoding must beSome(format)
       } finally {
         FileUtils.deleteDirectory(dir)

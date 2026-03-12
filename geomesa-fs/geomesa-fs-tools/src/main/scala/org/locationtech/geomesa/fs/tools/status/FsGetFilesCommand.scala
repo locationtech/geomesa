@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.fs.tools.status
 
-import com.beust.jcommander.{ParameterException, Parameters}
+import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.status.FsGetFilesCommand.FSGetFilesParams
@@ -29,22 +30,24 @@ class FsGetFilesCommand extends FsDataStoreCommand {
   override val name: String = "get-files"
 
   override def execute(): Unit = withDataStore { ds =>
-    val metadata = ds.storage(params.featureName).metadata
-    val partitions = if (params.partitions.isEmpty) { metadata.getPartitions() } else {
-      params.partitions.asScala.map { name =>
-        metadata.getPartition(name).getOrElse {
-          throw new ParameterException(s"Partition $name cannot be found in metadata")
-        }
+    val storage = ds.storage(params.featureName)
+    val metadata = storage.metadata
+    val files =
+      if (params.partitions.isEmpty) {
+        Command.user.info("Listing files for all partitions")
+        metadata.getFiles()
+      } else {
+        val partition = Partition(params.partitions.asScala.map(PartitionDimension.apply).toSet)
+        Command.user.info(s"Listing files for partition ${partition.id}")
+        metadata.getFiles(partition)
       }
-    }
 
-    Command.user.info(s"Listing files for ${partitions.length} partitions")
-    partitions.sortBy(_.name).foreach { partition =>
-      Command.output.info(s"${partition.name}:")
+    files.groupBy(_.partition).toSeq.sortBy(_._1.id).foreach { case (p, files) =>
+      Command.output.info(s"${p.id}:")
       // sort by chronological order
-      partition.files.sorted(StorageMetadata.StorageFileOrdering.reverse).foreach { f =>
+      files.sorted(StorageMetadata.StorageFileOrdering.reverse).foreach { f =>
         Command.output.info(s"\t${f.action.toString.toUpperCase(Locale.US)} " +
-            s"${GeoToolsDateFormat.format(Instant.ofEpochMilli(f.timestamp))} ${f.name}")
+          s"${GeoToolsDateFormat.format(Instant.ofEpochMilli(f.timestamp))} ${f.file} (${f.count} features)")
       }
     }
   }

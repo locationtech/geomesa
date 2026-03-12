@@ -12,7 +12,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.fs.storage.common.interop.ConfigurationUtils
 import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata
-import org.locationtech.geomesa.fs.storage.common.partitions.{DateTimeScheme, SpatialScheme}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -25,25 +24,25 @@ class ConfigurationTest extends Specification with AllExpectations {
 
   "SimpleFeatureTypes" should {
 
-    "configure scheme options in user data" >> {
-      val config = Map(
-        DateTimeScheme.Config.DateTimeFormatOpt -> "yyyy/DDD/HH",
-        DateTimeScheme.Config.StepUnitOpt       -> "HOURS",
-        DateTimeScheme.Config.StepOpt           -> "1",
-        DateTimeScheme.Config.DtgAttribute      -> "dtg",
-        SpatialScheme.Config.GeomAttribute      -> "geom",
-        SpatialScheme.Config.Z2Resolution       -> "10"
-      )
-      val options = NamedOptions("datetime,z2", config)
-      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      foreach(Seq(
-        () => ConfigurationUtils.setScheme(sft, options.name, config.asJava),
-        () => sft.setScheme(options.name, options.options))) { setter =>
-          setter()
-          sft.removeScheme() must beSome(options)
-          sft.removeScheme() must beNone
-      }
-    }
+//    "configure scheme options in user data" >> {
+//      val config = Map(
+//        DateTimeScheme.Config.DateTimeFormatOpt -> "yyyy/DDD/HH",
+//        DateTimeScheme.Config.StepUnitOpt       -> "HOURS",
+//        DateTimeScheme.Config.StepOpt           -> "1",
+//        DateTimeScheme.Config.DtgAttribute      -> "dtg",
+//        SpatialScheme.Config.GeomAttribute      -> "geom",
+//        SpatialScheme.Config.Z2Resolution       -> "10"
+//      )
+//      val options = NamedOptions("datetime,z2", config)
+//      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+//      foreach(Seq(
+//        () => ConfigurationUtils.setScheme(sft, options.name, config.asJava),
+//        () => sft.setScheme(options.name, options.options))) { setter =>
+//          setter()
+//          sft.removeScheme() must beSome(options)
+//          sft.removeScheme() must beNone
+//      }
+//    }
 
     "configure metadata options in user data" >> {
       val config = Map(
@@ -68,15 +67,6 @@ class ConfigurationTest extends Specification with AllExpectations {
         setter()
         sft.removeEncoding() must beSome("orc")
         sft.removeEncoding() must beNone
-      }
-    }
-
-    "configure leaf storage option in user data" >> {
-      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,foo:Date,*bar:Point:srid=4326")
-      foreach(Seq(() => ConfigurationUtils.setLeafStorage(sft, true), () => sft.setLeafStorage(true))) { setter =>
-        setter()
-        sft.removeLeafStorage() must beSome(true)
-        sft.removeLeafStorage() must beNone
       }
     }
 

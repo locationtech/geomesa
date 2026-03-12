@@ -22,7 +22,7 @@ import org.geotools.api.filter.sort.SortOrder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption
-import org.locationtech.geomesa.features.exporters.FileSystemExporter.{OrcFileSystemExporter, ParquetFileSystemExporter}
+import org.locationtech.geomesa.features.exporters.FileSystemExporter.ParquetFileSystemExporter
 import org.locationtech.geomesa.features.exporters._
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
@@ -460,7 +460,7 @@ object ExportCommand extends LazyLogging {
       case ExportFormat.Json       => new GeoJsonExporter(stream)
       case ExportFormat.Leaflet    => new LeafletMapExporter(stream)
       case ExportFormat.Null       => NullExporter
-      case ExportFormat.Orc        => new OrcFileSystemExporter(name)
+//      case ExportFormat.Orc        => new OrcFileSystemExporter(name)
       case ExportFormat.Parquet    => new ParquetFileSystemExporter(name)
       case ExportFormat.Shp        => new ShapefileExporter(new File(name))
       case ExportFormat.Tsv        => DelimitedExporter.tsv(stream, options.headers, fids)

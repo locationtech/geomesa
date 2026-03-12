@@ -12,9 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.api.FileSystemContext
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.orc.io.OrcFileSystemWriter
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.io.PathUtils
 
@@ -65,11 +63,11 @@ object FileSystemExporter extends LazyLogging {
     }
   }
 
-  class OrcFileSystemExporter(path: String) extends FileSystemExporter {
-    override protected def createWriter(sft: SimpleFeatureType): FileSystemWriter = {
-      // use PathUtils.getUrl to handle local files, otherwise default can be in hdfs
-      val file = new Path(PathUtils.getUrl(path).toURI)
-      new OrcFileSystemWriter(sft, FileSystemContext(file, new Configuration()), file)
-    }
-  }
+//  class OrcFileSystemExporter(path: String) extends FileSystemExporter {
+//    override protected def createWriter(sft: SimpleFeatureType): FileSystemWriter = {
+//      // use PathUtils.getUrl to handle local files, otherwise default can be in hdfs
+//      val file = new Path(PathUtils.getUrl(path).toURI)
+//      new OrcFileSystemWriter(sft, FileSystemContext(file, new Configuration()), file)
+//    }
+//  }
 }

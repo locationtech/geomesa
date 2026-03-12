@@ -43,7 +43,7 @@ class ConverterMetadataFactory extends StorageMetadataFactory with LazyLogging {
           val partitionSchemeName =
             Option(context.conf.get(PartitionSchemeParam))
                 .getOrElse(throw new IllegalArgumentException(s"Must provide partition scheme name"))
-          PartitionSchemeFactory.load(sft, NamedOptions(partitionSchemeName, partitionSchemeOpts.toMap))
+          PartitionSchemeFactory.load(sft, partitionSchemeName)
         }
 
         val leafStorage = Option(context.conf.get(LeafStorageParam)).map(_.toBoolean).getOrElse {

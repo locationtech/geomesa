@@ -11,7 +11,7 @@ package metadata
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.hadoop.fs.Path
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -115,32 +115,33 @@ object MetadataJson extends DebugLogProfiling {
     */
   private def transitionMetadata(context: FileSystemContext, config: Config): Option[NamedOptions] = {
     import scala.collection.JavaConverters._
-
-    try {
-      val sft = SimpleFeatureTypes.createType(config.getConfig("featureType"), path = None)
-      val encoding = config.getString("encoding")
-      val scheme = {
-        val schemeConfig = config.getConfig("partitionScheme")
-        val schemeOpts = schemeConfig.getConfig("options")
-        NamedOptions(schemeConfig.getString("scheme"),
-          schemeOpts.entrySet().asScala.map(e => e.getKey -> schemeOpts.getString(e.getKey)).toMap)
-      }
-      val leafStorage = scheme.options.get("leaf-storage").forall(_.toBoolean)
-      val meta = Metadata(sft, encoding, scheme, leafStorage)
-      val partitionConfig = config.getConfig("partitions")
-
-      val defaults = FileBasedMetadata.LegacyOptions
-      WithClose(new FileBasedMetadataFactory().create(context, defaults.options, meta)) { metadata =>
-        partitionConfig.root().entrySet().asScala.foreach { e =>
-          val name = e.getKey
-          val files = partitionConfig.getStringList(name).asScala.map(StorageFile(_, 0L))
-          metadata.addPartition(PartitionMetadata(name, files.toSeq, None, 0L))
-        }
-      }
-
-      Some(defaults)
-    } catch {
-      case NonFatal(e) => logger.warn("Error transitioning old metadata format: ", e); None
-    }
+//
+//    try {
+//      val sft = SimpleFeatureTypes.createType(config.getConfig("featureType"), path = None)
+//      val encoding = config.getString("encoding")
+//      val scheme = {
+//        val schemeConfig = config.getConfig("partitionScheme")
+//        val schemeOpts = schemeConfig.getConfig("options")
+//        NamedOptions(schemeConfig.getString("scheme"),
+//          schemeOpts.entrySet().asScala.map(e => e.getKey -> schemeOpts.getString(e.getKey)).toMap)
+//      }
+//      val leafStorage = scheme.options.get("leaf-storage").forall(_.toBoolean)
+//      val meta = Metadata(sft, encoding, scheme, leafStorage)
+//      val partitionConfig = config.getConfig("partitions")
+//
+//      val defaults = FileBasedMetadata.LegacyOptions
+//      WithClose(new FileBasedMetadataFactory().create(context, defaults.options, meta)) { metadata =>
+//        partitionConfig.root().entrySet().asScala.foreach { e =>
+//          val name = e.getKey
+//          val files = partitionConfig.getStringList(name).asScala.map(StorageFile(_, 0L))
+//          metadata.addPartition(PartitionMetadata(name, files.toSeq, None, 0L))
+//        }
+//      }
+//
+//      Some(defaults)
+//    } catch {
+//      case NonFatal(e) => logger.warn("Error transitioning old metadata format: ", e); None
+//    }
+    None
   }
 }

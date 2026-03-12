@@ -16,7 +16,7 @@ import org.locationtech.geomesa.fs.storage.common.partitions.SpatialScheme.Spati
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.locationtech.jts.geom.Point
 
-case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialScheme(bits, geom) {
+case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialScheme(Z2Scheme.Name, bits, geom) {
 
   import org.locationtech.geomesa.filter.{andFilters, ff}
   import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
@@ -26,11 +26,9 @@ case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSche
   private val xRadius = (360d / math.pow(2, xyBits)) / 2
   private val yRadius = (180d / math.pow(2, xyBits)) / 2
 
-  override def pattern: String = s"$bits-bit-z2"
-
-  override def getPartitionName(feature: SimpleFeature): String = {
+  override def getPartition(feature: SimpleFeature): String = {
     val pt = feature.getAttribute(geomIndex).asInstanceOf[Point]
-    z2.index(pt.getX, pt.getY).formatted(format)
+    format.format(z2.index(pt.getX, pt.getY))
   }
 
   override def getCoveringFilter(partition: String): Filter = {

@@ -10,8 +10,7 @@ package org.locationtech.geomesa.fs.tools
 
 import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
 import org.apache.hadoop.conf.Configuration
-import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
+import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
@@ -85,7 +84,7 @@ object FsDataStoreCommand {
   }
 
   trait PartitionParam {
-    @Parameter(names = Array("--partitions"), description = "Partitions to operate on (if empty all partitions will be used)")
+    @Parameter(names = Array("--partition"), description = "Partition to operate on (if empty all partitions will be used)")
     var partitions: java.util.List[String] = new util.ArrayList[String]()
   }
 
@@ -99,10 +98,7 @@ object FsDataStoreCommand {
 
   trait OptionalSchemeParams {
     @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file")
-    var scheme: java.lang.String = _
-
-    @Parameter(names = Array("--leaf-storage"), description = "Use Leaf Storage for Partition Scheme", arity = 1)
-    var leafStorage: java.lang.Boolean = true
+    var scheme: java.util.List[String] = _
 
     @Parameter(
       names = Array("--storage-opt"),

@@ -19,7 +19,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFileAction, StorageFilePath}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -66,9 +66,10 @@ object StorageConfiguration {
   def setRootPath(conf: Configuration, path: Path): Unit = conf.set(PathKey, path.toString)
   def getRootPath(conf: Configuration): Path = new Path(conf.get(PathKey))
 
-  def setPartitions(conf: Configuration, partitions: Array[String]): Unit =
-    conf.setStrings(PartitionsKey, partitions: _*)
-  def getPartitions(conf: Configuration): Array[String] = conf.getStrings(PartitionsKey)
+  def setPartitions(conf: Configuration, partitions: Seq[Partition]): Unit =
+    conf.setStrings(PartitionsKey, partitions.map(_.id): _*)
+  def getPartitions(conf: Configuration): Seq[Partition] =
+    conf.getStrings(PartitionsKey).toSeq.map(Partition.apply)
 
   def setFileType(conf: Configuration, fileType: FileType): Unit = conf.set(FileTypeKey, fileType.toString)
   def getFileType(conf: Configuration): FileType = FileType.withName(conf.get(FileTypeKey))
@@ -91,13 +92,13 @@ object StorageConfiguration {
     }
   }
 
-  def setPathActions(conf: Configuration, paths: Seq[StorageFilePath]): Unit = {
-    paths.foreach { case StorageFilePath(f, path) =>
-      conf.set(s"$PathActionKey.${path.getName}", s"${f.timestamp}:${f.action}")
+  def setPathActions(conf: Configuration, root: Path, paths: Seq[StorageFile]): Unit = {
+    paths.foreach { file =>
+      conf.set(s"$PathActionKey.${new Path(root, file.file)}", s"${file.timestamp}:${file.action}")
     }
   }
   def getPathAction(conf: Configuration, path: Path): (Long, StorageFileAction) = {
-    val Array(ts, action) = conf.get(s"$PathActionKey.${path.getName}").split(":")
+    val Array(ts, action) = conf.get(s"$PathActionKey.$path").split(":") // TODO verify this, might need relativize to root
     (ts.toLong, StorageFileAction.withName(action))
   }
 

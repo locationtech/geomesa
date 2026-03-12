@@ -20,8 +20,9 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension}
 import org.locationtech.geomesa.fs.storage.api.{CloseableFeatureIterator, FileSystemStorage}
-import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureWriter, FastSettableFeatureWriter}
+import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQuietly, FlushWithLogging}
 
@@ -56,14 +57,17 @@ class FileSystemFeatureStore(
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = {
     val envelope = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    storage.getPartitions(query.getFilter).foreach { partition =>
-      partition.bounds.foreach(b => envelope.expandToInclude(b.envelope))
+    Option(sft.getGeometryDescriptor).foreach { g =>
+      val i = sft.indexOf(g.getLocalName)
+      storage.metadata.getFiles(query.getFilter).foreach { file =>
+        file.file.spatialBounds.find(_.attribute == i).foreach(b => envelope.expandToInclude(b.envelope))
+      }
     }
     envelope
   }
 
   override def getCountInternal(query: Query): Int =
-    storage.getPartitions(query.getFilter).map(_.count).sum.toInt
+    storage.metadata.getFiles(query.getFilter).map(_.file.count).sum.toInt
 
   override def getReaderInternal(original: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     import org.locationtech.geomesa.index.conf.QueryHints._
@@ -152,8 +156,8 @@ object FileSystemFeatureStore {
   class FileSystemFeatureWriterAppend(storage: FileSystemStorage, sft: SimpleFeatureType, timeout: Duration)
       extends FastSettableFeatureWriter with LazyLogging {
 
-    private val removalListener = new RemovalListener[String, Closeable with Flushable]() {
-      override def onRemoval(key: String, value: Closeable with Flushable, cause: RemovalCause): Unit = {
+    private val removalListener = new RemovalListener[Partition, Closeable with Flushable]() {
+      override def onRemoval(key: Partition, value: Closeable with Flushable, cause: RemovalCause): Unit = {
         if (cause == RemovalCause.EXPIRED) {
           logger.info(s"Flushing writer for partition: $key")
           FlushWithLogging(value)
@@ -165,9 +169,9 @@ object FileSystemFeatureStore {
     private val writers =
       Caffeine.newBuilder()
         .expireAfterAccess(timeout.toMillis, TimeUnit.MILLISECONDS)
-        .removalListener[String, FileSystemWriter](removalListener)
-        .build(new CacheLoader[String, FileSystemWriter]() {
-          override def load(partition: String): FileSystemWriter = storage.getWriter(partition)
+        .removalListener[Partition, FileSystemWriter](removalListener)
+        .build(new CacheLoader[Partition, FileSystemWriter]() {
+          override def load(partition: Partition): FileSystemWriter = storage.getWriter(partition)
         })
 
     private val featureIds = new AtomicLong(0)
@@ -184,7 +188,7 @@ object FileSystemFeatureStore {
 
     override def write(): Unit = {
       val sf = GeoMesaFeatureWriter.featureWithFid(feature)
-      writers.get(storage.metadata.scheme.getPartitionName(sf)).write(sf)
+      writers.get(Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(sf))))).write(sf)
       feature = null
     }
 

@@ -39,7 +39,7 @@ package object filter {
    * 1) do not contain further ORs, (i.e., ORs bubble up)
    * 2) only contain at most one AND which is at the top of their 'tree'
    *
-   * Note that this further implies that NOTs have been 'pushed down' and do have not have ANDs nor ORs as children.
+   * Note that this further implies that NOTs have been 'pushed down' and do not have ANDs nor ORs as children.
    *
    * In boolean logic, this form is called disjunctive normal form (DNF).
    *

@@ -32,10 +32,10 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage-parquet-io_${scala.binary.version}</artifactId>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage-orc-io_${scala.binary.version}</artifactId>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>

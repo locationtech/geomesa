@@ -8,20 +8,19 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import org.geotools.filter.visitor.DuplicatingFilterVisitor
-import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
-import org.locationtech.geomesa.fs.storage.common.partitions.ReceiptTimeScheme.BufferingFilterVisitor
-import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter._
 import org.geotools.api.filter.expression.{Expression, Literal, PropertyName}
 import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
 import org.geotools.api.temporal.{Instant, Period}
+import org.geotools.filter.visitor.DuplicatingFilterVisitor
+import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionFilter
+import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.common.partitions.ReceiptTimeScheme.BufferingFilterVisitor
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
 import java.util.Date
-import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 
 /**
@@ -34,21 +33,29 @@ import scala.concurrent.duration.Duration
  */
 case class ReceiptTimeScheme(delegate: DateTimeScheme, buffer: Duration) extends PartitionScheme {
 
-  override val depth: Int = delegate.depth
+  // TODO implement this class
 
-  override val pattern: String = delegate.pattern
+  override def name: String = ???
 
-  override def getPartitionName(feature: SimpleFeature): String = delegate.getPartitionName(feature)
+  override def getPartition(feature: SimpleFeature): String = ???
 
-  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
-    delegate.getSimplifiedFilters(buffered(filter), partition).map { filters =>
-      // always use the full filter since our dates are not guaranteed to match the partition bounds
-      filters.map(f => f.copy(filter = filter))
-    }
-  }
+  override def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]] = ???
 
-  override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] =
-    delegate.getIntersectingPartitions(buffered(filter))
+//  override val depth: Int = delegate.depth
+//
+//  override val pattern: String = delegate.pattern
+//
+//  override def getPartitionName(feature: SimpleFeature): String = delegate.getPartitionName(feature)
+//
+//  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
+//    delegate.getSimplifiedFilters(buffered(filter), partition).map { filters =>
+//      // always use the full filter since our dates are not guaranteed to match the partition bounds
+//      filters.map(f => f.copy(filter = filter))
+//    }
+//  }
+//
+//  override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] =
+//    delegate.getIntersectingPartitions(buffered(filter))
 
   override def getCoveringFilter(partition: String): Filter =
     throw new UnsupportedOperationException("Dates may overlap in multiple partitions")
@@ -67,15 +74,18 @@ object ReceiptTimeScheme {
   }
 
   class ReceiptTimePartitionSchemeFactory extends PartitionSchemeFactory {
-    override def load(sft: SimpleFeatureType, config: NamedOptions): Option[PartitionScheme] = {
-      if (config.name != Name) { None } else {
-        val buffer = config.options.get(Config.BufferOpt).map(Duration.apply).getOrElse(Duration.apply(30, TimeUnit.MINUTES))
-        val dateTimeName = config.options.getOrElse(Config.DateTimeSchemaOpt, DateTimeScheme.Name)
-        val delegate = PartitionSchemeFactory.load(sft, NamedOptions(dateTimeName, config.options)) match {
-          case d: DateTimeScheme => d
-          case s => throw new IllegalArgumentException(s"Expected DateTimeScheme, but got: $s")
-        }
-        Some(ReceiptTimeScheme(delegate, buffer))
+    override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
+      val opts = SchemeOpts(scheme)
+      if (opts.name != Name) { None } else {
+//        val buffer = opts.get(Config.BufferOpt).map(Duration.apply).getOrElse(Duration.apply(30, TimeUnit.MINUTES))
+//        val dateTimeName = opts.getOrElse(Config.DateTimeSchemaOpt, DateTimeScheme.Name)
+//        val delegate = PartitionSchemeFactory.load(sft, NamedOptions(dateTimeName, config.options)) match {
+//          case d: DateTimeScheme => d
+//          case s => throw new IllegalArgumentException(s"Expected DateTimeScheme, but got: $s")
+//        }
+//        Some(ReceiptTimeScheme(delegate, buffer))
+        // TODO
+        ???
       }
     }
   }

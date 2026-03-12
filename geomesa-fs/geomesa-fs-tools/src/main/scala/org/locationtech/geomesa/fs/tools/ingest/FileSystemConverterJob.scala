@@ -18,10 +18,10 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
-import org.locationtech.geomesa.fs.storage.orc.jobs.OrcStorageConfiguration
 import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{DummyReducer, FsIngestMapper}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
@@ -108,28 +108,13 @@ object FileSystemConverterJob {
         dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, root, tmpPath, targetFileSize)
           with ParquetStorageConfiguration
 
-  class OrcConverterJob(
-      dsParams: Map[String, String],
-      sft: SimpleFeatureType,
-      converterConfig: Config,
-      paths: Seq[String],
-      libjarsFiles: Seq[String],
-      libjarsPaths: Iterator[() => Seq[File]],
-      reducers: Int,
-      root: Path,
-      tmpPath: Option[Path],
-      targetFileSize: Option[Long]
-    ) extends FileSystemConverterJob(
-        dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, root, tmpPath, targetFileSize)
-          with OrcStorageConfiguration
-
   class FsIngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritable] with LazyLogging {
 
     type Context = Mapper[LongWritable, SimpleFeature, Text, BytesWritable]#Context
 
     private var serializer: KryoFeatureSerializer = _
     private var metadata: StorageMetadata = _
-    private var scheme: PartitionScheme = _
+    private var scheme: Set[PartitionScheme] = _
 
     var mapped: Counter = _
     var written: Counter = _
@@ -142,7 +127,7 @@ object FileSystemConverterJob {
         throw new IllegalArgumentException(s"Could not load storage instance at path $root")
       }
       serializer = KryoFeatureSerializer(metadata.sft, SerializationOption.defaults)
-      scheme = metadata.scheme
+      scheme = metadata.schemes
 
       mapped = context.getCounter(OutputCounters.Group, "mapped")
       written = context.getCounter(OutputCounters.Group, OutputCounters.Written)
@@ -154,7 +139,7 @@ object FileSystemConverterJob {
       try {
         mapped.increment(1)
         val sfWithFid = GeoMesaFeatureWriter.featureWithFid(sf)
-        val partitionKey = new Text(scheme.getPartitionName(sfWithFid))
+        val partitionKey = new Text(Partition(scheme.map(s => PartitionDimension(s.name, s.getPartition(sfWithFid)))).id)
         context.write(partitionKey, new BytesWritable(serializer.serialize(sfWithFid)))
         written.increment(1)
       } catch {

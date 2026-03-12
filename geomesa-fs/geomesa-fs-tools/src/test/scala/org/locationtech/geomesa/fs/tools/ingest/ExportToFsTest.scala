@@ -16,8 +16,8 @@ import org.geotools.data.memory.MemoryDataStore
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
-import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension, StorageFile}
+import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.tools.`export`.ExportCommand
@@ -29,12 +29,9 @@ import org.specs2.runner.JUnitRunner
 
 import java.io._
 import java.nio.file.Files
-import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
 class ExportToFsTest extends Specification {
-
-  private val counter = new AtomicInteger(0)
 
   var out: java.nio.file.Path = _
 
@@ -61,13 +58,11 @@ class ExportToFsTest extends Specification {
       val storage = {
         val conf = new Configuration()
         val context = FileSystemContext(new Path(out.toUri), conf)
-        val metadata =
-          new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", NamedOptions("daily"), leafStorage = true))
+        val metadata = new FileBasedMetadataFactory().create(context, Map.empty, Metadata(sft, "parquet", Seq("daily")))
         new ParquetFileSystemStorageFactory().apply(context, metadata)
       }
 
-      val file = new File(s"$out/2016/01/01_out.parquet")
+      val file = new File(s"$out/2016_01_01_out.parquet")
 
       WithClose(storage) { storage =>
         val command: ExportCommand[DataStore] = new ExportCommand[DataStore]() {
@@ -80,7 +75,8 @@ class ExportToFsTest extends Specification {
         command.params.file = file.getAbsolutePath
         command.execute()
 
-        storage.metadata.addPartition(PartitionMetadata("2016/01/01", Seq(StorageFile(file.getName, 0L)), None, 2L))
+        // TODO partition is wrong here, doesn't matter for this test but we should fix it
+        storage.metadata.addFile(StorageFile(file.getName, Partition(Set(PartitionDimension(storage.metadata.schemes.head.name, "2016/01/01"))), 0L))
 
         val read = WithClose(storage.getReader(new Query(sft.getTypeName)))(_.toList)
         read mustEqual features

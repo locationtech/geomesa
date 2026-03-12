@@ -81,7 +81,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     val conf = new Configuration(context.conf)
     StorageConfiguration.setSft(conf, readSft)
 
-    new ParquetFileSystemReader(conf, readSft, parquetFilter, gtFilter, visFilter, readTransform)
+    new ParquetFileSystemReader(conf, context.root, readSft, parquetFilter, gtFilter, visFilter, readTransform)
   }
 }
 

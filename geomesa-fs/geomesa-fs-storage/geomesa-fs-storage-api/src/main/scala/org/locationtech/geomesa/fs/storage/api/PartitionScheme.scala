@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.api
 
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionFilter
 
 /**
   * Scheme for partitioning features into various named partitions (e.g. file paths) on disk, for
@@ -20,17 +20,11 @@ import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 trait PartitionScheme {
 
   /**
-    *
-    * @return the max depth this partition scheme goes to
-    */
-  def depth: Int
-
-  /**
-   * Indication of the directory structure, suitable for displaying to a user
+   * Name of this partition scheme
    *
    * @return
    */
-  def pattern: String
+  def name: String
 
   /**
     * Return the partition in which a SimpleFeature should be stored
@@ -38,24 +32,7 @@ trait PartitionScheme {
     * @param feature simple feature
     * @return partition name
     */
-  def getPartitionName(feature: SimpleFeature): String
-
-  /**
-    * Return a list of modified filters and partitions. Each filter will have been simplified to
-    * remove any predicates that are implicitly true for the associated partitions
-    *
-    * If the filter does not constrain partitions at all, then an empty option will be returned,
-    * indicating all partitions must be searched. If the filter excludes all potential partitions,
-    * then an empty list of partitions will be returned
-    *
-    * Note that this operation is based solely on the partition scheme, so may return partitions
-    * that do not actually exist in a given storage instance
-    *
-    * @param filter filter
-    * @param partition query a single partition
-    * @return list of simplified filters and partitions
-    */
-  def getSimplifiedFilters(filter: Filter, partition: Option[String] = None): Option[Seq[SimplifiedFilter]] = None
+  def getPartition(feature: SimpleFeature): String
 
   /**
    * Get partitions that intersect the given filter
@@ -66,7 +43,7 @@ trait PartitionScheme {
    * @param filter filter
    * @return list of intersecting filters
    */
-  def getIntersectingPartitions(filter: Filter): Option[Seq[String]]
+  def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]]
 
   /**
    * Get a filter that will cover a partitions, i.e. the filter will return all features
@@ -81,11 +58,54 @@ trait PartitionScheme {
 object PartitionScheme {
 
   /**
-    * Simplified filter used to optimize queries
-    *
-    * @param filter filter that applies to these partitions
-    * @param partitions list of partitions
-    * @param partial partitions are partial matches (prefixes), or exact partition names
-    */
-  case class SimplifiedFilter(filter: Filter, partitions: Seq[String], partial: Boolean)
+   * Partition filter
+   *
+   * @param bounds list of bounds that satisfy the filter
+   * @param filter additional filter (not captured by the bounds) to apply to any results
+   */
+  case class PartitionFilter(bounds: Seq[PartitionBounds], filter: Option[Filter]) {
+    def contains(value: String): Boolean = bounds.exists(_.contains(value))
+  }
+
+  /**
+   * Bounds for a partition query
+   */
+  sealed trait PartitionBounds {
+
+    /**
+     * Name of the partition scheme
+     *
+     * @return
+     */
+    def name: String
+
+    /**
+     * Is the value contained in this bounds
+     *
+     * @param value partition value
+     * @return
+     */
+    def contains(value: String): Boolean
+  }
+
+  /**
+   * Ranged bounds
+   *
+   * @param name partition scheme name
+   * @param lower lower bound, inclusive
+   * @param upper upper bound, exclusive
+   */
+  case class PartitionRange(name: String, lower: String, upper: String) extends PartitionBounds {
+    override def contains(value: String): Boolean = value >= lower && value < upper
+  }
+
+  /**
+   * Single row bound
+   *
+   * @param name partition scheme name
+   * @param value single row
+   */
+  case class SinglePartition(name: String, value: String) extends PartitionBounds {
+    override def contains(value: String): Boolean = value == this.value
+  }
 }

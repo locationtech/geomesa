@@ -12,11 +12,10 @@ import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, PartitionParam}
-import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.{OrcCompactionJob, ParquetCompactionJob}
+import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.ParquetCompactionJob
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand.CompactCommand
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
 import org.locationtech.geomesa.tools.Command.CommandException
@@ -25,7 +24,6 @@ import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.utils.ParameterConverters.BytesConverter
 import org.locationtech.geomesa.tools.utils.TerminalCallback
-import org.locationtech.geomesa.tools.utils.TerminalCallback.PrintProgress
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 
@@ -40,8 +38,6 @@ object FsCompactCommand {
 
   trait CompactCommand extends FsDataStoreCommand with DistributedCommand with LazyLogging {
 
-    import scala.collection.JavaConverters._
-
     override val name: String = "compact"
     override val params = new CompactParams
 
@@ -54,13 +50,15 @@ object FsCompactCommand {
 
       val storage = ds.storage(params.featureName)
 
-      val toCompact = if (params.partitions.isEmpty) { storage.getPartitions } else {
-        val filtered = params.partitions.asScala.flatMap(storage.metadata.getPartition)
-        if (filtered.lengthCompare(params.partitions.size()) != 0) {
-          val unmatched = params.partitions.asScala.filterNot(name => filtered.exists(_.name == name))
-          throw new ParameterException(s"Partition(s) ${unmatched.mkString(", ")} cannot be found in metadata")
-        }
-        filtered
+      val toCompact = if (params.partitions.isEmpty) { storage.metadata.getFiles().map(_.partition).distinct } else {
+        // TODO need to pass in partitions through args
+//        val filtered = params.partitions.asScala.flatMap(storage.metadata.getFiles(_))
+//        if (filtered.lengthCompare(params.partitions.size()) != 0) {
+//          val unmatched = params.partitions.asScala.filterNot(name => filtered.exists(_.name == name))
+//          throw new ParameterException(s"Partition(s) ${unmatched.mkString(", ")} cannot be found in metadata")
+//        }
+//        filtered
+        ???
       }
 
       val mode = params.mode.getOrElse {
@@ -85,10 +83,10 @@ object FsCompactCommand {
                 new Runnable() {
                   override def run(): Unit = {
                     try {
-                      logger.info(s"Compacting ${p.name}")
-                      storage.compact(Some(p.name), fileSize)
+                      logger.info(s"Compacting ${p.id}")
+                      storage.compact(p, fileSize)
                     } catch {
-                      case NonFatal(e) => logger.error(s"Error processing partition '${p.name}':", e)
+                      case NonFatal(e) => logger.error(s"Error processing partition '${p.id}':", e)
                     } finally {
                       latch.countDown()
                     }
@@ -105,19 +103,14 @@ object FsCompactCommand {
             status("", 1f - latch.getCount.toFloat / total, Seq.empty, done = false)
           }
           status("", 1f, Seq.empty, done = true)
-          Command.user.info("Compacting metadata")
-          storage.metadata.compact(None, None, math.max(1, params.threads))
           Command.user.info(s"Local compaction complete in ${TextTools.getTime(start)}")
 
         case RunModes.Distributed =>
           val encoding = storage.metadata.encoding
-          val job = if (ParquetFileSystemStorage.Encoding.equalsIgnoreCase(encoding)) {
-            new ParquetCompactionJob()
-          } else if (OrcFileSystemStorage.Encoding.equalsIgnoreCase(encoding)) {
-            new OrcCompactionJob()
-          } else {
+          if (!ParquetFileSystemStorage.Encoding.equalsIgnoreCase(encoding)) {
             throw new ParameterException(s"Compaction is not supported for encoding '$encoding'")
           }
+          val job = new ParquetCompactionJob()
           val tempDir = Option(params.tempPath).map(t => new Path(t))
           job.run(storage, toCompact.toSeq, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
             case JobSuccess(message, counts) =>

@@ -51,16 +51,17 @@ class FileBasedMetadataFactory extends StorageMetadataFactory {
   }
 
   override def create(context: FileSystemContext, config: Map[String, String], meta: Metadata): FileBasedMetadata = {
-    val sft = namespaced(meta.sft, context.namespace)
-    // load the partition scheme first in case it fails
-    PartitionSchemeFactory.load(sft, meta.scheme)
-    val renderer = config.get(Config.RenderKey).map(MetadataConverter.apply).getOrElse(RenderCompact)
-    MetadataJson.writeMetadata(context, NamedOptions(name, config + (Config.RenderKey -> renderer.name)))
-    FileBasedMetadataFactory.write(context.fs, context.root, meta)
-    val directory = new Path(context.root, FileBasedMetadataFactory.MetadataDirectory)
-    val metadata = new FileBasedMetadata(context.fs, directory, sft, meta, renderer)
-    FileBasedMetadataFactory.cache.put(FileBasedMetadataFactory.key(context), metadata)
-    metadata
+//    val sft = namespaced(meta.sft, context.namespace)
+//    // load the partition scheme first in case it fails
+//    meta.partitions.foreach(PartitionSchemeFactory.load(sft, _))
+//    val renderer = config.get(Config.RenderKey).map(MetadataConverter.apply).getOrElse(RenderCompact)
+//    MetadataJson.writeMetadata(context, NamedOptions(name, config + (Config.RenderKey -> renderer.name)))
+//    FileBasedMetadataFactory.write(context.fs, context.root, meta)
+//    val directory = new Path(context.root, FileBasedMetadataFactory.MetadataDirectory)
+//    val metadata = new FileBasedMetadata(context.fs, directory, sft, meta, renderer)
+//    FileBasedMetadataFactory.cache.put(FileBasedMetadataFactory.key(context), metadata)
+//    metadata
+    ???
   }
 }
 
@@ -75,19 +76,20 @@ object FileBasedMetadataFactory extends LazyLogging {
     context.namespace.map(ns => s"$ns:${context.root.toUri}").getOrElse(context.root.toUri.toString)
 
   private def cached(context: FileSystemContext, config: Map[String, String]): Option[FileBasedMetadata] = {
-    val loader = new java.util.function.Function[String, FileBasedMetadata]() {
-      override def apply(ignored: String): FileBasedMetadata = {
-        val file = new Path(context.root, StoragePath)
-        if (!PathCache.exists(context.fs, file)) { null } else {
-          val directory = new Path(context.root, MetadataDirectory)
-          val meta = WithClose(context.fs.open(file))(MetadataSerialization.deserialize)
-          val sft = namespaced(meta.sft, context.namespace)
-          val renderer = config.get(Config.RenderKey).map(MetadataConverter.apply).getOrElse(RenderPretty)
-          new FileBasedMetadata(context.fs, directory, sft, meta, renderer)
-        }
-      }
-    }
-    Option(cache.computeIfAbsent(key(context), loader))
+//    val loader = new java.util.function.Function[String, FileBasedMetadata]() {
+//      override def apply(ignored: String): FileBasedMetadata = {
+//        val file = new Path(context.root, StoragePath)
+//        if (!PathCache.exists(context.fs, file)) { null } else {
+//          val directory = new Path(context.root, MetadataDirectory)
+//          val meta = WithClose(context.fs.open(file))(MetadataSerialization.deserialize)
+//          val sft = namespaced(meta.sft, context.namespace)
+//          val renderer = config.get(Config.RenderKey).map(MetadataConverter.apply).getOrElse(RenderPretty)
+//          new FileBasedMetadata(context.fs, directory, sft, meta, renderer)
+//        }
+//      }
+//    }
+//    Option(cache.computeIfAbsent(key(context), loader))
+    ???
   }
 
   /**

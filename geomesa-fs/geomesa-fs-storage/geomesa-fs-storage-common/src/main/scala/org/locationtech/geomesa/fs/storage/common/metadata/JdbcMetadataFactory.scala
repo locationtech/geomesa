@@ -51,7 +51,7 @@ class JdbcMetadataFactory extends StorageMetadataFactory {
 
   override def create(context: FileSystemContext, config: Map[String, String], meta: Metadata): JdbcMetadata = {
     // load the partition scheme first in case it fails
-    PartitionSchemeFactory.load(meta.sft, meta.scheme)
+    meta.partitions.foreach(PartitionSchemeFactory.load(meta.sft, _))
     MetadataJson.writeMetadata(context, NamedOptions(name, config))
     val root = context.root.toUri.toString
     val sft = namespaced(meta.sft, context.namespace)

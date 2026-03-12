@@ -8,75 +8,33 @@
 
 package org.locationtech.geomesa.fs.storage.common.utils
 
-import org.apache.hadoop.fs.Path
+import org.apache.commons.codec.digest.MurmurHash3
 
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 object StorageUtils {
 
-  val LeafSeparator = '_'
-
-  /**
-    * Gets the base directory for a partition
-    *
-    * @param root root path
-    * @param partition partition name
-    * @param leaf leaf storage
-    * @return
-    */
-  def baseDirectory(root: Path, partition: String, leaf: Boolean): Path =
-    if (leaf) { new Path(root, partition).getParent } else { new Path(root, partition) }
-
   /**
     * Get the path for a new data file
     *
-    * @param root storage root path
-    * @param partition partition to write to
-    * @param leaf leaf storage or not
     * @param extension file extension
     * @param fileType file type
     * @return
     */
   def nextFile(
-      root: Path,
-      partition: String,
-      leaf: Boolean,
       extension: String,
       fileType: FileType.FileType,
-      name: String = UUID.randomUUID().toString.replaceAllLiterally("-", "")): Path = {
+      name: String = UUID.randomUUID().toString.replaceAllLiterally("-", "")): String = {
+    // partitioning logic taken from Apache Iceberg: https://iceberg.apache.org/docs/nightly/aws/#object-store-file-layout
     val filename = s"$fileType$name.$extension"
-    val filenameWithLeaf = if (leaf) { s"${partition.split('/').last}$LeafSeparator$filename" } else { filename }
-    new Path(baseDirectory(root, partition, leaf), filenameWithLeaf)
-  }
-
-  /**
-   * Extract the 'leaf' part of a partition name from a file name.
-   *
-   * If file is not from a leafed partition scheme, result is indeterminate and may error.
-   *
-   * @param name file name
-   * @return
-   */
-  def leaf(name: String): String = name.substring(0, name.indexOf(LeafSeparator))
-
-  /**
-    * Returns the file type of the data file, if known
-    *
-    * @param partition partition containing file
-    * @param leaf leaf storage of not
-    * @param path file path
-    * @return
-    */
-  def fileType(partition: String, leaf: Boolean, path: Path): Option[FileType.FileType] = {
-    val pos = if (leaf) { partition.split('/').last.length + 1 } else { 0 }
-    path.getName.charAt(pos) match {
-      case 'W' => Some(FileType.Written)
-      case 'C' => Some(FileType.Compacted)
-      case 'I' => Some(FileType.Imported)
-      case 'M' => Some(FileType.Modified)
-      case 'D' => Some(FileType.Deleted)
-      case _   => None
+    val hash = {
+      val bytes = filename.getBytes(StandardCharsets.UTF_8)
+      val hash = MurmurHash3.hash32x86(bytes, 0, bytes.length, 0)
+      // Integer#toBinaryString excludes leading zeros, which we want to preserve
+      Integer.toBinaryString(hash | Integer.MIN_VALUE)
     }
+    s"/data/${hash.substring(0, 4)}/${hash.substring(4, 8)}/${hash.substring(8, 12)}/${hash.substring(12, 20)}/$filename"
   }
 
   object FileType extends Enumeration {

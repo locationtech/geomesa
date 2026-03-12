@@ -50,21 +50,21 @@ object FsCreateSchemaCommand {
 
     val errors = ListBuffer.empty[String]
 
-    if (params.scheme == null) {
+    if (params.scheme == null || params.scheme.isEmpty) {
       if (sft.getUserData.get(StorageKeys.SchemeKey) == null) {
         errors += "--partition-scheme"
       }
     } else {
-      PartitionSchemeArgResolver.resolve(sft, params.scheme) match {
+      val scheme = params.scheme.asScala.map(PartitionSchemeArgResolver.resolve(sft, _)).collect {
         case Left(e) => throw new ParameterException(e)
-        case Right(s) => sft.setScheme(s.name, s.options)
+        case Right(s) => s
       }
+      sft.setScheme(scheme.mkString(","), Map.empty)
     }
-    sft.setLeafStorage(params.leafStorage)
 
     if (params.encoding == null) {
       if (sft.getUserData.get(StorageKeys.EncodingKey) == null) {
-        errors += "--encoding, -e"
+        sft.setEncoding("parquet")
       }
     } else {
       sft.setEncoding(params.encoding)

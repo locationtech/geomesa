@@ -17,7 +17,6 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
@@ -72,21 +71,13 @@ class FileSystemDataStore(fs: FileSystem, config: FileSystemDataStoreConfig)
           throw new IllegalArgumentException("Encoding type must be specified in either " +
               "the SimpleFeatureType user data or the data store parameters")
         }
-        val leafStorage = sft.removeLeafStorage().getOrElse {
-          val deprecated = scheme.options.get("leaf-storage").map { s =>
-            logger.warn("Using deprecated leaf-storage partition-scheme option. Please define leaf-storage using " +
-                s"""`simpleFeatureType.getUserData.put("${StorageKeys.LeafStorageKey}", "$s")`""")
-            s.toBoolean
-          }
-          deprecated.getOrElse(true)
-        }
         val fileSize = sft.removeTargetFileSize()
 
         val path = manager.defaultPath(sft.getTypeName)
         val context = FileSystemContext(fs, config.conf, path, config.namespace)
 
         val metadata =
-          StorageMetadataFactory.create(context, meta, Metadata(sft, encoding, scheme, leafStorage, fileSize))
+          StorageMetadataFactory.create(context, meta, Metadata(sft, encoding, scheme, fileSize))
         try { manager.register(path, FileSystemStorageFactory(context, metadata)) } catch {
           case NonFatal(e) => CloseQuietly(metadata).foreach(e.addSuppressed); throw e
         }

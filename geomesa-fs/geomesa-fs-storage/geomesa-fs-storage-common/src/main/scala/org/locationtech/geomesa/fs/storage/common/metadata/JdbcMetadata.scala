@@ -11,22 +11,30 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
+import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionBounds, PartitionFilter, PartitionRange, SinglePartition}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, Partition, PartitionDimension, SpatialBounds, StorageFile, StorageFileFilter}
 import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, PartitionSchemeFactory, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.MetadataTable
+import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.text.StringSerialization
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.charset.StandardCharsets
-import java.sql.{Connection, ResultSet, SQLException}
+import java.sql._
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import scala.Array
+import scala.util.control.NonFatal
 
 /**
-  * Storage metadata implementation backed by a SQL database. Currently tested with H2 and Postgres - other
+  * Storage metadata implementation backed by a SQL database. Currently tested with Postgres - other
   * databases may have incompatibilities in the SQL syntax.
   *
-  * Scheme consists of three tables and one seqeuence:
+ * TODO update the docs this isn't right anymore
+ *
+  * Scheme consists of three tables and one sequence:
   *
   * `storage_meta`
   *
@@ -75,15 +83,18 @@ class JdbcMetadata(
     root: String,
     val sft: SimpleFeatureType,
     meta: Metadata
-  ) extends StorageMetadata {
+  ) extends StorageMetadata with LazyLogging {
 
-  import JdbcMetadata.PartitionsTable
+  // TODO back compatibility
+  // TODO allow for schema changes
+
+  import JdbcMetadata.FilesTable
+  import JdbcMetadata.FilesTable.FilesTableFilter
 
   import scala.collection.JavaConverters._
 
-  override val scheme: PartitionScheme = PartitionSchemeFactory.load(sft, meta.scheme)
+  override val schemes: Set[PartitionScheme] = meta.partitions.map(PartitionSchemeFactory.load(sft, _)).toSet
   override val encoding: String = meta.config(Metadata.Encoding)
-  override val leafStorage: Boolean = meta.config(Metadata.LeafStorage).toBoolean
 
   private val kvs = new ConcurrentHashMap[String, String](meta.config.asJava)
 
@@ -96,44 +107,104 @@ class JdbcMetadata(
     }
   }
 
-  override def getPartition(name: String): Option[PartitionMetadata] =
-    WithClose(pool.getConnection())(connection => PartitionsTable.select(connection, root, name))
+  override def addFile(file: StorageFile): Unit =
+    WithClose(pool.getConnection())(FilesTable.insert(_, root, file))
 
-  override def getPartitions(prefix: Option[String]): Seq[PartitionMetadata] =
-    WithClose(pool.getConnection())(connection => PartitionsTable.select(connection, root, prefix))
+  override def removeFile(file: StorageFile): Unit =
+    WithClose(pool.getConnection())(FilesTable.delete(_, root, file))
 
-  override def addPartition(partition: PartitionMetadata): Unit =
-    WithClose(pool.getConnection())(connection => PartitionsTable.insert(connection, root, partition))
+  override def getFiles(): Seq[StorageFile] =
+    WithClose(pool.getConnection())(FilesTable.select(_, root, Seq.empty, Seq.empty, Seq.empty))
 
-  override def removePartition(partition: PartitionMetadata): Unit =
-    WithClose(pool.getConnection())(connection => PartitionsTable.delete(connection, root, partition))
+  override def getFiles(partition: Partition): Seq[StorageFile] = {
+    val filters = partition.dims.toSeq.map(p => SinglePartition(p.name, p.value))
+    WithClose(pool.getConnection())(FilesTable.select(_, root, filters, Seq.empty, Seq.empty))
+  }
 
-  override def setPartitions(partitions: Seq[PartitionMetadata]): Unit = {
-    // TODO execute as a transaction
-    WithClose(pool.getConnection()) { connection =>
-      PartitionsTable.clear(connection, root)
-      partitions.foreach(PartitionsTable.insert(connection, root, _))
+  override def getFiles(filter: Filter): Seq[StorageFileFilter] = {
+    // TODO enforce that files have at least one partition? or verify that logic here doesn't assumes that
+    getFilters(filter) match {
+      case None =>
+        logger.info(s"no filter extracted from ${filter}")
+        val spatialBounds = extractGeometries(filter)
+        val attributeBounds = extractAttributes(filter)
+        WithClose(pool.getConnection()) { cx =>
+          FilesTable.select(cx, root, Seq.empty, spatialBounds, attributeBounds).map(StorageFileFilter(_, Some(filter)))
+        }
+
+      case Some(filters) =>
+        logger.info(s"extracted $filters from ${filter}")
+        if (filters.isEmpty) {
+          Seq.empty // no intersecting partitions
+        } else {
+          WithClose(pool.getConnection()) { cx =>
+            filters.flatMap { f =>
+              FilesTable.select(cx, root, f.partitionsAnd, f.spatialBoundsOr, f.attributeBoundsOr).map(StorageFileFilter(_, f.filter))
+            }
+          }
+        }
     }
   }
 
-  override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
-    // TODO execute as a transaction
-    WithClose(pool.getConnection()) { connection =>
-      partition match {
-        case None =>
-          val current = PartitionsTable.select(connection, root, None)
-          PartitionsTable.clear(connection, root)
-          current.foreach(PartitionsTable.insert(connection, root, _))
-
-        case Some(p) =>
-          val current = PartitionsTable.select(connection, root, p)
-          PartitionsTable.clear(connection, root, p)
-          current.foreach(PartitionsTable.insert(connection, root, _))
+  private def getFilters(filter: Filter): Option[Seq[FilesTableFilter]] = {
+    val iter = schemes.iterator
+    var start: Option[Seq[PartitionFilter]] = None
+    while (start.isEmpty && iter.hasNext) {
+      start = iter.next().getIntersectingPartitions(filter)
+    }
+    start.map { ranges =>
+      val filters = ranges.flatMap { range =>
+        range.bounds.map { bound =>
+          FilesTableFilter(range.filter, Seq(bound), Seq.empty, Seq.empty)
+        }
+      }
+      iter.foldLeft(filters) { case (filters, scheme) => addPartition(scheme, filters) }.map { fileTableFilter =>
+        val spatialBounds = fileTableFilter.filter.fold(Seq.empty[SpatialBounds])(extractGeometries)
+        val attributeBounds = fileTableFilter.filter.fold(Seq.empty[AttributeBounds])(extractAttributes)
+        fileTableFilter.copy(spatialBoundsOr = spatialBounds, attributeBoundsOr = attributeBounds)
       }
     }
   }
 
-  override def invalidate(): Unit = {}
+  private def addPartition(scheme: PartitionScheme, filters: Seq[FilesTableFilter]): Seq[FilesTableFilter] = {
+    val result = Seq.newBuilder[FilesTableFilter]
+    filters.foreach { filesTableFilter =>
+      filesTableFilter.filter.foreach { f =>
+        scheme.getIntersectingPartitions(f) match {
+          case None => result += filesTableFilter
+          case Some(ranges) =>
+            ranges.foreach { range =>
+              range.bounds.foreach { bound =>
+                result += filesTableFilter.copy(range.filter, filesTableFilter.partitionsAnd :+ bound)
+              }
+            }
+        }
+      }
+    }
+    result.result()
+  }
+
+  private def extractGeometries(filter: Filter): Seq[SpatialBounds] = {
+    sft.getAttributeDescriptors.asScala.toSeq
+      .filter(_ == sft.getGeometryDescriptor) // TODO non-default geom bounds
+      .flatMap { d =>
+        FilterHelper.extractGeometries(filter, d.getLocalName).values.flatMap { g =>
+          SpatialBounds(sft.indexOf(d.getLocalName), g.getEnvelopeInternal)
+        }
+      }
+  }
+
+  private def extractAttributes(filter: Filter): Seq[AttributeBounds] = {
+    sft.getAttributeDescriptors.asScala.toSeq
+      .filter(_ => false) // TODO attribute bounds
+      .flatMap { d =>
+        FilterHelper.extractAttributeBounds(filter, d.getLocalName, d.getType.getBinding).values.map { b =>
+          val lower = b.lower.value.map(AttributeIndexKey.typeEncode).getOrElse("")
+          val upper = b.upper.value.map(AttributeIndexKey.typeEncode).getOrElse("zzz")
+          AttributeBounds(sft.indexOf(d.getLocalName), lower, upper)
+        }
+      }
+  }
 
   override def close(): Unit = pool.close()
 }
@@ -158,12 +229,10 @@ object JdbcMetadata extends LazyLogging {
   }
 
   private val RootCol = "\"root\""
-  private val NameCol = "\"name\""
-  private val IdCol   = "\"id\""
 
   private object MetadataTable {
 
-    val TableName = "storage_meta"
+    private val TableName = "storage_meta"
 
     private val ValueCol = "\"value\""
 
@@ -227,343 +296,294 @@ object JdbcMetadata extends LazyLogging {
   /**
     * An add/update/delete partition action. Files associated with each action are stored in the FilesTable
     */
-  private object PartitionsTable {
-
-    val TableName = "storage_partitions"
-
-    private val ActionCol     = "\"action\""
-    private val CountCol      = "\"features\""
-    private val BoundsXMinCol = "\"bounds_xmin\""
-    private val BoundsXMaxCol = "\"bounds_xmax\""
-    private val BoundsYMinCol = "\"bounds_ymin\""
-    private val BoundsYMaxCol = "\"bounds_ymax\""
-
-    private val CreateSequence: String = s"create sequence if not exists ${TableName}_${IdCol.replace("\"", "")}_seq"
-    private val NextIdStatement: String = s"select nextval('${TableName}_${IdCol.replace("\"", "")}_seq')"
-
-    private val CreateStatement: String =
-      s"create table if not exists $TableName (" +
-          s"$RootCol varchar(256) not null, " +
-          s"$NameCol varchar(256) not null, " +
-          s"$IdCol int not null, " +
-          s"$ActionCol char(1) not null, " +
-          s"$CountCol bigint, " +
-          s"$BoundsXMinCol double precision, " +
-          s"$BoundsXMaxCol double precision, " +
-          s"$BoundsYMinCol double precision, " +
-          s"$BoundsYMaxCol double precision, " +
-          s"primary key ($RootCol, $NameCol, $IdCol))"
-
-    private val InsertStatement: String =
-      s"insert into $TableName " +
-          s"($RootCol, $NameCol, $IdCol, $ActionCol, $CountCol, $BoundsXMinCol, $BoundsYMinCol, $BoundsXMaxCol, $BoundsYMaxCol)" +
-          "values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-
-    private val ClearStatement: String = s"delete from $TableName where $RootCol = ?"
-
-    private val ClearPartitionStatement: String = s"delete from $TableName where $RootCol = ? and $NameCol = ?"
-
-    private val BaseSelect: String =
-      s"select $TableName.$NameCol as $NameCol, $TableName.$IdCol as $IdCol, $ActionCol, $CountCol, " +
-          s"$BoundsXMinCol, $BoundsYMinCol, $BoundsXMaxCol, $BoundsYMaxCol, " +
-          s"${FilesTable.FileCol}, ${FilesTable.TypeCol}, ${FilesTable.TimeCol}, " +
-          s"${FilesTable.SortCol}, ${FilesTable.BoundsCol} " +
-          s"from $TableName, ${FilesTable.TableName} where $TableName.$RootCol = ? and " +
-          s"$TableName.$RootCol = ${FilesTable.TableName}.$RootCol " +
-          s"and $TableName.$IdCol = ${FilesTable.TableName}.$IdCol"
-
-    private val SelectStatement: String = s"$BaseSelect and $TableName.$NameCol = ? order by $IdCol"
-
-    private val SelectPrefixStatement: String = s"$BaseSelect and $TableName.$NameCol like ? order by $NameCol, $IdCol"
-
-    private val SelectAllStatement: String = s"$BaseSelect order by $NameCol, $IdCol"
-
-    def create(connection: Connection): Unit = {
-      WithClose(connection.createStatement()){ statement =>
-        statement.executeUpdate(CreateSequence)
-        statement.executeUpdate(CreateStatement)
-      }
-      FilesTable.create(connection)
-    }
-
-    def insert(connection: Connection, root: String, partition: PartitionMetadata): Unit =
-      write(connection, root, 'a', partition)
-
-    def delete(connection: Connection, root: String, partition: PartitionMetadata): Unit =
-      write(connection, root, 'd', partition)
-
-    def clear(connection: Connection, root: String): Unit = {
-      WithClose(connection.prepareStatement(ClearStatement)) { delete =>
-        delete.setString(1, root)
-        delete.executeUpdate()
-      }
-      FilesTable.clear(connection, root)
-    }
-
-    def clear(connection: Connection, root: String, partition: String): Unit = {
-      WithClose(connection.prepareStatement(ClearPartitionStatement)) { delete =>
-        delete.setString(1, root)
-        delete.setString(2, partition)
-        delete.executeUpdate()
-      }
-      FilesTable.clear(connection, root, partition)
-    }
-
-    def select(connection: Connection, root: String, prefix: Option[String]): Seq[PartitionMetadata] = {
-      val configs = prefix match {
-        case None =>
-          WithClose(connection.prepareStatement(SelectAllStatement)) { select =>
-            select.setString(1, root)
-            WithClose(select.executeQuery())(readConfigs)
-          }
-
-        case Some(p) =>
-          WithClose(connection.prepareStatement(SelectPrefixStatement)) { select =>
-            select.setString(1, root)
-            select.setString(2, s"${p.replaceAllLiterally("%", "[%]")}%")
-            WithClose(select.executeQuery())(readConfigs)
-          }
-      }
-      configs.groupBy(_.name).values.flatMap(mergePartitionConfigs).filter(_.files.nonEmpty).map(_.toMetadata).toList
-    }
-
-    def select(connection: Connection, root: String, name: String): Option[PartitionMetadata] = {
-      val configs = WithClose(connection.prepareStatement(SelectStatement)) { select =>
-        select.setString(1, root)
-        select.setString(2, name)
-        WithClose(select.executeQuery())(readConfigs)
-      }
-      mergePartitionConfigs(configs).map(_.toMetadata)
-    }
-
-    private def write(connection: Connection, root: String, action: Char, partition: PartitionMetadata): Unit = {
-      // TODO insert as a single transaction
-      val id = WithClose(connection.prepareStatement(NextIdStatement)) { statement =>
-        WithClose(statement.executeQuery()) { rs => rs.next(); rs.getInt(1) }
-      }
-      WithClose(connection.prepareStatement(InsertStatement)) { statement =>
-        statement.setString(1, root)
-        statement.setString(2, partition.name)
-        statement.setInt(3, id)
-        statement.setString(4, action.toString)
-        statement.setLong(5, partition.count)
-        partition.bounds match {
-          case Some(b) =>
-            statement.setDouble(6, b.xmin)
-            statement.setDouble(7, b.ymin)
-            statement.setDouble(8, b.xmax)
-            statement.setDouble(9, b.ymax)
-
-          case None =>
-            statement.setNull(6, java.sql.Types.DOUBLE)
-            statement.setNull(7, java.sql.Types.DOUBLE)
-            statement.setNull(8, java.sql.Types.DOUBLE)
-            statement.setNull(9, java.sql.Types.DOUBLE)
-        }
-        statement.executeUpdate()
-      }
-      FilesTable.insert(connection, root, partition.name, id, partition.files)
-    }
-
-    private def readConfigs(results: ResultSet): Seq[PartitionConfig] = {
-      if (!results.next()) {
-        return Seq.empty
-      }
-
-      val partitions = Seq.newBuilder[PartitionConfig]
-
-      var partition = results.partition()
-      var files = Seq.newBuilder[StorageFile] += results.file()
-
-      while (results.next()) {
-        if (results.name() == partition.name && results.id() == partition.timestamp) {
-          files += results.file()
-        } else {
-          partitions += partition.copy(files = files.result)
-          partition = results.partition()
-          files = Seq.newBuilder[StorageFile] += results.file()
-        }
-      }
-
-      partitions += partition.copy(files = files.result)
-      partitions.result
-    }
-
-    implicit class RichSelectResults(val results: ResultSet) extends AnyVal {
-
-      def name(): String = results.getString(1)
-      def id(): Int = results.getInt(2)
-
-      def partition(): PartitionConfig = {
-        val action = results.getString(3) match {
-          case "a" => PartitionAction.Add
-          case "d" => PartitionAction.Remove
-          case a => throw new IllegalStateException(s"Expected an action of 'a' or 'd' but got: $a")
-        }
-        val bounds = Seq(results.getDouble(5), results.getDouble(6), results.getDouble(7), results.getDouble(8))
-        PartitionConfig(name(), action, Seq.empty, results.getLong(4), bounds, id())
-      }
-
-      def file(): StorageFile = {
-        val name = results.getString(9)
-        val action = results.getString(10) match {
-          case "a" => StorageFileAction.Append
-          case "m" => StorageFileAction.Modify
-          case "d" => StorageFileAction.Delete
-          case a => throw new IllegalStateException(s"Expected an action of 'a', 'm', or 'd' but got: $a")
-        }
-        val ts = results.getLong(11)
-        val sort = Option(results.getString(12)).collect {
-          case s if s.nonEmpty => s.split(",").map(_.toInt).toSeq
-        }
-        val bounds = Option(results.getString(13)).map { s =>
-          StringSerialization.decodeSeq(s).grouped(3).toSeq.map { case Seq(i, lo, hi) => (i.toInt, lo, hi) }
-        }
-        StorageFile(name, ts, action, sort.getOrElse(Seq.empty), bounds.getOrElse(Seq.empty))
-      }
-    }
-  }
-
-  /**
-    * Files associated with an action. All access should be through PartitionsTable
-    */
   private object FilesTable {
 
-    val TableName = "storage_partition_files"
+    def create(cx: Connection): Unit = {
+      WithClose(cx.createStatement()) { st =>
+        st.executeUpdate(
+          """CREATE TABLE IF NOT EXISTS storage_files (
+            |  id BIGINT PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
+            |  root VARCHAR(256) NOT NULL,
+            |  file VARCHAR(256) NOT NULL,
+            |  count BIGINT NOT NULL,
+            |  action CHAR(1) NOT NULL,
+            |  sort INTEGER[],
+            |  ts TIMESTAMP WITHOUT TIME ZONE NOT NULL
+            |);""".stripMargin
+        )
+        st.executeUpdate(
+          """CREATE TABLE IF NOT EXISTS storage_partitions (
+            |  file_id BIGINT NOT NULL,
+            |  name VARCHAR(64) NOT NULL,
+            |  value VARCHAR(64) NOT NULL,
+            |  PRIMARY KEY (file_id, name),
+            |  CONSTRAINT fk_storage_file
+            |    FOREIGN KEY (file_id)
+            |    REFERENCES storage_files(id)
+            |    ON DELETE CASCADE
+            |);""".stripMargin
+        )
+        st.executeUpdate(
+          """CREATE TABLE IF NOT EXISTS storage_spatial_bounds (
+            |  file_id BIGINT NOT NULL,
+            |  attribute SMALLINT NOT NULL,
+            |  x_min DOUBLE PRECISION,
+            |  x_max DOUBLE PRECISION,
+            |  y_min DOUBLE PRECISION,
+            |  y_max DOUBLE PRECISION,
+            |  PRIMARY KEY (file_id, attribute),
+            |  CONSTRAINT fk_storage_file
+            |    FOREIGN KEY (file_id)
+            |    REFERENCES storage_files(id)
+            |    ON DELETE CASCADE
+            |);""".stripMargin
+        )
+        st.executeUpdate(
+          """CREATE TABLE IF NOT EXISTS storage_attr_bounds (
+            |  file_id BIGINT NOT NULL,
+            |  attribute SMALLINT NOT NULL,
+            |  lower TEXT,
+            |  upper TEXT,
+            |  PRIMARY KEY (file_id, attribute),
+            |  CONSTRAINT fk_storage_file
+            |    FOREIGN KEY (file_id)
+            |    REFERENCES storage_files(id)
+            |    ON DELETE CASCADE
+            |);""".stripMargin
+        )
+        st.executeUpdate("""CREATE INDEX storage_partitions_idx_partition ON storage_partitions(name, value);""")
+        st.executeUpdate("""CREATE INDEX storage_attr_bounds_idx_bounds ON storage_attr_bounds(attribute, lower, upper);""")
+        st.executeUpdate("""CREATE INDEX storage_spatial_bounds_idx_bounds ON storage_spatial_bounds(attribute, x_min, x_max, y_min, y_max);""")
+      }
+    }
 
-    private[JdbcMetadata] val FileCol   = "file"
-    private[JdbcMetadata] val TypeCol   = "typ"
-    private[JdbcMetadata] val TimeCol   = "ts"
-    private[JdbcMetadata] val SortCol   = "sort"
-    private[JdbcMetadata] val BoundsCol = "bounds"
-
-    private val CreateStatement: String =
-      s"create table if not exists $TableName (" +
-          s"$RootCol varchar(256) not null, " +
-          s"$NameCol varchar(256) not null, " +
-          s"$IdCol int not null, " +
-          s"$FileCol varchar(256) not null, " +
-          s"$TypeCol char(1) not null, " +
-          s"$TimeCol bigint, " +
-          s"$SortCol varchar(256), " +
-          s"$BoundsCol varchar(256), " +
-          s"primary key ($RootCol, $NameCol, $IdCol, $FileCol))"
-
-    private val InsertStatement: String =
-      s"insert into $TableName ($RootCol, $NameCol, $IdCol, $FileCol, $TypeCol, $TimeCol, $SortCol, $BoundsCol) " +
-          s"values (?, ?, ?, ?, ?, ?, ?, ?)"
-
-    private val DeleteStatement: String =
-      s"delete from $TableName where $RootCol = ? and and $IdCol = ?"
-
-    private val SelectStatement: String =
-      s"select $FileCol, $TypeCol, $TimeCol, $SortCol, $BoundsCol from $TableName where $RootCol = ? and $IdCol = ?"
-
-    private val ClearStatement: String = s"delete from $TableName where $RootCol = ?"
-
-    private val ClearPartitionStatement: String = s"delete from $TableName where $RootCol = ? and $NameCol = ?"
-
-    def create(connection: Connection): Unit =
-      WithClose(connection.createStatement())(_.executeUpdate(CreateStatement))
-
-    def insert(connection: Connection, root: String, name: String, id: Int, files: Seq[StorageFile]): Unit = {
-      WithClose(connection.prepareStatement(InsertStatement)) { statement =>
-        statement.setString(1, root)
-        statement.setString(2, name)
-        statement.setInt(3, id)
-        files.foreach { case StorageFile(file, timestamp, action, sort, bounds) =>
-          statement.setString(4, file)
-          val char = action match {
-            case StorageFileAction.Append => "a"
-            case StorageFileAction.Modify => "m"
-            case StorageFileAction.Delete => "d"
-            case _ => throw new UnsupportedOperationException(s"Unexpected action: $action")
+    def insert(cx: Connection, root: String, file: StorageFile): Unit = {
+      cx.setAutoCommit(false)
+      try {
+        val id = WithClose(cx.prepareStatement(
+          "INSERT INTO storage_files (root, file, count, action, sort, ts) " +
+            "VALUES (?, ?, ?, ?, ?, ?) RETURNING id", Statement.RETURN_GENERATED_KEYS)) { st =>
+          st.setString(1, root)
+          st.setString(2, file.file)
+          st.setLong(3, file.count)
+          st.setString(4, file.action.toString.substring(0, 1))
+          if (file.sort.isEmpty) {
+            st.setNull(5, java.sql.Types.ARRAY)
+          } else {
+            st.setArray(5, cx.createArrayOf("integer", file.sort.map(Int.box).toArray[AnyRef]))
           }
-          statement.setString(5, char)
-          statement.setLong(6, timestamp)
-          statement.setString(7, sort.mkString(","))
-          statement.setString(8,
-            StringSerialization.encodeSeq(bounds.flatMap { case (i, lo, hi) => Seq(i.toString, lo, hi) }))
-          statement.executeUpdate()
-        }
-      }
-    }
-
-    def delete(connection: Connection, root: String, id: Int): Unit = {
-      WithClose(connection.prepareStatement(DeleteStatement)) { statement =>
-        statement.setString(1, root)
-        statement.setInt(2, id)
-        statement.executeUpdate()
-      }
-    }
-
-    def select(connection: Connection, root: String, id: Int): Seq[StorageFile] = {
-      val files = Seq.newBuilder[StorageFile]
-      WithClose(connection.prepareStatement(SelectStatement)) { select =>
-        select.setString(1, root)
-        select.setInt(2, id)
-        WithClose(select.executeQuery()) { results =>
-          while (results.next()) {
-            val name = results.getString(1)
-            val action = results.getString(2) match {
-              case "a" => StorageFileAction.Append
-              case "m" => StorageFileAction.Modify
-              case "d" => StorageFileAction.Delete
-              case a => throw new IllegalStateException(s"Expected an action of 'a', 'm', or 'd' but got: $a")
+          st.setTimestamp(6, Timestamp.from(Instant.ofEpochMilli(file.timestamp)))
+          st.executeUpdate()
+          WithClose(st.getGeneratedKeys) { rs =>
+            if (rs.next()) {
+              rs.getLong(1)
+            } else {
+              throw new RuntimeException("Failed to retrieve generated key")
             }
-            val ts = results.getLong(3)
-            val sort = Option(results.getString(4)).collect {
-              case s if s.nonEmpty => s.split(",").map(_.toInt).toSeq
-            }
-            val bounds = Option(results.getString(5)).map { s =>
-              StringSerialization.decodeSeq(s).grouped(3).toSeq.map { case Seq(i, lo, hi) => (i.toInt, lo, hi) }
-            }
-            files += StorageFile(name, ts, action, sort.getOrElse(Seq.empty), bounds.getOrElse(Seq.empty))
           }
         }
+        WithClose(cx.prepareStatement("INSERT INTO storage_partitions (file_id, name, value) VALUES (?, ?, ?)")) { st =>
+          file.partition.dims.foreach { p =>
+            st.setLong(1, id)
+            st.setString(2, p.name)
+            st.setString(3, p.value)
+            st.executeUpdate()
+          }
+        }
+        if (file.spatialBounds.nonEmpty) {
+          WithClose(cx.prepareStatement("INSERT INTO storage_spatial_bounds (file_id, attribute, x_min, x_max, y_min, y_max) VALUES (?, ?, ?, ?, ?, ?)")) { st =>
+            file.spatialBounds.foreach { bounds =>
+              st.setLong(1, id)
+              st.setInt(2, bounds.attribute)
+              st.setDouble(3, bounds.xmin)
+              st.setDouble(4, bounds.xmax)
+              st.setDouble(5, bounds.ymin)
+              st.setDouble(6, bounds.ymax)
+              st.executeUpdate()
+            }
+          }
+        }
+        if (file.attributeBounds.nonEmpty) {
+          WithClose(cx.prepareStatement("INSERT INTO storage_attr_bounds (file_id, attribute, lower, upper) VALUES (?, ?, ?, ?)")) { st =>
+            file.attributeBounds.foreach { bounds =>
+              st.setLong(1, id)
+              st.setInt(2, bounds.attribute)
+              st.setString(3, bounds.lower)
+              st.setString(4, bounds.upper)
+              st.executeUpdate()
+            }
+          }
+        }
+        cx.commit()
+      } catch {
+        case NonFatal(e) =>
+          cx.rollback()
+          throw e
+      } finally {
+        cx.setAutoCommit(true)
       }
-      files.result
     }
 
-    def clear(connection: Connection, root: String): Unit = {
-      WithClose(connection.prepareStatement(ClearStatement)) { delete =>
-        delete.setString(1, root)
-        delete.executeUpdate()
+    def delete(cx: Connection, root: String, file: StorageFile): Unit = {
+      cx.setAutoCommit(false)
+      try {
+        WithClose(cx.prepareStatement("DELETE FROM storage_files WHERE root = ? AND file = ?")) { st =>
+          st.setString(1, root)
+          st.setString(2, file.file)
+          st.executeUpdate()
+        }
+        cx.commit()
+      } catch {
+        case NonFatal(e) =>
+          cx.rollback()
+          throw e
+      } finally {
+        cx.setAutoCommit(true)
       }
     }
 
-    def clear(connection: Connection, root: String, partition: String): Unit = {
-      WithClose(connection.prepareStatement(ClearPartitionStatement)) { delete =>
-        delete.setString(1, root)
-        delete.setString(2, partition)
-        delete.executeUpdate()
+    def select(
+        cx: Connection,
+        root: String,
+        partitionsAnd: Seq[PartitionBounds],
+        spatialBoundsOr: Seq[SpatialBounds],
+        attributeBoundsOr: Seq[AttributeBounds],
+      ): Seq[StorageFile] = {
+
+      // TODO filter on spatial/attr bounds
+      // TODO need to ensure that if spatial/attribute bounds don't exist in the table we count that as a match
+
+      // build query with multiple joins - one for each partition filter (AND logic)
+      val partitionJoins = partitionsAnd.zipWithIndex.map {
+        case (SinglePartition(name, value), i) => SingleValueJoin(name, value, s"sp_filter_$i")
+        case (PartitionRange(name, lower, upper), i) => RangeJoin(name, lower, upper, s"sp_filter_$i")
+      }
+      val joinClause = partitionJoins.map { j =>
+        s"JOIN storage_partitions ${j.tableAlias} ON sf.id = ${j.tableAlias}.file_id AND ${j.onClause}"
+      }
+logger.info(joinClause.mkString("\n"))
+      // note: all child tables (partitions, spatial bounds, attribute bounds) are pre-aggregated
+      // in subqueries. This ensures each file returns exactly one row with no Cartesian products.
+      // The sp_filter joins are used for filtering and must remain on the raw partition table.
+      val query =
+        s"""SELECT sf.id, sf.file, sf.count, sf.action, sf.sort, sf.ts,
+           |  sp.partition_names, sp.partition_values,
+           |  sb.sb_attributes, sb.sb_x_mins, sb.sb_x_maxs, sb.sb_y_mins, sb.sb_y_maxs,
+           |  ab.ab_attributes, ab.ab_lowers, ab.ab_uppers
+           |FROM storage_files sf
+           |${joinClause.mkString("\n")}
+           |LEFT JOIN (
+           |  SELECT file_id,
+           |    array_agg(name ORDER BY name) as partition_names,
+           |    array_agg(value ORDER BY name) as partition_values
+           |  FROM storage_partitions
+           |  GROUP BY file_id
+           |) sp ON sf.id = sp.file_id
+           |LEFT JOIN (
+           |  SELECT file_id,
+           |    array_agg(attribute ORDER BY attribute) as sb_attributes,
+           |    array_agg(x_min ORDER BY attribute) as sb_x_mins,
+           |    array_agg(x_max ORDER BY attribute) as sb_x_maxs,
+           |    array_agg(y_min ORDER BY attribute) as sb_y_mins,
+           |    array_agg(y_max ORDER BY attribute) as sb_y_maxs
+           |  FROM storage_spatial_bounds
+           |  GROUP BY file_id
+           |) sb ON sf.id = sb.file_id
+           |LEFT JOIN (
+           |  SELECT file_id,
+           |    array_agg(attribute ORDER BY attribute) as ab_attributes,
+           |    array_agg(lower ORDER BY attribute) as ab_lowers,
+           |    array_agg(upper ORDER BY attribute) as ab_uppers
+           |  FROM storage_attr_bounds
+           |  GROUP BY file_id
+           |) ab ON sf.id = ab.file_id
+           |WHERE sf.root = ?
+           |ORDER BY sf.id DESC""".stripMargin
+
+      WithClose(cx.prepareStatement(query)) { st =>
+        var paramIndex = 1
+        partitionJoins.foreach { join =>
+          paramIndex += join.apply(st, paramIndex)
+        }
+        st.setString(paramIndex, root)
+        WithClose(st.executeQuery())(toStorageFiles)
       }
     }
 
-    def updateSchema(connection: Connection): Unit = {
-      WithClose(connection.createStatement()) { statement =>
-        val cols = WithClose(statement.executeQuery(s"select * from $TableName limit 1")) { results =>
-          results.getMetaData.getColumnCount
+    private def toStorageFiles(rs: ResultSet): Seq[StorageFile] = {
+      val result = Seq.newBuilder[StorageFile]
+
+      while (rs.next()) {
+        val file = rs.getString(2)
+        val count = rs.getLong(3)
+        val action = rs.getString(4).charAt(0) match {
+          case 'A' => StorageMetadata.StorageFileAction.Append
+          case 'M' => StorageMetadata.StorageFileAction.Modify
+          case 'D' => StorageMetadata.StorageFileAction.Delete
+          case c => throw new IllegalStateException(s"Unknown action: $c")
         }
-        def addTypeAndTime(): Unit = {
-          statement.executeUpdate(s"alter table $TableName add column $TypeCol char(1)")
-          statement.executeUpdate(s"alter table $TableName add column $TimeCol bigint")
-          statement.executeUpdate(s"update $TableName set $TypeCol = 'a', $TimeCol = 0")
-          statement.executeUpdate(s"alter table $TableName alter column $TypeCol set not null")
+        val sort = Option(rs.getArray(5)).fold(Seq.empty[Int])(_.getArray.asInstanceOf[Array[Integer]].map(_.intValue()).toSeq)
+        val timestamp = rs.getTimestamp(6).toInstant.toEpochMilli
+
+        val partitions = {
+          val names = Option(rs.getArray(7)).map(_.getArray.asInstanceOf[Array[String]]).getOrElse(Array.empty)
+          val values = Option(rs.getArray(8)).map(_.getArray.asInstanceOf[Array[String]]).getOrElse(Array.empty)
+          names.indices.map(i => PartitionDimension(names(i), values(i))).toSet
         }
-        def addSortAndBounds(): Unit = {
-          statement.executeUpdate(s"alter table $TableName add column $SortCol varchar(256)")
-          statement.executeUpdate(s"alter table $TableName add column $BoundsCol varchar(256)")
+
+        val spatialBounds = {
+          val attributes = Option(rs.getArray(9)).map(_.getArray.asInstanceOf[Array[java.lang.Short]]).getOrElse(Array.empty)
+          val xMins = Option(rs.getArray(10)).map(_.getArray.asInstanceOf[Array[java.lang.Double]]).getOrElse(Array.empty)
+          val xMaxs = Option(rs.getArray(11)).map(_.getArray.asInstanceOf[Array[java.lang.Double]]).getOrElse(Array.empty)
+          val yMins = Option(rs.getArray(12)).map(_.getArray.asInstanceOf[Array[java.lang.Double]]).getOrElse(Array.empty)
+          val yMaxs = Option(rs.getArray(13)).map(_.getArray.asInstanceOf[Array[java.lang.Double]]).getOrElse(Array.empty)
+          attributes.indices.map { i =>
+            SpatialBounds(attributes(i).intValue(), xMins(i).doubleValue(), yMins(i).doubleValue(), xMaxs(i).doubleValue(), yMaxs(i).doubleValue())
+          }
         }
-        if (cols == 4) {
-          addTypeAndTime()
-          addSortAndBounds()
-        } else if (cols == 6) {
-          addSortAndBounds()
-        } else if (cols != 8) {
-          throw new IllegalStateException(s"Unexpected schema detected for table $TableName: " +
-              s"expected 8 columns, but found $cols")
+
+        val attributeBounds = {
+          val attributes = Option(rs.getArray(14)).map(_.getArray.asInstanceOf[Array[java.lang.Short]]).getOrElse(Array.empty)
+          val lowers = Option(rs.getArray(15)).map(_.getArray.asInstanceOf[Array[String]]).getOrElse(Array.empty)
+          val uppers = Option(rs.getArray(16)).map(_.getArray.asInstanceOf[Array[String]]).getOrElse(Array.empty)
+          attributes.indices.map(i => AttributeBounds(attributes(i).intValue(), lowers(i), uppers(i)))
         }
+
+        result += StorageFile(file, Partition(partitions), count, action, spatialBounds, attributeBounds, sort, timestamp)
+      }
+
+      result.result()
+    }
+
+    case class FilesTableFilter(
+        filter: Option[Filter],
+        partitionsAnd: Seq[PartitionBounds],
+        spatialBoundsOr: Seq[SpatialBounds],
+        attributeBoundsOr: Seq[AttributeBounds]
+      )
+
+    private trait PartitionJoin {
+      def tableAlias: String
+      def onClause: String
+      def apply(st: PreparedStatement, i: Int): Int
+    }
+
+    private case class SingleValueJoin(name: String, value: String, tableAlias: String) extends PartitionJoin {
+      override def onClause: String = s"$tableAlias.name = ? AND $tableAlias.value = ?"
+      override def apply(st: PreparedStatement, i: Int): Int = {
+        st.setString(i, name)
+        st.setString(i + 1, value)
+        2
+      }
+    }
+
+    private case class RangeJoin(name: String, lower: String, upper: String, tableAlias: String) extends PartitionJoin {
+      override def onClause: String = s"$tableAlias.name = ? AND $tableAlias.value >= ? AND $tableAlias.value < ?"
+      override def apply(st: PreparedStatement, i: Int): Int = {
+        st.setString(i, name)
+        st.setString(i + 1, lower)
+        st.setString(i + 2, upper)
+        3
       }
     }
   }
@@ -575,16 +595,8 @@ object JdbcMetadata extends LazyLogging {
     * @param root root path
     * @return
     */
-  def load(pool: PoolingDataSource[PoolableConnection], root: String): Option[Metadata] = {
-    WithClose(pool.getConnection()) { connection =>
-      val metadata = MetadataTable.select(connection, root)
-      if (metadata.isDefined) {
-        // migrate old data schemas if needed
-        FilesTable.updateSchema(connection)
-      }
-      metadata
-    }
-  }
+  def load(pool: PoolingDataSource[PoolableConnection], root: String): Option[Metadata] =
+    WithClose(pool.getConnection())(MetadataTable.select(_, root))
 
   /**
     * Persists metadata into a new table
@@ -594,10 +606,10 @@ object JdbcMetadata extends LazyLogging {
     * @param metadata simple feature type, file encoding, partition scheme, etc
     */
   def create(pool: PoolingDataSource[PoolableConnection], root: String, metadata: Metadata): Unit = {
-    WithClose(pool.getConnection()) { connection =>
-      MetadataTable.create(connection)
-      MetadataTable.insert(connection, root, metadata)
-      PartitionsTable.create(connection)
+    WithClose(pool.getConnection()) { cx =>
+      MetadataTable.create(cx)
+      MetadataTable.insert(cx, root, metadata)
+      FilesTable.create(cx)
     }
   }
 }

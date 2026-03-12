@@ -27,6 +27,7 @@ import scala.util.control.NonFatal
 
 class ConverterFileSystemReader(
     fs: FileSystem,
+    root: Path,
     converter: SimpleFeatureConverter,
     filter: Option[Filter],
     transform: Option[(String, SimpleFeatureType)],
@@ -37,7 +38,8 @@ class ConverterFileSystemReader(
 
   private lazy val pathFilter: Option[PathFilter] = pathFiltering.flatMap(pf => filter.map(pf.apply))
 
-  override def read(path: Path): CloseableIterator[SimpleFeature] = {
+  override def read(file: String): CloseableIterator[SimpleFeature] = {
+    val path = new Path(root, file)
     if (pathFilter.forall(_.accept(path))) {
       logger.debug(s"Opening file $path")
       val iter = try {

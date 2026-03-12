@@ -15,16 +15,14 @@ import org.locationtech.geomesa.fs.storage.common.partitions.SpatialScheme.Spati
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.locationtech.jts.geom.Geometry
 
-case class XZ2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialScheme(bits, geom) {
+case class XZ2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialScheme(XZ2Scheme.Name, bits, geom) {
 
   private val xz2 = XZ2SFC((bits / 2).asInstanceOf[Short])
 
-  override def pattern: String = s"$bits-bit-xz2"
-
-  override def getPartitionName(feature: SimpleFeature): String = {
+  override def getPartition(feature: SimpleFeature): String = {
     val geometry = feature.getAttribute(geom).asInstanceOf[Geometry]
     val envelope = geometry.getEnvelopeInternal
-    xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY).formatted(format)
+    format.format(xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY))
   }
 
   // TODO https://geomesa.atlassian.net/browse/GEOMESA-2967

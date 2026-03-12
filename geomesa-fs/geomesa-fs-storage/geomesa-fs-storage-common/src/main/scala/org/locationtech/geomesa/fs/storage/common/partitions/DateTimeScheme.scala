@@ -11,241 +11,162 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
-import org.locationtech.geomesa.utils.text.DateParsing
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, SinglePartition}
+import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 
-import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
-import java.time.temporal.{ChronoField, ChronoUnit, TemporalAdjusters, WeekFields}
-import java.time.{DayOfWeek, ZoneOffset, ZonedDateTime}
-import java.util.Date
-import scala.collection.mutable.ListBuffer
-import scala.util.control.NonFatal
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.util.{Date, Locale}
 
 case class DateTimeScheme(
-    formatter: DateTimeFormatter,
-    pattern: String,
-    stepUnit: ChronoUnit,
-    step: Int,
     dtg: String,
-    dtgIndex: Int
+    dtgIndex: Int,
+    unit: ChronoUnit,
   ) extends PartitionScheme {
 
   import FilterHelper.ff
-  import org.locationtech.geomesa.filter.{andOption, isTemporalFilter, partitionSubFilters}
 
-  import ChronoUnit._
+  private val alias = AttributeIndexKey.alias(classOf[Integer])
 
-  private val truncateToPartitionStart: ZonedDateTime => ZonedDateTime = {
-    // note: `truncatedTo` is only valid up to DAYS, other units require additional steps
-    val truncate: ZonedDateTime => ZonedDateTime = stepUnit match {
-      case NANOS | MICROS | MILLIS | SECONDS | MINUTES | HOURS | DAYS =>
-        dt => dt.truncatedTo(stepUnit)
+  override val name: String = s"${unit.name().toLowerCase(Locale.US)}:attribute=$dtg"
 
-      case WEEKS =>
-        val adjuster = TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY) // note: java day_of_week defines monday as the first day
-        dt => dt.`with`(adjuster).truncatedTo(DAYS)
+  override def getPartition(feature: SimpleFeature): String =
+    toPartition(ZonedDateTime.ofInstant(feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant, ZoneOffset.UTC))
 
-      case MONTHS =>
-        val adjuster = TemporalAdjusters.firstDayOfMonth()
-        dt => dt.`with`(adjuster).truncatedTo(DAYS)
-
-      case YEARS =>
-        val adjuster = TemporalAdjusters.firstDayOfYear()
-        dt => dt.`with`(adjuster).truncatedTo(DAYS)
-
-      case _ =>
-        throw new IllegalArgumentException(s"${DateTimeScheme.Config.StepUnitOpt} $stepUnit is not supported")
-    }
-    if (step == 1) {
-      truncate
+  override def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]] = {
+    val bounds = FilterHelper.extractIntervals(filter, dtg)
+    if (bounds.isEmpty) {
+      None
+    } else if (bounds.disjoint) {
+      Some(Seq.empty)
     } else {
-      val chronoField = stepUnit match {
-        case NANOS   => ChronoField.NANO_OF_SECOND
-        case MICROS  => ChronoField.MICRO_OF_SECOND
-        case MILLIS  => ChronoField.MILLI_OF_SECOND
-        case SECONDS => ChronoField.SECOND_OF_MINUTE
-        case MINUTES => ChronoField.MINUTE_OF_HOUR
-        case HOURS   => ChronoField.HOUR_OF_DAY
-        case DAYS    => ChronoField.DAY_OF_YEAR
-        case WEEKS   => WeekFields.ISO.weekOfWeekBasedYear()
-        case MONTHS  => ChronoField.MONTH_OF_YEAR
-        case YEARS   => ChronoField.YEAR
-        case _ => throw new IllegalArgumentException(s"${DateTimeScheme.Config.StepUnitOpt} $stepUnit is not supported")
+      val rangeFilter = Some(filter)
+      // TODO we should be able to remove some of the filters
+      val ranges = bounds.values.map { bound =>
+        if (bound.isEquals) {
+          SinglePartition(name, toPartition(bound.lower.value.get))
+        } else {
+          // TODO handle inclusive upper endpoints
+          val lower = bound.lower.value.map(toPartition).getOrElse("")
+          val upper = bound.upper.value.map(toPartition).getOrElse("zzz") // TODO
+          PartitionRange(name, lower, upper)
+        }
       }
-      val min = math.max(chronoField.range().getMinimum, 0).toInt // account for 1-based fields like {month, week, day}_of_year
-      truncate.andThen { dt =>
-        val steps = dt.get(chronoField) - min
-        val remainder = steps % step
-        if (remainder == 0) { dt } else { dt.`with`(chronoField, steps + min - remainder ) }
-      }
+      Some(Seq(PartitionFilter(ranges, rangeFilter)))
     }
   }
-
-  // TODO This may not be the best way to calculate max depth...
-  // especially if we are going to use other separators
-  override val depth: Int = pattern.count(_ == '/') + 1
-
-  override def getPartitionName(feature: SimpleFeature): String = {
-    val dt = ZonedDateTime.ofInstant(feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant, ZoneOffset.UTC)
-    formatter.format(truncateToPartitionStart(dt))
-  }
-
-  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
-    getCoveringPartitions(filter).map { case (covered, intersecting) =>
-      val result = Seq.newBuilder[SimplifiedFilter]
-
-      if (covered.nonEmpty) {
-        // remove the temporal filter that we've already accounted for in our covered partitions
-        val coveredFilter = andOption(partitionSubFilters(filter, isTemporalFilter(_, dtg))._2)
-        result += SimplifiedFilter(coveredFilter.getOrElse(Filter.INCLUDE), covered, partial = false)
-      }
-      if (intersecting.nonEmpty) {
-        result += SimplifiedFilter(filter, intersecting, partial = false)
-      }
-
-      partition match {
-        case None => result.result
-        case Some(p) =>
-          val matched = result.result.find(_.partitions.contains(p))
-          matched.map(_.copy(partitions = Seq(p))).toSeq
-      }
-    }
-  }
-
-  override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] =
-    getCoveringPartitions(filter).map { case (covered, intersecting) => (covered ++ intersecting).sorted }
 
   override def getCoveringFilter(partition: String): Filter = {
-    val zdt = DateParsing.parse(partition, formatter)
-    val start = DateParsing.format(zdt)
-    val end = DateParsing.format(zdt.plus(step, stepUnit))
+    val offset = AttributeIndexKey.decode(alias, partition).asInstanceOf[Integer]
+    val start = DateTimeScheme.Epoch.plus(offset.longValue(), unit)
+    val end = start.plus(1, unit)
     ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(start)), ff.less(ff.property(dtg), ff.literal(end)))
   }
 
-  private def getCoveringPartitions(filter: Filter): Option[(Seq[String], Seq[String])] = {
-    val bounds = FilterHelper.extractIntervals(filter, dtg, handleExclusiveBounds = false)
-    if (bounds.disjoint) {
-      Some((Seq.empty, Seq.empty))
-    } else if (bounds.isEmpty || !bounds.forall(_.isBoundedBothSides)) {
-      None
-    } else {
-      // there should be no duplicates in covered partitions, as our bounds will not overlap,
-      // but there may be multiple partial intersects with a given partition
-      val covered = ListBuffer.empty[String]
-      val intersecting = ListBuffer.empty[String]
-
-      bounds.values.foreach { bound =>
-        // note: we verified both sides are bounded above
-        val lower = bound.lower.value.get
-        val upper = bound.upper.value.get
-        val start = truncateToPartitionStart(lower)
-        val end = truncateToPartitionStart(upper)
-
-        // do our endpoints match the partition boundary, or do we need to apply a filter to the first/last partition?
-        val lowerBoundCovered = bound.lower.inclusive && lower == start
-
-        // `stepUnit.between` claims to be upper endpoint exclusive, but doesn't seem to be...
-        val steps = stepUnit.between(start, end).toInt
-        if (steps < step) {
-          if (lowerBoundCovered &&
-              ((bound.upper.exclusive && upper == end) || (bound.upper.inclusive && upper == end.plus(step, stepUnit).minus(1, MILLIS)))) {
-            covered += formatter.format(start)
-          } else {
-            intersecting += formatter.format(start)
-          }
-        } else {
-          if (lowerBoundCovered) {
-            covered += formatter.format(start)
-          } else {
-            intersecting += formatter.format(start)
-          }
-          covered ++= Iterator.iterate(start)(_.plus(step, stepUnit)).drop(1).takeWhile(_.isBefore(end)).map(formatter.format)
-          if (bound.upper.inclusive || upper != end) {
-            intersecting += formatter.format(end)
-          }
-        }
-      }
-
-      Some((covered.toSeq, intersecting.distinct.toSeq))
-    }
+  private def toPartition(dt: ZonedDateTime): String = {
+    require(!dt.isBefore(DateTimeScheme.Epoch), s"Date exceeds minimum indexable value (${DateTimeScheme.Epoch}): $dt")
+    AttributeIndexKey.encodeForQuery(unit.between(DateTimeScheme.Epoch, dt).toInt, classOf[Integer])
   }
+//
+//  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
+//    getCoveringPartitions(filter).map { case (covered, intersecting) =>
+//      val result = Seq.newBuilder[SimplifiedFilter]
+//
+//      if (covered.nonEmpty) {
+//        // remove the temporal filter that we've already accounted for in our covered partitions
+//        val coveredFilter = andOption(partitionSubFilters(filter, isTemporalFilter(_, dtg))._2)
+//        result += SimplifiedFilter(coveredFilter.getOrElse(Filter.INCLUDE), covered, partial = false)
+//      }
+//      if (intersecting.nonEmpty) {
+//        result += SimplifiedFilter(filter, intersecting, partial = false)
+//      }
+//
+//      partition match {
+//        case None => result.result
+//        case Some(p) =>
+//          val matched = result.result.find(_.partitions.contains(p))
+//          matched.map(_.copy(partitions = Seq(p))).toSeq
+//      }
+//    }
+//  }
+//
+//  override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] =
+//    getCoveringPartitions(filter).map { case (covered, intersecting) => (covered ++ intersecting).sorted }
+//
+//  private def getCoveringPartitions(filter: Filter): Option[(Seq[String], Seq[String])] = {
+//    val bounds = FilterHelper.extractIntervals(filter, dtg, handleExclusiveBounds = false)
+//    if (bounds.disjoint) {
+//      Some((Seq.empty, Seq.empty))
+//    } else if (bounds.isEmpty || !bounds.forall(_.isBoundedBothSides)) {
+//      None
+//    } else {
+//      // there should be no duplicates in covered partitions, as our bounds will not overlap,
+//      // but there may be multiple partial intersects with a given partition
+//      val covered = ListBuffer.empty[String]
+//      val intersecting = ListBuffer.empty[String]
+//
+//      bounds.values.foreach { bound =>
+//        // note: we verified both sides are bounded above
+//        val lower = bound.lower.value.get
+//        val upper = bound.upper.value.get
+//        val start = truncateToPartitionStart(lower)
+//        val end = truncateToPartitionStart(upper)
+//
+//        // do our endpoints match the partition boundary, or do we need to apply a filter to the first/last partition?
+//        val lowerBoundCovered = bound.lower.inclusive && lower == start
+//
+//        // `stepUnit.between` claims to be upper endpoint exclusive, but doesn't seem to be...
+//        val steps = stepUnit.between(start, end).toInt
+//        if (steps < step) {
+//          if (lowerBoundCovered &&
+//              ((bound.upper.exclusive && upper == end) || (bound.upper.inclusive && upper == end.plus(step, stepUnit).minus(1, MILLIS)))) {
+//            covered += formatter.format(start)
+//          } else {
+//            intersecting += formatter.format(start)
+//          }
+//        } else {
+//          if (lowerBoundCovered) {
+//            covered += formatter.format(start)
+//          } else {
+//            intersecting += formatter.format(start)
+//          }
+//          covered ++= Iterator.iterate(start)(_.plus(step, stepUnit)).drop(1).takeWhile(_.isBefore(end)).map(formatter.format)
+//          if (bound.upper.inclusive || upper != end) {
+//            intersecting += formatter.format(end)
+//          }
+//        }
+//      }
+//
+//      Some((covered.toSeq, intersecting.distinct.toSeq))
+//    }
+//  }
+
 }
 
 object DateTimeScheme {
 
-  val Name = "datetime"
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  def apply(format: String, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int): DateTimeScheme =
-    DateTimeScheme(DateTimeFormatter.ofPattern(format), format, stepUnit, step, dtg, dtgIndex)
-
-  object Config {
-    val DateTimeFormatOpt: String = "datetime-format"
-    val StepUnitOpt      : String = "step-unit"
-    val StepOpt          : String = "step"
-    val DtgAttribute     : String = "dtg-attribute"
-  }
-
-  object Formats {
-
-    def apply(name: String): Option[Format] = all.find(_.name.equalsIgnoreCase(name))
-
-    case class Format private[Formats](name: String, formatter: DateTimeFormatter, pattern: String, unit: ChronoUnit)
-
-    private[Formats] object Format {
-      def apply(name: String, format: String, unit: ChronoUnit): Format =
-        Format(name, DateTimeFormatter.ofPattern(format), format, unit)
-    }
-
-    val Minute       : Format = Format("minute",        "yyyy/MM/dd/HH/mm", ChronoUnit.MINUTES)
-    val Hourly       : Format = Format("hourly",        "yyyy/MM/dd/HH",    ChronoUnit.HOURS  )
-    val Daily        : Format = Format("daily",         "yyyy/MM/dd",       ChronoUnit.DAYS   )
-    val Monthly      : Format = Format("monthly",       "yyyy/MM",          ChronoUnit.MONTHS )
-    val JulianMinute : Format = Format("julian-minute", "yyyy/DDD/HH/mm",   ChronoUnit.MINUTES)
-    val JulianHourly : Format = Format("julian-hourly", "yyyy/DDD/HH",      ChronoUnit.HOURS  )
-    val JulianDaily  : Format = Format("julian-daily",  "yyyy/DDD",         ChronoUnit.DAYS   )
-
-    // java.time doesn't seem to have a way to parse back out a year/week format...
-    // to get around that we have to define the default day of week in the formatter
-    val Weekly: Format = {
-      val formatter =
-        new DateTimeFormatterBuilder()
-          .appendValue(WeekFields.ISO.weekBasedYear(), 4)
-          .appendLiteral("/W")
-          .appendValue(WeekFields.ISO.weekOfWeekBasedYear(), 2)
-          .parseDefaulting(ChronoField.DAY_OF_WEEK, 1)
-          .toFormatter()
-      Format("weekly", formatter, "YYYY/'W'ww", ChronoUnit.WEEKS)
-    }
-
-    private val all = Seq(Minute, Hourly, Daily, Weekly, Monthly, JulianMinute, JulianHourly, JulianDaily)
-  }
+  private val Epoch: ZonedDateTime = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC)
 
   class DateTimePartitionSchemeFactory extends PartitionSchemeFactory {
-    override def load(sft: SimpleFeatureType, config: NamedOptions): Option[PartitionScheme] = {
-      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-      lazy val step = config.options.get(Config.StepOpt).map(_.toInt).getOrElse(1)
-      lazy val dtg = config.options.get(Config.DtgAttribute).orElse(sft.getDtgField).getOrElse {
-        throw new IllegalArgumentException(s"DateTime scheme requires valid attribute '${Config.DtgAttribute}'")
+    override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
+      val opts = SchemeOpts(scheme)
+      val unit = opts.name match {
+        case "year"  | "years"  | "yearly"  => Some(ChronoUnit.YEARS)
+        case "month" | "months" | "monthly" => Some(ChronoUnit.MONTHS)
+        case "week"  | "weeks"  | "weekly"  => Some(ChronoUnit.WEEKS)
+        case "day"   | "days"   | "daily"   => Some(ChronoUnit.DAYS)
+        case "hour"  | "hours"  | "hourly"  => Some(ChronoUnit.HOURS)
+        case _ => None
       }
-      lazy val dtgIndex = Some(sft.indexOf(dtg)).filter(_ != -1).getOrElse {
-        throw new IllegalArgumentException(s"Attribute '$dtg' does not exist in feature type ${sft.getTypeName}")
-      }
-
-      if (config.name == Name) {
-        val unit = config.options.get(Config.StepUnitOpt).map(c => ChronoUnit.valueOf(c.toUpperCase)).getOrElse {
-          throw new IllegalArgumentException(s"DateTime scheme requires valid unit '${Config.StepUnitOpt}'")
-        }
-        val format = config.options.getOrElse(Config.DateTimeFormatOpt,
-          throw new IllegalArgumentException(s"DateTime scheme requires valid format '${Config.DateTimeFormatOpt}'"))
-        require(!format.endsWith("/"), "Format cannot end with a slash")
-        val formatter = try { DateTimeFormatter.ofPattern(format) } catch {
-          case NonFatal(e) => throw new IllegalArgumentException(s"Invalid date format '$format':", e)
-        }
-        Some(DateTimeScheme(formatter, format, unit, step, dtg, dtgIndex))
-      } else {
-        Formats(config.name).map(f => DateTimeScheme(f.formatter, f.pattern, f.unit, step, dtg, dtgIndex))
+      unit.map { u =>
+        val dtg = opts.getSingle("attribute").orElse(sft.getDtgField).orNull
+        require(dtg != null, s"Date scheme requires an attribute to be specified with 'attribute=<attribute>'")
+        val index = sft.indexOf(dtg)
+        require(index != -1, s"Attribute '$dtg' does not exist in schema '${sft.getTypeName}'")
+        DateTimeScheme(dtg, index, u)
       }
     }
   }

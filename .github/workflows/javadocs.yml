@@ -37,7 +37,7 @@ jobs:
           - name: fs
             list: geomesa-fs/geomesa-fs-datastore,geomesa-fs/geomesa-fs-dist,geomesa-fs/geomesa-fs-gs-plugin,geomesa-fs/geomesa-fs-spark,geomesa-fs/geomesa-fs-tools
           - name: fs-storage
-            list: geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-api,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-convert,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc-io,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet-io
+            list: geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-api,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-convert,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet-io
           - name: gt
             list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools
           - name: hbase

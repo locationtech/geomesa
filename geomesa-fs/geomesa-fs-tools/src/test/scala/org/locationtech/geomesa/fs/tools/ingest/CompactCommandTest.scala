@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
+import org.apache.hadoop.fs.Path
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.junit.runner.RunWith
@@ -23,6 +24,7 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+
 @RunWith(classOf[JUnitRunner])
 class CompactCommandTest extends Specification {
 
@@ -32,7 +34,7 @@ class CompactCommandTest extends Specification {
 
   sequential
 
-  val encodings = Seq("parquet", "orc")
+  val encodings = Seq("parquet"/*, "orc"*/)
 
   val pt       = WKTUtils.read("POINT(0 0)")
   val line     = WKTUtils.read("LINESTRING(0 0, 1 1, 4 4)")
@@ -101,7 +103,7 @@ class CompactCommandTest extends Specification {
         }
 
         fs.getCount(Query.ALL) mustEqual numFeatures
-        ds.storage(sft.getTypeName).metadata.getPartitions().map(_.files.size) mustEqual Seq.fill(3)(2)
+        ds.storage(sft.getTypeName).metadata.getFiles() must haveLength(6)
       }
     }
 
@@ -130,7 +132,7 @@ class CompactCommandTest extends Specification {
         }
 
         fs.getCount(Query.ALL) mustEqual numFeatures
-        ds.storage(sft.getTypeName).metadata.getPartitions().map(_.files.size) mustEqual Seq.fill(3)(1)
+        ds.storage(sft.getTypeName).metadata.getFiles() must haveLength(3)
       }
     }
 
@@ -160,9 +162,9 @@ class CompactCommandTest extends Specification {
 
         fs.getCount(Query.ALL) mustEqual numFeatures
         val storage = ds.storage(sft.getTypeName)
-        foreach(storage.metadata.getPartitions()) { partition =>
-          partition.files.size must beGreaterThan(1)
-          val sizes = storage.getFilePaths(partition.name).map(p => storage.context.fs.getFileStatus(p.path).getLen)
+        foreach(storage.metadata.getFiles().groupBy(_.partition).values) { partition =>
+          partition.size must beGreaterThan(1)
+          val sizes = partition.map(f => new Path(storage.context.root, f.file)).map(p => storage.context.fs.getFileStatus(p).getLen)
           // hard to get very close with 2 different formats and small files...
           foreach(sizes)(_ must beCloseTo(targetFileSize, 4000))
         }

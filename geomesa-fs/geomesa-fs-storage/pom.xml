@@ -20,8 +20,8 @@
         <module>geomesa-fs-storage-api</module>
         <module>geomesa-fs-storage-common</module>
         <module>geomesa-fs-storage-convert</module>
-        <module>geomesa-fs-storage-orc</module>
-        <module>geomesa-fs-storage-orc-io</module>
+        <!--<module>geomesa-fs-storage-orc</module>
+        <module>geomesa-fs-storage-orc-io</module>-->
         <module>geomesa-fs-storage-parquet</module>
         <module>geomesa-fs-storage-parquet-io</module>
     </modules>

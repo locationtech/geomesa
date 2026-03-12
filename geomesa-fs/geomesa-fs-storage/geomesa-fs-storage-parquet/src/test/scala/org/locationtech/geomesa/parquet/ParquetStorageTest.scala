@@ -23,6 +23,7 @@ import org.json.{JSONObject, JSONTokener}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
@@ -52,7 +53,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
   config.set("parquet.compression", "gzip")
 
   // 8 bits resolution creates 3 partitions with our test data
-  lazy val scheme = NamedOptions("z2-8bits")
+  val schemes = Seq("z2:bits=8")
 
   lazy val geoParquetSchema = WithClose(getClass.getClassLoader.getResourceAsStream("geoparquet-1.1.0-schema.json")) { is =>
     SchemaLoader.load(new JSONObject(new JSONTokener(is)))
@@ -79,14 +80,14 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           val context = FileSystemContext(dir, config)
           val metadata =
             new FileBasedMetadataFactory()
-                .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
+                .create(context, Map.empty, Metadata(sft, "parquet", schemes.map(_.name)))
           WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
             storage must not(beNull)
 
-            val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+            val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
             features.foreach { f =>
-              val partition = storage.metadata.scheme.getPartitionName(f)
+              val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
               val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
               writer.write(f)
             }
@@ -95,7 +96,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
 
             logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-            val partitions = storage.getPartitions.map(_.name)
+            val partitions = storage.metadata.getFiles().map(_.partition).distinct
             partitions must haveLength(writers.size)
 
             val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
@@ -121,8 +122,8 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
             WithClose(new ParquetFileSystemStorageFactory().apply(context, loaded.get))(testQuery(_, sft)("INCLUDE", null, features))
 
             // verify GeoParquet metadata
-            foreach(storage.getPartitions.headOption.flatMap(_.files.headOption)) { file =>
-              val path = new Path(dir, file.name)
+            foreach(storage.metadata.getFiles().headOption) { file =>
+              val path = new Path(dir, file.file)
               WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(path, context.conf))) { reader =>
                 val meta = reader.getFileMetaData.getKeyValueMetaData
                 val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
@@ -197,14 +198,14 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           val context = FileSystemContext(dir, config)
           val metadata =
             new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
+              .create(context, Map.empty, Metadata(sft, "parquet", schemes))
           WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
             storage must not(beNull)
 
-            val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+            val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
             features.foreach { f =>
-              val partition = storage.metadata.scheme.getPartitionName(f)
+              val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
               val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
               writer.write(f)
             }
@@ -213,7 +214,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
 
             logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-            val partitions = storage.getPartitions.map(_.name)
+            val partitions = storage.metadata.getFiles().map(_.partition).distinct
             partitions must haveLength(writers.size)
 
             val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
@@ -234,8 +235,8 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
               doTest("age > 5", transforms, features.drop(6))
             }
 
-            foreach(storage.getPartitions.headOption.flatMap(_.files.headOption)) { file =>
-              val path = new Path(dir, file.name)
+            foreach(storage.metadata.getFiles().headOption) { file =>
+              val path = new Path(dir, file.file)
               // verify 3rd party integration by reading with DuckDB
               if (encoding == GeometryEncoding.GeoParquetWkb) {
                 val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
@@ -348,16 +349,16 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
-            .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
+            .create(context, Map.empty, Metadata(sft, "parquet", schemes.map(_.name)))
 
         WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
 
           storage must not(beNull)
 
-          val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = storage.metadata.scheme.getPartitionName(f)
+            val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
@@ -404,14 +405,14 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
+              .create(context, Map.empty, Metadata(sft, "parquet", schemes.map(_.name)))
         WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
           storage must not(beNull)
 
-          val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = storage.metadata.scheme.getPartitionName(f)
+            val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
@@ -466,14 +467,14 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
+              .create(context, Map.empty, Metadata(sft, "parquet", schemes.map(_.name)))
         WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
           storage must not(beNull)
 
-          val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = storage.metadata.scheme.getPartitionName(f)
+            val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
@@ -541,14 +542,14 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true, Some(targetSize)))
+              .create(context, Map.empty, Metadata(sft, "parquet", schemes.map(_.name), Some(targetSize)))
         WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
           storage must not(beNull)
 
-          val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = storage.metadata.scheme.getPartitionName(f)
+            val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
@@ -557,12 +558,12 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
 
           logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-          val partitions = storage.getPartitions.map(_.name)
+          val partitions = storage.metadata.getFiles().map(_.partition).distinct
           partitions must haveLength(writers.size)
           foreach(partitions) { partition =>
-            val paths = storage.getFilePaths(partition)
+            val paths = storage.metadata.getFiles(partition)
             paths.size must beGreaterThan(1)
-            foreach(paths)(p => context.fs.getFileStatus(p.path).getLen must beCloseTo(targetSize, targetSize / 10))
+            foreach(paths)(p => context.fs.getFileStatus(new Path(context.root, p.file)).getLen must beCloseTo(targetSize, targetSize / 10))
           }
         }
       }

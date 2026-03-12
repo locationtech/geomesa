@@ -11,82 +11,62 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, SinglePartition}
+import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 
-import java.util.regex.Pattern
-
-abstract class SpatialScheme(bits: Int, geom: String) extends PartitionScheme {
+abstract class SpatialScheme(id: String, bits: Int, geom: String) extends PartitionScheme {
 
   require(bits % 2 == 0, "Resolution must be an even number")
 
   protected val format = s"%0${digits(bits)}d"
 
+  override val name: String = s"$id:attribute=$geom:bits=$bits"
+
   protected def digits(bits: Int): Int
 
   protected def generateRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[IndexRange]
 
-  override val depth: Int = 1
-
-  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
-    getIntersectingPartitions(filter, partition).map { partitions =>
-      // note: we don't simplify the filter as usually we wouldn't be able to remove much
-      Seq(SimplifiedFilter(filter, partitions, partial = false))
-    }
-  }
-
-  override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] =
-    getIntersectingPartitions(filter, None)
-
-  private def getIntersectingPartitions(filter: Filter, partition: Option[String]): Option[Seq[String]] = {
+  override def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]] = {
     val geometries = FilterHelper.extractGeometries(filter, geom, intersect = true)
-    if (geometries.disjoint) {
-      Some(Seq.empty)
-    } else if (geometries.values.isEmpty) {
+    if (geometries.isEmpty) {
       None
+    } else if (geometries.disjoint) {
+      Some(Seq.empty)
     } else {
-      val partitions = partition.map(Seq(_)).getOrElse {
-        // there should be few enough partitions that we can enumerate them here and not exactly match the filter...
-        val ranges = generateRanges(geometries.values.map(GeometryUtils.bounds))
-        ranges.flatMap(r => r.lower to r.upper).distinct.map(_.formatted(format))
+      // there should be few enough partitions that we can safely enumerate them here
+      val ranges = generateRanges(geometries.values.map(GeometryUtils.bounds)).map { range =>
+        // TODO handle inclusive/exclusive bounds
+        val lower = format.format(range.lower)
+        val upper = format.format(range.upper)
+        if (lower == upper) {
+          SinglePartition(name, lower)
+        } else {
+          PartitionRange(name, lower, upper)
+        }
+
       }
-      Some(partitions)
+      // note: we don't simplify the filter as usually we wouldn't be able to remove much
+      Some(Seq(PartitionFilter(ranges, Some(filter))))
     }
   }
 }
 
 object SpatialScheme {
 
-  object Config {
-    val GeomAttribute: String = "geom-attribute"
-    val Z2Resolution : String = s"${Z2Scheme.Name}-resolution"
-    val XZ2Resolution: String = s"${XZ2Scheme.Name}-resolution"
-  }
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   abstract class SpatialPartitionSchemeFactory(name: String) extends PartitionSchemeFactory {
-
-    private val namePattern: Pattern = Pattern.compile(s"$name(-([0-9]+)bits?)?")
-    private val resolution = s"$name-resolution"
-
-    override def load(sft: SimpleFeatureType, config: NamedOptions): Option[PartitionScheme] = {
-      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-      val matcher = namePattern.matcher(config.name)
-      if (!matcher.matches()) { None } else {
-        val geom = config.options.getOrElse(Config.GeomAttribute, sft.getGeomField)
-        val geomIndex = sft.indexOf(geom)
-        if (geomIndex == -1) {
-          throw new IllegalArgumentException(s"$name scheme requires valid geometry field '${Config.GeomAttribute}'")
-        }
-        val res =
-          Option(matcher.group(2))
-              .filterNot(_.isEmpty)
-              .orElse(config.options.get(resolution))
-              .map(Integer.parseInt)
-              .getOrElse(throw new IllegalArgumentException(s"$name scheme requires bit resolution '$resolution'"))
-        Some(buildPartitionScheme(res, geom, geomIndex))
+    override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
+      val opts = SchemeOpts(scheme)
+      if (opts.name != this.name) { None } else {
+        val geom = opts.getSingle("attribute").orElse(Option(sft.getGeomField)).orNull
+        require(geom != null, s"Spatial schemes requires an attribute to be specified with 'attribute=<attribute>'")
+        val index = sft.indexOf(geom)
+        require(index != -1, s"Attribute '$geom' does not exist in schema '${sft.getTypeName}'")
+        val resolution = opts.getSingle("bits").map(_.toShort).getOrElse(2.toShort)
+        Some(buildPartitionScheme(resolution, geom, index))
       }
     }
 

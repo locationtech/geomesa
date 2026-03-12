@@ -10,26 +10,22 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionFilter
+import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 
 object FlatScheme extends PartitionScheme {
 
-  override val depth: Int = 0
+  override val name: String = "flat"
 
-  override def pattern: String = ""
+  override def getPartition(feature: SimpleFeature): String = ""
 
-  override def getPartitionName(feature: SimpleFeature): String = ""
-
-  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] =
-    Some(Seq(SimplifiedFilter(filter, Seq(""), partial = false)))
-
-  override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] = Some(Seq(""))
+  override def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]] = None
 
   override def getCoveringFilter(partition: String): Filter = Filter.INCLUDE
 
   class FlatPartitionSchemeFactory extends PartitionSchemeFactory {
-    override def load(sft: SimpleFeatureType, config: NamedOptions): Option[PartitionScheme] =
-      if (config.name.equalsIgnoreCase("flat")) { Some(FlatScheme) } else { None }
+    override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] =
+      if (scheme.equalsIgnoreCase("flat")) { Some(FlatScheme) } else { None }
   }
+
 }

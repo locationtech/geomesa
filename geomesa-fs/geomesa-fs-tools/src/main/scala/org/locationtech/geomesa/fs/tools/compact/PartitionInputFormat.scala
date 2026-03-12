@@ -14,7 +14,7 @@ import org.apache.hadoop.mapreduce._
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileAction, StorageFileFilter}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
@@ -47,13 +47,13 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
         val sizeCheck = sizeable.flatMap(s => s.targetSize(fileSize).map(t => (p: Path) => s.fileIsSized(p, t)))
         val splits = StorageConfiguration.getPartitions(conf).map { partition =>
           var size = 0L
-          val files = storage.getFilePaths(partition).filter { f =>
-            if (sizeCheck.exists(_.apply(f.path))) { false } else {
-              size += PathCache.status(fsc.fs, f.path).getLen
+          val files = storage.metadata.getFiles(partition).filter { f =>
+            if (sizeCheck.exists(_.apply(new Path(fsc.root, f.file)))) { false } else {
+              size += PathCache.status(fsc.fs, new Path(fsc.root, f.file)).getLen
               true
             }
           }
-          new PartitionInputSplit(partition, files.map(_.file), size)
+          new PartitionInputSplit(partition.id, files, size)
         }
         java.util.Arrays.asList(splits: _*)
       }
@@ -62,7 +62,7 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext): RecordReader[Void, SimpleFeature] = {
     val psplit = split.asInstanceOf[PartitionInputSplit]
-    new PartitionRecordReader(psplit.getName, psplit.getFiles)
+    new PartitionRecordReader(psplit.getFiles)
   }
 }
 
@@ -101,10 +101,13 @@ object PartitionInputFormat {
       out.writeUTF(name)
       out.writeLong(length)
       out.writeInt(files.length)
-      files.foreach { case StorageFile(file, ts, action, _ , _) =>
-        out.writeUTF(file)
-        out.writeLong(ts)
-        out.writeUTF(action.toString)
+      files.foreach { file =>
+        // TODO bounds, sort
+        out.writeUTF(file.file)
+        out.writeUTF(file.partition.id)
+        out.writeLong(file.count)
+        out.writeUTF(file.action.toString)
+        out.writeLong(file.timestamp)
       }
     }
 
@@ -112,12 +115,12 @@ object PartitionInputFormat {
       this.name = in.readUTF()
       this.length = in.readLong()
       this.files = Seq.fill(in.readInt) {
-        StorageFile(in.readUTF(), in.readLong, StorageFileAction.withName(in.readUTF()))
+        StorageFile(in.readUTF(), Partition(in.readUTF()), in.readLong, StorageFileAction.withName(in.readUTF()), Seq.empty, Seq.empty, Seq.empty, in.readLong())
       }
     }
   }
 
-  class PartitionRecordReader(partition: String, files: Seq[StorageFile]) extends RecordReader[Void, SimpleFeature] {
+  class PartitionRecordReader(files: Seq[StorageFile]) extends RecordReader[Void, SimpleFeature] {
 
     private var storage: FileSystemStorage = _
     private var reader: CloseableFeatureIterator = _
@@ -132,10 +135,9 @@ object PartitionInputFormat {
         throw new IllegalArgumentException(s"No storage defined under path '$root'")
       }
       // use a cached metadata impl instead of reloading
-      val data = PartitionMetadata(partition, files, None, 0L)
-      val cached = new CachedMetadata(metadata.sft, metadata.encoding, metadata.scheme, metadata.leafStorage, data)
+      val cached = new CachedMetadata(metadata.sft, metadata.encoding, metadata.schemes, files)
       storage = FileSystemStorageFactory(fsc, cached)
-      reader = storage.getReader(new Query("", Filter.INCLUDE), Option(partition))
+      reader = storage.getReader(new Query("", Filter.INCLUDE))
       metadata.close()
     }
 
@@ -161,20 +163,14 @@ object PartitionInputFormat {
   class CachedMetadata(
       val sft: SimpleFeatureType,
       val encoding: String,
-      val scheme: PartitionScheme,
-      val leafStorage: Boolean,
-      partition: PartitionMetadata
-  ) extends StorageMetadata {
-    override def getPartition(name: String): Option[PartitionMetadata] =
-      if (partition.name == name) { Some(partition) } else { None }
-    override def getPartitions(prefix: Option[String]): Seq[PartitionMetadata] =
-      if (prefix.forall(partition.name.startsWith)) { Seq(partition) } else { Seq.empty }
-    override def addPartition(partition: PartitionMetadata): Unit = throw new UnsupportedOperationException()
-    override def removePartition(partition: PartitionMetadata): Unit = throw new UnsupportedOperationException()
-    override def setPartitions(partitions: Seq[PartitionMetadata]): Unit = throw new UnsupportedOperationException()
-    override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
-      throw new UnsupportedOperationException()
-    override def invalidate(): Unit = {}
+      val schemes: Set[PartitionScheme],
+      files: Seq[StorageFile],
+    ) extends StorageMetadata {
+    override def getFiles(): Seq[StorageFile] = files
+    override def getFiles(partition: Partition): Seq[StorageFile] = files.filter(_.partition == partition)
+    override def getFiles(filter: Filter): Seq[StorageFileFilter] = throw new UnsupportedOperationException()
+    override def addFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
+    override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
     override def close(): Unit = {}
   }
 }

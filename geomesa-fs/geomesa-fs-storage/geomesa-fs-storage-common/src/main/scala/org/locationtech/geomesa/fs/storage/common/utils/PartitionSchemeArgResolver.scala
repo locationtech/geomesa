@@ -10,8 +10,7 @@ package org.locationtech.geomesa.fs.storage.common.utils
 
 import org.apache.commons.io.IOUtils
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
-import org.locationtech.geomesa.fs.storage.common.StorageSerialization
+import org.locationtech.geomesa.fs.storage.api.PartitionSchemeFactory
 import org.locationtech.geomesa.fs.storage.common.utils.PartitionSchemeArgResolver.SchemeArgs
 import org.locationtech.geomesa.utils.conf.ArgResolver
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
@@ -25,11 +24,10 @@ object PartitionSchemeArgResolver {
 
   case class SchemeArgs(sft: SimpleFeatureType, scheme: String)
 
-  def resolve(sft: SimpleFeatureType, scheme: String): Either[Throwable, NamedOptions] =
-    instance.getArg(SchemeArgs(sft, scheme))
+  def resolve(sft: SimpleFeatureType, scheme: String): Either[Throwable, String] = instance.getArg(SchemeArgs(sft, scheme))
 }
 
-class PartitionSchemeArgResolver extends ArgResolver[NamedOptions, SchemeArgs] {
+class PartitionSchemeArgResolver extends ArgResolver[String, SchemeArgs] {
 
   import org.locationtech.geomesa.utils.conf.ArgResolver.ArgTypes._
 
@@ -51,26 +49,14 @@ class PartitionSchemeArgResolver extends ArgResolver[NamedOptions, SchemeArgs] {
   override val parseMethodList: Seq[SchemeArgs => ResEither] = List[SchemeArgs => ResEither](
     getNamedScheme,
     parseFile,
-    parseString
   )
 
   private [PartitionSchemeArgResolver] def getNamedScheme(args: SchemeArgs): ResEither = {
     try {
-      val options = NamedOptions(args.scheme)
-      PartitionSchemeFactory.load(args.sft, options)
-      Right(options)
+      PartitionSchemeFactory.load(args.sft, args.scheme)
+      Right(args.scheme)
     } catch {
       case NonFatal(e) => Left((s"Unable to load named scheme ${args.scheme}", e, NAME))
-    }
-  }
-
-  private [PartitionSchemeArgResolver] def parseString(args: SchemeArgs): ResEither = {
-    try {
-      val options = StorageSerialization.deserialize(args.scheme)
-      PartitionSchemeFactory.load(args.sft, options)
-      Right(options)
-    } catch {
-      case NonFatal(e) => Left((s"Unable to load scheme from arg ${args.scheme}", e, CONFSTR))
     }
   }
 
@@ -82,9 +68,8 @@ class PartitionSchemeArgResolver extends ArgResolver[NamedOptions, SchemeArgs] {
       WithClose(handle.open) { is =>
         if (is.hasNext) {
           val config = IOUtils.toString(is.next._2, StandardCharsets.UTF_8)
-          val options = StorageSerialization.deserialize(config)
-          PartitionSchemeFactory.load(args.sft, options)
-          Right(options)
+          PartitionSchemeFactory.load(args.sft, config)
+          Right(config)
         } else {
           throw new RuntimeException(s"Could not read file at ${args.scheme}")
         }

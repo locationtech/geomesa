@@ -79,14 +79,9 @@ package object common {
     def setEncoding(encoding: String): Unit = sft.getUserData.put(EncodingKey, encoding)
     def removeEncoding(): Option[String] = remove(EncodingKey)
 
-    def setLeafStorage(leafStorage: Boolean): Unit = sft.getUserData.put(LeafStorageKey, leafStorage.toString)
-    def removeLeafStorage(): Option[Boolean] = remove(LeafStorageKey).map(_.toBoolean)
-
     def setScheme(name: String, options: Map[String, String] = Map.empty): Unit =
-      sft.getUserData.put(SchemeKey, serialize(NamedOptions(name, options)))
-    // noinspection ScalaDeprecation
-    def removeScheme(): Option[NamedOptions] =
-      remove(SchemeKey).map(deserialize).orElse(remove("geomesa.fs.partition-scheme.config").map(deserialize))
+      sft.getUserData.put(SchemeKey, s"$name:${options.map { case (k, v) => s"$k=$v" }.mkString(":")}")
+    def removeScheme(): Option[Seq[String]] = remove(SchemeKey).map(_.split(",").toSeq)
 
     def setMetadata(name: String, options: Map[String, String] = Map.empty): Unit =
       sft.getUserData.put(MetadataKey, serialize(NamedOptions(name, options)))

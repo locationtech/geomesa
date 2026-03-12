@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.fs.storage.converter
 
-import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
+import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileFilter}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorage.Encoding
@@ -36,75 +36,87 @@ class ConverterMetadata(
 
   override def encoding: String = Encoding
 
-  override def getPartition(name: String): Option[PartitionMetadata] = {
-    val path = new Path(context.root, name)
-    if (!PathCache.exists(context.fs, path)) { None } else {
-      val files = if (leafStorage) { Seq(StorageFile(name, 0L)) } else {
-        PathCache.list(context.fs, path).map(fs => StorageFile(fs.getPath.getName, 0L)).toList
-      }
-      Some(PartitionMetadata(name, files, None, -1L))
-    }
-  }
-
-  override def getPartitions(prefix: Option[String]): Seq[PartitionMetadata] = {
-    buildPartitionList(prefix, dirty.compareAndSet(true, false)).map { name =>
-      val files = if (leafStorage) { Seq(StorageFile(name, 0L)) } else {
-        PathCache.list(context.fs, new Path(context.root, name)).map(fs => StorageFile(fs.getPath.getName, 0L)).toList
-      }
-      PartitionMetadata(name, files, None, -1L)
-    }
-  }
-
-  override def addPartition(partition: PartitionMetadata): Unit =
-    throw new UnsupportedOperationException("Converter storage does not support updating metadata")
-
-  override def removePartition(partition: PartitionMetadata): Unit =
-    throw new UnsupportedOperationException("Converter storage does not support updating metadata")
-
-  override def setPartitions(partitions: Seq[PartitionMetadata]): Unit =
-    throw new UnsupportedOperationException("Converter storage does not support updating metadata")
-
-  override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
-    throw new UnsupportedOperationException("Converter storage does not support updating metadata")
-
-  override def invalidate(): Unit = dirty.set(true)
+//  override def getPartition(name: String): Option[PartitionMetadata] = {
+//    val path = new Path(context.root, name)
+//    if (!PathCache.exists(context.fs, path)) { None } else {
+//      val files = if (leafStorage) { Seq(StorageFile(name, 0L)) } else {
+//        PathCache.list(context.fs, path).map(fs => StorageFile(fs.getPath.getName, 0L)).toList
+//      }
+//      Some(PartitionMetadata(name, files, None, -1L))
+//    }
+//  }
+//
+//  override def getPartitions(prefix: Option[String]): Seq[PartitionMetadata] = {
+//    buildPartitionList(prefix, dirty.compareAndSet(true, false)).map { name =>
+//      val files = if (leafStorage) { Seq(StorageFile(name, 0L)) } else {
+//        PathCache.list(context.fs, new Path(context.root, name)).map(fs => StorageFile(fs.getPath.getName, 0L)).toList
+//      }
+//      PartitionMetadata(name, files, None, -1L)
+//    }
+//  }
+//
+//  override def addPartition(partition: PartitionMetadata): Unit =
+//    throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+//
+//  override def removePartition(partition: PartitionMetadata): Unit =
+//    throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+//
+//  override def setPartitions(partitions: Seq[PartitionMetadata]): Unit =
+//    throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+//
+//  override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
+//    throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+//
+//  override def invalidate(): Unit = dirty.set(true)
 
   override def close(): Unit = es.shutdown()
 
-  private def buildPartitionList(prefix: Option[String], invalidate: Boolean): List[String] = {
-    if (invalidate) {
-      PathCache.invalidate(context.fs, context.root)
-    }
-    val top = PathCache.list(context.fs, context.root)
-    top.flatMap(f => buildPartitionList(f.getPath, "", prefix, 1, invalidate)).toList
-  }
+//  private def buildPartitionList(prefix: Option[String], invalidate: Boolean): List[String] = {
+//    if (invalidate) {
+//      PathCache.invalidate(context.fs, context.root)
+//    }
+//    val top = PathCache.list(context.fs, context.root)
+//    top.flatMap(f => buildPartitionList(f.getPath, "", prefix, 1, invalidate)).toList
+//  }
+//
+//  private def buildPartitionList(
+//      path: Path,
+//      prefix: String,
+//      filter: Option[String],
+//      curDepth: Int,
+//      invalidate: Boolean): List[String] = {
+//    if (invalidate) {
+//      PathCache.invalidate(context.fs, path)
+//    }
+//    if (curDepth > scheme.depth || !PathCache.status(context.fs, path).isDirectory) {
+//      val file = s"$prefix${path.getName}"
+//      if (filter.forall(file.startsWith)) { List(file) } else { List.empty }
+//    } else {
+//      val next = s"$prefix${path.getName}"
+//      val continue = filter.forall { f =>
+//        if (next.length >= f.length) { next.startsWith(f) } else { next == f.substring(0, next.length) }
+//      }
+//      if (continue) {
+//        PathCache.list(context.fs, path).toList.flatMap { f =>
+//          buildPartitionList(f.getPath, s"$next/", filter, curDepth + 1, invalidate)
+//        }
+//      } else {
+//        List.empty
+//      }
+//    }
+//  }
 
-  private def buildPartitionList(
-      path: Path,
-      prefix: String,
-      filter: Option[String],
-      curDepth: Int,
-      invalidate: Boolean): List[String] = {
-    if (invalidate) {
-      PathCache.invalidate(context.fs, path)
-    }
-    if (curDepth > scheme.depth || !PathCache.status(context.fs, path).isDirectory) {
-      val file = s"$prefix${path.getName}"
-      if (filter.forall(file.startsWith)) { List(file) } else { List.empty }
-    } else {
-      val next = s"$prefix${path.getName}"
-      val continue = filter.forall { f =>
-        if (next.length >= f.length) { next.startsWith(f) } else { next == f.substring(0, next.length) }
-      }
-      if (continue) {
-        PathCache.list(context.fs, path).toList.flatMap { f =>
-          buildPartitionList(f.getPath, s"$next/", filter, curDepth + 1, invalidate)
-        }
-      } else {
-        List.empty
-      }
-    }
-  }
+  override def schemes: Set[PartitionScheme] = ???
+
+  override def addFile(file: StorageFile): Unit = ???
+
+  override def removeFile(file: StorageFile): Unit = ???
+
+  override def getFiles(): Seq[StorageFile] = ???
+
+  override def getFiles(filter: Filter): Seq[StorageFileFilter] = ???
+
+  override def getFiles(partition: Partition): Seq[StorageFile] = ???
 }
 
 object ConverterMetadata {

@@ -8,20 +8,18 @@
 
 package org.locationtech.geomesa.fs.storage.api
 
-import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileFilter}
 import org.locationtech.jts.geom.Envelope
 
 import java.io.Closeable
+import scala.util.control.NonFatal
 
 /**
-  * Metadata interface for managing storage partitions. Metadata implementations can be fairly expensive to
-  * instantiate, as they maintain all the partitions and files for a given storage instance. Generally,
-  * they may not load any partition state until `reload` is invoked - this allows for fast access in the cases
-  * where partition state is not required (e.g. access to partition scheme, blind writes, etc)
+  * Metadata interface for managing storage partitions
   */
-trait StorageMetadata extends Compactable with Closeable {
+trait StorageMetadata extends Closeable {
 
   /**
     * The schema for SimpleFeatures stored in the file system storage
@@ -38,20 +36,48 @@ trait StorageMetadata extends Compactable with Closeable {
   def encoding: String
 
   /**
-    * The partition scheme used to partition features for storage and querying
+    * The partition scheme(s) used to partition features for storage and querying
     *
-    * @return partition scheme
+    * @return partition schemes
     */
-  def scheme: PartitionScheme
+  def schemes: Set[PartitionScheme]
 
   /**
-    * Are partitions stored as leaves (multiple partitions in a single folder), or does each
-    * partition have a unique folder. Using leaf storage can reduce the level of nesting and make
-    * file system operations faster in some cases.
-    *
-    * @return leaf
-    */
-  def leafStorage: Boolean
+   * Add a file
+   *
+   * @param file file
+   */
+  def addFile(file: StorageFile): Unit
+
+  /**
+   * Delete a file
+   *
+   * @param file file
+   */
+  def removeFile(file: StorageFile): Unit
+
+  /**
+   * Get all files
+   *
+   * @return all files
+   */
+  // noinspection AccessorLikeMethodIsEmptyParen
+  def getFiles(): Seq[StorageFile]
+
+  /**
+   * Get files for a given partition by name
+   *
+   * @param partition partition
+   * @return files for the given partition
+   */
+  def getFiles(partition: Partition): Seq[StorageFile]
+
+  /**
+   * Get files matching a given filter
+   *
+   * @param filter filter
+   */
+  def getFiles(filter: Filter): Seq[StorageFileFilter]
 
   /**
    * Get a previously set key-value pair
@@ -69,114 +95,142 @@ trait StorageMetadata extends Compactable with Closeable {
    */
   def set(key: String, value: String): Unit = throw new UnsupportedOperationException()
 
-  /**
-    * Get a partition by name. Ensure that `reload` has been invoked at least once before calling this method
-    *
-    * @param name partition name
-    * @return partition metadata, if partition exists
-    */
-  def getPartition(name: String): Option[PartitionMetadata]
-
-  /**
-    * Get all partitions, with an optional prefix filter. Ensure that `reload` has been invoked at least
-    * once before calling this method
-    *
-    * @param prefix prefix used to match partition names
-    * @return all partitions
-    */
-  def getPartitions(prefix: Option[String] = None): Seq[PartitionMetadata]
-
-  /**
-    * Add (or update) metadata for a partition
-    *
-    * @param partition partition
-    */
-  def addPartition(partition: PartitionMetadata): Unit
-
-  /**
-    * Update (or delete) metadata for a partition
-    *
-    * @param partition partition
-    */
-  def removePartition(partition: PartitionMetadata): Unit
-
-  /**
-   * Overwrite any existing partitions
-   *
-   * @param partitions partitions
-   */
-  def setPartitions(partitions: Seq[PartitionMetadata]): Unit
-
-  /**
-   * Invalidate any cached state
-   */
-  def invalidate(): Unit
+//  /**
+//   * Gets a list of partitions that match the given filter
+//   *
+//   * @return partitions
+//   */
+//  def getPartitions(filter: Filter): Seq[PartitionMetadata] = {
+//    if (filter == Filter.INCLUDE) {
+//      return metadata.getPartitions()
+//    }
+//
+//    val filters = metadata.scheme.getSimplifiedFilters(filter).orNull
+//    if (filters == null) {
+//      return metadata.getPartitions()
+//    }
+//
+//    filters.flatMap { f =>
+//      if (f.partial) {
+//        f.partitions.flatMap(p => metadata.getPartitions(Some(p)))
+//      } else {
+//        f.partitions.flatMap(metadata.getPartition)
+//      }
+//    }
+//  }
+//
+//  /**
+//   * Get partitions that match a given filter. Each set of partitions will have a simplified
+//   * filter that should be applied to that set
+//   *
+//   * If there are no partitions that match the filter, an empty list will be returned
+//   *
+//   * @return partitions and predicates for each partition
+//   */
+//  def getPartitionFilters(filter: Filter, partition: Option[String] = None): Seq[PartitionFilter] = {
+//    val filters = metadata.scheme.getSimplifiedFilters(filter).orNull
+//    if (filters == null) {
+//      return Seq(PartitionFilter(filter, partition.map(Seq(_)).getOrElse(metadata.getPartitions().map(_.name))))
+//    }
+//
+//    partition match {
+//      case None =>
+//        filters.flatMap { f =>
+//          val partitions = if (f.partial) {
+//            f.partitions.flatMap(p => metadata.getPartitions(Some(p)))
+//          } else {
+//            f.partitions.flatMap(metadata.getPartition)
+//          }
+//          if (partitions.isEmpty) { Seq.empty } else {
+//            Seq(PartitionFilter(f.filter, partitions.map(_.name)))
+//          }
+//        }
+//
+//      case Some(p) =>
+//        def matches(f: SimplifiedFilter): Boolean =
+//          if (f.partial) { f.partitions.exists(p.startsWith) } else { f.partitions.contains(p) }
+//        filters.collectFirst { case f if matches(f) => PartitionFilter(f.filter, Seq(p)) }.toSeq
+//    }
+//  }
 }
 
 object StorageMetadata {
 
   implicit val StorageFileOrdering: Ordering[StorageFile] = Ordering.by[StorageFile, Long](_.timestamp).reverse
 
-  implicit val StorageFilePathOrdering: Ordering[StorageFilePath] =
-    Ordering.by[StorageFilePath, Long](_.file.timestamp).reverse
-
-  /**
-    * Metadata for a given partition
-    *
-    * @param name partition name
-    * @param files list of files in the partition (relative to the root directory)
-    * @param bounds estimated spatial bounds for this partition, if known
-    * @param count estimated count of features in this partition
-    */
-  case class PartitionMetadata(name: String, files: Seq[StorageFile], bounds: Option[PartitionBounds], count: Long) {
-
-    /**
-      * Combine two metadata instances for the same partition
-      *
-      * @param other metadata to combine
-      * @return
-      */
-    def +(other: PartitionMetadata): PartitionMetadata = {
-      val merged = bounds.map(b => other.bounds.map(_ + b).getOrElse(b)).orElse(other.bounds)
-      copy(files = files ++ other.files, bounds = merged, count = count + other.count)
-    }
-
-    /**
-      * Remove some metadata for the same partition.
-      *
-      * Note that this is a lossy operation, as the reduced bounds aren't known
-      *
-      * @param other metadata to remove
-      * @return
-      */
-    def -(other: PartitionMetadata): PartitionMetadata =
-      copy(files = files.diff(other.files), count = math.max(0, count - other.count))
-  }
-
   /**
    * Holds a storage file
    *
-   * @param name file name (relative to the root path)
-   * @param timestamp timestamp for the file
+   * @param file file name (relative to the root path)
+   * @param partition list of partitions that the file belongs to
+   * @param count number of entries in the file
    * @param action type of file (append, modify, delete)
-   * @param sort sort fields, if any, as feature type attribute number
-   * @param bounds known bounds, if any, keyed by feature type attribute number
+   * @param spatialBounds known bounds, if any, keyed by feature type attribute number
+   * @param attributeBounds known bounds, if any, keyed by feature type attribute number
+   * @param sort sort fields for the file, if any, as feature type attribute number
+   * @param timestamp timestamp for the file
    */
   case class StorageFile(
-      name: String,
-      timestamp: Long,
+      file: String,
+      partition: Partition,
+      count: Long,
       action: StorageFileAction.StorageFileAction = StorageFileAction.Append,
+      spatialBounds: Seq[SpatialBounds] = Seq.empty,
+      attributeBounds: Seq[AttributeBounds] = Seq.empty,
       sort: Seq[Int] = Seq.empty,
-      bounds: Seq[(Int, String, String)] = Seq.empty
+      timestamp: Long = System.currentTimeMillis(),
     )
 
   /**
-    * Holds a storage file path
+   * A partition
+   *
+   * @param dims set of dimensions that make up the partition
+   */
+  case class Partition(dims: Set[PartitionDimension]) {
+    def id: String = dims.map(_.encode).toSeq.sorted.mkString(",")
+  }
+
+  object Partition {
+
+    val None: Partition = Partition(Set.empty[PartitionDimension])
+
+    def apply(id: String): Partition = {
+      try {
+        Partition(id.split(",").map(PartitionDimension.apply).toSet)
+      } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Invalid partition '$id'", e)
+      }
+    }
+  }
+
+  /**
+   * A partition tag
+   *
+   * @param name partition scheme
+   * @param value partition value
+   */
+  case class PartitionDimension(name: String, value: String) {
+    def encode: String = s"$name:value=$value"
+  }
+
+  object PartitionDimension {
+    def apply(encoded: String): PartitionDimension = {
+      try {
+        val valueFlag = encoded.indexOf(":value=")
+        PartitionDimension(encoded.substring(0, valueFlag), encoded.substring(valueFlag + 7))
+      } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Invalid dimension '$encoded'", e)
+      }
+    }
+  }
+
+  /**
+    * Holds a storage file and a filter associated with it
     *
     * @param file storage file
-    * @param path full path to the file
+    * @param filter filter associated with the file
     */
-  case class StorageFilePath(file: StorageFile, path: Path)
+  case class StorageFileFilter(file: StorageFile, filter: Option[Filter])
 
   /**
     * Action related to a storage file
@@ -187,53 +241,59 @@ object StorageMetadata {
   }
 
   /**
-    * Immutable representation of an envelope
-    *
-    * Note that conversions to/from 'null' envelopes should be handled carefully, as envelopes are considered
-    * null if xmin > xmax, however, when instantiating an envelope it will re-order the coordinates:
-    *
-    * {{{
-    *   val env = new Envelope()
-    *   val copy = new Envelope(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
-    *   copy == env // false
-    * }}}
-    *
-    * Thus, ensure that 'null' envelopes are converted to `None` and not directly to a bounds object. See
-    * `PartitionBounds.apply`
-    *
-    * @param xmin min x dimension
-    * @param ymin min y dimension
-    * @param xmax max x dimension
-    * @param ymax max y dimension
-    */
-  case class PartitionBounds(xmin: Double, ymin: Double, xmax: Double, ymax: Double) {
+   * Immutable representation of an envelope
+   *
+   * Note that conversions to/from 'null' envelopes should be handled carefully, as envelopes are considered
+   * null if xmin > xmax, however, when instantiating an envelope it will re-order the coordinates:
+   *
+   * {{{
+   *   val env = new Envelope()
+   *   val copy = new Envelope(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
+   *   copy == env // false
+   * }}}
+   *
+   * Thus, ensure that 'null' envelopes are converted to `None` and not directly to a bounds object. See
+   * `PartitionBounds.apply`
+   *
+   * @param xmin min x dimension
+   * @param ymin min y dimension
+   * @param xmax max x dimension
+   * @param ymax max y dimension
+   */
+  case class SpatialBounds(attribute: Int, xmin: Double, ymin: Double, xmax: Double, ymax: Double) {
 
     /**
-      * Calculate the minimal bounds encompassing both bounds
-      *
-      * @param b other bounds
-      * @return
-      */
-    def +(b: PartitionBounds): PartitionBounds =
-      PartitionBounds(math.min(xmin, b.xmin), math.min(ymin, b.ymin), math.max(xmax, b.xmax), math.max(ymax, b.ymax))
+     * Calculate the minimal bounds encompassing both bounds
+     *
+     * @param b other bounds
+     * @return
+     */
+    def +(b: SpatialBounds): SpatialBounds = {
+      require(attribute == b.attribute, "Trying to merge bounds from different attributes")
+      SpatialBounds(attribute, math.min(xmin, b.xmin), math.min(ymin, b.ymin), math.max(xmax, b.xmax), math.max(ymax, b.ymax))
+    }
 
     /**
-      * Convert to a mutable envelope
-      *
-      * @return
-      */
+     * Convert to a mutable envelope
+     *
+     * @return
+     */
     def envelope: Envelope = new Envelope(xmin, xmax, ymin, ymax)
   }
 
-  object PartitionBounds {
+  object SpatialBounds {
+
+    def empty(attribute: Int): SpatialBounds = SpatialBounds(attribute, 0, 0, 0, 0) // TODO this is kind of hacky
 
     /**
-      * Converts an envelope to a bounds, handling 'null' (empty) envelopes
-      *
-      * @param env envelope
-      * @return
-      */
-    def apply(env: Envelope): Option[PartitionBounds] =
-      if (env.isNull) { None } else { Some(PartitionBounds(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)) }
+     * Converts an envelope to a bounds, handling 'null' (empty) envelopes
+     *
+     * @param env envelope
+     * @return
+     */
+    def apply(attribute: Int, env: Envelope): Option[SpatialBounds] =
+      if (env.isNull) { None } else { Some(SpatialBounds(attribute, env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)) }
   }
+
+  case class AttributeBounds(attribute: Int, lower: String, upper: String)
 }
