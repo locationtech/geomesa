@@ -15,7 +15,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension, SpatialBounds, StorageFile}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, SpatialBounds, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -69,7 +69,7 @@ class JdbcMetadataTest extends Specification with LazyLogging with BeforeAfterAl
 
   private def partitions(dtg: String, geom: String): Partition = {
     val sf = ScalaSimpleFeature.create(sft, "", "", dtg, geom)
-    Partition(schemes.map(s => PartitionDimension(s.name, s.getPartition(sf))).toSet)
+    Partition(schemes.map(s => PartitionKey(s.name, s.getPartition(sf))).toSet)
   }
 
   override def beforeAll(): Unit = {

@@ -103,7 +103,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
         }
         Command.user.info("Removing old files")
         existingDataFiles.foreach { case (partition, files) =>
-          val name = partition.dims.map(_.name).mkString(",")
+          val name = partition.values.map(_.name).mkString(",")
           val counter = StorageConfiguration.Counters.partition(name)
           val count = Option(job.getCounters.findCounter(StorageConfiguration.Counters.Group, counter)).map(_.getValue)
           files.foreach { f =>

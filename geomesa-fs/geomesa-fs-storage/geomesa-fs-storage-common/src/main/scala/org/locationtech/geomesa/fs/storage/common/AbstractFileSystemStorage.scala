@@ -290,17 +290,17 @@ abstract class AbstractFileSystemStorage(
     */
   private class FileSystemUpdateWriterImpl(reader: CloseableFeatureIterator) extends FileSystemUpdateWriter {
 
-    private val modifiers = scala.collection.mutable.Map.empty[Set[PartitionDimension], FileSystemWriter]
-    private val deleters = scala.collection.mutable.Map.empty[Set[PartitionDimension], FileSystemWriter]
+    private val modifiers = scala.collection.mutable.Map.empty[Set[PartitionKey], FileSystemWriter]
+    private val deleters = scala.collection.mutable.Map.empty[Set[PartitionKey], FileSystemWriter]
 
     private var feature: SimpleFeature = _
-    private var partition: Set[PartitionDimension] = _
+    private var partition: Set[PartitionKey] = _
 
     override def write(): Unit = {
       if (feature == null) {
         throw new IllegalArgumentException("Must call 'next' before calling 'write'")
       }
-      val update = metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(feature)))
+      val update = metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(feature)))
       if (update != partition) {
         // add a delete marker in the old partition, since we only track updates per-partition
         deleters.getOrElseUpdate(partition, createWriter(Partition(partition), StorageFileAction.Delete, FileType.Deleted)).write(feature)
@@ -321,7 +321,7 @@ abstract class AbstractFileSystemStorage(
 
     override def next(): SimpleFeature = {
       feature = reader.next() // note: our reader returns a mutable copy of the feature
-      partition = metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(feature)))
+      partition = metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(feature)))
       feature
     }
 

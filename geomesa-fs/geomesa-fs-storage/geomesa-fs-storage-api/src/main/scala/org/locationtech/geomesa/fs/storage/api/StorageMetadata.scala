@@ -8,12 +8,14 @@
 
 package org.locationtech.geomesa.fs.storage.api
 
+import com.google.gson._
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileFilter}
 import org.locationtech.jts.geom.Envelope
 
 import java.io.Closeable
+import java.lang.reflect.Type
 import scala.util.control.NonFatal
 
 /**
@@ -94,69 +96,17 @@ trait StorageMetadata extends Closeable {
    * @param value value
    */
   def set(key: String, value: String): Unit = throw new UnsupportedOperationException()
-
-//  /**
-//   * Gets a list of partitions that match the given filter
-//   *
-//   * @return partitions
-//   */
-//  def getPartitions(filter: Filter): Seq[PartitionMetadata] = {
-//    if (filter == Filter.INCLUDE) {
-//      return metadata.getPartitions()
-//    }
-//
-//    val filters = metadata.scheme.getSimplifiedFilters(filter).orNull
-//    if (filters == null) {
-//      return metadata.getPartitions()
-//    }
-//
-//    filters.flatMap { f =>
-//      if (f.partial) {
-//        f.partitions.flatMap(p => metadata.getPartitions(Some(p)))
-//      } else {
-//        f.partitions.flatMap(metadata.getPartition)
-//      }
-//    }
-//  }
-//
-//  /**
-//   * Get partitions that match a given filter. Each set of partitions will have a simplified
-//   * filter that should be applied to that set
-//   *
-//   * If there are no partitions that match the filter, an empty list will be returned
-//   *
-//   * @return partitions and predicates for each partition
-//   */
-//  def getPartitionFilters(filter: Filter, partition: Option[String] = None): Seq[PartitionFilter] = {
-//    val filters = metadata.scheme.getSimplifiedFilters(filter).orNull
-//    if (filters == null) {
-//      return Seq(PartitionFilter(filter, partition.map(Seq(_)).getOrElse(metadata.getPartitions().map(_.name))))
-//    }
-//
-//    partition match {
-//      case None =>
-//        filters.flatMap { f =>
-//          val partitions = if (f.partial) {
-//            f.partitions.flatMap(p => metadata.getPartitions(Some(p)))
-//          } else {
-//            f.partitions.flatMap(metadata.getPartition)
-//          }
-//          if (partitions.isEmpty) { Seq.empty } else {
-//            Seq(PartitionFilter(f.filter, partitions.map(_.name)))
-//          }
-//        }
-//
-//      case Some(p) =>
-//        def matches(f: SimplifiedFilter): Boolean =
-//          if (f.partial) { f.partitions.exists(p.startsWith) } else { f.partitions.contains(p) }
-//        filters.collectFirst { case f if matches(f) => PartitionFilter(f.filter, Seq(p)) }.toSeq
-//    }
-//  }
 }
 
 object StorageMetadata {
 
   implicit val StorageFileOrdering: Ordering[StorageFile] = Ordering.by[StorageFile, Long](_.timestamp).reverse
+
+  private val gson =
+    new GsonBuilder().disableHtmlEscaping()
+      .registerTypeAdapter(classOf[Partition], PartitionSerializer)
+      .registerTypeAdapter(classOf[PartitionKey], PartitionKeySerializer)
+      .create()
 
   /**
    * Holds a storage file
@@ -184,20 +134,18 @@ object StorageMetadata {
   /**
    * A partition
    *
-   * @param dims set of dimensions that make up the partition
+   * @param values set of dimensions that make up the partition
    */
-  case class Partition(dims: Set[PartitionDimension]) {
-    def id: String = dims.map(_.encode).toSeq.sorted.mkString(",")
+  case class Partition(values: Set[PartitionKey]) {
+    lazy val id: String = gson.toJson(this)
   }
 
   object Partition {
 
-    val None: Partition = Partition(Set.empty[PartitionDimension])
+    val None: Partition = Partition(Set.empty[PartitionKey])
 
     def apply(id: String): Partition = {
-      try {
-        Partition(id.split(",").map(PartitionDimension.apply).toSet)
-      } catch {
+      try { gson.fromJson(id, classOf[Partition]) } catch {
         case NonFatal(e) => throw new RuntimeException(s"Invalid partition '$id'", e)
       }
     }
@@ -209,17 +157,14 @@ object StorageMetadata {
    * @param name partition scheme
    * @param value partition value
    */
-  case class PartitionDimension(name: String, value: String) {
-    def encode: String = s"$name:value=$value"
+  case class PartitionKey(name: String, value: String) {
+    def encode: String = gson.toJson(this)
   }
 
-  object PartitionDimension {
-    def apply(encoded: String): PartitionDimension = {
-      try {
-        val valueFlag = encoded.indexOf(":value=")
-        PartitionDimension(encoded.substring(0, valueFlag), encoded.substring(valueFlag + 7))
-      } catch {
-        case NonFatal(e) => throw new RuntimeException(s"Invalid dimension '$encoded'", e)
+  object PartitionKey {
+    def apply(encoded: String): PartitionKey = {
+      try { gson.fromJson(encoded, classOf[PartitionKey]) } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Invalid partition key '$encoded'", e)
       }
     }
   }
@@ -255,6 +200,7 @@ object StorageMetadata {
    * Thus, ensure that 'null' envelopes are converted to `None` and not directly to a bounds object. See
    * `PartitionBounds.apply`
    *
+   * @param attribute index of the attribute being bounded
    * @param xmin min x dimension
    * @param ymin min y dimension
    * @param xmax max x dimension
@@ -295,5 +241,53 @@ object StorageMetadata {
       if (env.isNull) { None } else { Some(SpatialBounds(attribute, env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)) }
   }
 
+  /**
+   * Bounds for an attribute
+   *
+   * @param attribute index of the attribute in the feature type
+   * @param lower lower bound (lexicoded)
+   * @param upper upper bound (lexicoded)
+   */
   case class AttributeBounds(attribute: Int, lower: String, upper: String)
+
+  /**
+   * Json serializer for partitions
+   */
+  private object PartitionSerializer extends JsonSerializer[Partition] with JsonDeserializer[Partition] {
+    override def serialize(src: Partition, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+      val array = new JsonArray(src.values.size)
+      src.values.toSeq.sortBy(k => (k.name, k.value)).foreach { value =>
+        array.add(context.serialize(value))
+      }
+      array
+    }
+    override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Partition = {
+      val array = json.getAsJsonArray
+      val values = Set.newBuilder[PartitionKey]
+      var i = 0
+      while (i < array.size()) {
+        values += context.deserialize(array.get(i), classOf[PartitionKey])
+        i += 1
+      }
+      Partition(values.result())
+    }
+  }
+
+  /**
+   * Json serializer for partition keys
+   */
+  private object PartitionKeySerializer extends JsonSerializer[PartitionKey] with JsonDeserializer[PartitionKey] {
+    override def serialize(src: PartitionKey, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+      val obj = new JsonObject()
+      obj.addProperty("name", src.name)
+      obj.addProperty("value", src.value)
+      obj
+    }
+    override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): PartitionKey = {
+      val obj = json.getAsJsonObject
+      val name = obj.getAsJsonPrimitive("name").getAsString
+      val value = obj.getAsJsonPrimitive("value").getAsString
+      PartitionKey(name, value)
+    }
+  }
 }

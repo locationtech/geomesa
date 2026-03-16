@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.status.FsGetFilesCommand.FSGetFilesParams
@@ -37,7 +37,7 @@ class FsGetFilesCommand extends FsDataStoreCommand {
         Command.user.info("Listing files for all partitions")
         metadata.getFiles()
       } else {
-        val partition = Partition(params.partitions.asScala.map(PartitionDimension.apply).toSet)
+        val partition = Partition(params.partitions.asScala.map(PartitionKey.apply).toSet)
         Command.user.info(s"Listing files for partition ${partition.id}")
         metadata.getFiles(partition)
       }

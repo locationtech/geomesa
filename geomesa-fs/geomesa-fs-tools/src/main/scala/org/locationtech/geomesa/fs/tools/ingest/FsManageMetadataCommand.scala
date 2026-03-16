@@ -14,7 +14,7 @@ import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.{FileStatus, Path, RemoteIterator}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension, SpatialBounds, StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, SpatialBounds, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.common.metadata.{FileBasedMetadataFactory, MetadataJson}
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
@@ -51,7 +51,7 @@ object FsManageMetadataCommand {
     override def execute(): Unit = withDataStore { ds =>
       val storage = ds.storage(params.featureName)
       val metadata = storage.metadata
-      val partition = Partition(params.partition.asScala.map(PartitionDimension.apply).toSet)
+      val partition = Partition(params.partition.asScala.map(PartitionKey.apply).toSet)
       val count = Option(params.count).map(_.longValue()).getOrElse(0L)
       val env = new Envelope()
       Option(params.bounds).foreach { case (xmin, ymin, xmax, ymax) =>
@@ -78,7 +78,7 @@ object FsManageMetadataCommand {
     override def execute(): Unit = withDataStore { ds =>
       val storage = ds.storage(params.featureName)
       val metadata = storage.metadata
-      val partition = Partition(params.partition.asScala.map(PartitionDimension.apply).toSet)
+      val partition = Partition(params.partition.asScala.map(PartitionKey.apply).toSet)
       val file = StorageFile(params.file, partition, 0L)
       metadata.removeFile(file)
       Command.user.info(s"Unregistered file ${new Path(storage.context.root, file.file)}")

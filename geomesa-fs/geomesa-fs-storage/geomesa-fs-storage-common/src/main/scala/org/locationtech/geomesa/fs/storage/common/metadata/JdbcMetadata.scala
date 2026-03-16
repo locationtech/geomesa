@@ -14,7 +14,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionBounds, PartitionFilter, PartitionRange, SinglePartition}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, Partition, PartitionDimension, SpatialBounds, StorageFile, StorageFileFilter}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, Partition, PartitionKey, SpatialBounds, StorageFile, StorageFileFilter}
 import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, PartitionSchemeFactory, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.MetadataTable
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
@@ -117,7 +117,7 @@ class JdbcMetadata(
     WithClose(pool.getConnection())(FilesTable.select(_, root, Seq.empty, Seq.empty, Seq.empty))
 
   override def getFiles(partition: Partition): Seq[StorageFile] = {
-    val filters = partition.dims.toSeq.map(p => SinglePartition(p.name, p.value))
+    val filters = partition.values.toSeq.map(p => SinglePartition(p.name, p.value))
     WithClose(pool.getConnection())(FilesTable.select(_, root, filters, Seq.empty, Seq.empty))
   }
 
@@ -383,7 +383,7 @@ object JdbcMetadata extends LazyLogging {
           }
         }
         WithClose(cx.prepareStatement("INSERT INTO storage_partitions (file_id, name, value) VALUES (?, ?, ?)")) { st =>
-          file.partition.dims.foreach { p =>
+          file.partition.values.foreach { p =>
             st.setLong(1, id)
             st.setString(2, p.name)
             st.setString(3, p.value)
@@ -528,7 +528,7 @@ logger.info(joinClause.mkString("\n"))
         val partitions = {
           val names = Option(rs.getArray(7)).map(_.getArray.asInstanceOf[Array[String]]).getOrElse(Array.empty)
           val values = Option(rs.getArray(8)).map(_.getArray.asInstanceOf[Array[String]]).getOrElse(Array.empty)
-          names.indices.map(i => PartitionDimension(names(i), values(i))).toSet
+          names.indices.map(i => PartitionKey(names(i), values(i))).toSet
         }
 
         val spatialBounds = {

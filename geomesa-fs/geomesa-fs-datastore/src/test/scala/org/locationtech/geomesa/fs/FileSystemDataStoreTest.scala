@@ -112,7 +112,7 @@ class FileSystemDataStoreTest extends Specification {
         val expected = Seq("2017/06/05", "2017/06/06", "2017/06/07")
         val partitions = ds.storage(sft.getTypeName).metadata.getFiles().map(_.partition).distinct
         partitions must haveLength(3)
-        partitions.map(_.dims.map(_.name)) must containTheSameElementsAs(expected)
+        partitions.map(_.values.map(_.name)) must containTheSameElementsAs(expected)
         foreach(expected)(name => new File(dir, s"$format/$name").isDirectory must beTrue)
 
         ds.getTypeNames must have size 1

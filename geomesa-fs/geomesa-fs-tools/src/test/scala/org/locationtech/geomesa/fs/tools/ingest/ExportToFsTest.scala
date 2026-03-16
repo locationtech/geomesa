@@ -16,7 +16,7 @@ import org.geotools.data.memory.MemoryDataStore
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension, StorageFile}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
@@ -76,7 +76,7 @@ class ExportToFsTest extends Specification {
         command.execute()
 
         // TODO partition is wrong here, doesn't matter for this test but we should fix it
-        storage.metadata.addFile(StorageFile(file.getName, Partition(Set(PartitionDimension(storage.metadata.schemes.head.name, "2016/01/01"))), 0L))
+        storage.metadata.addFile(StorageFile(file.getName, Partition(Set(PartitionKey(storage.metadata.schemes.head.name, "2016/01/01"))), 0L))
 
         val read = WithClose(storage.getReader(new Query(sft.getTypeName)))(_.toList)
         read mustEqual features

@@ -20,7 +20,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey}
 import org.locationtech.geomesa.fs.storage.api.{CloseableFeatureIterator, FileSystemStorage}
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
@@ -188,7 +188,7 @@ object FileSystemFeatureStore {
 
     override def write(): Unit = {
       val sf = GeoMesaFeatureWriter.featureWithFid(feature)
-      writers.get(Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(sf))))).write(sf)
+      writers.get(Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(sf))))).write(sf)
       feature = null
     }
 

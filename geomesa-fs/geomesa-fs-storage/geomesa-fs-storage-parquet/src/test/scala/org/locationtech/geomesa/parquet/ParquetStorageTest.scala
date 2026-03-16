@@ -23,7 +23,7 @@ import org.json.{JSONObject, JSONTokener}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionDimension}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
@@ -87,7 +87,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
             val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
             features.foreach { f =>
-              val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
+              val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
               val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
               writer.write(f)
             }
@@ -205,7 +205,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
             val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
             features.foreach { f =>
-              val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
+              val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
               val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
               writer.write(f)
             }
@@ -358,7 +358,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
+            val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
@@ -412,7 +412,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
+            val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
@@ -474,7 +474,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
+            val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
@@ -549,7 +549,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = Partition(storage.metadata.schemes.map(s => PartitionDimension(s.name, s.getPartition(f))))
+            val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
