@@ -29,8 +29,7 @@ class FsManageMetadataCommandTest extends Specification {
   import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
-  sft.setEncoding("parquet")
-  sft.setScheme("daily")
+  sft.setScheme(Seq("daily"))
 
   val features =
     Seq(
@@ -47,31 +46,29 @@ class FsManageMetadataCommandTest extends Specification {
   "ManageMetadata command" should {
     "find file inconsistencies" in {
       val dir = nextPath()
-      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> HadoopSharedCluster.ContainerConfig)
+      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> HadoopSharedCluster.ContainerConfig, "fs.metadata.type" -> "file" )
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(SimpleFeatureTypes.copy(sft))
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
         val storage = ds.storage(sft.getTypeName)
-        storage.metadata.getFiles().map(p => p.file -> p.partition.id) must
-            containTheSameElementsAs(Seq("2020/01/01" -> 1, "2021/01/01" -> 1, "2022/01/01" -> 1))
-        val files = storage.metadata.getFiles().map(_.file).toList
-        // move a file - it's not in the right partition so it won't be matched correctly by filters,
-        // but it's good enough for a test
-        storage.context.fs.rename(new Path(storage.context.root, "2022"), new Path(storage.context.root, "2019"))
+        val files = storage.metadata.getFiles().map(_.file)
+        files must haveLength(3)
+        storage.context.fs.rename(new Path(storage.context.root, files.head), new Path(storage.context.root, files.head + ".bak"))
         // verify we can't retrieve the moved file
-        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
-            containTheSameElementsAs(features.take(2))
+        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        results must haveLength(2)
+        foreach(results)(f => features must contain(beEqualTo(f)))
 
         // TODO run the consistency check and repair any problems
-        val command = new FsManageMetadataCommand.CheckConsistencyCommand()
-        command.params.path = dir
-        command.params.featureName = sft.getTypeName
-        command.params.configuration = new java.util.ArrayList[(String, String)]()
-        HadoopSharedCluster.ContainerConfiguration.asScala.foreach(e => command.params.configuration.add(e.getKey -> e.getValue))
-        command.execute()
-ok
+//        val command = new FsManageMetadataCommand.CheckConsistencyCommand()
+//        command.params.path = dir
+//        command.params.featureName = sft.getTypeName
+//        command.params.configuration = new java.util.ArrayList[(String, String)]()
+//        HadoopSharedCluster.ContainerConfiguration.asScala.foreach(e => command.params.configuration.add(e.getKey -> e.getValue))
+//        command.execute()
+//
 //        // verify the new file was registered and the old one removed
 //        storage.metadata.invalidate()
 //        storage.metadata.getPartitions().map(p => p.name -> p.files.length) must

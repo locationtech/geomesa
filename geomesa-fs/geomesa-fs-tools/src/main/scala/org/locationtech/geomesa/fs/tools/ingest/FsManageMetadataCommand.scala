@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.{FileStatus, Path, RemoteIterator}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, SpatialBounds, StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.common.metadata.{FileBasedMetadataFactory, MetadataJson}
+import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
@@ -166,12 +166,12 @@ object FsManageMetadataCommand {
               val path = status.getPath
               val name = path.getName
               if (status.isDirectory) {
-                if (name != FileBasedMetadataFactory.MetadataDirectory) {
+                if (name != FileBasedMetadataCatalog.MetadataDirectory) {
                   i += 1
                   // use a tiered phaser on each directory avoid the limit of 65535 registered parties
                   pool.submit(new ListWorker(new Phaser(phaser, 1), name, storage.context.fs.listStatusIterator(path)))
                 }
-              } else if (name != MetadataJson.MetadataPath) {
+              } else {
                 onDisk.add(path)
               }
             }

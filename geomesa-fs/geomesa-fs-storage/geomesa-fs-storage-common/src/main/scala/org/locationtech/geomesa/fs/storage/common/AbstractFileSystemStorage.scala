@@ -221,7 +221,7 @@ abstract class AbstractFileSystemStorage(
       targetFileSize: Option[Long] = None): FileSystemWriter = {
 
     def pathAndObserver: WriterConfig = {
-      val file = StorageUtils.nextFile(extension, fileType)
+      val file = StorageUtils.nextFile(metadata.sft.getTypeName, fileType, extension)
       val path = new Path(context.root, file)
       val updateObserver = new UpdateObserver(partition, file, action)
       val observer = if (observers.isEmpty) { updateObserver } else {

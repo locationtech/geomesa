@@ -32,6 +32,10 @@ object AccumuloJobUtils extends LazyLogging {
   }
 
   // paths are in order of preference for finding a jar
+  // TODO String[] paths = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
+//for (String path : paths) {
+//    System.out.println(path);
+//}
   def defaultSearchPath: Iterator[() => Seq[File]] =
     Iterator(() => ClassPathUtils.getJarsFromEnvironment("GEOMESA_ACCUMULO_HOME", "lib"),
              () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),

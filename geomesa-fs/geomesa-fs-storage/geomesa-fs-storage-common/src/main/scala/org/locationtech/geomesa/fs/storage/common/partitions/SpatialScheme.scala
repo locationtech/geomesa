@@ -37,16 +37,14 @@ abstract class SpatialScheme(id: String, bits: Int, geom: String) extends Partit
     } else {
       // there should be few enough partitions that we can safely enumerate them here
       val ranges = generateRanges(geometries.values.map(GeometryUtils.bounds)).map { range =>
-        // TODO handle inclusive/exclusive bounds
         val lower = format.format(range.lower)
-        val upper = format.format(range.upper)
-        if (lower == upper) {
+        if (lower == format.format(range.upper)) {
           SinglePartition(name, lower)
         } else {
-          PartitionRange(name, lower, upper)
+          PartitionRange(name, lower, format.format(range.upper + 1))
         }
-
       }
+      // TODO merge overlapping ranges
       // note: we don't simplify the filter as usually we wouldn't be able to remove much
       Some(Seq(PartitionFilter(ranges, Some(filter))))
     }

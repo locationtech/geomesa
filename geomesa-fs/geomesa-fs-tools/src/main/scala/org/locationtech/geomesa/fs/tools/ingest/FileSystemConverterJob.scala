@@ -113,7 +113,6 @@ object FileSystemConverterJob {
     type Context = Mapper[LongWritable, SimpleFeature, Text, BytesWritable]#Context
 
     private var serializer: KryoFeatureSerializer = _
-    private var metadata: StorageMetadata = _
     private var scheme: Set[PartitionScheme] = _
 
     var mapped: Counter = _
@@ -121,13 +120,9 @@ object FileSystemConverterJob {
     var failed: Counter = _
 
     override def setup(context: Context): Unit = {
-      val root = StorageConfiguration.getRootPath(context.getConfiguration)
-      // note: we don't call `reload` (to get the partition metadata) as we aren't using it
-      metadata = StorageMetadataFactory.load(FileSystemContext(root, context.getConfiguration)).getOrElse {
-        throw new IllegalArgumentException(s"Could not load storage instance at path $root")
-      }
-      serializer = KryoFeatureSerializer(metadata.sft, SerializationOption.defaults)
-      scheme = metadata.schemes
+      val sft = StorageConfiguration.getSft(context.getConfiguration)
+      serializer = KryoFeatureSerializer(sft, SerializationOption.defaults)
+      scheme = StorageConfiguration.getPartitionScheme(context.getConfiguration, sft) // TODO
 
       mapped = context.getCounter(OutputCounters.Group, "mapped")
       written = context.getCounter(OutputCounters.Group, OutputCounters.Written)
@@ -139,7 +134,7 @@ object FileSystemConverterJob {
       try {
         mapped.increment(1)
         val sfWithFid = GeoMesaFeatureWriter.featureWithFid(sf)
-        val partitionKey = new Text(Partition(scheme.map(s => PartitionKey(s.name, s.getPartition(sfWithFid)))).id)
+        val partitionKey = new Text(Partition(scheme.map(s => PartitionKey(s.name, s.getPartition(sfWithFid)))).encoded)
         context.write(partitionKey, new BytesWritable(serializer.serialize(sfWithFid)))
         written.increment(1)
       } catch {
@@ -148,8 +143,6 @@ object FileSystemConverterJob {
           failed.increment(1)
       }
     }
-
-    override def cleanup(context: Context): Unit = metadata.close()
   }
 
   class DummyReducer extends Reducer[Text, BytesWritable, Void, SimpleFeature] {
@@ -163,13 +156,9 @@ object FileSystemConverterJob {
 
     override def setup(context: Context): Unit = {
       val root = StorageConfiguration.getRootPath(context.getConfiguration)
-      // note: we don't call `reload` (to get the partition metadata) as we aren't using it
-      val metadata = StorageMetadataFactory.load(FileSystemContext(root, context.getConfiguration)).getOrElse {
-        throw new IllegalArgumentException(s"Could not load storage instance at path $root")
-      }
-      serializer = KryoFeatureSerializer(metadata.sft, SerializationOption.defaults)
+      val sft = StorageConfiguration.getSft(context.getConfiguration)
+      serializer = KryoFeatureSerializer(sft, SerializationOption.defaults)
       reduced = context.getCounter(OutputCounters.Group, "reduced")
-      metadata.close()
     }
 
     override def reduce(key: Text, values: java.lang.Iterable[BytesWritable], context: Context): Unit = {

@@ -10,25 +10,14 @@ package org.locationtech.geomesa.parquet
 
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
-import org.geotools.api.data.Query
-import org.geotools.filter.text.ecql.ECQL
-import org.geotools.util.factory.Hints
+import org.apache.hadoop.fs.FileSystem
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFile
-import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions}
-import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
-import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
 
 import java.nio.file.Files
-
 
 @RunWith(classOf[JUnitRunner])
 class CompactionTest extends Specification with AllExpectations {

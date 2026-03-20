@@ -16,9 +16,9 @@ import org.geotools.data.memory.MemoryDataStore
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.api.FileSystemContext
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, StorageFile}
-import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata}
-import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
+import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.tools.`export`.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
@@ -26,18 +26,19 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.BeforeAfterAll
 
 import java.io._
 import java.nio.file.Files
 
 @RunWith(classOf[JUnitRunner])
-class ExportToFsTest extends Specification {
+class ExportToFsTest extends Specification with BeforeAfterAll {
 
   var out: java.nio.file.Path = _
 
-  step {
-    out = Files.createTempDirectory("gm-export-fs-test")
-  }
+  override def beforeAll(): Unit = out = Files.createTempDirectory("gm-export-fs-test")
+
+  override def afterAll(): Unit = PathUtils.deleteRecursively(out)
 
   "Export command" should {
     "create files readable by the FSDS" >> {
@@ -58,7 +59,7 @@ class ExportToFsTest extends Specification {
       val storage = {
         val conf = new Configuration()
         val context = FileSystemContext(new Path(out.toUri), conf)
-        val metadata = new FileBasedMetadataFactory().create(context, Map.empty, Metadata(sft, "parquet", Seq("daily")))
+        val metadata = new FileBasedMetadataCatalog(context).create(sft, Seq("daily"))
         new ParquetFileSystemStorageFactory().apply(context, metadata)
       }
 
@@ -82,9 +83,5 @@ class ExportToFsTest extends Specification {
         read mustEqual features
       }
     }
-  }
-
-  step {
-    PathUtils.deleteRecursively(out)
   }
 }

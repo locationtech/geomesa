@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
-import com.beust.jcommander.{Parameter, ParameterException, Parameters}
+import com.beust.jcommander.{Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
-import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
+import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.ParquetCompactionJob
@@ -35,6 +34,8 @@ import scala.util.control.NonFatal
 class FsCompactCommand extends CompactCommand with FsDistributedCommand
 
 object FsCompactCommand {
+
+  import scala.collection.JavaConverters._
 
   trait CompactCommand extends FsDataStoreCommand with DistributedCommand with LazyLogging {
 
@@ -83,10 +84,10 @@ object FsCompactCommand {
                 new Runnable() {
                   override def run(): Unit = {
                     try {
-                      logger.info(s"Compacting ${p.id}")
+                      logger.info(s"Compacting ${p.encoded}")
                       storage.compact(p, fileSize)
                     } catch {
-                      case NonFatal(e) => logger.error(s"Error processing partition '${p.id}':", e)
+                      case NonFatal(e) => logger.error(s"Error processing partition '${p.encoded}':", e)
                     } finally {
                       latch.countDown()
                     }
@@ -106,13 +107,10 @@ object FsCompactCommand {
           Command.user.info(s"Local compaction complete in ${TextTools.getTime(start)}")
 
         case RunModes.Distributed =>
-          val encoding = storage.metadata.encoding
-          if (!ParquetFileSystemStorage.Encoding.equalsIgnoreCase(encoding)) {
-            throw new ParameterException(s"Compaction is not supported for encoding '$encoding'")
-          }
           val job = new ParquetCompactionJob()
           val tempDir = Option(params.tempPath).map(t => new Path(t))
-          job.run(storage, toCompact.toSeq, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
+          val metadataConfig = FileSystemDataStoreParams.MetadataConfigParam.lookupOpt(connection.asJava)
+          job.run(storage, metadataConfig, toCompact.toSeq, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
             case JobSuccess(message, counts) =>
               Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
               val success = counts(FileSystemCompactionJob.MappedCounter)

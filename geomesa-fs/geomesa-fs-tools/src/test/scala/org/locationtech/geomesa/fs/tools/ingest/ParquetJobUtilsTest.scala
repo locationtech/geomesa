@@ -24,15 +24,14 @@ class ParquetJobUtilsTest extends Specification {
   "ParquetJobUtils" should {
     "properly serialize sft with partition scheme user data" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val scheme = NamedOptions("daily")
-      sft.setScheme(scheme.name, scheme.options)
+      sft.setScheme(Seq("daily"))
       val conf = new Configuration
       StorageConfiguration.setSft(conf, sft)
 
       val newSFT = StorageConfiguration.getSft(conf)
       val extractedScheme = newSFT.removeScheme()
       extractedScheme must beSome
-      extractedScheme.get mustEqual scheme
+      extractedScheme.get mustEqual Seq("daily")
     }
   }
 }

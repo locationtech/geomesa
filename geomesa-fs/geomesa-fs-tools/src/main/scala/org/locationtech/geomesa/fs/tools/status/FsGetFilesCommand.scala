@@ -38,12 +38,12 @@ class FsGetFilesCommand extends FsDataStoreCommand {
         metadata.getFiles()
       } else {
         val partition = Partition(params.partitions.asScala.map(PartitionKey.apply).toSet)
-        Command.user.info(s"Listing files for partition ${partition.id}")
+        Command.user.info(s"Listing files for partition ${partition.encoded}")
         metadata.getFiles(partition)
       }
 
-    files.groupBy(_.partition).toSeq.sortBy(_._1.id).foreach { case (p, files) =>
-      Command.output.info(s"${p.id}:")
+    files.groupBy(_.partition).toSeq.sortBy(_._1.encoded).foreach { case (p, files) =>
+      Command.output.info(s"${p.encoded}:")
       // sort by chronological order
       files.sorted(StorageMetadata.StorageFileOrdering.reverse).foreach { f =>
         Command.output.info(s"\t${f.action.toString.toUpperCase(Locale.US)} " +

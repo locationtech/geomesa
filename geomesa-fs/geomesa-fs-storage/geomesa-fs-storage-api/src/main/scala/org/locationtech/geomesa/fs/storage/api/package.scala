@@ -48,24 +48,15 @@ package object api {
     * @param config key-value configurations
     */
   case class Metadata(sft: SimpleFeatureType, partitions: Seq[String], config: Map[String, String]) {
-    def encoding: String = config(Metadata.Encoding)
     def targetFileSize: Option[Long] = config.get(Metadata.TargetFileSize).map(_.toLong)
   }
 
   object Metadata {
 
-    val Encoding       = "encoding"
-//    val LeafStorage    = "leaf-storage"
     val TargetFileSize = "target-file-size"
 
-    def apply(
-        sft: SimpleFeatureType,
-        encoding: String,
-        scheme: Seq[String],
-        fileSize: Option[Long] = None): Metadata = {
-      val config: Map[String, String] =
-        Map(Encoding -> encoding/*, LeafStorage -> java.lang.Boolean.toString(leafStorage)*/) ++
-            fileSize.map(f => TargetFileSize -> java.lang.Long.toString(f)).toMap
+    def apply(sft: SimpleFeatureType, scheme: Seq[String], fileSize: Option[Long] = None): Metadata = {
+      val config: Map[String, String] = fileSize.map(f => TargetFileSize -> java.lang.Long.toString(f)).toMap
       Metadata(sft, scheme, config)
     }
   }

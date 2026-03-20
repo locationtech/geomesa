@@ -22,7 +22,7 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.utils.PartitionSchemeArgResolver
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, OptionalEncodingParam, OptionalSchemeParams}
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand.FsCreateSchemaParams
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
@@ -42,10 +42,9 @@ object FsCreateSchemaCommand {
   import scala.collection.JavaConverters._
 
   @Parameters(commandDescription = "Create a GeoMesa feature type")
-  class FsCreateSchemaParams
-      extends CreateSchemaParams with FsParams with OptionalEncodingParam with OptionalSchemeParams
+  class FsCreateSchemaParams extends CreateSchemaParams with FsParams with OptionalSchemeParams
 
-  def setOptions(sft: SimpleFeatureType, params: OptionalEncodingParam with OptionalSchemeParams): Unit = {
+  def setOptions(sft: SimpleFeatureType, params: OptionalSchemeParams): Unit = {
     import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
     val errors = ListBuffer.empty[String]
@@ -59,15 +58,7 @@ object FsCreateSchemaCommand {
         case Left(e) => throw new ParameterException(e)
         case Right(s) => s
       }
-      sft.setScheme(scheme.mkString(","), Map.empty)
-    }
-
-    if (params.encoding == null) {
-      if (sft.getUserData.get(StorageKeys.EncodingKey) == null) {
-        sft.setEncoding("parquet")
-      }
-    } else {
-      sft.setEncoding(params.encoding)
+      sft.setScheme(scheme)
     }
 
     if (errors.nonEmpty) {

@@ -23,6 +23,13 @@ import java.io.{Closeable, Flushable}
 trait FileSystemStorage extends Compactable with Closeable {
 
   /**
+   * The file encoding used by this storage
+   *
+   * @return encoding
+   */
+  def encoding: String
+
+  /**
     * Handle to the file context, root path and configuration
     *
     * @return

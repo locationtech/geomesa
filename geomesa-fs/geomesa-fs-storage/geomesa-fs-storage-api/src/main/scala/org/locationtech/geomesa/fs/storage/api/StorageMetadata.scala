@@ -23,19 +23,14 @@ import scala.util.control.NonFatal
   */
 trait StorageMetadata extends Closeable {
 
+  def `type`: String
+
   /**
     * The schema for SimpleFeatures stored in the file system storage
     *
     * @return schema
     */
   def sft: SimpleFeatureType
-
-  /**
-    * The encoding of the underlying data files
-    *
-    * @return encoding
-    */
-  def encoding: String
 
   /**
     * The partition scheme(s) used to partition features for storage and querying
@@ -102,11 +97,7 @@ object StorageMetadata {
 
   implicit val StorageFileOrdering: Ordering[StorageFile] = Ordering.by[StorageFile, Long](_.timestamp).reverse
 
-  private val gson =
-    new GsonBuilder().disableHtmlEscaping()
-      .registerTypeAdapter(classOf[Partition], PartitionSerializer)
-      .registerTypeAdapter(classOf[PartitionKey], PartitionKeySerializer)
-      .create()
+  private val gson = JsonSerializers.register(new GsonBuilder()).disableHtmlEscaping().create()
 
   /**
    * Holds a storage file
@@ -137,7 +128,7 @@ object StorageMetadata {
    * @param values set of dimensions that make up the partition
    */
   case class Partition(values: Set[PartitionKey]) {
-    lazy val id: String = gson.toJson(this)
+    lazy val encoded: String = gson.toJson(this)
   }
 
   object Partition {
@@ -146,7 +137,7 @@ object StorageMetadata {
 
     def apply(id: String): Partition = {
       try { gson.fromJson(id, classOf[Partition]) } catch {
-        case NonFatal(e) => throw new RuntimeException(s"Invalid partition '$id'", e)
+        case NonFatal(e) => throw new RuntimeException(s"Invalid partition json: $id", e)
       }
     }
   }
@@ -164,7 +155,7 @@ object StorageMetadata {
   object PartitionKey {
     def apply(encoded: String): PartitionKey = {
       try { gson.fromJson(encoded, classOf[PartitionKey]) } catch {
-        case NonFatal(e) => throw new RuntimeException(s"Invalid partition key '$encoded'", e)
+        case NonFatal(e) => throw new RuntimeException(s"Invalid partition key json: $encoded", e)
       }
     }
   }
@@ -250,44 +241,146 @@ object StorageMetadata {
    */
   case class AttributeBounds(attribute: Int, lower: String, upper: String)
 
-  /**
-   * Json serializer for partitions
-   */
-  private object PartitionSerializer extends JsonSerializer[Partition] with JsonDeserializer[Partition] {
-    override def serialize(src: Partition, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
-      val array = new JsonArray(src.values.size)
-      src.values.toSeq.sortBy(k => (k.name, k.value)).foreach { value =>
-        array.add(context.serialize(value))
-      }
-      array
-    }
-    override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Partition = {
-      val array = json.getAsJsonArray
-      val values = Set.newBuilder[PartitionKey]
-      var i = 0
-      while (i < array.size()) {
-        values += context.deserialize(array.get(i), classOf[PartitionKey])
-        i += 1
-      }
-      Partition(values.result())
-    }
-  }
+  object JsonSerializers {
 
-  /**
-   * Json serializer for partition keys
-   */
-  private object PartitionKeySerializer extends JsonSerializer[PartitionKey] with JsonDeserializer[PartitionKey] {
-    override def serialize(src: PartitionKey, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
-      val obj = new JsonObject()
-      obj.addProperty("name", src.name)
-      obj.addProperty("value", src.value)
-      obj
+    def register(builder: GsonBuilder): GsonBuilder =
+      builder.registerTypeAdapter(classOf[Partition], JsonSerializers.PartitionSerializer)
+        .registerTypeAdapter(classOf[PartitionKey], JsonSerializers.PartitionKeySerializer)
+        .registerTypeAdapter(classOf[StorageFile], StorageFileSerializer)
+
+    /**
+     * Json serializer for partitions
+     */
+    private object PartitionSerializer extends JsonSerializer[Partition] with JsonDeserializer[Partition] {
+      override def serialize(src: Partition, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+        val array = new JsonArray(src.values.size)
+        src.values.toSeq.sortBy(k => (k.name, k.value)).foreach { value =>
+          array.add(context.serialize(value))
+        }
+        array
+      }
+
+      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Partition = {
+        val array = json.getAsJsonArray
+        val values = Set.newBuilder[PartitionKey]
+        var i = 0
+        while (i < array.size()) {
+          values += context.deserialize(array.get(i), classOf[PartitionKey])
+          i += 1
+        }
+        Partition(values.result())
+      }
     }
-    override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): PartitionKey = {
-      val obj = json.getAsJsonObject
-      val name = obj.getAsJsonPrimitive("name").getAsString
-      val value = obj.getAsJsonPrimitive("value").getAsString
-      PartitionKey(name, value)
+
+    /**
+     * Json serializer for partition keys
+     */
+    private object PartitionKeySerializer extends JsonSerializer[PartitionKey] with JsonDeserializer[PartitionKey] {
+      override def serialize(src: PartitionKey, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+        val obj = new JsonObject()
+        obj.addProperty("name", src.name)
+        obj.addProperty("value", src.value)
+        obj
+      }
+
+      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): PartitionKey = {
+        val obj = json.getAsJsonObject
+        val name = obj.getAsJsonPrimitive("name").getAsString
+        val value = obj.getAsJsonPrimitive("value").getAsString
+        PartitionKey(name, value)
+      }
     }
+
+    /**
+     * Json serializer for StorageFileAction
+     */
+    private object StorageFileSerializer extends JsonSerializer[StorageFile] with JsonDeserializer[StorageFile] {
+
+      import scala.collection.JavaConverters._
+
+      override def serialize(src: StorageFile, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+        val obj = new JsonObject()
+        obj.addProperty("file", src.file)
+        obj.add("partition", context.serialize(src.partition))
+        obj.addProperty("count", src.count)
+        obj.addProperty("action", src.action.toString)
+        val spatialBounds = new JsonArray(src.spatialBounds.size)
+        src.spatialBounds.foreach(b => spatialBounds.add(context.serialize(b)))
+        obj.add("spatialBounds", spatialBounds)
+        val attributeBounds = new JsonArray(src.attributeBounds.size)
+        src.attributeBounds.foreach(b => attributeBounds.add(context.serialize(b)))
+        obj.add("attributeBounds", attributeBounds)
+        val sort = new JsonArray(src.sort.size)
+        src.sort.foreach(sort.add(_))
+        obj.add("sort", sort)
+        obj.addProperty("timestamp", src.timestamp)
+        obj
+      }
+
+      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): StorageFile = {
+        val obj = json.getAsJsonObject
+        val spatialBounds =
+          obj.getAsJsonArray("spatialBounds").asList().asScala.map(context.deserialize[SpatialBounds](_, classOf[SpatialBounds])).toSeq
+        val attributeBounds =
+          obj.getAsJsonArray("attributeBounds").asList().asScala.map(context.deserialize[AttributeBounds](_, classOf[AttributeBounds])).toSeq
+        val sort = obj.getAsJsonArray("sort").asList().asScala.map(_.getAsInt).toSeq
+        StorageFile(
+          obj.getAsJsonPrimitive("file").getAsString,
+          context.deserialize(obj.get("partition"), classOf[Partition]),
+          obj.getAsJsonPrimitive("count").getAsLong,
+          StorageFileAction.withName(obj.getAsJsonPrimitive("action").getAsString),
+          spatialBounds,
+          attributeBounds,
+          sort,
+          obj.getAsJsonPrimitive("timestamp").getAsLong,
+        )
+      }
+    }
+
+//    /**
+//     * Json serializer for SpatialBounds
+//     */
+//    private object SpatialBoundsSerializer extends JsonSerializer[SpatialBounds] with JsonDeserializer[SpatialBounds] {
+//
+//      override def serialize(src: SpatialBounds, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+//        val obj = new JsonObject()
+//        val bounds = new JsonArray(4)
+//        bounds.add(src.xmin)
+//        bounds.add(src.ymin)
+//        bounds.add(src.xmax)
+//        bounds.add(src.ymax)
+//        obj.addProperty("i", src.attribute)
+//        obj.add("bounds", bounds)
+//        obj
+//      }
+//
+//      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): SpatialBounds = {
+//        val obj = json.getAsJsonObject
+//        val bounds = obj.getAsJsonArray("bounds")
+//        SpatialBounds(obj.get("i").getAsInt, bounds.get(0).getAsDouble, bounds.get(1).getAsDouble, bounds.get(2).getAsDouble, bounds.get(3).getAsDouble)
+//      }
+//    }
+//
+//    /**
+//     * Json serializer for AttributeBounds
+//     */
+//    private object AttributeBoundsSerializer extends JsonSerializer[AttributeBounds] with JsonDeserializer[AttributeBounds] {
+//
+//      override def serialize(src: AttributeBounds, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+//        val obj = new JsonObject()
+//        val bounds = new JsonArray(4)
+//        bounds.add(src.lower)
+//        bounds.add(src.upper)
+//        obj.addProperty("i", src.attribute)
+//        obj.add("bounds", bounds)
+//        obj
+//      }
+//
+//      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): AttributeBounds = {
+//        val obj = json.getAsJsonObject
+//        val bounds = obj.getAsJsonArray("bounds")
+//        AttributeBounds(obj.get("i").getAsInt, bounds.get(0).getAsString, bounds.get(1).getAsString)
+//      }
+//    }
   }
 }

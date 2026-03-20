@@ -58,12 +58,9 @@ package object common {
   }
 
   object StorageKeys {
-    val EncodingKey    = "geomesa.fs.encoding"
-    val LeafStorageKey = "geomesa.fs.leaf-storage"
-    val MetadataKey    = "geomesa.fs.metadata"
-    val SchemeKey      = "geomesa.fs.scheme"
-    val FileSizeKey    = "geomesa.fs.file-size"
-    val ObserversKey   = "geomesa.fs.observers"
+    val SchemeKey    = "geomesa.fs.scheme"
+    val FileSizeKey  = "geomesa.fs.file-size"
+    val ObserversKey = "geomesa.fs.observers"
   }
 
   /**
@@ -74,18 +71,10 @@ package object common {
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
 
     import StorageKeys._
-    import StorageSerialization.{deserialize, serialize}
 
-    def setEncoding(encoding: String): Unit = sft.getUserData.put(EncodingKey, encoding)
-    def removeEncoding(): Option[String] = remove(EncodingKey)
-
-    def setScheme(name: String, options: Map[String, String] = Map.empty): Unit =
-      sft.getUserData.put(SchemeKey, s"$name:${options.map { case (k, v) => s"$k=$v" }.mkString(":")}")
+    // TODO better encoding? the only non-test place this is used is org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
+    def setScheme(names: Seq[String]): Unit = sft.getUserData.put(SchemeKey, names.mkString(","))
     def removeScheme(): Option[Seq[String]] = remove(SchemeKey).map(_.split(",").toSeq)
-
-    def setMetadata(name: String, options: Map[String, String] = Map.empty): Unit =
-      sft.getUserData.put(MetadataKey, serialize(NamedOptions(name, options)))
-    def removeMetadata(): Option[NamedOptions] = remove(MetadataKey).map(deserialize)
 
     def setTargetFileSize(size: String): Unit = {
       // validate input

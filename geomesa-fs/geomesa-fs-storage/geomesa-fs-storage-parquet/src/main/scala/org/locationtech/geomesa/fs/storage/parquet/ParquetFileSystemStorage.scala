@@ -48,6 +48,8 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
       context.conf.get(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
     )
 
+  override val encoding: String = ParquetFileSystemStorage.Encoding
+
   override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter = {
     val conf = new Configuration(context.conf)
     SimpleFeatureParquetSchema.setSft(conf, metadata.sft)

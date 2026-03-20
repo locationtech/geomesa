@@ -25,7 +25,6 @@ class FsDescribeSchemaCommand extends DescribeSchemaCommand[FileSystemDataStore]
     super.describe(ds, sft, logger)
     val metadata = ds.storage(sft.getTypeName).metadata
     logger.info(s"\nPartition scheme | ${metadata.schemes.map(_.name).toSeq.sorted.mkString(", ")}")
-    logger.info(s"File encoding    | ${metadata.encoding}")
   }
 }
 

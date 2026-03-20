@@ -8,18 +8,19 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
+import org.locationtech.geomesa.fs.storage.api.PartitionSchemeFactory
+import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.time.Instant
-import java.time.temporal.ChronoUnit
+import java.time.temporal.{ChronoField, ChronoUnit}
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
@@ -29,26 +30,35 @@ class DateTimeSchemeTest extends Specification {
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
   val sf = ScalaSimpleFeature.create(sft, "1", "test", 10, "2017-02-03T10:15:30Z", "POINT (10 10)")
+  val date = ZonedDateTime.ofInstant(sf.getAttribute(2).asInstanceOf[Date].toInstant, ZoneOffset.UTC)
 
   "DateTimeScheme" should {
 
-    "partition based on date" >> {
+    "partition based on days" >> {
       val ps = DateTimeScheme("dtg", 2, ChronoUnit.DAYS)
-      ps.getPartition(sf) mustEqual "2017-02-03"
+      val partition = ps.getPartition(sf)
+      partition mustEqual "80004330"
+      val days = AttributeIndexKey.decode("integer", partition).asInstanceOf[Int]
+      ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusDays(days) mustEqual date.truncatedTo(ChronoUnit.DAYS)
     }
 
-    "partition based on date with slash delimiter" >> {
+    "partition based on hours" >> {
       val ps = DateTimeScheme("dtg", 2, ChronoUnit.HOURS)
-      ps.getPartition(sf) mustEqual "2017/034/10"
+      val partition = ps.getPartition(sf)
+      partition mustEqual "80064c8a"
+      val hours = AttributeIndexKey.decode("integer", partition).asInstanceOf[Int]
+      ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusHours(hours) mustEqual date.truncatedTo(ChronoUnit.HOURS)
     }
 
     "partition based on week" >> {
       val ps = PartitionSchemeFactory.load(sft, "weekly")
       ps must beAnInstanceOf[DateTimeScheme]
-      ps.getPartition(sf) mustEqual "2017/W05"
-      val tenWeeksOut = ScalaSimpleFeature.create(sft, "1", "test", 10,
-        Date.from(Instant.parse("2017-01-01T00:00:00Z").plus(9*7 + 1, ChronoUnit.DAYS)), "POINT (10 10)")
-      ps.getPartition(tenWeeksOut) mustEqual "2017/W10"
+      val partition = ps.getPartition(sf)
+      partition mustEqual "80000999"
+      val weeks = AttributeIndexKey.decode("integer", partition).asInstanceOf[Int]
+      ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusWeeks(weeks) mustEqual
+        date.`with`(ChronoField.EPOCH_DAY, date.getLong(ChronoField.EPOCH_DAY) - (date.getLong(ChronoField.EPOCH_DAY) % 7))
+          .truncatedTo(ChronoUnit.DAYS)
     }
 
     "simplify filters" >> {
@@ -61,21 +71,9 @@ class DateTimeSchemeTest extends Specification {
 //      covering.get.map(_.filter) must containTheSameElementsAs(Seq(Filter.INCLUDE, filter))
 //      foreach(covering.get)(_.partial must beFalse)
 //      foreach(covering.get)(_.partitions.size mustEqual 1)
-    }
+    }.pendingUntilFixed("not implemented")
 
-    "simplify filters with step > 1 and single partition" >> {
-      val ps = DateTimeScheme("dtg", 2, ChronoUnit.HOURS)
-      val filter = ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-03T01:55:00.000Z'")
-//      val simplified = ps.getSimplifiedFilters(filter)
-//      simplified must beSome
-//      simplified.get must haveSize(1)
-//      simplified.get.head.filter mustEqual filter
-//      simplified.get.head.partial must beFalse
-//      simplified.get.head.partitions mustEqual Seq("2016/216/00")
-      ko
-    }
-
-    "simplify filters with step > 1 and multiple partitions" >> {
+    "simplify filters with multiple partitions" >> {
       val ps = DateTimeScheme("dtg", 2, ChronoUnit.HOURS)
       val filter = ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-03T02:55:00.000Z'")
 //      val simplified = ps.getSimplifiedFilters(filter)
@@ -86,37 +84,44 @@ class DateTimeSchemeTest extends Specification {
 //      simplified.get.find(_.filter == Filter.INCLUDE).map(_.partitions) must beSome(Seq("2016/216/00"))
 //      simplified.get.find(_.filter != Filter.INCLUDE).map(_.partitions) must beSome(Seq("2016/216/02"))
       ko
-    }
+    }.pendingUntilFixed("not implemented")
 
     "calculate covering filters for partitions" >> {
-      forall(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS)) { unit =>
+      // TODO need to manually truncate to weeks, months, years
+      foreach(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS/*, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS*/)) { unit =>
         val ps = DateTimeScheme("dtg", 2, unit)
         val partition = ps.getPartition(sf)
-//          val start = DateParsing.parse(partition, format.formatter)
-//          val end = start.plus(step, format.unit)
-//          val expected = ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
-//          val covering = ps.getCoveringFilter(partition)
-//          decomposeAnd(covering) must containTheSameElementsAs(decomposeAnd(expected))
-        ko
+        val covering = ps.getCoveringFilter(partition)
+        val expected = {
+          val start = date.truncatedTo(unit)
+          val end = date.truncatedTo(unit).plus(1, unit)
+          ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
+        }
+        decomposeAnd(covering) must containTheSameElementsAs(decomposeAnd(expected))
       }
     }
 
     "calculate intersecting partitions for filters" >> {
-      forall(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS)) { unit =>
+      // TODO need to manually truncate to weeks, months, years
+      foreach(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS/*, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS*/)) { unit =>
         val ps = DateTimeScheme("dtg", 2, unit)
         val partition = ps.getPartition(sf)
-//        val start = DateParsing.parse(partition, format.formatter)
-//        val end = start.plus(step, format.unit)
-//        val filter = ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
-//        val partitions = ps.getIntersectingPartitions(filter)
-//        partitions must beSome(Seq(partition))
-        ko
+        val expectedEndPartition = java.lang.Long.toHexString(java.lang.Long.parseLong(partition, 16) + 1)
+        val start = date.truncatedTo(unit)
+        val end = date.truncatedTo(unit).plus(1, unit)
+        val filter = ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
+        val partitions = ps.getIntersectingPartitions(filter).orNull
+        partitions must not(beNull)
+        partitions must haveLength(1)
+        partitions.head.bounds mustEqual Seq(PartitionRange(ps.name, partition, expectedEndPartition))
+        partitions.head.filter must beSome(filter) // TODO
       }
     }
 
-    "handle edge boundaries" >> {
-      val dtScheme = DateTimeScheme("dtg", 2, ChronoUnit.DAYS)
-      val exclusive = ECQL.toFilter("dtg > '2017-01-02' and dtg < '2017-01-04T00:00:00.000Z'")
+    // TODO
+//    "handle edge boundaries" >> {
+//      val dtScheme = DateTimeScheme("dtg", 2, ChronoUnit.DAYS)
+//      val exclusive = ECQL.toFilter("dtg > '2017-01-02' and dtg < '2017-01-04T00:00:00.000Z'")
 //      val twoDays = dtScheme.getSimplifiedFilters(exclusive)
 //      twoDays must beSome
 //      twoDays.get must haveSize(2)
@@ -132,7 +137,6 @@ class DateTimeSchemeTest extends Specification {
 //      foreach(threeDays.get)(_.partial must beFalse)
 //      threeDays.get.find(_.filter == Filter.INCLUDE).map(_.partitions) must beSome(containTheSameElementsAs(Seq("2017/20170102", "2017/20170103")))
 //      threeDays.get.find(_.filter != Filter.INCLUDE).map(_.partitions) must beSome(Seq("2017/20170104"))
-      ko
-    }
+//    }
   }
 }

@@ -15,8 +15,10 @@ import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorageFactory, StorageMetadataFactory}
+import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorageFactory}
+import org.locationtech.geomesa.fs.storage.common.metadata.{ConverterMetadata, StorageMetadataCatalog}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -57,25 +59,24 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
       dir must not(beNull)
 
       val conf = new Configuration()
-      conf.set(ConverterStorageFactory.ConverterPathParam, "example-convert-test-1")
-      conf.set(ConverterStorageFactory.SftConfigParam, sftConfig)
+      conf.set(ConverterMetadata.ConverterPathParam, "example-convert-test-1")
+      conf.set(ConverterMetadata.SftConfigParam, sftConfig)
+      conf.set(ConverterMetadata.PartitionSchemeParam, "daily")
+      conf.set(ConverterMetadata.LeafStorageParam, "false")
       conf.set(ConverterStorageFactory.ConverterConfigParam, converterConfig)
-      conf.set(ConverterStorageFactory.PartitionSchemeParam, "daily")
-      conf.set(ConverterStorageFactory.LeafStorageParam, "false")
 
-      val context = FileSystemContext(new Path(dir), conf)
-      val metadata = StorageMetadataFactory.load(context).orNull
+      val context = FileSystemContext(new Path(dir).getParent, conf)
+      val catalog = StorageMetadataCatalog(context, "converter", Map.empty) // TODO pass in params
+      catalog.getTypeNames mustEqual Seq("example")
+      val metadata = catalog.load("example")
       metadata must not(beNull)
-      val storage = FileSystemStorageFactory(context, metadata)
-
-      val query = new Query(metadata.sft.getTypeName, ECQL.toFilter("dtg during 2023-01-17T00:00:00.000Z/2023-01-19T00:00:00.000Z"))
-      val features = {
+      WithClose(FileSystemStorageFactory(context, metadata, "converter")) { storage =>
+        val query = new Query(metadata.sft.getTypeName, ECQL.toFilter("dtg during 2023-01-17T00:00:00.000Z/2023-01-19T00:00:00.000Z"))
         val iter = CloseableIterator(storage.getReader(query))
         // note: need to copy features in iterator as same object is re-used
-        iter.map(ScalaSimpleFeature.copy).toList
+        val features = iter.map(ScalaSimpleFeature.copy).toList
+        features must haveLength(6)
       }
-
-      features must haveLength(6)
     }
 
     "filter file paths by dtg" in {
@@ -83,39 +84,39 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
       dir must not(beNull)
 
       val conf = new Configuration()
-      conf.set(ConverterStorageFactory.ConverterPathParam, "example-convert-test-2")
-      conf.set(ConverterStorageFactory.SftConfigParam, sftConfig)
+      conf.set(ConverterMetadata.ConverterPathParam, "example-convert-test-2")
+      conf.set(ConverterMetadata.SftConfigParam, sftConfig)
+      conf.set(ConverterMetadata.PartitionSchemeParam, "receipt-time")
+      conf.set(ConverterMetadata.PartitionOptsPrefix + "datetime-scheme", "daily")
+      conf.set(ConverterMetadata.PartitionOptsPrefix + "buffer", "10 minutes")
+      conf.set(ConverterMetadata.LeafStorageParam, "false")
       conf.set(ConverterStorageFactory.ConverterConfigParam, converterConfig)
-      conf.set(ConverterStorageFactory.PartitionSchemeParam, "receipt-time")
-      conf.set(ConverterStorageFactory.PartitionOptsPrefix + "datetime-scheme", "daily")
-      conf.set(ConverterStorageFactory.PartitionOptsPrefix + "buffer", "10 minutes")
-      conf.set(ConverterStorageFactory.LeafStorageParam, "false")
       conf.set(ConverterStorageFactory.PathFilterName, "dtg")
       conf.set(ConverterStorageFactory.PathFilterOptsPrefix + "attribute", "dtg")
       conf.set(ConverterStorageFactory.PathFilterOptsPrefix + "pattern", "^data-(.*)\\.csv$")
       conf.set(ConverterStorageFactory.PathFilterOptsPrefix + "format", "yyyyMMddHHmm")
       conf.set(ConverterStorageFactory.PathFilterOptsPrefix + "buffer", "2 hours")
 
-      val context = FileSystemContext(new Path(dir), conf)
-      val metadata = StorageMetadataFactory.load(context).orNull
+      val context = FileSystemContext(new Path(dir).getParent, conf)
+      val catalog = StorageMetadataCatalog(context, "converter", Map.empty) // TODO pass in params
+      catalog.getTypeNames mustEqual Seq("example")
+      val metadata = catalog.load("example")
       metadata must not(beNull)
       metadata must haveClass[ConverterMetadata]
-      val storage = FileSystemStorageFactory(context, metadata)
-
-      val filterText = "dtg DURING 2024-12-11T10:00:00Z/2024-12-11T23:55:00Z " +
-        "OR dtg = 2024-12-11T10:00:00Z OR dtg = 2024-12-11T23:55:00Z"
-      val query = new Query(metadata.sft.getTypeName, ECQL.toFilter(filterText))
-      val features = {
+      WithClose(FileSystemStorageFactory(context, metadata, "converter")) { storage =>
+        val filterText =
+          "dtg DURING 2024-12-11T10:00:00Z/2024-12-11T23:55:00Z " +
+            "OR dtg = 2024-12-11T10:00:00Z OR dtg = 2024-12-11T23:55:00Z"
+        val query = new Query(metadata.sft.getTypeName, ECQL.toFilter(filterText))
         val iter = CloseableIterator(storage.getReader(query))
         // note: need to copy features in iterator as same object is re-used
-        iter.map(ScalaSimpleFeature.copy).toList
+        val features = iter.map(ScalaSimpleFeature.copy).toList
+        // id 1 is excluded because of the path dtg filter even though dtg is within filter bounds
+        // id 5 is excluded because dtg is outside filter bounds even though included by path filter
+        // id 8 is included because within partition scheme buffer and path filter buffer
+        features must haveLength(5)
+        features.map(_.getID) must containTheSameElementsAs(Seq("3", "4", "6", "7", "8"))
       }
-
-      // id 1 is excluded because of the path dtg filter even though dtg is within filter bounds
-      // id 5 is excluded because dtg is outside filter bounds even though included by path filter
-      // id 8 is included because within partition scheme buffer and path filter buffer
-      features must haveLength(5)
-      features.map(_.getID) must containTheSameElementsAs(Seq("3", "4", "6", "7", "8"))
     }
   }
 }

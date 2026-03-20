@@ -36,18 +36,19 @@ object FileSystemStorageFactory {
 
   import scala.collection.JavaConverters._
 
-  lazy private val factories = ServiceLoader.load(classOf[FileSystemStorageFactory]).asScala.toSeq
+  lazy val factories: Seq[FileSystemStorageFactory] = ServiceLoader.load(classOf[FileSystemStorageFactory]).asScala.toSeq
 
   /**
-    * Create a file system storage instance pointing at the given context path
-    *
-    * @param context file context
-    * @param metadata metadata persistence
-    * @return
-    */
-  def apply(context: FileSystemContext, metadata: StorageMetadata): FileSystemStorage = {
-    val factory = factories.find(_.encoding.equalsIgnoreCase(metadata.encoding)).getOrElse {
-      throw new IllegalArgumentException(s"Could not find a factory class for encoding '${metadata.encoding}'. " +
+   * Create a file system storage instance pointing at the given context path
+   *
+   * @param context file context
+   * @param metadata metadata persistence
+   * @param encoding storage encoding
+   * @return
+   */
+  def apply(context: FileSystemContext, metadata: StorageMetadata, encoding: String): FileSystemStorage = {
+    val factory = factories.find(_.encoding.equalsIgnoreCase(encoding)).getOrElse {
+      throw new IllegalArgumentException(s"Could not find a factory class for encoding '$encoding'. " +
           s"Factories are available for: ${factories.map(_.encoding).mkString(", ")}")
     }
     factory.apply(context, metadata)

@@ -59,7 +59,7 @@ object AttributeIndexKey {
   }
 
   /**
-    * Lexicographically encode a value using it's runtime class
+    * Lexicographically encode a value using its runtime class
     *
     * @param value value
     * @return

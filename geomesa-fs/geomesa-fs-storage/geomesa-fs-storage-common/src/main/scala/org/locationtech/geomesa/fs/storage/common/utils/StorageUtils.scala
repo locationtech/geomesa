@@ -15,34 +15,34 @@ import java.util.UUID
 
 object StorageUtils {
 
+  private final val SafeNameRegex = "[^a-zA-Z0-9_-]+".r
+
   /**
     * Get the path for a new data file
     *
-    * @param extension file extension
+    * @param ext file extension
     * @param fileType file type
     * @return
     */
-  def nextFile(
-      extension: String,
-      fileType: FileType.FileType,
-      name: String = UUID.randomUUID().toString.replaceAllLiterally("-", "")): String = {
+  def nextFile(typeName: String, fileType: FileType.FileType, ext: String): String = {
+    val filename =
+      s"${fileType}_${SafeNameRegex.replaceAllIn(typeName, "-").take(20)}_${UUID.randomUUID().toString.replaceAllLiterally("-", "")}.$ext"
     // partitioning logic taken from Apache Iceberg: https://iceberg.apache.org/docs/nightly/aws/#object-store-file-layout
-    val filename = s"$fileType$name.$extension"
     val hash = {
       val bytes = filename.getBytes(StandardCharsets.UTF_8)
       val hash = MurmurHash3.hash32x86(bytes, 0, bytes.length, 0)
       // Integer#toBinaryString excludes leading zeros, which we want to preserve
       Integer.toBinaryString(hash | Integer.MIN_VALUE)
     }
-    s"/data/${hash.substring(0, 4)}/${hash.substring(4, 8)}/${hash.substring(8, 12)}/${hash.substring(12, 20)}/$filename"
+    s"${hash.substring(0, 4)}/${hash.substring(4, 8)}/${hash.substring(8, 12)}/${hash.substring(12, 20)}/$filename"
   }
 
   object FileType extends Enumeration {
     type FileType = Value
-    val Written  : Value = Value("W")
-    val Compacted: Value = Value("C")
-    val Imported : Value = Value("I")
-    val Modified : Value = Value("M")
-    val Deleted  : Value = Value("D")
+    val Written  : Value = Value("w")
+    val Compacted: Value = Value("c")
+    val Imported : Value = Value("i")
+    val Modified : Value = Value("m")
+    val Deleted  : Value = Value("d")
   }
 }

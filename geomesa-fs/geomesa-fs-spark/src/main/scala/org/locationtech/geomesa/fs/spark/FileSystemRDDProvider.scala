@@ -54,12 +54,6 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
         // note: we have to copy all the conf twice?
         FileInputFormat.setInputPaths(job, paths.map(p => new Path(storage.context.root, p.file)): _*)
         conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
-
-        // configure the input format for the storage type
-        if (storage.metadata.encoding != ParquetFileSystemStorage.Encoding) {
-          throw new UnsupportedOperationException(s"Not implemented for encoding '${storage.metadata.encoding}'")
-        }
-
         val newQuery = new Query(query)
         newQuery.setFilter(filter)
         ParquetSimpleFeatureInputFormat.configure(conf, sft, newQuery)
@@ -86,8 +80,8 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
           if (sffs.forall(_.file.action == StorageFileAction.Append)) {
             noMods
           } else {
-            logger.warn(s"Found modifications for partition '${partition.id}': compact the partition to improve read performance")
-            withMods.getOrElseUpdate(partition.id, scala.collection.mutable.Map.empty)
+            logger.warn(s"Found modifications for partition '${partition.encoded}': compact the partition to improve read performance")
+            withMods.getOrElseUpdate(partition.encoded, scala.collection.mutable.Map.empty)
           }
         sffs.foreach(sff => map.getOrElseUpdate(sff.filter.getOrElse(Filter.INCLUDE), ArrayBuffer.empty) += sff.file)
       }

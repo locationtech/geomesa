@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
+import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, SinglePartition}
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
-import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
+import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
@@ -27,12 +28,14 @@ case class DateTimeScheme(
 
   import FilterHelper.ff
 
-  private val alias = AttributeIndexKey.alias(classOf[Integer])
+  private val encoder = LexiTypeEncoders.integerEncoder()
 
   override val name: String = s"${unit.name().toLowerCase(Locale.US)}:attribute=$dtg"
 
-  override def getPartition(feature: SimpleFeature): String =
-    toPartition(ZonedDateTime.ofInstant(feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant, ZoneOffset.UTC))
+  override def getPartition(feature: SimpleFeature): String = {
+    val instant = feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant
+    encoder.encode(toPartition(ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)))
+  }
 
   override def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]] = {
     val bounds = FilterHelper.extractIntervals(filter, dtg)
@@ -45,30 +48,39 @@ case class DateTimeScheme(
       // TODO we should be able to remove some of the filters
       val ranges = bounds.values.map { bound =>
         if (bound.isEquals) {
-          SinglePartition(name, toPartition(bound.lower.value.get))
+          SinglePartition(name, encoder.encode(toPartition(bound.lower.value.get)))
         } else {
-          // TODO handle inclusive upper endpoints
-          val lower = bound.lower.value.map(toPartition).getOrElse("")
-          val upper = bound.upper.value.map(toPartition).getOrElse("zzz") // TODO
+          val lower = bound.lower.value.fold("")(v => encoder.encode(toPartition(v)))
+          val upper = bound.upper.value.fold("zzz" /*TODO*/) { v =>
+            val partition = toPartition(v)
+            if (bound.upper.exclusive && toPartition(v.minus(1, ChronoUnit.MILLIS)) < partition) {
+              encoder.encode(partition)
+            } else {
+              encoder.encode(partition + 1)
+            }
+          }
           PartitionRange(name, lower, upper)
         }
       }
+      // TODO merge ranges so no overlap
+      // there should be no duplicates in covered partitions, as our bounds will not overlap,
+      // but there may be multiple partial intersects with a given partition
       Some(Seq(PartitionFilter(ranges, rangeFilter)))
     }
   }
 
   override def getCoveringFilter(partition: String): Filter = {
-    val offset = AttributeIndexKey.decode(alias, partition).asInstanceOf[Integer]
+    val offset = encoder.decode(partition)
     val start = DateTimeScheme.Epoch.plus(offset.longValue(), unit)
     val end = start.plus(1, unit)
-    ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(start)), ff.less(ff.property(dtg), ff.literal(end)))
+    ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(DateParsing.format(start))), ff.less(ff.property(dtg), ff.literal(DateParsing.format(end))))
   }
 
-  private def toPartition(dt: ZonedDateTime): String = {
+  private def toPartition(dt: ZonedDateTime): Int = {
     require(!dt.isBefore(DateTimeScheme.Epoch), s"Date exceeds minimum indexable value (${DateTimeScheme.Epoch}): $dt")
-    AttributeIndexKey.encodeForQuery(unit.between(DateTimeScheme.Epoch, dt).toInt, classOf[Integer])
+    unit.between(DateTimeScheme.Epoch, dt).toInt
   }
-//
+
 //  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
 //    getCoveringPartitions(filter).map { case (covered, intersecting) =>
 //      val result = Seq.newBuilder[SimplifiedFilter]
@@ -101,8 +113,7 @@ case class DateTimeScheme(
 //    } else if (bounds.isEmpty || !bounds.forall(_.isBoundedBothSides)) {
 //      None
 //    } else {
-//      // there should be no duplicates in covered partitions, as our bounds will not overlap,
-//      // but there may be multiple partial intersects with a given partition
+
 //      val covered = ListBuffer.empty[String]
 //      val intersecting = ListBuffer.empty[String]
 //
@@ -166,6 +177,7 @@ object DateTimeScheme {
         require(dtg != null, s"Date scheme requires an attribute to be specified with 'attribute=<attribute>'")
         val index = sft.indexOf(dtg)
         require(index != -1, s"Attribute '$dtg' does not exist in schema '${sft.getTypeName}'")
+        require(classOf[Date].isAssignableFrom(sft.getDescriptor(index).getType.getBinding), s"Attribute '$dtg' is not a date")
         DateTimeScheme(dtg, index, u)
       }
     }

@@ -25,6 +25,8 @@ class ConverterStorage(context: FileSystemContext,
                        pathFiltering: Option[PathFiltering])
     extends AbstractFileSystemStorage(context, metadata, "") {
 
+  override val encoding: String = ConverterStorage.Encoding
+
   // TODO close converter...
   // the problem is that we aggressively cache storage instances for performance (in FileSystemStorageManager),
   // so even if we wired a 'close' method through the entire storage api, we'd also have to implement a

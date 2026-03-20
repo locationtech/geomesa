@@ -23,18 +23,17 @@ import org.locationtech.jts.geom._
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.BeforeAfterAll
 
 
 @RunWith(classOf[JUnitRunner])
-class CompactCommandTest extends Specification {
+class CompactCommandTest extends Specification with BeforeAfterAll {
 
   import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
   sequential
-
-  val encodings = Seq("parquet"/*, "orc"*/)
 
   val pt       = WKTUtils.read("POINT(0 0)")
   val line     = WKTUtils.read("LINESTRING(0 0, 1 1, 4 4)")
@@ -43,31 +42,25 @@ class CompactCommandTest extends Specification {
   val mline    = WKTUtils.read("MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))")
   val mpolygon = WKTUtils.read("MULTIPOLYGON(((0 0, 1 0, 1 1, 0 0)), ((10 10, 10 20, 20 20, 20 10, 10 10), (11 11, 19 11, 19 19, 11 19, 11 11)))")
 
-  val sfts = encodings.map { name =>
-    val sft = SimpleFeatureTypes.createType(name,
-      "name:String,age:Int,dtg:Date," +
-        "*geom:MultiLineString:srid=4326,pt:Point,line:LineString," +
-          "poly:Polygon,mpt:MultiPoint,mline:MultiLineString,mpoly:MultiPolygon")
-    sft.setEncoding(name)
-    sft.setScheme("daily")
-    sft
-  }
+  val sft = SimpleFeatureTypes.createType("parquet",
+    "name:String,age:Int,dtg:Date," +
+      "*geom:MultiLineString:srid=4326,pt:Point,line:LineString," +
+        "poly:Polygon,mpt:MultiPoint,mline:MultiLineString,mpoly:MultiPolygon")
+  sft.setScheme(Seq("daily"))
 
   val numFeatures = 10000
-  val targetFileSize = 8000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
+  val targetFileSize = 35000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
 
   lazy val path = s"${HadoopSharedCluster.Container.getHdfsUrl}/${getClass.getSimpleName}/"
 
-  lazy val ds = {
-    val dsParams = Map(
-      "fs.path" -> path,
-      "fs.config.xml" ->
-        HadoopSharedCluster.ContainerConfig
-          .replaceFirst("<configuration>",
-            "<configuration><property><name>geomesa.parquet.bounding-boxes</name><value>false</value></property>")
-    )
-    DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]
-  }
+  lazy val params = Map(
+    "fs.path" -> path,
+    "fs.metadata.type" -> "file",
+    "fs.config.xml" ->
+      HadoopSharedCluster.ContainerConfig
+        .replaceFirst("<configuration>",
+          "<configuration><property><name>geomesa.parquet.bounding-boxes</name><value>false</value></property>")
+  )
 
   def features(sft: SimpleFeatureType): Seq[ScalaSimpleFeature] = {
     Seq.tabulate(numFeatures) { i =>
@@ -77,8 +70,8 @@ class CompactCommandTest extends Specification {
     }
   }
 
-  step {
-    sfts.foreach { sft =>
+  override def beforeAll(): Unit = {
+    WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
       ds.createSchema(sft)
       // create 2 files per partition
       features(sft).grouped(numFeatures / 2).foreach { feats =>
@@ -89,11 +82,12 @@ class CompactCommandTest extends Specification {
     }
   }
 
-  "Compaction command" >> {
-    "Before compacting should be multiple files per partition" in {
-      foreach(sfts) { sft =>
-        val fs = ds.getFeatureSource(sft.getTypeName)
+  override def afterAll(): Unit = {}
 
+  "Compaction command" should {
+    "be multiple files per partition before compacting" in {
+      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+        val fs = ds.getFeatureSource(sft.getTypeName)
         WithClose(fs.getFeatures.features) { iter =>
           while (iter.hasNext) {
             val feat = iter.next
@@ -101,57 +95,25 @@ class CompactCommandTest extends Specification {
             featureMustHaveProperGeometries(feat)
           }
         }
-
         fs.getCount(Query.ALL) mustEqual numFeatures
         ds.storage(sft.getTypeName).metadata.getFiles() must haveLength(6)
       }
     }
 
-    "Compaction command should run successfully" in {
-      foreach(sfts) { sft =>
-        val command = new FsCompactCommand()
-        command.params.featureName = sft.getTypeName
-        command.params.path = path
-        command.params.runMode = RunModes.Distributed.toString
-        // invoke on our existing store so the cached metadata gets updated
-        command.compact(ds)// must not(throwAn[Exception])
-        ok
-      }
+    "run successfully" in {
+      val command = new FsCompactCommand()
+      command.params.featureName = sft.getTypeName
+      command.params.path = path
+      command.params.metadataType = "file"
+      command.params.runMode = RunModes.Distributed.toString
+      command.execute() must not(throwAn[Exception])
     }
 
-    "After compacting should be one file per partition" in {
-      foreach(sfts) { sft =>
-        val fs = ds.getFeatureSource(sft.getTypeName)
-
-        WithClose(fs.getFeatures.features) { iter =>
-          while (iter.hasNext) {
-            val feat = iter.next
-            feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
-            featureMustHaveProperGeometries(feat)
-          }
-        }
-
-        fs.getCount(Query.ALL) mustEqual numFeatures
+    "be one file per partition after compacting" in {
+      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.storage(sft.getTypeName).metadata.getFiles() must haveLength(3)
-      }
-    }
 
-    "Compaction command should run successfully with target file size" in {
-      foreach(sfts) { sft =>
-        val command = new FsCompactCommand()
-        command.params.featureName = sft.getTypeName
-        command.params.path = path
-        command.params.runMode = RunModes.Distributed.toString
-        command.params.targetFileSize = targetFileSize
-        // invoke on our existing store so the cached metadata gets updated
-        command.compact(ds) must not(throwAn[Exception])
-      }
-    }
-
-    "After compacting with target file size should be multiple files per partition" in {
-      foreach(sfts) { sft =>
         val fs = ds.getFeatureSource(sft.getTypeName)
-
         WithClose(fs.getFeatures.features) { iter =>
           while (iter.hasNext) {
             val feat = iter.next
@@ -159,15 +121,39 @@ class CompactCommandTest extends Specification {
             featureMustHaveProperGeometries(feat)
           }
         }
-
         fs.getCount(Query.ALL) mustEqual numFeatures
+      }
+    }
+
+    "run successfully with target file size" in {
+      val command = new FsCompactCommand()
+      command.params.featureName = sft.getTypeName
+      command.params.path = path
+      command.params.metadataType = "file"
+      command.params.runMode = RunModes.Distributed.toString
+      command.params.targetFileSize = targetFileSize
+      command.execute() must not(throwAn[Exception])
+    }
+
+    "be multiple files per partition after compacting with target file size" in {
+      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         val storage = ds.storage(sft.getTypeName)
         foreach(storage.metadata.getFiles().groupBy(_.partition).values) { partition =>
           partition.size must beGreaterThan(1)
           val sizes = partition.map(f => new Path(storage.context.root, f.file)).map(p => storage.context.fs.getFileStatus(p).getLen)
-          // hard to get very close with 2 different formats and small files...
-          foreach(sizes)(_ must beCloseTo(targetFileSize, 4000))
+          // hard to get very close with small files...
+          foreach(sizes)(_ must beCloseTo(targetFileSize, 6000))
         }
+
+        val fs = ds.getFeatureSource(sft.getTypeName)
+        WithClose(fs.getFeatures.features) { iter =>
+          while (iter.hasNext) {
+            val feat = iter.next
+            feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
+            featureMustHaveProperGeometries(feat)
+          }
+        }
+        fs.getCount(Query.ALL) mustEqual numFeatures
       }
     }
   }
@@ -179,9 +165,5 @@ class CompactCommandTest extends Specification {
     sf.getAttribute("mpt") mustEqual mpt
     sf.getAttribute("mline") mustEqual mline
     sf.getAttribute("mpoly") mustEqual mpolygon
-  }
-
-  step {
-    ds.dispose()
   }
 }

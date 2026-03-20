@@ -43,32 +43,32 @@ class ConfigurationTest extends Specification with AllExpectations {
 //          sft.removeScheme() must beNone
 //      }
 //    }
-
-    "configure metadata options in user data" >> {
-      val config = Map(
-        JdbcMetadata.Config.UrlKey      -> "jdbc:h2:split:/tmp/meta",
-        JdbcMetadata.Config.UserKey     -> "user",
-        JdbcMetadata.Config.PasswordKey -> "pass"
-      )
-      val options = NamedOptions(JdbcMetadata.MetadataType, config)
-      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      foreach(Seq(
-        () => ConfigurationUtils.setMetadata(sft, options.name, config.asJava),
-        () => sft.setMetadata(options.name, options.options))) { setter =>
-          setter()
-          sft.removeMetadata() must beSome(options)
-          sft.removeMetadata() must beNone
-      }
-    }
-
-    "configure encoding option in user data" >> {
-      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,foo:Date,*bar:Point:srid=4326")
-      foreach(Seq(() => ConfigurationUtils.setEncoding(sft, "orc"), () => sft.setEncoding("orc"))) { setter =>
-        setter()
-        sft.removeEncoding() must beSome("orc")
-        sft.removeEncoding() must beNone
-      }
-    }
+//
+//    "configure metadata options in user data" >> {
+//      val config = Map(
+//        JdbcMetadata.Config.UrlKey      -> "jdbc:h2:split:/tmp/meta",
+//        JdbcMetadata.Config.UserKey     -> "user",
+//        JdbcMetadata.Config.PasswordKey -> "pass"
+//      )
+//      val options = NamedOptions(JdbcMetadata.MetadataType, config)
+//      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+//      foreach(Seq(
+//        () => ConfigurationUtils.setMetadata(sft, options.name, config.asJava),
+//        () => sft.setMetadata(options.name, options.options))) { setter =>
+//          setter()
+//          sft.removeMetadata() must beSome(options)
+//          sft.removeMetadata() must beNone
+//      }
+//    }
+//
+//    "configure encoding option in user data" >> {
+//      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,foo:Date,*bar:Point:srid=4326")
+//      foreach(Seq(() => ConfigurationUtils.setEncoding(sft, "orc"), () => sft.setEncoding("orc"))) { setter =>
+//        setter()
+//        sft.removeEncoding() must beSome("orc")
+//        sft.removeEncoding() must beNone
+//      }
+//    }
 
     "configure observers in user data" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,foo:Date,*bar:Point:srid=4326")

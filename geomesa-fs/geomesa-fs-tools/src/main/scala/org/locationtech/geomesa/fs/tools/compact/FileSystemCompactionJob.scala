@@ -31,13 +31,17 @@ import org.locationtech.geomesa.tools.utils.{DistributedCopy, JobRunner}
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.File
+import java.util.Properties
 
 trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
   import FileSystemCompactionJob.{FailedCounter, MappedCounter}
 
+  import scala.collection.JavaConverters._
+
   def run(
       storage: FileSystemStorage,
+      metadataConfig: Option[Properties],
       partitions: Seq[Partition],
       targetFileSize: Option[Long],
       tempPath: Option[Path],
@@ -65,9 +69,12 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     val qualifiedTempPath = tempPath.map(storage.context.fs.makeQualified)
 
     StorageConfiguration.setRootPath(job.getConfiguration, storage.context.root)
-    // TODO ?
+    StorageConfiguration.setEncoding(job.getConfiguration, storage.encoding)
+    StorageConfiguration.setSft(job.getConfiguration, storage.metadata.sft)
     StorageConfiguration.setPartitions(job.getConfiguration, partitions)
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Compacted)
+    StorageConfiguration.setMetadataType(job.getConfiguration, storage.metadata.`type`)
+    metadataConfig.foreach(c => StorageConfiguration.setMetadataConfig(job.getConfiguration, c.asScala.toMap))
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
     FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(storage.context.root))

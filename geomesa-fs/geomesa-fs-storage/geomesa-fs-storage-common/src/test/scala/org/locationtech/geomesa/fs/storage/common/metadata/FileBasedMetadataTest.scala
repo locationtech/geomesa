@@ -8,39 +8,17 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import org.apache.commons.io.{FileUtils, IOUtils}
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.Path
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.utils.PathCache
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.jts.geom.Envelope
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.AllExpectations
-
-import java.io.File
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 
 @RunWith(classOf[JUnitRunner])
-class FileBasedMetadataTest extends Specification with AllExpectations {
+class FileBasedMetadataTest extends TestAbstractMetadata {
 
-  import scala.collection.JavaConverters._
+  override protected def metadataType: String = FileBasedMetadata.MetadataType
+  override protected def getConfig(root: Path): Map[String, String] = Map.empty
 
-  lazy val conf = new Configuration()
-  lazy val fs = FileSystem.get(conf)
-  val sft = SimpleFeatureTypes.createType("metadata",
-    "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.user-data.prefix=desc,desc.name=姓名,desc.dtg=ひづけ,desc.geom=좌표")
-  val encoding = "parquet"
-  val scheme = Seq("hourly", "z2-2bits").map(PartitionSchemeFactory.load(sft, _))
-  val meta = Metadata(sft, Seq("hourly", "z2-2bits"), Map("encoding" -> encoding))
-  val factory = new FileBasedMetadataFactory()
-
-//  val f1 = StorageFile("file1", 0L)
+  //  val f1 = StorageFile("file1", 0L)
 //  val Seq(f2, f3) = Seq("file2", "file3").map(StorageFile(_, 1L))
 //  val Seq(f5, f6) = Seq("file5", "file6").map(StorageFile(_, 2L))
 //
@@ -210,13 +188,6 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
 //      )
 //    }
 //  }
-
-  def withPath[R](code: FileSystemContext => R): R = {
-    val file = Files.createTempDirectory("geomesa").toFile.getPath
-    try { code(FileSystemContext(fs, conf, new Path(file))) } finally {
-      FileUtils.deleteDirectory(new File(file))
-    }
-  }
 
   def list(dir: Path): Seq[String] = {
     val builder = Seq.newBuilder[String]

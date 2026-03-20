@@ -33,6 +33,10 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-fs-storage-parquet_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage-convert_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
@@ -55,6 +59,10 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
 
         <!-- test dependencies -->
         <dependency>
@@ -64,11 +72,6 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-storage-parquet_${scala.binary.version}</artifactId>
-            <scope>test</scope>
         </dependency>
         <!--<dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -94,6 +97,10 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-postgresql</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
