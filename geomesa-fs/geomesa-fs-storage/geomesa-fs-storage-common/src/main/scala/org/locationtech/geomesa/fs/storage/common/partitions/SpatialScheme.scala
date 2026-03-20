@@ -16,6 +16,8 @@ import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionScheme
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 
+import java.util.regex.Pattern
+
 abstract class SpatialScheme(id: String, bits: Int, geom: String) extends PartitionScheme {
 
   require(bits % 2 == 0, "Resolution must be an even number")
@@ -56,15 +58,27 @@ object SpatialScheme {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   abstract class SpatialPartitionSchemeFactory(name: String) extends PartitionSchemeFactory {
+
+    private val namePattern: Pattern = Pattern.compile(s"$name-([0-9]+)bits?:?")
+
     override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
       val opts = SchemeOpts(scheme)
-      if (opts.name != this.name) { None } else {
+      lazy val matcher = namePattern.matcher(scheme)
+
+      def build(resolution: Short): Option[PartitionScheme] = {
         val geom = opts.getSingle("attribute").orElse(Option(sft.getGeomField)).orNull
         require(geom != null, s"Spatial schemes requires an attribute to be specified with 'attribute=<attribute>'")
         val index = sft.indexOf(geom)
         require(index != -1, s"Attribute '$geom' does not exist in schema '${sft.getTypeName}'")
-        val resolution = opts.getSingle("bits").map(_.toShort).getOrElse(2.toShort)
         Some(buildPartitionScheme(resolution, geom, index))
+      }
+
+      if (opts.name == this.name) {
+        build(opts.getSingle("bits").map(_.toShort).getOrElse(2.toShort))
+      } else if (matcher.matches()) {
+        build(matcher.group(1).toShort)
+      } else {
+        None
       }
     }
 

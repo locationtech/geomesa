@@ -10,7 +10,6 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import org.apache.hadoop.conf.Configuration
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -24,7 +23,7 @@ class ParquetJobUtilsTest extends Specification {
   "ParquetJobUtils" should {
     "properly serialize sft with partition scheme user data" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      sft.setScheme(Seq("daily"))
+      sft.setScheme("daily")
       val conf = new Configuration
       StorageConfiguration.setSft(conf, sft)
 

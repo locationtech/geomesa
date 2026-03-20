@@ -18,9 +18,9 @@ import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator, KeyValueConverter}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
-import java.io.{File, StringWriter}
+import java.io.{File, FileReader, StringWriter}
 import java.util
 import java.util.Properties
 
@@ -38,13 +38,19 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
     val builder = Map.newBuilder[String, String]
     builder += (FileSystemDataStoreParams.PathParam.getName -> url.toString)
     builder += (FileSystemDataStoreParams.MetadataTypeParam.getName -> params.metadataType)
+    val metadataProps = new Properties()
+    if (params.metadataConfigFile != null) {
+      WithClose(new FileReader(params.metadataConfigFile))(metadataProps.load)
+    }
     if (!params.metadataConfig.isEmpty) {
-      val props = new Properties()
-      params.metadataConfig.asScala.foreach { case (k, v) => props.put(k, v) }
+      params.metadataConfig.asScala.foreach { case (k, v) => metadataProps.put(k, v) }
+    }
+    if (!metadataProps.isEmpty) {
       val out = new StringWriter()
-      props.store(out, null)
+      metadataProps.store(out, null)
       builder += (FileSystemDataStoreParams.MetadataConfigParam.getName -> out.toString)
     }
+
     if (!params.configuration.isEmpty) {
       val xml = {
         val conf = new Configuration(false)
@@ -96,6 +102,11 @@ object FsDataStoreCommand {
     var metadataConfig: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
 
     @Parameter(
+      names = Array("--metadata-config-file"),
+      description = "Name of a metadata configuration file, in Java properties format")
+    var metadataConfigFile: File = _
+
+    @Parameter(
       names = Array("--config"),
       description = "Configuration properties, in the form k=v",
       converter = classOf[KeyValueConverter],
@@ -112,8 +123,8 @@ object FsDataStoreCommand {
   }
 
   trait OptionalSchemeParams {
-    @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file")
-    var scheme: java.util.List[String] = _
+    @Parameter(names = Array("--partition-scheme"), description = "Partition scheme identifier")
+    var scheme: String = _
 
     @Parameter(
       names = Array("--storage-opt"),

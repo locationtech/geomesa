@@ -29,7 +29,7 @@ class FsManageMetadataCommandTest extends Specification {
   import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
-  sft.setScheme(Seq("daily"))
+  sft.setScheme("daily")
 
   val features =
     Seq(

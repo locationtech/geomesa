@@ -33,14 +33,6 @@ package object api {
   }
 
   /**
-    * Identifier plus configuration
-    *
-    * @param name name
-    * @param options configuration
-    */
-  case class NamedOptions(name: String, options: Map[String, String] = Map.empty)
-
-  /**
     * Holder for the metadata defining a storage instance
     *
     * @param sft simple feature type

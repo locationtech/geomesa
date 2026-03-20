@@ -20,14 +20,11 @@ import com.beust.jcommander.{ParameterException, Parameters}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
-import org.locationtech.geomesa.fs.storage.common.utils.PartitionSchemeArgResolver
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand.FsCreateSchemaParams
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
-
-import scala.collection.mutable.ListBuffer
 
 class FsCreateSchemaCommand extends CreateSchemaCommand[FileSystemDataStore] with FsDataStoreCommand {
 
@@ -47,22 +44,12 @@ object FsCreateSchemaCommand {
   def setOptions(sft: SimpleFeatureType, params: OptionalSchemeParams): Unit = {
     import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
-    val errors = ListBuffer.empty[String]
-
     if (params.scheme == null || params.scheme.isEmpty) {
       if (sft.getUserData.get(StorageKeys.SchemeKey) == null) {
-        errors += "--partition-scheme"
+        throw new ParameterException("--partition-scheme is required")
       }
     } else {
-      val scheme = params.scheme.asScala.map(PartitionSchemeArgResolver.resolve(sft, _)).collect {
-        case Left(e) => throw new ParameterException(e)
-        case Right(s) => s
-      }
-      sft.setScheme(scheme)
-    }
-
-    if (errors.nonEmpty) {
-      throw new ParameterException(s"The following options are required: ${errors.mkString(" ")}")
+      sft.setScheme(params.scheme)
     }
 
     if (params.targetFileSize != null) {

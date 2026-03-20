@@ -9,9 +9,7 @@
 package org.locationtech.geomesa.fs.storage.common
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.fs.storage.common.interop.ConfigurationUtils
-import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -19,8 +17,6 @@ import org.specs2.specification.AllExpectations
 
 @RunWith(classOf[JUnitRunner])
 class ConfigurationTest extends Specification with AllExpectations {
-
-  import scala.collection.JavaConverters._
 
   "SimpleFeatureTypes" should {
 

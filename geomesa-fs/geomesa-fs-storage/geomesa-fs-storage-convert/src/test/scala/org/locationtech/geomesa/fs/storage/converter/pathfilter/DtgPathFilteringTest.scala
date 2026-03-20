@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.storage.converter.pathfilter
 import org.apache.hadoop.fs.Path
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

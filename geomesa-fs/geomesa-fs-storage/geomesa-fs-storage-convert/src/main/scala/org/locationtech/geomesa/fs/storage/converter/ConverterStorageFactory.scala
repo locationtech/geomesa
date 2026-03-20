@@ -15,7 +15,7 @@ import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.metadata.ConverterMetadata.ConverterPathParam
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorageFactory._
-import org.locationtech.geomesa.fs.storage.converter.pathfilter.{PathFiltering, PathFilteringFactory}
+import org.locationtech.geomesa.fs.storage.converter.pathfilter.{NamedOptions, PathFiltering, PathFilteringFactory}
 
 import java.util.regex.Pattern
 

@@ -46,7 +46,7 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
     "name:String,age:Int,dtg:Date," +
       "*geom:MultiLineString:srid=4326,pt:Point,line:LineString," +
         "poly:Polygon,mpt:MultiPoint,mline:MultiLineString,mpoly:MultiPolygon")
-  sft.setScheme(Seq("daily"))
+  sft.setScheme("daily")
 
   val numFeatures = 10000
   val targetFileSize = 35000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder

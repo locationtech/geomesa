@@ -220,8 +220,6 @@ object StorageMetadata {
 
   object SpatialBounds {
 
-    def empty(attribute: Int): SpatialBounds = SpatialBounds(attribute, 0, 0, 0, 0) // TODO this is kind of hacky
-
     /**
      * Converts an envelope to a bounds, handling 'null' (empty) envelopes
      *

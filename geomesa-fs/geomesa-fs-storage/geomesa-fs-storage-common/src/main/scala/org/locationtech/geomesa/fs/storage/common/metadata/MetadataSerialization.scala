@@ -8,10 +8,9 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions, ConfigRenderOptions}
 import org.locationtech.geomesa.fs.storage.api.Metadata
 import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.StoragePersistence
-import org.locationtech.geomesa.fs.storage.common.{ParseOptions, RenderOptions}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.metrics.DebugLogProfiling
 import pureconfig.{ConfigConvert, ConfigSource, ConfigWriter}
@@ -23,6 +22,9 @@ import java.nio.charset.StandardCharsets
   * Serialization for basic metadata
   */
 object MetadataSerialization extends DebugLogProfiling {
+
+  private val RenderOptions: ConfigRenderOptions = ConfigRenderOptions.concise().setFormatted(true)
+  private val ParseOptions: ConfigParseOptions = ConfigParseOptions.defaults()
 
   /**
     * Serialize the metadata to the output stream as JSON

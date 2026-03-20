@@ -8,24 +8,15 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import org.geotools.api.filter.{Filter, PropertyIsLessThan}
-import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.expression.AttributeExpression.FunctionLiteral
-import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
 
-import java.time.temporal.ChronoUnit
-
 @RunWith(classOf[JUnitRunner])
 class PartitionSchemeTest extends Specification with AllExpectations {
-
-  import org.locationtech.geomesa.filter.{checkOrder, decomposeAnd}
 
   sequential
 

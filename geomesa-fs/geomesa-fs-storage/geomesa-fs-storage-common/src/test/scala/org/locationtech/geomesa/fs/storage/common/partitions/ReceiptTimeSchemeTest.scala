@@ -8,17 +8,11 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.PartitionSchemeFactory
-import org.locationtech.geomesa.fs.storage.common.StorageSerialization
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class ReceiptTimeSchemeTest extends Specification {

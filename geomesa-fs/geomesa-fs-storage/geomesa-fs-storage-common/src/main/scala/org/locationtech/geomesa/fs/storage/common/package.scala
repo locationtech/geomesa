@@ -10,52 +10,19 @@ package org.locationtech.geomesa.fs.storage
 
 import com.typesafe.config._
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.api.NamedOptions
-import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.PartitionSchemeConfig
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
 import pureconfig.generic.semiauto.deriveConvert
 import pureconfig.{ConfigConvert, ConfigSource}
 
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 package object common {
 
-  val RenderOptions: ConfigRenderOptions = ConfigRenderOptions.concise().setFormatted(true)
-  val ParseOptions: ConfigParseOptions = ConfigParseOptions.defaults()
   val FileValidationEnabled: SystemProperty = SystemProperty("geomesa.fs.validate.file", "false")
 
-  implicit val NamedOptionsConvert: ConfigConvert[NamedOptions] = deriveConvert[NamedOptions]
-
-  object StorageSerialization {
-
-    /**
-      * Serialize configuration options as a typesafe config string
-      *
-      * @param options options
-      * @return
-      */
-    def serialize(options: NamedOptions): String = NamedOptionsConvert.to(options).render(RenderOptions)
-
-    /**
-      * Deserialize configuration options, e.g. for partition schemes and metadata connections
-      *
-      * @param options options as a typesafe config string
-      * @return
-      */
-    def deserialize(options: String): NamedOptions = {
-      val config = ConfigFactory.parseString(options, ParseOptions)
-      try { ConfigSource.fromConfig(config).loadOrThrow[NamedOptions] } catch {
-        case NonFatal(e) => Try(deserializeOldScheme(config)).getOrElse(throw e)
-      }
-    }
-
-    private def deserializeOldScheme(config: Config): NamedOptions = {
-      val parsed = ConfigSource.fromConfig(config).loadOrThrow[PartitionSchemeConfig]
-      NamedOptions(parsed.scheme, parsed.options)
-    }
-  }
+  private lazy implicit val NamedOptionsConvert: ConfigConvert[NamedOptions] = deriveConvert[NamedOptions]
 
   object StorageKeys {
     val SchemeKey    = "geomesa.fs.scheme"
@@ -72,9 +39,24 @@ package object common {
 
     import StorageKeys._
 
-    // TODO better encoding? the only non-test place this is used is org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
-    def setScheme(names: Seq[String]): Unit = sft.getUserData.put(SchemeKey, names.mkString(","))
-    def removeScheme(): Option[Seq[String]] = remove(SchemeKey).map(_.split(",").toSeq)
+    def setScheme(names: String): Unit = sft.getUserData.put(SchemeKey, names)
+    def removeScheme(): Option[Seq[String]] = {
+      remove(SchemeKey).map { scheme =>
+        // back compatible check for old json-serialized schemes
+        if (scheme.startsWith("{")) {
+          try {
+            val config = ConfigFactory.parseString(scheme)
+            val named = ConfigSource.fromConfig(config).loadOrThrow[NamedOptions]
+            val opts = named.options.map { case (k, v) => s"$k=$v" }.mkString(":")
+            named.name.split(",").toSeq.map(n => s"$n:$opts")
+          } catch {
+            case NonFatal(e) => throw new RuntimeException(s"Could not parse legacy scheme options: $scheme", e)
+          }
+        } else {
+          scheme.split(",").toSeq
+        }
+      }
+    }
 
     def setTargetFileSize(size: String): Unit = {
       // validate input
@@ -98,4 +80,7 @@ package object common {
 
     private def remove(key: String): Option[String] = Option(sft.getUserData.remove(key).asInstanceOf[String])
   }
+
+  // kept around for back compatibility with encoded partition schemes
+  private case class NamedOptions(name: String, options: Map[String, String] = Map.empty)
 }

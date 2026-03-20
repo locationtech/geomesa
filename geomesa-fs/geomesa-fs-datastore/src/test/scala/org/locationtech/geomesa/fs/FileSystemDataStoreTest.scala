@@ -46,7 +46,7 @@ class FileSystemDataStoreTest extends Specification with BeforeAfterAll with Laz
 
   def createFormat(geom: String = "Point", createGeom: Int => String = createPoint): (SimpleFeatureType, Seq[SimpleFeature]) = {
     val sft = SimpleFeatureTypes.createType("parquet", s"name:String,age:Int,dtg:Date,*geom:$geom:srid=4326")
-    sft.setScheme(Seq("daily"))
+    sft.setScheme("daily")
     val features = Seq.tabulate(10) { i =>
       ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", createGeom(i))
     }
@@ -136,7 +136,7 @@ class FileSystemDataStoreTest extends Specification with BeforeAfterAll with Laz
             features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
 
-          val expected = Set(Set("800043aa"), Set("800043ab"), Set("800043ac"))// TODO verify these correspond to Seq("2017/06/05", "2017/06/06", "2017/06/07")
+          val expected = Set(Set("800043aa"), Set("800043ab"), Set("800043ac")) // these correspond to 2017/06/05, 2017/06/06, 2017/06/07
           val partitions = ds.storage(sft.getTypeName).metadata.getFiles().map(_.partition).toSet
           partitions must haveLength(3)
           partitions.map(_.values.map(_.value)) mustEqual expected
@@ -233,7 +233,7 @@ class FileSystemDataStoreTest extends Specification with BeforeAfterAll with Laz
     "reject schemas with reserved words" >> {
       foreach(dsParams) { params =>
         val reserved = SimpleFeatureTypes.createType("reserved", "dtg:Date,*point:Point:srid=4326")
-        reserved.setScheme(Seq("daily"))
+        reserved.setScheme("daily")
         WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
           ds.createSchema(reserved) must throwAn[IllegalArgumentException]
           ds.getSchema(reserved.getTypeName) must throwAn[IOException] // content data store schema does not exist

@@ -8,17 +8,11 @@
 
 package org.locationtech.geomesa.fs.storage.converter.pathfilter
 
-import java.util.ServiceLoader
+/**
+ * Identifier plus configuration
+ *
+ * @param name name
+ * @param options configuration
+ */
+case class NamedOptions(name: String, options: Map[String, String] = Map.empty)
 
-trait PathFilteringFactory {
-  def load(config: NamedOptions): Option[PathFiltering]
-}
-
-object PathFilteringFactory {
-
-  import scala.collection.JavaConverters._
-
-  private lazy val factories = ServiceLoader.load(classOf[PathFilteringFactory]).asScala.toSeq
-
-  def load(config: NamedOptions): Option[PathFiltering] = factories.toStream.flatMap(_.load(config)).headOption
-}

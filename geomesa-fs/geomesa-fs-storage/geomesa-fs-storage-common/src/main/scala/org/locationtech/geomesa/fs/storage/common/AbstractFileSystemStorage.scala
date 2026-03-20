@@ -362,7 +362,7 @@ abstract class AbstractFileSystemStorage(
     override def flush(): Unit = {}
 
     override def close(): Unit = {
-      val spatial = spatialBounds.map { case (i, env) => SpatialBounds(i, env).getOrElse(SpatialBounds.empty(i)) }
+      val spatial = spatialBounds.flatMap { case (i, env) => SpatialBounds(i, env) }
       val sf = StorageFile(file, partition, count, action, spatial, nonSpatialBounds)
       metadata.addFile(sf)
     }
