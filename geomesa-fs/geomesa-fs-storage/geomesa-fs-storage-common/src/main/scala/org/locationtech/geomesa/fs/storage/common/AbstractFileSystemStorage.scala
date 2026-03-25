@@ -68,13 +68,14 @@ abstract class AbstractFileSystemStorage(
   }
 
   /**
-    * Create a writer for the given file
-    *
-    * @param file file to write to
-    * @param observer observer to report stats on the data written
-    * @return
-    */
-  protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter
+   * Create a writer for the given file
+   *
+   * @param file file to write to
+   * @param partition partition being written to
+   * @param observer observer to report stats on the data written
+   * @return
+   */
+  protected def createWriter(file: Path, partition: Partition, observer: FileSystemObserver): FileSystemWriter
 
   /**
     * Create a path reader with the given filter and transform
@@ -227,7 +228,7 @@ abstract class AbstractFileSystemStorage(
       val observer = if (observers.isEmpty) { updateObserver } else {
         new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))
       }
-      WriterConfig(path, observer)
+      WriterConfig(path, partition, observer)
     }
 
     targetSize(targetFileSize) match {
@@ -236,7 +237,7 @@ abstract class AbstractFileSystemStorage(
     }
   }
 
-  private def createWriter(config: WriterConfig): FileSystemWriter = createWriter(config.path, config.observer)
+  private def createWriter(config: WriterConfig): FileSystemWriter = createWriter(config.path, config.partition, config.observer)
 
   /**
    * Writes files up to a given size, then starts a new file
@@ -371,5 +372,5 @@ abstract class AbstractFileSystemStorage(
 
 object AbstractFileSystemStorage {
 
-  private case class WriterConfig(path: Path, observer: FileSystemObserver)
+  private case class WriterConfig(path: Path, partition: Partition, observer: FileSystemObserver)
 }

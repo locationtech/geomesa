@@ -79,6 +79,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
   val GeometryEncodingKey   = "geomesa.parquet.geometries"
   val BBoxEncodingKey       = "geomesa.parquet.bounding-boxes"
   val VisibilityEncodingKey = "geomesa.fs.visibilities"
+  val PartitionKey          = "geomesa.fs.partition"
 
   @deprecated("Moved to org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema")
   val GeometryColumnX: String = GeometrySchema.GeometryColumnX
@@ -138,7 +139,8 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    */
   def write(conf: Configuration): Option[SimpleFeatureParquetSchema] = {
     val vis = conf.get(VisibilityEncodingKey)
-    write(conf.get(SftNameKey), conf.get(SftSpecKey), conf.get(GeometryEncodingKey), conf.get(BBoxEncodingKey), vis)
+    val partition = conf.get(PartitionKey)
+    write(conf.get(SftNameKey), conf.get(SftSpecKey), conf.get(GeometryEncodingKey), conf.get(BBoxEncodingKey), vis, partition)
   }
 
   /**
@@ -149,7 +151,8 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    */
   def write(conf: ParquetConfiguration): Option[SimpleFeatureParquetSchema] = {
     val vis = conf.get(VisibilityEncodingKey)
-    write(conf.get(SftNameKey), conf.get(SftSpecKey), conf.get(GeometryEncodingKey), conf.get(BBoxEncodingKey), vis)
+    val partition = conf.get(PartitionKey)
+    write(conf.get(SftNameKey), conf.get(SftSpecKey), conf.get(GeometryEncodingKey), conf.get(BBoxEncodingKey), vis, partition)
   }
 
   /**
@@ -186,7 +189,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * @param vis visibility config
    * @return
    */
-  private def write(sftName: String, sftSpec: String, geoms: String, bboxOpt: String, vis: String): Option[SimpleFeatureParquetSchema] = {
+  private def write(sftName: String, sftSpec: String, geoms: String, bboxOpt: String, vis: String, partition: String): Option[SimpleFeatureParquetSchema] = {
     for {
       name <- Option(sftName)
       spec <- Option(sftSpec)
@@ -199,6 +202,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       val metadata = new java.util.HashMap[String, String]()
       metadata.put(SftNameKey, name)
       metadata.put(SftSpecKey, spec)
+      metadata.put(PartitionKey, partition)
       metadata.put(GeometryEncodingKey, geometries.toString)
       if (geometries == GeometryEncoding.GeoMesaV1) {
         // noinspection ScalaDeprecation

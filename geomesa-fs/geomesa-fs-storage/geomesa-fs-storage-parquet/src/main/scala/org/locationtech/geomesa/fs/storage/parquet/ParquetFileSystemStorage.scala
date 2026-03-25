@@ -19,6 +19,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory.CompositeObserver
@@ -50,9 +51,11 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
 
   override val encoding: String = ParquetFileSystemStorage.Encoding
 
-  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter = {
+  override protected def createWriter(file: Path, partition: Partition, observer: FileSystemObserver): FileSystemWriter = {
     val conf = new Configuration(context.conf)
     SimpleFeatureParquetSchema.setSft(conf, metadata.sft)
+    conf.set(SimpleFeatureParquetSchema.PartitionKey, partition.encoded)
+
     val observers =
       if (FileValidationEnabled.toBoolean.get) {
         CompositeObserver(Seq(observer, FileValidationObserver(file)))

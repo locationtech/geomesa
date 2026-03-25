@@ -34,7 +34,7 @@ class ConverterStorage(context: FileSystemContext,
   // actually need to be closed, and since they will only open a single connection per converter, the
   // impact should be low
 
-  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
+  override protected def createWriter(file: Path, partition: Partition, observer: FileSystemObserver): FileSystemWriter =
     throw new UnsupportedOperationException()
 
   override protected def createReader(

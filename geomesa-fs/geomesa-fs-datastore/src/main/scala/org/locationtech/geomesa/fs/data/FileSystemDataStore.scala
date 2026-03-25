@@ -76,7 +76,6 @@ class FileSystemDataStore(
       val fileSize = sft.removeTargetFileSize()
       cache.put(sft.getTypeName, storageFactory.apply(config.context, catalog.create(sft, scheme, fileSize)))
     }
-    // TODO we should put the partitions in the file itself for redundancy
   }
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource =
