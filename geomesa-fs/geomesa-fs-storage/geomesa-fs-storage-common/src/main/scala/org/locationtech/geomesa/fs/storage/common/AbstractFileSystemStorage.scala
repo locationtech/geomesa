@@ -23,14 +23,15 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.api.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.WriterConfig
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
+import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.{CloseQuietly, FileSizeEstimator, FlushQuietly}
+import org.locationtech.geomesa.utils.io.{CloseQuietly, FileSizeEstimator, FlushQuietly, WithClose}
 import org.locationtech.jts.geom.{Envelope, Geometry}
 
+import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 /**
@@ -139,71 +140,61 @@ abstract class AbstractFileSystemStorage(
     new FileSystemUpdateWriterImpl(getReader(new Query(metadata.sft.getTypeName, filter), threads))
 
   override def compact(partition: Partition, fileSize: Option[Long], threads: Int): Unit = {
-    // TODO
-//    val target = targetSize(fileSize)
-//    partition.map(Seq(_)).getOrElse(metadata.getPartitions().map(_.name)).foreach { partition =>
-//      val paths = getFilePaths(partition)
-//      val toCompact = target match {
-//        case None => paths
-//        case Some(t) =>
-//          paths.filter { p =>
-//            if (fileIsSized(p.path, t)) {
-//              logger.debug(s"Skipping compaction for file [${p.path}] (already target size)")
-//              false
-//            } else {
-//              true
-//            }
-//          }
-//      }
-//
-//      if (toCompact.isEmpty) {
-//        logger.debug("Skipping compaction - no files to compact")
-//      } else if (toCompact.lengthCompare(1) == 0 && target.forall(fileIsSized(toCompact.head.path, _))) {
-//        logger.debug(s"Skipping compaction for single data file [${toCompact.mkString}]")
-//      } else {
-//        logger.debug(s"Compacting data files: [${toCompact.mkString(", ")}]")
-//
-//        var written = 0L
-//        val bounds = new Envelope()
-//
-//        val reader = createReader(None, None)
-//
-//        def writer: FileSystemWriter =
-//          createWriter(partition, StorageFileAction.Append, FileType.Compacted, target)
-//        def threaded: CloseableIterator[SimpleFeature] =
-//          FileSystemThreadedReader(Iterator.single(reader -> toCompact), threads)
-//
-//        WithClose(writer, threaded) { case (writer, features) =>
-//          while (features.hasNext) {
-//            val feature = features.next()
-//            writer.write(feature)
-//            written += 1
-//            val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
-//            if (geom != null) {
-//              bounds.expandToInclude(geom.getEnvelopeInternal)
-//            }
-//          }
-//        }
-//
-//        logger.debug(s"Deleting old files [${toCompact.mkString(", ")}]")
-//        metadata.removePartition(
-//          PartitionMetadata(partition, toCompact.map(_.file), PartitionBounds(bounds), written))
-//
-//        val failures = ListBuffer.empty[Path]
-//        toCompact.foreach { file =>
-//          if (!context.fs.delete(file.path, false)) {
-//            failures.append(file.path)
-//          }
-//          PathCache.invalidate(context.fs, file.path)
-//        }
-//
-//        if (failures.nonEmpty) {
-//          logger.error(s"Failed to delete some files: [${failures.mkString(", ")}]")
-//        }
-//
-//        logger.debug(s"Compacted $written records")
-//      }
-//    }
+    val target = targetSize(fileSize)
+    val files = metadata.getFiles(partition)
+    val toCompact = target match {
+      case None => files
+      case Some(t) =>
+        files.filter { f =>
+          if (fileIsSized(new Path(context.root, f.file), t)) {
+            logger.debug(s"Skipping compaction for file [${f.file}] (already target size)")
+            false
+          } else {
+            true
+          }
+        }
+    }
+
+    if (toCompact.isEmpty) {
+      logger.debug("Skipping compaction - no files to compact")
+    } else {
+      logger.debug(s"Compacting data files: [${toCompact.map(_.file).mkString(", ")}]")
+
+      var written = 0L
+
+      val reader = createReader(None, None)
+
+      def writer: FileSystemWriter =
+        createWriter(partition, StorageFileAction.Append, FileType.Compacted, target)
+      def threaded: CloseableIterator[SimpleFeature] =
+        FileSystemThreadedReader(Iterator.single(reader -> toCompact), threads)
+
+      WithClose(writer, threaded) { case (writer, features) =>
+        while (features.hasNext) {
+          val feature = features.next()
+          writer.write(feature)
+          written += 1
+        }
+      }
+
+      logger.debug(s"Deleting old files [${toCompact.mkString(", ")}]")
+      toCompact.foreach(metadata.removeFile)
+
+      val failures = ArrayBuffer.empty[String]
+      toCompact.foreach { file =>
+        val path = new Path(context.root, file.file)
+        if (!context.fs.delete(path, false)) {
+          failures.append(file.file)
+        }
+        PathCache.invalidate(context.fs, path)
+      }
+
+      if (failures.nonEmpty) {
+        logger.error(s"Failed to delete some files: [${failures.mkString(", ")}]")
+      }
+
+      logger.debug(s"Compacted $written records")
+    }
   }
 
   /**
