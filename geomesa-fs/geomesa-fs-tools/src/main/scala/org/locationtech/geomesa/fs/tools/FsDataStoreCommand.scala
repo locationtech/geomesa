@@ -80,7 +80,7 @@ object FsDataStoreCommand {
 
     abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
       () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_FS_HOME", "lib"),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[FileSystemDataStore])
+      () => ClassPathUtils.getJarsFromClasspath()
     ) ++ super.libjarsPaths
   }
 

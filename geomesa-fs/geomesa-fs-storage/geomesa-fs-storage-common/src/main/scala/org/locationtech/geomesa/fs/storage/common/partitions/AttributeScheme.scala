@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, SinglePartition}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, RangeBuilder, SinglePartition}
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 
@@ -144,26 +144,21 @@ object AttributeScheme {
         //   val coveredFilter = FilterExtractingVisitor(filter, attribute, AttributeScheme.propertyIsEquals _)._2
         //   val simplified = SimplifiedFilter(coveredFilter.getOrElse(Filter.INCLUDE), covered, partial = false)
         //  }
-        val ranges = bounds.values.flatMap { bound =>
+        val builder = new RangeBuilder()
+        bounds.values.foreach { bound =>
           if (bound.isEquals) {
-            val partition = toPartition(bound.lower.value.get)
-            if (allowed.isEmpty || allowed.contains(partition)) {
-              Seq(SinglePartition(name, partition))
-            } else {
-              Seq.empty
-            }
+            builder += SinglePartition(name, toPartition(bound.lower.value.get))
           } else {
             val lower = bound.lower.value.fold("")(toPartition)
             val upper = bound.upper.value.fold("zzz"/*TODO*/)(encodeUpperBound(_, bound.upper.exclusive))
-            val range = PartitionRange(name, lower, upper)
-            if (allowed.isEmpty) {
-              Seq(range)
-            } else {
-              allowed.collect { case v if range.contains(v) => SinglePartition(name, v) }
-            }
+            builder += PartitionRange(name, lower, upper)
           }
         }
-        Some(Seq(PartitionFilter(ranges :+ SinglePartition(name, default), rangeFilter)))
+        val all = builder.result()
+        val ranges = if (allowed.isEmpty) { all } else {
+          allowed.collect { case v if all.exists(_.contains(v)) => SinglePartition(name, v) }
+        }
+        Some(Seq(PartitionFilter(ranges, rangeFilter)))
       }
     }
 

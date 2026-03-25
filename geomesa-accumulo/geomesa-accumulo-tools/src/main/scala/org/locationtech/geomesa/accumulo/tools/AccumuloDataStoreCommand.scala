@@ -9,7 +9,6 @@
 
 package org.locationtech.geomesa.accumulo.tools
 
-import org.apache.accumulo.core.client.AccumuloClient
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
@@ -51,8 +50,7 @@ object AccumuloDataStoreCommand {
       () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_ACCUMULO_HOME", "lib"),
       () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME", "lib"), // old geomesa accumulo home path
       () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloClient])
+      () => ClassPathUtils.getJarsFromClasspath()
     ) ++ super.libjarsPaths
   }
 }

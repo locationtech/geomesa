@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, SinglePartition}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, RangeBuilder, SinglePartition}
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.text.DateParsing
 
@@ -118,9 +118,10 @@ case class HierarchicalDateTimeScheme(
     } else {
       val rangeFilter = Some(filter)
       // TODO we should be able to remove some of the filters
-      val ranges = bounds.values.map { bound =>
+      val builder = new RangeBuilder()
+      bounds.values.foreach { bound =>
         if (bound.isEquals) {
-          SinglePartition(name, formatter.format(truncateToPartitionStart(bound.lower.value.get)))
+          builder += SinglePartition(name, formatter.format(truncateToPartitionStart(bound.lower.value.get)))
         } else {
           val lower = bound.lower.value.fold("")(v => formatter.format(truncateToPartitionStart(v)))
           val upper = bound.upper.value.fold("zzz" /*TODO*/) { v =>
@@ -131,13 +132,10 @@ case class HierarchicalDateTimeScheme(
               formatter.format(truncateToPartitionStart(v.plus(step, stepUnit)))
             }
           }
-          PartitionRange(name, lower, upper)
+          builder += PartitionRange(name, lower, upper)
         }
       }
-      // TODO merge ranges so no overlap
-      // there should be no duplicates in covered partitions, as our bounds will not overlap,
-      // but there may be multiple partial intersects with a given partition
-      Some(Seq(PartitionFilter(ranges, rangeFilter)))
+      Some(Seq(PartitionFilter(builder.result(), rangeFilter)))
     }
   }
 

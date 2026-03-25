@@ -12,7 +12,7 @@ import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, SinglePartition}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, RangeBuilder, SinglePartition}
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.text.DateParsing
 
@@ -46,26 +46,24 @@ case class DateTimeScheme(
     } else {
       val rangeFilter = Some(filter)
       // TODO we should be able to remove some of the filters
-      val ranges = bounds.values.map { bound =>
-        if (bound.isEquals) {
-          SinglePartition(name, encoder.encode(toPartition(bound.lower.value.get)))
+      val builder = new RangeBuilder()
+      bounds.values.foreach { range =>
+        if (range.isEquals) {
+          builder += SinglePartition(name, encoder.encode(toPartition(range.lower.value.get)))
         } else {
-          val lower = bound.lower.value.fold("")(v => encoder.encode(toPartition(v)))
-          val upper = bound.upper.value.fold("zzz" /*TODO*/) { v =>
+          val lower = range.lower.value.fold("")(v => encoder.encode(toPartition(v)))
+          val upper = range.upper.value.fold("zzz" /*TODO*/) { v =>
             val partition = toPartition(v)
-            if (bound.upper.exclusive && toPartition(v.minus(1, ChronoUnit.MILLIS)) < partition) {
+            if (range.upper.exclusive && toPartition(v.minus(1, ChronoUnit.MILLIS)) < partition) {
               encoder.encode(partition)
             } else {
               encoder.encode(partition + 1)
             }
           }
-          PartitionRange(name, lower, upper)
+          builder += PartitionRange(name, lower, upper)
         }
       }
-      // TODO merge ranges so no overlap
-      // there should be no duplicates in covered partitions, as our bounds will not overlap,
-      // but there may be multiple partial intersects with a given partition
-      Some(Seq(PartitionFilter(ranges, rangeFilter)))
+      Some(Seq(PartitionFilter(builder.result(), rangeFilter)))
     }
   }
 

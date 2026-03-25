@@ -9,9 +9,7 @@
 package org.locationtech.geomesa.accumulo.jobs
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.hadoop.conf.Configuration
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
@@ -32,15 +30,10 @@ object AccumuloJobUtils extends LazyLogging {
   }
 
   // paths are in order of preference for finding a jar
-  // TODO String[] paths = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
-//for (String path : paths) {
-//    System.out.println(path);
-//}
   def defaultSearchPath: Iterator[() => Seq[File]] =
     Iterator(() => ClassPathUtils.getJarsFromEnvironment("GEOMESA_ACCUMULO_HOME", "lib"),
              () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
-             () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
-             () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloClient]))
+             () => ClassPathUtils.getJarsFromClasspath())
 
   /**
    * Sets the libjars into a Hadoop configuration. Will search the environment first, then the

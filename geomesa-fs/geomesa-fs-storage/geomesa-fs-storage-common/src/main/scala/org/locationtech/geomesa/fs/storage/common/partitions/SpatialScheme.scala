@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, SinglePartition}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, RangeBuilder, SinglePartition}
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
@@ -37,18 +37,17 @@ abstract class SpatialScheme(id: String, bits: Int, geom: String) extends Partit
     } else if (geometries.disjoint) {
       Some(Seq.empty)
     } else {
-      // there should be few enough partitions that we can safely enumerate them here
-      val ranges = generateRanges(geometries.values.map(GeometryUtils.bounds)).map { range =>
+      val ranges = new RangeBuilder()
+      generateRanges(geometries.values.map(GeometryUtils.bounds)).foreach { range =>
         val lower = format.format(range.lower)
         if (lower == format.format(range.upper)) {
-          SinglePartition(name, lower)
+          ranges += SinglePartition(name, lower)
         } else {
-          PartitionRange(name, lower, format.format(range.upper + 1))
+          ranges += PartitionRange(name, lower, format.format(range.upper + 1))
         }
       }
-      // TODO merge overlapping ranges
       // note: we don't simplify the filter as usually we wouldn't be able to remove much
-      Some(Seq(PartitionFilter(ranges, Some(filter))))
+      Some(Seq(PartitionFilter(ranges.result(), Some(filter))))
     }
   }
 }
