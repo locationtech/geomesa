@@ -319,7 +319,28 @@ abstract class AbstractFileSystemStorage(
 
 object AbstractFileSystemStorage {
 
-  private case class WriterConfig(path: Path, partition: Partition, observer: FileSystemObserver)
+  /**
+   * Can be used with an UpdateObserver to return storage files instead of writing them directly to the metadata
+   *
+   * @param sft simple feature type
+   * @param schemes partition schemes
+   */
+  class FileTracker(val sft: SimpleFeatureType, val schemes: Set[PartitionScheme]) extends StorageMetadata {
+
+    import scala.collection.JavaConverters._
+
+    private val files = new CopyOnWriteArrayList[StorageFile]()
+
+    override def `type`: String = "memory"
+    override def addFile(file: StorageFile): Unit = files.add(file)
+    override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
+    override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit =
+      throw new UnsupportedOperationException()
+    override def getFiles(): Seq[StorageFile] = files.asScala
+    override def getFiles(partition: Partition): Seq[StorageFile] = throw new UnsupportedOperationException()
+    override def getFiles(filter: Filter): Seq[StorageFileFilter] = throw new UnsupportedOperationException()
+    override def close(): Unit = {}
+  }
 
   /**
    * Writes partition data to the metadata
@@ -328,7 +349,7 @@ object AbstractFileSystemStorage {
    * @param file file being written
    * @param action file type
    */
-  private class UpdateObserver(metadata: StorageMetadata, partition: Partition, file: String, action: StorageFileAction)
+  class UpdateObserver(metadata: StorageMetadata, partition: Partition, file: String, action: StorageFileAction)
       extends FileSystemObserver with LazyLogging {
 
     import scala.collection.JavaConverters._
@@ -392,20 +413,5 @@ object AbstractFileSystemStorage {
     def build(): Option[AttributeBounds] = if (lower == null) { None } else { Some(AttributeBounds(i, lower, upper)) }
   }
 
-  private class FileTracker(val sft: SimpleFeatureType, val schemes: Set[PartitionScheme]) extends StorageMetadata {
-
-    import scala.collection.JavaConverters._
-
-    private val files = new CopyOnWriteArrayList[StorageFile]()
-
-    override def `type`: String = "memory"
-    override def addFile(file: StorageFile): Unit = files.add(file)
-    override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
-    override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit =
-      throw new UnsupportedOperationException()
-    override def getFiles(): Seq[StorageFile] = files.asScala
-    override def getFiles(partition: Partition): Seq[StorageFile] = throw new UnsupportedOperationException()
-    override def getFiles(filter: Filter): Seq[StorageFileFilter] = throw new UnsupportedOperationException()
-    override def close(): Unit = {}
-  }
+  private case class WriterConfig(path: Path, partition: Partition, observer: FileSystemObserver)
 }

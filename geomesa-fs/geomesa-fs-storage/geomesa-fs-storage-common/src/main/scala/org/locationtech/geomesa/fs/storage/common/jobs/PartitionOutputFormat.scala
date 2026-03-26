@@ -15,16 +15,14 @@ import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
 import org.apache.hadoop.mapreduce.security.TokenCache
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, SpatialBounds, StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorageFactory}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileTracker, UpdateObserver}
 import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.jobs.PartitionOutputFormat.SingleFileOutputFormat
 import org.locationtech.geomesa.fs.storage.common.metadata.StorageMetadataCatalog
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FileSizeEstimator}
-import org.locationtech.jts.geom.{Envelope, Geometry}
-
-import scala.collection.mutable.ArrayBuffer
 
 /**
   * Output format that writes to multiple partition files
@@ -80,8 +78,8 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
         case _ => None
       }
       estimator match {
-        case None => new SinglePartitionState(partitions)
-        case Some(e) => new ChunkedPartitionState(partitions, e, context)
+        case None => new SinglePartitionState(Partition(partitions))
+        case Some(e) => new ChunkedPartitionState(Partition(partitions), e, context)
       }
     }
 
@@ -96,54 +94,45 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
       cache.foreach { case (partition, state) =>
         logger.debug(s"Closing writer for $partition")
         state.close(context)
-        state.files.foreach(storage.metadata.addFile)
+        state.getFiles().foreach(storage.metadata.addFile)
       }
       CloseWithLogging(storage)
     }
 
-    private sealed abstract class PartitionState(partitions: Set[PartitionKey]) {
+    private sealed abstract class PartitionState(partition: Partition) {
 
-      val files: ArrayBuffer[StorageFile] = ArrayBuffer.empty[StorageFile]
+      private val fileTracker = new FileTracker(storage.metadata.sft, storage.metadata.schemes)
+      private val counter = context.getCounter(Group, StorageConfiguration.Counters.partition(partition.encoded))
 
-      private var count = 0L
-      private val bounds = new Envelope()
-      private val geomIndex = storage.metadata.sft.indexOf(storage.metadata.sft.getGeometryDescriptor.getLocalName)
-      private var currentFile: String = _
+      private var observer: UpdateObserver = _
 
-      def write(key: Void, value: SimpleFeature): Unit = {
-        // TODO track other attribute bounds
-        val geom = value.getAttribute(geomIndex).asInstanceOf[Geometry]
-        if (geom != null) {
-          bounds.expandToInclude(geom.getEnvelopeInternal)
-        }
-        count += 1L
-      }
+      // noinspection AccessorLikeMethodIsEmptyParen
+      def getFiles(): Seq[StorageFile] = fileTracker.getFiles()
 
-      def close(context: TaskAttemptContext): Unit = {
-        closeCurrentFile()
-        currentFile = null
-      }
+      def write(key: Void, value: SimpleFeature): Unit = observer.apply(value)
+
+      def close(context: TaskAttemptContext): Unit = closeCurrentFile()
 
       protected def newWriter(): (Path, RecordWriter[Void, SimpleFeature]) = {
         closeCurrentFile()
-        currentFile = StorageUtils.nextFile(storage.metadata.sft.getTypeName, fileType, "parquet")
-        val path = new Path(workPath, currentFile)
+        val nextFile = StorageUtils.nextFile(storage.metadata.sft.getTypeName, fileType, "parquet")
+        observer = new UpdateObserver(fileTracker, partition, nextFile, StorageFileAction.Append)
+        val path = new Path(workPath, nextFile)
         logger.debug(s"Creating record writer at path $path")
         // noinspection LanguageFeature
         (path, delegate.getRecordWriter(context, path))
       }
 
       private def closeCurrentFile(): Unit = {
-        if (currentFile != null) {
-          files += StorageFile(currentFile, Partition(partitions), count, StorageFileAction.Append, SpatialBounds(geomIndex, bounds).toSeq)
-          context.getCounter(Group, StorageConfiguration.Counters.partition(Partition(partitions).encoded)).increment(count)
-          count = 0
-          bounds.setToNull()
+        if (observer != null) {
+          observer.close()
+          observer = null
+          counter.increment(fileTracker.getFiles().last.count)
         }
       }
     }
 
-    private class SinglePartitionState(partitions: Set[PartitionKey]) extends PartitionState(partitions) {
+    private class SinglePartitionState(partition: Partition) extends PartitionState(partition) {
 
       private val writer = newWriter()._2
 
@@ -158,8 +147,8 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
       }
     }
 
-    private class ChunkedPartitionState(partitions: Set[PartitionKey], estimator: FileSizeEstimator, context: TaskAttemptContext)
-        extends PartitionState(partitions) {
+    private class ChunkedPartitionState(partition: Partition, estimator: FileSizeEstimator, context: TaskAttemptContext)
+        extends PartitionState(partition) {
 
       private var count = 0L // number of features written
       private var total = 0L // sum size of all finished chunks
