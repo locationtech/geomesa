@@ -54,6 +54,14 @@ trait StorageMetadata extends Closeable {
   def removeFile(file: StorageFile): Unit
 
   /**
+   * Replace existing files with new ones in an atomic operation
+   *
+   * @param existing existing files
+   * @param replacements replacement files
+   */
+  def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit
+
+  /**
    * Get all files
    *
    * @return all files

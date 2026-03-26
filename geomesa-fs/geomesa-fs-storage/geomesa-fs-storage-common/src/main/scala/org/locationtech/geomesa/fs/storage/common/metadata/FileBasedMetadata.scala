@@ -85,6 +85,13 @@ class FileBasedMetadata(
     }
   }
 
+  override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit = {
+    val existingFiles = existing.map(_.file)
+    modifyFiles { files =>
+      files.filterNot(f => existingFiles.contains(f.file)) ++ replacements
+    }
+  }
+
   override def close(): Unit = {}
 
   /**

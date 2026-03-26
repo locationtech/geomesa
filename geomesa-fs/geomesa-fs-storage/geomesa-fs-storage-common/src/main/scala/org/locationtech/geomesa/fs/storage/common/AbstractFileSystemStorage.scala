@@ -11,8 +11,8 @@ package org.locationtech.geomesa.fs.storage.common
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
+import org.calrissian.mango.types.TypeEncoder
 import org.geotools.api.data.Query
-import org.geotools.api.feature.`type`.GeometryDescriptor
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
@@ -26,6 +26,7 @@ import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.Writ
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
+import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FileSizeEstimator, FlushQuietly, WithClose}
@@ -113,9 +114,7 @@ abstract class AbstractFileSystemStorage(
     val transform = query.getHints.getTransform
     val filter = Option(query.getFilter).getOrElse(Filter.INCLUDE)
 
-    // each partition must be read separately, to ensure modifications are handled correctly
-    val files = metadata.getFiles(filter).groupBy(_.file.partition).values
-
+    val files = metadata.getFiles(filter)
     logger.debug(s"Running query '${query.getTypeName}' ${ECQL.toCQL(query.getFilter)}")
     logger.debug(s"  Original filter: ${ECQL.toCQL(original.getFilter)}")
     logger.debug(s"  Transforms: " + query.getHints.getTransformDefinition.map { t =>
@@ -125,8 +124,18 @@ abstract class AbstractFileSystemStorage(
     if (files.isEmpty) {
       CloseableIterator.empty
     } else {
-      val readers = files.iterator.map { sff =>
+      // if a partitions has modifications, it must be read separately to ensure they're handled correctly
+      val partitionsWithMods = files.collect { case f if f.file.action != StorageFileAction.Append => f.file.partition }.toSet
+      val grouped = if (partitionsWithMods.isEmpty) {
+        files.groupBy(_.filter).values
+      } else {
+        val (withMods, withoutMods) = files.partition(f => partitionsWithMods.contains(f.file.partition))
+        // note: we assume that all files in a given partition have the same filter
+        withMods.groupBy(_.file.partition).values ++ withoutMods.groupBy(_.filter).values
+      }
+      val readers = grouped.iterator.map { sff =>
         logger.debug(s"  Reading ${sff.size} files with filter: ${sff.head.filter.fold("INCLUDE")(ECQL.toCQL)}")
+        logger.whenTraceEnabled(sff.foreach(f => logger.trace(s"    $f")))
         createReader(sff.head.filter, transform) -> sff.map(_.file)
       }
       FileSystemThreadedReader(readers, threads)
@@ -164,10 +173,8 @@ abstract class AbstractFileSystemStorage(
 
       val reader = createReader(None, None)
 
-      def writer: FileSystemWriter =
-        createWriter(partition, StorageFileAction.Append, FileType.Compacted, target)
-      def threaded: CloseableIterator[SimpleFeature] =
-        FileSystemThreadedReader(Iterator.single(reader -> toCompact), threads)
+      def writer: FileSystemWriter = createWriter(partition, StorageFileAction.Append, FileType.Compacted, target)
+      def threaded: CloseableIterator[SimpleFeature] = FileSystemThreadedReader(Iterator.single(reader -> toCompact), threads)
 
       WithClose(writer, threaded) { case (writer, features) =>
         while (features.hasNext) {
@@ -334,12 +341,20 @@ abstract class AbstractFileSystemStorage(
     import scala.collection.JavaConverters._
 
     private var count: Long = 0L
-    private val spatialBounds =
-      metadata.sft.getAttributeDescriptors.asScala.toSeq.collect {
-        case g: GeometryDescriptor => metadata.sft.indexOf(g.getLocalName) -> new Envelope()
+
+    private val spatialBounds = metadata.sft.spatialBounds().map(_ -> new Envelope())
+
+    private val nonSpatialBounds = metadata.sft.nonSpatialBounds().flatMap { i =>
+      val binding = metadata.sft.getDescriptor(i).getType.getBinding
+      AttributeIndexKey.TypeRegistry.getAllEncoders.asScala.find(_.resolves().isAssignableFrom(binding)) match {
+        case Some(encoder) => Some(AttributeBoundsBuilder(i, encoder.asInstanceOf[TypeEncoder[AnyRef, String]]))
+        case None =>
+          logger.warn(
+            s"Can't find an encoder for attribute ${metadata.sft.getDescriptor(i).getLocalName} of type ${binding.getSimpleName} - " +
+              "will not track bounds")
+          None
       }
-    // TODO track attribute bounds for each file (based on indexed attributes?)
-    private val nonSpatialBounds = Seq.empty[AttributeBounds]
+    }
 
     override def apply(feature: SimpleFeature): Unit = {
       count += 1L
@@ -349,19 +364,42 @@ abstract class AbstractFileSystemStorage(
           env.expandToInclude(geom.getEnvelopeInternal)
         }
       }
+      nonSpatialBounds.foreach(_.apply(feature))
     }
 
     override def flush(): Unit = {}
 
     override def close(): Unit = {
       val spatial = spatialBounds.flatMap { case (i, env) => SpatialBounds(i, env) }
-      val sf = StorageFile(file, partition, count, action, spatial, nonSpatialBounds)
-      metadata.addFile(sf)
+      val nonSpatial = nonSpatialBounds.flatMap(_.build())
+      metadata.addFile(StorageFile(file, partition, count, action, spatial, nonSpatial))
     }
+  }
+
+  private case class AttributeBoundsBuilder(i: Int, lexicoder: TypeEncoder[AnyRef, String]) {
+
+    private var lower: String = _
+    private var upper: String = _
+
+    def apply(feature: SimpleFeature): Unit = {
+      val value = feature.getAttribute(i)
+      if (value != null) {
+        val encoded = lexicoder.encode(value)
+        if (lower == null) {
+          lower = encoded
+          upper = encoded
+        } else if (lower > encoded) {
+          lower = encoded
+        } else if (upper < encoded) {
+          upper = encoded
+        }
+      }
+    }
+
+    def build(): Option[AttributeBounds] = if (lower == null) { None } else { Some(AttributeBounds(i, lower, upper)) }
   }
 }
 
 object AbstractFileSystemStorage {
-
   private case class WriterConfig(path: Path, partition: Partition, observer: FileSystemObserver)
 }

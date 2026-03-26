@@ -11,6 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.metadata.filter
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileFilter}
+import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction.SchemeFilter
 
 trait CachedMetadata extends StorageMetadata with SchemeFilterExtraction {
 
@@ -27,16 +28,17 @@ trait CachedMetadata extends StorageMetadata with SchemeFilterExtraction {
     } else {
       val added = scala.collection.mutable.HashSet.empty[StorageFile]
       val files = getFilters(filter).flatMap { f =>
-        cachedFiles.collect { case file if
-          f.partitionsAnd.forall(p => file.partition.values.exists(v => p.name == v.name && p.contains(v.value))) &&
-            // true &&  TODO check spatial/attribute bounds
-            added.add(file)
-        => StorageFileFilter(file, f.filter)
-        }
+        cachedFiles.collect { case file if matches(file, f) && added.add(file) => StorageFileFilter(file, f.filter) }
       }
-      logger.debug(s"Matched files:${files.map(f => f.file.file -> f.file.partition).mkString("\n  ", "\n  ", "")}")
-      logger.trace(s"Skipped files:${cachedFiles.filterNot(files.map(_.file).contains).map(f => f.file -> f.partition).mkString("\n  ", "\n  ", "")}")
+      logger.debug(s"Matched files:${files.mkString("\n  ", "\n  ", "")}")
+      logger.trace(s"Skipped files:${cachedFiles.filterNot(files.map(_.file).contains).mkString("\n  ", "\n  ", "")}")
       files
     }
   }
+
+  private def matches(file: StorageFile, f: SchemeFilter): Boolean =
+    f.partitions.forall(p => file.partition.values.exists(v => p.name == v.name && p.contains(v.value))) &&
+      f.spatialBounds.values.forall(or => file.spatialBounds.find(b => b.attribute == or.attribute).forall(b => or.bounds.exists(_.intersects(b)))) &&
+      f.attributeBounds.values.forall(or => file.attributeBounds.find(b => b.attribute == or.attribute).forall(b => or.bounds.exists(_.intersects(b))))
+
 }

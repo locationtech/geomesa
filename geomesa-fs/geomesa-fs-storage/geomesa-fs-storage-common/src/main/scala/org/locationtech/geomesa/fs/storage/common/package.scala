@@ -9,14 +9,16 @@
 package org.locationtech.geomesa.fs.storage
 
 import com.typesafe.config._
+import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.ConvertToBoolean
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
 import pureconfig.generic.semiauto.deriveConvert
 import pureconfig.{ConfigConvert, ConfigSource}
 
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 package object common {
 
@@ -30,13 +32,19 @@ package object common {
     val ObserversKey = "geomesa.fs.observers"
   }
 
+  object StorageAttributeKeys {
+    val Bounds = "fs.bounds"
+  }
+
   /**
     * Implicit methods to set/retrieve storage configuration options in SimpleFeatureType user data
     *
     * @param sft simple feature type
     */
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.DefaultDtgField
 
+    import scala.collection.JavaConverters._
     import StorageKeys._
 
     def setScheme(names: String): Unit = sft.getUserData.put(SchemeKey, names)
@@ -78,7 +86,27 @@ package object common {
       if (obs == null || obs.isEmpty) { Seq.empty } else { obs.split(",") }
     }
 
+    def spatialBounds(): Seq[Int] = {
+      sft.getAttributeDescriptors.asScala.toSeq.collect {
+        case g: GeometryDescriptor if g == sft.getGeometryDescriptor || g.fsBounds() => sft.indexOf(g.getLocalName)
+      }
+    }
+
+    def nonSpatialBounds(): Seq[Int] = {
+      sft.getAttributeDescriptors.asScala.toSeq.collect {
+        case d if sft.getUserData.get(DefaultDtgField) == d.getLocalName || (d.fsBounds() && !d.isInstanceOf[GeometryDescriptor]) =>
+          sft.indexOf(d.getLocalName)
+      }
+    }
+
     private def remove(key: String): Option[String] = Option(sft.getUserData.remove(key).asInstanceOf[String])
+  }
+
+  implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
+    def fsBounds(): Boolean = {
+      val b = ad.getUserData.get(StorageAttributeKeys.Bounds)
+      if (b == null) { false } else { Try(ConvertToBoolean.convert(b)).getOrElse(false) }
+    }
   }
 
   // kept around for back compatibility with encoded partition schemes

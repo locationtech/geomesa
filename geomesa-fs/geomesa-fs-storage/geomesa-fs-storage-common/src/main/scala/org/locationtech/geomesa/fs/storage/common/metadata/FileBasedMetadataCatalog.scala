@@ -33,7 +33,7 @@ class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetada
     typeNames.result()
   }
 
-  override def load(typeName: String): StorageMetadata = {
+  override def load(typeName: String): FileBasedMetadata = {
     val file = new Path(directory, StringSerialization.alphaNumericSafeString(typeName) + ".json")
     if (!context.fs.exists(file)) {
       throw new IllegalArgumentException(s"Type '$typeName' does not exit")
@@ -42,7 +42,7 @@ class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetada
     new FileBasedMetadata(context.fs, directory, meta.copy(sft = namespaced(meta.sft, context.namespace)))
   }
 
-  override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long]): StorageMetadata = {
+  override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long]): FileBasedMetadata = {
     // load the partition scheme first in case it fails
     partitions.foreach(PartitionSchemeFactory.load(sft, _))
     val meta = Metadata(sft, partitions, targetFileSize)

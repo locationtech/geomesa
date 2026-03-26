@@ -12,12 +12,12 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionBounds, PartitionRange, SinglePartition}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, Partition, PartitionKey, SpatialBounds, StorageFile, StorageFileFilter}
 import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, PartitionSchemeFactory, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.MetadataTable
 import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction
+import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction.{And, AttributeBound, Or, SpatialBound}
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
@@ -111,18 +111,61 @@ class JdbcMetadata(
     }
   }
 
-  override def addFile(file: StorageFile): Unit =
-    WithClose(pool.getConnection())(filesTable.insert(_, root, file))
+  override def addFile(file: StorageFile): Unit = {
+    WithClose(pool.getConnection()) { cx =>
+      cx.setAutoCommit(false)
+      try {
+        filesTable.insert(cx, root, file)
+        cx.commit()
+      } catch {
+        case NonFatal(e) =>
+          cx.rollback()
+          throw e
+      } finally {
+        cx.setAutoCommit(true)
+      }
+    }
+  }
 
-  override def removeFile(file: StorageFile): Unit =
-    WithClose(pool.getConnection())(filesTable.delete(_, root, file))
+  override def removeFile(file: StorageFile): Unit = {
+    WithClose(pool.getConnection()) { cx =>
+      cx.setAutoCommit(false)
+      try {
+        filesTable.delete(cx, root, file)
+        cx.commit()
+      } catch {
+        case NonFatal(e) =>
+          cx.rollback()
+          throw e
+      } finally {
+        cx.setAutoCommit(true)
+      }
+    }
+  }
+
+  override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit = {
+    WithClose(pool.getConnection()) { cx =>
+      cx.setAutoCommit(false)
+      try {
+        existing.foreach(filesTable.delete(cx, root, _))
+        replacements.foreach(filesTable.insert(cx, root, _))
+        cx.commit()
+      } catch {
+        case NonFatal(e) =>
+          cx.rollback()
+          throw e
+      } finally {
+        cx.setAutoCommit(true)
+      }
+    }
+  }
 
   override def getFiles(): Seq[StorageFile] =
-    WithClose(pool.getConnection())(filesTable.select(_, root, Seq.empty, Seq.empty, Seq.empty))
+    WithClose(pool.getConnection())(filesTable.select(_, root, Seq.empty, And.empty, And.empty))
 
   override def getFiles(partition: Partition): Seq[StorageFile] = {
     val filters = partition.values.toSeq.map(p => SinglePartition(p.name, p.value))
-    WithClose(pool.getConnection())(filesTable.select(_, root, filters, Seq.empty, Seq.empty))
+    WithClose(pool.getConnection())(filesTable.select(_, root, filters, And.empty, And.empty))
   }
 
   override def getFiles(filter: Filter): Seq[StorageFileFilter] = {
@@ -136,7 +179,7 @@ class JdbcMetadata(
       } else {
         WithClose(pool.getConnection()) { cx =>
           filters.flatMap { f =>
-            filesTable.select(cx, root, f.partitionsAnd, f.spatialBoundsOr, f.attributeBoundsOr).map(StorageFileFilter(_, f.filter))
+            filesTable.select(cx, root, f.partitions, f.spatialBounds, f.attributeBounds).map(StorageFileFilter(_, f.filter))
           }
         }
       }
@@ -344,113 +387,124 @@ object JdbcMetadata extends LazyLogging {
     }
 
     def insert(cx: Connection, root: String, file: StorageFile): Unit = {
-      cx.setAutoCommit(false)
-      try {
-        val id = WithClose(cx.prepareStatement(
-          s"INSERT INTO $filesTable (root, file, count, action, sort, ts) " +
-            "VALUES (?, ?, ?, ?, ?, ?) RETURNING id", Statement.RETURN_GENERATED_KEYS)) { st =>
-          st.setString(1, root)
-          st.setString(2, file.file)
-          st.setLong(3, file.count)
-          st.setString(4, file.action.toString.substring(0, 1))
-          if (file.sort.isEmpty) {
-            st.setNull(5, java.sql.Types.ARRAY)
+      val id = WithClose(cx.prepareStatement(
+        s"INSERT INTO $filesTable (root, file, count, action, sort, ts) " +
+          "VALUES (?, ?, ?, ?, ?, ?) RETURNING id", Statement.RETURN_GENERATED_KEYS)) { st =>
+        st.setString(1, root)
+        st.setString(2, file.file)
+        st.setLong(3, file.count)
+        st.setString(4, file.action.toString.substring(0, 1))
+        if (file.sort.isEmpty) {
+          st.setNull(5, java.sql.Types.ARRAY)
+        } else {
+          st.setArray(5, cx.createArrayOf("integer", file.sort.map(Int.box).toArray[AnyRef]))
+        }
+        st.setTimestamp(6, Timestamp.from(Instant.ofEpochMilli(file.timestamp)))
+        st.executeUpdate()
+        WithClose(st.getGeneratedKeys) { rs =>
+          if (rs.next()) {
+            rs.getLong(1)
           } else {
-            st.setArray(5, cx.createArrayOf("integer", file.sort.map(Int.box).toArray[AnyRef]))
-          }
-          st.setTimestamp(6, Timestamp.from(Instant.ofEpochMilli(file.timestamp)))
-          st.executeUpdate()
-          WithClose(st.getGeneratedKeys) { rs =>
-            if (rs.next()) {
-              rs.getLong(1)
-            } else {
-              throw new RuntimeException("Failed to retrieve generated key")
-            }
+            throw new RuntimeException("Failed to retrieve generated key")
           }
         }
-        WithClose(cx.prepareStatement(s"INSERT INTO $partitionsTable (file_id, name, value) VALUES (?, ?, ?)")) { st =>
-          file.partition.values.foreach { p =>
+      }
+      WithClose(cx.prepareStatement(s"INSERT INTO $partitionsTable (file_id, name, value) VALUES (?, ?, ?)")) { st =>
+        file.partition.values.foreach { p =>
+          st.setLong(1, id)
+          st.setString(2, p.name)
+          st.setString(3, p.value)
+          st.executeUpdate()
+        }
+      }
+      if (file.spatialBounds.nonEmpty) {
+        WithClose(cx.prepareStatement(s"INSERT INTO $spatialBoundsTable (file_id, attribute, x_min, x_max, y_min, y_max) VALUES (?, ?, ?, ?, ?, ?)")) { st =>
+          file.spatialBounds.foreach { bounds =>
             st.setLong(1, id)
-            st.setString(2, p.name)
-            st.setString(3, p.value)
+            st.setInt(2, bounds.attribute)
+            st.setDouble(3, bounds.xmin)
+            st.setDouble(4, bounds.xmax)
+            st.setDouble(5, bounds.ymin)
+            st.setDouble(6, bounds.ymax)
             st.executeUpdate()
           }
         }
-        if (file.spatialBounds.nonEmpty) {
-          WithClose(cx.prepareStatement(s"INSERT INTO $spatialBoundsTable (file_id, attribute, x_min, x_max, y_min, y_max) VALUES (?, ?, ?, ?, ?, ?)")) { st =>
-            file.spatialBounds.foreach { bounds =>
-              st.setLong(1, id)
-              st.setInt(2, bounds.attribute)
-              st.setDouble(3, bounds.xmin)
-              st.setDouble(4, bounds.xmax)
-              st.setDouble(5, bounds.ymin)
-              st.setDouble(6, bounds.ymax)
-              st.executeUpdate()
-            }
+      }
+      if (file.attributeBounds.nonEmpty) {
+        WithClose(cx.prepareStatement(s"INSERT INTO $attrBoundsTable (file_id, attribute, lower, upper) VALUES (?, ?, ?, ?)")) { st =>
+          file.attributeBounds.foreach { bounds =>
+            st.setLong(1, id)
+            st.setInt(2, bounds.attribute)
+            st.setString(3, bounds.lower)
+            st.setString(4, bounds.upper)
+            st.executeUpdate()
           }
         }
-        if (file.attributeBounds.nonEmpty) {
-          WithClose(cx.prepareStatement(s"INSERT INTO $attrBoundsTable (file_id, attribute, lower, upper) VALUES (?, ?, ?, ?)")) { st =>
-            file.attributeBounds.foreach { bounds =>
-              st.setLong(1, id)
-              st.setInt(2, bounds.attribute)
-              st.setString(3, bounds.lower)
-              st.setString(4, bounds.upper)
-              st.executeUpdate()
-            }
-          }
-        }
-        cx.commit()
-      } catch {
-        case NonFatal(e) =>
-          cx.rollback()
-          throw e
-      } finally {
-        cx.setAutoCommit(true)
       }
     }
 
     def delete(cx: Connection, root: String, file: StorageFile): Unit = {
-      cx.setAutoCommit(false)
-      try {
-        WithClose(cx.prepareStatement(s"DELETE FROM $filesTable WHERE root = ? AND file = ?")) { st =>
-          st.setString(1, root)
-          st.setString(2, file.file)
-          st.executeUpdate()
-        }
-        cx.commit()
-      } catch {
-        case NonFatal(e) =>
-          cx.rollback()
-          throw e
-      } finally {
-        cx.setAutoCommit(true)
+      WithClose(cx.prepareStatement(s"DELETE FROM $filesTable WHERE root = ? AND file = ?")) { st =>
+        st.setString(1, root)
+        st.setString(2, file.file)
+        st.executeUpdate()
       }
     }
 
     def select(
         cx: Connection,
         root: String,
-        partitionsAnd: Seq[PartitionBounds],
-        spatialBoundsOr: Seq[SpatialBounds],
-        attributeBoundsOr: Seq[AttributeBounds],
+        partitions: Seq[PartitionBounds],
+        spatialBounds: And[SpatialBound],
+        attributeBounds: And[AttributeBound],
       ): Seq[StorageFile] = {
 
-      // TODO filter on spatial/attr bounds
-      // TODO need to ensure that if spatial/attribute bounds don't exist in the table we count that as a match
-
       // build query with multiple joins - one for each partition filter (AND logic)
-      val partitionJoins = partitionsAnd.zipWithIndex.map {
+      val partitionJoins = partitions.zipWithIndex.map {
         case (SinglePartition(name, value), i) => SingleValueJoin(name, value, s"sp_filter_$i")
         case (PartitionRange(name, lower, upper), i) => RangeJoin(name, lower, upper, s"sp_filter_$i")
       }
-      val joinClause = partitionJoins.map { j =>
-        s"JOIN $partitionsTable ${j.tableAlias} ON sf.id = ${j.tableAlias}.file_id AND ${j.onClause}"
+
+      // build spatial bound filters - one LEFT JOIN per attribute with OR logic for bounds
+      val spatialBoundJoins = spatialBounds.values.zipWithIndex.map {
+        case (Or(attribute, bounds), i) => SpatialBoundsJoin(attribute, bounds, s"sb_filter_$i")
       }
+
+      // build attribute bound filters - one LEFT JOIN per attribute with OR logic for bounds
+      val attrBoundJoins = attributeBounds.values.zipWithIndex.map {
+        case (Or(attribute, bounds), i) => AttributeBoundsJoin(attribute, bounds, s"ab_filter_$i")
+      }
+
+      val joinClause =
+        partitionJoins.map { j =>
+          s"JOIN $partitionsTable ${j.tableAlias} ON sf.id = ${j.tableAlias}.file_id AND ${j.onClause}"
+        } ++
+        spatialBoundJoins.map { j =>
+          s"LEFT JOIN $spatialBoundsTable ${j.tableAlias} ON sf.id = ${j.tableAlias}.file_id AND ${j.tableAlias}.attribute = ?"
+        } ++
+        attrBoundJoins.map { j =>
+          s"LEFT JOIN $attrBoundsTable ${j.tableAlias} ON sf.id = ${j.tableAlias}.file_id AND ${j.tableAlias}.attribute = ?"
+        }
+
+      // build WHERE clause for spatial and attribute bounds
+      // if bounds don't exist (NULL), we count it as a match
+      val spatialWhereClause = spatialBoundJoins.map { j =>
+        s"(${j.tableAlias}.file_id IS NULL OR ${j.whereClause})"
+      }
+      val attrWhereClause = attrBoundJoins.map { j =>
+        s"(${j.tableAlias}.file_id IS NULL OR ${j.whereClause})"
+      }
+      val allWhereClauses = spatialWhereClause ++ attrWhereClause
 
       // note: all child tables (partitions, spatial bounds, attribute bounds) are pre-aggregated
       // in subqueries. This ensures each file returns exactly one row with no Cartesian products.
-      // The sp_filter joins are used for filtering and must remain on the raw partition table.
+      // The sp_filter, sb_filter, and ab_filter joins are used for filtering and must remain on the raw tables.
+      val whereClause = if (allWhereClauses.isEmpty) {
+        "WHERE sf.root = ?"
+      } else {
+        s"WHERE sf.root = ? AND ${allWhereClauses.mkString(" AND ")}"
+      }
+
       val query =
         s"""SELECT sf.id, sf.file, sf.count, sf.action, sf.sort, sf.ts,
            |  sp.partition_names, sp.partition_values,
@@ -483,15 +537,36 @@ object JdbcMetadata extends LazyLogging {
            |  FROM $attrBoundsTable
            |  GROUP BY file_id
            |) ab ON sf.id = ab.file_id
-           |WHERE sf.root = ?
+           |$whereClause
            |ORDER BY sf.id DESC""".stripMargin
 
       WithClose(cx.prepareStatement(query)) { st =>
         var paramIndex = 1
+        // set partition join parameters
         partitionJoins.foreach { join =>
           paramIndex += join.apply(st, paramIndex)
         }
+        // set spatial bound join parameters (attribute IDs in JOIN clauses)
+        spatialBoundJoins.foreach { join =>
+          st.setInt(paramIndex, join.attribute)
+          paramIndex += 1
+        }
+        // set attribute bound join parameters (attribute IDs in JOIN clauses)
+        attrBoundJoins.foreach { join =>
+          st.setInt(paramIndex, join.attribute)
+          paramIndex += 1
+        }
+        // set root parameter
         st.setString(paramIndex, root)
+        paramIndex += 1
+        // set spatial bound WHERE clause parameters
+        spatialBoundJoins.foreach { join =>
+          paramIndex += join.apply(st, paramIndex)
+        }
+        // set attribute bound WHERE clause parameters
+        attrBoundJoins.foreach { join =>
+          paramIndex += join.apply(st, paramIndex)
+        }
         WithClose(st.executeQuery())(toStorageFiles)
       }
     }
@@ -563,6 +638,52 @@ object JdbcMetadata extends LazyLogging {
         st.setString(i + 1, lower)
         st.setString(i + 2, upper)
         3
+      }
+    }
+
+    // spatial bounds filter with OR logic for multiple bounds on the same attribute
+    private case class SpatialBoundsJoin(attribute: Int, bounds: Seq[SpatialBound], tableAlias: String) {
+      // generate WHERE clause with OR logic for all bounds
+      // checks if any of the bounds intersect with the file's spatial bounds
+      def whereClause: String = {
+        bounds.map { _ =>
+          s"($tableAlias.x_min <= ? AND $tableAlias.x_max >= ? AND $tableAlias.y_min <= ? AND $tableAlias.y_max >= ?)"
+        }.mkString(" OR ")
+      }
+
+      def apply(st: PreparedStatement, i: Int): Int = {
+        var paramIndex = i
+        bounds.foreach { bound =>
+          // for intersection: file.xmin <= filter.xmax AND file.xmax >= filter.xmin
+          st.setDouble(paramIndex, bound.xmax)
+          st.setDouble(paramIndex + 1, bound.xmin)
+          st.setDouble(paramIndex + 2, bound.ymax)
+          st.setDouble(paramIndex + 3, bound.ymin)
+          paramIndex += 4
+        }
+        bounds.size * 4
+      }
+    }
+
+    // attribute bounds filter with OR logic for multiple bounds on the same attribute
+    private case class AttributeBoundsJoin(attribute: Int, bounds: Seq[AttributeBound], tableAlias: String) {
+      // generate WHERE clause with OR logic for all bounds
+      // checks if any of the bounds intersect with the file's attribute bounds
+      def whereClause: String = {
+        bounds.map { _ =>
+          s"($tableAlias.lower <= ? AND $tableAlias.upper >= ?)"
+        }.mkString(" OR ")
+      }
+
+      def apply(st: PreparedStatement, i: Int): Int = {
+        var paramIndex = i
+        bounds.foreach { bound =>
+          // for intersection: file.lower <= filter.upper AND file.upper >= filter.lower
+          st.setString(paramIndex, bound.upper)
+          st.setString(paramIndex + 1, bound.lower)
+          paramIndex += 2
+        }
+        bounds.size * 2
       }
     }
   }

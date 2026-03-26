@@ -76,7 +76,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     val visFilter = VisibilityUtils.visible(authProvider)
 
     logger.debug(
-      s"Parquet filter: ${parquetFilter match { case f: FilterPredicateCompat => f.getFilterPredicate; case f => f }} " +
+      s"    Parquet filter: ${parquetFilter match { case f: FilterPredicateCompat => f.getFilterPredicate; case f => f }} " +
         s"and modified gt filter: ${gtFilter.getOrElse(Filter.INCLUDE)}")
 
     // WARNING it is important to create a new conf per query

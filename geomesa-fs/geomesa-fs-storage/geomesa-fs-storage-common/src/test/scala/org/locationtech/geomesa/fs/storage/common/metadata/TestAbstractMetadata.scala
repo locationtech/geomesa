@@ -14,7 +14,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, SpatialBounds, StorageFile}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, Partition, PartitionKey, SpatialBounds, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -30,31 +30,38 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
   lazy val conf = new Configuration()
   lazy val fs = FileSystem.get(conf)
   val sft = SimpleFeatureTypes.createType("metadata",
-    "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.user-data.prefix=desc,desc.name=姓名,desc.dtg=ひづけ,desc.geom=좌표")
+    "name:String:fs.bounds=true,dtg:Date,*geom:Point:srid=4326;geomesa.user-data.prefix=desc,desc.name=姓名,desc.dtg=ひづけ,desc.geom=좌표")
   val encoding = "parquet"
   val schemeOptions = Seq("hour", "z2:bits=2")
   val schemes = schemeOptions.map(PartitionSchemeFactory.load(sft, _)).toSet
 
   // note: ensure that partitions and bounds line up
-  val partition1 = partitions("2026-03-05T00:00:00.000Z", "POINT (10 10)")
-  val bounds1 = Seq(SpatialBounds(3, 1, 2, 11, 12), SpatialBounds(4, -1, -2, -11, -12))
-  val partition2 = partitions("2026-03-04T00:00:00.000Z", "POINT (-10 10)")
-  val bounds2a = Seq(SpatialBounds(3, -11, 2, -1, 12))
-  val bounds2b = Seq(SpatialBounds(3, -20, 12, -12, 20))
-  val partition3 = partitions("2026-03-03T00:00:00.000Z", "POINT (10 -10)")
-  val bounds3 = Seq(SpatialBounds(3, 1, -12, 11, -2))
+  val partition1 = partitions("2026-03-05T00:00:00.000Z", "POINT (10 10)") // dtg 8000019cbb4b4c00/8000019cbb823a80
+  // note: the second bounds doesn't match the sft, but it validates persisting multiple spatial bounds
+  val spatialBounds1 = Seq(SpatialBounds(2, 1, 2, 11, 12), SpatialBounds(4, -1, -2, -11, -12))
+  val attributeBounds1 = Seq(AttributeBounds(0, "name5", "name6"), AttributeBounds(1, "8000019cbb4b4c00", "8000019cbb823a80"))
 
-  val f1 = StorageFile("file1", partition1, 0L, spatialBounds = bounds1, timestamp = System.currentTimeMillis() - 100)
-  val f2 = StorageFile("file2", partition2, 1L, spatialBounds = bounds2a, timestamp = f1.timestamp + 10)
-  val f3 = StorageFile("file3", partition2, 1L, spatialBounds = bounds2b, timestamp = f2.timestamp + 10)
-  val f5 = StorageFile("file5", partition3, 2L, spatialBounds = bounds3, timestamp = f3.timestamp + 20)
-  val f6 = StorageFile("file6", partition3, 2L,  spatialBounds = bounds3, timestamp = f5.timestamp + 10)
+  val partition2 = partitions("2026-03-04T00:00:00.000Z", "POINT (-10 10)") // dtg 8000019cb624f000/8000019cb65bde80
+  val spatialBounds2a = Seq(SpatialBounds(2, -11, 2, -1, 12))
+  val spatialBounds2b = Seq(SpatialBounds(2, -20, 12, -12, 20))
+  val attributeBounds2 = Seq(AttributeBounds(0, "name0", "name4"), AttributeBounds(1, "8000019cb624f000", "8000019cb6406740")) // first 30 minutes
 
-  val files = Seq(f1, f2, f3, f5, f6)
+  val partition3 = partitions("2026-03-03T00:00:00.000Z", "POINT (10 -10)") // dtg 8000019cb0fe9400/8000019cb1358280
+  val spatialBounds3 = Seq(SpatialBounds(2, 1, -12, 11, -2))
+  val attributeBounds3a = Seq(AttributeBounds(0, "name7", "name9"), AttributeBounds(1, "8000019cb0fe9400", "8000019cb11a0b40")) // first 30 minutes
+  val attributeBounds3b = Seq(AttributeBounds(0, "name7", "name9"), AttributeBounds(1, "8000019cb11a0b40", "8000019cb1358280")) // last 30 minutes
+
+  val f1 = StorageFile("file1", partition1, 0L, spatialBounds = spatialBounds1, attributeBounds = attributeBounds1, timestamp = System.currentTimeMillis() - 100)
+  val f2a = StorageFile("file2a", partition2, 1L, spatialBounds = spatialBounds2a, attributeBounds = attributeBounds2, timestamp = f1.timestamp + 10)
+  val f2b = StorageFile("file2b", partition2, 1L, spatialBounds = spatialBounds2b, attributeBounds = attributeBounds2, timestamp = f2a.timestamp + 10)
+  val f3a = StorageFile("file3a", partition3, 2L, spatialBounds = spatialBounds3, attributeBounds = attributeBounds3a, timestamp = f2b.timestamp + 20)
+  val f3b = StorageFile("file3b", partition3, 2L,  spatialBounds = spatialBounds3, attributeBounds = attributeBounds3b, timestamp = f3a.timestamp + 10)
+
+  val files = Seq(f1, f2a, f2b, f3a, f3b)
 
   private def partitions(dtg: String, geom: String): Partition = {
     val sf = ScalaSimpleFeature.create(sft, "", "", dtg, geom)
-    Partition(schemes.map(s => PartitionKey(s.name, s.getPartition(sf))).toSet)
+    Partition(schemes.map(s => PartitionKey(s.name, s.getPartition(sf))))
   }
 
   protected def metadataType: String
@@ -90,136 +97,6 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
         }
       }
     }
-    "return files based on partition" in {
-      withPath { catalog =>
-        WithClose(catalog.create(sft, schemeOptions)) { metadata =>
-          files.foreach(metadata.addFile)
-          metadata.getFiles() mustEqual files.reverse
-          metadata.getFiles(partition1) mustEqual Seq(f1)
-          metadata.getFiles(partition2) mustEqual Seq(f3, f2)
-        }
-      }
-    }
-    "return files based on filters" in {
-      withPath { catalog =>
-        WithClose(catalog.create(sft, schemeOptions)) { metadata =>
-          files.foreach(metadata.addFile)
-          metadata.getFiles() mustEqual files.reverse
-
-          // date-only filters
-
-          // filter for march 5th (should return f1)
-          val filter1 = ECQL.toFilter("dtg >= '2026-03-05T00:00:00.000Z' AND dtg < '2026-03-06T00:00:00.000Z'")
-          metadata.getFiles(filter1).map(_.file) mustEqual Seq(f1)
-
-          // filter for march 4th (should return f2, f3)
-          val filter2 = ECQL.toFilter("dtg >= '2026-03-04T00:00:00.000Z' AND dtg < '2026-03-05T00:00:00.000Z'")
-          metadata.getFiles(filter2).map(_.file) mustEqual Seq(f3, f2)
-
-          // filter for before march 4th (should return f5, f6)
-          val filter3 = ECQL.toFilter("dtg < '2026-03-04T00:00:00.000Z'")
-          metadata.getFiles(filter3).map(_.file) mustEqual Seq(f6, f5)
-
-          // spatial-only filters (bbox format: bbox(geom, minx, miny, maxx, maxy))
-
-          // northeast quadrant - should intersect with f1 bounds [1,2,11,12]
-          val filter4 = ECQL.toFilter("BBOX(geom, 1, 1, 12, 13)")
-          metadata.getFiles(filter4).map(_.file) mustEqual Seq(f1)
-
-          // northwest quadrant - should intersect with f2, f3 bounds [-11,2,-1,12]
-          val filter5 = ECQL.toFilter("BBOX(geom, -12, 1, -1, 13)")
-          metadata.getFiles(filter5).map(_.file) mustEqual Seq(f3, f2)
-
-          // southeast quadrant - should intersect with f5, f6 bounds [1,-12,11,-2]
-          val filter6 = ECQL.toFilter("BBOX(geom, 1, -13, 12, -1)")
-          metadata.getFiles(filter6).map(_.file) mustEqual Seq(f6, f5)
-
-          // combined date and spatial filters
-
-          // march 4th in northwest quadrant (should return f2, f3)
-          val filter7 = ECQL.toFilter("dtg >= '2026-03-04T00:00:00.000Z' AND dtg < '2026-03-05T00:00:00.000Z' AND BBOX(geom, -12, 1, -1, 13)")
-          metadata.getFiles(filter7).map(_.file) mustEqual Seq(f3, f2)
-
-          // march 5th in northeast quadrant (should return f1)
-          val filter8 = ECQL.toFilter("dtg >= '2026-03-05T00:00:00.000Z' AND BBOX(geom, 1, 1, 12, 13)")
-          metadata.getFiles(filter8).map(_.file) mustEqual Seq(f1)
-
-          // march 3rd in southeast quadrant (should return f5, f6)
-          val filter9 = ECQL.toFilter("dtg >= '2026-03-03T00:00:00.000Z' AND dtg < '2026-03-04T00:00:00.000Z' AND BBOX(geom, 1, -13, 12, -1)")
-          metadata.getFiles(filter9).map(_.file) mustEqual Seq(f6, f5)
-
-          // date range spanning multiple days with spatial filter (march 4-5 in northeast should return f1 only)
-          val filter10 = ECQL.toFilter("dtg >= '2026-03-04T00:00:00.000Z' AND BBOX(geom, 1, 1, 12, 13)")
-          metadata.getFiles(filter10).map(_.file) mustEqual Seq(f1)
-
-          // all march dates (should return all files)
-          val filter11 = ECQL.toFilter("dtg >= '2026-03-01T00:00:00.000Z' AND dtg < '2026-04-01T00:00:00.000Z'")
-          metadata.getFiles(filter11).map(_.file) mustEqual files.reverse
-        }
-      }
-    }
-//    "track modified and deleted files" in {
-//      withPath { context =>
-//        val f1 = StorageFile("file1", 0L)
-//        val Seq(f2, f3) = Seq("file2", "file3").map(StorageFile(_, 1L))
-//        val Seq(f5, f6) = Seq("file5", "file6").map(StorageFile(_, 2L))
-//        val f5mod = StorageFile("file5", 3L, StorageFileAction.Delete)
-//        val f2mod = StorageFile("file2", 3L, StorageFileAction.Modify)
-//        val config = getConfig(context.root)
-//        WithClose(factory.create(context, config, meta)) { created =>
-//          created.addPartition(PartitionMetadata("1", Seq(f1), new Envelope(-10, 10, -5, 5), 10L))
-//          created.addPartition(PartitionMetadata("1", Seq(f2, f3), new Envelope(-11, 11, -5, 5), 20L))
-//          created.addPartition(PartitionMetadata("2", Seq(f5, f6), new Envelope(-1, 1, -5, 5), 20L))
-//          created.addPartition(PartitionMetadata("2", Seq(f5mod), new Envelope(-1, 1, -5, 5), 20L))
-//          created.addPartition(PartitionMetadata("1", Seq(f2mod), new Envelope(-11, 11, -5, 5), 20L))
-//          val loaded = factory.load(context)
-//          loaded must beSome
-//          try {
-//            foreach(Seq(created, loaded.get)) { metadata =>
-//              metadata.encoding mustEqual encoding
-//              metadata.sft mustEqual sft
-//              metadata.sft.getUserData.asScala.toSeq must containAllOf(sft.getUserData.asScala.toSeq)
-//              metadata.scheme mustEqual scheme
-//              metadata.getPartitions().map(_.name) must containTheSameElementsAs(Seq("1", "2"))
-//              metadata.getPartition("1").map(_.files) must beSome(containTheSameElementsAs(Seq(f1, f2, f3, f2mod)))
-//              metadata.getPartition("2").map(_.files) must beSome(containTheSameElementsAs(Seq(f5, f6,  f5mod)))
-//            }
-//          } finally {
-//            loaded.get.close()
-//          }
-//        }
-//      }
-//    }
-//    "delete and compact" in {
-//      withPath { context =>
-//        val config = getConfig(context.root)
-//        WithClose(factory.create(context, config, meta)) { created =>
-//          created.addPartition(PartitionMetadata("1", Seq(f1), new Envelope(-10, 10, -5, 5), 10L))
-//          created.addPartition(PartitionMetadata("1", Seq(f2, f3), new Envelope(-11, 11, -5, 5), 20L))
-//          created.addPartition(PartitionMetadata("2", Seq(f5, f6), new Envelope(-1, 1, -5, 5), 20L))
-//          created.removePartition(PartitionMetadata("1", Seq(f2), new Envelope(-11, 11, -5, 5), 5L))
-//          val loaded = factory.load(context)
-//          loaded must beSome
-//          try {
-//            foreach(Seq(created, loaded.get)) { metadata =>
-//              metadata.encoding mustEqual encoding
-//              metadata.sft mustEqual sft
-//              metadata.sft.getUserData.asScala.toSeq must containAllOf(sft.getUserData.asScala.toSeq)
-//              metadata.scheme mustEqual scheme
-//              metadata.getPartitions().map(_.name) must containTheSameElementsAs(Seq("1", "2"))
-//              metadata.getPartition("1").map(_.files) must beSome(containTheSameElementsAs(Seq(f1, f3)))
-//              metadata.getPartition("2").map(_.files) must beSome(containTheSameElementsAs(Seq(f5, f6)))
-//            }
-//          } finally {
-//            loaded.get.close()
-//          }
-//          created.compact(None)
-//          created.getPartitions().map(_.name) must containTheSameElementsAs(Seq("1", "2"))
-//          created.getPartition("1").map(_.files) must beSome(containTheSameElementsAs(Seq(f1, f3)))
-//          created.getPartition("2").map(_.files) must beSome(containTheSameElementsAs(Seq(f5, f6)))
-//        }
-//      }
-//    }
     "set and get key-value pairs" in {
       withPath { catalog =>
         WithClose(catalog.create(sft, schemeOptions)) { created =>
@@ -237,6 +114,78 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
         }
       }
     }
+    "return files based on partition" in {
+      withPath { catalog =>
+        WithClose(catalog.create(sft, schemeOptions)) { metadata =>
+          files.foreach(metadata.addFile)
+          metadata.getFiles() mustEqual files.reverse
+          metadata.getFiles(partition1) mustEqual Seq(f1)
+          metadata.getFiles(partition2) mustEqual Seq(f2b, f2a)
+        }
+      }
+    }
+    "return files based on filters" in {
+      withPath { catalog =>
+        WithClose(catalog.create(sft, schemeOptions)) { metadata =>
+
+          files.foreach(metadata.addFile)
+          metadata.getFiles() mustEqual files.reverse
+
+          val expectations = Seq(
+            // date-only filters
+            "dtg >= '2026-03-05T00:00:00.000Z' AND dtg < '2026-03-06T00:00:00.000Z'" -> Seq(f1),
+            "dtg >= '2026-03-04T00:00:00.000Z' AND dtg < '2026-03-05T00:00:00.000Z'" -> Seq(f2b, f2a),
+            "dtg < '2026-03-04T00:00:00.000Z'" -> Seq(f3b, f3a),
+            // this should filter not just on partition but also on attribute bounds
+            "dtg >= '2026-03-03T00:00:00.000Z' AND dtg < '2026-03-03T00:29:00.000Z'" -> Seq(f3a),
+            // OR
+            "(dtg >= '2026-03-03T00:00:00.000Z' AND dtg < '2026-03-03T00:29:00.000Z') OR (dtg >= '2026-03-05T00:00:00.000Z' AND dtg < '2026-03-06T00:00:00.000Z')" -> Seq(f3a, f1),
+            "dtg >= '2026-03-01T00:00:00.000Z' AND dtg < '2026-04-01T00:00:00.000Z'" -> files.reverse,
+            // spatial-only filters (bbox format: bbox(geom, minx, miny, maxx, maxy))
+            // northeast quadrant - should intersect with [1,2,11,12]
+            "BBOX(geom, 1, 1, 12, 13)" -> Seq(f1),
+            // northwest quadrant - should intersect with [-11,2,-1,12]
+            "BBOX(geom, -12, 1, -1, 13)" -> Seq(f2b, f2a),
+            // this should filter not just on partition but also on spatial bounds
+            "BBOX(geom, -12, 1, -1, 11)" -> Seq(f2a),
+            // southeast quadrant - should intersect with [1,-12,11,-2]
+            "BBOX(geom, 1, -13, 12, -1)" -> Seq(f3b, f3a),
+            // combined date and spatial filters
+            // march 4th in northwest quadrant
+            "dtg >= '2026-03-04T00:00:00.000Z' AND dtg < '2026-03-05T00:00:00.000Z' AND BBOX(geom, -12, 1, -1, 13)" -> Seq(f2b, f2a),
+            // march 5th in northeast quadrant
+            "dtg >= '2026-03-05T00:00:00.000Z' AND BBOX(geom, 1, 1, 12, 13)" -> Seq(f1),
+            // march 3rd in southeast quadrant
+            "dtg >= '2026-03-03T00:00:00.000Z' AND dtg < '2026-03-04T00:00:00.000Z' AND BBOX(geom, 1, -13, 12, -1)" -> Seq(f3b, f3a),
+            // date range spanning multiple days with spatial filter (march 4-5 in northeast)
+            "dtg >= '2026-03-04T00:00:00.000Z' AND BBOX(geom, 1, 1, 12, 13)" -> Seq(f1),
+            // complex, multi-join filter
+            "(dtg >= '2026-03-03T00:31:00.000Z' AND dtg < '2026-03-03T00:59:00.000Z') OR (dtg >= '2026-03-05T00:00:00.000Z' AND dtg < '2026-03-06T00:00:00.000Z') AND BBOX(geom, 1, -13, 12, -1)" -> Seq(f3b),
+            // non-partition based attribute filter
+            "dtg >= '2026-03-01T00:00:00.000Z' AND dtg < '2026-04-01T00:00:00.000Z' AND name = 'name8'" -> Seq(f3b, f3a),
+          )
+
+          foreach(expectations) { case (ecql, expected) =>
+            metadata.getFiles(ECQL.toFilter(ecql)).map(_.file) mustEqual expected
+          }
+        }
+      }
+    }
+    "delete files" in {
+      withPath { catalog =>
+        WithClose(catalog.create(sft, schemeOptions)) { metadata =>
+          files.foreach(metadata.addFile)
+          metadata.getFiles() mustEqual files.reverse
+          metadata.getFiles(partition1) mustEqual Seq(f1)
+          metadata.getFiles(partition2) mustEqual Seq(f2b, f2a)
+          metadata.removeFile(f2a)
+          metadata.getFiles() mustEqual files.reverse.filter(_ != f2a)
+          metadata.getFiles(partition1) mustEqual Seq(f1)
+          metadata.getFiles(partition2) mustEqual Seq(f2b)
+        }
+      }
+    }
+
 //    "read old tables" in {
 //      WithClose(getClass.getClassLoader.getResourceAsStream("jdbc/old_meta.sql")) { db =>
 //        db must not(beNull)
