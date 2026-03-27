@@ -56,6 +56,8 @@ class FileBasedMetadata(
   override val sft: SimpleFeatureType = meta.sft
   override val schemes: Set[PartitionScheme] = meta.partitions.map(PartitionSchemeFactory.load(sft, _)).toSet
 
+  filesCache.refresh(BoxedUnit.UNIT) // kick off the initial load asynchronously
+
   override def get(key: String): Option[String] = Option(kvs.get(key))
 
   // note: this isn't synchronized across jvms

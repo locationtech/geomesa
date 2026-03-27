@@ -27,11 +27,9 @@ trait CachedMetadata extends StorageMetadata with SchemeFilterExtraction {
       }
     )
 
-  private val refresh = filesCache.refresh(BoxedUnit.UNIT) // kick off the initial load asynchronously
+  private def cachedFiles: Seq[StorageFile] = filesCache.get(BoxedUnit.UNIT)
 
   protected def buildFileList(): Seq[StorageFile]
-
-  private def cachedFiles: Seq[StorageFile] = filesCache.get(BoxedUnit.UNIT)
 
   override def getFiles(): Seq[StorageFile] = cachedFiles
 
@@ -52,7 +50,12 @@ trait CachedMetadata extends StorageMetadata with SchemeFilterExtraction {
     }
   }
 
-  override def close(): Unit = if (!refresh.isDone) { refresh.cancel(true) }
+  override def close(): Unit = {
+    val refresh = filesCache.policy().refreshes().get(BoxedUnit.UNIT)
+    if (refresh != null && !refresh.isDone) {
+      refresh.cancel(true)
+    }
+  }
 
   private def matches(file: StorageFile, f: SchemeFilter): Boolean =
     f.partitions.forall(p => file.partition.values.exists(v => p.name == v.name && p.contains(v.value))) &&

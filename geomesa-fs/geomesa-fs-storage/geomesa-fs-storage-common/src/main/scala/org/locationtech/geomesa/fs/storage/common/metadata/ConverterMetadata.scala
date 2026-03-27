@@ -17,6 +17,7 @@ import org.locationtech.geomesa.fs.storage.common.metadata.filter.CachedMetadata
 import org.locationtech.geomesa.fs.storage.common.partitions.HierarchicalDateTimeScheme
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 
+import scala.runtime.BoxedUnit
 import scala.util.control.NonFatal
 
 class ConverterMetadata(
@@ -34,6 +35,8 @@ class ConverterMetadata(
     case s: HierarchicalDateTimeScheme => s.depth
     case _ => 1
   }.sum - (if (leafStorage) { 1 } else { 0 })
+
+  filesCache.refresh(BoxedUnit.UNIT) // kick off the initial load asynchronously
 
   override def addFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
   override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
