@@ -10,14 +10,14 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.ingest.FsGeneratePartitionFiltersCommand.FsGeneratePartitionFiltersParams
 import org.locationtech.geomesa.tools.{Command, OptionalCqlFilterParam, RequiredTypeNameParam}
 
 class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
+
+  import org.locationtech.geomesa.filter.andFilters
 
   import scala.collection.JavaConverters._
 
@@ -26,32 +26,26 @@ class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
   override val name: String = "generate-partition-filters"
 
   override def execute(): Unit = withDataStore { ds =>
-    val storage = ds.storage(params.featureName)
-    val root = storage.context.root
-    val metadata = storage.metadata
-// TODO
-//    lazy val fromFilter =
-//      Option(metadata.schemes.flatMap(_.getIntersectingPartitions(params.cqlFilter)).flatMap(_.flatMap(_.bounds.map(_.name)).distinct))
-//        .filter(_.nonEmpty)
-//        .getOrElse(throw new ParameterException("Filter does not correspond to partition scheme - no matching partitions found"))
-//    val partitions = (params.cqlFilter, params.partitions.asScala) match {
-//      case (null, Seq()) => throw new ParameterException("At least one of --partitions or --cql must be provided")
-//      case (null, names) => names.toSet
-//      case (_, Seq())    => fromFilter
-//      case (_, names)    => fromFilter.intersect(names.toSet)
-//    }
-//
-//    Command.user.info(s"Generating filters for ${partitions.size} partitions")
-//    if (!params.noHeader) {
-//      Command.output.info("Partition\tPath\tFilter")
-//    }
-//
-//    partitions.toSeq.sorted.foreach { partition =>
-//      val path = StorageUtils.nextFile(root, partition, "", FileType.Imported, "")
-//      val prefix = path.toString.dropRight(1) // drop '.'
-//      val filter = ECQL.toCQL(metadata.scheme.getCoveringFilter(partition))
-//      Command.output.info(s"$partition\t$prefix\t$filter")
-//    }
+    if (params.cqlFilter == null && params.partitions.isEmpty) {
+      throw new ParameterException("At least one of --partitions or --cql must be specified")
+    }
+
+    val metadata = ds.storage(params.featureName).metadata
+
+    val partitions =
+      (params.partitions.asScala ++ Option(params.cqlFilter).toSeq.flatMap(f => metadata.getFiles(f).map(_.file.partition)))
+        .distinct
+
+    Command.user.info(s"Generating filters for ${partitions.size} partitions")
+    if (!params.noHeader) {
+      Command.output.info("Partition\tFilter")
+    }
+
+    partitions.toSeq.sortBy(_.encoded).foreach { partition =>
+      val filters = partition.values.flatMap(v => metadata.schemes.find(_.name == v.name).map(_.getCoveringFilter(v.value)))
+      val filter = ECQL.toCQL(andFilters(filters.toSeq))
+      Command.output.info(s"$partition\t$filter")
+    }
   }
 }
 
