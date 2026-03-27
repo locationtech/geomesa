@@ -91,8 +91,6 @@ case class HierarchicalDateTimeScheme(
     }
   }
 
-  // TODO This may not be the best way to calculate max depth...
-  // especially if we are going to use other separators
   val depth: Int = pattern.count(_ == '/') + 1
 
   override val name: String =

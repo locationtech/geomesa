@@ -32,6 +32,8 @@ class DateTimeSchemeTest extends Specification {
   val sf = ScalaSimpleFeature.create(sft, "1", "test", 10, "2017-02-03T10:15:30Z", "POINT (10 10)")
   val date = ZonedDateTime.ofInstant(sf.getAttribute(2).asInstanceOf[Date].toInstant, ZoneOffset.UTC)
 
+  val epoch = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC)
+
   "DateTimeScheme" should {
 
     "partition based on days" >> {
@@ -39,7 +41,7 @@ class DateTimeSchemeTest extends Specification {
       val partition = ps.getPartition(sf)
       partition mustEqual "80004330"
       val days = AttributeIndexKey.decode("integer", partition).asInstanceOf[Int]
-      ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusDays(days) mustEqual date.truncatedTo(ChronoUnit.DAYS)
+      ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusDays(days) mustEqual truncate(date, ChronoUnit.DAYS)
     }
 
     "partition based on hours" >> {
@@ -47,7 +49,7 @@ class DateTimeSchemeTest extends Specification {
       val partition = ps.getPartition(sf)
       partition mustEqual "80064c8a"
       val hours = AttributeIndexKey.decode("integer", partition).asInstanceOf[Int]
-      ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusHours(hours) mustEqual date.truncatedTo(ChronoUnit.HOURS)
+      ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusHours(hours) mustEqual truncate(date, ChronoUnit.HOURS)
     }
 
     "partition based on week" >> {
@@ -56,9 +58,7 @@ class DateTimeSchemeTest extends Specification {
       val partition = ps.getPartition(sf)
       partition mustEqual "80000999"
       val weeks = AttributeIndexKey.decode("integer", partition).asInstanceOf[Int]
-      ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusWeeks(weeks) mustEqual
-        date.`with`(ChronoField.EPOCH_DAY, date.getLong(ChronoField.EPOCH_DAY) - (date.getLong(ChronoField.EPOCH_DAY) % 7))
-          .truncatedTo(ChronoUnit.DAYS)
+      ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusWeeks(weeks) mustEqual truncate(date, ChronoUnit.WEEKS)
     }
 
     "simplify filters" >> {
@@ -87,14 +87,13 @@ class DateTimeSchemeTest extends Specification {
     }.pendingUntilFixed("not implemented")
 
     "calculate covering filters for partitions" >> {
-      // TODO need to manually truncate to weeks, months, years
-      foreach(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS/*, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS*/)) { unit =>
+      foreach(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS)) { unit =>
         val ps = DateTimeScheme("dtg", 2, unit)
         val partition = ps.getPartition(sf)
         val covering = ps.getCoveringFilter(partition)
         val expected = {
-          val start = date.truncatedTo(unit)
-          val end = date.truncatedTo(unit).plus(1, unit)
+          val start = truncate(date, unit)
+          val end = start.plus(1, unit)
           ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
         }
         decomposeAnd(covering) must containTheSameElementsAs(decomposeAnd(expected))
@@ -102,13 +101,12 @@ class DateTimeSchemeTest extends Specification {
     }
 
     "calculate intersecting partitions for filters" >> {
-      // TODO need to manually truncate to weeks, months, years
-      foreach(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS/*, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS*/)) { unit =>
+      foreach(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS)) { unit =>
         val ps = DateTimeScheme("dtg", 2, unit)
         val partition = ps.getPartition(sf)
         val expectedEndPartition = java.lang.Long.toHexString(java.lang.Long.parseLong(partition, 16) + 1)
-        val start = date.truncatedTo(unit)
-        val end = date.truncatedTo(unit).plus(1, unit)
+        val start = truncate(date, unit)
+        val end = start.plus(1, unit)
         val filter = ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
         val partitions = ps.getIntersectingPartitions(filter).orNull
         partitions must not(beNull)
@@ -138,5 +136,12 @@ class DateTimeSchemeTest extends Specification {
 //      threeDays.get.find(_.filter == Filter.INCLUDE).map(_.partitions) must beSome(containTheSameElementsAs(Seq("2017/20170102", "2017/20170103")))
 //      threeDays.get.find(_.filter != Filter.INCLUDE).map(_.partitions) must beSome(Seq("2017/20170104"))
 //    }
+  }
+
+  private def truncate(date: ZonedDateTime, unit: ChronoUnit): ZonedDateTime = {
+    unit match {
+      case ChronoUnit.HOURS | ChronoUnit.DAYS => date.truncatedTo(unit)
+      case _ => epoch.plus(unit.between(epoch, date), unit)
+    }
   }
 }
