@@ -29,54 +29,69 @@ import scala.Array
 import scala.util.control.NonFatal
 
 /**
-  * Storage metadata implementation backed by a SQL database. Currently tested with Postgres - other
-  * databases may have incompatibilities in the SQL syntax.
-  *
- * TODO update the docs this isn't right anymore
+ * Storage metadata implementation backed by a SQL database. Currently compatible with Postgres - other
+ * databases will likely have incompatibilities in the SQL syntax.
  *
-  * Scheme consists of three tables and one sequence:
-  *
-  * `storage_meta`
-  *
-  * * Holds the base metadata (simple feature type, partition scheme, encoding, leaf storage) as a JSON clob
-  *
-  * ** root varchar(256) not null
-  * ** value text not null
-  * ** primary key (root)
-  *
-  * `storage_partitions_id_seq`
-  *
-  * * Sequence for partition action IDs
-  *
-  * `storage_partitions`
-  *
-  * * Holds add/remove partition actions. Tracks the type, count (features) and bounds of each action
-  *
-  * ** root varchar(256) not null
-  * ** name varchar(256) not null
-  * ** id int not null
-  * ** action char(1) not null
-  * ** features bigint
-  * ** bounds_xmin double precision
-  * ** bounds_xmax double precision
-  * ** bounds_ymin double precision
-  * ** bounds_ymax double precision
-  * ** primary key (root, name, id)
-  *
-  * `storage_partition_files`
-  *
-  * * Holds the files associated with each partition action
-  *
-  * ** root varchar(256) not null
-  * ** name varchar(256) not null
-  * ** id int not null - foreign key to `storage_partitions`
-  * ** file varchar(256) not null
-  * ** primary key (root, name, id, file)
-  *
-  * @param pool connection pool
-  * @param root storage root path
-  * @param meta basic metadata config
-  **/
+ * Schema consists of five tables (note: `storage_` is the default table prefix, but may be customized):
+ *
+ * `storage_meta`
+ *
+ * * Holds the base metadata (simple feature type, partition scheme, encoding) as a serialized clob
+ *
+ * ** root varchar(256) not null
+ * ** typeName varchar(256) not null
+ * ** meta text not null
+ * ** primary key (root, typeName)
+ *
+ * `storage_files`
+ *
+ * * Holds file-level metadata for each storage file
+ *
+ * ** id bigint primary key (generated identity)
+ * ** root varchar(256) not null
+ * ** file varchar(256) not null
+ * ** count bigint not null
+ * ** action char(1) not null (A=Append, M=Modify, D=Delete)
+ * ** sort integer[]
+ * ** ts timestamp without time zone not null
+ *
+ * `storage_partitions`
+ *
+ * * Holds partition key-value pairs for each file
+ *
+ * ** file_id bigint not null (foreign key to storage_files)
+ * ** name varchar(64) not null
+ * ** value varchar(64) not null
+ * ** primary key (file_id, name)
+ *
+ * `storage_spatial_bounds`
+ *
+ * * Holds spatial bounds for each file by attribute
+ *
+ * ** file_id bigint not null (foreign key to storage_files)
+ * ** attribute smallint not null
+ * ** x_min double precision
+ * ** x_max double precision
+ * ** y_min double precision
+ * ** y_max double precision
+ * ** primary key (file_id, attribute)
+ *
+ * `storage_attr_bounds`
+ *
+ * * Holds attribute bounds for each file by attribute
+ *
+ * ** file_id bigint not null (foreign key to storage_files)
+ * ** attribute smallint not null
+ * ** lower text
+ * ** upper text
+ * ** primary key (file_id, attribute)
+ *
+ * @param pool connection pool
+ * @param root storage root path
+ * @param schema database schema name
+ * @param tablePrefix table name prefix
+ * @param meta basic metadata config
+ **/
 class JdbcMetadata(
     pool: PoolingDataSource[PoolableConnection],
     root: String,
@@ -85,9 +100,7 @@ class JdbcMetadata(
     meta: Metadata
   ) extends StorageMetadata with SchemeFilterExtraction with LazyLogging {
 
-  // TODO allow for custom table names
-  // TODO back compatibility
-  // TODO allow for schema changes
+  // TODO allow for partition changes
 
   import JdbcMetadata.FilesTable
 
@@ -172,7 +185,6 @@ class JdbcMetadata(
     if (filter == Filter.INCLUDE) {
       getFiles().map(StorageFileFilter(_, None))
     } else {
-      // TODO enforce that files have at least one partition? or verify that logic here doesn't assumes that
       val filters = getFilters(filter)
       if (filters.isEmpty) {
         Seq.empty // no intersecting partitions

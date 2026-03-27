@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.AnyLogging
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionBounds, PartitionFilter}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionBounds
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, SpatialBounds}
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction._
@@ -27,10 +27,7 @@ trait SchemeFilterExtraction extends AnyLogging {
 
   protected def getFilters(filter: Filter): Seq[SchemeFilter] = {
     val iter = schemes.iterator
-    var start: Option[Seq[PartitionFilter]] = None
-    while (start.isEmpty && iter.hasNext) {
-      start = iter.next().getIntersectingPartitions(filter)
-    }
+    val start = iter.map(_.getIntersectingPartitions(filter)).collectFirst { case Some(f) => f }
     val filters = start match {
       case None =>
         // filter did not constrain partitions at all

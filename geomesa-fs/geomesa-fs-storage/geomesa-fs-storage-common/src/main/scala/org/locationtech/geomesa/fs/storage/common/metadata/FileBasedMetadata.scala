@@ -17,12 +17,14 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.metadata.filter.CachedMetadata
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.StringSerialization
 
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
+import scala.runtime.BoxedUnit
 import scala.util.control.NonFatal
 
 /**
@@ -54,17 +56,11 @@ class FileBasedMetadata(
   override val sft: SimpleFeatureType = meta.sft
   override val schemes: Set[PartitionScheme] = meta.partitions.map(PartitionSchemeFactory.load(sft, _)).toSet
 
-  // TODO invalidate cache?
-  // cache for files - volatile for visibility across threads
-  @volatile private var filesCache: Seq[StorageFile] = loadFiles()
-
-  override protected def cachedFiles: Seq[StorageFile] = filesCache
-
   override def get(key: String): Option[String] = Option(kvs.get(key))
 
-  override def set(key: String, value: String): Unit = {
+  // note: this isn't synchronized across jvms
+  override def set(key: String, value: String): Unit = FileBasedMetadata.synchronized {
     kvs.put(key, value)
-    // TODO this isn't synchronized but that's probably ok?
     WithClose(fs.create(metadataFilePath, true)) { out =>
       MetadataSerialization.serialize(out, meta.copy(config = kvs.asScala.toMap))
       out.hflush()
@@ -92,12 +88,10 @@ class FileBasedMetadata(
     }
   }
 
-  override def close(): Unit = {}
-
   /**
    * Load files from the JSON file
    */
-  private def loadFiles(): Seq[StorageFile] = {
+  override protected def buildFileList(): Seq[StorageFile] = {
     try {
       if (PathCache.exists(fs, filesFilePath) || PathCache.exists(fs, filesFilePath, reload = true)) {
         WithClose(fs.open(filesFilePath)) { in =>
@@ -117,74 +111,74 @@ class FileBasedMetadata(
   /**
    * Modify files with proper locking using HDFS lock files
    */
-  private def modifyFiles(fn: Seq[StorageFile] => Seq[StorageFile]): Unit = {
-    FileBasedMetadata.synchronized {
-      // acquire lock by creating a lock file atomically
-      var lockAcquired = false
-      var retries = 0
+  private def modifyFiles(fn: Seq[StorageFile] => Seq[StorageFile]): Unit = FileBasedMetadata.synchronized {
+    // acquire lock by creating a lock file atomically
+    var lockAcquired = false
+    var retries = 0
 
-      while (!lockAcquired && retries < MaxLockRetries) {
-        try {
-          // try to create lock file with overwrite=false for atomicity
-          WithClose(fs.create(lockFilePath, false)) { out =>
-            // write lock info (hostname, timestamp, etc.)
-            val lockInfo = s"${java.net.InetAddress.getLocalHost.getHostName}:${System.currentTimeMillis()}"
-            out.write(lockInfo.getBytes(StandardCharsets.UTF_8))
-            out.hflush()
-            out.hsync()
-          }
-          lockAcquired = true
-        } catch {
-          case _: org.apache.hadoop.fs.FileAlreadyExistsException =>
-            // lock file exists, check if it's stale
-            retries += 1
-            if (isLockStale(lockFilePath)) {
-              // remove stale lock and retry
-              try {
-                fs.delete(lockFilePath, false)
-              } catch {
-                case NonFatal(_) => // ignore, will retry
-              }
-            } else {
-              // wait and retry
-              Thread.sleep(LockRetryDelay)
-            }
-          case NonFatal(e) =>
-            throw new RuntimeException(s"Failed to acquire lock at $lockFilePath", e)
-        }
-      }
+    val maxAttempts = MaxLockRetries.toInt.get
 
-      if (!lockAcquired) {
-        throw new RuntimeException(s"Failed to acquire lock after $MaxLockRetries retries")
-      }
-
+    while (!lockAcquired && retries < maxAttempts) {
       try {
-        // reload from disk to get latest state
-        val currentFiles = loadFiles()
-
-        // apply the modification
-        val updatedFiles = fn(currentFiles)
-
-        // write back to disk
-        val json = gson.toJson(updatedFiles.asJava)
-
-        WithClose(fs.create(filesFilePath, true)) { out =>
-          out.write(json.getBytes(StandardCharsets.UTF_8))
+        // try to create lock file with overwrite=false for atomicity
+        WithClose(fs.create(lockFilePath, false)) { out =>
+          // write lock info (hostname, timestamp, etc.)
+          val lockInfo = s"${java.net.InetAddress.getLocalHost.getHostName}:${System.currentTimeMillis()}"
+          out.write(lockInfo.getBytes(StandardCharsets.UTF_8))
           out.hflush()
           out.hsync()
         }
+        lockAcquired = true
+      } catch {
+        case _: org.apache.hadoop.fs.FileAlreadyExistsException =>
+          // lock file exists, check if it's stale
+          retries += 1
+          if (isLockStale(lockFilePath)) {
+            // remove stale lock and retry
+            try {
+              fs.delete(lockFilePath, false)
+            } catch {
+              case NonFatal(_) => // ignore, will retry
+            }
+          } else {
+            // wait and retry
+            Thread.sleep(LockRetryDelay.toMillis.get)
+          }
+        case NonFatal(e) =>
+          throw new RuntimeException(s"Failed to acquire lock at $lockFilePath", e)
+      }
+    }
 
-        // update cache
-        filesCache = updatedFiles
+    if (!lockAcquired) {
+      throw new RuntimeException(s"Failed to acquire lock after $MaxLockRetries retries")
+    }
 
-        PathCache.register(fs, filesFilePath)
-      } finally {
-        // release lock by deleting lock file
-        try {
-          fs.delete(lockFilePath, false)
-        } catch {
-          case NonFatal(e) => logger.warn(s"Failed to release lock at $lockFilePath", e)
-        }
+    try {
+      // reload from disk to get latest state
+      val currentFiles = buildFileList()
+
+      // apply the modification
+      val updatedFiles = fn(currentFiles)
+
+      // write back to disk
+      val json = gson.toJson(updatedFiles.asJava)
+
+      WithClose(fs.create(filesFilePath, true)) { out =>
+        out.write(json.getBytes(StandardCharsets.UTF_8))
+        out.hflush()
+        out.hsync()
+      }
+
+      // update cache
+      filesCache.put(BoxedUnit.UNIT, updatedFiles)
+
+      PathCache.register(fs, filesFilePath)
+    } finally {
+      // release lock by deleting lock file
+      try {
+        fs.delete(lockFilePath, false)
+      } catch {
+        case NonFatal(e) => logger.warn(s"Failed to release lock at $lockFilePath", e)
       }
     }
   }
@@ -196,7 +190,7 @@ class FileBasedMetadata(
     try {
       val status = fs.getFileStatus(lockPath)
       val age = System.currentTimeMillis() - status.getModificationTime
-      age > LockTimeout
+      age > LockTimeout.toMillis.get
     } catch {
       case NonFatal(_) => true // if we can't read it, consider it stale
     }
@@ -207,10 +201,10 @@ object FileBasedMetadata {
 
   val MetadataType = "file"
 
-  // locking parameters TODO make configurable
-  val MaxLockRetries = 60 // maximum number of lock acquisition retries
-  val LockRetryDelay = 1000L // delay between retries in milliseconds
-  val LockTimeout = 60000L // lock timeout in milliseconds (1 minute)
+  // locking parameters
+  val MaxLockRetries = SystemProperty("geomesa.fs.metadata.file.lock.retries", "60") // maximum number of lock acquisition retries
+  val LockRetryDelay = SystemProperty("geomesa.fs.metadata.file.lock.delay", "1 second") // delay between retries
+  val LockTimeout = SystemProperty("geomesa.fs.metadata.file.lock.timeout", "1 minute") // lock timeout
 
   // gson instance with custom serializers for StorageFile
   private val gson: Gson = StorageMetadata.JsonSerializers.register(new GsonBuilder()).disableHtmlEscaping().create()

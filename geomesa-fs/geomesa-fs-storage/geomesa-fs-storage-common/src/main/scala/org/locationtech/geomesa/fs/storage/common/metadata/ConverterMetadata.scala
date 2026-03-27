@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.{FileStatus, Path}
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -18,8 +17,6 @@ import org.locationtech.geomesa.fs.storage.common.metadata.filter.CachedMetadata
 import org.locationtech.geomesa.fs.storage.common.partitions.HierarchicalDateTimeScheme
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 
-import java.util.concurrent.TimeUnit
-import scala.runtime.BoxedUnit
 import scala.util.control.NonFatal
 
 class ConverterMetadata(
@@ -38,30 +35,12 @@ class ConverterMetadata(
     case _ => 1
   }.sum - (if (leafStorage) { 1 } else { 0 })
 
-  private val filesCache =
-    Caffeine.newBuilder().refreshAfterWrite(PathCache.CacheDurationProperty.toDuration.get.toMillis, TimeUnit.MILLISECONDS).build(
-      new CacheLoader[BoxedUnit, Seq[StorageFile]]() {
-        override def load(key: BoxedUnit): Seq[StorageFile] = buildFileList()
-        override def reload(key: BoxedUnit, oldValue: Seq[StorageFile]): Seq[StorageFile] = {
-          load(key) // TODO could optimize this?
-        }
-      }
-    )
-
-  private val refresh = filesCache.refresh(BoxedUnit.UNIT)
-
-  override protected def cachedFiles: Seq[StorageFile] = filesCache.get(BoxedUnit.UNIT)
-
   override def addFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
   override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
   override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit =
     throw new UnsupportedOperationException()
 
-// TODO?  override def invalidate(): Unit = dirty.set(true)
-
-  override def close(): Unit = if (!refresh.isDone) { refresh.cancel(true) }
-
-  private def buildFileList(): Seq[StorageFile] = {
+  override protected def buildFileList(): Seq[StorageFile] = {
     logger.debug("Building file list")
     val start = System.currentTimeMillis()
     val result = Seq.newBuilder[StorageFile]
@@ -109,6 +88,7 @@ class ConverterMetadata(
 }
 
 object ConverterMetadata {
+
   val MetadataType = "converter"
 
   val ConverterPathParam   = "fs.options.converter.path"
