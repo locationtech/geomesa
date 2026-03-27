@@ -104,8 +104,8 @@ object PartitionInputFormat {
       out.writeUTF(name)
       out.writeLong(length)
       out.writeInt(files.length)
+      // note: we don't store bounds, sort, etc as they're not used
       files.foreach { file =>
-        // TODO bounds, sort
         out.writeUTF(file.file)
         out.writeUTF(file.partition.encoded)
         out.writeLong(file.count)

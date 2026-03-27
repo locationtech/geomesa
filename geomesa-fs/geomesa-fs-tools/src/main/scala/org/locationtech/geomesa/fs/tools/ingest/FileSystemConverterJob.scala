@@ -44,6 +44,7 @@ abstract class FileSystemConverterJob(
     libjarsPaths: Iterator[() => Seq[File]],
     reducers: Int,
     root: Path,
+    schemes: Set[PartitionScheme],
     tmpPath: Option[Path],
     targetFileSize: Option[Long]
   ) extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths)
@@ -67,6 +68,7 @@ abstract class FileSystemConverterJob(
     job.getConfiguration.set("mapreduce.job.reduce.slowstart.completedmaps", ".90")
 
     StorageConfiguration.setRootPath(job.getConfiguration, root)
+    StorageConfiguration.setPartitionScheme(job.getConfiguration, schemes)
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Written)
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
@@ -102,10 +104,11 @@ object FileSystemConverterJob {
       libjarsPaths: Iterator[() => Seq[File]],
       reducers: Int,
       root: Path,
+      schemes: Set[PartitionScheme],
       tmpPath: Option[Path],
       targetFileSize: Option[Long]
     ) extends FileSystemConverterJob(
-        dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, root, tmpPath, targetFileSize)
+        dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, root, schemes, tmpPath, targetFileSize)
           with ParquetStorageConfiguration
 
   class FsIngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritable] with LazyLogging {
@@ -122,7 +125,7 @@ object FileSystemConverterJob {
     override def setup(context: Context): Unit = {
       val sft = StorageConfiguration.getSft(context.getConfiguration)
       serializer = KryoFeatureSerializer(sft, SerializationOption.defaults)
-      scheme = StorageConfiguration.getPartitionScheme(context.getConfiguration, sft) // TODO
+      scheme = StorageConfiguration.getPartitionScheme(context.getConfiguration, sft)
 
       mapped = context.getCounter(OutputCounters.Group, "mapped")
       written = context.getCounter(OutputCounters.Group, OutputCounters.Written)
@@ -155,7 +158,6 @@ object FileSystemConverterJob {
     private var reduced: Counter = _
 
     override def setup(context: Context): Unit = {
-      val root = StorageConfiguration.getRootPath(context.getConfiguration)
       val sft = StorageConfiguration.getSft(context.getConfiguration)
       serializer = KryoFeatureSerializer(sft, SerializationOption.defaults)
       reduced = context.getCounter(OutputCounters.Group, "reduced")

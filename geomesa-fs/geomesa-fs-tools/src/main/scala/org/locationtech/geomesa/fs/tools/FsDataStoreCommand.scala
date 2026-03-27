@@ -8,10 +8,12 @@
 
 package org.locationtech.geomesa.fs.tools
 
+import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
 import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
 import org.locationtech.geomesa.fs.storage.common.metadata.{ConverterMetadata, FileBasedMetadata, JdbcMetadata}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
@@ -21,8 +23,8 @@ import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 import java.io.{File, FileReader, StringWriter}
-import java.util
 import java.util.Properties
+import scala.util.control.NonFatal
 
 /**
  * Abstract class for FSDS commands
@@ -118,8 +120,12 @@ object FsDataStoreCommand {
   }
 
   trait PartitionParam {
-    @Parameter(names = Array("--partition"), description = "Partition to operate on (if empty all partitions will be used)")
-    var partitions: java.util.List[String] = new util.ArrayList[String]()
+    @Parameter(
+      names = Array("--partition"),
+      description = "Partition to operate on (if empty all partitions will be used)",
+      converter = classOf[PartitionConverter],
+      splitter = classOf[NoopParameterSplitter])
+    var partitions: java.util.List[Partition] = new java.util.ArrayList[Partition]()
   }
 
   trait OptionalSchemeParams {
@@ -140,7 +146,15 @@ object FsDataStoreCommand {
     var targetFileSize: String = _
   }
 
-  class EncodingValidator extends IValueValidator[String] {
+  private class PartitionConverter(name: String) extends BaseConverter[Partition](name) {
+    override def convert(value: String): Partition = {
+      try { Partition(value) } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
+      }
+    }
+  }
+
+  private class EncodingValidator extends IValueValidator[String] {
     override def validate(name: String, value: String): Unit = {
       val encodings = FileSystemStorageFactory.factories.map(_.encoding).toList
       if (!encodings.exists(_.equalsIgnoreCase(value))) {
@@ -150,7 +164,7 @@ object FsDataStoreCommand {
     }
   }
 
-  class MetadataTypeValidator extends IValueValidator[String] {
+  private class MetadataTypeValidator extends IValueValidator[String] {
     override def validate(name: String, value: String): Unit = {
       val valid = Seq(FileBasedMetadata.MetadataType, JdbcMetadata.MetadataType, ConverterMetadata.MetadataType)
       if (!valid.contains(value)) {

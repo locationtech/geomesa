@@ -84,7 +84,7 @@ object StorageConfiguration {
   def getMetadataConfig(conf: Configuration): Map[String, String] =
     conf.getPropsWithPrefix(s"$MetadataConfigKey.").asScala.toMap
 
-  def setPartitionScheme(conf: Configuration, scheme: Seq[PartitionScheme]): Unit = {
+  def setPartitionScheme(conf: Configuration, scheme: Set[PartitionScheme]): Unit = {
     var i = 0
     scheme.foreach { s =>
       conf.set(s"$PartitionSchemeKeyPrefix$i", s.name)

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
-import com.beust.jcommander.{Parameter, Parameters}
+import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
@@ -52,14 +52,14 @@ object FsCompactCommand {
       val storage = ds.storage(params.featureName)
 
       val toCompact = if (params.partitions.isEmpty) { storage.metadata.getFiles().map(_.partition).distinct } else {
-        // TODO need to pass in partitions through args
-//        val filtered = params.partitions.asScala.flatMap(storage.metadata.getFiles(_))
-//        if (filtered.lengthCompare(params.partitions.size()) != 0) {
-//          val unmatched = params.partitions.asScala.filterNot(name => filtered.exists(_.name == name))
-//          throw new ParameterException(s"Partition(s) ${unmatched.mkString(", ")} cannot be found in metadata")
-//        }
-//        filtered
-        ???
+        val filtered = params.partitions.asScala.filter(storage.metadata.getFiles(_).nonEmpty)
+        if (filtered.isEmpty) {
+          throw new ParameterException(s"Partition(s) did not match any files: ${params.partitions.asScala.map(_.encoded).mkString(", ")}")
+        } else if (filtered.size != params.partitions.size) {
+          val unmatched = params.partitions.asScala.filterNot(filtered.contains)
+          Command.user.warn(s"Some partition did not match any files: ${unmatched.map(_.encoded).mkString(", ")}")
+        }
+        filtered
       }
 
       val mode = params.mode.getOrElse {
@@ -67,7 +67,7 @@ object FsCompactCommand {
       }
       val fileSize = Option(params.targetFileSize).map(_.longValue)
 
-      Command.user.info(s"Compacting ${toCompact.size} partitions in ${mode.toString.toLowerCase(Locale.US)} mode")
+      Command.user.info(s"Compacting ${toCompact.size} files in ${mode.toString.toLowerCase(Locale.US)} mode")
 
       val start = System.currentTimeMillis()
       val status = TerminalCallback()

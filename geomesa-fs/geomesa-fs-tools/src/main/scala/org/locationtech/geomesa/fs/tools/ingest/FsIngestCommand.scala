@@ -63,7 +63,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
 
         new ParquetConverterJob(
           connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths, reducers,
-          storage.context.root, tmpPath, targetFileSize) {
+          storage.context.root, storage.metadata.schemes, tmpPath, targetFileSize) {
           override def configureJob(job: Job): Unit = {
             super.configureJob(job)
             if (params.combineInputs) {
