@@ -67,7 +67,7 @@ object FsManageMetadataCommand {
         i
       }
 
-      val file = if (params.calculateMetadata != null && params.calculateMetadata.booleanValue()) {
+      val file = if (params.calculateMetadata) {
         val reader = storage match {
           case s: AbstractFileSystemStorage => s.createReader(None, None)
           case s => throw new UnsupportedOperationException(s"--calculate-metadata is not supported for storage class ${s.getClass.getName}")
@@ -140,14 +140,16 @@ object FsManageMetadataCommand {
       withDataStore { ds =>
         Command.user.info("Checking consistency, please wait...")
         val storage = ds.storage(params.featureName)
-        WithClose(new ConsistencyChecker(storage, params.threads))(_.run())
+        val otherTypes = ds.getTypeNames.filter(_ != params.featureName).map(ds.storage).toSeq
+        WithClose(new ConsistencyChecker(storage, otherTypes, params.threads))(_.run())
       }
     }
   }
 
   object CheckConsistencyCommand {
 
-    class ConsistencyChecker(storage: FileSystemStorage, threads: Int) extends Runnable with Closeable with LazyLogging {
+    class ConsistencyChecker(storage: FileSystemStorage, otherTypes: Seq[FileSystemStorage], threads: Int)
+        extends Runnable with Closeable with LazyLogging {
 
       private val pool = new CachedThreadPool(threads)
       private val onDisk = Collections.newSetFromMap(new ConcurrentHashMap[Path, java.lang.Boolean]())
@@ -174,16 +176,29 @@ object FsManageMetadataCommand {
         if (onDisk.isEmpty && inconsistencies.isEmpty) {
           Command.user.info("No inconsistencies detected")
         } else {
-          if (!onDisk.isEmpty) {
-            Command.user.warn(s"Found ${onDisk.size} data files that do not have metadata entries:")
-            Command.output.info(onDisk.asScala.map(_.toString).toSeq.sorted.mkString("  ", "\n  ", ""))
-          }
           if (inconsistencies.nonEmpty) {
             lazy val strings = inconsistencies.map { i =>
               s"${i.file.file} (${if (i.duplicate) { "duplicate" } else { "missing" }})"
             }
-            Command.user.warn(s"Found ${inconsistencies.size} metadata entries that do not correspond to a data file:")
+            val msg = if (inconsistencies.size == 1) { "1 metadata entry that does" } else { s"${inconsistencies.size} metadata entries that do"}
+            Command.user.warn(s"Found $msg not correspond to a data file:")
             Command.output.info(strings.sorted.mkString("  ", "\n  ", ""))
+          }
+          if (!onDisk.isEmpty) {
+            // filter out files from other feature types in the same root
+            otherTypes.foreach { s =>
+              s.metadata.getFiles().foreach { f =>
+                onDisk.remove(new Path(s.context.root, f.file))
+              }
+            }
+            if (!onDisk.isEmpty) {
+              val msg = if (onDisk.size() == 1) { "1 data file that does" } else { s"${onDisk.size} data files that do"}
+              Command.user.warn(s"Found $msg not have a metadata entry:")
+              if (otherTypes.nonEmpty) {
+                Command.user.warn(s"Note: they may belong to one of the other registered feature types in this root")
+              }
+              Command.output.info(onDisk.asScala.map(_.toString).toSeq.sorted.mkString("  ", "\n  ", ""))
+            }
           }
         }
       }
@@ -278,7 +293,7 @@ object FsManageMetadataCommand {
       names = Array("--calculate-metadata"),
       description = "Read the data file being registered in order to store metadata for querying",
       required = false)
-    var calculateMetadata: java.lang.Boolean = _
+    var calculateMetadata: java.lang.Boolean = false
 
     @Parameter(names = Array("--partition"), description = "Partition(s) that the file belongs to", required = false)
     var partition: java.util.List[String] = new util.ArrayList[String]()
@@ -316,9 +331,6 @@ object FsManageMetadataCommand {
     // TODO GEOMESA-2963 requires rebuilding file data stats
     // @Parameter(names = Array("--repair"), description = "Update metadata based on consistency check")
     // var repair: java.lang.Boolean = false
-    //
-    // @Parameter(names = Array("--rebuild"), description = "Replace all current metadata from the data files")
-    // var rebuild: java.lang.Boolean = false
 
     @Parameter(
       names = Array("-t", "--threads"),

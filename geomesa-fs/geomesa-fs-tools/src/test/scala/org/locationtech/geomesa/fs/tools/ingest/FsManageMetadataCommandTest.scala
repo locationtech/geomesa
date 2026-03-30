@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.fs.tools.ingest
 
 import org.apache.hadoop.fs.Path
+import org.apache.log4j.spi.LoggingEvent
+import org.apache.log4j.{AppenderSkeleton, Level, Logger}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -20,6 +22,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.util.concurrent.atomic.AtomicInteger
+import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
 class FsManageMetadataCommandTest extends Specification {
@@ -61,23 +64,39 @@ class FsManageMetadataCommandTest extends Specification {
         results must haveLength(2)
         foreach(results)(f => features must contain(beEqualTo(f)))
 
-        // TODO run the consistency check and repair any problems
-//        val command = new FsManageMetadataCommand.CheckConsistencyCommand()
-//        command.params.path = dir
-//        command.params.featureName = sft.getTypeName
-//        command.params.configuration = new java.util.ArrayList[(String, String)]()
-//        HadoopSharedCluster.ContainerConfiguration.asScala.foreach(e => command.params.configuration.add(e.getKey -> e.getValue))
-//        command.execute()
-//
-//        // verify the new file was registered and the old one removed
-//        storage.metadata.invalidate()
-//        storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
-//            containTheSameElementsAs(Seq("2020/01/01" -> 1, "2021/01/01" -> 1, "2019/01/01" -> 1))
-//        storage.metadata.getPartitions().flatMap(_.files.map(_.name)) must containTheSameElementsAs(files)
-//        // verify we can retrieve the moved file again
-//        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
-//            containTheSameElementsAs(features)
+        val logCaptor = new LogCaptor()
+        val logger = Logger.getLogger("org.locationtech.geomesa.tools.user")
+        val logLevel = logger.getLevel
+        logger.setLevel(Level.ALL)
+        logger.addAppender(logCaptor)
+        try {
+          val command = new FsManageMetadataCommand.CheckConsistencyCommand()
+          command.params.path = dir
+          command.params.metadataType = "file"
+          command.params.featureName = sft.getTypeName
+          command.params.configuration = new java.util.ArrayList[(String, String)]()
+          HadoopSharedCluster.ContainerConfiguration.asScala.foreach(e => command.params.configuration.add(e.getKey -> e.getValue))
+          command.execute()
+        } finally {
+          logger.setLevel(logLevel)
+          logger.removeAppender(logCaptor)
+        }
+
+        val expected = Seq(
+          "Found 1 metadata entry that does not correspond to a data file:",
+          "Found 1 data file that does not have a metadata entry:"
+        )
+        logCaptor.events.map(_.getMessage.toString) must containAllOf(expected)
       }
     }
+  }
+
+  class LogCaptor extends AppenderSkeleton {
+
+    val events = ArrayBuffer.empty[LoggingEvent]
+
+    override protected def append(event: LoggingEvent): Unit = events += event
+    override def requiresLayout = false
+    override def close(): Unit = {}
   }
 }

@@ -56,7 +56,7 @@ class ExportToFsTest extends Specification with BeforeAfterAll {
       ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features: _*))
 
-      val storage = {
+      def storage() = {
         val conf = new Configuration()
         val context = FileSystemContext(new Path(out.toUri), conf)
         val metadata = new FileBasedMetadataCatalog(context).create(sft, Seq("daily"))
@@ -65,7 +65,7 @@ class ExportToFsTest extends Specification with BeforeAfterAll {
 
       val file = new File(s"$out/2016_01_01_out.parquet")
 
-      WithClose(storage) { storage =>
+      WithClose(storage()) { storage =>
         val command: ExportCommand[DataStore] = new ExportCommand[DataStore]() {
           override val params: ExportParams = new ExportParams() {
             override def featureName: String = sft.getTypeName
@@ -76,8 +76,9 @@ class ExportToFsTest extends Specification with BeforeAfterAll {
         command.params.file = file.getAbsolutePath
         command.execute()
 
-        // TODO partition is wrong here, doesn't matter for this test but we should fix it
-        storage.metadata.addFile(StorageFile(file.getName, Partition(Set(PartitionKey(storage.metadata.schemes.head.name, "2016/01/01"))), 0L))
+        val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(features.head))))
+
+        storage.metadata.addFile(StorageFile(file.getName, partition, 0L))
 
         val read = WithClose(storage.getReader(new Query(sft.getTypeName)))(_.toList)
         read mustEqual features
