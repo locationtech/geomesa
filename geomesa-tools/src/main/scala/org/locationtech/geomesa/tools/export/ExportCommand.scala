@@ -460,7 +460,6 @@ object ExportCommand extends LazyLogging {
       case ExportFormat.Json       => new GeoJsonExporter(stream)
       case ExportFormat.Leaflet    => new LeafletMapExporter(stream)
       case ExportFormat.Null       => NullExporter
-//      case ExportFormat.Orc        => new OrcFileSystemExporter(name)
       case ExportFormat.Parquet    => new ParquetFileSystemExporter(name)
       case ExportFormat.Shp        => new ShapefileExporter(new File(name))
       case ExportFormat.Tsv        => DelimitedExporter.tsv(stream, options.headers, fids)

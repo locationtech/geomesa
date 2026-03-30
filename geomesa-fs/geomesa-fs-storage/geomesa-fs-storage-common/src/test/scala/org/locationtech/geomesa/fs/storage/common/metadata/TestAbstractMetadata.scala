@@ -185,48 +185,6 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
         }
       }
     }
-
-//    "read old tables" in {
-//      WithClose(getClass.getClassLoader.getResourceAsStream("jdbc/old_meta.sql")) { db =>
-//        db must not(beNull)
-//
-//        withPath { context =>
-//          val config = getConfig(context.root)
-//          WithClose(JdbcMetadataFactory.createDataSource(config)) { source =>
-//            WithClose(source.getConnection()) { connection =>
-//              WithClose(connection.createStatement()) { statement =>
-//                // splitting on ; may not be universally safe, but works for our script
-//                IOUtils.toString(db, StandardCharsets.UTF_8).split(";").foreach { sql =>
-//                  statement.execute(s"$sql;")
-//                }
-//              }
-//              // update the root col in the metadata table to point to our current root
-//              Seq("storage_meta", "storage_partitions", "storage_partition_files").foreach { table =>
-//                WithClose(connection.prepareStatement(s"update $table set root = ?")) { ps =>
-//                  ps.setString(1, context.root.toUri.toString)
-//                  ps.executeUpdate()
-//                }
-//              }
-//            }
-//          }
-//
-//          // create the metadata.json file pointing to the table
-//          MetadataJson.writeMetadata(context, NamedOptions(factory.name, config))
-//
-//          val loaded = factory.load(context)
-//          loaded must beSome
-//          WithClose(loaded.get) { metadata =>
-//            metadata.encoding mustEqual encoding
-//            metadata.sft mustEqual sft
-//            metadata.sft.getUserData.asScala.toSeq must containAllOf(sft.getUserData.asScala.toSeq)
-//            metadata.scheme mustEqual scheme
-//            metadata.getPartitions().map(_.name) must containTheSameElementsAs(Seq("1", "2"))
-//            metadata.getPartition("1").map(_.files) must beSome(containTheSameElementsAs(Seq(f1, f3).map(_.copy(timestamp = 0L))))
-//            metadata.getPartition("2").map(_.files) must beSome(containTheSameElementsAs(Seq(f5, f6).map(_.copy(timestamp = 0L))))
-//          }
-//        }
-//      }
-//    }
   }
 
   def withPath[R](code: StorageMetadataCatalog => R): R = {

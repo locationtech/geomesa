@@ -377,4 +377,3 @@ object AttributeScheme {
       allowedValues: Seq[Double],
     ) extends FractionalScheme[Double](attribute, index, scale, defaultValue, allowedValues, DoubleEncoder)
 }
-

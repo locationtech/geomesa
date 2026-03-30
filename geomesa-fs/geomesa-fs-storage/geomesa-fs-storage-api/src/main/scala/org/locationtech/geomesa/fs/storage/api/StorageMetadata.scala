@@ -342,51 +342,5 @@ object StorageMetadata {
         )
       }
     }
-
-//    /**
-//     * Json serializer for SpatialBounds
-//     */
-//    private object SpatialBoundsSerializer extends JsonSerializer[SpatialBounds] with JsonDeserializer[SpatialBounds] {
-//
-//      override def serialize(src: SpatialBounds, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
-//        val obj = new JsonObject()
-//        val bounds = new JsonArray(4)
-//        bounds.add(src.xmin)
-//        bounds.add(src.ymin)
-//        bounds.add(src.xmax)
-//        bounds.add(src.ymax)
-//        obj.addProperty("i", src.attribute)
-//        obj.add("bounds", bounds)
-//        obj
-//      }
-//
-//      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): SpatialBounds = {
-//        val obj = json.getAsJsonObject
-//        val bounds = obj.getAsJsonArray("bounds")
-//        SpatialBounds(obj.get("i").getAsInt, bounds.get(0).getAsDouble, bounds.get(1).getAsDouble, bounds.get(2).getAsDouble, bounds.get(3).getAsDouble)
-//      }
-//    }
-//
-//    /**
-//     * Json serializer for AttributeBounds
-//     */
-//    private object AttributeBoundsSerializer extends JsonSerializer[AttributeBounds] with JsonDeserializer[AttributeBounds] {
-//
-//      override def serialize(src: AttributeBounds, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
-//        val obj = new JsonObject()
-//        val bounds = new JsonArray(4)
-//        bounds.add(src.lower)
-//        bounds.add(src.upper)
-//        obj.addProperty("i", src.attribute)
-//        obj.add("bounds", bounds)
-//        obj
-//      }
-//
-//      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): AttributeBounds = {
-//        val obj = json.getAsJsonObject
-//        val bounds = obj.getAsJsonArray("bounds")
-//        AttributeBounds(obj.get("i").getAsInt, bounds.get(0).getAsString, bounds.get(1).getAsString)
-//      }
-//    }
   }
 }

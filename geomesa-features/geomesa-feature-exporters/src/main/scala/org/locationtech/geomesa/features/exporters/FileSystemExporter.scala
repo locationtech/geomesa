@@ -62,12 +62,4 @@ object FileSystemExporter extends LazyLogging {
       new ParquetFileSystemWriter(file, conf)
     }
   }
-
-//  class OrcFileSystemExporter(path: String) extends FileSystemExporter {
-//    override protected def createWriter(sft: SimpleFeatureType): FileSystemWriter = {
-//      // use PathUtils.getUrl to handle local files, otherwise default can be in hdfs
-//      val file = new Path(PathUtils.getUrl(path).toURI)
-//      new OrcFileSystemWriter(sft, FileSystemContext(file, new Configuration()), file)
-//    }
-//  }
 }

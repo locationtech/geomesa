@@ -15,4 +15,3 @@ package org.locationtech.geomesa.fs.storage.converter.pathfilter
  * @param options configuration
  */
 case class NamedOptions(name: String, options: Map[String, String] = Map.empty)
-

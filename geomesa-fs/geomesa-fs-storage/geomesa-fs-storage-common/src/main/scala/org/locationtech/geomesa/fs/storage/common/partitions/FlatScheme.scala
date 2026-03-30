@@ -27,5 +27,4 @@ object FlatScheme extends PartitionScheme {
     override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] =
       if (scheme.equalsIgnoreCase("flat")) { Some(FlatScheme) } else { None }
   }
-
 }
