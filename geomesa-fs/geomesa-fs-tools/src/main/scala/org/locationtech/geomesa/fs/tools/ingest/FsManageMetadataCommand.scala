@@ -14,17 +14,20 @@ import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.{FileStatus, Path, RemoteIterator}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, SpatialBounds, StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, Partition, PartitionKey, SpatialBounds, StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileTracker, UpdateObserver}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.CheckConsistencyCommand.ConsistencyChecker
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand._
+import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.jts.geom.Envelope
 
 import java.io.{Closeable, FileNotFoundException}
 import java.util
@@ -51,22 +54,66 @@ object FsManageMetadataCommand {
     override def execute(): Unit = withDataStore { ds =>
       val storage = ds.storage(params.featureName)
       val metadata = storage.metadata
-      val partition = Partition(params.partition.asScala.map(PartitionKey.apply).toSet)
-      val count = Option(params.count).map(_.longValue()).getOrElse(0L)
-      val env = new Envelope()
-      Option(params.bounds).foreach { case (xmin, ymin, xmax, ymax) =>
-        env.expandToInclude(xmin, ymin)
-        env.expandToInclude(xmax, ymax)
-      }
-      val spatialBounds = SpatialBounds(metadata.sft.indexOf(metadata.sft.getGeometryDescriptor.getLocalName), env).toSeq
-      // TODO other spatial bounds, attribute bounds
-      val file = StorageFile(params.file, partition, count, StorageFileAction.Append, spatialBounds)
-      val path = new Path(storage.context.root, file.file)
+      val path = new Path(storage.context.root, params.file)
       if (!PathCache.exists(storage.context.fs, path)) {
         throw new IllegalArgumentException(s"File $path does not exist")
       }
+
+      val sort = params.sort.asScala.map { name =>
+        val i = metadata.sft.indexOf(name)
+        if (i == -1) {
+          throw new ParameterException(s"Invalid attribute for sort order, does not exist in the feature type: $name")
+        }
+        i
+      }
+
+      val file = if (params.calculateMetadata != null && params.calculateMetadata.booleanValue()) {
+        val reader = storage match {
+          case s: AbstractFileSystemStorage => s.createReader(None, None)
+          case s => throw new UnsupportedOperationException(s"--calculate-metadata is not supported for storage class ${s.getClass.getName}")
+        }
+        val tracker = new FileTracker(metadata.sft, Set.empty)
+        var partition: Partition = null
+        WithClose(new UpdateObserver(tracker, Partition.None, params.file, StorageFileAction.Append)) { observer =>
+          WithClose(reader.read(params.file)) { iter =>
+            if (!iter.hasNext) {
+              throw new RuntimeException("Could not read any features from input file")
+            }
+            val head = iter.next()
+            partition = Partition(metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(head))))
+            observer(head)
+            iter.foreach(observer.apply)
+          }
+        }
+        tracker.getFiles().head.copy(partition = partition)
+      } else {
+        val partition = Partition(params.partition.asScala.map(PartitionKey.apply).toSet)
+        if (partition.values.isEmpty) {
+          throw new ParameterException("Must either --calculate-metadata or specify --partition for the file")
+        }
+        val count = Option(params.count).map(_.longValue()).getOrElse(0L)
+        val spatialBounds = params.spatialBounds.asScala.map { case (name, bounds) =>
+          val i = metadata.sft.indexOf(name)
+          if (i == -1) {
+            throw new ParameterException(s"Invalid attribute for spatial bounds, does not exist in the feature type: $name")
+          }
+          bounds.copy(attribute = i)
+        }
+        val attributeBounds = params.attributeBounds.asScala.map { case (name, bounds) =>
+          val i = metadata.sft.indexOf(name)
+          if (i == -1) {
+            throw new ParameterException(s"Invalid attribute for attribute bounds, does not exist in the feature type: $name")
+          }
+          val binding = metadata.sft.getDescriptor(i).getType.getBinding
+          val lower = AttributeIndexKey.TypeRegistry.encode(FastConverter.convert(bounds.lower, binding))
+          val upper = AttributeIndexKey.TypeRegistry.encode(FastConverter.convert(bounds.upper, binding))
+          AttributeBounds(i, lower, upper)
+        }
+        StorageFile(params.file, partition, count, StorageFileAction.Append, spatialBounds.toSeq, attributeBounds.toSeq, sort.toSeq)
+      }
+
       metadata.addFile(file)
-      Command.user.info(s"Registered file $path containing $count known features")
+      Command.user.info(s"Registered file $path containing ${file.count} known features")
     }
   }
 
@@ -78,8 +125,7 @@ object FsManageMetadataCommand {
     override def execute(): Unit = withDataStore { ds =>
       val storage = ds.storage(params.featureName)
       val metadata = storage.metadata
-      val partition = Partition(params.partition.asScala.map(PartitionKey.apply).toSet)
-      val file = StorageFile(params.file, partition, 0L)
+      val file = StorageFile(params.file, Partition.None, 0L)
       metadata.removeFile(file)
       Command.user.info(s"Unregistered file ${new Path(storage.context.root, file.file)}")
     }
@@ -222,25 +268,44 @@ object FsManageMetadataCommand {
   @Parameters(commandDescription = "Manage the metadata for a storage instance")
   class ManageMetadataParams
 
-  abstract class FilesParam extends FsParams with RequiredTypeNameParam {
-    @Parameter(names = Array("--partition"), description = "Partition(s) that the file belongs to", required = true)
-    var partition: java.util.List[String] = new util.ArrayList[String]()
-  }
-
   @Parameters(commandDescription = "Register new data files with a storage instance")
-  private class RegisterParams extends FilesParam {
+  // noinspection VarCouldBeVal
+  private class RegisterParams extends FsParams with RequiredTypeNameParam {
     @Parameter(names = Array("--file"), description = "Path of the file to register, relative to the storage root", required = true)
     var file: String = _
 
-    @Parameter(names = Array("--bounds"), description = "Geographic bounds of the data file being registered, in the form xmin,ymin,xmax,ymax", required = false, converter = classOf[BoundsConverter])
-    var bounds: (Double, Double, Double, Double) = _
+    @Parameter(
+      names = Array("--calculate-metadata"),
+      description = "Read the data file being registered in order to store metadata for querying",
+      required = false)
+    var calculateMetadata: java.lang.Boolean = _
+
+    @Parameter(names = Array("--partition"), description = "Partition(s) that the file belongs to", required = false)
+    var partition: java.util.List[String] = new util.ArrayList[String]()
+
+    @Parameter(
+      names = Array("--spatial-bounds"),
+      description = "Geographic bounds for a geometry of the data file being registered, in the form <attribute>=xmin,ymin,xmax,ymax",
+      required = false,
+      converter = classOf[SpatialBoundsConverter])
+    var spatialBounds: java.util.List[(String, SpatialBounds)] = new java.util.ArrayList[(String, SpatialBounds)]()
+
+    @Parameter(
+      names = Array("--attribute-bounds"),
+      description = "Lower and upper bounds for an attribute of the data file being registered, in the form <attribute>=lower,upper",
+      required = false,
+      converter = classOf[AttributeBoundsConverter])
+    var attributeBounds: java.util.List[(String, AttributeBounds)] = new java.util.ArrayList[(String, AttributeBounds)]()
 
     @Parameter(names = Array("--count"), description = "Number of features in the data file being registered", required = false)
     var count: java.lang.Long = _
+
+    @Parameter(names = Array("--sort"), description = "Name of any attributes that the file is sorted by", required = false)
+    var sort: java.util.List[String] = new java.util.ArrayList[String]()
   }
 
   @Parameters(commandDescription = "Unregister data files from a storage instance")
-  private class UnregisterParams extends FilesParam {
+  private class UnregisterParams extends FsParams with RequiredTypeNameParam {
     @Parameter(names = Array("--file"), description = "Path of the file to unregister, relative to the storage root", required = true)
     var file: String = _
   }
@@ -262,11 +327,23 @@ object FsManageMetadataCommand {
     var threads: Integer = 4
   }
 
-  private class BoundsConverter(name: String) extends BaseConverter[(Double, Double, Double, Double)](name) {
-    override def convert(value: String): (Double, Double, Double, Double) = {
+  private class SpatialBoundsConverter(name: String) extends BaseConverter[(String, SpatialBounds)](name) {
+    override def convert(value: String): (String, SpatialBounds) = {
       try {
-        val Array(xmin, ymin, xmax, ymax) = value.split(",").map(_.trim.toDouble)
-        (xmin, ymin, xmax, ymax)
+        val Array(name, bounds) = value.split("=", 2).map(_.trim)
+        val Array(xmin, ymin, xmax, ymax) = bounds.split(",").map(_.trim.toDouble)
+        (name, SpatialBounds(-1, xmin, ymin, xmax, ymax))
+      } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
+      }
+    }
+  }
+  private class AttributeBoundsConverter(name: String) extends BaseConverter[(String, AttributeBounds)](name) {
+    override def convert(value: String): (String, AttributeBounds) = {
+      try {
+        val Array(name, bounds) = value.split("=", 2).map(_.trim)
+        val Array(lower, upper) = bounds.split("/").map(_.trim)
+        (name, AttributeBounds(-1, lower, upper))
       } catch {
         case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
       }

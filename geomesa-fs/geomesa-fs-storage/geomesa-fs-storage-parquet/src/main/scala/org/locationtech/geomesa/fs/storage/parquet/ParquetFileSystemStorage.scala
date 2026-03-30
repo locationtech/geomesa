@@ -65,7 +65,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     new ParquetFileSystemWriter(file, conf, observers)
   }
 
-  override protected def createReader(
+  override protected[fs] def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader = {
     // readSft has all the fields needed for filtering and return

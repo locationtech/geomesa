@@ -87,7 +87,7 @@ abstract class AbstractFileSystemStorage(
     * @param transform transform
     * @return
     */
-  protected def createReader(
+  protected[fs] def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader
 
