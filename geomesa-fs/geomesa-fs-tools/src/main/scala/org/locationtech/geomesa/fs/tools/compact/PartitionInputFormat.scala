@@ -44,22 +44,21 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
     val typeName = StorageConfiguration.getSftName(conf)
     val encoding = StorageConfiguration.getEncoding(conf)
 
-    WithClose(StorageMetadataCatalog(fsc, metadataType, metadataConfig).load(typeName)) { meta =>
-      WithClose(FileSystemStorageFactory(fsc, meta, encoding)) { storage =>
-        val sizeable = Option(storage).collect { case s: SizeableFileSystemStorage => s }
-        val sizeCheck = sizeable.flatMap(s => s.targetSize(fileSize).map(t => (p: Path) => s.fileIsSized(p, t)))
-        val splits = StorageConfiguration.getPartitions(conf).map { partition =>
-          var size = 0L
-          val files = storage.metadata.getFiles(partition).filter { f =>
-            if (sizeCheck.exists(_.apply(new Path(fsc.root, f.file)))) { false } else {
-              size += PathCache.status(fsc.fs, new Path(fsc.root, f.file)).getLen
-              true
-            }
+    val catalog = StorageMetadataCatalog(fsc, metadataType, metadataConfig)
+    WithClose(FileSystemStorageFactory(fsc, catalog.load(typeName), encoding)) { storage =>
+      val sizeable = Option(storage).collect { case s: SizeableFileSystemStorage => s }
+      val sizeCheck = sizeable.flatMap(s => s.targetSize(fileSize).map(t => (p: Path) => s.fileIsSized(p, t)))
+      val splits = StorageConfiguration.getPartitions(conf).map { partition =>
+        var size = 0L
+        val files = storage.metadata.getFiles(partition).filter { f =>
+          if (sizeCheck.exists(_.apply(new Path(fsc.root, f.file)))) { false } else {
+            size += PathCache.status(fsc.fs, new Path(fsc.root, f.file)).getLen
+            true
           }
-          new PartitionInputSplit(partition.encoded, files, size)
         }
-        java.util.Arrays.asList(splits: _*)
+        new PartitionInputSplit(partition.encoded, files, size)
       }
+      java.util.Arrays.asList(splits: _*)
     }
   }
 

@@ -40,7 +40,7 @@ class ReceiptTimeScheme(
     step: Int,
     dtg: String,
     dtgIndex: Int,
-    buffer: Duration,
+    val buffer: Duration,
   ) extends HierarchicalDateTimeScheme(formatter, pattern, stepUnit, step, dtg, dtgIndex) {
 
   import ReceiptTimeScheme.Config

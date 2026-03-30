@@ -24,6 +24,7 @@ package object common {
 
   val FileValidationEnabled: SystemProperty = SystemProperty("geomesa.fs.validate.file", "false")
 
+  private lazy implicit val SchemeOptionsConvert: ConfigConvert[SchemeOptions] = deriveConvert[SchemeOptions]
   private lazy implicit val NamedOptionsConvert: ConfigConvert[NamedOptions] = deriveConvert[NamedOptions]
 
   object StorageKeys {
@@ -42,21 +43,28 @@ package object common {
     * @param sft simple feature type
     */
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
+    import StorageKeys._
     import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.DefaultDtgField
 
     import scala.collection.JavaConverters._
-    import StorageKeys._
 
     def setScheme(names: String): Unit = sft.getUserData.put(SchemeKey, names)
     def removeScheme(): Option[Seq[String]] = {
       remove(SchemeKey).map { scheme =>
         // back compatible check for old json-serialized schemes
-        if (scheme.startsWith("{")) {
+        if (scheme.trim.startsWith("{")) {
           try {
-            val config = ConfigFactory.parseString(scheme)
-            val named = ConfigSource.fromConfig(config).loadOrThrow[NamedOptions]
-            val opts = named.options.map { case (k, v) => s"$k=$v" }.mkString(":")
-            named.name.split(",").toSeq.map(n => s"$n:$opts")
+            def result(name: String, options: Map[String, String]): Seq[String] = {
+              val opts = options.map { case (k, v) => s"$k=$v" }.mkString(":")
+              name.split(",").toSeq.map(n => s"$n:$opts")
+            }
+            val source = ConfigSource.fromConfig(ConfigFactory.parseString(scheme))
+            source.load[SchemeOptions] match {
+              case Right(o) => result(o.scheme, o.options)
+              case Left(_) =>
+                val n = source.loadOrThrow[NamedOptions]
+                result(n.name, n.options)
+            }
           } catch {
             case NonFatal(e) => throw new RuntimeException(s"Could not parse legacy scheme options: $scheme", e)
           }
@@ -110,5 +118,6 @@ package object common {
   }
 
   // kept around for back compatibility with encoded partition schemes
+  private case class SchemeOptions(scheme: String, options: Map[String, String] = Map.empty)
   private case class NamedOptions(name: String, options: Map[String, String] = Map.empty)
 }

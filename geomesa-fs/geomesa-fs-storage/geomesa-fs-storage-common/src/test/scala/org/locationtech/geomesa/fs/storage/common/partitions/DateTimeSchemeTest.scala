@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.text.DateParsing
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.time.temporal.{ChronoField, ChronoUnit}
+import java.time.temporal.ChronoUnit
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
@@ -28,16 +28,16 @@ class DateTimeSchemeTest extends Specification {
 
   import org.locationtech.geomesa.filter.decomposeAnd
 
-  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-  val sf = ScalaSimpleFeature.create(sft, "1", "test", 10, "2017-02-03T10:15:30Z", "POINT (10 10)")
-  val date = ZonedDateTime.ofInstant(sf.getAttribute(2).asInstanceOf[Date].toInstant, ZoneOffset.UTC)
+  val sft = SimpleFeatureTypes.createType("test", "dtg:Date,*geom:Point:srid=4326")
+  val sf = ScalaSimpleFeature.create(sft, "1", "2017-02-03T10:15:30Z", "POINT (10 10)")
+  val date = ZonedDateTime.ofInstant(sf.getAttribute(0).asInstanceOf[Date].toInstant, ZoneOffset.UTC)
 
   val epoch = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC)
 
   "DateTimeScheme" should {
 
     "partition based on days" >> {
-      val ps = DateTimeScheme("dtg", 2, ChronoUnit.DAYS)
+      val ps = DateTimeScheme("dtg", 0, ChronoUnit.DAYS)
       val partition = ps.getPartition(sf)
       partition mustEqual "80004330"
       val days = AttributeIndexKey.decode("integer", partition).asInstanceOf[Int]
@@ -45,7 +45,7 @@ class DateTimeSchemeTest extends Specification {
     }
 
     "partition based on hours" >> {
-      val ps = DateTimeScheme("dtg", 2, ChronoUnit.HOURS)
+      val ps = DateTimeScheme("dtg", 0, ChronoUnit.HOURS)
       val partition = ps.getPartition(sf)
       partition mustEqual "80064c8a"
       val hours = AttributeIndexKey.decode("integer", partition).asInstanceOf[Int]
@@ -62,7 +62,7 @@ class DateTimeSchemeTest extends Specification {
     }
 
     "simplify filters" >> {
-      val ps = DateTimeScheme("dtg", 2, ChronoUnit.HOURS)
+      val ps = DateTimeScheme("dtg", 0, ChronoUnit.HOURS)
       val filter = ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-03T01:55:00.000Z'")
       ko
 //      val covering = ps.getSimplifiedFilters(filter)
@@ -74,7 +74,7 @@ class DateTimeSchemeTest extends Specification {
     }.pendingUntilFixed("not implemented")
 
     "simplify filters with multiple partitions" >> {
-      val ps = DateTimeScheme("dtg", 2, ChronoUnit.HOURS)
+      val ps = DateTimeScheme("dtg", 0, ChronoUnit.HOURS)
       val filter = ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-03T02:55:00.000Z'")
 //      val simplified = ps.getSimplifiedFilters(filter)
 //      simplified must beSome
@@ -88,7 +88,7 @@ class DateTimeSchemeTest extends Specification {
 
     "calculate covering filters for partitions" >> {
       foreach(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS)) { unit =>
-        val ps = DateTimeScheme("dtg", 2, unit)
+        val ps = DateTimeScheme("dtg", 0, unit)
         val partition = ps.getPartition(sf)
         val covering = ps.getCoveringFilter(partition)
         val expected = {
@@ -102,7 +102,7 @@ class DateTimeSchemeTest extends Specification {
 
     "calculate intersecting partitions for filters" >> {
       foreach(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS)) { unit =>
-        val ps = DateTimeScheme("dtg", 2, unit)
+        val ps = DateTimeScheme("dtg", 0, unit)
         val partition = ps.getPartition(sf)
         val expectedEndPartition = java.lang.Long.toHexString(java.lang.Long.parseLong(partition, 16) + 1)
         val start = truncate(date, unit)
@@ -116,26 +116,29 @@ class DateTimeSchemeTest extends Specification {
       }
     }
 
-    // TODO
-//    "handle edge boundaries" >> {
-//      val dtScheme = DateTimeScheme("dtg", 2, ChronoUnit.DAYS)
-//      val exclusive = ECQL.toFilter("dtg > '2017-01-02' and dtg < '2017-01-04T00:00:00.000Z'")
-//      val twoDays = dtScheme.getSimplifiedFilters(exclusive)
-//      twoDays must beSome
-//      twoDays.get must haveSize(2)
-//      twoDays.get.map(_.filter) must containTheSameElementsAs(Seq(Filter.INCLUDE, exclusive))
-//      foreach(twoDays.get)(_.partial must beFalse)
-//      twoDays.get.find(_.filter == Filter.INCLUDE).map(_.partitions) must beSome(Seq("2017/20170103"))
-//      twoDays.get.find(_.filter != Filter.INCLUDE).map(_.partitions) must beSome(Seq("2017/20170102"))
-//      val inclusive = ECQL.toFilter("dtg >= '2017-01-02' and dtg <= '2017-01-04T00:00:00.001Z'")
-//      val threeDays = dtScheme.getSimplifiedFilters(inclusive)
-//      threeDays must beSome
-//      threeDays.get must haveSize(2)
-//      threeDays.get.map(_.filter) must containTheSameElementsAs(Seq(Filter.INCLUDE, inclusive))
-//      foreach(threeDays.get)(_.partial must beFalse)
-//      threeDays.get.find(_.filter == Filter.INCLUDE).map(_.partitions) must beSome(containTheSameElementsAs(Seq("2017/20170102", "2017/20170103")))
-//      threeDays.get.find(_.filter != Filter.INCLUDE).map(_.partitions) must beSome(Seq("2017/20170104"))
-//    }
+    "handle edge boundaries" >> {
+      // note: these will change when we fix simplified filters
+      val dtScheme = DateTimeScheme("dtg", 0, ChronoUnit.DAYS)
+      val startpoint = dtScheme.getPartition(ScalaSimpleFeature.create(sft, "1", "2017-01-02T00:00:00.000Z", "POINT (10 10)"))
+      val endpoint = dtScheme.getPartition(ScalaSimpleFeature.create(sft, "1", "2017-01-04T00:00:00.000Z", "POINT (10 10)"))
+      val exclusive = ECQL.toFilter("dtg > '2017-01-02T00:00:00.000Z' and dtg < '2017-01-04T00:00:00.000Z'")
+      val twoDays = dtScheme.getIntersectingPartitions(exclusive)
+      twoDays must beSome
+      twoDays.get must haveSize(1)
+      twoDays.get.head.filter must beSome(exclusive)
+      twoDays.get.head.bounds must haveLength(1)
+      twoDays.get.head.bounds.head.contains(startpoint) must beTrue
+      twoDays.get.head.bounds.head.contains(endpoint) must beFalse
+
+      val inclusive = ECQL.toFilter("dtg >= '2017-01-02T00:00:00.000Z' and dtg <= '2017-01-04T00:00:00.001Z'")
+      val threeDays = dtScheme.getIntersectingPartitions(inclusive)
+      threeDays must beSome
+      threeDays.get must haveSize(1)
+      threeDays.get.head.filter must beSome(inclusive)
+      threeDays.get.head.bounds must haveLength(1)
+      threeDays.get.head.bounds.head.contains(startpoint) must beTrue
+      threeDays.get.head.bounds.head.contains(endpoint) must beTrue
+    }
   }
 
   private def truncate(date: ZonedDateTime, unit: ChronoUnit): ZonedDateTime = {
