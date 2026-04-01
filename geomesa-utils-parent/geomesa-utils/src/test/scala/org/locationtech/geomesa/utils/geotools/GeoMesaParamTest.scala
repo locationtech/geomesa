@@ -17,6 +17,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.io.IOException
+import java.util.Properties
 import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
@@ -129,6 +130,16 @@ class GeoMesaParamTest extends Specification with LazyLogging {
     "lookup durations with defaults and system properties" in {
       new GeoMesaParam[Duration]("foo", default = Duration("10s"), systemProperty = Some(SystemPropertyDurationParam(SystemProperty("params.foo", "10s")))).lookup(Map("foo" -> "10s").asJava) mustEqual Duration("10s")
       new GeoMesaParam[Duration]("foo", default = Duration("10s"), systemProperty = Some(SystemPropertyDurationParam(SystemProperty("params.foo", "10s")))).lookup(Map.empty[String, String].asJava) mustEqual Duration("10s")
+    }
+    "lookup java properties" in {
+      val props = new GeoMesaParam[Properties]("foo").lookup(Map("foo" -> "foo=bar\nbaz=blu").asJava)
+      props.get("foo") mustEqual "bar"
+      props.get("baz") mustEqual "blu"
+    }
+    "lookup java properties with env var replacement" in {
+      val props = new GeoMesaParam[Properties]("foo").lookup(Map("foo" -> "foo=${USER}\nbaz=${USER}-${USER}").asJava)
+      props.get("foo") mustEqual sys.env.getOrElse("USER", "")
+      props.get("baz") mustEqual sys.env.getOrElse("USER", "") + "-" + sys.env.getOrElse("USER", "")
     }
   }
 }
