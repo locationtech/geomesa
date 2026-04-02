@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import org.geotools.api.filter.PropertyIsLessThan
+import org.geotools.api.filter.{Filter, PropertyIsLessThan}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.expression.AttributeExpression.FunctionLiteral
@@ -16,6 +16,7 @@ import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
 import org.locationtech.geomesa.filter.{checkOrder, decomposeAnd}
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
 import org.locationtech.geomesa.fs.storage.api.PartitionSchemeFactory
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
 
@@ -103,6 +104,20 @@ class Z2SchemeTest extends SpecificationWithJUnit {
       edgeNorthWide.get must haveSize(2)
       edgeNorthWide.get must contain(PartitionRange(ps.name, "08", "10"))
       edgeNorthWide.get must contain(PartitionRange(ps.name, "12", "14"))
+    }
+
+    "enumerate partitions with a 2 bit curve" in {
+      val ps = PartitionSchemeFactory.load(sft, "z2:bits=2")
+      ps must beAnInstanceOf[Z2Scheme]
+      ps.asInstanceOf[Z2Scheme].bits mustEqual 2
+
+      val partitions = ps.getPartitionsForFilter(Filter.INCLUDE).orNull
+      partitions must not(beNull)
+      partitions must haveLength(4)
+      partitions must contain(PartitionKey(ps.name, "0"))
+      partitions must contain(PartitionKey(ps.name, "1"))
+      partitions must contain(PartitionKey(ps.name, "2"))
+      partitions must contain(PartitionKey(ps.name, "3"))
     }
 
     "calculate covering filters" in {

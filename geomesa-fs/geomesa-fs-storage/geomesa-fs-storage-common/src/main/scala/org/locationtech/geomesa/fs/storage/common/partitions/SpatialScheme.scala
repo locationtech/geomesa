@@ -47,7 +47,7 @@ abstract class SpatialScheme(id: String, bits: Int, geom: String) extends Partit
     getGeoms(filter).orElse(Some(generateRanges(Seq((-180, -90, 180, 90))))).map { ranges =>
       ranges.flatMap { range =>
         val lower = range.lower
-        val steps = (range.upper - lower).toInt
+        val steps = 1 + (range.upper - lower).toInt
         Seq.tabulate(steps)(i => PartitionKey(name, format.format(lower + i)))
       }
     }
