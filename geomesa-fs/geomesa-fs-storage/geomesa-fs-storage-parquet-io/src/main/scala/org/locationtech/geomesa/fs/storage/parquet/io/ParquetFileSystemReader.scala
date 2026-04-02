@@ -42,6 +42,7 @@ class ParquetFileSystemReader(
   }
 
   override def read(file: String): CloseableIterator[SimpleFeature] = {
+    // TODO we can examine file bounds and simplify/eliminate the gtFilter
     val path = new Path(root, file)
     logger.debug(s"Opening reader for path $path")
     new ParquetFileIterator(path)

@@ -21,7 +21,7 @@ class FsGetPartitionsCommand extends FsDataStoreCommand {
 
   override def execute(): Unit = withDataStore { ds =>
     Command.user.info(s"Partitions for type ${params.featureName}:")
-    ds.storage(params.featureName).metadata.getFiles().map(_.partition).map(_.encoded).sorted.foreach(p => Command.output.info(p))
+    ds.storage(params.featureName).metadata.getFiles().map(_.partition.encoded).distinct.sorted.foreach(p => Command.output.info(p))
   }
 }
 

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.curve.XZ2SFC
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 import org.locationtech.geomesa.fs.storage.common.partitions.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.locationtech.jts.geom.Geometry
@@ -19,10 +20,10 @@ case class XZ2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSch
 
   private val xz2 = XZ2SFC((bits / 2).asInstanceOf[Short])
 
-  override def getPartition(feature: SimpleFeature): String = {
+  override def getPartition(feature: SimpleFeature): PartitionKey = {
     val geometry = feature.getAttribute(geom).asInstanceOf[Geometry]
     val envelope = geometry.getEnvelopeInternal
-    format.format(xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY))
+    PartitionKey(name, format.format(xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)))
   }
 
   // TODO https://geomesa.atlassian.net/browse/GEOMESA-2967

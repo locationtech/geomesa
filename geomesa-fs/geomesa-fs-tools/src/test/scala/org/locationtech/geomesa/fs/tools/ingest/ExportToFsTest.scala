@@ -17,7 +17,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemContext
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, StorageFile}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.tools.`export`.ExportCommand
@@ -76,7 +76,7 @@ class ExportToFsTest extends Specification with BeforeAfterAll {
         command.params.file = file.getAbsolutePath
         command.execute()
 
-        val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(features.head))))
+        val partition = Partition(storage.metadata.schemes.map(_.getPartition(features.head)))
 
         storage.metadata.addFile(StorageFile(file.getName, partition, 0L))
 

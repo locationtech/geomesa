@@ -80,7 +80,7 @@ object FsManageMetadataCommand {
               throw new RuntimeException("Could not read any features from input file")
             }
             val head = iter.next()
-            partition = Partition(metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(head))))
+            partition = Partition(metadata.schemes.map(_.getPartition(head)))
             observer(head)
             iter.foreach(observer.apply)
           }

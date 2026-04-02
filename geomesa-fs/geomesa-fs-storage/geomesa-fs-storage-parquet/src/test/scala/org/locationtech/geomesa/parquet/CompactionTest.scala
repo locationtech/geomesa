@@ -44,7 +44,7 @@ class CompactionTest extends SpecificationWithJUnit {
 
         val catalog = StorageMetadataCatalog(context, "file", Map.empty)
         WithClose(new ParquetFileSystemStorageFactory().apply(context, catalog.create(sft, Seq("daily")))) { storage =>
-          val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(sf1))))
+          val partition = Partition(storage.metadata.schemes.map(_.getPartition(sf1)))
 
           def write(sf: ScalaSimpleFeature): Unit = {
             sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)

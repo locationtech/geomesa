@@ -42,7 +42,7 @@ class GeoMesaParam[T <: AnyRef](
     _key: String, // can't override final 'key' field from Param
     desc: String = "", // can't override final 'description' field from Param
     optional: Boolean = true, // can't override final 'required' field from Param
-    val default: T = null.asInstanceOf[T],
+    val default: T = null, // note: even though intellij complains, don't cast this line as it breaks things
     val password: Boolean = false,
     val largeText: Boolean = false,
     val extension: String = null,

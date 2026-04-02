@@ -108,21 +108,10 @@ abstract class AbstractFileSystemStorage(
     if (files.isEmpty) {
       CloseableIterator.empty
     } else {
-      // if a partitions has modifications, it must be read separately to ensure they're handled correctly
-      val partitionsWithMods = files.collect { case f if f.file.action != StorageFileAction.Append => f.file.partition }.toSet
-      val grouped = if (partitionsWithMods.isEmpty) {
-        files.groupBy(_.filter).values
-      } else {
-        val (withMods, withoutMods) = files.partition(f => partitionsWithMods.contains(f.file.partition))
-        // note: we assume that all files in a given partition have the same filter
-        withMods.groupBy(_.file.partition).values ++ withoutMods.groupBy(_.filter).values
-      }
-      val readers = grouped.iterator.map { sff =>
-        logger.debug(s"  Reading ${sff.size} files with filter: ${sff.head.filter.fold("INCLUDE")(ECQL.toCQL)}")
-        logger.whenTraceEnabled(sff.foreach(f => logger.trace(s"    $f")))
-        createReader(sff.head.filter, transform) -> sff.map(_.file)
-      }
-      FileSystemThreadedReader(readers, threads)
+      logger.debug(s"  Reading ${files.size} files with filter: ${ECQL.toCQL(filter)}")
+      logger.whenTraceEnabled(files.foreach(f => logger.trace(s"    $f")))
+      val reader = createReader(Option(filter).filterNot(_ == Filter.INCLUDE), transform)
+      FileSystemThreadedReader(reader, files, threads)
     }
   }
 
@@ -159,14 +148,13 @@ abstract class AbstractFileSystemStorage(
       // tracks newly added files so we can register them atomically
       val fileTracker = new FileTracker(metadata.sft, metadata.schemes)
 
-      def writer: FileSystemWriter = createWriter(partition, StorageFileAction.Append, FileType.Compacted, target, fileTracker)
-      def threaded: CloseableIterator[SimpleFeature] = FileSystemThreadedReader(Iterator.single(reader -> toCompact), threads)
-
-      WithClose(writer, threaded) { case (writer, features) =>
-        while (features.hasNext) {
-          val feature = features.next()
-          writer.write(feature)
-          written += 1
+      WithClose(createWriter(partition, StorageFileAction.Append, FileType.Compacted, target, fileTracker)) { writer =>
+        WithClose(FileSystemThreadedReader(reader, toCompact, threads)) { reader =>
+          while (reader.hasNext) {
+            val feature = reader.next()
+            writer.write(feature)
+            written += 1
+          }
         }
       }
 
@@ -276,6 +264,7 @@ abstract class AbstractFileSystemStorage(
     */
   private class FileSystemUpdateWriterImpl(reader: CloseableFeatureIterator) extends FileSystemUpdateWriter {
 
+    private val appenders = scala.collection.mutable.Map.empty[Set[PartitionKey], FileSystemWriter]
     private val modifiers = scala.collection.mutable.Map.empty[Set[PartitionKey], FileSystemWriter]
     private val deleters = scala.collection.mutable.Map.empty[Set[PartitionKey], FileSystemWriter]
 
@@ -286,12 +275,14 @@ abstract class AbstractFileSystemStorage(
       if (feature == null) {
         throw new IllegalArgumentException("Must call 'next' before calling 'write'")
       }
-      val update = metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(feature)))
-      if (update != partition) {
-        // add a delete marker in the old partition, since we only track updates per-partition
+      val update = metadata.schemes.map(_.getPartition(feature))
+      if (update == partition) {
+        modifiers.getOrElseUpdate(update, createWriter(Partition(update), StorageFileAction.Modify, FileType.Modified)).write(feature)
+      } else {
+        // add a delete marker in the old partition, and an append in the new one, since we only track updates per-partition
         deleters.getOrElseUpdate(partition, createWriter(Partition(partition), StorageFileAction.Delete, FileType.Deleted)).write(feature)
+        appenders.getOrElseUpdate(update, createWriter(Partition(update), StorageFileAction.Append, FileType.Written)).write(feature)
       }
-      modifiers.getOrElseUpdate(update, createWriter(Partition(update), StorageFileAction.Modify, FileType.Modified)).write(feature)
       feature = null
     }
 
@@ -307,13 +298,13 @@ abstract class AbstractFileSystemStorage(
 
     override def next(): SimpleFeature = {
       feature = reader.next() // note: our reader returns a mutable copy of the feature
-      partition = metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(feature)))
+      partition = metadata.schemes.map(_.getPartition(feature))
       feature
     }
 
-    override def flush(): Unit = FlushQuietly.raise(modifiers.values.toSeq ++ deleters.values)
+    override def flush(): Unit = FlushQuietly.raise(appenders.values.toSeq ++ modifiers.values ++ deleters.values)
 
-    override def close(): Unit = CloseQuietly.raise(Seq(reader) ++ modifiers.values ++ deleters.values ++ observers)
+    override def close(): Unit = CloseQuietly.raise(Seq(reader) ++ appenders.values ++ modifiers.values ++ deleters.values ++ observers)
   }
 }
 
@@ -338,7 +329,7 @@ object AbstractFileSystemStorage {
       throw new UnsupportedOperationException()
     override def getFiles(): Seq[StorageFile] = files.asScala
     override def getFiles(partition: Partition): Seq[StorageFile] = throw new UnsupportedOperationException()
-    override def getFiles(filter: Filter): Seq[StorageFileFilter] = throw new UnsupportedOperationException()
+    override def getFiles(filter: Filter): Seq[StorageFile] = throw new UnsupportedOperationException()
     override def close(): Unit = {}
   }
 

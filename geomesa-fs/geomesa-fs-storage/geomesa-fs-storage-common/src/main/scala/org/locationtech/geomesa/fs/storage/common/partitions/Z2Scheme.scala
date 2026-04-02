@@ -12,6 +12,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 import org.locationtech.geomesa.fs.storage.common.partitions.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.locationtech.jts.geom.Point
@@ -26,9 +27,9 @@ case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSche
   private val xRadius = (360d / math.pow(2, xyBits)) / 2
   private val yRadius = (180d / math.pow(2, xyBits)) / 2
 
-  override def getPartition(feature: SimpleFeature): String = {
+  override def getPartition(feature: SimpleFeature): PartitionKey = {
     val pt = feature.getAttribute(geomIndex).asInstanceOf[Point]
-    format.format(z2.index(pt.getX, pt.getY))
+    PartitionKey(name, format.format(z2.index(pt.getX, pt.getY)))
   }
 
   override def getCoveringFilter(partition: String): Filter = {

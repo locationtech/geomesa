@@ -12,7 +12,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, StorageFile}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -40,8 +40,7 @@ class FileSystemThreadedReaderTest extends Specification {
       }
       // ensure we have more files than threads so that we register phasers that don't complete right away
       val files = Seq.tabulate(10)(i => StorageFile(s"$i", Partition.None, i))
-      val readers = Iterator.single(reader -> files)
-      WithClose(FileSystemThreadedReader(readers, 2)) { reader =>
+      WithClose(FileSystemThreadedReader(reader , files, 2)) { reader =>
         featureGate.put(false)
         reader.hasNext must beTrue
         reader.next() mustEqual feature

@@ -11,7 +11,8 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, RangeBuilder, SinglePartition}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionRange, RangeBuilder}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
@@ -30,24 +31,36 @@ abstract class SpatialScheme(id: String, bits: Int, geom: String) extends Partit
 
   protected def generateRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[IndexRange]
 
-  override def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]] = {
+  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = {
+    getGeoms(filter).map { ranges =>
+      val builder = new RangeBuilder()
+      ranges.foreach { range =>
+        val lower = format.format(range.lower)
+        val upper = format.format(range.upper + 1)
+        builder += PartitionRange(name, lower, upper)
+      }
+      builder.result()
+    }
+  }
+
+  override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = {
+    getGeoms(filter).map { ranges =>
+      ranges.flatMap { range =>
+        val lower = range.lower
+        val steps = (range.upper - lower).toInt
+        Seq.tabulate(steps)(i => PartitionKey(name, format.format(lower + i)))
+      }
+    }
+  }
+
+  private def getGeoms(filter: Filter): Option[Seq[IndexRange]] = {
     val geometries = FilterHelper.extractGeometries(filter, geom, intersect = true)
     if (geometries.isEmpty) {
       None
     } else if (geometries.disjoint) {
       Some(Seq.empty)
     } else {
-      val ranges = new RangeBuilder()
-      generateRanges(geometries.values.map(GeometryUtils.bounds)).foreach { range =>
-        val lower = format.format(range.lower)
-        if (lower == format.format(range.upper)) {
-          ranges += SinglePartition(name, lower)
-        } else {
-          ranges += PartitionRange(name, lower, format.format(range.upper + 1))
-        }
-      }
-      // note: we don't simplify the filter as usually we wouldn't be able to remove much
-      Some(Seq(PartitionFilter(ranges.result(), Some(filter))))
+      Some(generateRanges(geometries.values.map(GeometryUtils.bounds)))
     }
   }
 }

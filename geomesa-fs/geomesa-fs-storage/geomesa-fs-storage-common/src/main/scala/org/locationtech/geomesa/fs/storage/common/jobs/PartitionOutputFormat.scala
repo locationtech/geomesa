@@ -84,7 +84,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
     }
 
     override def write(key: Void, value: SimpleFeature): Unit = {
-      val partition = storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(value)))
+      val partition = storage.metadata.schemes.map(_.getPartition(value))
       val state = cache.getOrElseUpdate(partition, newState(partition))
       state.write(key, value)
       counter.increment(1)

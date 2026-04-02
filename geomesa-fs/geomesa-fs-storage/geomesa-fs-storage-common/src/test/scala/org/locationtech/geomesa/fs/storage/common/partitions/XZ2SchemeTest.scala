@@ -23,8 +23,8 @@ class XZ2SchemeTest extends SpecificationWithJUnit {
       ps must beAnInstanceOf[XZ2Scheme]
       ps.asInstanceOf[XZ2Scheme].bits mustEqual 10
 
-      ps.getPartition(ScalaSimpleFeature.create(sft, "1", "POINT (10 10)")) mustEqual "1030"
-      ps.getPartition(ScalaSimpleFeature.create(sft, "1", "POINT (-75 38)")) mustEqual "0825"
+      ps.getPartition(ScalaSimpleFeature.create(sft, "1", "POINT (10 10)")).value mustEqual "1030"
+      ps.getPartition(ScalaSimpleFeature.create(sft, "1", "POINT (-75 38)")).value mustEqual "0825"
     }
 
     "partition based on 20 bit curve" in {
@@ -32,8 +32,8 @@ class XZ2SchemeTest extends SpecificationWithJUnit {
       ps must beAnInstanceOf[XZ2Scheme]
       ps.asInstanceOf[XZ2Scheme].bits mustEqual 20
 
-      ps.getPartition(ScalaSimpleFeature.create(sft, "1", "POINT (10 10)")) mustEqual "1052614"
-      ps.getPartition(ScalaSimpleFeature.create(sft, "1", "POINT (-75 38)")) mustEqual "0843360"
+      ps.getPartition(ScalaSimpleFeature.create(sft, "1", "POINT (10 10)")).value mustEqual "1052614"
+      ps.getPartition(ScalaSimpleFeature.create(sft, "1", "POINT (-75 38)")).value mustEqual "0843360"
     }
   }
 }

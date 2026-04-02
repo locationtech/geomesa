@@ -73,12 +73,9 @@ class ReceiptTimeSchemeTest extends SpecificationWithJUnit {
       )
       foreach(filtersAndResults) { case (filter, expected) =>
         val ecql = ECQL.toFilter(filter)
-        val intersecting = ps.getIntersectingPartitions(ecql).orNull
+        val intersecting = ps.getRangesForFilter(ecql).orNull
         intersecting must not(beNull)
-
-        intersecting.flatMap(_.bounds) must containTheSameElementsAs(expected)
-        // verify that we don't remove the date filter from the simplified filter
-        foreach(intersecting.map(_.filter.orNull))(_ mustEqual ecql)
+        intersecting must containTheSameElementsAs(expected)
       }
     }
 
@@ -91,7 +88,7 @@ class ReceiptTimeSchemeTest extends SpecificationWithJUnit {
       )
       foreach(filters) { filter =>
         val ecql = ECQL.toFilter(filter)
-        ps.getIntersectingPartitions(ecql) must beNone
+        ps.getRangesForFilter(ecql) must beNone
       }
     }
   }

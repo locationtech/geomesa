@@ -101,7 +101,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
               val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
               features.foreach { f =>
-                val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
+                val partition = Partition(storage.metadata.schemes.map(_.getPartition(f)))
                 val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
                 writer.write(f)
               }
@@ -215,7 +215,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
             val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
             features.foreach { f =>
-              val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
+              val partition = Partition(storage.metadata.schemes.map(_.getPartition(f)))
               val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
               writer.write(f)
             }
@@ -367,7 +367,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
           val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
+            val partition = Partition(storage.metadata.schemes.map(_.getPartition(f)))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
@@ -417,7 +417,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
           val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
+            val partition = Partition(storage.metadata.schemes.map(_.getPartition(f)))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
@@ -477,7 +477,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
           val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
+            val partition = Partition(storage.metadata.schemes.map(_.getPartition(f)))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }
@@ -550,7 +550,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
           val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
 
           features.foreach { f =>
-            val partition = Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(f))))
+            val partition = Partition(storage.metadata.schemes.map(_.getPartition(f)))
             val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
             writer.write(f)
           }

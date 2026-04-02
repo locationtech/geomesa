@@ -8,9 +8,13 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
+import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 package object partitions {
+
+  // note: we use 1 instead of 0 b/c 0 is not a valid char in postgres so breaks jdbc metadata filtering
+  val ZeroChar = new String(Array[Byte](1), StandardCharsets.UTF_8)
 
   case class SchemeOpts(name: String, opts: Map[String, String], multiOpts: Map[String, Seq[String]]) {
     def getSingle(k: String): Option[String] = {

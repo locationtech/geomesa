@@ -20,11 +20,11 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
 import org.locationtech.geomesa.fs.storage.api.{CloseableFeatureIterator, FileSystemStorage}
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
-import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQuietly, FlushWithLogging}
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushWithLogging}
 
 import java.io.{Closeable, Flushable}
 import java.util.concurrent.TimeUnit
@@ -60,14 +60,14 @@ class FileSystemFeatureStore(
     Option(sft.getGeometryDescriptor).foreach { g =>
       val i = sft.indexOf(g.getLocalName)
       storage.metadata.getFiles(query.getFilter).foreach { file =>
-        file.file.spatialBounds.find(_.attribute == i).foreach(b => envelope.expandToInclude(b.envelope))
+        file.spatialBounds.find(_.attribute == i).foreach(b => envelope.expandToInclude(b.envelope))
       }
     }
     envelope
   }
 
   override def getCountInternal(query: Query): Int =
-    storage.metadata.getFiles(query.getFilter).map(_.file.count).sum.toInt
+    storage.metadata.getFiles(query.getFilter).map(_.count).sum.toInt
 
   override def getReaderInternal(original: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     import org.locationtech.geomesa.index.conf.QueryHints._
@@ -188,7 +188,7 @@ object FileSystemFeatureStore {
 
     override def write(): Unit = {
       val sf = GeoMesaFeatureWriter.featureWithFid(feature)
-      writers.get(Partition(storage.metadata.schemes.map(s => PartitionKey(s.name, s.getPartition(sf))))).write(sf)
+      writers.get(Partition(storage.metadata.schemes.map(_.getPartition(sf)))).write(sf)
       feature = null
     }
 
@@ -196,11 +196,7 @@ object FileSystemFeatureStore {
 
     override def close(): Unit = {
       val values = writers.asMap().values().asScala.toSeq
-      val flush = FlushQuietly(values)
-      CloseQuietly(values) match {
-        case None => flush.foreach(e => throw e)
-        case Some(e) => flush.foreach(e.addSuppressed); throw e
-      }
+      CloseQuietly(values).foreach(e => throw e)
     }
   }
 

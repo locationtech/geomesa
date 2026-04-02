@@ -11,8 +11,9 @@ package org.locationtech.geomesa.fs.storage.api
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionFilter
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.RangeBuilder.BoundsOrdering
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 
 import java.util.Collections
 
@@ -36,7 +37,7 @@ trait PartitionScheme {
     * @param feature simple feature
     * @return partition name
     */
-  def getPartition(feature: SimpleFeature): String
+  def getPartition(feature: SimpleFeature): PartitionKey
 
   /**
    * Get partitions that intersect the given filter
@@ -47,7 +48,20 @@ trait PartitionScheme {
    * @param filter filter
    * @return list of intersecting filters
    */
-  def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]]
+  def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]]
+
+  /**
+   * Enumerate all the partitions that intersect with the given filter
+   *
+   * If the filter does not constrain partitions at all, then an empty option will be returned. If
+   * the filter excludes all potential partitions, then an empty list will be returned
+   *
+   * Note that this may return a large number of partitions if the filter is not very selective
+   *
+   * @param filter filter
+   * @return
+   */
+  def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]]
 
   /**
    * Get a filter that will cover a partitions, i.e. the filter will return all features
@@ -62,26 +76,13 @@ trait PartitionScheme {
 object PartitionScheme extends LazyLogging {
 
   /**
-   * Partition filter
+   * Ranged bounds
    *
-   * @param bounds list of bounds that satisfy the filter
-   * @param filter additional filter (not captured by the bounds) to apply to any results
+   * @param name partition scheme name
+   * @param lower lower bound, inclusive
+   * @param upper upper bound, exclusive
    */
-  case class PartitionFilter(bounds: Seq[PartitionBounds], filter: Option[Filter]) {
-    def contains(value: String): Boolean = bounds.exists(_.contains(value))
-  }
-
-  /**
-   * Bounds for a partition query
-   */
-  sealed trait PartitionBounds {
-
-    /**
-     * Name of the partition scheme
-     *
-     * @return
-     */
-    def name: String
+  case class PartitionRange(name: String, lower: String, upper: String) {
 
     /**
      * Is the value contained in this bounds
@@ -89,7 +90,7 @@ object PartitionScheme extends LazyLogging {
      * @param value partition value
      * @return
      */
-    def contains(value: String): Boolean
+    def contains(value: String): Boolean = value >= lower && value < upper
 
     /**
      * Attempt to merge two bounds. Only overlapping bounds will result in a successful merge. Trying to merge
@@ -98,53 +99,23 @@ object PartitionScheme extends LazyLogging {
      * @param other bounds to merge
      * @return
      */
-    def merge(other: PartitionBounds): Option[PartitionBounds]
-  }
-
-  /**
-   * Ranged bounds
-   *
-   * @param name partition scheme name
-   * @param lower lower bound, inclusive
-   * @param upper upper bound, exclusive
-   */
-  case class PartitionRange(name: String, lower: String, upper: String) extends PartitionBounds {
-
-    override def contains(value: String): Boolean = value >= lower && value < upper
-
-    override def merge(other: PartitionBounds): Option[PartitionBounds] = other match {
-      case PartitionRange(_, lo, up) =>
-        if (lower <= lo) {
-          if (upper >= up) {
-            Some(this)
-          } else if (upper >= lo) {
-            Some(PartitionRange(name, lower, up))
-          } else {
-            None
-          }
-        } else if (lower > up) {
-          None
-        } else if (upper >= up) {
-          Some(PartitionRange(name, lo, upper))
+    def merge(other: PartitionRange): Option[PartitionRange] = {
+      if (lower <= other.lower) {
+        if (upper >= other.upper) {
+          Some(this)
+        } else if (upper >= other.lower) {
+          Some(PartitionRange(name, lower, other.upper))
         } else {
-          Some(other)
+          None
         }
-
-      case SinglePartition(_, value) if contains(value) => Some(this)
-
-      case _ => None
+      } else if (lower > other.upper) {
+        None
+      } else if (upper >= other.upper) {
+        Some(PartitionRange(name, other.lower, upper))
+      } else {
+        Some(other)
+      }
     }
-  }
-
-  /**
-   * Single row bound
-   *
-   * @param name partition scheme name
-   * @param value single row
-   */
-  case class SinglePartition(name: String, value: String) extends PartitionBounds {
-    override def contains(value: String): Boolean = value == this.value
-    override def merge(other: PartitionBounds): Option[PartitionBounds] = if (other.contains(value)) { Some(other) } else { None }
   }
 
   // there should be no duplicates in covered partitions, as our bounds will not overlap,
@@ -163,9 +134,9 @@ object PartitionScheme extends LazyLogging {
 
     import scala.collection.JavaConverters._
 
-    private val ranges = new java.util.ArrayList[PartitionBounds]()
+    private val ranges = new java.util.ArrayList[PartitionRange]()
 
-    def +=(range: PartitionBounds): Unit = {
+    def +=(range: PartitionRange): Unit = {
       if (ranges.isEmpty) {
         ranges.add(range)
       } else {
@@ -203,13 +174,10 @@ object PartitionScheme extends LazyLogging {
       }
     }
 
-    def result(): Seq[PartitionBounds] = ranges.asScala.toSeq
+    def result(): Seq[PartitionRange] = ranges.asScala.toSeq
   }
 
   object RangeBuilder {
-    private val BoundsOrdering = Ordering.by[PartitionBounds, String] {
-      case p: SinglePartition => p.value
-      case p: PartitionRange => p.lower
-    }
+    private val BoundsOrdering = Ordering.by[PartitionRange, String](_.lower)
   }
 }

@@ -10,8 +10,10 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, RangeBuilder, SinglePartition}
+import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionRange, RangeBuilder}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.text.DateParsing
 
@@ -94,46 +96,47 @@ case class HierarchicalDateTimeScheme(
   val depth: Int = pattern.count(_ == '/') + 1
 
   override val name: String =
-    Seq(
-      HierarchicalDateTimeScheme.Name,
-      s"${Config.DateTimeFormatOpt}=$pattern",
-      s"${Config.StepUnitOpt}=${stepUnit.name()}",
-      s"${Config.StepOpt}=$step",
-      s"${Config.DtgAttribute}=$dtg"
-    ).mkString(":")
+    HierarchicalDateTimeScheme.Name +
+      s":${Config.DateTimeFormatOpt}=$pattern" +
+      s":${Config.StepUnitOpt}=${stepUnit.name()}" +
+      s":${Config.StepOpt}=$step" +
+      s":${Config.DtgAttribute}=$dtg"
 
-  override def getPartition(feature: SimpleFeature): String = {
+  override def getPartition(feature: SimpleFeature): PartitionKey = {
     val dt = ZonedDateTime.ofInstant(feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant, ZoneOffset.UTC)
-    formatter.format(truncateToPartitionStart(dt))
+    PartitionKey(name, formatter.format(truncateToPartitionStart(dt)))
   }
 
-  override def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]] = {
-    val bounds = FilterHelper.extractIntervals(filter, dtg)
-    if (bounds.isEmpty) {
-      None
-    } else if (bounds.disjoint) {
-      Some(Seq.empty)
-    } else {
-      val rangeFilter = Some(filter)
-      // TODO we should be able to remove some of the filters
+  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = {
+    getBounds(filter).map { bounds =>
       val builder = new RangeBuilder()
-      bounds.values.foreach { bound =>
-        if (bound.isEquals) {
-          builder += SinglePartition(name, formatter.format(truncateToPartitionStart(bound.lower.value.get)))
-        } else {
-          val lower = bound.lower.value.fold("")(v => formatter.format(truncateToPartitionStart(v)))
-          val upper = bound.upper.value.fold("zzz" /*TODO*/) { v =>
-            val partition = formatter.format(truncateToPartitionStart(v))
-            if (bound.upper.exclusive && formatter.format(truncateToPartitionStart(v.minus(1, ChronoUnit.MILLIS))) < partition) {
-              partition
-            } else {
-              formatter.format(truncateToPartitionStart(v.plus(step, stepUnit)))
-            }
+      bounds.foreach { bound =>
+        val lower = bound.lower.value.fold("")(v => formatter.format(truncateToPartitionStart(v)))
+        val upper = bound.upper.value.fold(HierarchicalDateTimeScheme.UnboundedUpper) { v =>
+          val partition = formatter.format(truncateToPartitionStart(v))
+          if (bound.upper.exclusive && formatter.format(truncateToPartitionStart(v.minus(1, ChronoUnit.MILLIS))) < partition) {
+            partition
+          } else {
+            formatter.format(truncateToPartitionStart(v.plus(step, stepUnit)))
           }
-          builder += PartitionRange(name, lower, upper)
         }
+        builder += PartitionRange(name, lower, upper)
       }
-      Some(Seq(PartitionFilter(builder.result(), rangeFilter)))
+      builder.result()
+    }
+  }
+
+  override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = {
+    getBounds(filter).map { bounds =>
+      bounds.flatMap { bound =>
+        if (!bound.isBoundedBothSides) {
+          throw new IllegalArgumentException(s"Can't enumerate an unbounded filter: ${ECQL.toCQL(filter)}")
+        }
+        val lower = bound.lower.value.get
+        // `stepUnit.between` claims to be upper endpoint exclusive, but doesn't seem to be...
+        val steps = stepUnit.between(lower, bound.upper.value.get).toInt / step
+        Seq.tabulate(steps)(i => PartitionKey(name, formatter.format(lower.plus(step * i, stepUnit))))
+      }
     }
   }
 
@@ -143,11 +146,24 @@ case class HierarchicalDateTimeScheme(
     val end = DateParsing.format(zdt.plus(step, stepUnit))
     ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(start)), ff.less(ff.property(dtg), ff.literal(end)))
   }
+
+  private def getBounds(filter: Filter): Option[Seq[Bounds[ZonedDateTime]]] = {
+    val bounds = FilterHelper.extractIntervals(filter, dtg)
+    if (bounds.isEmpty) {
+      None
+    } else if (bounds.disjoint) {
+      Some(Seq.empty)
+    } else {
+      Some(bounds.values)
+    }
+  }
 }
 
 object HierarchicalDateTimeScheme extends PartitionSchemeFactory {
 
   val Name = "datetime"
+
+  private val UnboundedUpper = "zzz"
 
   def apply(format: String, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int): HierarchicalDateTimeScheme =
     HierarchicalDateTimeScheme(DateTimeFormatter.ofPattern(format), format, stepUnit, step, dtg, dtgIndex)
@@ -159,7 +175,7 @@ object HierarchicalDateTimeScheme extends PartitionSchemeFactory {
     val DtgAttribute     : String = "dtg-attribute"
   }
 
-  object Formats {
+  private object Formats {
 
     def apply(name: String): Option[Format] = all.find(_.name.equalsIgnoreCase(name))
 

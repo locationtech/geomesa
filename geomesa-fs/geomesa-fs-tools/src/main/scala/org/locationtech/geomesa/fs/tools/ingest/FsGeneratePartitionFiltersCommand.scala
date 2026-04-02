@@ -10,6 +10,7 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.ingest.FsGeneratePartitionFiltersCommand.FsGeneratePartitionFiltersParams
@@ -32,9 +33,20 @@ class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
 
     val metadata = ds.storage(params.featureName).metadata
 
-    val partitions =
-      (params.partitions.asScala ++ Option(params.cqlFilter).toSeq.flatMap(f => metadata.getFiles(f).map(_.file.partition)))
-        .distinct
+    val fromFilter = Option(params.cqlFilter).toSeq.flatMap { f =>
+      val keys = metadata.schemes.map { s =>
+        s.getPartitionsForFilter(f).getOrElse {
+          throw new ParameterException(s"The filter ${ECQL.toCQL(f)} does not select any partitions from the partition scheme ${s.name}")
+        }
+      }
+      keys.foldLeft(Seq(Partition.None)) { case (partitions, keys) =>
+        for { partition <- partitions; key <- keys } yield {
+          Partition(partition.values + key)
+        }
+      }
+    }
+
+    val partitions = if (params.partitions.isEmpty) { fromFilter} else { (params.partitions.asScala ++ fromFilter).distinct }
 
     Command.user.info(s"Generating filters for ${partitions.size} partitions")
     if (!params.noHeader) {

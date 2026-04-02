@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionBounds, PartitionRange, SinglePartition}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, Partition, PartitionKey, SpatialBounds, StorageFile, StorageFileFilter}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, Partition, PartitionKey, SpatialBounds, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, PartitionSchemeFactory, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.MetadataTable
 import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction
@@ -103,6 +103,7 @@ class JdbcMetadata(
   // TODO allow for partition changes
 
   import JdbcMetadata.FilesTable
+  import org.locationtech.geomesa.fs.storage.common.partitions.ZeroChar
 
   import scala.collection.JavaConverters._
 
@@ -177,13 +178,13 @@ class JdbcMetadata(
     WithClose(pool.getConnection())(filesTable.select(_, root, Seq.empty, And.empty, And.empty))
 
   override def getFiles(partition: Partition): Seq[StorageFile] = {
-    val filters = partition.values.toSeq.map(p => SinglePartition(p.name, p.value))
+    val filters = partition.values.toSeq.map(p => PartitionRange(p.name, p.value, p.value + ZeroChar))
     WithClose(pool.getConnection())(filesTable.select(_, root, filters, And.empty, And.empty))
   }
 
-  override def getFiles(filter: Filter): Seq[StorageFileFilter] = {
+  override def getFiles(filter: Filter): Seq[StorageFile] = {
     if (filter == Filter.INCLUDE) {
-      getFiles().map(StorageFileFilter(_, None))
+      getFiles()
     } else {
       val filters = getFilters(filter)
       if (filters.isEmpty) {
@@ -191,7 +192,7 @@ class JdbcMetadata(
       } else {
         WithClose(pool.getConnection()) { cx =>
           filters.flatMap { f =>
-            filesTable.select(cx, root, f.partitions, f.spatialBounds, f.attributeBounds).map(StorageFileFilter(_, f.filter))
+            filesTable.select(cx, root, f.partitions, f.spatialBounds, f.attributeBounds)
           }
         }
       }
@@ -466,15 +467,14 @@ object JdbcMetadata extends LazyLogging {
     def select(
         cx: Connection,
         root: String,
-        partitions: Seq[PartitionBounds],
+        partitions: Seq[PartitionRange],
         spatialBounds: And[SpatialBound],
         attributeBounds: And[AttributeBound],
       ): Seq[StorageFile] = {
 
       // build query with multiple joins - one for each partition filter (AND logic)
       val partitionJoins = partitions.zipWithIndex.map {
-        case (SinglePartition(name, value), i) => SingleValueJoin(name, value, s"sp_filter_$i")
-        case (PartitionRange(name, lower, upper), i) => RangeJoin(name, lower, upper, s"sp_filter_$i")
+        case (PartitionRange(name, lower, upper), i) => PartitionJoin(name, lower, upper, s"sp_filter_$i")
       }
 
       // build spatial bound filters - one LEFT JOIN per attribute with OR logic for bounds
@@ -628,24 +628,9 @@ object JdbcMetadata extends LazyLogging {
       result.result()
     }
 
-    private trait PartitionJoin {
-      def tableAlias: String
-      def onClause: String
-      def apply(st: PreparedStatement, i: Int): Int
-    }
-
-    private case class SingleValueJoin(name: String, value: String, tableAlias: String) extends PartitionJoin {
-      override def onClause: String = s"$tableAlias.name = ? AND $tableAlias.value = ?"
-      override def apply(st: PreparedStatement, i: Int): Int = {
-        st.setString(i, name)
-        st.setString(i + 1, value)
-        2
-      }
-    }
-
-    private case class RangeJoin(name: String, lower: String, upper: String, tableAlias: String) extends PartitionJoin {
-      override def onClause: String = s"$tableAlias.name = ? AND $tableAlias.value >= ? AND $tableAlias.value < ?"
-      override def apply(st: PreparedStatement, i: Int): Int = {
+    private case class PartitionJoin(name: String, lower: String, upper: String, tableAlias: String) {
+      def onClause: String = s"$tableAlias.name = ? AND $tableAlias.value >= ? AND $tableAlias.value < ?"
+      def apply(st: PreparedStatement, i: Int): Int = {
         st.setString(i, name)
         st.setString(i + 1, lower)
         st.setString(i + 2, upper)

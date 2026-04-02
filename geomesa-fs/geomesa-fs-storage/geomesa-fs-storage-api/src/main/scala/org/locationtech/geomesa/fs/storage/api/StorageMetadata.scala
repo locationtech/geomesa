@@ -82,7 +82,7 @@ trait StorageMetadata extends Closeable {
    *
    * @param filter filter
    */
-  def getFiles(filter: Filter): Seq[StorageFileFilter]
+  def getFiles(filter: Filter): Seq[StorageFile]
 
   /**
    * Get a previously set key-value pair

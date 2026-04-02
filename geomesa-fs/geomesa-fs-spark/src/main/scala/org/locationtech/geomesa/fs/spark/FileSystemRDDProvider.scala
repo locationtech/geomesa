@@ -23,7 +23,6 @@ import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStor
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration.SimpleFeatureAction
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.parquet.jobs.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
 import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
@@ -70,29 +69,29 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
         sc.newAPIHadoopRDD(conf, classOf[ParquetSimpleFeatureActionInputFormat], classOf[SimpleFeatureAction], classOf[SimpleFeature])
       }
 
-      // split up the job by the filters required and partitions that require sequential reads
+      // split up the job by the partitions that require sequential reads
       // if a partition has modifications, it must be read separately to ensure they are handled correctly
-      val noMods = scala.collection.mutable.Map.empty[Filter, ArrayBuffer[StorageFile]]
-      val withMods = scala.collection.mutable.Map.empty[String, scala.collection.mutable.Map[Filter, ArrayBuffer[StorageFile]]]
+      val noMods = ArrayBuffer.empty[StorageFile]
+      val withMods = scala.collection.mutable.Map.empty[String, ArrayBuffer[StorageFile]]
 
-      storage.metadata.getFiles(query.getFilter).groupBy(_.file.partition).foreach { case (partition, sffs) =>
-        val map =
-          if (sffs.forall(_.file.action == StorageFileAction.Append)) {
+      storage.metadata.getFiles(query.getFilter).groupBy(_.partition).foreach { case (partition, sffs) =>
+        val buf =
+          if (sffs.forall(_.action == StorageFileAction.Append)) {
             noMods
           } else {
             logger.warn(s"Found modifications for partition '${partition.encoded}': compact the partition to improve read performance")
-            withMods.getOrElseUpdate(partition.encoded, scala.collection.mutable.Map.empty)
+            withMods.getOrElseUpdate(partition.encoded, ArrayBuffer.empty[StorageFile])
           }
-        sffs.foreach(sff => map.getOrElseUpdate(sff.filter.getOrElse(Filter.INCLUDE), ArrayBuffer.empty) += sff.file)
+        buf ++= sffs
       }
 
       val rdd = if (noMods.isEmpty && withMods.isEmpty) {
         logger.debug("Reading 0 partitions")
         sc.emptyRDD[SimpleFeature]
       } else {
-        val noModsRdd = noMods.map { case (filter, files) => runAppendQuery(filter, files) }
-        val withModsRdd = withMods.map { case (_, filters) =>
-          val rdd = filters.map { case (filter, files) => runModsQuery(filter, files) }.reduceLeft(_ union _)
+        val noModsRdd = if (noMods.isEmpty) { sc.emptyRDD[SimpleFeature] } else { runAppendQuery(query.getFilter, noMods) }
+        val withModsRdd = withMods.map { case (_, files) =>
+          val rdd = runModsQuery(query.getFilter, files)
           // group updates by feature ID, then take the most recent
           rdd.groupBy(_._1.id).flatMap { case (_, group) =>
             val (action, sf) = group.minBy(_._1)
@@ -100,7 +99,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
           }
         }
 
-        (noModsRdd ++ withModsRdd).reduceLeft(_ union _)
+        (Seq(noModsRdd) ++ withModsRdd).reduceLeft(_ union _)
       }
       SpatialRDD(rdd, sft)
     }

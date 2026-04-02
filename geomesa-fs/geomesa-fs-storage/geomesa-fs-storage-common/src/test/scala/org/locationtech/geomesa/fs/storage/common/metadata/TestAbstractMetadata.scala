@@ -61,7 +61,7 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
 
   private def partitions(dtg: String, geom: String): Partition = {
     val sf = ScalaSimpleFeature.create(sft, "", "", dtg, geom)
-    Partition(schemes.map(s => PartitionKey(s.name, s.getPartition(sf))))
+    Partition(schemes.map(_.getPartition(sf)))
   }
 
   protected def metadataType: String
@@ -166,7 +166,7 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
           )
 
           foreach(expectations) { case (ecql, expected) =>
-            metadata.getFiles(ECQL.toFilter(ecql)).map(_.file) mustEqual expected
+            metadata.getFiles(ECQL.toFilter(ecql)) mustEqual expected
           }
         }
       }

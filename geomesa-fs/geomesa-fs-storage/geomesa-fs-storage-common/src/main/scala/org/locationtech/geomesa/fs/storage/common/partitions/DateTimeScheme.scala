@@ -11,8 +11,10 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionFilter, PartitionRange, RangeBuilder, SinglePartition}
+import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionRange, RangeBuilder}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.text.DateParsing
 
@@ -32,38 +34,33 @@ case class DateTimeScheme(
 
   override val name: String = s"${unit.name().toLowerCase(Locale.US)}:attribute=$dtg"
 
-  override def getPartition(feature: SimpleFeature): String = {
+  override def getPartition(feature: SimpleFeature): PartitionKey = {
     val instant = feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant
-    encoder.encode(toPartition(ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)))
+    PartitionKey(name, encoder.encode(toPartition(ZonedDateTime.ofInstant(instant, ZoneOffset.UTC))))
   }
 
-  override def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]] = {
-    val bounds = FilterHelper.extractIntervals(filter, dtg)
-    if (bounds.isEmpty) {
-      None
-    } else if (bounds.disjoint) {
-      Some(Seq.empty)
-    } else {
-      val rangeFilter = Some(filter)
-      // TODO we should be able to remove some of the filters
+  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = {
+    getBounds(filter).map { bounds =>
       val builder = new RangeBuilder()
-      bounds.values.foreach { range =>
-        if (range.isEquals) {
-          builder += SinglePartition(name, encoder.encode(toPartition(range.lower.value.get)))
-        } else {
-          val lower = range.lower.value.fold("")(v => encoder.encode(toPartition(v)))
-          val upper = range.upper.value.fold("zzz" /*TODO*/) { v =>
-            val partition = toPartition(v)
-            if (range.upper.exclusive && toPartition(v.minus(1, ChronoUnit.MILLIS)) < partition) {
-              encoder.encode(partition)
-            } else {
-              encoder.encode(partition + 1)
-            }
-          }
-          builder += PartitionRange(name, lower, upper)
-        }
+      bounds.foreach { range =>
+        val lower = range.lower.value.fold("")(v => encoder.encode(toPartition(v)))
+        val upper = exclusiveUpperBound(range).fold(DateTimeScheme.UnboundedUpper)(v => encoder.encode(v))
+        builder += PartitionRange(name, lower, upper)
       }
-      Some(Seq(PartitionFilter(builder.result(), rangeFilter)))
+      builder.result()
+    }
+  }
+
+  override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = {
+    getBounds(filter).map { bounds =>
+      bounds.flatMap { bound =>
+        if (!bound.isBoundedBothSides) {
+          throw new IllegalArgumentException(s"Can't enumerate an unbounded filter: ${ECQL.toCQL(filter)}")
+        }
+        val lower = toPartition(bound.lower.value.get)
+        val upper = exclusiveUpperBound(bound).get
+        Range(lower, upper).map(v => PartitionKey(name, encoder.encode(v)))
+      }
     }
   }
 
@@ -77,6 +74,28 @@ case class DateTimeScheme(
   private def toPartition(dt: ZonedDateTime): Int = {
     require(!dt.isBefore(DateTimeScheme.Epoch), s"Date exceeds minimum indexable value (${DateTimeScheme.Epoch}): $dt")
     unit.between(DateTimeScheme.Epoch, dt).toInt
+  }
+
+  private def getBounds(filter: Filter): Option[Seq[Bounds[ZonedDateTime]]] = {
+    val bounds = FilterHelper.extractIntervals(filter, dtg)
+    if (bounds.isEmpty) {
+      None
+    } else if (bounds.disjoint) {
+      Some(Seq.empty)
+    } else {
+      Some(bounds.values)
+    }
+  }
+
+  private def exclusiveUpperBound(bounds: Bounds[ZonedDateTime]): Option[Int] = {
+    bounds.upper.value.map { v =>
+      val partition = toPartition(v)
+      if (bounds.upper.exclusive && toPartition(v.minus(1, ChronoUnit.MILLIS)) < partition) {
+        partition
+      } else {
+        partition + 1
+      }
+    }
   }
 
 //  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
@@ -150,7 +169,6 @@ case class DateTimeScheme(
 //      Some((covered.toSeq, intersecting.distinct.toSeq))
 //    }
 //  }
-
 }
 
 object DateTimeScheme {
@@ -158,6 +176,8 @@ object DateTimeScheme {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   private val Epoch: ZonedDateTime = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC)
+
+  private val UnboundedUpper = "zzz"
 
   class DateTimePartitionSchemeFactory extends PartitionSchemeFactory {
     override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {

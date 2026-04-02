@@ -10,16 +10,19 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionFilter
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 
 object FlatScheme extends PartitionScheme {
 
   override val name: String = "flat"
 
-  override def getPartition(feature: SimpleFeature): String = ""
+  override def getPartition(feature: SimpleFeature): PartitionKey = PartitionKey(name, "")
 
-  override def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]] = None
+  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = None
+
+  override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = None
 
   override def getCoveringFilter(partition: String): Filter = Filter.INCLUDE
 

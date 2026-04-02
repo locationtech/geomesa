@@ -15,7 +15,7 @@ import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
 import org.geotools.api.temporal.{Instant, Period}
 import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionFilter
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.fs.storage.common.partitions.ReceiptTimeScheme.BufferingFilterVisitor
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
@@ -49,12 +49,8 @@ class ReceiptTimeScheme(
     HierarchicalDateTimeScheme(formatter, pattern, stepUnit, step, dtg, dtgIndex).name
       .replaceFirst(HierarchicalDateTimeScheme.Name, ReceiptTimeScheme.Name) + s":${Config.BufferOpt}=${buffer.toMillis}ms"
 
-  override def getIntersectingPartitions(filter: Filter): Option[Seq[PartitionFilter]] = {
-    super.getIntersectingPartitions(buffered(filter)).map { filters =>
-      // always use the full filter since our dates are not guaranteed to match the partition bounds
-      filters.map(f => f.copy(filter = Some(filter)))
-    }
-  }
+  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] =
+    super.getRangesForFilter(buffered(filter))
 
   override def getCoveringFilter(partition: String): Filter =
     throw new UnsupportedOperationException("Dates may overlap in multiple partitions")

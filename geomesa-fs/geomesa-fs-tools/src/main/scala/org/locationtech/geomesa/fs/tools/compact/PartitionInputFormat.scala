@@ -15,7 +15,7 @@ import org.apache.hadoop.mapreduce._
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileAction, StorageFileFilter}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
@@ -172,12 +172,12 @@ object PartitionInputFormat {
     override def `type`: String = "static"
     override def getFiles(): Seq[StorageFile] = files
     override def getFiles(partition: Partition): Seq[StorageFile] = files.filter(_.partition == partition)
-    override def getFiles(filter: Filter): Seq[StorageFileFilter] = {
+    override def getFiles(filter: Filter): Seq[StorageFile] = {
       // note: should only be called with filter.include
       if (filter != Filter.INCLUDE) {
         logger.warn(s"Unexpected filter: $filter")
       }
-      files.map(StorageFileFilter(_, None))
+      files
     }
     override def addFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
     override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()

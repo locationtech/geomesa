@@ -18,7 +18,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
@@ -137,7 +137,7 @@ object FileSystemConverterJob {
       try {
         mapped.increment(1)
         val sfWithFid = GeoMesaFeatureWriter.featureWithFid(sf)
-        val partitionKey = new Text(Partition(scheme.map(s => PartitionKey(s.name, s.getPartition(sfWithFid)))).encoded)
+        val partitionKey = new Text(Partition(scheme.map(_.getPartition(sfWithFid))).encoded)
         context.write(partitionKey, new BytesWritable(serializer.serialize(sfWithFid)))
         written.increment(1)
       } catch {

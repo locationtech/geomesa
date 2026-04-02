@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.metadata.filter
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileFilter}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
 import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction.SchemeFilter
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 
@@ -36,13 +36,13 @@ trait CachedMetadata extends StorageMetadata with SchemeFilterExtraction {
   override def getFiles(partition: Partition): Seq[StorageFile] =
     cachedFiles.filter(_.partition == partition)
 
-  override def getFiles(filter: Filter): Seq[StorageFileFilter] = {
+  override def getFiles(filter: Filter): Seq[StorageFile] = {
     if (filter == Filter.INCLUDE) {
-      getFiles().map(StorageFileFilter(_, None))
+      getFiles()
     } else {
       val added = scala.collection.mutable.HashSet.empty[StorageFile]
       val files = getFilters(filter).flatMap { f =>
-        cachedFiles.collect { case file if matches(file, f) && added.add(file) => StorageFileFilter(file, f.filter) }
+        cachedFiles.collect { case file if matches(file, f) && added.add(file) => file }
       }
       logger.debug(s"Matched files:${files.mkString("\n  ", "\n  ", "")}")
       logger.trace(s"Skipped files:${cachedFiles.filterNot(files.map(_.file).contains).mkString("\n  ", "\n  ", "")}")

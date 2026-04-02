@@ -15,7 +15,6 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
@@ -25,8 +24,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.slf4j.LoggerFactory
 import org.specs2.matcher.Matcher
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.postgresql.PostgreSQLContainer
@@ -37,8 +35,7 @@ import java.nio.file.Files
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.DurationInt
 
-@RunWith(classOf[JUnitRunner])
-class FileSystemDataStoreTest extends Specification with BeforeAfterAll with LazyLogging {
+class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
   import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 

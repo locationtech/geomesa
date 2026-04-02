@@ -122,7 +122,7 @@ object FsDataStoreCommand {
   trait PartitionParam {
     @Parameter(
       names = Array("--partition"),
-      description = "Partition to operate on (if empty all partitions will be used)",
+      description = "Partition(s) to operate on",
       converter = classOf[PartitionConverter],
       splitter = classOf[NoopParameterSplitter])
     var partitions: java.util.List[Partition] = new java.util.ArrayList[Partition]()

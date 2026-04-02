@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.{PartitionRange, SinglePartition}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileFilter}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction
 import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction.{AttributeBound, Or, SchemeFilter, SpatialBound}
@@ -31,7 +31,6 @@ class SchemeFilterExtractionTest extends SpecificationWithJUnit {
       val metadata = new TestMetadata(sft, Set("hourly","z2:bits=2"))
       val filters = metadata.getSchemeFilters(ecql)
       filters must haveLength(1)
-      filters.head.filter must beSome(ecql) // this may change if we simplify filters
       filters.head.partitions mustEqual Seq(PartitionRange("hours:attribute=dtg", "80063b40", "80063b58"))
       filters.head.spatialBounds.values must beEmpty
       filters.head.attributeBounds.values mustEqual Seq(Or(0, Seq(AttributeBound("800001564db32000", "8000015652d97c00"))))
@@ -42,9 +41,8 @@ class SchemeFilterExtractionTest extends SpecificationWithJUnit {
       val metadata = new TestMetadata(sft, Set("hourly","z2:bits=2"))
       val filters = metadata.getSchemeFilters(ecql)
       filters must haveLength(1)
-      filters.head.filter must beSome(ecql) // this may change if we simplify filters
       filters.head.partitions must
-        containTheSameElementsAs(Seq(PartitionRange("hours:attribute=dtg", "80066ba0", "80066bb8"), SinglePartition("z2:attribute=geom:bits=2", "3")))
+        containTheSameElementsAs(Seq(PartitionRange("hours:attribute=dtg", "80066ba0", "80066bb8"), PartitionRange("z2:attribute=geom:bits=2", "3", "4")))
       filters.head.spatialBounds.values mustEqual Seq(Or(1, Seq(SpatialBound(0, 0, 180, 90))))
       filters.head.attributeBounds.values mustEqual Seq(Or(0, Seq(AttributeBound("80000160af049000", "80000160b42aec00"))))
     }
@@ -63,7 +61,7 @@ class SchemeFilterExtractionTest extends SpecificationWithJUnit {
     override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit = throw new UnsupportedOperationException()
     override def getFiles(): Seq[StorageFile] = throw new UnsupportedOperationException()
     override def getFiles(partition: Partition): Seq[StorageFile] = throw new UnsupportedOperationException()
-    override def getFiles(filter: Filter): Seq[StorageFileFilter] = throw new UnsupportedOperationException()
+    override def getFiles(filter: Filter): Seq[StorageFile] = throw new UnsupportedOperationException()
     override def close(): Unit = {}
   }
 }
