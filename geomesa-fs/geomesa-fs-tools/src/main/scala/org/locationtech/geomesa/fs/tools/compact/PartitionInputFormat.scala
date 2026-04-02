@@ -56,7 +56,7 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
             true
           }
         }
-        new PartitionInputSplit(partition.encoded, files, size)
+        new PartitionInputSplit(partition.toString, files, size)
       }
       java.util.Arrays.asList(splits: _*)
     }
@@ -106,7 +106,7 @@ object PartitionInputFormat {
       // note: we don't store bounds, sort, etc as they're not used
       files.foreach { file =>
         out.writeUTF(file.file)
-        out.writeUTF(file.partition.encoded)
+        out.writeUTF(file.partition.toString)
         out.writeLong(file.count)
         out.writeUTF(file.action.toString)
         out.writeLong(file.timestamp)

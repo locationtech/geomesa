@@ -12,13 +12,14 @@ import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.{FileStatus, Path, RemoteIterator}
+import org.apache.hadoop.fs.{FileStatus, FileUtil, Path, RemoteIterator}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, Partition, PartitionKey, SpatialBounds, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileTracker, UpdateObserver}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
-import org.locationtech.geomesa.fs.storage.common.utils.PathCache
+import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
+import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.CheckConsistencyCommand.ConsistencyChecker
@@ -54,6 +55,19 @@ object FsManageMetadataCommand {
     override def execute(): Unit = withDataStore { ds =>
       val storage = ds.storage(params.featureName)
       val metadata = storage.metadata
+      if (params.copy) {
+        val from = new Path(params.file)
+        if (!from.getFileSystem(storage.context.conf).exists(from)) {
+          throw new IllegalArgumentException(s"File $from does not exist")
+        }
+        val relativePath = StorageUtils.nextFile(metadata.sft.getTypeName, FileType.Written, storage.encoding)
+        val destination = new Path(storage.context.root, relativePath)
+        Command.user.info(s"Copying input file $from to $destination")
+        FileUtil.copy(from.getFileSystem(storage.context.conf), from, storage.context.fs, destination, false, storage.context.conf)
+        params.file = relativePath
+        PathCache.register(storage.context.fs, destination)
+      }
+
       val path = new Path(storage.context.root, params.file)
       if (!PathCache.exists(storage.context.fs, path)) {
         throw new IllegalArgumentException(s"File $path does not exist")
@@ -73,19 +87,23 @@ object FsManageMetadataCommand {
           case s => throw new UnsupportedOperationException(s"--calculate-metadata is not supported for storage class ${s.getClass.getName}")
         }
         val tracker = new FileTracker(metadata.sft, Set.empty)
-        var partition: Partition = null
+        val partitions = new java.util.HashSet[Partition]()
         WithClose(new UpdateObserver(tracker, Partition.None, params.file, StorageFileAction.Append)) { observer =>
           WithClose(reader.read(params.file)) { iter =>
             if (!iter.hasNext) {
               throw new RuntimeException("Could not read any features from input file")
             }
-            val head = iter.next()
-            partition = Partition(metadata.schemes.map(_.getPartition(head)))
-            observer(head)
-            iter.foreach(observer.apply)
+            iter.foreach { sf =>
+              partitions.add(Partition(metadata.schemes.map(_.getPartition(sf))))
+              observer(sf)
+            }
           }
         }
-        tracker.getFiles().head.copy(partition = partition)
+        if (partitions.size() != 1) {
+            throw new IllegalArgumentException(
+              s"File corresponds to multiple partitions: ${partitions.asScala.mkString(" AND ")}")
+        }
+        tracker.getFiles().head.copy(partition = partitions.iterator().next())
       } else {
         val partition = Partition(params.partition.asScala.map(PartitionKey.apply).toSet)
         if (partition.values.isEmpty) {
@@ -288,6 +306,12 @@ object FsManageMetadataCommand {
   private class RegisterParams extends FsParams with RequiredTypeNameParam {
     @Parameter(names = Array("--file"), description = "Path of the file to register, relative to the storage root", required = true)
     var file: String = _
+
+    @Parameter(
+      names = Array("--copy-file"),
+      description = "Copy the file into the storage root. If copying, the --file path should be an absolute path instead of relative to the storage root",
+      required = false)
+    var copy: java.lang.Boolean = false
 
     @Parameter(
       names = Array("--calculate-metadata"),

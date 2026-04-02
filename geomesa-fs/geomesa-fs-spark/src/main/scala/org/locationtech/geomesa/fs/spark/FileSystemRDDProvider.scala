@@ -79,8 +79,8 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
           if (sffs.forall(_.action == StorageFileAction.Append)) {
             noMods
           } else {
-            logger.warn(s"Found modifications for partition '${partition.encoded}': compact the partition to improve read performance")
-            withMods.getOrElseUpdate(partition.encoded, ArrayBuffer.empty[StorageFile])
+            logger.warn(s"Found modifications for partition '$partition': compact the partition to improve read performance")
+            withMods.getOrElseUpdate(partition.toString, ArrayBuffer.empty[StorageFile])
           }
         buf ++= sffs
       }

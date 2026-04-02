@@ -54,7 +54,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
   override protected def createWriter(file: Path, partition: Partition, observer: FileSystemObserver): FileSystemWriter = {
     val conf = new Configuration(context.conf)
     SimpleFeatureParquetSchema.setSft(conf, metadata.sft)
-    conf.set(SimpleFeatureParquetSchema.PartitionKey, partition.encoded)
+    conf.set(SimpleFeatureParquetSchema.PartitionKey, partition.toString)
 
     val observers =
       if (FileValidationEnabled.toBoolean.get) {

@@ -137,7 +137,7 @@ object FileSystemConverterJob {
       try {
         mapped.increment(1)
         val sfWithFid = GeoMesaFeatureWriter.featureWithFid(sf)
-        val partitionKey = new Text(Partition(scheme.map(_.getPartition(sfWithFid))).encoded)
+        val partitionKey = new Text(Partition(scheme.map(_.getPartition(sfWithFid))).toString)
         context.write(partitionKey, new BytesWritable(serializer.serialize(sfWithFid)))
         written.increment(1)
       } catch {

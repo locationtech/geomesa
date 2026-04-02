@@ -54,10 +54,10 @@ object FsCompactCommand {
       val toCompact = if (params.partitions.isEmpty) { storage.metadata.getFiles().map(_.partition).distinct } else {
         val filtered = params.partitions.asScala.filter(storage.metadata.getFiles(_).nonEmpty)
         if (filtered.isEmpty) {
-          throw new ParameterException(s"Partition(s) did not match any files: ${params.partitions.asScala.map(_.encoded).mkString(", ")}")
+          throw new ParameterException(s"Partition(s) did not match any files: ${params.partitions.asScala.mkString(", ")}")
         } else if (filtered.size != params.partitions.size) {
           val unmatched = params.partitions.asScala.filterNot(filtered.contains)
-          Command.user.warn(s"Some partition did not match any files: ${unmatched.map(_.encoded).mkString(", ")}")
+          Command.user.warn(s"Some partition did not match any files: ${unmatched.mkString(", ")}")
         }
         filtered
       }
@@ -84,10 +84,10 @@ object FsCompactCommand {
                 new Runnable() {
                   override def run(): Unit = {
                     try {
-                      logger.info(s"Compacting ${p.encoded}")
+                      logger.info(s"Compacting $p")
                       storage.compact(p, fileSize)
                     } catch {
-                      case NonFatal(e) => logger.error(s"Error processing partition '${p.encoded}':", e)
+                      case NonFatal(e) => logger.error(s"Error processing partition '$p':", e)
                     } finally {
                       latch.countDown()
                     }

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.api
 import com.google.gson._
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileFilter}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
 import org.locationtech.jts.geom.Envelope
 
 import java.io.Closeable
@@ -136,7 +136,7 @@ object StorageMetadata {
    * @param values set of dimensions that make up the partition
    */
   case class Partition(values: Set[PartitionKey]) {
-    lazy val encoded: String = gson.toJson(this)
+    override lazy val toString: String = gson.toJson(this)
   }
 
   object Partition {
@@ -157,7 +157,7 @@ object StorageMetadata {
    * @param value partition value
    */
   case class PartitionKey(name: String, value: String) {
-    def encode: String = gson.toJson(this)
+    override lazy val toString: String = gson.toJson(this)
   }
 
   object PartitionKey {
@@ -167,14 +167,6 @@ object StorageMetadata {
       }
     }
   }
-
-  /**
-    * Holds a storage file and a filter associated with it
-    *
-    * @param file storage file
-    * @param filter filter associated with the file
-    */
-  case class StorageFileFilter(file: StorageFile, filter: Option[Filter])
 
   /**
     * Action related to a storage file

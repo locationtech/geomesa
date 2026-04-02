@@ -44,7 +44,7 @@ abstract class SpatialScheme(id: String, bits: Int, geom: String) extends Partit
   }
 
   override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = {
-    getGeoms(filter).map { ranges =>
+    getGeoms(filter).orElse(Some(generateRanges(Seq((-180, -90, 180, 90))))).map { ranges =>
       ranges.flatMap { range =>
         val lower = range.lower
         val steps = (range.upper - lower).toInt

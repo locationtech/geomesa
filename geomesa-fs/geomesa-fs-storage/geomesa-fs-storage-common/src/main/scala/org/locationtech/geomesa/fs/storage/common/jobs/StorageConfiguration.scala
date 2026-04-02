@@ -97,7 +97,7 @@ object StorageConfiguration {
   def setPartitions(conf: Configuration, partitions: Seq[Partition]): Unit = {
     var i = 0
     partitions.foreach { p =>
-      conf.set(s"$PartitionsKeyPrefix$i", p.encoded)
+      conf.set(s"$PartitionsKeyPrefix$i", p.toString)
       i += 1
     }
   }

@@ -53,10 +53,10 @@ class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
       Command.output.info("Partition\tFilter")
     }
 
-    partitions.toSeq.sortBy(_.encoded).foreach { partition =>
+    partitions.toSeq.sortBy(_.toString).foreach { partition =>
       val filters = partition.values.flatMap(v => metadata.schemes.find(_.name == v.name).map(_.getCoveringFilter(v.value)))
       val filter = ECQL.toCQL(andFilters(filters.toSeq))
-      Command.output.info(s"${partition.encoded}\t$filter")
+      Command.output.info(s"$partition\t$filter")
     }
   }
 }

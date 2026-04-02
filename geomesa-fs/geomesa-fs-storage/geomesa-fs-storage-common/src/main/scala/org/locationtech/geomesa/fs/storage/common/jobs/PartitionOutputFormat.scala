@@ -102,7 +102,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
     private sealed abstract class PartitionState(partition: Partition) {
 
       private val fileTracker = new FileTracker(storage.metadata.sft, storage.metadata.schemes)
-      private val counter = context.getCounter(Group, StorageConfiguration.Counters.partition(partition.encoded))
+      private val counter = context.getCounter(Group, StorageConfiguration.Counters.partition(partition.toString))
 
       private var observer: UpdateObserver = _
 
