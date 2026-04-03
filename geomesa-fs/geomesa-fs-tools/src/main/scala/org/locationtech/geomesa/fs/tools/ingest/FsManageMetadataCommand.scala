@@ -17,8 +17,8 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, Stora
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileTracker, UpdateObserver}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
+import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
-import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.CheckConsistencyCommand.ConsistencyChecker
@@ -27,10 +27,11 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.io.{Closeable, FileNotFoundException}
-import java.util.Collections
 import java.util.concurrent.{ConcurrentHashMap, Phaser}
+import java.util.{Collections, Date}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
@@ -53,22 +54,8 @@ object FsManageMetadataCommand {
       val storage = ds.storage(params.featureName)
       val metadata = storage.metadata
 
-      if (params.copy) {
-        // TODO would be nice to copy the file after getting bounds in case there's an error, but our storage impl can only read things in it's root path...
-        val from = new Path(params.file)
-        if (!from.getFileSystem(storage.context.conf).exists(from)) {
-          throw new IllegalArgumentException(s"File $from does not exist")
-        }
-        val relativePath = StorageUtils.nextFile(metadata.sft.getTypeName, FileType.Written, storage.encoding)
-        val destination = new Path(storage.context.root, relativePath)
-        Command.user.info(s"Copying input file $from to $destination")
-        FileUtil.copy(from.getFileSystem(storage.context.conf), from, storage.context.fs, destination, false, storage.context.conf)
-        params.file = relativePath
-        PathCache.register(storage.context.fs, destination)
-      }
-
-      val path = new Path(storage.context.root, params.file)
-      if (!PathCache.exists(storage.context.fs, path)) {
+      val path = if (params.copy) { new Path(params.file) } else { new Path(storage.context.root, params.file) }
+      if (!path.getFileSystem(storage.context.conf).exists(path)) {
         throw new IllegalArgumentException(s"File $path does not exist")
       }
 
@@ -86,8 +73,8 @@ object FsManageMetadataCommand {
       }
       val tracker = new FileTracker(metadata.sft, Set.empty)
       val partitions = new java.util.HashSet[Partition]()
-      WithClose(new UpdateObserver(tracker, Partition.None, params.file, StorageFileAction.Append)) { observer =>
-        WithClose(reader.read(params.file)) { iter =>
+      WithClose(new UpdateObserver(tracker, Partition.None, "", StorageFileAction.Append)) { observer =>
+        WithClose(reader.read(path)) { iter =>
           if (!iter.hasNext) {
             throw new RuntimeException("Could not read any features from input file")
           }
@@ -103,22 +90,37 @@ object FsManageMetadataCommand {
         }
         throw new IllegalArgumentException(s"File corresponds to multiple partitions: ${partitions.asScala.mkString(" AND ")}")
       }
-      val file = tracker.getFiles().head.copy(partition = partitions.iterator().next(), sort = sort)
 
-      metadata.addFile(file)
-      Command.user.info(s"Registered file $path containing ${file.count} known features")
-      Command.user.info(
-        "Spatial bounds:\n  " +
-          file.spatialBounds.map(b => s"${metadata.sft.getDescriptor(b.attribute).getLocalName} [${b.xmin},${b.ymin},${b.xmax},${b.ymax}]")
-            .mkString("\n  "))
-      if (file.attributeBounds.nonEmpty) {
-        val bounds = file.attributeBounds.map { b =>
-          val descriptor = metadata.sft.getDescriptor(b.attribute)
-          val alias = AttributeIndexKey.alias(descriptor.getType.getBinding)
-          s"${descriptor.getLocalName} [${AttributeIndexKey.decode(alias, b.lower)},${AttributeIndexKey.decode(alias, b.upper)}]"
-        }
-        Command.user.info(s"Attribute bounds:\n  ${bounds.mkString("\n  ")}")
+      val finalPath = if (!params.copy) { params.file } else {
+        val relativePath = StorageUtils.nextFile(metadata.sft.getTypeName, FileType.Written, storage.encoding)
+        val destination = new Path(storage.context.root, relativePath)
+        Command.user.info(s"Copying $path to $destination")
+        FileUtil.copy(path.getFileSystem(storage.context.conf), path, storage.context.fs, destination, false, storage.context.conf)
+        relativePath
       }
+
+      val file = tracker.getFiles().head.copy(file = finalPath, partition = partitions.iterator().next(), sort = sort)
+      metadata.addFile(file)
+
+      Command.user.info(s"Registered file $path containing ${file.count} known features")
+      val bounds =
+        file.spatialBounds.map(b => s"${metadata.sft.getDescriptor(b.attribute).getLocalName} [${b.xmin},${b.ymin},${b.xmax},${b.ymax}]") ++
+          file.attributeBounds.map { b =>
+            val descriptor = metadata.sft.getDescriptor(b.attribute)
+            val alias = AttributeIndexKey.alias(descriptor.getType.getBinding)
+            val lower = AttributeIndexKey.decode(alias, b.lower) match {
+              case null => ""
+              case d: Date => DateParsing.formatDate(d)
+              case v => v.toString
+            }
+            val upper = AttributeIndexKey.decode(alias, b.upper) match {
+              case null => ""
+              case d: Date => DateParsing.formatDate(d)
+              case v => v.toString
+            }
+            s"${descriptor.getLocalName} [$lower,$upper]"
+          }
+      Command.user.info(s"File bounds:\n  ${bounds.mkString("\n  ")}")
     }
   }
 

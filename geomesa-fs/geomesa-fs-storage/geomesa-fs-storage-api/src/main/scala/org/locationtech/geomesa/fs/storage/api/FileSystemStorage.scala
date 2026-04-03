@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.api
 
+import org.apache.hadoop.fs.Path
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -111,6 +112,7 @@ object FileSystemStorage {
    * Reader trait
    */
   trait FileSystemPathReader {
-    def read(file: String): Iterator[SimpleFeature] with Closeable
+    def root: Path
+    def read(file: Path): Iterator[SimpleFeature] with Closeable
   }
 }

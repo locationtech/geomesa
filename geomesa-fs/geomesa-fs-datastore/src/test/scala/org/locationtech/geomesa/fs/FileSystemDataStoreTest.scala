@@ -45,7 +45,9 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
     val sft = SimpleFeatureTypes.createType("parquet", s"name:String:fs.bounds=true,age:Int,dtg:Date,*geom:$geom:srid=4326")
     sft.setScheme("daily")
     val features = Seq.tabulate(10) { i =>
-      ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", createGeom(i))
+      val sf = ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", createGeom(i))
+      sf.getUserData.put("geomesa.feature.visibility", "user")
+      sf
     }
     (sft, features)
   }
@@ -97,13 +99,15 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
     Map(
       "fs.path" -> s"${dir.getPath}/file",
       "fs.metadata.type" -> "file",
-      "fs.config.xml" -> gzip
+      "fs.config.xml" -> gzip,
+      "geomesa.security.auths" -> "user",
     ),
     Map(
       "fs.path" -> s"${dir.getPath}/jdbc",
       "fs.metadata.type" -> "jdbc",
       "fs.metadata.config" -> jdbcConfig,
-      "fs.config.xml" -> gzip
+      "fs.config.xml" -> gzip,
+      "geomesa.security.auths" -> "user",
     ),
   )
 
@@ -124,7 +128,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
   }
 
   "FileSystemDataStore" should {
-    "create a DS" >> {
+    "create a DS" in {
       foreach(dsParams) { params =>
         WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
           ds.createSchema(sft)
@@ -159,11 +163,11 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
       }
     }
 
-    "not modify feature type in create schema" >> {
+    "not modify feature type in create schema" in {
       sft.getUserData.get(StorageKeys.SchemeKey) mustEqual "daily"
     }
 
-    "create a second ds with the same path" >> {
+    "create a second ds with the same path" in {
       foreach(dsParams) { params =>
         WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
           ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
@@ -173,7 +177,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
       }
     }
 
-    "query with multiple threads" >> {
+    "query with multiple threads" in {
       foreach(dsParams) { params =>
         WithClose(DataStoreFinder.getDataStore((params ++ Map("fs.read-threads" -> "4")).asJava)) { ds =>
           ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
@@ -201,7 +205,17 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
       }
     }
 
-    "support query timeouts" >> {
+    "enforce authorizations" in {
+      foreach(dsParams) { params =>
+        WithClose(DataStoreFinder.getDataStore(params.filter(_._1 != "geomesa.security.auths").asJava)) { ds =>
+          ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
+          val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+          results must beEmpty
+        }
+      }
+    }
+
+    "support query timeouts" in {
       foreach(dsParams) { params =>
         WithClose(DataStoreFinder.getDataStore((params ++ Map("fs.read-threads" -> "2", "geomesa.query.timeout" -> "200ms")).asJava)) { ds =>
           ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
@@ -218,7 +232,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
       }
     }
 
-    "call create schema on existing type" >> {
+    "call create schema on existing type" in {
       foreach(dsParams) { params =>
         WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
           val sameSft = SimpleFeatureTypes.createType(sft.getTypeName, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
@@ -227,7 +241,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
       }
     }
 
-    "reject schemas with reserved words" >> {
+    "reject schemas with reserved words" in {
       foreach(dsParams) { params =>
         val reserved = SimpleFeatureTypes.createType("reserved", "dtg:Date,*point:Point:srid=4326")
         reserved.setScheme("daily")
@@ -238,7 +252,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
       }
     }
 
-    "support transforms" >> {
+    "support transforms" in {
       val transforms = Seq(null, Array("name"), Array("dtg", "geom"))
       foreach(dsParams) { params =>
         WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
@@ -264,7 +278,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
       }
     }
 
-    "support append without fid" >> {
+    "support append without fid" in {
       foreach(dsParams) { params =>
         val dir = Files.createTempDirectory("fsds-test-append-without-fid").toFile
         try {
@@ -286,7 +300,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
       }
     }
 
-    "support updates" >> {
+    "support updates" in {
       foreach(dsParams) { params =>
         WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
           WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter("IN ('0', '1', '2')"), Transaction.AUTO_COMMIT)) { writer =>

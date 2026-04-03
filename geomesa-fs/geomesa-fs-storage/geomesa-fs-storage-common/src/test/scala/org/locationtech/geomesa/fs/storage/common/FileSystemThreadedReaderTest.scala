@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
+import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeature
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -33,7 +34,8 @@ class FileSystemThreadedReaderTest extends Specification {
       val feature = ScalaSimpleFeature.create(sft, "1", "name")
       val featureGate = new LinkedBlockingQueue[Boolean](1)
       val reader = new FileSystemPathReader() {
-        override def read(file: String): Iterator[SimpleFeature] with Closeable = {
+        override def root: Path = new Path("/")
+        override def read(file: Path): Iterator[SimpleFeature] with Closeable = {
           featureGate.take()
           CloseableIterator.single(feature)
         }

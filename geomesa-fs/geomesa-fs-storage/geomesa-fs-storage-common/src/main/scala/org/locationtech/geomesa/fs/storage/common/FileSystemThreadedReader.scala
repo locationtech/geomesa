@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.storage.common
 
 import com.typesafe.scalalogging.StrictLogging
+import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFileAction}
@@ -80,7 +81,7 @@ object FileSystemThreadedReader extends StrictLogging {
 
   def apply(reader: FileSystemPathReader, files: Seq[StorageFile], threads: Int): CloseableIterator[SimpleFeature] = {
     if (threads < 2) {
-      val mods = scala.collection.mutable.HashSet.empty[String]
+      val mods = new java.util.HashSet[String]()
       // ensure files are sorted in reverse chronological order so mods are handled correctly
       CloseableIterator.wrap(files.sorted).flatMap(f => read(reader, f, mods))
     } else {
@@ -152,14 +153,11 @@ object FileSystemThreadedReader extends StrictLogging {
     * @param mods collection to track modifications
     * @return
     */
-  private def read(
-      reader: FileSystemPathReader,
-      file: StorageFile,
-      mods: scala.collection.mutable.Set[String]): CloseableIterator[SimpleFeature] = {
+  private def read(reader: FileSystemPathReader, file: StorageFile, mods: java.util.Set[String]): CloseableIterator[SimpleFeature] = {
     file.action match {
-      case StorageFileAction.Append => new AppendingReaderIterator(reader, file.file, mods)
-      case StorageFileAction.Modify => new ModifyingReaderIterator(reader, file.file, mods)
-      case StorageFileAction.Delete => new DeletingReaderIterator(reader, file.file, mods)
+      case StorageFileAction.Append => new AppendingReaderIterator(reader, new Path(reader.root, file.file), mods)
+      case StorageFileAction.Modify => new ModifyingReaderIterator(reader, new Path(reader.root, file.file), mods)
+      case StorageFileAction.Delete => new DeletingReaderIterator(reader, new Path(reader.root, file.file), mods)
       case _ => throw new UnsupportedOperationException(s"Unexpected storage action: ${file.action}")
     }
   }
@@ -183,7 +181,7 @@ object FileSystemThreadedReader extends StrictLogging {
       group: Seq[StorageFile],
       chain: Seq[Seq[StorageFile]],
       queue: BlockingQueue[SimpleFeature],
-      mods: scala.collection.mutable.Set[String] = scala.collection.mutable.HashSet.empty[String]
+      mods: java.util.Set[String] = new java.util.HashSet[String]()
     ) extends Runnable {
 
     override def run(): Unit = {
@@ -245,11 +243,8 @@ object FileSystemThreadedReader extends StrictLogging {
     * @param file file path
     * @param mods set of modified feature IDs that shouldn't be returned
     */
-  private class AppendingReaderIterator(
-      reader: FileSystemPathReader,
-      file: String,
-      mods: scala.collection.Set[String]
-    ) extends CloseableIterator[SimpleFeature] {
+  private class AppendingReaderIterator(reader: FileSystemPathReader, file: Path, mods: java.util.Set[String])
+      extends CloseableIterator[SimpleFeature] {
 
     logger.debug(s"Reading file $file")
 
@@ -284,17 +279,15 @@ object FileSystemThreadedReader extends StrictLogging {
     * @param file file path
     * @param mods set of modified feature IDs that shouldn't be returned
     */
-  private class ModifyingReaderIterator(
-      reader: FileSystemPathReader,
-      file: String,
-      mods: scala.collection.mutable.Set[String]
-    ) extends CloseableIterator[SimpleFeature] {
+  private class ModifyingReaderIterator(reader: FileSystemPathReader, file: Path, mods: java.util.Set[String])
+      extends CloseableIterator[SimpleFeature] {
 
     logger.debug(s"Reading modifying file $file")
 
     private var count = 0
 
-    private val delegate = CloseableIterator.wrap(reader.read(file)).filter { f => count += 1; mods.add(f.getID) }
+    private val delegate =
+      CloseableIterator.wrap(reader.read(file)).filter { f => count += 1; mods.add(f.getID) }
 
     override def hasNext: Boolean = delegate.hasNext
 
@@ -313,11 +306,8 @@ object FileSystemThreadedReader extends StrictLogging {
     * @param file file path
     * @param mods deleted feature ids will be added here
     */
-  private class DeletingReaderIterator(
-      reader: FileSystemPathReader,
-      file: String,
-      mods: scala.collection.mutable.Set[String]
-    ) extends CloseableIterator[SimpleFeature] {
+  private class DeletingReaderIterator(reader: FileSystemPathReader, file: Path, mods: java.util.Set[String])
+      extends CloseableIterator[SimpleFeature] {
 
     logger.debug(s"Reading deleting file $file")
 

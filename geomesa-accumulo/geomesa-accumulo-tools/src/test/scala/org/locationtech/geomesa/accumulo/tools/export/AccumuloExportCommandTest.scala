@@ -274,7 +274,7 @@ class AccumuloExportCommandTest extends TestWithDataStore {
   def readParquet(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
     val conf = new Configuration()
     SimpleFeatureParquetSchema.setSft(conf, sft)
-    WithClose(new ParquetFileSystemReader(conf, new Path("/"), sft, FilterCompat.NOOP, None, _ => true, None).read(file)) { iter =>
+    WithClose(new ParquetFileSystemReader(conf, new Path("/"), sft, FilterCompat.NOOP, None, _ => true, None).read(new Path("/", file))) { iter =>
       iter.map(ScalaSimpleFeature.copy).toList
     }
   }
