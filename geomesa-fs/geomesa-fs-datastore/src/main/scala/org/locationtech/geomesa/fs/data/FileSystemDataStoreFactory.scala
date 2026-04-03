@@ -58,8 +58,8 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     val writeTimeout = WriteTimeoutParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite)
 
-    val authProvider =
-      AuthUtils.getProvider(params, AuthsParam.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty).toSeq).getOrElse(Seq.empty))
+    AuthProviderParam.lookupOpt(params).foreach(p => conf.set(AuthsParam.key, p.getClass.getName))
+    AuthsParam.lookupOpt(params).foreach(conf.set(AuthsParam.key, _))
 
     val namespace = NamespaceParam.lookupOpt(params)
 
@@ -72,7 +72,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     }
     val fs = FileSystem.get(path.toUri, conf)
     val context = FileSystemContext(fs, conf, path, namespace)
-    val config = FileSystemDataStoreConfig(context, readThreads, writeTimeout, queryTimeout, authProvider)
+    val config = FileSystemDataStoreConfig(context, readThreads, writeTimeout, queryTimeout)
 
     val metadataConfig = MetadataConfigParam.lookupOpt(params).getOrElse(new Properties()).asScala.toMap
     val metadataType =

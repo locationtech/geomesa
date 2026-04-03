@@ -29,6 +29,7 @@ object GeoMesaDataStoreFactory {
   private val QueryThreadsSysParam = SystemPropertyIntegerParam(QueryProperties.QueryThreads)
   private val TimeoutSysParam = SystemPropertyDurationParam(QueryProperties.QueryTimeout)
   private val PartitionParallelScanSysParam = SystemPropertyBooleanParam(PartitionParallelScan)
+  private val LooseBBoxSysParam = SystemPropertyBooleanParam(QueryProperties.LooseBbox)
 
   private val DeprecatedTimeout =
     ConvertedParam[Duration, java.lang.Long]("queryTimeout", v => Duration(v, TimeUnit.SECONDS))
@@ -62,6 +63,7 @@ object GeoMesaDataStoreFactory {
       "Use loose bounding boxes - queries will be faster but may return extraneous results",
       default = true,
       deprecatedKeys = Seq("looseBoundingBox"),
+      systemProperty = Some(LooseBBoxSysParam),
       readWrite = ReadWriteFlag.ReadUpdate
     )
 

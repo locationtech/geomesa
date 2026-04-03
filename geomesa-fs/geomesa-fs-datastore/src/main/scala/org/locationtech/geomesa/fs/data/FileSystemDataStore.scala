@@ -20,7 +20,6 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.metadata.StorageMetadataCatalog
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
-import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -111,6 +110,5 @@ object FileSystemDataStore {
     readThreads: Int,
     writeTimeout: Duration,
     queryTimeout: Option[Duration],
-    authProvider: AuthorizationsProvider,
   )
 }
