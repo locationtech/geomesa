@@ -20,7 +20,7 @@ import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator, KeyValueConverter}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.{File, FileReader, StringWriter}
 import java.util.Properties
@@ -36,9 +36,8 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
   override def params: FsParams
 
   override def connection: Map[String, String] = {
-    val url = PathUtils.getUrl(params.path)
     val builder = Map.newBuilder[String, String]
-    builder += (FileSystemDataStoreParams.PathParam.getName -> url.toString)
+    builder += (FileSystemDataStoreParams.PathParam.getName -> params.path)
     builder += (FileSystemDataStoreParams.MetadataTypeParam.getName -> params.metadataType)
     val metadataProps = new Properties()
     if (params.metadataConfigFile != null) {
@@ -164,7 +163,7 @@ object FsDataStoreCommand {
     }
   }
 
-  private class MetadataTypeValidator extends IValueValidator[String] {
+  class MetadataTypeValidator extends IValueValidator[String] {
     override def validate(name: String, value: String): Unit = {
       val valid = Seq(FileBasedMetadata.MetadataType, JdbcMetadata.MetadataType, ConverterMetadata.MetadataType)
       if (!valid.contains(value)) {

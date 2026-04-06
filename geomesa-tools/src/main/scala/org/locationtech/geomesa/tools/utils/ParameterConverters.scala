@@ -71,8 +71,8 @@ object ParameterConverters {
     override def convert(value: String): (String, String) = {
       try {
         val i = value.indexOf('=')
-        if (i == -1 || value.indexOf('=', i + 1) != -1) {
-          throw new IllegalArgumentException("key-value pairs must be separated by a single '='")
+        if (i == -1) {
+          throw new IllegalArgumentException("key-value pairs must be separated by an '='")
         }
         (value.substring(0, i), value.substring(i + 1))
       } catch {

@@ -12,21 +12,28 @@ import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.{FileStatus, Path, RemoteIterator}
+import org.geotools.api.data.DataStoreFinder
+import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
+import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, MetadataTypeValidator}
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.CheckConsistencyCommand.ConsistencyChecker
+import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.MigrateCommand
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
+import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
+import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.DateParsing
 
-import java.io.{Closeable, FileNotFoundException}
+import java.io._
 import java.util.concurrent.{ConcurrentHashMap, Phaser}
-import java.util.{Collections, Date}
+import java.util.{Collections, Date, Properties}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
@@ -36,7 +43,8 @@ class FsManageMetadataCommand extends CommandWithSubCommands {
 
   override val name: String = "manage-metadata"
   override val params = new ManageMetadataParams
-  override val subCommands: Seq[Command] = Seq(new RegisterCommand(), new UnregisterCommand(), new CheckConsistencyCommand())
+  override val subCommands: Seq[Command] =
+    Seq(new RegisterCommand(), new UnregisterCommand(), new CheckConsistencyCommand(), new MigrateCommand())
 }
 
 object FsManageMetadataCommand extends LazyLogging {
@@ -100,7 +108,7 @@ object FsManageMetadataCommand extends LazyLogging {
   private class UnregisterCommand extends FsDataStoreCommand {
 
     override val name = "unregister"
-    override val params = new UnregisterParams
+    override val params = new UnregisterParams()
 
     override def execute(): Unit = withDataStore { ds =>
       val storage = ds.storage(params.featureName)
@@ -111,7 +119,46 @@ object FsManageMetadataCommand extends LazyLogging {
     }
   }
 
-  class CheckConsistencyCommand extends FsDataStoreCommand with LazyLogging {
+  private class MigrateCommand extends FsDataStoreCommand {
+
+    import scala.collection.JavaConverters._
+
+    override val params = new MigrateParams()
+
+    override val name: String = "migrate"
+
+    override def execute(): Unit = withDataStore { ds =>
+      val newParams = {
+        val builder = Map.newBuilder[String, String]
+        builder += (FileSystemDataStoreParams.MetadataTypeParam.getName -> params.newMetadataType)
+        val metadataProps = new Properties()
+        if (params.newMetadataConfigFile != null) {
+          WithClose(new FileReader(params.newMetadataConfigFile))(metadataProps.load)
+        }
+        if (!params.newMetadataConfig.isEmpty) {
+          params.newMetadataConfig.asScala.foreach { case (k, v) => metadataProps.put(k, v) }
+        }
+        if (!metadataProps.isEmpty) {
+          val out = new StringWriter()
+          metadataProps.store(out, null)
+          builder += (FileSystemDataStoreParams.MetadataConfigParam.getName -> out.toString)
+        }
+        builder.result()
+      }
+      val metadata = ds.storage(params.featureName).metadata
+      val files = metadata.getFiles()
+      val scheme = metadata.schemes.map(_.name).mkString(",")
+      WithClose(DataStoreFinder.getDataStore((connection ++ newParams).asJava).asInstanceOf[FileSystemDataStore]) { newDs =>
+        val sft = SimpleFeatureTypes.copy(ds.getSchema(params.featureName))
+        sft.getUserData.put(StorageKeys.SchemeKey, scheme)
+        newDs.createSchema(sft)
+        newDs.storage(params.featureName).metadata.replaceFiles(Seq.empty, files.reverse)
+      }
+      Command.output.info(s"Migration complete for ${files.length} files")
+    }
+  }
+
+  private class CheckConsistencyCommand extends FsDataStoreCommand with LazyLogging {
 
     override val name = "check-consistency"
     override val params = new CheckConsistencyParams()
@@ -264,25 +311,49 @@ object FsManageMetadataCommand extends LazyLogging {
   class ManageMetadataParams
 
   @Parameters(commandDescription = "Register new data files with a storage instance")
+  // noinspection VarCouldBeVal
   private class RegisterParams extends FsParams with RequiredTypeNameParam {
     @Parameter(description = "Path of the file(s) to register", required = true)
-    // noinspection VarCouldBeVal
     var files: java.util.List[String] = new java.util.ArrayList[String]()
 
     @Parameter(names = Array("--delete"), description = "Delete file(s) after registering them")
-    // noinspection VarCouldBeVal
     var delete: java.lang.Boolean = false
   }
 
   @Parameters(commandDescription = "Unregister data files from a storage instance")
+  // noinspection VarCouldBeVal
   private class UnregisterParams extends FsParams with RequiredTypeNameParam {
-    @Parameter(names = Array("--file"), description = "Path of the file to unregister, relative to the storage root", required = true)
-    // noinspection VarCouldBeVal
+    @Parameter(description = "Path of the file to unregister, relative to the storage root", required = true)
     var file: String = _
   }
 
+  @Parameters(commandDescription = "Migrate metadata from one type to another")
+  // noinspection VarCouldBeVal
+  private class MigrateParams extends FsParams with RequiredTypeNameParam {
+
+    @Parameter(
+      names = Array("--new-metadata-type"),
+      description = "Metadata type to migrate to",
+      required = true,
+      validateValueWith = Array(classOf[MetadataTypeValidator]))
+    var newMetadataType: String = _
+
+    @Parameter(
+      names = Array("--new-metadata-config"),
+      description = "Metadata configuration properties for the type to migrate to, in the form k=v",
+      converter = classOf[KeyValueConverter],
+      splitter = classOf[NoopParameterSplitter])
+    var newMetadataConfig: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
+
+    @Parameter(
+      names = Array("--new-metadata-config-file"),
+      description = "Name of a metadata configuration file for the type to migrate to, in Java properties format")
+    var newMetadataConfigFile: File = _
+  }
+
   @Parameters(commandDescription = "Check consistency between metadata and data files")
-  class CheckConsistencyParams extends FsParams with RequiredTypeNameParam {
+  // noinspection VarCouldBeVal
+  private class CheckConsistencyParams extends FsParams with RequiredTypeNameParam {
 
     // TODO GEOMESA-2963 requires rebuilding file data stats
     // @Parameter(names = Array("--repair"), description = "Update metadata based on consistency check")

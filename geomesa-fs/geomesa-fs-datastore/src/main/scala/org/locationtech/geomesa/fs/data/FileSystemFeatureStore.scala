@@ -111,7 +111,7 @@ object FileSystemFeatureStore {
 
   import scala.collection.JavaConverters._
 
-  private val capabilities = new QueryCapabilities() {
+  private val capabilities: QueryCapabilities = new QueryCapabilities() {
     override def isReliableFIDSupported: Boolean = true
     override def isUseProvidedFIDSupported: Boolean = true
   }
@@ -139,7 +139,7 @@ object FileSystemFeatureStore {
     *
     * @param iter delegate iterator
     */
-  class FileSystemFeatureIterator(iter: CloseableFeatureIterator)
+  private class FileSystemFeatureIterator(iter: CloseableFeatureIterator)
       extends java.util.Iterator[SimpleFeature] with Closeable {
     override def hasNext: Boolean = iter.hasNext
     override def next(): SimpleFeature = iter.next()
@@ -153,7 +153,7 @@ object FileSystemFeatureStore {
     * @param sft simple feature type
     * @param timeout write timeout, for flushing partitions
     */
-  class FileSystemFeatureWriterAppend(storage: FileSystemStorage, sft: SimpleFeatureType, timeout: Duration)
+  private class FileSystemFeatureWriterAppend(storage: FileSystemStorage, sft: SimpleFeatureType, timeout: Duration)
       extends FastSettableFeatureWriter with LazyLogging {
 
     private val removalListener = new RemovalListener[Partition, Closeable with Flushable]() {
@@ -208,7 +208,7 @@ object FileSystemFeatureStore {
     * @param filter query filter
     * @param readThreads read threads
     */
-  class FileSystemFeatureWriterModify(
+  private class FileSystemFeatureWriterModify(
       storage: FileSystemStorage,
       sft: SimpleFeatureType,
       filter: Filter,

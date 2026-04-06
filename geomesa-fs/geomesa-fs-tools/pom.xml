@@ -76,6 +76,10 @@
             <groupId>org.geomesa.testcontainers</groupId>
             <artifactId>testcontainers-accumulo</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-postgresql</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

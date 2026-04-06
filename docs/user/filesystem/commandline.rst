@@ -135,11 +135,12 @@ The ``--temp-path`` argument may be useful when working with ``s3`` data, as ``s
 ``manage-metadata``
 ^^^^^^^^^^^^^^^^^^^
 
-This command will compact, add and delete metadata entries in a file system storage instance. It has three
+This command will compact, add and delete metadata entries in a file system storage instance. It has four
 sub-commands:
 
 * ``register`` - create a new metadata entry for an existing data file
 * ``unregister`` - remove a metadata entry for an existing data file
+* ``migrate`` - migrate metadata from one type to another
 * ``check-consistency`` - check consistency between the metadata and data files
 
 To invoke the command, use the command name followed by the sub-command, then any arguments. For example::
@@ -174,8 +175,21 @@ The ``unregister`` sub-command will the delete metadata associated with a partic
 ======================== =====================================================================================================
 Argument                 Description
 ======================== =====================================================================================================
-``--file *``             The path of the file to unregister, relative to the storage root path
+``<file> *``             The path of the file to unregister, relative to the storage root path
 ======================== =====================================================================================================
+
+``migrate``
+~~~~~~~~~~~~~~
+
+The ``migrate`` sub-command will move the metadata storage from one type (``file`` or ``jdbc``) to another.
+
+============================== ==============================================================================================
+Argument                       Description
+============================== ==============================================================================================
+``--new-metadata-type *``      Metadata type to migrate to
+``--new-metadata-config``      Metadata configuration properties for the type to migrate to, in the form k=v
+``--new-metadata-config-file`` Name of a metadata configuration file for the type to migrate to, in Java properties format
+============================== ==============================================================================================
 
 ``check-consistency``
 ~~~~~~~~~~~~~~~~~~~~~

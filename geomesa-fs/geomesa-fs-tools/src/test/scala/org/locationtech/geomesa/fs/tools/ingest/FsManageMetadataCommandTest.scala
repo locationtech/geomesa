@@ -15,6 +15,7 @@ import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
+import org.locationtech.geomesa.fs.tools.FsRunner
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -70,13 +71,10 @@ class FsManageMetadataCommandTest extends Specification {
         logger.setLevel(Level.ALL)
         logger.addAppender(logCaptor)
         try {
-          val command = new FsManageMetadataCommand.CheckConsistencyCommand()
-          command.params.path = dir
-          command.params.metadataType = "file"
-          command.params.featureName = sft.getTypeName
-          command.params.configuration = new java.util.ArrayList[(String, String)]()
-          HadoopSharedCluster.ContainerConfiguration.asScala.foreach(e => command.params.configuration.add(e.getKey -> e.getValue))
-          command.execute()
+          val args =
+            Seq("manage-metadata", "check-consistency", "--path", dir, "--metadata-type", "file", "-f", sft.getTypeName) ++
+              HadoopSharedCluster.ContainerConfiguration.asScala.flatMap(e => Seq("--config", s"${e.getKey}=${e.getValue}"))
+          FsRunner.parseCommand(args.toArray).execute()
         } finally {
           logger.setLevel(logLevel)
           logger.removeAppender(logCaptor)

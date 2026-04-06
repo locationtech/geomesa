@@ -25,7 +25,7 @@ class JdbcMetadataCatalog(context: FileSystemContext, config: Map[String, String
   private val conf = JdbcMetadataConfig(config)
   private val driver = JdbcMetadataCatalog.createConnectionFactory(conf)
   private val metaTable = new MetadataTable(conf.schema, conf.tablePrefix)
-  private val root = context.root.toUri.toString
+  private val root = context.root.toString
 
   override def getTypeNames: Seq[String] = {
     WithClose(driver.createConnection()) { cx =>
