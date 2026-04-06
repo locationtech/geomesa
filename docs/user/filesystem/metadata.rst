@@ -5,26 +5,16 @@ FileSystem Metadata
 
 The FileSystem data store (FSDS) stores metadata about partitions and data files, to avoid having to repeatedly
 interrogate the filesystem. When a new data file is added or removed, an associated metadata entry will be created
-to track the operation. See :ref:`fsds_metadata_config` for information on how to configure the metadata.
+to track the operation. There are two supported metadata options:
 
 File System Persistence
 -----------------------
 
-By default, metadata information is stored as a change log in the ``metadata`` folder under the root path for the
-FSDS. This is the simplest solution, as it does not require any additional infrastructure. However, the initial
-time required to read the metadata may be a limitation when dealing with a large number of partitions.
+Metadata information can be stored in a file under the root path for the FSDS. This is the simplest solution, as it does not
+require any additional infrastructure. However, the initial time required to read the metadata may be a limitation when dealing
+with a large number of partitions.
 
-If the number of metadata files grows too large, they may be reduced by using the :ref:`fsds_compact_command` or
-:ref:`fsds_manage_metadata_command` command-line functions, and/or manually moved into sub-folders.
-
-The file-based metadata may be specified by using the name ``file``, and supports the following configuration
-options:
-
-============================= ===================================================================================
-Key                           Description
-============================= ===================================================================================
-``render``                    The format for rendering the metadata files, either ``pretty`` or ``compact``
-============================= ===================================================================================
+The file-based metadata may be specified by using the name ``file``.
 
 Relational Database Persistence
 -------------------------------
@@ -51,4 +41,4 @@ Key                           Description
 ``jdbc.pool.test-while-idle`` Test idle connections in the database connection pool (``true`` or ``false``)
 ============================= ===================================================================================
 
-Currently, Postgres and H2 are officially supported. Other databases may work, but have not been tested.
+Currently, only Postgres is officially supported. Other databases may work, but have not been tested.

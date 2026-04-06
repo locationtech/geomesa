@@ -33,8 +33,7 @@ be compacted if they are between 95 and 105 bytes.
 geomesa.fs.validate.file
 ++++++++++++++++++++++++
 
-This property is implemented only for Parquet files. If set, it checks a file for any potential data corruption
-upon closing the file writer.
+When this property is set, files will be checked for data corruption after closing a file writer.
 
 geomesa.fs.writer.partition.timeout
 +++++++++++++++++++++++++++++++++++
@@ -76,8 +75,3 @@ are:
   encoded as WKB. This format is supported by most 3rd party libraries that can read GeoParquet.
 * ``GeoParquetNative`` - This schema uses `GeoParquet 1.1.0 <https://geoparquet.org/releases/v1.1.0/>`__ with geometries
   encoded "natively". This format doesn't require special libraries to read, but isn't as widely supported as WKB.
-* ``GeoMesaV1`` (deprecated) - This schema is similar to ``GeoParquetNative``, but is not an official specification that other
-  libraries can read. It may be useful if interoperability is required with older versions of GeoMesa (prior to 5.3.0),
-  as those versions are not able to read GeoParquet files.
-* ``GeoMesaV0`` (deprecated) - This schema is similar to ``GeoMesaV1``, but only supports point-type geometries and has other
-  minor inconsistencies.

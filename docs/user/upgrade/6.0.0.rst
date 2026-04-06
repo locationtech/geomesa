@@ -17,6 +17,13 @@ Kafka Zookeeper Deprecation
 As Kafka 4+ no longer supports Zookeeper, GeoMesa has deprecated support for using Zookeeper with the Kafka data store. See
 :ref:`no_zookeeper` for details on migrating.
 
+FileSystem Data Store Compatibility
+-----------------------------------
+
+The file system data store has been substantially rewritten to improve performance. As such, feature types created with previous
+versions of GeoMesa are no longer readable. Data can be migrated by re-creating the schema and using the ``manage-metadata`` CLI
+command to re-register the existing data files.
+
 Default Secondary Attribute Index Changes
 -----------------------------------------
 

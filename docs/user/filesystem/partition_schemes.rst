@@ -8,147 +8,57 @@ the data is queried. When evaluating a query filter, the partition scheme is lev
 do not match the filter. There are three main types of partition schemes provided: spatial, temporal and attribute.
 
 The partition scheme must be provided when creating a schema. The scheme is defined by a well-known name
-and a map of configuration options. See :ref:`partition_scheme_config` for details on how to specify a partition
+and additional configuration options. See :ref:`partition_scheme_config` for details on how to specify a partition
 scheme.
-
-Composite Schemes
------------------
-
-Composite schemes are hierarchical combinations of other schemes. A composite scheme is named by concatenating
-the names of the constituent schemes, separated with commas, e.g. ``hourly,z2-2bits``. The configuration
-options for each child scheme should be merged into a single configuration for the composite scheme.
 
 Temporal Schemes
 ----------------
 
-Temporal schemes lay out data based on a Java
-`DateTime format string <https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html>`__,
-separated by forward slashes, which is used to build a directory structure. All temporal schemes support the
-following common configuration option:
+Temporal schemes partition data based on time. The following names are supported:
 
-* ``dtg-attribute`` - The name of a ``Date``\ -type attribute from the SimpleFeatureType to use for partitioning data.
-  If not specified, the default date attribute is used.
+* ``year`` (or ``years`` / ``yearly``)
+* ``month`` (or ``months`` / ``monthly``)
+* ``week`` (or ``weeks`` / ``weekly``)
+* ``day`` (or ``days`` / ``daily``)
+* ``hour`` (or ``hours`` / ``hourly``)
 
-Date-Time Scheme
-^^^^^^^^^^^^^^^^
+The following options are supported:
 
-**Name:** ``datetime``
-
-**Configuration:**
-
-* ``datetime-format`` - A Java `DateTime format string <https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html>`__,
-  separated by forward slashes, which will be used to build a directory structure. For example, ``yyyy/MM/dd``.
-* ``step-unit`` - A ``java.time.temporal.ChronoUnit`` defining how to increment the leaf of the partition scheme
-* ``step`` - The amount to increment the leaf of the partition scheme. If not specified, defaults to ``1``
-
-The date-time scheme provides a fully customizable temporal scheme.
-
-Hourly Scheme
-^^^^^^^^^^^^^
-
-**Name:** ``hourly``
-
-The hourly scheme partitions data by the hour, using the layout ``yyyy/MM/dd/HH``.
-
-Minute Scheme
-^^^^^^^^^^^^^
-
-**Name:** ``minute``
-
-The minute scheme partitions data by the minute, using the layout ``yyyy/MM/dd/HH/mm``.
-
-Daily Scheme
-^^^^^^^^^^^^
-
-**Name:** ``daily``
-
-The daily scheme partitions data by the day, using the layout ``yyyy/MM/dd``.
-
-Weekly Scheme
-^^^^^^^^^^^^^
-
-**Name:** ``weekly``
-
-The weekly scheme partitions data by the week, using the layout ``yyyy/ww``.
-
-Monthly Scheme
-^^^^^^^^^^^^^^
-
-**Name:** ``monthly``
-
-The monthly scheme partitions data by the month, using the layout ``yyyy/MM``.
-
-Julian Schemes
-^^^^^^^^^^^^^^
-
-**Names:** ``julian-minute``, ``julian-hourly``, ``julian-daily``
-
-Julian schemes partition data by Julian day, instead of month/day. They use the patterns ``yyyy/DDD/HH/mm``,
-``yyyy/DDD/HH``, and ``yyyy/DDD`` respectively
-
-Receipt Time Scheme
-^^^^^^^^^^^^^^^^^^^
-
-**Name:** ``receipt-time``
-
-**Configuration:**
-
-* ``datetime-scheme`` - The name of another date-time scheme describing the layout of the data, e.g. ``weekly`` or
-  ``hourly``. Additional options may be required to configure the date-time scheme selected.
-* ``buffer`` - The amount of time to buffer queries by, expressed as a duration, e.g. ``30 minutes``. This represents
-  the latency in the system.
-
-The receipt time scheme partitions data based on when a message is received. Generally this is useful
-only for reading existing data that may have been aggregated and stored by an external process.
+* ``attribute`` - The name of a ``Date``\ -type attribute from the SimpleFeatureType to use. If not specified, the default
+  date attribute is used.
 
 Spatial Schemes
 ---------------
 
-Spatial schemes lay out data based on a space-filling curve. All spatial schemes support the following common
-configuration option:
+Spatial schemes lay out data based on a space-filling curve. The following names are supported:
 
-* ``geom-attribute`` - The name of a ``Geometry``\ -type attribute from the SimpleFeatureType to use for
-  partitioning data. If not specified, the default geometry is used.
+* ``z2`` - A curve suitable for point-type geometries
+* ``xz2`` - A curve suitable for geometries with extents (e.g. non-points such as line strings or polygons)
 
-Z2 Scheme
-^^^^^^^^^
+The following options are supported:
 
-**Name:** ``z2``
-
-**Configuration:**
-
-* ``z2-resolution`` - The number of bits of precision to use for z indexing. Must be a multiple of 2.
-
-The Z2 scheme uses a Z2 space-filling curve, and can only be used with Point-type geometries. Instead of specifying
-the resolution as a configuration option, it may be specified in the name, as ``z2-<n>bits``, where ``<n>`` is
-replaced with the Z2 resolution, e.g. ``z2-2bits``.
-
-XZ2 Scheme
-^^^^^^^^^^
-
-**Name:** ``xz2``
-
-**Configuration:**
-
-* ``xz2-resolution`` - The number of bits of precision to use for z indexing. Must be a multiple of 2.
-
-The XZ2 scheme uses an XZ2 space-filling curve, and can be used with any geometry type. Instead of specifying
-the resolution as a configuration option, it may be specified in the name, as ``xz2-<n>bits``, where ``<n>`` is
-replaced with the XZ2 resolution, e.g. ``xz2-2bits``.
+* ``attribute`` - The name of a ``Geometry``\ -type attribute from the SimpleFeatureType to use. If not specified, the
+  default geometry is used.
+* ``bits`` - The number of bits to use for the curve, which defines the area of each partition. For example, 2 bits would
+  create ``2 ^ 2`` (4) regions, while 3 bits would create ``2 ^ 3`` (8) regions.
 
 Attribute Schemes
 -----------------
 
-Attribute schemes lay out data based on a lexicoded attribute value.
+Attribute schemes partition data based on a lexicoded attribute value. The name must be:
 
-**Name:** ``attribute``
+* ``attribute``
 
-**Configuration:**
+The following options are supported:
 
-* ``partitioned-attribute`` - The name of an attribute from the SimpleFeatureType to use for partitioning data.
-* ``allow-list`` - An optional comma separated list of allowed paths to use for partitioning data that must
-  equal the value of the specified ``partitioned-attribute`` from partitioned SimpleFeatures, otherwise it will return
-  an empty list of partitions.
-* ``default-partition`` - An optional config for setting the default partition for null or not allowed attribute values.
-  If not set, if an ``allow-list`` is set then ``default-partition`` will be set to the head of the list, otherwise
-  ``default-partition`` will equal "".
+* ``default`` - A default value to use if the attribute is null
+* ``allow`` - An allowed value. ``allow`` may be specified more than once, in order to allow multiple values. If an attribute
+  is not in the allowed values, the the ``default`` value will be used instead
+
+The following additional options are supported to bucket the partition values, depending on the type of attribute being used:
+
+* ``width`` - For string type attributes, the value will be truncated to ``width`` max length
+* ``divisor`` - For integral type attributes (e.g. ints and longs), the value will be rounded down so that it is divisible by
+  ``divisor``. For example, with ``divisor=10``, ``100``, ``109``, etc will all be truncated to ``100``.
+* ``scale`` - For fractional type attributes (e.g. floats and doubles), the number of digits to keep to the right of the decimal
+  place. For example, with ``scale=2``, ``100.001``, ``100.009``, etc will all be truncated to ``100.00``

@@ -44,8 +44,8 @@ class FsGetFilesCommand extends FsDataStoreCommand {
       Command.output.info(s"$p:")
       // sort by chronological order
       files.sorted(StorageMetadata.StorageFileOrdering.reverse).foreach { f =>
-        Command.output.info(s"\t${f.action.toString.toUpperCase(Locale.US)} " +
-          s"${GeoToolsDateFormat.format(Instant.ofEpochMilli(f.timestamp))} ${f.file} (${f.count} features)")
+        Command.output.info(s"  ${f.file} ${f.action.toString.toUpperCase(Locale.US)} " +
+          s"${GeoToolsDateFormat.format(Instant.ofEpochMilli(f.timestamp))} ${f.count} features")
       }
     }
   }

@@ -13,7 +13,7 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemUpdateWriter, FileSystemWriter}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
 
 import java.io.{Closeable, Flushable}
 
@@ -73,6 +73,14 @@ trait FileSystemStorage extends Compactable with Closeable {
     * @return
     */
   def getWriter(filter: Filter, threads: Int = 1): FileSystemUpdateWriter
+
+  /**
+   * Register a new file with this storage instance. The file must already be in a compatible format.
+   *
+   * @param file file to register
+   * @return registered file
+   */
+  def register(file: Path): StorageFile
 
   override def close(): Unit = metadata.close()
 }

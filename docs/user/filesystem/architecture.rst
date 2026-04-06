@@ -11,8 +11,7 @@ low-latency ingest and cache-based datastores systems such as HBase or Kafka to 
 The GeoMesa FSDS consists of a few primary components:
 
 * **FileSystem** - A separately managed storage system that implements the GeoMesa FileSystem API
-* **Partition Scheme** - A strategy for laying out data on the filesystem
-* **Storage Format** - A defined format or encoding to store data in files
+* **Partition Scheme** - A strategy for grouping individual records into files in order to accelerate queries
 * **Query Engine** - A query engine or client to fulfill queries and run analytic jobs
 
 FileSystem
@@ -47,17 +46,15 @@ Metadata
 --------
 
 The FSDS stores metadata about partitions and data files, to avoid having to repeatedly interrogate the filesystem.
-By default, metadata information is stored as a change log in the file system. For more advanced use-cases, the
-FSDS also supports using a relational database. For more information, see :ref:`fsds_metadata`.
+For ease of use, metadata information can be stored as a change log in the file system, which does not require any additional
+infrastructure. For improved performance, metadata can instead be stored in a relational database. For more information,
+see :ref:`fsds_metadata`.
 
 Storage Formats
 ---------------
 
 * **Apache Parquet** - Apache Parquet is the leading interoperable columnar format in the Hadoop ecosystem. It
   provides efficient compression, storage, and query of structured data.
-
-* **Apache ORC** - Apache ORC is a self-describing type-aware columnar file format designed for Hadoop workloads. It
-  is optimized for large streaming reads, but with integrated support for finding required rows quickly.
 
 * **Converter Storage** - The converter storage format is a synthetic format which allows you to overlay a GeoMesa
   converter on top of a filesystem using a defined partition scheme. This allows you to utilize existing data stored

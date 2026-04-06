@@ -10,7 +10,7 @@
 package org.locationtech.geomesa.fs.storage.common
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.fs.{FileUtil, Path}
 import org.calrissian.mango.types.TypeEncoder
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -22,7 +22,7 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata._
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.api.observer.{FileSystemObserver, FileSystemObserverFactory}
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileTracker, UpdateObserver, WriterConfig}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileTracker, SortObserver, UpdateObserver, WriterConfig}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
@@ -48,6 +48,8 @@ abstract class AbstractFileSystemStorage(
     val metadata: StorageMetadata,
     extension: String
   ) extends FileSystemStorage with SizeableFileSystemStorage with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   // don't require observers if we never write any data
   lazy private val observers = {
@@ -177,6 +179,38 @@ abstract class AbstractFileSystemStorage(
 
       logger.debug(s"Compacted $written records")
     }
+  }
+
+  override def register(file: Path): StorageFile = {
+    val reader = createReader(None, None)
+    val tracker = new FileTracker(metadata.sft, Set.empty)
+    val partitions = new java.util.HashSet[Partition]()
+    val sorting = new SortObserver(metadata.sft)
+    WithClose(new UpdateObserver(tracker, Partition.None, "", StorageFileAction.Append)) { observer =>
+      WithClose(reader.read(file)) { iter =>
+        if (!iter.hasNext) {
+          throw new RuntimeException("Could not read any features from input file")
+        }
+        iter.foreach { sf =>
+          partitions.add(Partition(metadata.schemes.map(_.getPartition(sf))))
+          observer(sf)
+          sorting(sf)
+        }
+      }
+    }
+    if (partitions.size() != 1) {
+      throw new IllegalArgumentException(s"File corresponds to multiple partitions: ${partitions.asScala.mkString(" AND ")}")
+    }
+
+    val relativePath = StorageUtils.nextFile(metadata.sft.getTypeName, FileType.Written, encoding)
+    val destination = new Path(context.root, relativePath)
+    logger.debug(s"Copying $file to $destination")
+    FileUtil.copy(file.getFileSystem(context.conf), file, context.fs, destination, false, context.conf)
+
+    val result =
+      tracker.getFiles().head.copy(file = relativePath, partition = partitions.iterator().next(), sort = sorting.getSortAttributes)
+    metadata.addFile(result)
+    result
   }
 
   /**
@@ -402,6 +436,36 @@ object AbstractFileSystemStorage {
     }
 
     def build(): Option[AttributeBounds] = if (lower == null) { None } else { Some(AttributeBounds(i, lower, upper)) }
+  }
+
+  private class SortObserver(sft: SimpleFeatureType) extends FileSystemObserver {
+
+    private var sorted: Seq[(Int, Ordering[AnyRef], AnyRef)] = Range(0, sft.getAttributeCount).flatMap { i =>
+      val binding = sft.getDescriptor(i).getType.getBinding
+      if (classOf[Comparable[_]].isAssignableFrom(binding)) {
+        Some((i, Ordering.ordered[AnyRef](_.asInstanceOf[Comparable[AnyRef]]), null))
+      } else {
+        None
+      }
+    }
+
+    override def apply(feature: SimpleFeature): Unit = {
+      if (sorted.nonEmpty) {
+        sorted = sorted.flatMap { case (i, ordering, last) =>
+          val next = feature.getAttribute(i)
+          if (last == null || (next != null && ordering.compare(next, last) < 0)) {
+            Some((i, ordering, next))
+          } else {
+            None
+          }
+        }
+      }
+    }
+
+    override def flush(): Unit = {}
+    override def close(): Unit = {}
+
+    def getSortAttributes: Seq[Int] = sorted.map(_._1)
   }
 
   private case class WriterConfig(path: Path, partition: Partition, observer: FileSystemObserver)

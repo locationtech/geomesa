@@ -13,7 +13,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
@@ -45,6 +45,9 @@ class ConverterStorage(context: FileSystemContext,
 
   override def compact(partition: Partition, fileSize: Option[Long], threads: Int): Unit =
     throw new UnsupportedOperationException("Converter storage does not support compactions")
+
+  override def register(file: Path): StorageFile =
+    throw new UnsupportedOperationException("Converter storage does not support file registration")
 }
 
 object ConverterStorage {

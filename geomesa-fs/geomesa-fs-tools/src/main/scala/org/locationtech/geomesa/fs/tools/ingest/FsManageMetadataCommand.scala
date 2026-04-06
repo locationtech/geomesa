@@ -9,20 +9,15 @@
 package org.locationtech.geomesa.fs.tools.ingest
 
 import com.beust.jcommander.validators.PositiveInteger
-import com.beust.jcommander.{Parameter, ParameterException, Parameters}
+import com.beust.jcommander.{Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.{FileStatus, FileUtil, Path, RemoteIterator}
+import org.apache.hadoop.fs.{FileStatus, Path, RemoteIterator}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileTracker, UpdateObserver}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.CheckConsistencyCommand.ConsistencyChecker
-import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
@@ -36,12 +31,15 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 class FsManageMetadataCommand extends CommandWithSubCommands {
+
+  import FsManageMetadataCommand.{CheckConsistencyCommand, ManageMetadataParams, RegisterCommand, UnregisterCommand}
+
   override val name: String = "manage-metadata"
   override val params = new ManageMetadataParams
   override val subCommands: Seq[Command] = Seq(new RegisterCommand(), new UnregisterCommand(), new CheckConsistencyCommand())
 }
 
-object FsManageMetadataCommand {
+object FsManageMetadataCommand extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -54,73 +52,48 @@ object FsManageMetadataCommand {
       val storage = ds.storage(params.featureName)
       val metadata = storage.metadata
 
-      val path = if (params.copy) { new Path(params.file) } else { new Path(storage.context.root, params.file) }
-      if (!path.getFileSystem(storage.context.conf).exists(path)) {
-        throw new IllegalArgumentException(s"File $path does not exist")
-      }
-
-      val sort = params.sort.asScala.map { name =>
-        val i = metadata.sft.indexOf(name)
-        if (i == -1) {
-          throw new ParameterException(s"Invalid attribute for sort order, does not exist in the feature type: $name")
+      val paths = params.files.asScala.map { file =>
+        val path = new Path(file)
+        if (!path.getFileSystem(storage.context.conf).exists(path)) {
+          throw new IllegalArgumentException(s"File $path does not exist")
         }
-        i
+        path
       }
 
-      val reader = storage match {
-        case s: AbstractFileSystemStorage => s.createReader(None, None)
-        case s => throw new UnsupportedOperationException(s"File registration is not supported for storage class ${s.getClass.getName}")
-      }
-      val tracker = new FileTracker(metadata.sft, Set.empty)
-      val partitions = new java.util.HashSet[Partition]()
-      WithClose(new UpdateObserver(tracker, Partition.None, "", StorageFileAction.Append)) { observer =>
-        WithClose(reader.read(path)) { iter =>
-          if (!iter.hasNext) {
-            throw new RuntimeException("Could not read any features from input file")
-          }
-          iter.foreach { sf =>
-            partitions.add(Partition(metadata.schemes.map(_.getPartition(sf))))
-            observer(sf)
-          }
-        }
-      }
-      if (partitions.size() != 1) {
-        if (params.copy) {
-          storage.context.fs.delete(path, false)
-        }
-        throw new IllegalArgumentException(s"File corresponds to multiple partitions: ${partitions.asScala.mkString(" AND ")}")
-      }
-
-      val finalPath = if (!params.copy) { params.file } else {
-        val relativePath = StorageUtils.nextFile(metadata.sft.getTypeName, FileType.Written, storage.encoding)
-        val destination = new Path(storage.context.root, relativePath)
-        Command.user.info(s"Copying $path to $destination")
-        FileUtil.copy(path.getFileSystem(storage.context.conf), path, storage.context.fs, destination, false, storage.context.conf)
-        relativePath
-      }
-
-      val file = tracker.getFiles().head.copy(file = finalPath, partition = partitions.iterator().next(), sort = sort)
-      metadata.addFile(file)
-
-      Command.user.info(s"Registered file $path containing ${file.count} known features")
-      val bounds =
-        file.spatialBounds.map(b => s"${metadata.sft.getDescriptor(b.attribute).getLocalName} [${b.xmin},${b.ymin},${b.xmax},${b.ymax}]") ++
-          file.attributeBounds.map { b =>
-            val descriptor = metadata.sft.getDescriptor(b.attribute)
-            val alias = AttributeIndexKey.alias(descriptor.getType.getBinding)
-            val lower = AttributeIndexKey.decode(alias, b.lower) match {
-              case null => ""
-              case d: Date => DateParsing.formatDate(d)
-              case v => v.toString
+      def outputResult(file: StorageFile): Unit = {
+        Command.user.info(s"Registered file ${new Path(storage.context.root, file.file)} containing ${file.count} known features")
+        val bounds =
+          file.spatialBounds.map(b => s"${metadata.sft.getDescriptor(b.attribute).getLocalName} [${b.xmin},${b.ymin},${b.xmax},${b.ymax}]") ++
+            file.attributeBounds.map { b =>
+              val descriptor = metadata.sft.getDescriptor(b.attribute)
+              val alias = AttributeIndexKey.alias(descriptor.getType.getBinding)
+              val lower = AttributeIndexKey.decode(alias, b.lower) match {
+                case null => ""
+                case d: Date => DateParsing.formatDate(d)
+                case v => v.toString
+              }
+              val upper = AttributeIndexKey.decode(alias, b.upper) match {
+                case null => ""
+                case d: Date => DateParsing.formatDate(d)
+                case v => v.toString
+              }
+              s"${descriptor.getLocalName} [$lower,$upper]"
             }
-            val upper = AttributeIndexKey.decode(alias, b.upper) match {
-              case null => ""
-              case d: Date => DateParsing.formatDate(d)
-              case v => v.toString
-            }
-            s"${descriptor.getLocalName} [$lower,$upper]"
+        Command.user.info(s"File bounds:\n  ${bounds.mkString("\n  ")}")
+      }
+
+      try {
+        paths.foreach { path =>
+          outputResult(storage.register(path))
+          if (params.delete) {
+            path.getFileSystem(storage.context.conf).delete(path, false)
           }
-      Command.user.info(s"File bounds:\n  ${bounds.mkString("\n  ")}")
+        }
+      } catch {
+        case NonFatal(e) => throw new RuntimeException("Error registering file:", e)
+      }
+
+
     }
   }
 
@@ -291,24 +264,20 @@ object FsManageMetadataCommand {
   class ManageMetadataParams
 
   @Parameters(commandDescription = "Register new data files with a storage instance")
-  // noinspection VarCouldBeVal
   private class RegisterParams extends FsParams with RequiredTypeNameParam {
-    @Parameter(names = Array("--file"), description = "Path of the file to register, relative to the storage root", required = true)
-    var file: String = _
+    @Parameter(description = "Path of the file(s) to register", required = true)
+    // noinspection VarCouldBeVal
+    var files: java.util.List[String] = new java.util.ArrayList[String]()
 
-    @Parameter(
-      names = Array("--copy-file"),
-      description = "Copy the file into the storage root. If copying, the --file path should be an absolute path instead of relative to the storage root",
-      required = false)
-    var copy: java.lang.Boolean = false
-
-    @Parameter(names = Array("--sort"), description = "Name of any attributes that the file is sorted by", required = false)
-    var sort: java.util.List[String] = new java.util.ArrayList[String]()
+    @Parameter(names = Array("--delete"), description = "Delete file(s) after registering them")
+    // noinspection VarCouldBeVal
+    var delete: java.lang.Boolean = false
   }
 
   @Parameters(commandDescription = "Unregister data files from a storage instance")
   private class UnregisterParams extends FsParams with RequiredTypeNameParam {
     @Parameter(names = Array("--file"), description = "Path of the file to unregister, relative to the storage root", required = true)
+    // noinspection VarCouldBeVal
     var file: String = _
   }
 
