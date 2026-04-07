@@ -18,7 +18,6 @@ import java.net.URL
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.regex.Pattern
-import scala.util.Try
 
 object PathUtils extends FileSystemDelegate with LazyLogging {
 
@@ -102,7 +101,7 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     *
     * @param path path
     */
-  def deleteRecursively(path: Path): Unit = Files.walkFileTree(path, new DeleteFileVisitor)
+  def deleteRecursively(path: Path): Unit = Files.walkFileTree(path, new DeleteFileVisitor())
 
   private def chooseDelegate(path: String): FileSystemDelegate =
     if (hadoopDelegate != null && uriRegex.matcher(path).matches()) { hadoopDelegate } else { localDelegate }
@@ -110,7 +109,7 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
   /**
     * File visitor to delete nested paths
     */
-  class DeleteFileVisitor extends FileVisitor[Path] {
+  private class DeleteFileVisitor extends FileVisitor[Path] {
 
     override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = FileVisitResult.CONTINUE
 

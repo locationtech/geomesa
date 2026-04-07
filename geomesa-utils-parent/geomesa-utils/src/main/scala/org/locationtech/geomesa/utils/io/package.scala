@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils
 
 import com.typesafe.scalalogging.LazyLogging
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.util.{Failure, Success}
 
 package object io {
@@ -66,5 +67,27 @@ package object io {
 
     def apply[C1 : IsCloseable, C2 : IsCloseable, T](c1: C1, c2: => C2)(fn: (C1, C2) => T): T =
       apply(c1) { c1 => apply(c2) { c2 => fn(c1, c2) } }
+  }
+
+  /**
+   * Creates unique file names generated from a base name, by appending a sequence number
+   * before the file extension.
+   *
+   * For example, given the file name 'foo.txt', will return 'foo_000.txt', 'foo_001.txt', etc.
+   * If the iterator exceeds the specified number of digits, it will start to append additional
+   * digits to ensure uniqueness, e.g. 'foo_999.txt', 'foo_1000.txt', 'foo_1001.txt', etc.
+   *
+   * @param path file name path
+   * @param digits number of digits used to format the sequence number
+   */
+  class IncrementingFileName(path: String, digits: Int = 3) extends Iterator[String] {
+
+    private val i = new AtomicInteger(0)
+    private val format = s"_%0${digits}d"
+    private val (prefix, suffix) = PathUtils.getBaseNameAndExtension(path)
+
+    override def hasNext: Boolean = true
+
+    override def next(): String = s"$prefix${format.format(i.getAndIncrement())}$suffix"
   }
 }

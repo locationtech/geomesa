@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.`export`
+package org.locationtech.geomesa.utils.io
 
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith

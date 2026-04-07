@@ -20,9 +20,10 @@ As Kafka 4+ no longer supports Zookeeper, GeoMesa has deprecated support for usi
 FileSystem Data Store Compatibility
 -----------------------------------
 
-The file system data store has been substantially rewritten to improve performance. As such, feature types created with previous
-versions of GeoMesa are no longer readable. Data can be migrated by re-creating the schema and using the ``manage-metadata`` CLI
-command to re-register the existing data files.
+The file system data store has been substantially rewritten to improve performance. As part of that, the Orc file format is no
+longer supported. In addition, feature types created with previous versions of GeoMesa will not be readable. To migrate existing
+data, re-create the schema using the latest GeoMesa version, then use the ``manage-metadata register`` CLI command to re-register
+the existing data files.
 
 Default Secondary Attribute Index Changes
 -----------------------------------------
@@ -44,7 +45,6 @@ The following dependencies have been upgraded:
 * kafka ``3.9.0`` -> ``3.9.1``
 * micrometer ``1.15.4`` -> ``1.16.0``
 * nifi ``2.6.0`` -> ``2.7.2``
-* orc ``1.9.7`` -> ``1.9.8``
 * prometheus ``1.4.1`` -> ``1.4.3``
 * rhino ``1.7.14`` -> ``1.8.1``
 * scala 2.12 ``2.12.19`` -> ``2.12.20``
@@ -123,12 +123,6 @@ Relocated Classes
 
 * ``org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader`` ->
   ``org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader``
-* ``org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader`` -> ``org.locationtech.geomesa.fs.storage.orc.io``
-* ``org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage`` type description methods moved to ->
-  ``org.locationtech.geomesa.fs.storage.orc.io.SimpleFeatureTypeDescription``
-* ``org.locationtech.geomesa.fs.storage.orc.OrcFileSystemWriter`` -> ``org.locationtech.geomesa.fs.storage.orc.io``
-* ``org.locationtech.geomesa.fs.storage.orc.utils.OrcAttributeWriter`` -> ``org.locationtech.geomesa.fs.storage.orc.io``
-* ``org.locationtech.geomesa.fs.storage.orc.utils.OrcSearchArguments`` -> ``org.locationtech.geomesa.fs.storage.orc.io``
 * ``org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter`` ->
   ``org.locationtech.geomesa.fs.storage.parquet.io``
 * ``org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader`` ->
@@ -139,7 +133,6 @@ Relocated Classes
 * ``org.locationtech.geomesa.utils.index.BucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``
 * ``org.locationtech.geomesa.utils.index.WrappedQuadTree`` -> ``org.locationtech.geomesa.memory.index.impl``
 * ``org.locationtech.geomesa.utils.index.WrappedSTRtree`` -> ``org.locationtech.geomesa.memory.index.impl``
-* ``org.locationtech.geomesa.utils.io.IncrementingFileName`` -> ``org.locationtech.geomesa.tools.export``
 * ``org.locationtech.geomesa.utils.iterators.SimplePlaybackIterator`` -> ``org.locationtech.geomesa.kafka.tools.ingest``
 * ``org.locationtech.geomesa.utils.iterators.SortedMergeIterator`` -> ``org.locationtech.geomesa.index.view``
 * ``org.locationtech.geomesa.utils.kryo.NonMutatingInput`` -> ``org.locationtech.geomesa.features.kryo.impl``
