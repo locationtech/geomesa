@@ -76,6 +76,8 @@ The following modules have been removed:
 
 * ``geomesa-accumulo-spark-runtime-accumulo21`` (see above)
 * ``geomesa-fs-spark-runtime`` (see above)
+* ``geomesa-fs-storage-orc``
+* ``geomesa-fs-storage-orc-io``
 * ``geomesa-gt-spark-runtime`` (see above)
 * ``geomesa-hbase-spark-runtime-hbase2`` (see above)
 * ``geomesa-metrics-core``
