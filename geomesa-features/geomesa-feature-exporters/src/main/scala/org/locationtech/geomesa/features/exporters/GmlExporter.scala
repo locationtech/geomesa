@@ -18,7 +18,6 @@ import org.geotools.wfs.WFSConfiguration
 import org.geotools.xsd.Encoder
 import org.locationtech.geomesa.features.exporters.GmlExporter.AsyncFeatureCollection
 
-import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
@@ -35,7 +34,7 @@ import java.util.concurrent.{ConcurrentLinkedQueue, Executors, TimeUnit}
   * @param out output stream
   * @param configuration wfs configuration (gml3 vs gml2)
   */
-class GmlExporter private (out: OutputStream, configuration: WFSConfiguration)
+class GmlExporter private (out: ByteCounterStream, configuration: WFSConfiguration)
     extends FeatureExporter {
 
   private val encoder: Encoder = {
@@ -92,6 +91,8 @@ class GmlExporter private (out: OutputStream, configuration: WFSConfiguration)
     Some(count)
   }
 
+  override def bytes: Long = out.bytes
+
   override def close(): Unit = {
     try {
       if (fc != null) {
@@ -115,7 +116,7 @@ object GmlExporter {
     * @param out output stream
     * @return
     */
-  def apply(out: OutputStream): GmlExporter =
+  def apply(out: ByteCounterStream): GmlExporter =
     new GmlExporter(out, new org.geotools.wfs.v1_1.WFSConfiguration())
 
   /**
@@ -124,7 +125,7 @@ object GmlExporter {
     * @param out output stream
     * @return
     */
-  def gml2(out: OutputStream): GmlExporter =
+  def gml2(out: ByteCounterStream): GmlExporter =
     new GmlExporter(out, new org.geotools.wfs.v1_0.WFSConfiguration_1_0())
 
   /**

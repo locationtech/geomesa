@@ -44,7 +44,7 @@ class FeatureExporterTest extends Specification {
   "DelimitedExport" should {
     "properly export to CSV" >> {
       val features = createFeatures("DelimitedExportTest")
-      val os = new ByteArrayOutputStream()
+      val os = new ByteArrayExportStream()
       val export = DelimitedExporter.csv(os, withHeader = true, includeIds = true)
       export.start(features.head.getFeatureType)
       export.export(features.iterator)
@@ -62,7 +62,7 @@ class FeatureExporterTest extends Specification {
       // simulate a projecting read
       val sft = SimpleFeatureTypes.createType("DelimitedExportTest", "name:String,dtg:Date")
       val features = createFeatures("DelimitedExportTest").map(DataUtilities.reType(sft, _))
-      val os = new ByteArrayOutputStream()
+      val os = new ByteArrayExportStream()
       val export = DelimitedExporter.csv(os, withHeader = false, includeIds = false)
       export.start(sft)
       export.export(features.iterator)
@@ -78,7 +78,7 @@ class FeatureExporterTest extends Specification {
 
     "properly export to avro" >> {
       val features = createFeatures("AvroExportTest", 10)
-      val os = new ByteArrayOutputStream()
+      val os = new ByteArrayExportStream()
       val export = new AvroExporter(os, Some(Deflater.NO_COMPRESSION))
       export.start(features.head.getFeatureType)
       export.export(features.iterator)
@@ -101,7 +101,7 @@ class FeatureExporterTest extends Specification {
       val features = createFeatures("AvroExportTest", 10)
 
       val uncompressed :: compressed :: Nil = List(Deflater.NO_COMPRESSION, Deflater.DEFAULT_COMPRESSION).map { c =>
-        val os = new ByteArrayOutputStream()
+        val os = new ByteArrayExportStream()
         val export = new AvroExporter(os, Option(c))
         export.start(features.head.getFeatureType)
         export.export(features.iterator)
@@ -125,5 +125,12 @@ class FeatureExporterTest extends Specification {
 
       compressed.length must beLessThan(uncompressed.length)
     }
+  }
+
+  class ByteArrayExportStream extends ByteCounterStream {
+    private val os = new ByteArrayOutputStream()
+    override def bytes: Long = os.size()
+    override def write(b: Int): Unit = os.write(b)
+    def toByteArray: Array[Byte] = os.toByteArray
   }
 }

@@ -103,7 +103,7 @@ object ExportFormat {
 
   case object Null extends ExportFormat("null", Seq.empty, true, true, 0)
 
-  case object Parquet extends ExportFormat("parquet", Seq("parquet"), false, false, 1.6f)
+  case object Parquet extends ExportFormat("parquet", Seq("parquet"), false, true, 1.6f)
 
   case object Shp extends ExportFormat("shp", Seq("shp"), false, false, 105)
 

@@ -121,6 +121,8 @@ but are not meant to be publicly available.
 Relocated Classes
 ^^^^^^^^^^^^^^^^^
 
+* ``org.locationtech.geomesa.features.exporters.FileSystemExporter.ParquetFileSystemExporter`` ->
+  ``org.locationtech.geomesa.features.exporters.GeoParquetExporter``
 * ``org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader`` ->
   ``org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader``
 * ``org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter`` ->
@@ -146,6 +148,7 @@ Removed Classes
 * ``org.locationtech.geomesa.accumulo.util.TableUtils``
 * ``org.locationtech.geomesa.convert2.metrics.ConverterMetrics``
 * ``org.locationtech.geomesa.convert2.validators.IdValidator``
+* ``org.locationtech.geomesa.features.exporters.FileSystemExporter``
 * ``org.locationtech.geomesa.filter.index.BucketIndexSupport``
 * ``org.locationtech.geomesa.filter.index.SizeSeparatedBucketIndexSupport``
 * ``org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader``

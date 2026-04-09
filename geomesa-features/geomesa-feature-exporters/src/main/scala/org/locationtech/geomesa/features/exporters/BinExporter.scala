@@ -15,7 +15,7 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 
 import java.io.OutputStream
 
-class BinExporter(out: OutputStream, hints: Hints) extends FeatureExporter {
+class BinExporter(out: ByteCounterStream, hints: Hints) extends FeatureExporter {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -52,6 +52,8 @@ class BinExporter(out: OutputStream, hints: Hints) extends FeatureExporter {
     out.flush()
     Some(count)
   }
+
+  override def bytes: Long = out.bytes
 
   override def close(): Unit = out.close()
 }

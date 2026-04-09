@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets
 import java.time.{Instant, ZoneOffset}
 import java.util.Date
 
-class DelimitedExporter(out: OutputStream, format: CSVFormat, withHeader: Boolean, includeIds: Boolean)
+class DelimitedExporter(out: ByteCounterStream, format: CSVFormat, withHeader: Boolean, includeIds: Boolean)
     extends FeatureExporter with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
@@ -69,6 +69,8 @@ class DelimitedExporter(out: OutputStream, format: CSVFormat, withHeader: Boolea
     Some(count)
   }
 
+  override def bytes: Long = out.bytes
+
   override def close(): Unit =  if (printer != null) { printer.close() }
 
   private def stringify(obj: Any): String = obj match {
@@ -83,9 +85,9 @@ class DelimitedExporter(out: OutputStream, format: CSVFormat, withHeader: Boolea
 
 object DelimitedExporter {
 
-  def csv(out: OutputStream, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter =
+  def csv(out: ByteCounterStream, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter =
     new DelimitedExporter(out, CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL), withHeader, includeIds)
 
-  def tsv(out: OutputStream, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter =
+  def tsv(out: ByteCounterStream, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter =
     new DelimitedExporter(out, CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL), withHeader, includeIds)
 }

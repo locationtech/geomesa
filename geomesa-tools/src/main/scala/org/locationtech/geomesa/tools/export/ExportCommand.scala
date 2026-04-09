@@ -11,7 +11,6 @@ package org.locationtech.geomesa.tools.`export`
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
-import org.apache.commons.io.output.CountingOutputStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.mapreduce.Job
@@ -22,7 +21,6 @@ import org.geotools.api.filter.sort.SortOrder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption
-import org.locationtech.geomesa.features.exporters.FileSystemExporter.ParquetFileSystemExporter
 import org.locationtech.geomesa.features.exporters._
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
@@ -37,13 +35,11 @@ import org.locationtech.geomesa.tools.export.ExportCommand.{ChunkedExporter, Exp
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesConverter, ExportFormatConverter}
 import org.locationtech.geomesa.tools.utils.{JobRunner, NoopParameterSplitter, Prompt, TerminalCallback}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, FileHandle}
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils, WithClose}
 
 import java.io._
 import java.util.Collections
-import java.util.zip.GZIPOutputStream
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
@@ -460,7 +456,7 @@ object ExportCommand extends LazyLogging {
       case ExportFormat.Json       => new GeoJsonExporter(stream)
       case ExportFormat.Leaflet    => new LeafletMapExporter(stream)
       case ExportFormat.Null       => NullExporter
-      case ExportFormat.Parquet    => new ParquetFileSystemExporter(name)
+      case ExportFormat.Parquet    => new GeoParquetExporter(name)
       case ExportFormat.Shp        => new ShapefileExporter(new File(name))
       case ExportFormat.Tsv        => DelimitedExporter.tsv(stream, options.headers, fids)
       // shouldn't happen unless someone adds a new format and doesn't implement it here
@@ -471,16 +467,7 @@ object ExportCommand extends LazyLogging {
 
     override def export(features: Iterator[SimpleFeature]): Option[Long] = exporter.export(features)
 
-    def bytes: Long = {
-      if (options.format.streaming) {
-        stream.bytes
-      } else {
-        exporter match {
-          case e: ShapefileExporter => e.bytes
-          case _ => PathUtils.getHandle(name).length
-        }
-      }
-    }
+    override def bytes: Long = exporter.bytes
 
     override def close(): Unit = exporter.close()
   }
@@ -513,6 +500,8 @@ object ExportCommand extends LazyLogging {
     }
 
     override def export(features: Iterator[SimpleFeature]): Option[Long] = export(features, None)
+
+    override def bytes: Long = total
 
     override def close(): Unit = if (exporter != null) { exporter.close() }
 
@@ -557,66 +546,6 @@ object ExportCommand extends LazyLogging {
         export(features, exported)
       }
     }
-  }
-
-  /**
-   * Export output stream, lazily instantiated
-   *
-   * @param out file handle
-   * @param gzip gzip
-   */
-  class LazyExportStream(out: FileHandle, gzip: Option[Int] = None) extends ByteCounterStream {
-
-    private var stream: ExportStream = _
-
-    private def ensureStream(): OutputStream = {
-      if (stream == null) {
-        stream = new ExportStream(out, gzip)
-      }
-      stream
-    }
-
-    def bytes: Long = if (stream == null) { 0L } else { stream.bytes }
-
-    override def write(b: Array[Byte]): Unit = ensureStream().write(b)
-    override def write(b: Array[Byte], off: Int, len: Int): Unit = ensureStream().write(b, off, len)
-    override def write(b: Int): Unit = ensureStream().write(b)
-
-    override def flush(): Unit = if (stream != null) { stream.flush() }
-    override def close(): Unit = if (stream != null) { stream.close() }
-  }
-
-  /**
-   * Export output stream
-   *
-   * @param out file handle
-   * @param gzip gzip
-   */
-  class ExportStream(out: FileHandle, gzip: Option[Int] = None) extends ByteCounterStream {
-
-    // lowest level - keep track of the bytes we write
-    // do this before any compression, buffering, etc so we get an accurate count
-    private val counter = new CountingOutputStream(out.write(CreateMode.Create))
-    private val stream = {
-      val compressed = gzip match {
-        case None => counter
-        case Some(c) => new GZIPOutputStream(counter) { `def`.setLevel(c) } // hack to access the protected deflate level
-      }
-      new BufferedOutputStream(compressed)
-    }
-
-    override def bytes: Long = counter.getByteCount
-
-    override def write(b: Array[Byte]): Unit = stream.write(b)
-    override def write(b: Array[Byte], off: Int, len: Int): Unit = stream.write(b, off, len)
-    override def write(b: Int): Unit = stream.write(b)
-
-    override def flush(): Unit = stream.flush()
-    override def close(): Unit = stream.close()
-  }
-
-  trait ByteCounterStream extends OutputStream {
-    def bytes: Long
   }
 
   /**

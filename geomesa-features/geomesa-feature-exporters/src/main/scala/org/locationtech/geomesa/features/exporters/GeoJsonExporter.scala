@@ -14,7 +14,7 @@ import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
 
 import java.io.{OutputStream, OutputStreamWriter}
 
-class GeoJsonExporter(out: OutputStream) extends FeatureExporter {
+class GeoJsonExporter(out: ByteCounterStream) extends FeatureExporter {
 
   private var writer: JsonWriter = _
   private var serializer: GeoJsonSerializer = _
@@ -34,6 +34,8 @@ class GeoJsonExporter(out: OutputStream) extends FeatureExporter {
     writer.flush()
     Some(count)
   }
+
+  override def bytes: Long = out.bytes
 
   override def close(): Unit = {
     try {

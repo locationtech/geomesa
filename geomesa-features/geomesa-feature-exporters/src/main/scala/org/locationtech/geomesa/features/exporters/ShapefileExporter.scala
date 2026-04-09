@@ -78,7 +78,7 @@ class ShapefileExporter(file: File) extends FeatureExporter {
    *
    * @return bytes written
    */
-  def bytes: Long = {
+  override def bytes: Long = {
     val files = new ShpFiles(url)
     try {
       var sum = 0L

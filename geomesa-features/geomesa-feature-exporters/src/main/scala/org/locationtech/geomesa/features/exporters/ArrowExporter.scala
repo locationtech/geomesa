@@ -20,7 +20,7 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io._
 
-class ArrowExporter(out: OutputStream, hints: Hints) extends FeatureExporter {
+class ArrowExporter(out: ByteCounterStream, hints: Hints) extends FeatureExporter {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -50,6 +50,8 @@ class ArrowExporter(out: OutputStream, hints: Hints) extends FeatureExporter {
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = delegate.export(features)
 
+  override def bytes: Long = out.bytes
+
   override def close(): Unit = {
     CloseWithLogging(Option(delegate))
     out.close()
@@ -65,6 +67,7 @@ object ArrowExporter {
       features.foreach(f => os.write(f.getAttribute(0).asInstanceOf[Array[Byte]]))
       None // we don't know the actual count
     }
+    override def bytes: Long = 0L
     override def close(): Unit = {}
   }
 
@@ -96,6 +99,8 @@ object ArrowExporter {
       }
       Some(count - start)
     }
+
+    override def bytes: Long = 0L
 
     override def close(): Unit = {
       if (writer != null) {
@@ -136,6 +141,8 @@ object ArrowExporter {
       }
       Some(count - start)
     }
+
+    override def bytes: Long = 0L
 
     override def close(): Unit = {
       if (writer != null) {
