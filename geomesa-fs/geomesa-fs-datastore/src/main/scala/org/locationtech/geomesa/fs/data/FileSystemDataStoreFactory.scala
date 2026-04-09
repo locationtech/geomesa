@@ -17,7 +17,6 @@ import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemSto
 import org.locationtech.geomesa.fs.storage.common.metadata.{ConverterMetadata, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorageFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
-import org.locationtech.geomesa.security.AuthUtils
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.hadoop.HadoopUtils
 

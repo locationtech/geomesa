@@ -15,7 +15,8 @@ import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.RangeBuilder.BoundsOrdering
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 
-import java.util.Collections
+import scala.annotation.tailrec
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * Scheme for partitioning features into various named partitions (e.g. file paths) on disk, for
@@ -118,9 +119,6 @@ object PartitionScheme extends LazyLogging {
     }
   }
 
-  // there should be no duplicates in covered partitions, as our bounds will not overlap,
-  // but there may be multiple partial intersects with a given partition
-
   /**
    * Class to merge overlapping ranges.
    *
@@ -132,49 +130,31 @@ object PartitionScheme extends LazyLogging {
    */
   class RangeBuilder {
 
-    import scala.collection.JavaConverters._
+    private val ranges = ArrayBuffer.empty[PartitionRange]
 
-    private val ranges = new java.util.ArrayList[PartitionRange]()
+    def +=(range: PartitionRange): Unit = ranges += range
 
-    def +=(range: PartitionRange): Unit = {
-      if (ranges.isEmpty) {
-        ranges.add(range)
+    def result(): Seq[PartitionRange] = {
+      val all = ranges.sorted(BoundsOrdering)
+      if (all.lengthCompare(1) <= 0) {
+        all.toSeq
       } else {
-        val i = Collections.binarySearch(ranges, range, BoundsOrdering)
-        if (i < 0) {
-          val insertionPoint = -1 * (i + 1)
-          if (insertionPoint == 0) {
-            ranges.get(0).merge(range) match {
-              case Some(r) => ranges.set(0, r)
-              case None => ranges.add(0, range)
-            }
-          } else if (insertionPoint == ranges.size()) {
-            ranges.get(insertionPoint - 1).merge(range) match {
-              case Some(r) => ranges.set(insertionPoint - 1, r)
-              case None => ranges.add(range)
-            }
-          } else {
-            ranges.get(insertionPoint - 1).merge(range) match {
-              case Some(r) => ranges.set(insertionPoint - 1, r)
-              case None =>
-                ranges.get(insertionPoint).merge(range) match {
-                  case Some(r) => ranges.set(insertionPoint, r)
-                  case None => ranges.add(insertionPoint, range)
-                }
-            }
-          }
-        } else {
-          ranges.get(i).merge(range) match {
-            case Some(r) => ranges.set(i, r)
+        // merge any overlapping ranges that resulted
+        val result = Seq.newBuilder[PartitionRange]
+        var current = all.head
+        all.tail.foreach { range =>
+          current.merge(range) match {
             case None =>
-              logger.warn(s"Found a matching range that doesn't merge: ${ranges.get(i)} and $range")
-              ranges.add(i, range)
+              result += current
+              current = range
+            case Some(merged) =>
+              current = merged
           }
         }
+        result += current
+        result.result()
       }
     }
-
-    def result(): Seq[PartitionRange] = ranges.asScala.toSeq
   }
 
   object RangeBuilder {

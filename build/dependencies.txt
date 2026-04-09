@@ -155,9 +155,6 @@ org.apache.hbase:hbase-protocol-shaded:2.6.3-hadoop3:compile
 org.apache.hbase:hbase-protocol:2.6.3-hadoop3:compile
 org.apache.hbase:hbase-replication:2.6.3-hadoop3:compile
 org.apache.hbase:hbase-zookeeper:2.6.3-hadoop3:compile
-org.apache.orc:orc-core:nohive:1.9.8:compile
-org.apache.orc:orc-mapreduce:nohive:1.9.8:compile
-org.apache.orc:orc-shims:1.9.8:compile
 org.apache.parquet:parquet-avro:1.13.1:compile
 org.apache.parquet:parquet-avro:1.15.2:compile
 org.apache.parquet:parquet-column:1.15.2:compile
@@ -249,7 +246,6 @@ org.geotools:gt-referencing:34.2:compile
 org.geotools:gt-shapefile:34.2:compile
 org.geotools:gt-xml:34.2:compile
 org.huldra.math:bigint:0.7.1:compile
-org.jetbrains:annotations:17.0.0:compile
 org.jruby.jcodings:jcodings:1.0.58:compile
 org.jruby.joni:joni:2.2.1:compile
 org.jspecify:jspecify:1.0.0:compile
@@ -267,7 +263,6 @@ org.scala-lang.modules:scala-xml_2.12:2.2.0:compile
 org.scala-lang:scala-library:2.12.20:compile
 org.scala-lang:scala-reflect:2.12.20:compile
 org.slf4j:slf4j-api:1.7.36:compile
-org.threeten:threeten-extra:1.7.1:compile
 org.xmlresolver:xmlresolver:5.2.2:compile
 org.xmlresolver:xmlresolver:data:5.2.2:compile
 org.yaml:snakeyaml:2.4:compile
@@ -419,6 +414,7 @@ org.apache.logging.log4j:log4j-core:2.20.0:provided
 org.apache.logging.log4j:log4j-slf4j2-impl:2.20.0:provided
 org.apache.orc:orc-core:shaded-protobuf:1.9.7:provided
 org.apache.orc:orc-mapreduce:shaded-protobuf:1.9.7:provided
+org.apache.orc:orc-shims:1.9.8:provided
 org.apache.parquet:parquet-column:1.13.1:provided
 org.apache.parquet:parquet-common:1.13.1:provided
 org.apache.parquet:parquet-encoding:1.13.1:provided
@@ -486,6 +482,7 @@ org.glassfish.jersey.inject:jersey-hk2:2.40:provided
 org.jamon:jamon-runtime:2.4.1:provided
 org.javassist:javassist:3.29.2-GA:provided
 org.javassist:javassist:3.30.2-GA:provided
+org.jetbrains:annotations:17.0.0:provided
 org.jline:jline:3.9.0:provided
 org.json4s:json4s-ast_2.12:3.7.0-M11:provided
 org.json4s:json4s-core_2.12:3.7.0-M11:provided
@@ -517,6 +514,7 @@ org.springframework:spring-context:5.3.39:provided
 org.springframework:spring-core:5.3.39:provided
 org.springframework:spring-expression:5.3.39:provided
 org.springframework:spring-jcl:5.3.39:provided
+org.threeten:threeten-extra:1.7.1:provided
 org.tukaani:xz:1.9:provided
 org.wildfly.openssl:wildfly-openssl:2.1.4.Final:provided
 org.yaml:snakeyaml:2.0:provided

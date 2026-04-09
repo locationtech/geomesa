@@ -33,11 +33,8 @@ import scala.concurrent.duration.Duration
  * @param catalog metadata catalog
  * @param config config
  */
-class FileSystemDataStore(
-    val storageFactory: FileSystemStorageFactory,
-    catalog: StorageMetadataCatalog,
-    config: FileSystemDataStoreConfig,
-  ) extends ContentDataStore with HasGeoMesaStats with LazyLogging {
+class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: StorageMetadataCatalog, config: FileSystemDataStoreConfig)
+    extends ContentDataStore with HasGeoMesaStats with LazyLogging {
 
   import scala.collection.JavaConverters._
 

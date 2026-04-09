@@ -9,7 +9,7 @@ Use the following parameters for a FileSystem data store (required parameters ar
 Parameter                          Type   Description
 ================================== ====== ========================================================================================
 ``fs.path *``                      String The root path to write and read data from (e.g. ``s3a://mybucket/datastores/testds``)
-``fs.metadata.type *``             String Format for storing metadata. Must be one of ``file`` or ``jdbc``. See
+``fs.metadata.type *``             String Format for storing metadata. Must be one of ``file``, ``jdbc`` or ``converter``. See
                                           :ref:`fsds_metadata` for details
 ``fs.metadata.config``             String Additional configuration for the metadata storage (e.g. database URL, etc), in Java
                                           properties format. Environment variables in property values will be interpolated
