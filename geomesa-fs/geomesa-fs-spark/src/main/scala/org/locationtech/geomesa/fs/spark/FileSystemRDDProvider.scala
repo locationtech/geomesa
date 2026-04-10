@@ -89,9 +89,9 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
         logger.debug("Reading 0 partitions")
         sc.emptyRDD[SimpleFeature]
       } else {
-        val noModsRdd = if (noMods.isEmpty) { sc.emptyRDD[SimpleFeature] } else { runAppendQuery(query.getFilter, noMods) }
+        val noModsRdd = if (noMods.isEmpty) { sc.emptyRDD[SimpleFeature] } else { runAppendQuery(query.getFilter, noMods.toSeq) }
         val withModsRdd = withMods.map { case (_, files) =>
-          val rdd = runModsQuery(query.getFilter, files)
+          val rdd = runModsQuery(query.getFilter, files.toSeq)
           // group updates by feature ID, then take the most recent
           rdd.groupBy(_._1.id).flatMap { case (_, group) =>
             val (action, sf) = group.minBy(_._1)

@@ -476,7 +476,7 @@ object AbstractFileSystemStorage {
     override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
     override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit =
       throw new UnsupportedOperationException()
-    override def getFiles(): Seq[StorageFile] = files.asScala
+    override def getFiles(): Seq[StorageFile] = files.asScala.toSeq
     override def getFiles(partition: Partition): Seq[StorageFile] = throw new UnsupportedOperationException()
     override def getFiles(filter: Filter): Seq[StorageFile] = throw new UnsupportedOperationException()
     override def close(): Unit = {}

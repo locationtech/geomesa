@@ -224,7 +224,7 @@ object AttributeScheme {
     import Fractional.Implicits.infixFractionalOps
     private val fractional = implicitly[Fractional[T]]
     val scaleT: T = fractional.fromInt(math.pow(10, scale).toInt)
-    override def apply(value: T): T = fractional.fromInt(Math.floor((value * scaleT).toDouble()).toInt) / scaleT
+    override def apply(value: T): T = fractional.fromInt(Math.floor((value * scaleT).toDouble).toInt) / scaleT
     override def encoded: String = s"scale=$scale"
   }
 
@@ -296,8 +296,8 @@ object AttributeScheme {
       val lower = bounds.lower.value.get
       val delta = bounds.upper.value.get - lower
       divisor.map(_.divisor) match {
-        case None => Seq.tabulate(delta.toInt())(i => PartitionKey(name, lexicoder.encode(lower + integral.fromInt(i))))
-        case Some(d) => Seq.tabulate((delta / d).toInt())(i => PartitionKey(name, lexicoder.encode(lower + (d * integral.fromInt(i)))))
+        case None => Seq.tabulate(delta.toInt)(i => PartitionKey(name, lexicoder.encode(lower + integral.fromInt(i))))
+        case Some(d) => Seq.tabulate((delta / d).toInt)(i => PartitionKey(name, lexicoder.encode(lower + (d * integral.fromInt(i)))))
       }
     }
   }

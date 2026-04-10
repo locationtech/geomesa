@@ -98,7 +98,7 @@ class FileBasedMetadata(
       if (PathCache.exists(fs, filesFilePath) || PathCache.exists(fs, filesFilePath, reload = true)) {
         WithClose(fs.open(filesFilePath)) { in =>
           val listType = new TypeToken[java.util.List[StorageFile]]() {}.getType
-          gson.fromJson[java.util.List[StorageFile]](new InputStreamReader(in, StandardCharsets.UTF_8), listType).asScala
+          gson.fromJson[java.util.List[StorageFile]](new InputStreamReader(in, StandardCharsets.UTF_8), listType).asScala.toSeq
         }
       } else {
         Seq.empty
