@@ -15,7 +15,6 @@ import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.RangeBuilder.BoundsOrdering
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 
-import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -71,7 +70,7 @@ trait PartitionScheme {
    * @param partition partition to cover
    * @return filter
    */
-  def getCoveringFilter(partition: String): Filter
+  def getCoveringFilter(partition: PartitionKey): Filter
 }
 
 object PartitionScheme extends LazyLogging {
@@ -124,9 +123,6 @@ object PartitionScheme extends LazyLogging {
    *
    * Our bounds extraction does not produce any overlapping ranges, but once converted to partitions there
    * may be some overlap.
-   *
-   * This class keeps ranges in sorted order (based on the lower bound), and uses binary search to identify
-   * which range(s) may overlap with each newly generated range.
    */
   class RangeBuilder {
 

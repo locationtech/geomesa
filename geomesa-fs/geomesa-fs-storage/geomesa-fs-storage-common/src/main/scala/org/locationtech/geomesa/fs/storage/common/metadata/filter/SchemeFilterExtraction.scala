@@ -19,6 +19,9 @@ import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterEx
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.jts.geom.Envelope
 
+/**
+ * Mixin trait for matching partitions against a CQL filter
+ */
 trait SchemeFilterExtraction extends AnyLogging {
 
   this: StorageMetadata =>
@@ -63,27 +66,25 @@ trait SchemeFilterExtraction extends AnyLogging {
     result.result()
   }
 
-  private def extractGeometries(filter: Filter): And[SpatialBound] = {
-    val bounds = sft.spatialBounds().flatMap { i =>
+  private def extractGeometries(filter: Filter): Seq[SpatialOr] = {
+    sft.spatialBounds().flatMap { i =>
       val ors = FilterHelper.extractGeometries(filter, sft.getDescriptor(i).getLocalName).values.flatMap { g =>
         SpatialBound(g.getEnvelopeInternal)
       }
-      if (ors.isEmpty) { None } else { Some(Or(i, ors)) }
+      if (ors.isEmpty) { None } else { Some(SpatialOr(i, ors)) }
     }
-    And(bounds)
   }
 
-  private def extractAttributes(filter: Filter): And[AttributeBound] = {
-    val bounds = sft.nonSpatialBounds().flatMap { i =>
+  private def extractAttributes(filter: Filter): Seq[AttributeOr] = {
+    sft.nonSpatialBounds().flatMap { i =>
       val d = sft.getDescriptor(i)
       val ors = FilterHelper.extractAttributeBounds(filter, d.getLocalName, d.getType.getBinding).values.map { b =>
         val lower = b.lower.value.map(AttributeIndexKey.typeEncode).getOrElse("")
         val upper = b.upper.value.map(AttributeIndexKey.typeEncode).getOrElse("zzz")
         AttributeBound(lower, upper)
       }
-      if (ors.isEmpty) { None } else { Some(Or(i, ors)) }
+      if (ors.isEmpty) { None } else { Some(AttributeOr(i, ors)) }
     }
-    And(bounds)
   }
 }
 
@@ -94,15 +95,18 @@ object SchemeFilterExtraction {
    *
    * @param filter remaining ECQL filter that isn't accounted for with the other bounds
    * @param partitions list of partition bound predicates (implicit AND between each element in the seq)
-   * @param spatialBounds list of spatial bound predicates
-   * @param attributeBounds list of attribute bound predicates
+   * @param spatialBounds list of spatial bound predicates (implicit AND between each element in the seq)
+   * @param attributeBounds list of attribute bound predicates (implicit AND between each element in the seq)
    */
   case class SchemeFilter(
     filter: Filter,
     partitions: Seq[PartitionRange],
-    spatialBounds: And[SpatialBound],
-    attributeBounds: And[AttributeBound]
+    spatialBounds: Seq[SpatialOr],
+    attributeBounds: Seq[AttributeOr]
   )
+
+  case class SpatialOr(attribute: Int, bounds: Seq[SpatialBound])
+  case class AttributeOr(attribute: Int, bounds: Seq[AttributeBound])
 
   case class SpatialBound(xmin: Double, ymin: Double, xmax: Double, ymax: Double) {
     def intersects(other: SpatialBounds): Boolean =
@@ -123,11 +127,5 @@ object SchemeFilterExtraction {
 
   case class AttributeBound(lower: String, upper: String) {
     def intersects(other: AttributeBounds): Boolean = other.lower <= upper && other.upper >= lower
-  }
-
-  case class Or[T](attribute: Int, bounds: Seq[T])
-  case class And[T](values: Seq[Or[T]])
-  object And {
-    def empty[T]: And[T] = And(Seq.empty)
   }
 }

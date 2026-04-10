@@ -17,12 +17,14 @@ import org.apache.hadoop.mapreduce.security.TokenCache
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorageFactory}
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileTracker, UpdateObserver}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.StorageFileObserver
 import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.jobs.PartitionOutputFormat.SingleFileOutputFormat
 import org.locationtech.geomesa.fs.storage.common.metadata.StorageMetadataCatalog
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FileSizeEstimator}
+
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
   * Output format that writes to multiple partition files
@@ -60,8 +62,8 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
       val encoding = StorageConfiguration.getEncoding(conf)
       val metadataType = StorageConfiguration.getMetadataType(conf)
       val metadataConfig = StorageConfiguration.getMetadataConfig(conf)
-      val metadata = StorageMetadataCatalog(fsc, metadataType, metadataConfig).load(StorageConfiguration.getSftName(conf))
-      FileSystemStorageFactory(fsc, metadata, encoding)
+      val catalog = StorageMetadataCatalog(fsc, metadataType, metadataConfig)
+      FileSystemStorageFactory(encoding).apply(fsc, catalog.load(StorageConfiguration.getSftName(conf)))
     }
 
     private val fileType = StorageConfiguration.getFileType(context.getConfiguration)
@@ -101,13 +103,16 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
 
     private sealed abstract class PartitionState(partition: Partition) {
 
-      private val fileTracker = new FileTracker(storage.metadata.sft, storage.metadata.schemes)
+      import scala.collection.JavaConverters._
+
+      private val files = new CopyOnWriteArrayList[StorageFile]()
       private val counter = context.getCounter(Group, StorageConfiguration.Counters.partition(partition.toString))
 
-      private var observer: UpdateObserver = _
+      private var observer: StorageFileObserver = _
+      private var currentFile: String = _
 
       // noinspection AccessorLikeMethodIsEmptyParen
-      def getFiles(): Seq[StorageFile] = fileTracker.getFiles()
+      def getFiles(): Seq[StorageFile] = files.asScala.toSeq
 
       def write(key: Void, value: SimpleFeature): Unit = observer.apply(value)
 
@@ -115,9 +120,9 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
 
       protected def newWriter(): (Path, RecordWriter[Void, SimpleFeature]) = {
         closeCurrentFile()
-        val nextFile = StorageUtils.nextFile(storage.metadata.sft.getTypeName, fileType, "parquet")
-        observer = new UpdateObserver(fileTracker, partition, nextFile, StorageFileAction.Append)
-        val path = new Path(workPath, nextFile)
+        currentFile = StorageUtils.newFilePath(storage.metadata.sft.getTypeName, fileType, "parquet")
+        observer = new StorageFileObserver(storage.metadata.sft)
+        val path = new Path(workPath, currentFile)
         logger.debug(s"Creating record writer at path $path")
         // noinspection LanguageFeature
         (path, delegate.getRecordWriter(context, path))
@@ -126,8 +131,10 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
       private def closeCurrentFile(): Unit = {
         if (observer != null) {
           observer.close()
+          val file = observer.file(currentFile, partition, StorageFileAction.Append)
+          files.add(file)
           observer = null
-          counter.increment(fileTracker.getFiles().last.count)
+          counter.increment(file.count)
         }
       }
     }
@@ -169,9 +176,9 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
         count += 1
         remaining -= 1
         if (remaining == 0) {
-          logger.debug(s"File length before closing: ${storage.context.fs.getFileStatus(path).getLen} $path")
+          // TODO if we can access the underlying parquet writer we can check the size without closing the file
           writer.close(context)
-          logger.debug(s"File length after closing: ${storage.context.fs.getFileStatus(path).getLen} $path")
+          logger.debug(s"File length: ${storage.context.fs.getFileStatus(path).getLen} $path")
           writer = null
           // adjust our estimate to account for the actual bytes written
           total += storage.context.fs.getFileStatus(path).getLen

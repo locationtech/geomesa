@@ -24,7 +24,7 @@ object StorageUtils {
     * @param fileType file type
     * @return
     */
-  def nextFile(typeName: String, fileType: FileType.FileType, ext: String): String = {
+  def newFilePath(typeName: String, fileType: FileType.FileType, ext: String): String = {
     val filename =
       s"${fileType}_${SafeNameRegex.replaceAllIn(typeName, "-").take(20)}_${UUID.randomUUID().toString.replaceAllLiterally("-", "")}.$ext"
     // partitioning logic taken from Apache Iceberg: https://iceberg.apache.org/docs/nightly/aws/#object-store-file-layout
@@ -41,7 +41,6 @@ object StorageUtils {
     type FileType = Value
     val Written  : Value = Value("w")
     val Compacted: Value = Value("c")
-    val Imported : Value = Value("i")
     val Modified : Value = Value("m")
     val Deleted  : Value = Value("d")
   }

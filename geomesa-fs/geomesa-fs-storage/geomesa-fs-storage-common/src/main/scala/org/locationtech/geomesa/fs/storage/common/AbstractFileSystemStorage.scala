@@ -22,7 +22,7 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata._
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.api.observer.{FileSystemObserver, FileSystemObserverFactory}
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileTracker, SortObserver, UpdateObserver, WriterConfig}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileTracker, MetadataObserver, StorageFileObserver, WriterConfig}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
@@ -89,7 +89,7 @@ abstract class AbstractFileSystemStorage(
     * @param transform transform
     * @return
     */
-  protected[fs] def createReader(
+  protected def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader
 
@@ -183,10 +183,8 @@ abstract class AbstractFileSystemStorage(
 
   override def register(file: Path): StorageFile = {
     val reader = createReader(None, None)
-    val tracker = new FileTracker(metadata.sft, Set.empty)
     val partitions = new java.util.HashSet[Partition]()
-    val sorting = new SortObserver(metadata.sft)
-    WithClose(new UpdateObserver(tracker, Partition.None, "", StorageFileAction.Append)) { observer =>
+    val storageFile = WithClose(new StorageFileObserver(metadata.sft)) { observer =>
       WithClose(reader.read(file)) { iter =>
         if (!iter.hasNext) {
           throw new RuntimeException("Could not read any features from input file")
@@ -194,23 +192,21 @@ abstract class AbstractFileSystemStorage(
         iter.foreach { sf =>
           partitions.add(Partition(metadata.schemes.map(_.getPartition(sf))))
           observer(sf)
-          sorting(sf)
         }
       }
+      val filePath = StorageUtils.newFilePath(metadata.sft.getTypeName, FileType.Written, encoding)
+      observer.file(filePath, partitions.iterator().next(), StorageFileAction.Append)
     }
     if (partitions.size() != 1) {
       throw new IllegalArgumentException(s"File corresponds to multiple partitions: ${partitions.asScala.mkString(" AND ")}")
     }
 
-    val relativePath = StorageUtils.nextFile(metadata.sft.getTypeName, FileType.Written, encoding)
-    val destination = new Path(context.root, relativePath)
+    val destination = new Path(context.root, storageFile.file)
     logger.debug(s"Copying $file to $destination")
     FileUtil.copy(file.getFileSystem(context.conf), file, context.fs, destination, false, context.conf)
 
-    val result =
-      tracker.getFiles().head.copy(file = relativePath, partition = partitions.iterator().next(), sort = sorting.getSortAttributes)
-    metadata.addFile(result)
-    result
+    metadata.addFile(storageFile)
+    storageFile
   }
 
   /**
@@ -231,9 +227,9 @@ abstract class AbstractFileSystemStorage(
       metadata: StorageMetadata = this.metadata): FileSystemWriter = {
 
     def pathAndObserver: WriterConfig = {
-      val file = StorageUtils.nextFile(metadata.sft.getTypeName, fileType, extension)
+      val file = StorageUtils.newFilePath(metadata.sft.getTypeName, fileType, extension)
       val path = new Path(context.root, file)
-      val updateObserver = new UpdateObserver(metadata, partition, file, action)
+      val updateObserver = new MetadataObserver(metadata, file, partition, action)
       val observer = if (observers.isEmpty) { updateObserver } else {
         new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))
       }
@@ -345,54 +341,50 @@ abstract class AbstractFileSystemStorage(
 object AbstractFileSystemStorage {
 
   /**
-   * Can be used with an UpdateObserver to return storage files instead of writing them directly to the metadata
-   *
-   * @param sft simple feature type
-   * @param schemes partition schemes
+   * Gathers partition metadata for a file
    */
-  class FileTracker(val sft: SimpleFeatureType, val schemes: Set[PartitionScheme]) extends StorageMetadata {
-
-    import scala.collection.JavaConverters._
-
-    private val files = new CopyOnWriteArrayList[StorageFile]()
-
-    override def `type`: String = "memory"
-    override def addFile(file: StorageFile): Unit = files.add(file)
-    override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
-    override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit =
-      throw new UnsupportedOperationException()
-    override def getFiles(): Seq[StorageFile] = files.asScala
-    override def getFiles(partition: Partition): Seq[StorageFile] = throw new UnsupportedOperationException()
-    override def getFiles(filter: Filter): Seq[StorageFile] = throw new UnsupportedOperationException()
-    override def close(): Unit = {}
-  }
-
-  /**
-   * Writes partition data to the metadata
-   *
-   * @param partition partition being written
-   * @param file file being written
-   * @param action file type
-   */
-  class UpdateObserver(metadata: StorageMetadata, partition: Partition, file: String, action: StorageFileAction)
-      extends FileSystemObserver with LazyLogging {
+  class StorageFileObserver(sft: SimpleFeatureType) extends FileSystemObserver with LazyLogging {
 
     import scala.collection.JavaConverters._
 
     private var count: Long = 0L
 
-    private val spatialBounds = metadata.sft.spatialBounds().map(_ -> new Envelope())
+    private val spatialBounds = sft.spatialBounds().map(_ -> new Envelope())
 
-    private val nonSpatialBounds = metadata.sft.nonSpatialBounds().flatMap { i =>
-      val binding = metadata.sft.getDescriptor(i).getType.getBinding
+    private val nonSpatialBounds = sft.nonSpatialBounds().flatMap { i =>
+      val binding = sft.getDescriptor(i).getType.getBinding
       AttributeIndexKey.TypeRegistry.getAllEncoders.asScala.find(_.resolves().isAssignableFrom(binding)) match {
         case Some(encoder) => Some(AttributeBoundsBuilder(i, encoder.asInstanceOf[TypeEncoder[AnyRef, String]]))
         case None =>
           logger.warn(
-            s"Can't find an encoder for attribute ${metadata.sft.getDescriptor(i).getLocalName} of type ${binding.getSimpleName} - " +
+            s"Can't find an encoder for attribute ${sft.getDescriptor(i).getLocalName} of type ${binding.getSimpleName} - " +
               "will not track bounds")
           None
       }
+    }
+
+    private var sorted: Seq[(Int, Ordering[AnyRef], AnyRef)] = Range(0, sft.getAttributeCount).flatMap { i =>
+      val binding = sft.getDescriptor(i).getType.getBinding
+      if (classOf[Comparable[_]].isAssignableFrom(binding)) {
+        Some((i, Ordering.ordered[AnyRef](_.asInstanceOf[Comparable[AnyRef]]), null))
+      } else {
+        None
+      }
+    }
+
+    /**
+     * Get the file metadata that has been gathered so far
+     *
+     * @param path file path
+     * @param partition file partition
+     * @param action file action
+     * @return
+     */
+    def file(path: String, partition: Partition, action: StorageFileAction): StorageFile = {
+      val spatial = spatialBounds.flatMap { case (i, env) => SpatialBounds(i, env) }
+      val nonSpatial = nonSpatialBounds.flatMap(_.build())
+      val sort = sorted.map(_._1)
+      StorageFile(path, partition, count, action, spatial, nonSpatial, sort)
     }
 
     override def apply(feature: SimpleFeature): Unit = {
@@ -404,17 +396,46 @@ object AbstractFileSystemStorage {
         }
       }
       nonSpatialBounds.foreach(_.apply(feature))
+      if (sorted.nonEmpty) {
+        sorted = sorted.flatMap { case (i, ordering, last) =>
+          val next = feature.getAttribute(i)
+          if (last == null || (next != null && ordering.compare(next, last) < 0)) {
+            Some((i, ordering, next))
+          } else {
+            None
+          }
+        }
+      }
     }
 
     override def flush(): Unit = {}
-
-    override def close(): Unit = {
-      val spatial = spatialBounds.flatMap { case (i, env) => SpatialBounds(i, env) }
-      val nonSpatial = nonSpatialBounds.flatMap(_.build())
-      metadata.addFile(StorageFile(file, partition, count, action, spatial, nonSpatial))
-    }
+    override def close(): Unit = {}
   }
 
+  /**
+   * Observer to add a file to the metadata upon closing
+   *
+   * @param metadata metadata
+   * @param path file path
+   * @param partition file partition
+   * @param action file action
+   */
+  private class MetadataObserver(metadata: StorageMetadata, path: String, partition: Partition, action: StorageFileAction)
+      extends FileSystemObserver {
+
+    private val delegate = new StorageFileObserver(metadata.sft)
+
+    override def apply(feature: SimpleFeature): Unit = delegate.apply(feature)
+    override def flush(): Unit = {}
+    override def close(): Unit = metadata.addFile(delegate.file(path, partition, action))
+  }
+
+  /**
+   * Builds up attribute-level bounds
+   *
+   * @param i attribute index
+   * @param lexicoder lexicoder for the attribute type
+   */
   private case class AttributeBoundsBuilder(i: Int, lexicoder: TypeEncoder[AnyRef, String]) {
 
     private var lower: String = _
@@ -438,34 +459,27 @@ object AbstractFileSystemStorage {
     def build(): Option[AttributeBounds] = if (lower == null) { None } else { Some(AttributeBounds(i, lower, upper)) }
   }
 
-  private class SortObserver(sft: SimpleFeatureType) extends FileSystemObserver {
+  /**
+   * Can be used with a MetadataObserver to return storage files instead of writing them directly to the metadata
+   *
+   * @param sft simple feature type
+   * @param schemes partition schemes
+   */
+  private class FileTracker(val sft: SimpleFeatureType, val schemes: Set[PartitionScheme]) extends StorageMetadata {
 
-    private var sorted: Seq[(Int, Ordering[AnyRef], AnyRef)] = Range(0, sft.getAttributeCount).flatMap { i =>
-      val binding = sft.getDescriptor(i).getType.getBinding
-      if (classOf[Comparable[_]].isAssignableFrom(binding)) {
-        Some((i, Ordering.ordered[AnyRef](_.asInstanceOf[Comparable[AnyRef]]), null))
-      } else {
-        None
-      }
-    }
+    import scala.collection.JavaConverters._
 
-    override def apply(feature: SimpleFeature): Unit = {
-      if (sorted.nonEmpty) {
-        sorted = sorted.flatMap { case (i, ordering, last) =>
-          val next = feature.getAttribute(i)
-          if (last == null || (next != null && ordering.compare(next, last) < 0)) {
-            Some((i, ordering, next))
-          } else {
-            None
-          }
-        }
-      }
-    }
+    private val files = new CopyOnWriteArrayList[StorageFile]()
 
-    override def flush(): Unit = {}
+    override def `type`: String = "memory"
+    override def addFile(file: StorageFile): Unit = files.add(file)
+    override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
+    override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit =
+      throw new UnsupportedOperationException()
+    override def getFiles(): Seq[StorageFile] = files.asScala
+    override def getFiles(partition: Partition): Seq[StorageFile] = throw new UnsupportedOperationException()
+    override def getFiles(filter: Filter): Seq[StorageFile] = throw new UnsupportedOperationException()
     override def close(): Unit = {}
-
-    def getSortAttributes: Seq[Int] = sorted.map(_._1)
   }
 
   private case class WriterConfig(path: Path, partition: Partition, observer: FileSystemObserver)

@@ -131,7 +131,7 @@ object StorageConfiguration {
     }
   }
   def getPathAction(conf: Configuration, path: Path): (Long, StorageFileAction) = {
-    val Array(ts, action) = conf.get(s"$PathActionKey.$path").split(":") // TODO verify this, might need relativize to root
+    val Array(ts, action) = conf.get(s"$PathActionKey.$path").split(":")
     (ts.toLong, StorageFileAction.withName(action))
   }
 

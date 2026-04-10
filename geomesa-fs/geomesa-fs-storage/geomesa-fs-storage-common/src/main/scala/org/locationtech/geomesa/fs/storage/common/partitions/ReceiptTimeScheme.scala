@@ -16,6 +16,7 @@ import org.geotools.api.temporal.{Instant, Period}
 import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.fs.storage.common.partitions.ReceiptTimeScheme.BufferingFilterVisitor
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
@@ -52,7 +53,7 @@ class ReceiptTimeScheme(
   override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] =
     super.getRangesForFilter(buffered(filter))
 
-  override def getCoveringFilter(partition: String): Filter =
+  override def getCoveringFilter(partition: PartitionKey): Filter =
     throw new UnsupportedOperationException("Dates may overlap in multiple partitions")
 
   private def buffered(filter: Filter): Filter =

@@ -14,6 +14,11 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.StringSerialization
 
+/**
+ * Catalog for file-based metadata
+ *
+ * @param context file system
+ */
 class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetadataCatalog {
 
   private val directory = new Path(context.root, FileBasedMetadataCatalog.MetadataDirectory)

@@ -20,6 +20,14 @@ import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import scala.runtime.BoxedUnit
 import scala.util.control.NonFatal
 
+/**
+ * Synthetic metadata that just lists files on the filesystem
+ *
+ * @param context file system
+ * @param sft simple feature type
+ * @param orderedSchemes partition schemes, ordered according to the file system directory layout
+ * @param leafStorage if true, the final partition scheme is a prefix of the file name, instead of a regular directory
+ */
 class ConverterMetadata(
     context: FileSystemContext,
     val sft: SimpleFeatureType,
@@ -85,7 +93,6 @@ class ConverterMetadata(
     val list = result.result()
     logger.debug(s"Found ${list.size} files in ${System.currentTimeMillis() - start}ms")
     logger.whenTraceEnabled(list.foreach(f => logger.trace(f.toString)))
-    list.foreach(f => logger.debug(f.toString))
     list
   }
 }

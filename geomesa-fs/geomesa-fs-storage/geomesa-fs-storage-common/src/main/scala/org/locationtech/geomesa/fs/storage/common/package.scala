@@ -94,17 +94,13 @@ package object common {
       if (obs == null || obs.isEmpty) { Seq.empty } else { obs.split(",") }
     }
 
-    def spatialBounds(): Seq[Int] = {
-      sft.getAttributeDescriptors.asScala.toSeq.collect {
-        case g: GeometryDescriptor if g == sft.getGeometryDescriptor || g.fsBounds() => sft.indexOf(g.getLocalName)
-      }
+    def spatialBounds(): Seq[Int] = sft.getAttributeDescriptors.asScala.toSeq.collect {
+      case g: GeometryDescriptor if g == sft.getGeometryDescriptor || g.fsBounds() => sft.indexOf(g.getLocalName)
     }
 
-    def nonSpatialBounds(): Seq[Int] = {
-      sft.getAttributeDescriptors.asScala.toSeq.collect {
-        case d if sft.getUserData.get(DefaultDtgField) == d.getLocalName || (d.fsBounds() && !d.isInstanceOf[GeometryDescriptor]) =>
-          sft.indexOf(d.getLocalName)
-      }
+    def nonSpatialBounds(): Seq[Int] = sft.getAttributeDescriptors.asScala.toSeq.collect {
+      case d if sft.getUserData.get(DefaultDtgField) == d.getLocalName || (d.fsBounds() && !d.isInstanceOf[GeometryDescriptor]) =>
+        sft.indexOf(d.getLocalName)
     }
 
     private def remove(key: String): Option[String] = Option(sft.getUserData.remove(key).asInstanceOf[String])

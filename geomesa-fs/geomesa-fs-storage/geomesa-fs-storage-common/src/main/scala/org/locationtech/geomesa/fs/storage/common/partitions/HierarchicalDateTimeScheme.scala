@@ -140,8 +140,8 @@ case class HierarchicalDateTimeScheme(
     }
   }
 
-  override def getCoveringFilter(partition: String): Filter = {
-    val zdt = DateParsing.parse(partition, formatter)
+  override def getCoveringFilter(partition: PartitionKey): Filter = {
+    val zdt = DateParsing.parse(partition.value, formatter)
     val start = DateParsing.format(zdt)
     val end = DateParsing.format(zdt.plus(step, stepUnit))
     ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(start)), ff.less(ff.property(dtg), ff.literal(end)))

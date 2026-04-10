@@ -286,8 +286,7 @@ object FileSystemThreadedReader extends StrictLogging {
 
     private var count = 0
 
-    private val delegate =
-      CloseableIterator.wrap(reader.read(file)).filter { f => count += 1; mods.add(f.getID) }
+    private val delegate = CloseableIterator.wrap(reader.read(file)).filter { f => count += 1; mods.add(f.getID) }
 
     override def hasNext: Boolean = delegate.hasNext
 

@@ -125,7 +125,7 @@ class Z2SchemeTest extends SpecificationWithJUnit {
         val ps = PartitionSchemeFactory.load(sft, s"z2:bits=$bits")
         ps must beAnInstanceOf[Z2Scheme]
         ps.asInstanceOf[Z2Scheme].bits mustEqual bits
-        val partitions = (0 until math.pow(2, bits).toInt).map(_.toString)
+        val partitions = (0 until math.pow(2, bits).toInt).map(p => PartitionKey("", p.toString))
         val filters = partitions.map(ps.getCoveringFilter)
         val envelopes = filters.map(BoundsFilterVisitor.visit(_))
         // verify none of the envelopes overlap (common borders are ok)
@@ -142,7 +142,7 @@ class Z2SchemeTest extends SpecificationWithJUnit {
 
     "exclude endpoints in covering filters" in {
       val ps = PartitionSchemeFactory.load(sft, "z2:bits=4")
-      val partitions = (0 until 16).map(_.toString)
+      val partitions = (0 until 16).map(p => PartitionKey("", p.toString))
       val checks = partitions.map { p =>
         val filter = ps.getCoveringFilter(p)
         val decomposed = decomposeAnd(filter)

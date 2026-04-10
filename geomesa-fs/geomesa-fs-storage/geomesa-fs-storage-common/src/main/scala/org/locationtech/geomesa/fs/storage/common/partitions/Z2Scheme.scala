@@ -32,8 +32,8 @@ case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSche
     PartitionKey(name, format.format(z2.index(pt.getX, pt.getY)))
   }
 
-  override def getCoveringFilter(partition: String): Filter = {
-    val (x, y) = z2.invert(partition.toLong)
+  override def getCoveringFilter(partition: PartitionKey): Filter = {
+    val (x, y) = z2.invert(partition.value.toLong)
     val (xmin, xmax) = (x - xRadius, x + xRadius)
     val (ymin, ymax) = (y - yRadius, y + yRadius)
     val bbox = ff.bbox(ff.property(geom), new ReferencedEnvelope(xmin, xmax, ymin, ymax, CRS_EPSG_4326))

@@ -173,13 +173,17 @@ object AttributeScheme {
         if (isString) {
           Some(StringScheme(attribute, index, width, defaultValue, allowedValues))
         } else if (binding == classOf[Integer]) {
-          Some(IntScheme(attribute, index, divisor.map(IntegralBucketing.apply[Int]), defaultValue.map(_.toInt), allowedValues.map(_.toInt)))
+          val bucketing = divisor.map(IntegralBucketing.apply[Int])
+          Some(IntScheme(attribute, index, bucketing, defaultValue.map(_.toInt), allowedValues.map(_.toInt)))
         } else if (binding == classOf[java.lang.Long]) {
-          Some(LongScheme(attribute, index, divisor.map(d => IntegralBucketing(d.toLong)), defaultValue.map(_.toLong), allowedValues.map(_.toLong)))
+          val bucketing = divisor.map(d => IntegralBucketing(d.toLong))
+          Some(LongScheme(attribute, index, bucketing, defaultValue.map(_.toLong), allowedValues.map(_.toLong)))
         } else if (binding == classOf[java.lang.Float]) {
-          Some(FloatScheme(attribute, index, scale.map(FractionalBucketing.apply[Float]), defaultValue.map(_.toFloat), allowedValues.map(_.toFloat)))
+          val bucketing = scale.map(FractionalBucketing.apply[Float])
+          Some(FloatScheme(attribute, index, bucketing, defaultValue.map(_.toFloat), allowedValues.map(_.toFloat)))
         } else if (binding == classOf[java.lang.Double]) {
-          Some(DoubleScheme(attribute, index, scale.map(FractionalBucketing.apply[Double]), defaultValue.map(_.toDouble), allowedValues.map(_.toDouble)))
+          val bucketing = scale.map(FractionalBucketing.apply[Double])
+          Some(DoubleScheme(attribute, index, bucketing, defaultValue.map(_.toDouble), allowedValues.map(_.toDouble)))
         } else {
           throw new IllegalArgumentException(
             s"Attribute scheme is not supported for type ${binding.getSimpleName} - " +
@@ -241,9 +245,9 @@ object AttributeScheme {
       allowedValues: Seq[String],
     ) extends AttributeScheme[String](attribute, index, defaultValue, allowedValues, "", maxWidth, StringEncoder) {
 
-    override def getCoveringFilter(partition: String): Filter = {
+    override def getCoveringFilter(partition: PartitionKey): Filter = {
       val escaped =
-        partition.replaceAllLiterally("""\""", """\\""").replaceAllLiterally("""%""", """\%""").replaceAllLiterally("""_""", """\_""")
+        partition.value.replaceAllLiterally("""\""", """\\""").replaceAllLiterally("""%""", """\%""").replaceAllLiterally("""_""", """\_""")
       val regex = if (maxWidth.isDefined) { escaped + "%" } else { escaped }
       ff.like(ff.property(attribute), regex, "%", "_", "\\", false)
     }
@@ -276,8 +280,8 @@ object AttributeScheme {
 
     private val integral = implicitly[Integral[T]]
 
-    override def getCoveringFilter(partition: String): Filter = {
-      val value = lexicoder.decode(partition)
+    override def getCoveringFilter(partition: PartitionKey): Filter = {
+      val value = lexicoder.decode(partition.value)
       val attr = ff.property(attribute)
       divisor match {
         case None => ff.equals(attr, ff.literal(value))
@@ -357,8 +361,8 @@ object AttributeScheme {
     private val fractional = implicitly[Fractional[T]]
     private val oneBucket: Option[T] = scale.map(s => fractional.one / s.scaleT)
 
-    override def getCoveringFilter(partition: String): Filter = {
-      val value = lexicoder.decode(partition)
+    override def getCoveringFilter(partition: PartitionKey): Filter = {
+      val value = lexicoder.decode(partition.value)
       val attr = ff.property(attribute)
       oneBucket match {
         case None => ff.equals(attr, ff.literal(value))
@@ -381,7 +385,8 @@ object AttributeScheme {
           val lower = s(bounds.lower.value.get)
           val increment = fractional.one / s.scaleT
           val upper = exclusiveUpperBound(bounds).get
-          (Iterator.single(toPartition(lower)) ++ Iterator.iterate(lower)(_ + increment).map(toPartition).takeWhile(v => v < upper)).map(PartitionKey(name, _)).toSeq
+          val tail = Iterator.iterate(lower)(_ + increment).map(toPartition).takeWhile(v => v < upper)
+          (Iterator.single(toPartition(lower)) ++ tail).map(PartitionKey(name, _)).toSeq
       }
     }
 

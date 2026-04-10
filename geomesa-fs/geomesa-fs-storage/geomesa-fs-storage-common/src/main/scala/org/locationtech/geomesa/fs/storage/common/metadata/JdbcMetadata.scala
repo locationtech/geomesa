@@ -17,7 +17,7 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds,
 import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, PartitionSchemeFactory, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.MetadataTable
 import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction
-import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction.{And, AttributeBound, Or, SpatialBound}
+import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction.{AttributeBound, AttributeOr, SpatialBound, SpatialOr}
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
@@ -175,11 +175,11 @@ class JdbcMetadata(
   }
 
   override def getFiles(): Seq[StorageFile] =
-    WithClose(pool.getConnection())(filesTable.select(_, root, Seq.empty, And.empty, And.empty))
+    WithClose(pool.getConnection())(filesTable.select(_, root, Seq.empty, Seq.empty, Seq.empty))
 
   override def getFiles(partition: Partition): Seq[StorageFile] = {
     val filters = partition.values.toSeq.map(p => PartitionRange(p.name, p.value, p.value + ZeroChar))
-    WithClose(pool.getConnection())(filesTable.select(_, root, filters, And.empty, And.empty))
+    WithClose(pool.getConnection())(filesTable.select(_, root, filters, Seq.empty, Seq.empty))
   }
 
   override def getFiles(filter: Filter): Seq[StorageFile] = {
@@ -468,8 +468,8 @@ object JdbcMetadata extends LazyLogging {
         cx: Connection,
         root: String,
         partitions: Seq[PartitionRange],
-        spatialBounds: And[SpatialBound],
-        attributeBounds: And[AttributeBound],
+        spatialBounds: Seq[SpatialOr],
+        attributeBounds: Seq[AttributeOr],
       ): Seq[StorageFile] = {
 
       // build query with multiple joins - one for each partition filter (AND logic)
@@ -478,13 +478,13 @@ object JdbcMetadata extends LazyLogging {
       }
 
       // build spatial bound filters - one LEFT JOIN per attribute with OR logic for bounds
-      val spatialBoundJoins = spatialBounds.values.zipWithIndex.map {
-        case (Or(attribute, bounds), i) => SpatialBoundsJoin(attribute, bounds, s"sb_filter_$i")
+      val spatialBoundJoins = spatialBounds.zipWithIndex.map {
+        case (SpatialOr(attribute, bounds), i) => SpatialBoundsJoin(attribute, bounds, s"sb_filter_$i")
       }
 
       // build attribute bound filters - one LEFT JOIN per attribute with OR logic for bounds
-      val attrBoundJoins = attributeBounds.values.zipWithIndex.map {
-        case (Or(attribute, bounds), i) => AttributeBoundsJoin(attribute, bounds, s"ab_filter_$i")
+      val attrBoundJoins = attributeBounds.zipWithIndex.map {
+        case (AttributeOr(attribute, bounds), i) => AttributeBoundsJoin(attribute, bounds, s"ab_filter_$i")
       }
 
       val joinClause =
@@ -629,6 +629,7 @@ object JdbcMetadata extends LazyLogging {
     }
 
     private case class PartitionJoin(name: String, lower: String, upper: String, tableAlias: String) {
+      // partitions are lower-bound inclusive and upper-bound exclusive
       def onClause: String = s"$tableAlias.name = ? AND $tableAlias.value >= ? AND $tableAlias.value < ?"
       def apply(st: PreparedStatement, i: Int): Int = {
         st.setString(i, name)

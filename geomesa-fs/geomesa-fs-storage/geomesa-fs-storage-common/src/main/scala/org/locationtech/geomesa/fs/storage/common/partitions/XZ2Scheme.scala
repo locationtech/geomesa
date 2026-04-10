@@ -27,7 +27,7 @@ case class XZ2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSch
   }
 
   // TODO https://geomesa.atlassian.net/browse/GEOMESA-2967
-  override def getCoveringFilter(partition: String): Filter =
+  override def getCoveringFilter(partition: PartitionKey): Filter =
     throw new UnsupportedOperationException("https://geomesa.atlassian.net/browse/GEOMESA-2967")
 
   // the max XZ2 value is (4^((bits / 2) + 1) - 1) / 3

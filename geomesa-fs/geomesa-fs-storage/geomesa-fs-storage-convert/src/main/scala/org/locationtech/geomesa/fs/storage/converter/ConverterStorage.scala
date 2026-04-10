@@ -37,7 +37,7 @@ class ConverterStorage(context: FileSystemContext,
   override protected def createWriter(file: Path, partition: Partition, observer: FileSystemObserver): FileSystemWriter =
     throw new UnsupportedOperationException()
 
-  override protected[fs] def createReader(
+  override protected def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader = {
     new ConverterFileSystemReader(context.fs, context.root, converter, filter, transform, pathFiltering)

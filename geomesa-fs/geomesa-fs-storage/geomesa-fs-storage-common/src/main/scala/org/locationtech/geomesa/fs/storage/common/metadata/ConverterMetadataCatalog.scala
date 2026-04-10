@@ -16,6 +16,12 @@ import org.locationtech.geomesa.fs.storage.common.partitions.HierarchicalDateTim
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 
+/**
+ * Synthetic metadata catalog that examines files on disk
+ *
+ * @param context file system
+ * @param config converter configuration options
+ */
 class ConverterMetadataCatalog(context: FileSystemContext, config: Map[String, String])
     extends StorageMetadataCatalog with LazyLogging {
 

@@ -89,10 +89,17 @@ object FsDataStoreCommand {
     @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)
     var path: String = _
 
-    @Parameter(names = Array("--encoding", "-e"), description = "File encoding to use", validateValueWith = Array(classOf[EncodingValidator]))
+    @Parameter(
+      names = Array("--encoding", "-e"),
+      description = "File encoding to use",
+      validateValueWith = Array(classOf[EncodingValidator]))
     var encoding: String = _
 
-    @Parameter(names = Array("--metadata-type"), description = "Metadata type to use", required = true, validateValueWith = Array(classOf[MetadataTypeValidator]))
+    @Parameter(
+      names = Array("--metadata-type"),
+      description = "Metadata type to use",
+      required = true,
+      validateValueWith = Array(classOf[MetadataTypeValidator]))
     var metadataType: String = _
 
     @Parameter(

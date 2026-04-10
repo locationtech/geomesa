@@ -21,7 +21,7 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.StringSerialization
 
-import java.io.InputStreamReader
+import java.io.{InputStreamReader, OutputStreamWriter}
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 import scala.runtime.BoxedUnit
@@ -124,7 +124,7 @@ class FileBasedMetadata(
       try {
         // try to create lock file with overwrite=false for atomicity
         WithClose(fs.create(lockFilePath, false)) { out =>
-          // write lock info (hostname, timestamp, etc.)
+          // write lock info for debugging - hostname + timestamp
           val lockInfo = s"${java.net.InetAddress.getLocalHost.getHostName}:${System.currentTimeMillis()}"
           out.write(lockInfo.getBytes(StandardCharsets.UTF_8))
           out.hflush()
@@ -163,12 +163,13 @@ class FileBasedMetadata(
       val updatedFiles = fn(currentFiles)
 
       // write back to disk
-      val json = gson.toJson(updatedFiles.asJava)
-
       WithClose(fs.create(filesFilePath, true)) { out =>
-        out.write(json.getBytes(StandardCharsets.UTF_8))
-        out.hflush()
-        out.hsync()
+        WithClose(new OutputStreamWriter(out, StandardCharsets.UTF_8)) { writer =>
+          gson.toJson(updatedFiles.asJava, writer)
+          writer.flush()
+          out.hflush()
+          out.hsync()
+        }
       }
 
       // update cache

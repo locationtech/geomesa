@@ -64,11 +64,11 @@ case class DateTimeScheme(
     }
   }
 
-  override def getCoveringFilter(partition: String): Filter = {
-    val offset = encoder.decode(partition)
+  override def getCoveringFilter(partition: PartitionKey): Filter = {
+    val offset = encoder.decode(partition.value)
     val start = DateTimeScheme.Epoch.plus(offset.longValue(), unit)
-    val end = start.plus(1, unit)
-    ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(DateParsing.format(start))), ff.less(ff.property(dtg), ff.literal(DateParsing.format(end))))
+    val end = ff.literal(DateParsing.format(start.plus(1, unit)))
+    ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(DateParsing.format(start))), ff.less(ff.property(dtg), end))
   }
 
   private def toPartition(dt: ZonedDateTime): Int = {
@@ -97,78 +97,6 @@ case class DateTimeScheme(
       }
     }
   }
-
-//  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
-//    getCoveringPartitions(filter).map { case (covered, intersecting) =>
-//      val result = Seq.newBuilder[SimplifiedFilter]
-//
-//      if (covered.nonEmpty) {
-//        // remove the temporal filter that we've already accounted for in our covered partitions
-//        val coveredFilter = andOption(partitionSubFilters(filter, isTemporalFilter(_, dtg))._2)
-//        result += SimplifiedFilter(coveredFilter.getOrElse(Filter.INCLUDE), covered, partial = false)
-//      }
-//      if (intersecting.nonEmpty) {
-//        result += SimplifiedFilter(filter, intersecting, partial = false)
-//      }
-//
-//      partition match {
-//        case None => result.result
-//        case Some(p) =>
-//          val matched = result.result.find(_.partitions.contains(p))
-//          matched.map(_.copy(partitions = Seq(p))).toSeq
-//      }
-//    }
-//  }
-//
-//  override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] =
-//    getCoveringPartitions(filter).map { case (covered, intersecting) => (covered ++ intersecting).sorted }
-//
-//  private def getCoveringPartitions(filter: Filter): Option[(Seq[String], Seq[String])] = {
-//    val bounds = FilterHelper.extractIntervals(filter, dtg, handleExclusiveBounds = false)
-//    if (bounds.disjoint) {
-//      Some((Seq.empty, Seq.empty))
-//    } else if (bounds.isEmpty || !bounds.forall(_.isBoundedBothSides)) {
-//      None
-//    } else {
-
-//      val covered = ListBuffer.empty[String]
-//      val intersecting = ListBuffer.empty[String]
-//
-//      bounds.values.foreach { bound =>
-//        // note: we verified both sides are bounded above
-//        val lower = bound.lower.value.get
-//        val upper = bound.upper.value.get
-//        val start = truncateToPartitionStart(lower)
-//        val end = truncateToPartitionStart(upper)
-//
-//        // do our endpoints match the partition boundary, or do we need to apply a filter to the first/last partition?
-//        val lowerBoundCovered = bound.lower.inclusive && lower == start
-//
-//        // `stepUnit.between` claims to be upper endpoint exclusive, but doesn't seem to be...
-//        val steps = stepUnit.between(start, end).toInt
-//        if (steps < step) {
-//          if (lowerBoundCovered &&
-//              ((bound.upper.exclusive && upper == end) || (bound.upper.inclusive && upper == end.plus(step, stepUnit).minus(1, MILLIS)))) {
-//            covered += formatter.format(start)
-//          } else {
-//            intersecting += formatter.format(start)
-//          }
-//        } else {
-//          if (lowerBoundCovered) {
-//            covered += formatter.format(start)
-//          } else {
-//            intersecting += formatter.format(start)
-//          }
-//          covered ++= Iterator.iterate(start)(_.plus(step, stepUnit)).drop(1).takeWhile(_.isBefore(end)).map(formatter.format)
-//          if (bound.upper.inclusive || upper != end) {
-//            intersecting += formatter.format(end)
-//          }
-//        }
-//      }
-//
-//      Some((covered.toSeq, intersecting.distinct.toSeq))
-//    }
-//  }
 }
 
 object DateTimeScheme {
@@ -179,6 +107,7 @@ object DateTimeScheme {
 
   private val UnboundedUpper = "zzz"
 
+  // TODO allow for 2 hours, etc
   class DateTimePartitionSchemeFactory extends PartitionSchemeFactory {
     override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
       val opts = SchemeOpts(scheme)

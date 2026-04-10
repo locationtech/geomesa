@@ -23,6 +23,11 @@ import scala.util.control.NonFatal
   */
 trait StorageMetadata extends Closeable {
 
+  /**
+   * Metadata persistence type
+   *
+   * @return
+   */
   def `type`: String
 
   /**
@@ -143,9 +148,9 @@ object StorageMetadata {
 
     val None: Partition = Partition(Set.empty[PartitionKey])
 
-    def apply(id: String): Partition = {
-      try { gson.fromJson(id, classOf[Partition]) } catch {
-        case NonFatal(e) => throw new RuntimeException(s"Invalid partition json: $id", e)
+    def apply(encoded: String): Partition = {
+      try { gson.fromJson(encoded, classOf[Partition]) } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Invalid partition json: $encoded", e)
       }
     }
   }

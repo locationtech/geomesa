@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.fs.storage.api
 
 import java.util.ServiceLoader
-import scala.util.Try
-import scala.util.control.NonFatal
 
 /**
   * Factory for creating and loading file system storage implementations
@@ -41,22 +39,14 @@ object FileSystemStorageFactory {
   lazy val factories: Seq[FileSystemStorageFactory] = ServiceLoader.load(classOf[FileSystemStorageFactory]).asScala.toSeq
 
   /**
-   * Create a file system storage instance pointing at the given context path
+   * Load a factory with the given encoding
    *
-   * @param context file context
-   * @param metadata metadata persistence
-   * @param encoding storage encoding
+   * @param encoding file encoding
    * @return
    */
-  def apply(context: FileSystemContext, metadata: StorageMetadata, encoding: String): FileSystemStorage = {
-    try {
-      val factory = factories.find(_.encoding.equalsIgnoreCase(encoding)).getOrElse {
-        throw new IllegalArgumentException(s"Could not find a factory class for encoding '$encoding'. " +
-            s"Factories are available for: ${factories.map(_.encoding).mkString(", ")}")
-      }
-      factory.apply(context, metadata)
-    } catch {
-      case NonFatal(e) => Try(metadata.close()).failed.foreach(e.addSuppressed); throw e
+  def apply(encoding: String): FileSystemStorageFactory =
+    factories.find(_.encoding.equalsIgnoreCase(encoding)).getOrElse {
+      throw new IllegalArgumentException(s"Could not find a factory class for encoding '$encoding'. " +
+        s"Factories are available for: ${factories.map(_.encoding).mkString(", ")}")
     }
-  }
 }

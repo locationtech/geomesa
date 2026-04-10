@@ -19,6 +19,12 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, WithClose}
 import java.util.Properties
 import scala.util.control.NonFatal
 
+/**
+ * Catalog for jdbc metadata
+ *
+ * @param context file system
+ * @param config jdbc config
+ */
 class JdbcMetadataCatalog(context: FileSystemContext, config: Map[String, String]) extends StorageMetadataCatalog {
 
   // fail fast if url is not defined or invalid

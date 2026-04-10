@@ -76,7 +76,7 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
         catalog.getTypeNames mustEqual Seq("example")
         val metadata = catalog.load("example")
         metadata must not(beNull)
-        WithClose(FileSystemStorageFactory(context, metadata, "converter")) { storage =>
+        WithClose(FileSystemStorageFactory("converter").apply(context, metadata)) { storage =>
           val query = new Query(metadata.sft.getTypeName, ECQL.toFilter("dtg during 2023-01-17T00:00:00.000Z/2023-01-19T00:00:00.000Z"))
           val iter = CloseableIterator(storage.getReader(query))
           // note: need to copy features in iterator as same object is re-used
@@ -117,7 +117,7 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
         val metadata = catalog.load("example")
         metadata must not(beNull)
         metadata must haveClass[ConverterMetadata]
-        WithClose(FileSystemStorageFactory(context, metadata, "converter")) { storage =>
+        WithClose(FileSystemStorageFactory("converter").apply(context, metadata)) { storage =>
           val filterText =
             "dtg DURING 2024-12-11T10:00:00Z/2024-12-11T23:55:00Z " +
               "OR dtg = 2024-12-11T10:00:00Z OR dtg = 2024-12-11T23:55:00Z"

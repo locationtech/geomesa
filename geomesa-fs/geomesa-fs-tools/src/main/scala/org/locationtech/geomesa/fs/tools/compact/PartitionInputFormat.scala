@@ -45,7 +45,8 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
     val encoding = StorageConfiguration.getEncoding(conf)
 
     val catalog = StorageMetadataCatalog(fsc, metadataType, metadataConfig)
-    WithClose(FileSystemStorageFactory(fsc, catalog.load(typeName), encoding)) { storage =>
+    val factory = FileSystemStorageFactory(encoding)
+    WithClose(factory.apply(fsc, catalog.load(typeName))) { storage =>
       val sizeable = Option(storage).collect { case s: SizeableFileSystemStorage => s }
       val sizeCheck = sizeable.flatMap(s => s.targetSize(fileSize).map(t => (p: Path) => s.fileIsSized(p, t)))
       val splits = StorageConfiguration.getPartitions(conf).map { partition =>
@@ -138,7 +139,7 @@ object PartitionInputFormat {
 
       // use a cached metadata impl instead of reloading
       val cached = new StaticMetadata(sft, files)
-      storage = FileSystemStorageFactory(fsc, cached, encoding)
+      storage = FileSystemStorageFactory(encoding).apply(fsc, cached)
       reader = storage.getReader(new Query("", Filter.INCLUDE))
     }
 

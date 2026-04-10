@@ -13,6 +13,7 @@ import java.util.Locale
 
 package object partitions {
 
+  // used to create upper bounds based on a prefix
   // note: we use 1 instead of 0 b/c 0 is not a valid char in postgres so breaks jdbc metadata filtering
   val ZeroChar = new String(Array[Byte](1), StandardCharsets.UTF_8)
 

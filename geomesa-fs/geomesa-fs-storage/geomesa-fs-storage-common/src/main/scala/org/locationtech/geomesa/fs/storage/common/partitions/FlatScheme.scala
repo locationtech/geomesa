@@ -24,7 +24,7 @@ object FlatScheme extends PartitionScheme {
 
   override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = None
 
-  override def getCoveringFilter(partition: String): Filter = Filter.INCLUDE
+  override def getCoveringFilter(partition: PartitionKey): Filter = Filter.INCLUDE
 
   class FlatPartitionSchemeFactory extends PartitionSchemeFactory {
     override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] =

@@ -68,36 +68,11 @@ class DateTimeSchemeTest extends Specification {
       partitions.get.map(_.value) mustEqual Seq("80064c8a", "80064c8b")
     }
 
-    "simplify filters" >> {
-      val ps = DateTimeScheme("dtg", 0, ChronoUnit.HOURS)
-      val filter = ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-03T01:55:00.000Z'")
-      ko
-//      val covering = ps.getSimplifiedFilters(filter)
-//      covering must beSome
-//      covering.get must haveSize(2)
-//      covering.get.map(_.filter) must containTheSameElementsAs(Seq(Filter.INCLUDE, filter))
-//      foreach(covering.get)(_.partial must beFalse)
-//      foreach(covering.get)(_.partitions.size mustEqual 1)
-    }.pendingUntilFixed("not implemented")
-
-    "simplify filters with multiple partitions" >> {
-      val ps = DateTimeScheme("dtg", 0, ChronoUnit.HOURS)
-      val filter = ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-03T02:55:00.000Z'")
-//      val simplified = ps.getSimplifiedFilters(filter)
-//      simplified must beSome
-//      simplified.get must haveSize(2)
-//      simplified.get.map(_.filter) must containTheSameElementsAs(Seq(Filter.INCLUDE, filter))
-//      foreach(simplified.get)(_.partial must beFalse)
-//      simplified.get.find(_.filter == Filter.INCLUDE).map(_.partitions) must beSome(Seq("2016/216/00"))
-//      simplified.get.find(_.filter != Filter.INCLUDE).map(_.partitions) must beSome(Seq("2016/216/02"))
-      ko
-    }.pendingUntilFixed("not implemented")
-
     "calculate covering filters for partitions" >> {
       foreach(Seq(ChronoUnit.HOURS, ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS)) { unit =>
         val ps = DateTimeScheme("dtg", 0, unit)
         val partition = ps.getPartition(sf)
-        val covering = ps.getCoveringFilter(partition.value)
+        val covering = ps.getCoveringFilter(partition)
         val expected = {
           val start = truncate(date, unit)
           val end = start.plus(1, unit)

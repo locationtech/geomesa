@@ -10,14 +10,19 @@ package org.locationtech.geomesa.fs.storage.common.metadata.filter
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
-import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction.SchemeFilter
+import org.locationtech.geomesa.fs.storage.common.metadata.filter.SchemeFilterExtraction.{AttributeOr, SchemeFilter, SpatialOr}
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 
 import java.util.concurrent.TimeUnit
 import scala.runtime.BoxedUnit
 
+/**
+ * Metadata mixin that caches a list of files in memory, with automatic background refresh. Useful for when
+ * determining the list of files is expensive.
+ */
 trait CachedMetadata extends StorageMetadata with SchemeFilterExtraction {
 
   protected val filesCache: LoadingCache[BoxedUnit, Seq[StorageFile]] =
@@ -58,8 +63,18 @@ trait CachedMetadata extends StorageMetadata with SchemeFilterExtraction {
   }
 
   private def matches(file: StorageFile, f: SchemeFilter): Boolean =
-    f.partitions.forall(p => file.partition.values.exists(v => p.name == v.name && p.contains(v.value))) &&
-      f.spatialBounds.values.forall(or => file.spatialBounds.find(b => b.attribute == or.attribute).forall(b => or.bounds.exists(_.intersects(b)))) &&
-      f.attributeBounds.values.forall(or => file.attributeBounds.find(b => b.attribute == or.attribute).forall(b => or.bounds.exists(_.intersects(b))))
+    matches(file, f.partitions) && matches(file, f.spatialBounds) && matches(file, f.attributeBounds)
 
+  private def matches(file: StorageFile, partitions: Seq[PartitionRange]): Boolean =
+    partitions.forall(p => file.partition.values.exists(v => p.name == v.name && p.contains(v.value)))
+
+  private def matches(file: StorageFile, spatialBounds: Seq[SpatialOr])(implicit d: DummyImplicit): Boolean =
+    spatialBounds.forall { or =>
+      file.spatialBounds.find(b => b.attribute == or.attribute).forall(b => or.bounds.exists(_.intersects(b)))
+    }
+
+  private def matches(file: StorageFile, attributeBounds: Seq[AttributeOr])(implicit d0: DummyImplicit, d1: DummyImplicit): Boolean =
+    attributeBounds.forall { or =>
+      file.attributeBounds.find(b => b.attribute == or.attribute).forall(b => or.bounds.exists(_.intersects(b)))
+    }
 }

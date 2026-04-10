@@ -258,7 +258,7 @@ class AttributeSchemeTest extends SpecificationWithJUnit {
       val ps = PartitionSchemeFactory.load(sft, "attribute:attribute=name")
       val sf1 = ScalaSimpleFeature.create(sft, "1", "TestValue", 10, 1000000L, 3.2f, 9.99d)
 
-      val filter = ps.getCoveringFilter(ps.getPartition(sf1).value)
+      val filter = ps.getCoveringFilter(ps.getPartition(sf1))
 
       // validate filter structure - should be an ILIKE filter matching the exact string
       filter mustEqual ECQL.toFilter("name ILIKE 'testvalue'")
@@ -274,7 +274,7 @@ class AttributeSchemeTest extends SpecificationWithJUnit {
       val sf1 = ScalaSimpleFeature.create(sft, "1", "TestValue", 10, 1000000L, 3.2f, 9.99d)
       val partition = ps.getPartition(sf1)
 
-      val filter = ps.getCoveringFilter(partition.value)
+      val filter = ps.getCoveringFilter(partition)
       filter must not(beNull)
 
       // validate filter structure - should be an ILIKE filter with wildcard for prefix matching
@@ -297,7 +297,7 @@ class AttributeSchemeTest extends SpecificationWithJUnit {
       val sf1 = ScalaSimpleFeature.create(sft, "1", "test", 10, 1000000L, 3.2f, 9.99d)
       val partition = ps.getPartition(sf1)
 
-      val filter = ps.getCoveringFilter(partition.value)
+      val filter = ps.getCoveringFilter(partition)
       filter mustEqual ECQL.toFilter("age = 10")
 
       // the filter should match the feature
@@ -309,7 +309,7 @@ class AttributeSchemeTest extends SpecificationWithJUnit {
       val sf1 = ScalaSimpleFeature.create(sft, "1", "test", 15, 1000000L, 3.2f, 9.99d)
       val partition = ps.getPartition(sf1)
 
-      val filter = ps.getCoveringFilter(partition.value)
+      val filter = ps.getCoveringFilter(partition)
 
       // validate filter structure - should be a range filter
       val expected = ECQL.toFilter("age >= 10 AND age < 20")
@@ -330,7 +330,7 @@ class AttributeSchemeTest extends SpecificationWithJUnit {
       val sf1 = ScalaSimpleFeature.create(sft, "1", "test", 10, 1000000L, 3.2f, 9.99d)
       val partition = ps.getPartition(sf1)
 
-      val filter = ps.getCoveringFilter(partition.value)
+      val filter = ps.getCoveringFilter(partition)
       filter mustEqual ECQL.toFilter("time = 1000000")
 
       // the filter should match the feature
@@ -342,7 +342,7 @@ class AttributeSchemeTest extends SpecificationWithJUnit {
       val sf1 = ScalaSimpleFeature.create(sft, "1", "test", 10, 1050000L, 3.2f, 9.99d)
       val partition = ps.getPartition(sf1)
 
-      val filter = ps.getCoveringFilter(partition.value)
+      val filter = ps.getCoveringFilter(partition)
 
       // validate filter structure - should be a range filter
       val expected = ECQL.toFilter("time >= 1000000 AND time < 1100000")
@@ -363,7 +363,7 @@ class AttributeSchemeTest extends SpecificationWithJUnit {
       val sf1 = ScalaSimpleFeature.create(sft, "1", "test", 10, 1000000L, 3.2f, 9.99d)
       val partition = ps.getPartition(sf1)
 
-      val filter = ps.getCoveringFilter(partition.value)
+      val filter = ps.getCoveringFilter(partition)
       filter mustEqual ECQL.toFilter("weight = 3.2")
 
       // the filter should match the feature
@@ -375,7 +375,7 @@ class AttributeSchemeTest extends SpecificationWithJUnit {
       val sf1 = ScalaSimpleFeature.create(sft, "1", "test", 10, 1000000L, 3.25f, 9.99d)
       val partition = ps.getPartition(sf1)
 
-      val filter = ps.getCoveringFilter(partition.value)
+      val filter = ps.getCoveringFilter(partition)
 
       // validate filter structure - should be a range filter
       val expected = ECQL.toFilter("weight >= 3.2 AND weight < 3.3")
@@ -396,7 +396,7 @@ class AttributeSchemeTest extends SpecificationWithJUnit {
       val sf1 = ScalaSimpleFeature.create(sft, "1", "test", 10, 1000000L, 3.2f, 9.99d)
       val partition = ps.getPartition(sf1)
 
-      val filter = ps.getCoveringFilter(partition.value)
+      val filter = ps.getCoveringFilter(partition)
       filter mustEqual ECQL.toFilter("precision = 9.99")
 
       // the filter should match the feature
@@ -408,7 +408,7 @@ class AttributeSchemeTest extends SpecificationWithJUnit {
       val sf1 = ScalaSimpleFeature.create(sft, "1", "test", 10, 1000000L, 3.2f, 9.991d)
       val partition = ps.getPartition(sf1)
 
-      val filter = ps.getCoveringFilter(partition.value)
+      val filter = ps.getCoveringFilter(partition)
 
       // validate filter structure - should be a range filter
       val expected = ECQL.toFilter("precision >= 9.99 AND precision < 10.0")
