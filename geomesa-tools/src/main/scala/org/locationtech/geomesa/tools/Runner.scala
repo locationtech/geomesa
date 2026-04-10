@@ -9,14 +9,13 @@
 package org.locationtech.geomesa.tools
 
 import com.beust.jcommander.{JCommander, ParameterException}
-import com.facebook.nailgun.NGContext
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.Command.CommandException
-import org.locationtech.geomesa.tools.Runner.{CommandResult, Executor}
+import org.locationtech.geomesa.tools.Runner.CommandResult
 import org.locationtech.geomesa.tools.`export`.{ConvertCommand, GenerateAvroSchemaCommand}
-import org.locationtech.geomesa.tools.help.{ClasspathCommand, HelpCommand, NailgunCommand, ScalaConsoleCommand}
+import org.locationtech.geomesa.tools.help.{ClasspathCommand, HelpCommand, ScalaConsoleCommand}
 import org.locationtech.geomesa.tools.status.{AutoCompleteCommand, ConfigureCommand, EnvironmentCommand, VersionCommand}
-import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, NailgunServer}
+import org.locationtech.geomesa.tools.utils.GeoMesaIStringConverterFactory
 
 import java.util.Locale
 import scala.collection.JavaConverters._
@@ -40,17 +39,9 @@ trait Runner extends LazyLogging {
    *
    * @param args command line args
    */
-  def main(args: Array[String]): Unit = execute(new MainExecutor(args))
-
-  /**
-   * Nailgun main invocation
-   *
-   * @param context context
-   */
-  def nailMain(context: NGContext): Unit = execute(new NailgunExecutor(context))
-
-  private def execute(executor: Executor): Unit = {
-    val result = try { executor.execute(); CommandResult(0) } catch {
+  // noinspection ScalaUnusedSymbol
+  def main(args: Array[String]): Unit = {
+    val result = try { parseCommand(args).execute(); CommandResult(0) } catch {
       case e @ (_: ClassNotFoundException | _: NoClassDefFoundError) =>
         // log the underling exception to the log file, but don't show to the user
         val msg = s"Warning: Missing dependency for command execution: ${e.getMessage}"
@@ -161,7 +152,6 @@ trait Runner extends LazyLogging {
       new ClasspathCommand,
       new EnvironmentCommand,
       new GenerateAvroSchemaCommand,
-      new NailgunCommand,
       new ScalaConsoleCommand,
       new VersionCommand
     )
@@ -184,32 +174,14 @@ trait Runner extends LazyLogging {
     }
   }
 
-  class DefaultCommand(jc: JCommander) extends Command {
+  private class DefaultCommand(jc: JCommander) extends Command {
     override def execute(): Unit = Command.user.info(usage(jc))
     override val name: String = ""
     override val params: Any = null
   }
-
-  class MainExecutor(args: Array[String]) extends Executor {
-    override def execute(): Unit = parseCommand(args).execute()
-  }
-
-  class NailgunExecutor(context: NGContext) extends Executor {
-    override def execute(): Unit = {
-      val command = parseCommand(context.getArgs)
-      context.getNGServer match {
-        case ng: NailgunServer => ng.execute(command)
-        case ng => throw new IllegalStateException(s"Expected a NailgunServer but got: $ng")
-      }
-    }
-  }
 }
 
 object Runner {
-
-  trait Executor {
-    def execute(): Unit
-  }
 
   /**
    * Result of executing a command

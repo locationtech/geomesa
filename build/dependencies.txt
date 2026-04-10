@@ -3,7 +3,6 @@ com.chuusai:shapeless_2.12:2.3.10:compile
 com.clearspring.analytics:stream:2.9.8:compile
 com.esotericsoftware:kryo-shaded:4.0.3:compile
 com.esotericsoftware:minlog:1.3.0:compile
-com.facebook:nailgun-server:1.0.1:compile
 com.fasterxml.jackson.core:jackson-annotations:2.21:compile
 com.fasterxml.jackson.core:jackson-core:2.21.1:compile
 com.fasterxml.jackson.core:jackson-databind:2.21.1:compile
@@ -105,8 +104,6 @@ javax.annotation:javax.annotation-api:1.2:compile
 javax.annotation:javax.annotation-api:1.3.2:compile
 javax.measure:unit-api:2.2:compile
 javax.xml.bind:jaxb-api:2.4.0-b180830.0359:compile
-net.java.dev.jna:jna-platform:5.14.0:compile
-net.java.dev.jna:jna:5.14.0:compile
 net.jodah:typetools:0.6.1:compile
 net.minidev:accessors-smart:2.5.2:compile
 net.minidev:json-smart:2.5.2:compile

@@ -160,12 +160,6 @@
       <fileMode>0755</fileMode>
       <filtered>true</filtered>
     </file>
-    <!-- nailgun client -->
-    <file>
-      <source>../../geomesa-tools/bin/ng</source>
-      <outputDirectory>bin</outputDirectory>
-      <fileMode>0755</fileMode>
-    </file>
     <!-- geomesa-site.xml.template -->
     <file>
       <source>../../geomesa-utils-parent/geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>

@@ -115,6 +115,12 @@ Deprecated Methods
 * ``org.locationtech.geomesa.index.api.GeoMesaFeatureIndexFactory.indices``
 * ``org.locationtech.geomesa.index.planning.StrategyDecider.selectFilterPlan``
 
+Removal of Nailgun Support
+--------------------------
+
+The command-line tools no longer support using Nailgun to run a persistent service. Nailgun is no longer maintained, and
+doesn't work with current Java versions.
+
 Internal API Changes
 --------------------
 
