@@ -15,7 +15,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.ByteArrayOutputStream
 import scala.xml.XML
 
 @RunWith(classOf[JUnitRunner])
@@ -70,12 +69,5 @@ class GmlExportTest extends Specification {
       feat must not(beNull)
       feat must haveLength(3)
     }
-  }
-
-  class ByteArrayExportStream extends ByteCounterStream {
-    private val os = new ByteArrayOutputStream()
-    override def bytes: Long = os.size()
-    override def write(b: Int): Unit = os.write(b)
-    def toByteArray: Array[Byte] = os.toByteArray
   }
 }

@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import java.util.Date
 import java.util.zip.Deflater
@@ -125,12 +125,5 @@ class FeatureExporterTest extends Specification {
 
       compressed.length must beLessThan(uncompressed.length)
     }
-  }
-
-  class ByteArrayExportStream extends ByteCounterStream {
-    private val os = new ByteArrayOutputStream()
-    override def bytes: Long = os.size()
-    override def write(b: Int): Unit = os.write(b)
-    def toByteArray: Array[Byte] = os.toByteArray
   }
 }

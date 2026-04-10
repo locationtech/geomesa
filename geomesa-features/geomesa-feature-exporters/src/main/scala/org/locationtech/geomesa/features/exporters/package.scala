@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features
 import org.apache.commons.io.output.CountingOutputStream
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, FileHandle}
 
-import java.io.{BufferedOutputStream, OutputStream}
+import java.io.{BufferedOutputStream, ByteArrayOutputStream, OutputStream}
 import java.util.zip.GZIPOutputStream
 
 package object exporters {
@@ -20,7 +20,22 @@ package object exporters {
    * Output stream that counts bytes written
    */
   trait ByteCounterStream extends OutputStream {
+
+    /**
+     * How many bytes have been written to this stream
+     * @return
+     */
     def bytes: Long
+  }
+
+  /**
+   * Export stream that writes to a byte array
+   */
+  class ByteArrayExportStream extends ByteCounterStream {
+    private val os = new ByteArrayOutputStream()
+    override def bytes: Long = os.size()
+    override def write(b: Int): Unit = os.write(b)
+    def toByteArray: Array[Byte] = os.toByteArray
   }
 
   /**

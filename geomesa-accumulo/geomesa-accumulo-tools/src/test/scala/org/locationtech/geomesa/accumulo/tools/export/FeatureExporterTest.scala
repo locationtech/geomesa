@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.tools.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
-import org.locationtech.geomesa.features.exporters.{AvroExporter, DelimitedExporter}
+import org.locationtech.geomesa.features.exporters.{AvroExporter, ByteArrayExportStream, DelimitedExporter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -43,7 +43,7 @@ class FeatureExporterTest extends TestWithDataStore {
       val query = new Query(sftName, Filter.INCLUDE)
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
-      val os = new ByteArrayOutputStream()
+      val os = new ByteArrayExportStream()
       val export = DelimitedExporter.csv(os, withHeader = true) // includeIds = true
       export.start(features.getSchema)
       export.export(CloseableIterator(features.features()).toList.iterator)
@@ -60,7 +60,7 @@ class FeatureExporterTest extends TestWithDataStore {
       val query = new Query(sftName, Filter.INCLUDE, "geom", "dtg")
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
-      val os = new ByteArrayOutputStream()
+      val os = new ByteArrayExportStream()
       val export = DelimitedExporter.csv(os, withHeader = true) // includeIds = true
       export.start(features.getSchema)
       export.export(CloseableIterator(features.features()).toList.iterator)
@@ -77,7 +77,7 @@ class FeatureExporterTest extends TestWithDataStore {
       val query = new Query(sftName, Filter.INCLUDE, "derived=strConcat(name, '-test')", "geom", "dtg")
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
-      val os = new ByteArrayOutputStream()
+      val os = new ByteArrayExportStream()
       val export = DelimitedExporter.csv(os, withHeader = true) // includeIds = true
       export.start(features.getSchema)
       export.export(CloseableIterator(features.features()).toList.iterator)
@@ -94,7 +94,7 @@ class FeatureExporterTest extends TestWithDataStore {
       val query = new Query(sftName, Filter.INCLUDE, "geom", "dtg", "derived=strConcat(name, ',test')")
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
-      val os = new ByteArrayOutputStream()
+      val os = new ByteArrayExportStream()
       val export = DelimitedExporter.csv(os, withHeader = true) // includeIds = true
       export.start(features.getSchema)
       export.export(CloseableIterator(features.features()).toList.iterator)
@@ -114,7 +114,7 @@ class FeatureExporterTest extends TestWithDataStore {
       val query = new Query(sftName, Filter.INCLUDE, "geom", "dtg", "derived=strConcat(name, '-test')")
       val featureCollection = ds.getFeatureSource(sftName).getFeatures(query)
 
-      val os = new ByteArrayOutputStream()
+      val os = new ByteArrayExportStream()
       val export = new AvroExporter(os, Some(Deflater.NO_COMPRESSION))
       export.start(featureCollection.getSchema)
       export.export(CloseableIterator(featureCollection.features()).toList.iterator)
