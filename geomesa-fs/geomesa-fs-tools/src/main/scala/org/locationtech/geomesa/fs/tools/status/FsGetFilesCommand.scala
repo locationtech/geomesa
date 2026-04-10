@@ -9,11 +9,12 @@
 package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.Parameters
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.status.FsGetFilesCommand.FSGetFilesParams
-import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{Command, OptionalCqlFilterParam, RequiredTypeNameParam}
 
 import java.time.Instant
 import java.util.Locale
@@ -31,13 +32,26 @@ class FsGetFilesCommand extends FsDataStoreCommand {
   override def execute(): Unit = withDataStore { ds =>
     val storage = ds.storage(params.featureName)
     val metadata = storage.metadata
+
+    lazy val fromFilter = {
+      Command.user.info(s"Listing files for filter: ${ECQL.toCQL(params.cqlFilter)}")
+      metadata.getFiles(params.cqlFilter)
+    }
+    lazy val fromPartitions = {
+      Command.user.info(s"Listing files for partition(s): ${params.partitions.asScala.mkString(", ")}")
+      params.partitions.asScala.flatMap(metadata.getFiles)
+    }
+
     val files =
-      if (params.partitions.isEmpty) {
+      if (params.cqlFilter == null && params.partitions.isEmpty) {
         Command.user.info("Listing files for all partitions")
         metadata.getFiles()
+      } else if (params.partitions.isEmpty) {
+        fromFilter
+      } else if (params.cqlFilter == null) {
+        fromPartitions
       } else {
-        Command.user.info(s"Listing files for partition(s): ${params.partitions.asScala.mkString(", ")}")
-        params.partitions.asScala.flatMap(metadata.getFiles)
+        (fromFilter ++ fromPartitions).distinct
       }
 
     files.groupBy(_.partition).toSeq.sortBy(_._1.toString).foreach { case (p, files) =>
@@ -53,5 +67,5 @@ class FsGetFilesCommand extends FsDataStoreCommand {
 
 object FsGetFilesCommand {
   @Parameters(commandDescription = "List files for partitions")
-  class FSGetFilesParams extends FsParams with RequiredTypeNameParam with PartitionParam
+  class FSGetFilesParams extends FsParams with RequiredTypeNameParam with PartitionParam with OptionalCqlFilterParam
 }

@@ -83,6 +83,7 @@ Argument                 Description
 ``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
 ``--partition``          Partitions to list (omit to list all partitions)
+``-q, --cql``            CQL predicate to determine the partitions to operate on
 ======================== =========================================================
 
 ``get-partitions``
