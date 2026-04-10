@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.fs.storage.converter
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api._
+import org.locationtech.geomesa.fs.storage.common.metadata.ConverterMetadata.ConverterPathParam
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorageFactory._
-import org.locationtech.geomesa.fs.storage.converter.pathfilter.{PathFiltering, PathFilteringFactory}
+import org.locationtech.geomesa.fs.storage.converter.pathfilter.{NamedOptions, PathFiltering, PathFilteringFactory}
 
 import java.util.regex.Pattern
 
@@ -21,7 +23,7 @@ class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging 
 
   import scala.collection.JavaConverters._
 
-  override val encoding: String = "converter"
+  override val encoding: String = ConverterStorageFactory.Encoding
 
   override def apply(context: FileSystemContext, metadata: StorageMetadata): FileSystemStorage = {
     val converter = {
@@ -48,19 +50,20 @@ class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging 
       factory
     }
 
-    new ConverterStorage(context, metadata, converter, pathFiltering)
+    val converterPath = Option(context.conf.get(ConverterPathParam)).map(new Path(context.root, _)).getOrElse {
+      throw new IllegalArgumentException("Must provide converter path")
+    }
+
+    new ConverterStorage(context.copy(root = converterPath), metadata, converter, pathFiltering)
   }
 }
 
 object ConverterStorageFactory {
+
+  val Encoding = "converter"
+
   val ConverterNameParam   = "fs.options.converter.name"
   val ConverterConfigParam = "fs.options.converter.conf"
-  val ConverterPathParam   = "fs.options.converter.path"
-  val SftNameParam         = "fs.options.sft.name"
-  val SftConfigParam       = "fs.options.sft.conf"
-  val LeafStorageParam     = "fs.options.leaf-storage"
-  val PartitionSchemeParam = "fs.partition-scheme.name"
-  val PartitionOptsPrefix  = "fs.partition-scheme.opts."
   val PathFilterName       = "fs.path-filter.name"
   val PathFilterOptsPrefix = "fs.path-filter.opts."
 }

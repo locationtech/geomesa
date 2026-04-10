@@ -95,7 +95,7 @@ package object tools {
     def libjarsFiles: Seq[String]
 
     def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
-      () => ClassPathUtils.getJarsFromClasspath(getClass),
+      () => ClassPathUtils.getJarsFromClasspath(),
       () => ClassPathUtils.getFilesFromSystemProperty("geomesa.convert.scripts.path")
     )
   }

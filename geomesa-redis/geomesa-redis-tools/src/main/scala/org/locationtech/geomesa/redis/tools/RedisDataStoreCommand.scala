@@ -42,7 +42,7 @@ object RedisDataStoreCommand {
 
     abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
       () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_REDIS_HOME", "lib"),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[RedisDataStore])
+      () => ClassPathUtils.getJarsFromClasspath()
     ) ++ super.libjarsPaths
   }
 

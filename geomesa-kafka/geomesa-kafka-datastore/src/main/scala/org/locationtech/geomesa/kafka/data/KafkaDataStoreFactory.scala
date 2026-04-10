@@ -261,9 +261,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   }
 
   private def buildAuthProvider(params: java.util.Map[String, _]): AuthorizationsProvider = {
-    import KafkaDataStoreParams.Authorizations
     // get the auth params passed in as a comma-delimited string
-    val auths = Authorizations.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty).toSeq).getOrElse(Seq.empty)
+    val auths = KafkaDataStoreParams.AuthsParam.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty).toSeq).getOrElse(Seq.empty)
     AuthUtils.getProvider(params, auths)
   }
 

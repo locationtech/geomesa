@@ -16,11 +16,9 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.api.Metadata
-import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, OptionalEncodingParam, OptionalSchemeParams}
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
-import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{OrcConverterJob, ParquetConverterJob}
+import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.ParquetConverterJob
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.FsIngestParams
 import org.locationtech.geomesa.jobs.Awaitable
 import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
@@ -63,35 +61,16 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
           }
         }
 
-        storage.metadata.encoding match {
-          case OrcFileSystemStorage.Encoding =>
-            new OrcConverterJob(
-              connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths, reducers,
-              storage.context.root, tmpPath, targetFileSize) {
-              override def configureJob(job: Job): Unit = {
-                super.configureJob(job)
-                if (params.combineInputs) {
-                  job.setInputFormatClass(classOf[ConverterCombineInputFormat])
-                  Option(params.maxSplitSize).foreach(s => FileInputFormat.setMaxInputSplitSize(job, s.toLong))
-                }
-              }
+        new ParquetConverterJob(
+          connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths, reducers,
+          storage.context.root, storage.metadata.schemes, tmpPath, targetFileSize) {
+          override def configureJob(job: Job): Unit = {
+            super.configureJob(job)
+            if (params.combineInputs) {
+              job.setInputFormatClass(classOf[ConverterCombineInputFormat])
+              Option(params.maxSplitSize).foreach(s => FileInputFormat.setMaxInputSplitSize(job, s.toLong))
             }
-
-          case ParquetFileSystemStorage.Encoding =>
-            new ParquetConverterJob(
-              connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths, reducers,
-              storage.context.root, tmpPath, targetFileSize) {
-              override def configureJob(job: Job): Unit = {
-                super.configureJob(job)
-                if (params.combineInputs) {
-                  job.setInputFormatClass(classOf[ConverterCombineInputFormat])
-                  Option(params.maxSplitSize).foreach(s => FileInputFormat.setMaxInputSplitSize(job, s.toLong))
-                }
-              }
-            }
-
-          case _ =>
-            throw new ParameterException(s"Ingestion is not supported for encoding '${params.encoding}'")
+          }
         }
 
       case _ =>
@@ -102,8 +81,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
 
 object FsIngestCommand {
   @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-  class FsIngestParams extends IngestParams
-      with FsParams with OptionalEncodingParam with OptionalSchemeParams with TempPathParam {
+  class FsIngestParams extends IngestParams with FsParams with OptionalSchemeParams with TempPathParam {
     @Parameter(
       names = Array("--num-reducers"),
       description = "Num reducers (required for distributed ingest)",

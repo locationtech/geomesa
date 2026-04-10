@@ -42,7 +42,7 @@ class GeoMesaParam[T <: AnyRef](
     _key: String, // can't override final 'key' field from Param
     desc: String = "", // can't override final 'description' field from Param
     optional: Boolean = true, // can't override final 'required' field from Param
-    val default: T = null,
+    val default: T = null, // note: even though intellij complains, don't cast this line as it breaks things
     val password: Boolean = false,
     val largeText: Boolean = false,
     val extension: String = null,
@@ -180,7 +180,11 @@ class GeoMesaParam[T <: AnyRef](
 
 object GeoMesaParam {
 
+  import scala.collection.JavaConverters._
+
   val SupportsNiFiExpressions = "geomesa.nifi.expressions"
+
+  private val EnvRegex = """\$\{(\w+)\}""".r
 
   trait DeprecatedParam[T <: AnyRef] {
     def key: String
@@ -324,6 +328,14 @@ object GeoMesaParam {
   private def parseProperties(text: String): Properties = {
     val props = new Properties
     props.load(new StringReader(text))
+    // replace env vars
+    props.entrySet().asScala.foreach { entry =>
+      val current = entry.getValue.asInstanceOf[String]
+      val updated = EnvRegex.replaceAllIn(current, m => sys.env.getOrElse(m.group(1), ""))
+      if (current != updated) {
+        entry.setValue(updated)
+      }
+    }
     props
   }
 

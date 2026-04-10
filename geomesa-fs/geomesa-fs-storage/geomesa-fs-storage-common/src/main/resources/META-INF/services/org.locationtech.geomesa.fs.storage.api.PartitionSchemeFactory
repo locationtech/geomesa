@@ -1,5 +1,4 @@
 org.locationtech.geomesa.fs.storage.common.partitions.AttributeScheme$AttributePartitionSchemeFactory
-org.locationtech.geomesa.fs.storage.common.partitions.CompositeScheme$CompositePartitionSchemeFactory
 org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme$DateTimePartitionSchemeFactory
 org.locationtech.geomesa.fs.storage.common.partitions.FlatScheme$FlatPartitionSchemeFactory
 org.locationtech.geomesa.fs.storage.common.partitions.ReceiptTimeScheme$ReceiptTimePartitionSchemeFactory

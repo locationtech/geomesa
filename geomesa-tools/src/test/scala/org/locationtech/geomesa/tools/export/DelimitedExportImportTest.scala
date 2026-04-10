@@ -14,7 +14,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.data.memory.MemoryDataStore
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.exporters.DelimitedExporter
+import org.locationtech.geomesa.features.exporters.{ByteArrayExportStream, DelimitedExporter}
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -42,7 +42,7 @@ class DelimitedExportImportTest extends Specification {
   }
 
   def export(sft: SimpleFeatureType, features: Iterator[SimpleFeature], format: ExportFormat): String = {
-    val os = new ByteArrayOutputStream()
+    val os = new ByteArrayExportStream()
     // exclude feature ID since the inferred ingestion just treats it as another column
     val export = format match {
       case ExportFormat.Csv => DelimitedExporter.csv(os, withHeader = true, includeIds = false)

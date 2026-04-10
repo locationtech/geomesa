@@ -17,6 +17,8 @@ aws_sdk_v2_install_version="%%aws.sdk.version%%"
 aws_crt_install_version="%%aws.crt.version%%"
 # this should match the parquet desired version
 snappy_install_version="1.1.1.6"
+# required for hadoop - make sure it corresponds to the hadoop installed version
+guava_install_version="%%hadoop.guava.version%%"
 
 # gets the dependencies for this module
 # args:
@@ -47,6 +49,7 @@ function dependencies() {
     "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-aws:${hadoop_version}:jar"
     "org.xerial.snappy:snappy-java:${snappy_version}:jar"
+    "com.google.guava:guava:${guava_install_version}:jar"
     "commons-logging:commons-logging:1.3.3:jar"
     "org.apache.httpcomponents:httpclient:4.5.13:jar"
     "org.apache.httpcomponents:httpcore:4.4.13:jar"
@@ -94,7 +97,6 @@ function dependencies() {
       "com.amazonaws:aws-java-sdk-s3:${aws_sdk_v1_version}:jar"
       "com.amazonaws:aws-java-sdk-dynamodb:${aws_sdk_v1_version}:jar"
       "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
-      "com.google.guava:guava:27.0-jre:jar"
       "joda-time:joda-time:2.8.1:jar"
     )
   fi

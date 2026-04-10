@@ -31,6 +31,8 @@ class ParquetFileSystemWriter(
 
   private val writer = SimpleFeatureParquetWriter.builder(file, conf).build()
 
+  def getDataSize: Long = writer.getDataSize
+
   override def write(f: SimpleFeature): Unit = {
     writer.write(f)
     observer(f)

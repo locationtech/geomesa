@@ -8,20 +8,27 @@
 
 package org.locationtech.geomesa.fs.storage.api
 
-import org.apache.hadoop.fs.Path
+import com.google.gson._
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
 import org.locationtech.jts.geom.Envelope
 
 import java.io.Closeable
+import java.lang.reflect.Type
+import scala.util.control.NonFatal
 
 /**
-  * Metadata interface for managing storage partitions. Metadata implementations can be fairly expensive to
-  * instantiate, as they maintain all the partitions and files for a given storage instance. Generally,
-  * they may not load any partition state until `reload` is invoked - this allows for fast access in the cases
-  * where partition state is not required (e.g. access to partition scheme, blind writes, etc)
+  * Metadata interface for managing storage partitions
   */
-trait StorageMetadata extends Compactable with Closeable {
+trait StorageMetadata extends Closeable {
+
+  /**
+   * Metadata persistence type
+   *
+   * @return
+   */
+  def `type`: String
 
   /**
     * The schema for SimpleFeatures stored in the file system storage
@@ -31,27 +38,56 @@ trait StorageMetadata extends Compactable with Closeable {
   def sft: SimpleFeatureType
 
   /**
-    * The encoding of the underlying data files
+    * The partition scheme(s) used to partition features for storage and querying
     *
-    * @return encoding
+    * @return partition schemes
     */
-  def encoding: String
+  def schemes: Set[PartitionScheme]
 
   /**
-    * The partition scheme used to partition features for storage and querying
-    *
-    * @return partition scheme
-    */
-  def scheme: PartitionScheme
+   * Add a file
+   *
+   * @param file file
+   */
+  def addFile(file: StorageFile): Unit
 
   /**
-    * Are partitions stored as leaves (multiple partitions in a single folder), or does each
-    * partition have a unique folder. Using leaf storage can reduce the level of nesting and make
-    * file system operations faster in some cases.
-    *
-    * @return leaf
-    */
-  def leafStorage: Boolean
+   * Delete a file
+   *
+   * @param file file
+   */
+  def removeFile(file: StorageFile): Unit
+
+  /**
+   * Replace existing files with new ones in an atomic operation
+   *
+   * @param existing existing files
+   * @param replacements replacement files
+   */
+  def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit
+
+  /**
+   * Get all files
+   *
+   * @return all files
+   */
+  // noinspection AccessorLikeMethodIsEmptyParen
+  def getFiles(): Seq[StorageFile]
+
+  /**
+   * Get files for a given partition by name
+   *
+   * @param partition partition
+   * @return files for the given partition
+   */
+  def getFiles(partition: Partition): Seq[StorageFile]
+
+  /**
+   * Get files matching a given filter
+   *
+   * @param filter filter
+   */
+  def getFiles(filter: Filter): Seq[StorageFile]
 
   /**
    * Get a previously set key-value pair
@@ -68,115 +104,74 @@ trait StorageMetadata extends Compactable with Closeable {
    * @param value value
    */
   def set(key: String, value: String): Unit = throw new UnsupportedOperationException()
-
-  /**
-    * Get a partition by name. Ensure that `reload` has been invoked at least once before calling this method
-    *
-    * @param name partition name
-    * @return partition metadata, if partition exists
-    */
-  def getPartition(name: String): Option[PartitionMetadata]
-
-  /**
-    * Get all partitions, with an optional prefix filter. Ensure that `reload` has been invoked at least
-    * once before calling this method
-    *
-    * @param prefix prefix used to match partition names
-    * @return all partitions
-    */
-  def getPartitions(prefix: Option[String] = None): Seq[PartitionMetadata]
-
-  /**
-    * Add (or update) metadata for a partition
-    *
-    * @param partition partition
-    */
-  def addPartition(partition: PartitionMetadata): Unit
-
-  /**
-    * Update (or delete) metadata for a partition
-    *
-    * @param partition partition
-    */
-  def removePartition(partition: PartitionMetadata): Unit
-
-  /**
-   * Overwrite any existing partitions
-   *
-   * @param partitions partitions
-   */
-  def setPartitions(partitions: Seq[PartitionMetadata]): Unit
-
-  /**
-   * Invalidate any cached state
-   */
-  def invalidate(): Unit
 }
 
 object StorageMetadata {
 
   implicit val StorageFileOrdering: Ordering[StorageFile] = Ordering.by[StorageFile, Long](_.timestamp).reverse
 
-  implicit val StorageFilePathOrdering: Ordering[StorageFilePath] =
-    Ordering.by[StorageFilePath, Long](_.file.timestamp).reverse
-
-  /**
-    * Metadata for a given partition
-    *
-    * @param name partition name
-    * @param files list of files in the partition (relative to the root directory)
-    * @param bounds estimated spatial bounds for this partition, if known
-    * @param count estimated count of features in this partition
-    */
-  case class PartitionMetadata(name: String, files: Seq[StorageFile], bounds: Option[PartitionBounds], count: Long) {
-
-    /**
-      * Combine two metadata instances for the same partition
-      *
-      * @param other metadata to combine
-      * @return
-      */
-    def +(other: PartitionMetadata): PartitionMetadata = {
-      val merged = bounds.map(b => other.bounds.map(_ + b).getOrElse(b)).orElse(other.bounds)
-      copy(files = files ++ other.files, bounds = merged, count = count + other.count)
-    }
-
-    /**
-      * Remove some metadata for the same partition.
-      *
-      * Note that this is a lossy operation, as the reduced bounds aren't known
-      *
-      * @param other metadata to remove
-      * @return
-      */
-    def -(other: PartitionMetadata): PartitionMetadata =
-      copy(files = files.diff(other.files), count = math.max(0, count - other.count))
-  }
+  private val gson = JsonSerializers.register(new GsonBuilder()).disableHtmlEscaping().create()
 
   /**
    * Holds a storage file
    *
-   * @param name file name (relative to the root path)
-   * @param timestamp timestamp for the file
+   * @param file file name (relative to the root path)
+   * @param partition list of partitions that the file belongs to
+   * @param count number of entries in the file
    * @param action type of file (append, modify, delete)
-   * @param sort sort fields, if any, as feature type attribute number
-   * @param bounds known bounds, if any, keyed by feature type attribute number
+   * @param spatialBounds known bounds, if any, keyed by feature type attribute number
+   * @param attributeBounds known bounds, if any, keyed by feature type attribute number
+   * @param sort sort fields for the file, if any, as feature type attribute number
+   * @param timestamp timestamp for the file
    */
   case class StorageFile(
-      name: String,
-      timestamp: Long,
+      file: String,
+      partition: Partition,
+      count: Long,
       action: StorageFileAction.StorageFileAction = StorageFileAction.Append,
+      spatialBounds: Seq[SpatialBounds] = Seq.empty,
+      attributeBounds: Seq[AttributeBounds] = Seq.empty,
       sort: Seq[Int] = Seq.empty,
-      bounds: Seq[(Int, String, String)] = Seq.empty
+      timestamp: Long = System.currentTimeMillis(),
     )
 
   /**
-    * Holds a storage file path
-    *
-    * @param file storage file
-    * @param path full path to the file
-    */
-  case class StorageFilePath(file: StorageFile, path: Path)
+   * A partition
+   *
+   * @param values set of dimensions that make up the partition
+   */
+  case class Partition(values: Set[PartitionKey]) {
+    override lazy val toString: String = gson.toJson(this)
+  }
+
+  object Partition {
+
+    val None: Partition = Partition(Set.empty[PartitionKey])
+
+    def apply(encoded: String): Partition = {
+      try { gson.fromJson(encoded, classOf[Partition]) } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Invalid partition json: $encoded", e)
+      }
+    }
+  }
+
+  /**
+   * A partition tag
+   *
+   * @param name partition scheme
+   * @param value partition value
+   */
+  case class PartitionKey(name: String, value: String) {
+    override lazy val toString: String = gson.toJson(this)
+  }
+
+  object PartitionKey {
+    def apply(encoded: String): PartitionKey = {
+      try { gson.fromJson(encoded, classOf[PartitionKey]) } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Invalid partition key json: $encoded", e)
+      }
+    }
+  }
 
   /**
     * Action related to a storage file
@@ -187,53 +182,162 @@ object StorageMetadata {
   }
 
   /**
-    * Immutable representation of an envelope
-    *
-    * Note that conversions to/from 'null' envelopes should be handled carefully, as envelopes are considered
-    * null if xmin > xmax, however, when instantiating an envelope it will re-order the coordinates:
-    *
-    * {{{
-    *   val env = new Envelope()
-    *   val copy = new Envelope(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
-    *   copy == env // false
-    * }}}
-    *
-    * Thus, ensure that 'null' envelopes are converted to `None` and not directly to a bounds object. See
-    * `PartitionBounds.apply`
-    *
-    * @param xmin min x dimension
-    * @param ymin min y dimension
-    * @param xmax max x dimension
-    * @param ymax max y dimension
-    */
-  case class PartitionBounds(xmin: Double, ymin: Double, xmax: Double, ymax: Double) {
+   * Immutable representation of an envelope
+   *
+   * Note that conversions to/from 'null' envelopes should be handled carefully, as envelopes are considered
+   * null if xmin > xmax, however, when instantiating an envelope it will re-order the coordinates:
+   *
+   * {{{
+   *   val env = new Envelope()
+   *   val copy = new Envelope(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
+   *   copy == env // false
+   * }}}
+   *
+   * Thus, ensure that 'null' envelopes are converted to `None` and not directly to a bounds object. See
+   * `PartitionBounds.apply`
+   *
+   * @param attribute index of the attribute being bounded
+   * @param xmin min x dimension
+   * @param ymin min y dimension
+   * @param xmax max x dimension
+   * @param ymax max y dimension
+   */
+  case class SpatialBounds(attribute: Int, xmin: Double, ymin: Double, xmax: Double, ymax: Double) {
 
     /**
-      * Calculate the minimal bounds encompassing both bounds
-      *
-      * @param b other bounds
-      * @return
-      */
-    def +(b: PartitionBounds): PartitionBounds =
-      PartitionBounds(math.min(xmin, b.xmin), math.min(ymin, b.ymin), math.max(xmax, b.xmax), math.max(ymax, b.ymax))
+     * Calculate the minimal bounds encompassing both bounds
+     *
+     * @param b other bounds
+     * @return
+     */
+    def +(b: SpatialBounds): SpatialBounds = {
+      require(attribute == b.attribute, "Trying to merge bounds from different attributes")
+      SpatialBounds(attribute, math.min(xmin, b.xmin), math.min(ymin, b.ymin), math.max(xmax, b.xmax), math.max(ymax, b.ymax))
+    }
 
     /**
-      * Convert to a mutable envelope
-      *
-      * @return
-      */
+     * Convert to a mutable envelope
+     *
+     * @return
+     */
     def envelope: Envelope = new Envelope(xmin, xmax, ymin, ymax)
   }
 
-  object PartitionBounds {
+  object SpatialBounds {
 
     /**
-      * Converts an envelope to a bounds, handling 'null' (empty) envelopes
-      *
-      * @param env envelope
-      * @return
-      */
-    def apply(env: Envelope): Option[PartitionBounds] =
-      if (env.isNull) { None } else { Some(PartitionBounds(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)) }
+     * Converts an envelope to a bounds, handling 'null' (empty) envelopes
+     *
+     * @param env envelope
+     * @return
+     */
+    def apply(attribute: Int, env: Envelope): Option[SpatialBounds] =
+      if (env.isNull) { None } else { Some(SpatialBounds(attribute, env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)) }
+  }
+
+  /**
+   * Bounds for an attribute
+   *
+   * @param attribute index of the attribute in the feature type
+   * @param lower lower bound (lexicoded)
+   * @param upper upper bound (lexicoded)
+   */
+  case class AttributeBounds(attribute: Int, lower: String, upper: String)
+
+  object JsonSerializers {
+
+    def register(builder: GsonBuilder): GsonBuilder =
+      builder.registerTypeAdapter(classOf[Partition], JsonSerializers.PartitionSerializer)
+        .registerTypeAdapter(classOf[PartitionKey], JsonSerializers.PartitionKeySerializer)
+        .registerTypeAdapter(classOf[StorageFile], StorageFileSerializer)
+
+    /**
+     * Json serializer for partitions
+     */
+    private object PartitionSerializer extends JsonSerializer[Partition] with JsonDeserializer[Partition] {
+      override def serialize(src: Partition, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+        val array = new JsonArray(src.values.size)
+        src.values.toSeq.sortBy(k => (k.name, k.value)).foreach { value =>
+          array.add(context.serialize(value))
+        }
+        array
+      }
+
+      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Partition = {
+        val array = json.getAsJsonArray
+        val values = Set.newBuilder[PartitionKey]
+        var i = 0
+        while (i < array.size()) {
+          values += context.deserialize(array.get(i), classOf[PartitionKey])
+          i += 1
+        }
+        Partition(values.result())
+      }
+    }
+
+    /**
+     * Json serializer for partition keys
+     */
+    private object PartitionKeySerializer extends JsonSerializer[PartitionKey] with JsonDeserializer[PartitionKey] {
+      override def serialize(src: PartitionKey, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+        val obj = new JsonObject()
+        obj.addProperty("name", src.name)
+        obj.addProperty("value", src.value)
+        obj
+      }
+
+      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): PartitionKey = {
+        val obj = json.getAsJsonObject
+        val name = obj.getAsJsonPrimitive("name").getAsString
+        val value = obj.getAsJsonPrimitive("value").getAsString
+        PartitionKey(name, value)
+      }
+    }
+
+    /**
+     * Json serializer for StorageFileAction
+     */
+    private object StorageFileSerializer extends JsonSerializer[StorageFile] with JsonDeserializer[StorageFile] {
+
+      import scala.collection.JavaConverters._
+
+      override def serialize(src: StorageFile, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+        val obj = new JsonObject()
+        obj.addProperty("file", src.file)
+        obj.add("partition", context.serialize(src.partition))
+        obj.addProperty("count", src.count)
+        obj.addProperty("action", src.action.toString)
+        val spatialBounds = new JsonArray(src.spatialBounds.size)
+        src.spatialBounds.foreach(b => spatialBounds.add(context.serialize(b)))
+        obj.add("spatialBounds", spatialBounds)
+        val attributeBounds = new JsonArray(src.attributeBounds.size)
+        src.attributeBounds.foreach(b => attributeBounds.add(context.serialize(b)))
+        obj.add("attributeBounds", attributeBounds)
+        val sort = new JsonArray(src.sort.size)
+        src.sort.foreach(sort.add(_))
+        obj.add("sort", sort)
+        obj.addProperty("timestamp", src.timestamp)
+        obj
+      }
+
+      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): StorageFile = {
+        val obj = json.getAsJsonObject
+        val spatialBounds =
+          obj.getAsJsonArray("spatialBounds").asList().asScala.map(context.deserialize[SpatialBounds](_, classOf[SpatialBounds])).toSeq
+        val attributeBounds =
+          obj.getAsJsonArray("attributeBounds").asList().asScala.map(context.deserialize[AttributeBounds](_, classOf[AttributeBounds])).toSeq
+        val sort = obj.getAsJsonArray("sort").asList().asScala.map(_.getAsInt).toSeq
+        StorageFile(
+          obj.getAsJsonPrimitive("file").getAsString,
+          context.deserialize(obj.get("partition"), classOf[Partition]),
+          obj.getAsJsonPrimitive("count").getAsLong,
+          StorageFileAction.withName(obj.getAsJsonPrimitive("action").getAsString),
+          spatialBounds,
+          attributeBounds,
+          sort,
+          obj.getAsJsonPrimitive("timestamp").getAsLong,
+        )
+      }
+    }
   }
 }

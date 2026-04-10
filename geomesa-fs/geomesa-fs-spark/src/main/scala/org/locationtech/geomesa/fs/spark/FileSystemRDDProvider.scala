@@ -10,6 +10,7 @@ package org.locationtech.geomesa.fs.spark
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.spark.SparkContext
@@ -19,18 +20,15 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreFactory}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFileAction, StorageFilePath}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration.SimpleFeatureAction
-import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
-import org.locationtech.geomesa.fs.storage.orc.jobs.{OrcSimpleFeatureActionInputFormat, OrcSimpleFeatureInputFormat}
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.parquet.jobs.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
 import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.collection.mutable.ArrayBuffer
 
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
@@ -46,74 +44,62 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
       val sft = ds.getSchema(query.getTypeName)
       val storage = ds.storage(query.getTypeName)
 
-      def runQuery(filter: Filter, paths: Seq[StorageFilePath], modifications: Boolean): RDD[SimpleFeature] = {
+      def configureQuery(filter: Filter, paths: Seq[StorageFile]): Unit = {
+        logger.debug(s"Reading ${paths.length} files with filter: ${ECQL.toCQL(filter)}")
         // note: file input format requires a job object, but conf gets copied in job object creation,
         // so we have to copy the file paths back out
         val job = Job.getInstance(conf)
 
         // note: we have to copy all the conf twice?
-        FileInputFormat.setInputPaths(job, paths.map(_.path): _*)
+        FileInputFormat.setInputPaths(job, paths.map(p => new Path(storage.context.root, p.file)): _*)
         conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
+        val newQuery = new Query(query)
+        newQuery.setFilter(filter)
+        ParquetSimpleFeatureInputFormat.configure(conf, sft, newQuery)
+      }
 
-        // configure the input format for the storage type
-        // we have two input formats for each, depending if we need to do a reduce step or not
-        val (base, action) = if (storage.metadata.encoding == OrcFileSystemStorage.Encoding) {
-          OrcSimpleFeatureInputFormat.configure(conf, sft, query.getFilter, query.getPropertyNames)
-          (classOf[OrcSimpleFeatureInputFormat], classOf[OrcSimpleFeatureActionInputFormat])
-        } else if (storage.metadata.encoding == ParquetFileSystemStorage.Encoding) {
-          ParquetSimpleFeatureInputFormat.configure(conf, sft, query)
-          (classOf[ParquetSimpleFeatureInputFormat], classOf[ParquetSimpleFeatureActionInputFormat])
-        } else {
-          throw new UnsupportedOperationException(s"Not implemented for encoding '${storage.metadata.encoding}'")
-        }
+      def runAppendQuery(filter: Filter, paths: Seq[StorageFile]): RDD[SimpleFeature] = {
+        configureQuery(filter, paths)
+        sc.newAPIHadoopRDD(conf, classOf[ParquetSimpleFeatureInputFormat], classOf[Void], classOf[SimpleFeature]).map(_._2)
+      }
 
-        if (modifications) {
-          StorageConfiguration.setPathActions(conf, paths)
-          val rdd = sc.newAPIHadoopRDD(conf, action, classOf[SimpleFeatureAction], classOf[SimpleFeature])
+      def runModsQuery(filter: Filter, paths: Seq[StorageFile]): RDD[(SimpleFeatureAction, SimpleFeature)] = {
+        configureQuery(filter, paths)
+        StorageConfiguration.setPathActions(conf, storage.context.root, paths)
+        sc.newAPIHadoopRDD(conf, classOf[ParquetSimpleFeatureActionInputFormat], classOf[SimpleFeatureAction], classOf[SimpleFeature])
+      }
+
+      // split up the job by the partitions that require sequential reads
+      // if a partition has modifications, it must be read separately to ensure they are handled correctly
+      val noMods = ArrayBuffer.empty[StorageFile]
+      val withMods = scala.collection.mutable.Map.empty[String, ArrayBuffer[StorageFile]]
+
+      storage.metadata.getFiles(query.getFilter).groupBy(_.partition).foreach { case (partition, sffs) =>
+        val buf =
+          if (sffs.forall(_.action == StorageFileAction.Append)) {
+            noMods
+          } else {
+            logger.warn(s"Found modifications for partition '$partition': compact the partition to improve read performance")
+            withMods.getOrElseUpdate(partition.toString, ArrayBuffer.empty[StorageFile])
+          }
+        buf ++= sffs
+      }
+
+      val rdd = if (noMods.isEmpty && withMods.isEmpty) {
+        logger.debug("Reading 0 partitions")
+        sc.emptyRDD[SimpleFeature]
+      } else {
+        val noModsRdd = if (noMods.isEmpty) { sc.emptyRDD[SimpleFeature] } else { runAppendQuery(query.getFilter, noMods.toSeq) }
+        val withModsRdd = withMods.map { case (_, files) =>
+          val rdd = runModsQuery(query.getFilter, files.toSeq)
           // group updates by feature ID, then take the most recent
           rdd.groupBy(_._1.id).flatMap { case (_, group) =>
             val (action, sf) = group.minBy(_._1)
             if (action.action == StorageFileAction.Delete) { None } else { Some(sf) }
           }
-        } else {
-          sc.newAPIHadoopRDD(conf, base, classOf[Void], classOf[SimpleFeature]).map(_._2)
         }
-      }
 
-      // split up the job by the filters required and partitions that require sequential reads
-      // if a partition has modifications, it must be read separately to ensure they are handled correctly
-      val partitioned = ArrayBuffer.empty[(String, Filter, Seq[StorageFilePath], Boolean)]
-
-      storage.getPartitionFilters(query.getFilter).foreach { fp =>
-        val defaults = ListBuffer.empty[StorageFilePath]
-        val defaultPartitions = ListBuffer.empty[String]
-        fp.partitions.foreach { p =>
-          val files = storage.getFilePaths(p)
-          if (files.nonEmpty) {
-            if (files.forall(_.file.action == StorageFileAction.Append)) {
-              defaults ++= files
-              defaultPartitions += p
-            } else {
-              logger.warn(s"Found modifications for partition '$p': " +
-                  "compact the partition to improve read performance")
-              partitioned += ((p, fp.filter, files, true))
-            }
-          }
-        }
-        if (defaults.nonEmpty) {
-          partitioned += ((defaultPartitions.mkString("', '"), fp.filter, defaults.toSeq, false))
-        }
-      }
-
-      val rdd = if (partitioned.isEmpty) {
-        logger.debug("Reading 0 partitions")
-        sc.emptyRDD[SimpleFeature]
-      } else {
-        val rdds = partitioned.map { case (names, filter, files, modifications) =>
-          logger.debug(s"Reading partitions '$names' with ${files.length} files with filter: ${ECQL.toCQL(filter)}")
-          runQuery(filter, files, modifications)
-        }
-        rdds.reduceLeft(_ union _)
+        (Seq(noModsRdd) ++ withModsRdd).reduceLeft(_ union _)
       }
       SpatialRDD(rdd, sft)
     }

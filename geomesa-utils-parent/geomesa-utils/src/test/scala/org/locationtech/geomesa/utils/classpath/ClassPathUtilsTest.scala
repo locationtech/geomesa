@@ -27,11 +27,8 @@ class ClassPathUtilsTest extends Specification {
     }
 
     "load jars from classpath" in {
-      // TODO
-      skipped("fails in java 11")
-      val files = ClassPathUtils.getJarsFromClasspath(classOf[ClassPathUtilsTest])
+      val files = ClassPathUtils.getJarsFromClasspath()
       files.length must beGreaterThan(0)
     }
   }
-
 }

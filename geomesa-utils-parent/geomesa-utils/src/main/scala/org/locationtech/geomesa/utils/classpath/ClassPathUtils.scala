@@ -11,7 +11,6 @@ package org.locationtech.geomesa.utils.classpath
 import com.typesafe.scalalogging.LazyLogging
 
 import java.io.{File, FileFilter, FilenameFilter}
-import java.net.{URLClassLoader, URLDecoder}
 import scala.collection.mutable.ArrayBuffer
 
 object ClassPathUtils extends LazyLogging {
@@ -23,10 +22,6 @@ object ClassPathUtils extends LazyLogging {
 
   private val folderFileFilter = new FileFilter() {
     override def accept(pathname: File): Boolean = pathname.isDirectory
-  }
-
-  private val fileFilter = new FileFilter() {
-    override def accept(pathname: File): Boolean = pathname.isFile
   }
 
   def findJars(jars: Seq[String], searchPath: Iterator[() => Seq[File]]): Seq[File] = {
@@ -52,7 +47,7 @@ object ClassPathUtils extends LazyLogging {
   /**
    * Finds URLs of jar files based on an environment variable
    *
-   * @param home
+   * @param home home env var name
    * @return
    */
   def getJarsFromEnvironment(home: String): Seq[File] =
@@ -61,7 +56,7 @@ object ClassPathUtils extends LazyLogging {
   /**
     * Finds URLs of jar files based on an environment variable
     *
-    * @param home
+    * @param home home env var name
     * @param path - the path to append to the result of the env var
     * @return
     */
@@ -71,22 +66,15 @@ object ClassPathUtils extends LazyLogging {
   /**
    * Finds URLs of jar files based on the current classpath
    *
-   * @param clas
    * @return
    */
-  def getJarsFromClasspath(clas: Class[_]): Seq[File] = {
-    clas.getClassLoader match {
-      case cl: URLClassLoader => cl.getURLs.map(u => new File(cleanClassPathURL(u.getFile)))
-      case cl =>
-        logger.warn(s"Can't load jars from classloader of type ${cl.getClass.getCanonicalName}")
-        Seq.empty
-    }
-  }
+  // noinspection AccessorLikeMethodIsEmptyParen
+  def getJarsFromClasspath(): Seq[File] = System.getProperty("java.class.path").split(File.pathSeparator).map(new File(_)).toSeq
 
   /**
    * Recursively searches folders for jar files
    *
-   * @param dir
+   * @param dir dir
    * @return
    */
   def loadJarsFromFolder(dir: File): Seq[File] = {
@@ -98,14 +86,14 @@ object ClassPathUtils extends LazyLogging {
   /**
     * Finds URLs of files based on a system property
     *
-    * @param prop
+    * @param prop prop
     * @return
     */
   def getFilesFromSystemProperty(prop: String): Seq[File] = {
     Option(System.getProperty(prop)) match {
       case Some(path) => path.split(":").map(new File(_)).toSeq.flatMap(loadFiles)
       case None =>
-        logger.debug(s"No files loaded onto classpath from system property: ${prop}")
+        logger.debug(s"No files loaded onto classpath from system property: $prop")
         Seq.empty
     }
   }
@@ -113,21 +101,16 @@ object ClassPathUtils extends LazyLogging {
   /**
     * Recursively searches file for all files. Accepts file or dir.
     *
-    * @param file
+    * @param file file
     * @return
     */
   private def loadFiles(file: File): Seq[File] = {
     if (file.isDirectory) {
-      val files = Option(file.listFiles(fileFilter)).toSeq.flatten
-      val childDirs = Option(file.listFiles(folderFileFilter)).toSeq.flatten.flatMap(loadFiles)
-      files ++ childDirs
+      loadJarsFromFolder(file)
     } else {
       Option(file).toSeq
     }
   }
-
-  private def cleanClassPathURL(url: String): String =
-    URLDecoder.decode(url, "UTF-8").replace("file:", "").replace("!", "")
 
   /**
     * <p>Load files (jars, resources, configuration, etc) from a classpath defined by an environmental

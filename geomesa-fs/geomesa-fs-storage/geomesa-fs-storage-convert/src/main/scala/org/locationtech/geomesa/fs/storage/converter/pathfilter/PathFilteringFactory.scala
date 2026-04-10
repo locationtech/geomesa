@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.converter.pathfilter
 
-import org.locationtech.geomesa.fs.storage.api.NamedOptions
-
 import java.util.ServiceLoader
 
 trait PathFilteringFactory {

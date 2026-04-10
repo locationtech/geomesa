@@ -16,9 +16,9 @@ import org.geotools.data.memory.MemoryDataStore
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
-import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions}
-import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
+import org.locationtech.geomesa.fs.storage.api.FileSystemContext
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
+import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.tools.`export`.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
@@ -26,21 +26,19 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.BeforeAfterAll
 
 import java.io._
 import java.nio.file.Files
-import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
-class ExportToFsTest extends Specification {
-
-  private val counter = new AtomicInteger(0)
+class ExportToFsTest extends Specification with BeforeAfterAll {
 
   var out: java.nio.file.Path = _
 
-  step {
-    out = Files.createTempDirectory("gm-export-fs-test")
-  }
+  override def beforeAll(): Unit = out = Files.createTempDirectory("gm-export-fs-test")
+
+  override def afterAll(): Unit = PathUtils.deleteRecursively(out)
 
   "Export command" should {
     "create files readable by the FSDS" >> {
@@ -58,18 +56,16 @@ class ExportToFsTest extends Specification {
       ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features: _*))
 
-      val storage = {
+      def storage() = {
         val conf = new Configuration()
         val context = FileSystemContext(new Path(out.toUri), conf)
-        val metadata =
-          new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", NamedOptions("daily"), leafStorage = true))
+        val metadata = new FileBasedMetadataCatalog(context).create(sft, Seq("daily"))
         new ParquetFileSystemStorageFactory().apply(context, metadata)
       }
 
-      val file = new File(s"$out/2016/01/01_out.parquet")
+      val file = new File(s"$out/2016_01_01_out.parquet")
 
-      WithClose(storage) { storage =>
+      WithClose(storage()) { storage =>
         val command: ExportCommand[DataStore] = new ExportCommand[DataStore]() {
           override val params: ExportParams = new ExportParams() {
             override def featureName: String = sft.getTypeName
@@ -80,15 +76,13 @@ class ExportToFsTest extends Specification {
         command.params.file = file.getAbsolutePath
         command.execute()
 
-        storage.metadata.addPartition(PartitionMetadata("2016/01/01", Seq(StorageFile(file.getName, 0L)), None, 2L))
+        val partition = Partition(storage.metadata.schemes.map(_.getPartition(features.head)))
+
+        storage.metadata.addFile(StorageFile(file.getName, partition, 0L))
 
         val read = WithClose(storage.getReader(new Query(sft.getTypeName)))(_.toList)
         read mustEqual features
       }
     }
-  }
-
-  step {
-    PathUtils.deleteRecursively(out)
   }
 }

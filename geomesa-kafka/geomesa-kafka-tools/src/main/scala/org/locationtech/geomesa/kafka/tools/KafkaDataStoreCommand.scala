@@ -10,7 +10,6 @@ package org.locationtech.geomesa.kafka.tools
 
 import com.beust.jcommander.{IValueValidator, ParameterException}
 import org.apache.commons.io.FileUtils
-import org.apache.kafka.clients.producer.Producer
 import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreParams}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
@@ -74,8 +73,7 @@ object KafkaDataStoreCommand {
     abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
       () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_KAFKA_HOME", "lib"),
       () => ClassPathUtils.getJarsFromEnvironment("KAFKA_HOME"),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[KafkaDataStore]),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[Producer[_, _]])
+      () => ClassPathUtils.getJarsFromClasspath()
     ) ++ super.libjarsPaths
   }
 

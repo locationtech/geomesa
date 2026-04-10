@@ -23,5 +23,7 @@ object NullExporter extends FeatureExporter {
     Some(count)
   }
 
+  override def bytes: Long = 0L
+
   override def close(): Unit = {}
 }

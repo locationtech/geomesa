@@ -13,7 +13,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFilePath}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -25,7 +25,6 @@ import java.io.Closeable
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
-
 @RunWith(classOf[JUnitRunner])
 class FileSystemThreadedReaderTest extends Specification {
 
@@ -35,15 +34,15 @@ class FileSystemThreadedReaderTest extends Specification {
       val feature = ScalaSimpleFeature.create(sft, "1", "name")
       val featureGate = new LinkedBlockingQueue[Boolean](1)
       val reader = new FileSystemPathReader() {
-        override def read(path: Path): Iterator[SimpleFeature] with Closeable = {
+        override def root: Path = new Path("/")
+        override def read(file: Path): Iterator[SimpleFeature] with Closeable = {
           featureGate.take()
           CloseableIterator.single(feature)
         }
       }
       // ensure we have more files than threads so that we register phasers that don't complete right away
-      val files = Seq.tabulate(10)(i => StorageFilePath(StorageFile(s"$i", i), new Path(s"$i")))
-      val readers = Iterator.single(reader -> files)
-      WithClose(FileSystemThreadedReader(readers, 2)) { reader =>
+      val files = Seq.tabulate(10)(i => StorageFile(s"$i", Partition.None, i))
+      WithClose(FileSystemThreadedReader(reader , files, 2)) { reader =>
         featureGate.put(false)
         reader.hasNext must beTrue
         reader.next() mustEqual feature

@@ -8,9 +8,14 @@
 
 package org.locationtech.geomesa.fs.storage.api
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.RangeBuilder.BoundsOrdering
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * Scheme for partitioning features into various named partitions (e.g. file paths) on disk, for
@@ -20,17 +25,11 @@ import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 trait PartitionScheme {
 
   /**
-    *
-    * @return the max depth this partition scheme goes to
-    */
-  def depth: Int
-
-  /**
-   * Indication of the directory structure, suitable for displaying to a user
+   * Name of this partition scheme
    *
    * @return
    */
-  def pattern: String
+  def name: String
 
   /**
     * Return the partition in which a SimpleFeature should be stored
@@ -38,24 +37,7 @@ trait PartitionScheme {
     * @param feature simple feature
     * @return partition name
     */
-  def getPartitionName(feature: SimpleFeature): String
-
-  /**
-    * Return a list of modified filters and partitions. Each filter will have been simplified to
-    * remove any predicates that are implicitly true for the associated partitions
-    *
-    * If the filter does not constrain partitions at all, then an empty option will be returned,
-    * indicating all partitions must be searched. If the filter excludes all potential partitions,
-    * then an empty list of partitions will be returned
-    *
-    * Note that this operation is based solely on the partition scheme, so may return partitions
-    * that do not actually exist in a given storage instance
-    *
-    * @param filter filter
-    * @param partition query a single partition
-    * @return list of simplified filters and partitions
-    */
-  def getSimplifiedFilters(filter: Filter, partition: Option[String] = None): Option[Seq[SimplifiedFilter]] = None
+  def getPartition(feature: SimpleFeature): PartitionKey
 
   /**
    * Get partitions that intersect the given filter
@@ -66,7 +48,20 @@ trait PartitionScheme {
    * @param filter filter
    * @return list of intersecting filters
    */
-  def getIntersectingPartitions(filter: Filter): Option[Seq[String]]
+  def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]]
+
+  /**
+   * Enumerate all the partitions that intersect with the given filter
+   *
+   * If the filter does not constrain partitions at all, then an empty option will be returned. If
+   * the filter excludes all potential partitions, then an empty list will be returned
+   *
+   * Note that this may return a large number of partitions if the filter is not very selective
+   *
+   * @param filter filter
+   * @return
+   */
+  def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]]
 
   /**
    * Get a filter that will cover a partitions, i.e. the filter will return all features
@@ -75,17 +70,90 @@ trait PartitionScheme {
    * @param partition partition to cover
    * @return filter
    */
-  def getCoveringFilter(partition: String): Filter
+  def getCoveringFilter(partition: PartitionKey): Filter
 }
 
-object PartitionScheme {
+object PartitionScheme extends LazyLogging {
 
   /**
-    * Simplified filter used to optimize queries
-    *
-    * @param filter filter that applies to these partitions
-    * @param partitions list of partitions
-    * @param partial partitions are partial matches (prefixes), or exact partition names
-    */
-  case class SimplifiedFilter(filter: Filter, partitions: Seq[String], partial: Boolean)
+   * Ranged bounds
+   *
+   * @param name partition scheme name
+   * @param lower lower bound, inclusive
+   * @param upper upper bound, exclusive
+   */
+  case class PartitionRange(name: String, lower: String, upper: String) {
+
+    /**
+     * Is the value contained in this bounds
+     *
+     * @param value partition value
+     * @return
+     */
+    def contains(value: String): Boolean = value >= lower && value < upper
+
+    /**
+     * Attempt to merge two bounds. Only overlapping bounds will result in a successful merge. Trying to merge
+     * bounds from a different partition scheme is a logical error.
+     *
+     * @param other bounds to merge
+     * @return
+     */
+    def merge(other: PartitionRange): Option[PartitionRange] = {
+      if (lower <= other.lower) {
+        if (upper >= other.upper) {
+          Some(this)
+        } else if (upper >= other.lower) {
+          Some(PartitionRange(name, lower, other.upper))
+        } else {
+          None
+        }
+      } else if (lower > other.upper) {
+        None
+      } else if (upper >= other.upper) {
+        Some(PartitionRange(name, other.lower, upper))
+      } else {
+        Some(other)
+      }
+    }
+  }
+
+  /**
+   * Class to merge overlapping ranges.
+   *
+   * Our bounds extraction does not produce any overlapping ranges, but once converted to partitions there
+   * may be some overlap.
+   */
+  class RangeBuilder {
+
+    private val ranges = ArrayBuffer.empty[PartitionRange]
+
+    def +=(range: PartitionRange): Unit = ranges += range
+
+    def result(): Seq[PartitionRange] = {
+      val all = ranges.sorted(BoundsOrdering)
+      if (all.lengthCompare(1) <= 0) {
+        all.toSeq
+      } else {
+        // merge any overlapping ranges that resulted
+        val result = Seq.newBuilder[PartitionRange]
+        var current = all.head
+        all.tail.foreach { range =>
+          current.merge(range) match {
+            case None =>
+              result += current
+              current = range
+            case Some(merged) =>
+              current = merged
+          }
+        }
+        result += current
+        result.result()
+      }
+    }
+  }
+
+  object RangeBuilder {
+    private val BoundsOrdering = Ordering.by[PartitionRange, String](_.lower)
+  }
 }

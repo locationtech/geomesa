@@ -8,23 +8,23 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import com.typesafe.config.{Config, ConfigFactory}
-import org.locationtech.geomesa.fs.storage.api.{Metadata, NamedOptions}
-import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.{PartitionSchemeConfig, StoragePersistence, StoragePersistenceV1, StoragePersistenceV2}
-import org.locationtech.geomesa.fs.storage.common.{ParseOptions, RenderOptions}
+import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions, ConfigRenderOptions}
+import org.locationtech.geomesa.fs.storage.api.Metadata
+import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.StoragePersistence
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.metrics.DebugLogProfiling
 import pureconfig.{ConfigConvert, ConfigSource, ConfigWriter}
 
 import java.io.{InputStream, InputStreamReader, OutputStream}
 import java.nio.charset.StandardCharsets
-import scala.util.Try
-import scala.util.control.NonFatal
 
 /**
   * Serialization for basic metadata
   */
 object MetadataSerialization extends DebugLogProfiling {
+
+  private val RenderOptions: ConfigRenderOptions = ConfigRenderOptions.concise().setFormatted(true)
+  private val ParseOptions: ConfigParseOptions = ConfigParseOptions.defaults()
 
   /**
     * Serialize the metadata to the output stream as JSON
@@ -34,8 +34,7 @@ object MetadataSerialization extends DebugLogProfiling {
     */
   def serialize(out: OutputStream, metadata: Metadata): Unit = {
     val sftConfig = SimpleFeatureTypes.toConfig(metadata.sft, includePrefix = false, includeUserData = true)
-    val schemeConfig = PartitionSchemeConfig(metadata.scheme.name, metadata.scheme.options)
-    val persistence = StoragePersistence(sftConfig, schemeConfig, metadata.config)
+    val persistence = StoragePersistence(sftConfig, metadata.partitions, metadata.config)
 
     val data = profile("Serialized storage configuration") {
       ConfigWriter[StoragePersistence].to(persistence).render(RenderOptions)
@@ -54,28 +53,12 @@ object MetadataSerialization extends DebugLogProfiling {
   def deserialize(in: InputStream): Metadata = {
     val persistence = profile("Parsed storage configuration") {
       val config = ConfigFactory.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8), ParseOptions)
-      try { ConfigSource.fromConfig(config).loadOrThrow[StoragePersistence] } catch {
-        case NonFatal(e) =>
-          def v1: Try[StoragePersistence] =
-            Try(ConfigSource.fromConfig(config).loadOrThrow[StoragePersistenceV1]).map { p =>
-              val leaf = p.partitionScheme.options.get("leaf-storage").forall(_.equalsIgnoreCase("true"))
-              val config = Map(Metadata.Encoding -> p.encoding, Metadata.LeafStorage -> s"$leaf")
-              StoragePersistence(p.featureType, p.partitionScheme, config)
-            }
-          def v2: Try[StoragePersistence] =
-            Try(ConfigSource.fromConfig(config).loadOrThrow[StoragePersistenceV2]).map { p =>
-              val leaf = java.lang.Boolean.toString(p.leafStorage)
-              val config = Map(Metadata.Encoding -> p.encoding, Metadata.LeafStorage -> leaf)
-              StoragePersistence(p.featureType, p.partitionScheme, config)
-            }
-          v2.orElse(v1).getOrElse(throw e)
-      }
+      ConfigSource.fromConfig(config).loadOrThrow[StoragePersistence]
     }
     val sft = profile("Parsed simple feature type") {
       SimpleFeatureTypes.createType(persistence.featureType, path = None)
     }
-    val scheme = NamedOptions(persistence.partitionScheme.scheme, persistence.partitionScheme.options)
-    Metadata(sft, scheme, persistence.config)
+    Metadata(sft, persistence.partitions, persistence.config)
   }
 
   // case classes used for serialization to/from typesafe config
@@ -85,7 +68,7 @@ object MetadataSerialization extends DebugLogProfiling {
 
     case class StoragePersistence(
         featureType: Config,
-        partitionScheme: PartitionSchemeConfig,
+        partitions: Seq[String],
         config: Map[String, String]
       )
     case class StoragePersistenceV2(

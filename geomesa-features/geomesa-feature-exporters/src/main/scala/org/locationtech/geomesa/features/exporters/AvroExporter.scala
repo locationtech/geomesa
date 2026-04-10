@@ -16,7 +16,7 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 import java.io.OutputStream
 import java.util.zip.Deflater
 
-class AvroExporter(out: OutputStream, compression: Option[Int], opts: Set[SerializationOption] = Set.empty)
+class AvroExporter(out: ByteCounterStream, compression: Option[Int], opts: Set[SerializationOption] = Set.empty)
     extends FeatureExporter {
 
   private var writer: AvroDataFileWriter = _
@@ -33,6 +33,8 @@ class AvroExporter(out: OutputStream, compression: Option[Int], opts: Set[Serial
     writer.flush()
     Some(count)
   }
+
+  override def bytes: Long = out.bytes
 
   override def close(): Unit = {
     CloseWithLogging(Option(writer))

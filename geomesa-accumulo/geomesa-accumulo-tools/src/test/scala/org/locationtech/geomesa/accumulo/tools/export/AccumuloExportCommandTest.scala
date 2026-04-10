@@ -28,7 +28,6 @@ import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
-import org.locationtech.geomesa.fs.storage.orc.io.OrcFileSystemReader
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.tools.`export`.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -204,7 +203,6 @@ class AccumuloExportCommandTest extends TestWithDataStore {
       case ExportFormat.Csv        => readCsv(file)
       case ExportFormat.Json       => readJson(file, sft)
       case ExportFormat.Leaflet    => readLeaflet(file, sft)
-      case ExportFormat.Orc        => readOrc(file, sft)
       case ExportFormat.Parquet    => readParquet(file, sft)
       case ExportFormat.Shp        => readShp(file, sft)
       case ExportFormat.Tsv        => readTsv(file)
@@ -273,18 +271,10 @@ class AccumuloExportCommandTest extends TestWithDataStore {
     }
   }
 
-  def readOrc(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val path = new Path(PathUtils.getUrl(file).toURI)
-    WithClose(new OrcFileSystemReader(sft, new Configuration, None, None).read(path)) { iter =>
-      iter.map(ScalaSimpleFeature.copy).toList
-    }
-  }
-
   def readParquet(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val path = new Path(PathUtils.getUrl(file).toURI)
     val conf = new Configuration()
     SimpleFeatureParquetSchema.setSft(conf, sft)
-    WithClose(new ParquetFileSystemReader(conf, sft, FilterCompat.NOOP, None, _ => true, None).read(path)) { iter =>
+    WithClose(new ParquetFileSystemReader(conf, new Path("/"), sft, FilterCompat.NOOP, None, _ => true, None).read(new Path("/", file))) { iter =>
       iter.map(ScalaSimpleFeature.copy).toList
     }
   }

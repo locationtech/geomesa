@@ -16,11 +16,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
 import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
-import org.locationtech.geomesa.fs.storage.orc.jobs.OrcStorageConfiguration
 import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.CompactionMapper
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
@@ -32,14 +31,18 @@ import org.locationtech.geomesa.tools.utils.{DistributedCopy, JobRunner}
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.File
+import java.util.Properties
 
 trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
   import FileSystemCompactionJob.{FailedCounter, MappedCounter}
 
+  import scala.collection.JavaConverters._
+
   def run(
       storage: FileSystemStorage,
-      partitions: Seq[PartitionMetadata],
+      metadataConfig: Option[Properties],
+      partitions: Seq[Partition],
       targetFileSize: Option[Long],
       tempPath: Option[Path],
       libjarsFiles: Seq[String],
@@ -66,8 +69,12 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     val qualifiedTempPath = tempPath.map(storage.context.fs.makeQualified)
 
     StorageConfiguration.setRootPath(job.getConfiguration, storage.context.root)
-    StorageConfiguration.setPartitions(job.getConfiguration, partitions.map(_.name).toArray)
+    StorageConfiguration.setEncoding(job.getConfiguration, storage.encoding)
+    StorageConfiguration.setSft(job.getConfiguration, storage.metadata.sft)
+    StorageConfiguration.setPartitions(job.getConfiguration, partitions)
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Compacted)
+    StorageConfiguration.setMetadataType(job.getConfiguration, storage.metadata.`type`)
+    metadataConfig.foreach(c => StorageConfiguration.setMetadataConfig(job.getConfiguration, c.asScala.toMap))
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
     FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(storage.context.root))
@@ -83,9 +90,9 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     val sizeable = Option(storage).collect { case s: SizeableFileSystemStorage => s }
     val sizeCheck = sizeable.flatMap(s => s.targetSize(targetFileSize).map(t => (p: Path) => s.fileIsSized(p, t)))
     val existingDataFiles = partitions.toList.flatMap { p =>
-      val files = storage.getFilePaths(p.name).filterNot(f => sizeCheck.exists(_.apply(f.path)))
+      val files = storage.metadata.getFiles(p).filterNot(f => sizeCheck.exists(_.apply(new Path(storage.context.root, f.file))))
       // TODO get counts right... use m/r counters?
-      if (files.isEmpty) { None } else { Some(p.copy(files = files.map(_.file)) -> files) }
+      if (files.isEmpty) { None } else { Some(p -> files) }
     }
 
     def mapCounters = Seq((MappedCounter, written(job)), (FailedCounter, failed(job)))
@@ -103,15 +110,16 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
         }
         Command.user.info("Removing old files")
         existingDataFiles.foreach { case (partition, files) =>
-          val counter = StorageConfiguration.Counters.partition(partition.name)
+          val name = partition.values.map(_.name).mkString(",")
+          val counter = StorageConfiguration.Counters.partition(name)
           val count = Option(job.getCounters.findCounter(StorageConfiguration.Counters.Group, counter)).map(_.getValue)
-          files.foreach(f => storage.context.fs.delete(f.path, false))
-          storage.metadata.removePartition(partition.copy(count = count.getOrElse(0L)))
+          files.foreach { f =>
+            storage.metadata.removeFile(f)
+            storage.context.fs.delete(new Path(storage.context.root, f.file), false)
+          }
           val removed = count.map(c => s"containing $c features ").getOrElse("")
-          Command.user.info(s"Removed ${TextTools.getPlural(files.size, "file")} ${removed}in partition ${partition.name}")
+          Command.user.info(s"Removed ${TextTools.getPlural(files.size, "file")} ${removed}in partition $name")
         }
-        Command.user.info("Compacting metadata")
-        storage.metadata.compact(None, None, threads = 4)
         JobSuccess("", counts)
 
       case j => j
@@ -131,8 +139,6 @@ object FileSystemCompactionJob {
   val FailedCounter = "failed"
 
   class ParquetCompactionJob extends FileSystemCompactionJob with ParquetStorageConfiguration
-
-  class OrcCompactionJob extends FileSystemCompactionJob with OrcStorageConfiguration
 
   /**
     * Mapper that simply reads the input format and writes the output to the sample node. This mapper

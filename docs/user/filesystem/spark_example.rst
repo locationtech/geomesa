@@ -35,10 +35,12 @@ GDELT SimpleFeatureType and converter to ingest a year or so of data:
 .. code-block:: bash
 
     bin/geomesa-fs ingest \
-    -e parquet --partition-scheme daily,z2-2bit -p s3a://ccri-data/tmp/hulbert/3 \
-    --temp-path hdfs:///tmp/geomesa/1 \
-    -C gdelt -s gdelt \
-    --num-reducers 60 s3a://gdelt-open-data/events/2017*
+      -p s3a://mybucket/geomesa/ \
+      --partition-scheme daily,z2:bits=2 \
+      --metadata-type file \
+      --temp-path hdfs:///tmp/geomesa/1 \
+      -C gdelt -s gdelt \
+      --num-reducers 60 s3a://gdelt-open-data/events/2017*
 
 
 Querying GDELT with Spark SQL
@@ -67,7 +69,8 @@ have ingested GDELT data into S3 you can query it with SQL in the spark shell::
 
     val dataFrame = spark.read
       .format("geomesa")
-      .option("fs.path","s3a://mybucket/geomesa/datastore")
+      .option("fs.path","s3a://mybucket/geomesa/")
+      .option("fs.metadata.type","file")
       .option("geomesa.feature", "gdelt")
       .load()
     dataFrame.createOrReplaceTempView("gdelt")

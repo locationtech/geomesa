@@ -8,21 +8,23 @@
 
 package org.locationtech.geomesa.fs.tools
 
+import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
 import org.apache.hadoop.conf.Configuration
-import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
+import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
+import org.locationtech.geomesa.fs.storage.common.metadata.{ConverterMetadata, FileBasedMetadata, JdbcMetadata}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator, KeyValueConverter}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.io.WithClose
 
-import java.io.{File, StringWriter}
-import java.util
-import java.util.ServiceLoader
+import java.io.{File, FileReader, StringWriter}
+import java.util.Properties
+import scala.util.control.NonFatal
 
 /**
  * Abstract class for FSDS commands
@@ -34,10 +36,23 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
   override def params: FsParams
 
   override def connection: Map[String, String] = {
-    val url = PathUtils.getUrl(params.path)
     val builder = Map.newBuilder[String, String]
-    builder += (FileSystemDataStoreParams.PathParam.getName -> url.toString)
-    if (params.configuration != null && !params.configuration.isEmpty) {
+    builder += (FileSystemDataStoreParams.PathParam.getName -> params.path)
+    builder += (FileSystemDataStoreParams.MetadataTypeParam.getName -> params.metadataType)
+    val metadataProps = new Properties()
+    if (params.metadataConfigFile != null) {
+      WithClose(new FileReader(params.metadataConfigFile))(metadataProps.load)
+    }
+    if (!params.metadataConfig.isEmpty) {
+      params.metadataConfig.asScala.foreach { case (k, v) => metadataProps.put(k, v) }
+    }
+    if (!metadataProps.isEmpty) {
+      val out = new StringWriter()
+      metadataProps.store(out, null)
+      builder += (FileSystemDataStoreParams.MetadataConfigParam.getName -> out.toString)
+    }
+
+    if (!params.configuration.isEmpty) {
       val xml = {
         val conf = new Configuration(false)
         params.configuration.asScala.foreach { case (k, v) => conf.set(k, v) }
@@ -50,13 +65,14 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
     if (params.auths != null) {
       builder += (FileSystemDataStoreParams.AuthsParam.getName -> params.auths)
     }
+    if (params.encoding != null) {
+      builder += (FileSystemDataStoreParams.EncodingParam.getName -> params.encoding)
+    }
     builder.result()
   }
 }
 
 object FsDataStoreCommand {
-
-  import scala.collection.JavaConverters._
 
   trait FsDistributedCommand extends FsDataStoreCommand with DistributedCommand {
 
@@ -65,7 +81,7 @@ object FsDataStoreCommand {
 
     abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
       () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_FS_HOME", "lib"),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[FileSystemDataStore])
+      () => ClassPathUtils.getJarsFromClasspath()
     ) ++ super.libjarsPaths
   }
 
@@ -74,35 +90,53 @@ object FsDataStoreCommand {
     var path: String = _
 
     @Parameter(
+      names = Array("--encoding", "-e"),
+      description = "File encoding to use",
+      validateValueWith = Array(classOf[EncodingValidator]))
+    var encoding: String = _
+
+    @Parameter(
+      names = Array("--metadata-type"),
+      description = "Metadata type to use",
+      required = true,
+      validateValueWith = Array(classOf[MetadataTypeValidator]))
+    var metadataType: String = _
+
+    @Parameter(
+      names = Array("--metadata-config"),
+      description = "Metadata configuration properties, in the form k=v",
+      converter = classOf[KeyValueConverter],
+      splitter = classOf[NoopParameterSplitter])
+    var metadataConfig: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
+
+    @Parameter(
+      names = Array("--metadata-config-file"),
+      description = "Name of a metadata configuration file, in Java properties format")
+    var metadataConfigFile: File = _
+
+    @Parameter(
       names = Array("--config"),
       description = "Configuration properties, in the form k=v",
       converter = classOf[KeyValueConverter],
       splitter = classOf[NoopParameterSplitter])
-    var configuration: java.util.List[(String, String)] = _
+    var configuration: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
 
     @Parameter(names = Array("--auths"), description = "Authorizations used to read data")
     var auths: String = _
   }
 
   trait PartitionParam {
-    @Parameter(names = Array("--partitions"), description = "Partitions to operate on (if empty all partitions will be used)")
-    var partitions: java.util.List[String] = new util.ArrayList[String]()
-  }
-
-  trait OptionalEncodingParam {
     @Parameter(
-      names = Array("--encoding", "-e"),
-      description = "Encoding (parquet, orc, converter, etc)",
-      validateValueWith = Array(classOf[EncodingValidator]))
-    var encoding: String = _
+      names = Array("--partition"),
+      description = "Partition(s) to operate on",
+      converter = classOf[PartitionConverter],
+      splitter = classOf[NoopParameterSplitter])
+    var partitions: java.util.List[Partition] = new java.util.ArrayList[Partition]()
   }
 
   trait OptionalSchemeParams {
-    @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file")
-    var scheme: java.lang.String = _
-
-    @Parameter(names = Array("--leaf-storage"), description = "Use Leaf Storage for Partition Scheme", arity = 1)
-    var leafStorage: java.lang.Boolean = true
+    @Parameter(names = Array("--partition-scheme"), description = "Partition scheme identifier")
+    var scheme: String = _
 
     @Parameter(
       names = Array("--storage-opt"),
@@ -118,12 +152,30 @@ object FsDataStoreCommand {
     var targetFileSize: String = _
   }
 
-  class EncodingValidator extends IValueValidator[String] {
+  private class PartitionConverter(name: String) extends BaseConverter[Partition](name) {
+    override def convert(value: String): Partition = {
+      try { Partition(value) } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
+      }
+    }
+  }
+
+  private class EncodingValidator extends IValueValidator[String] {
     override def validate(name: String, value: String): Unit = {
-      val encodings = ServiceLoader.load(classOf[FileSystemStorageFactory]).asScala.map(_.encoding).toList
+      val encodings = FileSystemStorageFactory.factories.map(_.encoding).toList
       if (!encodings.exists(_.equalsIgnoreCase(value))) {
         throw new ParameterException(s"$value is not a valid encoding for parameter $name." +
             s"Available encodings are: ${encodings.mkString(", ")}")
+      }
+    }
+  }
+
+  class MetadataTypeValidator extends IValueValidator[String] {
+    override def validate(name: String, value: String): Unit = {
+      val valid = Seq(FileBasedMetadata.MetadataType, JdbcMetadata.MetadataType, ConverterMetadata.MetadataType)
+      if (!valid.contains(value)) {
+        throw new ParameterException(s"$value is not a valid type for parameter $name." +
+          s"Available metadata types are: ${valid.mkString(", ")}")
       }
     }
   }

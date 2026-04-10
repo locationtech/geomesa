@@ -24,6 +24,7 @@ import scala.util.control.NonFatal
 
 class ParquetFileSystemReader(
     conf: Configuration,
+    val root: Path,
     readSft: SimpleFeatureType,
     parquetFilter: FilterCompat.Filter,
     gtFilter: Option[org.geotools.api.filter.Filter],
@@ -40,9 +41,10 @@ class ParquetFileSystemReader(
       f => new TransformSimpleFeature(tsft, definitions, f)
   }
 
-  override def read(path: Path): CloseableIterator[SimpleFeature] = {
-    logger.debug(s"Opening reader for path $path")
-    new ParquetFileIterator(path)
+  override def read(file: Path): CloseableIterator[SimpleFeature] = {
+    // TODO we can examine file bounds and simplify/eliminate the gtFilter
+    logger.debug(s"Opening reader for path $file")
+    new ParquetFileIterator(file)
   }
 
   private class ParquetFileIterator(path: Path) extends CloseableIterator[SimpleFeature] {

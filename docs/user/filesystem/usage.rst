@@ -5,16 +5,20 @@ FileSystem Data Store Parameters
 
 Use the following parameters for a FileSystem data store (required parameters are marked with ``*``):
 
-================================== ====== ===================================================================================
+================================== ====== ========================================================================================
 Parameter                          Type   Description
-================================== ====== ===================================================================================
-``fs.path *``                      String The root path to write and read data from (e.g. s3a://mybucket/datastores/testds)
-``fs.encoding``                    String The file encoding used when creating a new schema. If not specified here, it must
-                                          be configured with ``geomesa.fs.encoding`` in the SimpleFeatureType user data.
-                                          Provided implementations are ``parquet`` and ``orc``.
-``fs.read-threads``                Int    The number of threads used for queries
+================================== ====== ========================================================================================
+``fs.path *``                      String The root path to write and read data from (e.g. ``s3a://mybucket/datastores/testds``)
+``fs.metadata.type *``             String Format for storing metadata. Must be one of ``file``, ``jdbc`` or ``converter``. See
+                                          :ref:`fsds_metadata` for details
+``fs.metadata.config``             String Additional configuration for the metadata storage (e.g. database URL, etc), in Java
+                                          properties format. Environment variables in property values will be interpolated
+                                          using ``${...}`` syntax
+``fs.encoding``                    String The file storage to use, defaults to ``parquet``. Provided implementations are
+                                          ``parquet`` and ``converter``
+``fs.read-threads``                Int    The number of threads used for each query
 ``fs.writer.partition.timeout``    String Timeout for closing a partition file after write, e.g. '60 seconds'. This is to
-                                          prevent too many open files during large write operations.
+                                          prevent too many open files during large write operations
 ``fs.config.paths``                String Additional Hadoop configuration resource files (comma-delimited)
 ``fs.config.xml``                  String Additional Hadoop configuration properties, as a standard XML ``<configuration>``
                                           element
@@ -23,7 +27,7 @@ Parameter                          Type   Description
 ``geomesa.security.auths``         String  Comma-delimited superset of authorizations that will be used for queries. See
                                            :ref:`reading_vis_labels` for details
 ``geomesa.security.auth-provider`` String  Class name for an ``AuthorizationsProvider`` implementation
-================================== ====== ===================================================================================
+================================== ====== ========================================================================================
 
 Programmatic Access
 -------------------
@@ -33,8 +37,10 @@ the GeoMesa code is on the classpath:
 
 .. code-block:: java
 
-    Map<String, String> parameters = new HashMap<>;
-    parameters.put("fs.path", "hdfs://localhost:9000/fs-root/");
+    Map<String, String> parameters = Map.of(
+      "fs.path", "hdfs://localhost:9000/fs-root/",
+      "fs.metadata.type", "file"
+    );
     org.geotools.api.data.DataStore dataStore =
         org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 

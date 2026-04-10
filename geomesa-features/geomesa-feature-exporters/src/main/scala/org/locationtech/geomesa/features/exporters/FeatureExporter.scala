@@ -37,4 +37,11 @@ trait FeatureExporter extends Closeable {
     * @return count of features exported, if available
     */
   def export(features: Iterator[SimpleFeature]): Option[Long]
+
+  /**
+   * How many output bytes have been written
+   *
+   * @return
+   */
+  def bytes: Long
 }

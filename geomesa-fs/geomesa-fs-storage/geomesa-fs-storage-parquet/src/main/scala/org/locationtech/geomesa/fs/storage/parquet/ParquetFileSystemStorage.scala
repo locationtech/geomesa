@@ -19,6 +19,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory.CompositeObserver
@@ -48,9 +49,13 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
       context.conf.get(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
     )
 
-  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter = {
+  override val encoding: String = ParquetFileSystemStorage.Encoding
+
+  override protected def createWriter(file: Path, partition: Partition, observer: FileSystemObserver): FileSystemWriter = {
     val conf = new Configuration(context.conf)
     SimpleFeatureParquetSchema.setSft(conf, metadata.sft)
+    conf.set(SimpleFeatureParquetSchema.PartitionKey, partition.toString)
+
     val observers =
       if (FileValidationEnabled.toBoolean.get) {
         CompositeObserver(Seq(observer, FileValidationObserver(file)))
@@ -71,7 +76,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     val visFilter = VisibilityUtils.visible(authProvider)
 
     logger.debug(
-      s"Parquet filter: ${parquetFilter match { case f: FilterPredicateCompat => f.getFilterPredicate; case f => f }} " +
+      s"    Parquet filter: ${parquetFilter match { case f: FilterPredicateCompat => f.getFilterPredicate; case f => f }} " +
         s"and modified gt filter: ${gtFilter.getOrElse(Filter.INCLUDE)}")
 
     // WARNING it is important to create a new conf per query
@@ -81,7 +86,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     val conf = new Configuration(context.conf)
     StorageConfiguration.setSft(conf, readSft)
 
-    new ParquetFileSystemReader(conf, readSft, parquetFilter, gtFilter, visFilter, readTransform)
+    new ParquetFileSystemReader(conf, context.root, readSft, parquetFilter, gtFilter, visFilter, readTransform)
   }
 }
 

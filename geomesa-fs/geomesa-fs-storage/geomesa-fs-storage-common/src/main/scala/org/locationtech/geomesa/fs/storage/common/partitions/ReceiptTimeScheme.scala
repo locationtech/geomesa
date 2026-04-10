@@ -8,18 +8,21 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import org.geotools.filter.visitor.DuplicatingFilterVisitor
-import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
-import org.locationtech.geomesa.fs.storage.common.partitions.ReceiptTimeScheme.BufferingFilterVisitor
-import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter._
 import org.geotools.api.filter.expression.{Expression, Literal, PropertyName}
 import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
 import org.geotools.api.temporal.{Instant, Period}
+import org.geotools.filter.visitor.DuplicatingFilterVisitor
+import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
+import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.common.partitions.ReceiptTimeScheme.BufferingFilterVisitor
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
@@ -28,33 +31,33 @@ import scala.concurrent.duration.Duration
  * Scheme for partitioning based on "receipt time", i.e. when a message is received. Generally this is useful
  * only for reading existing data that may have been aggregated and stored by an external process.
  *
- * @param delegate delegate date time scheme options
  * @param buffer amount of time to buffer queries by, in order to match a feature date to a receipt time date -
  *               i.e. the amount of latency in the ingest process
  */
-case class ReceiptTimeScheme(delegate: DateTimeScheme, buffer: Duration) extends PartitionScheme {
+class ReceiptTimeScheme(
+    formatter: DateTimeFormatter,
+    pattern: String,
+    stepUnit: ChronoUnit,
+    step: Int,
+    dtg: String,
+    dtgIndex: Int,
+    val buffer: Duration,
+  ) extends HierarchicalDateTimeScheme(formatter, pattern, stepUnit, step, dtg, dtgIndex) {
 
-  override val depth: Int = delegate.depth
+  import ReceiptTimeScheme.Config
 
-  override val pattern: String = delegate.pattern
+  override val name: String =
+    HierarchicalDateTimeScheme(formatter, pattern, stepUnit, step, dtg, dtgIndex).name
+      .replaceFirst(HierarchicalDateTimeScheme.Name, ReceiptTimeScheme.Name) + s":${Config.BufferOpt}=${buffer.toMillis}ms"
 
-  override def getPartitionName(feature: SimpleFeature): String = delegate.getPartitionName(feature)
+  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] =
+    super.getRangesForFilter(buffered(filter))
 
-  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
-    delegate.getSimplifiedFilters(buffered(filter), partition).map { filters =>
-      // always use the full filter since our dates are not guaranteed to match the partition bounds
-      filters.map(f => f.copy(filter = filter))
-    }
-  }
-
-  override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] =
-    delegate.getIntersectingPartitions(buffered(filter))
-
-  override def getCoveringFilter(partition: String): Filter =
+  override def getCoveringFilter(partition: PartitionKey): Filter =
     throw new UnsupportedOperationException("Dates may overlap in multiple partitions")
 
   private def buffered(filter: Filter): Filter =
-    filter.accept(new BufferingFilterVisitor(buffer, delegate.dtg), null).asInstanceOf[Filter]
+    filter.accept(new BufferingFilterVisitor(buffer, dtg), null).asInstanceOf[Filter]
 }
 
 object ReceiptTimeScheme {
@@ -67,15 +70,15 @@ object ReceiptTimeScheme {
   }
 
   class ReceiptTimePartitionSchemeFactory extends PartitionSchemeFactory {
-    override def load(sft: SimpleFeatureType, config: NamedOptions): Option[PartitionScheme] = {
-      if (config.name != Name) { None } else {
-        val buffer = config.options.get(Config.BufferOpt).map(Duration.apply).getOrElse(Duration.apply(30, TimeUnit.MINUTES))
-        val dateTimeName = config.options.getOrElse(Config.DateTimeSchemaOpt, DateTimeScheme.Name)
-        val delegate = PartitionSchemeFactory.load(sft, NamedOptions(dateTimeName, config.options)) match {
-          case d: DateTimeScheme => d
-          case s => throw new IllegalArgumentException(s"Expected DateTimeScheme, but got: $s")
+    override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
+      val opts = SchemeOpts(scheme)
+      if (opts.name != Name) { None } else {
+        val buffer = opts.opts.get(Config.BufferOpt).map(Duration.apply).getOrElse(Duration(30, TimeUnit.MINUTES))
+        val dateTimeName = opts.opts.getOrElse(Config.DateTimeSchemaOpt, HierarchicalDateTimeScheme.Name)
+        val dt = HierarchicalDateTimeScheme.load(sft, s"$dateTimeName:${scheme.drop(Name.length + 1)}").getOrElse {
+          throw new IllegalArgumentException(s"Could not load HierarchicalDateTimeScheme from provided options: $scheme")
         }
-        Some(ReceiptTimeScheme(delegate, buffer))
+        Some(new ReceiptTimeScheme(dt.formatter, dt.pattern, dt.stepUnit, dt.step, dt.dtg, dt.dtgIndex, buffer))
       }
     }
   }

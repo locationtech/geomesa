@@ -53,7 +53,7 @@ object ExportFormat {
   val BytesPerFeatureProperty: SystemProperty = SystemProperty("org.locationtech.geomesa.export.bytes-per-feature")
 
   val Formats: Seq[ExportFormat] =
-    Seq(Arrow, Avro, AvroNative, Bin, Csv, Gml2, Gml3, Json, Leaflet, Null, Orc, Parquet, Shp, Tsv)
+    Seq(Arrow, Avro, AvroNative, Bin, Csv, Gml2, Gml3, Json, Leaflet, Null, Parquet, Shp, Tsv)
 
   def apply(name: String): Option[ExportFormat] =
     Formats.find(f => f.name.equalsIgnoreCase(name) || f.extensions.contains(name.toLowerCase(Locale.US)))
@@ -103,9 +103,7 @@ object ExportFormat {
 
   case object Null extends ExportFormat("null", Seq.empty, true, true, 0)
 
-  case object Orc extends ExportFormat("orc", Seq("orc"), false, false, 1.4f)
-
-  case object Parquet extends ExportFormat("parquet", Seq("parquet"), false, false, 1.6f)
+  case object Parquet extends ExportFormat("parquet", Seq("parquet"), false, true, 1.6f)
 
   case object Shp extends ExportFormat("shp", Seq("shp"), false, false, 105)
 

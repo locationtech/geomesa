@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.fs.storage
 
 import com.typesafe.config._
+import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.api.NamedOptions
-import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.PartitionSchemeConfig
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.ConvertToBoolean
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
 import pureconfig.generic.semiauto.deriveConvert
 import pureconfig.{ConfigConvert, ConfigSource}
@@ -22,48 +22,19 @@ import scala.util.{Failure, Success, Try}
 
 package object common {
 
-  val RenderOptions: ConfigRenderOptions = ConfigRenderOptions.concise().setFormatted(true)
-  val ParseOptions: ConfigParseOptions = ConfigParseOptions.defaults()
   val FileValidationEnabled: SystemProperty = SystemProperty("geomesa.fs.validate.file", "false")
 
-  implicit val NamedOptionsConvert: ConfigConvert[NamedOptions] = deriveConvert[NamedOptions]
-
-  object StorageSerialization {
-
-    /**
-      * Serialize configuration options as a typesafe config string
-      *
-      * @param options options
-      * @return
-      */
-    def serialize(options: NamedOptions): String = NamedOptionsConvert.to(options).render(RenderOptions)
-
-    /**
-      * Deserialize configuration options, e.g. for partition schemes and metadata connections
-      *
-      * @param options options as a typesafe config string
-      * @return
-      */
-    def deserialize(options: String): NamedOptions = {
-      val config = ConfigFactory.parseString(options, ParseOptions)
-      try { ConfigSource.fromConfig(config).loadOrThrow[NamedOptions] } catch {
-        case NonFatal(e) => Try(deserializeOldScheme(config)).getOrElse(throw e)
-      }
-    }
-
-    private def deserializeOldScheme(config: Config): NamedOptions = {
-      val parsed = ConfigSource.fromConfig(config).loadOrThrow[PartitionSchemeConfig]
-      NamedOptions(parsed.scheme, parsed.options)
-    }
-  }
+  private lazy implicit val SchemeOptionsConvert: ConfigConvert[SchemeOptions] = deriveConvert[SchemeOptions]
+  private lazy implicit val NamedOptionsConvert: ConfigConvert[NamedOptions] = deriveConvert[NamedOptions]
 
   object StorageKeys {
-    val EncodingKey    = "geomesa.fs.encoding"
-    val LeafStorageKey = "geomesa.fs.leaf-storage"
-    val MetadataKey    = "geomesa.fs.metadata"
-    val SchemeKey      = "geomesa.fs.scheme"
-    val FileSizeKey    = "geomesa.fs.file-size"
-    val ObserversKey   = "geomesa.fs.observers"
+    val SchemeKey    = "geomesa.fs.scheme"
+    val FileSizeKey  = "geomesa.fs.file-size"
+    val ObserversKey = "geomesa.fs.observers"
+  }
+
+  object StorageAttributeKeys {
+    val Bounds = "fs.bounds"
   }
 
   /**
@@ -72,25 +43,36 @@ package object common {
     * @param sft simple feature type
     */
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
-
     import StorageKeys._
-    import StorageSerialization.{deserialize, serialize}
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.DefaultDtgField
 
-    def setEncoding(encoding: String): Unit = sft.getUserData.put(EncodingKey, encoding)
-    def removeEncoding(): Option[String] = remove(EncodingKey)
+    import scala.collection.JavaConverters._
 
-    def setLeafStorage(leafStorage: Boolean): Unit = sft.getUserData.put(LeafStorageKey, leafStorage.toString)
-    def removeLeafStorage(): Option[Boolean] = remove(LeafStorageKey).map(_.toBoolean)
-
-    def setScheme(name: String, options: Map[String, String] = Map.empty): Unit =
-      sft.getUserData.put(SchemeKey, serialize(NamedOptions(name, options)))
-    // noinspection ScalaDeprecation
-    def removeScheme(): Option[NamedOptions] =
-      remove(SchemeKey).map(deserialize).orElse(remove("geomesa.fs.partition-scheme.config").map(deserialize))
-
-    def setMetadata(name: String, options: Map[String, String] = Map.empty): Unit =
-      sft.getUserData.put(MetadataKey, serialize(NamedOptions(name, options)))
-    def removeMetadata(): Option[NamedOptions] = remove(MetadataKey).map(deserialize)
+    def setScheme(names: String): Unit = sft.getUserData.put(SchemeKey, names)
+    def removeScheme(): Option[Seq[String]] = {
+      remove(SchemeKey).map { scheme =>
+        // back compatible check for old json-serialized schemes
+        if (scheme.trim.startsWith("{")) {
+          try {
+            def result(name: String, options: Map[String, String]): Seq[String] = {
+              val opts = options.map { case (k, v) => s"$k=$v" }.mkString(":")
+              name.split(",").toSeq.map(n => s"$n:$opts")
+            }
+            val source = ConfigSource.fromConfig(ConfigFactory.parseString(scheme))
+            source.load[SchemeOptions] match {
+              case Right(o) => result(o.scheme, o.options)
+              case Left(_) =>
+                val n = source.loadOrThrow[NamedOptions]
+                result(n.name, n.options)
+            }
+          } catch {
+            case NonFatal(e) => throw new RuntimeException(s"Could not parse legacy scheme options: $scheme", e)
+          }
+        } else {
+          scheme.split(",").toSeq
+        }
+      }
+    }
 
     def setTargetFileSize(size: String): Unit = {
       // validate input
@@ -112,6 +94,26 @@ package object common {
       if (obs == null || obs.isEmpty) { Seq.empty } else { obs.split(",") }
     }
 
+    def spatialBounds(): Seq[Int] = sft.getAttributeDescriptors.asScala.toSeq.collect {
+      case g: GeometryDescriptor if g == sft.getGeometryDescriptor || g.fsBounds() => sft.indexOf(g.getLocalName)
+    }
+
+    def nonSpatialBounds(): Seq[Int] = sft.getAttributeDescriptors.asScala.toSeq.collect {
+      case d if sft.getUserData.get(DefaultDtgField) == d.getLocalName || (d.fsBounds() && !d.isInstanceOf[GeometryDescriptor]) =>
+        sft.indexOf(d.getLocalName)
+    }
+
     private def remove(key: String): Option[String] = Option(sft.getUserData.remove(key).asInstanceOf[String])
   }
+
+  implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
+    def fsBounds(): Boolean = {
+      val b = ad.getUserData.get(StorageAttributeKeys.Bounds)
+      if (b == null) { false } else { Try(ConvertToBoolean.convert(b)).getOrElse(false) }
+    }
+  }
+
+  // kept around for back compatibility with encoded partition schemes
+  private case class SchemeOptions(scheme: String, options: Map[String, String] = Map.empty)
+  private case class NamedOptions(name: String, options: Map[String, String] = Map.empty)
 }

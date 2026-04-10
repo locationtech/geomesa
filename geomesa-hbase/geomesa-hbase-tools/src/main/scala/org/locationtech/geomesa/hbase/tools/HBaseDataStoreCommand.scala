@@ -10,7 +10,6 @@ package org.locationtech.geomesa.hbase.tools
 
 import com.beust.jcommander.Parameter
 import org.apache.hadoop.hbase.HConstants
-import org.apache.hadoop.hbase.client.Connection
 import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore, HBaseDataStoreParams}
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseParams
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, DistributedCommand, OptionalZookeepersParam}
@@ -52,8 +51,7 @@ object HBaseDataStoreCommand {
     abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
       () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HBASE_HOME", "lib"),
       () => ClassPathUtils.getJarsFromEnvironment("HBASE_HOME"),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[HBaseDataStore]),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[Connection])
+      () => ClassPathUtils.getJarsFromClasspath()
     ) ++ super.libjarsPaths
   }
 

@@ -9,10 +9,13 @@
 package org.locationtech.geomesa.fs.tools.ingest
 
 import org.apache.hadoop.fs.Path
+import org.apache.log4j.spi.LoggingEvent
+import org.apache.log4j.{AppenderSkeleton, Level, Logger}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
+import org.locationtech.geomesa.fs.tools.FsRunner
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -20,6 +23,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.util.concurrent.atomic.AtomicInteger
+import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
 class FsManageMetadataCommandTest extends Specification {
@@ -29,7 +33,6 @@ class FsManageMetadataCommandTest extends Specification {
   import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
-  sft.setEncoding("parquet")
   sft.setScheme("daily")
 
   val features =
@@ -47,82 +50,51 @@ class FsManageMetadataCommandTest extends Specification {
   "ManageMetadata command" should {
     "find file inconsistencies" in {
       val dir = nextPath()
-      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> HadoopSharedCluster.ContainerConfig)
+      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> HadoopSharedCluster.ContainerConfig, "fs.metadata.type" -> "file" )
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(SimpleFeatureTypes.copy(sft))
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
         val storage = ds.storage(sft.getTypeName)
-        storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
-            containTheSameElementsAs(Seq("2020/01/01" -> 1, "2021/01/01" -> 1, "2022/01/01" -> 1))
-        val files = storage.metadata.getPartitions().flatMap(_.files.map(_.name)).toList
-        // move a file - it's not in the right partition so it won't be matched correctly by filters,
-        // but it's good enough for a test
-        storage.context.fs.rename(new Path(storage.context.root, "2022"), new Path(storage.context.root, "2019"))
+        val files = storage.metadata.getFiles().map(_.file)
+        files must haveLength(3)
+        storage.context.fs.rename(new Path(storage.context.root, files.head), new Path(storage.context.root, files.head + ".bak"))
         // verify we can't retrieve the moved file
-        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
-            containTheSameElementsAs(features.take(2))
+        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        results must haveLength(2)
+        foreach(results)(f => features must contain(beEqualTo(f)))
 
-        // run the consistency check and repair any problems
-        val command = new FsManageMetadataCommand.CheckConsistencyCommand()
-        command.params.path = dir
-        command.params.featureName = sft.getTypeName
-        command.params.configuration = new java.util.ArrayList[(String, String)]()
-        HadoopSharedCluster.ContainerConfiguration.asScala.foreach(e => command.params.configuration.add(e.getKey -> e.getValue))
-        command.params.repair = true
-        command.execute()
+        val logCaptor = new LogCaptor()
+        val logger = Logger.getLogger("org.locationtech.geomesa.tools.user")
+        val logLevel = logger.getLevel
+        logger.setLevel(Level.ALL)
+        logger.addAppender(logCaptor)
+        try {
+          val args =
+            Seq("manage-metadata", "check-consistency", "--path", dir, "--metadata-type", "file", "-f", sft.getTypeName) ++
+              HadoopSharedCluster.ContainerConfiguration.asScala.flatMap(e => Seq("--config", s"${e.getKey}=${e.getValue}"))
+          FsRunner.parseCommand(args.toArray).execute()
+        } finally {
+          logger.setLevel(logLevel)
+          logger.removeAppender(logCaptor)
+        }
 
-        // verify the new file was registered and the old one removed
-        storage.metadata.invalidate()
-        storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
-            containTheSameElementsAs(Seq("2020/01/01" -> 1, "2021/01/01" -> 1, "2019/01/01" -> 1))
-        storage.metadata.getPartitions().flatMap(_.files.map(_.name)) must containTheSameElementsAs(files)
-        // verify we can retrieve the moved file again
-        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
-            containTheSameElementsAs(features)
+        val expected = Seq(
+          "Found 1 metadata entry that does not correspond to a data file:",
+          "Found 1 data file that does not have a metadata entry:"
+        )
+        logCaptor.events.map(_.getMessage.toString) must containAllOf(expected)
       }
     }
-    "rebuild metadata from scratch" in {
-      val dir = nextPath()
-      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> HadoopSharedCluster.ContainerConfig)
-      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
-        ds.createSchema(SimpleFeatureTypes.copy(sft))
-        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
-        }
-        val storage = ds.storage(sft.getTypeName)
-        // delete a file
-        storage.context.fs.delete(new Path(storage.context.root, "2022"), true)
-        // delete a partition from the metadata
-        storage.metadata.getPartition("2021/01/01") match {
-          case None => ko("Expected Some for partition but got none")
-          case Some(p) => storage.metadata.removePartition(p)
-        }
-        // note that one reference is invalid
-        storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
-            containTheSameElementsAs(Seq("2022/01/01" -> 1, "2020/01/01" -> 1))
-        // verify we can only retrieve one feature
-        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
-            features.take(1)
+  }
 
-        // run the consistency check and rebuild the metadata
-        val command = new FsManageMetadataCommand.CheckConsistencyCommand()
-        command.params.path = dir
-        command.params.featureName = sft.getTypeName
-        command.params.configuration = new java.util.ArrayList[(String, String)]()
-        HadoopSharedCluster.ContainerConfiguration.asScala.foreach(e => command.params.configuration.add(e.getKey -> e.getValue))
-        command.params.rebuild = true
-        command.execute()
+  class LogCaptor extends AppenderSkeleton {
 
-        // verify the new file was registered and the old one removed
-        storage.metadata.invalidate()
-        storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
-            containTheSameElementsAs(Seq("2020/01/01" -> 1, "2021/01/01" -> 1))
-        // verify we can retrieve the moved file again
-        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
-            containTheSameElementsAs(features.take(2))
-      }
-    }
+    val events = ArrayBuffer.empty[LoggingEvent]
+
+    override protected def append(event: LoggingEvent): Unit = events += event
+    override def requiresLayout = false
+    override def close(): Unit = {}
   }
 }

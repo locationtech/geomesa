@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.fs.tools.status
 
-import com.beust.jcommander.{ParameterException, Parameters}
+import com.beust.jcommander.Parameters
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.status.FsGetFilesCommand.FSGetFilesParams
-import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{Command, OptionalCqlFilterParam, RequiredTypeNameParam}
 
 import java.time.Instant
 import java.util.Locale
@@ -29,22 +30,36 @@ class FsGetFilesCommand extends FsDataStoreCommand {
   override val name: String = "get-files"
 
   override def execute(): Unit = withDataStore { ds =>
-    val metadata = ds.storage(params.featureName).metadata
-    val partitions = if (params.partitions.isEmpty) { metadata.getPartitions() } else {
-      params.partitions.asScala.map { name =>
-        metadata.getPartition(name).getOrElse {
-          throw new ParameterException(s"Partition $name cannot be found in metadata")
-        }
-      }
+    val storage = ds.storage(params.featureName)
+    val metadata = storage.metadata
+
+    lazy val fromFilter = {
+      Command.user.info(s"Listing files for filter: ${ECQL.toCQL(params.cqlFilter)}")
+      metadata.getFiles(params.cqlFilter)
+    }
+    lazy val fromPartitions = {
+      Command.user.info(s"Listing files for partition(s): ${params.partitions.asScala.mkString(", ")}")
+      params.partitions.asScala.flatMap(metadata.getFiles)
     }
 
-    Command.user.info(s"Listing files for ${partitions.length} partitions")
-    partitions.sortBy(_.name).foreach { partition =>
-      Command.output.info(s"${partition.name}:")
+    val files =
+      if (params.cqlFilter == null && params.partitions.isEmpty) {
+        Command.user.info("Listing files for all partitions")
+        metadata.getFiles()
+      } else if (params.partitions.isEmpty) {
+        fromFilter
+      } else if (params.cqlFilter == null) {
+        fromPartitions
+      } else {
+        (fromFilter ++ fromPartitions).distinct
+      }
+
+    files.groupBy(_.partition).toSeq.sortBy(_._1.toString).foreach { case (p, files) =>
+      Command.output.info(s"$p:")
       // sort by chronological order
-      partition.files.sorted(StorageMetadata.StorageFileOrdering.reverse).foreach { f =>
-        Command.output.info(s"\t${f.action.toString.toUpperCase(Locale.US)} " +
-            s"${GeoToolsDateFormat.format(Instant.ofEpochMilli(f.timestamp))} ${f.name}")
+      files.sorted(StorageMetadata.StorageFileOrdering.reverse).foreach { f =>
+        Command.output.info(s"  ${f.file} ${f.action.toString.toUpperCase(Locale.US)} " +
+          s"${GeoToolsDateFormat.format(Instant.ofEpochMilli(f.timestamp))} ${f.count} features")
       }
     }
   }
@@ -52,5 +67,5 @@ class FsGetFilesCommand extends FsDataStoreCommand {
 
 object FsGetFilesCommand {
   @Parameters(commandDescription = "List files for partitions")
-  class FSGetFilesParams extends FsParams with RequiredTypeNameParam with PartitionParam
+  class FSGetFilesParams extends FsParams with RequiredTypeNameParam with PartitionParam with OptionalCqlFilterParam
 }

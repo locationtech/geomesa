@@ -22,10 +22,10 @@ trait PartitionSchemeFactory {
     * Load a partition scheme
     *
     * @param sft simple feature type
-    * @param config scheme options
+    * @param scheme scheme options
     * @return partition scheme
     */
-  def load(sft: SimpleFeatureType, config: NamedOptions): Option[PartitionScheme]
+  def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme]
 }
 
 object PartitionSchemeFactory {
@@ -38,13 +38,13 @@ object PartitionSchemeFactory {
     * Create a partition scheme instance via SPI lookup
     *
     * @param sft simple feature type
-    * @param config scheme options
+    * @param scheme scheme options
     * @return
     */
-  def load(sft: SimpleFeatureType, config: NamedOptions): PartitionScheme = {
-    factories.toStream.flatMap(_.load(sft, config)).headOption.getOrElse {
+  def load(sft: SimpleFeatureType, scheme: String): PartitionScheme = {
+    factories.toStream.flatMap(_.load(sft, scheme)).headOption.getOrElse {
       throw new IllegalArgumentException(s"No partition scheme factory implementation exists for name " +
-          s"'${config.name}'. Available factories: ${factories.map(_.getClass.getName).mkString(", ")}")
+        s"'$scheme'. Available factories: ${factories.map(_.getClass.getName).mkString(", ")}")
     }
   }
 }

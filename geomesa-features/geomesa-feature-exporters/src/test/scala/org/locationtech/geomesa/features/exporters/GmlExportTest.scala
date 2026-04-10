@@ -15,7 +15,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.ByteArrayOutputStream
 import scala.xml.XML
 
 @RunWith(classOf[JUnitRunner])
@@ -30,7 +29,7 @@ class GmlExportTest extends Specification {
 
   "GmlExport" >> {
     "should properly export to GML" >> {
-      val out = new ByteArrayOutputStream()
+      val out = new ByteArrayExportStream()
       val gml = GmlExporter(out)
       gml.start(sft)
       gml.export(Iterator.single(feature))
@@ -43,7 +42,7 @@ class GmlExportTest extends Specification {
       feat must haveLength(1)
     }
     "should properly export to GML v2" >> {
-      val out = new ByteArrayOutputStream()
+      val out = new ByteArrayExportStream()
       val gml = GmlExporter.gml2(out)
       gml.start(sft)
       gml.export(Iterator.single(feature))
@@ -57,7 +56,7 @@ class GmlExportTest extends Specification {
       xmlFid.text mustEqual "fid-1"
     }
     "should support multiple calls to export" >> {
-      val out = new ByteArrayOutputStream()
+      val out = new ByteArrayExportStream()
       val gml = GmlExporter(out)
       gml.start(sft)
       gml.export(Iterator.fill(2)(feature))

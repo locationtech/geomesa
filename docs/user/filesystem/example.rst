@@ -1,7 +1,7 @@
 FileSystem Data Store Example
 =============================
 
-In this simple example we will ingest a small CSV into a local filesystem data store partitioned by an daily,z2-2bit
+In this simple example we will ingest a small CSV into a local filesystem data store partitioned by a daily,z2-2bit
 scheme. To begin, start by untaring the geomesa-fs distribution. Inside this distribution you will find an examples
 folder which contains an example csv file that we will ingest. First set the version you want to use:
 
@@ -63,8 +63,8 @@ Now lets ingest.
 
 .. code-block:: bash
 
-    $ bin/geomesa-fs ingest -p /tmp/dstest -e parquet -s example-csv -C example-csv \
-    --partition-scheme daily,z2-2bit examples/csv/example.csv
+    $ bin/geomesa-fs ingest -p /tmp/dstest --metadata-type file -s example-csv -C example-csv \
+      --partition-scheme daily,z2-2bit examples/csv/example.csv
 
 The output should look like::
 
@@ -95,62 +95,72 @@ Now lets inspect the filesystem:
 
     $ find /tmp/dstest | sort
 
-The output should look like::
+The output should look something like::
 
-    /tmp/dstest/
-    /tmp/dstest/example-csv
-    /tmp/dstest/example-csv/2015
-    /tmp/dstest/example-csv/2015/05
-    /tmp/dstest/example-csv/2015/05/06
-    /tmp/dstest/example-csv/2015/05/06/2_Wcec6a2ec594a4a2eb7c7980a1baf4ab3.parquet
-    /tmp/dstest/example-csv/2015/05/06/.2_Wcec6a2ec594a4a2eb7c7980a1baf4ab3.parquet.crc
-    /tmp/dstest/example-csv/2015/06
-    /tmp/dstest/example-csv/2015/06/07
-    /tmp/dstest/example-csv/2015/06/07/1_Wcc082b9cf9bc4965b4cbf64741fee5b6.parquet
-    /tmp/dstest/example-csv/2015/06/07/.1_Wcc082b9cf9bc4965b4cbf64741fee5b6.parquet.crc
-    /tmp/dstest/example-csv/2015/10
-    /tmp/dstest/example-csv/2015/10/23
-    /tmp/dstest/example-csv/2015/10/23/1_W741f2151a4ed4eec97461a174a8588b7.parquet
-    /tmp/dstest/example-csv/2015/10/23/.1_W741f2151a4ed4eec97461a174a8588b7.parquet.crc
-    /tmp/dstest/example-csv/metadata
-    /tmp/dstest/example-csv/metadata/storage.json
-    /tmp/dstest/example-csv/metadata/.storage.json.crc
-    /tmp/dstest/example-csv/metadata/update-2015-05-06-2-12240906-4171-4ab0-acfe-d2ce9c5fff76.json
-    /tmp/dstest/example-csv/metadata/.update-2015-05-06-2-12240906-4171-4ab0-acfe-d2ce9c5fff76.json.crc
-    /tmp/dstest/example-csv/metadata/update-2015-06-07-1-ecd68700-88e3-4f04-9438-84b6ab935907.json
-    /tmp/dstest/example-csv/metadata/.update-2015-06-07-1-ecd68700-88e3-4f04-9438-84b6ab935907.json.crc
-    /tmp/dstest/example-csv/metadata/update-2015-10-23-1-667f27a7-4f64-472a-80ed-82e8f1e65575.json
-    /tmp/dstest/example-csv/metadata/.update-2015-10-23-1-667f27a7-4f64-472a-80ed-82e8f1e65575.json.crc
+    /tmp/dstest
+    /tmp/dstest/1010
+    /tmp/dstest/1010/0111
+    /tmp/dstest/1010/0111/0111
+    /tmp/dstest/1010/0111/0111/00100000
+    /tmp/dstest/1010/0111/0111/00100000/w_example-csv_65929c1f102c4014bf2302924304339f.parquet
+    /tmp/dstest/1010/0111/0111/00100000/.w_example-csv_65929c1f102c4014bf2302924304339f.parquet.crc
+    /tmp/dstest/1010/1000
+    /tmp/dstest/1010/1000/0011
+    /tmp/dstest/1010/1000/0011/00111110
+    /tmp/dstest/1010/1000/0011/00111110/w_example-csv_4d8630199c614e189d0e25af9bc21e53.parquet
+    /tmp/dstest/1010/1000/0011/00111110/.w_example-csv_4d8630199c614e189d0e25af9bc21e53.parquet.crc
+    /tmp/dstest/1011
+    /tmp/dstest/1011/1000
+    /tmp/dstest/1011/1000/0101
+    /tmp/dstest/1011/1000/0101/00010011
+    /tmp/dstest/1011/1000/0101/00010011/w_example-csv_3cf140998e08439397ecb53425dcb2d1.parquet
+    /tmp/dstest/1011/1000/0101/00010011/.w_example-csv_3cf140998e08439397ecb53425dcb2d1.parquet.crc
+    /tmp/dstest/metadata
+    /tmp/dstest/metadata/.example_2dcsv_files.json
+    /tmp/dstest/metadata/..example_2dcsv_files.json.crc
+    /tmp/dstest/metadata/example_2dcsv.json
+    /tmp/dstest/metadata/.example_2dcsv.json.crc
 
-Notice that we have a directory structure laid out based on our ``daily,z2-2bit`` scheme. Notice the first parquet
-file path is composed of a date path ``2016/05/06`` and then a z2 ordinate of ``2``, which is part of the file name ::
+Note that the file paths are laid out based on a hash, in order to optimize read/write throughput. The data files include
+the feature type name::
 
-    /tmp/dstest/example-csv/2015/05/06/2/2_Wcec6a2ec594a4a2eb7c7980a1baf4ab3.parquet
+    /tmp/dstest/1011/1000/0101/00010011/w_example-csv_3cf140998e08439397ecb53425dcb2d1.parquet
 
-The rest of the parquet file name is a UUID, which allows for multiple threads to write different files at once
-without interference. If we ingested additional data, another file would be created under the partition, and
-GeoMesa would scan them both at query time.
+Because we specified ``--metadata-type file``, the metadata for each data file is stored as json (the other option is to store
+metadata in a relational database). This includes the partitions and various bounds for each file::
 
-Each new file (or file deletion) will create a separate metadata file, which contains details on the file:
+    $ cat /tmp/dstest/metadata/.example_2dcsv_files.json | jq . | head -n 30
 
-.. code-block:: bash
+::
 
-    $ cat /tmp/dstest/example-csv/metadata/update-2015-05-06-629788a4-6a70-4009-ae20-c45602a88483.json
-
-The output should look like::
-
-    {
-        "action" : "Add",
-        "count" : 1,
-        "envelope" : {
-            "xmax" : -100.2365,
-            "xmin" : -100.2365,
-            "ymax" : 23.0,
-            "ymin" : 23.0
-        },
-        "files" : [
-            "2_Wcec6a2ec594a4a2eb7c7980a1baf4ab3.parquet"
+    [
+      {
+        "file": "1010/1000/0011/00111110/w_example-csv_4d8630199c614e189d0e25af9bc21e53.parquet",
+        "partition": [
+          {
+            "name": "days:attribute=lastseen",
+            "value": "800040b1"
+          },
+          {
+            "name": "z2:attribute=geom:bits=2",
+            "value": "2"
+          }
         ],
-        "name" : "2015/05/06/2",
-        "timestamp" : 1538148168948
-    }
+        "count": 1,
+        "action": "Append",
+        "spatialBounds": [
+          {
+            "attribute": 4,
+            "xmin": -100.2365,
+            "ymin": 23.0,
+            "xmax": -100.2365,
+            "ymax": 23.0
+          }
+        ],
+        "attributeBounds": [
+          {
+            "attribute": 3,
+            "lower": "8000014d26859c00",
+            "upper": "8000014d26859c00"
+          }
+

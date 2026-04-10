@@ -18,6 +18,7 @@ object QueryProperties {
   val QueryCostType             : SystemProperty = SystemProperty("geomesa.query.cost.type")
   val QueryTimeout              : SystemProperty = SystemProperty("geomesa.query.timeout") // default is no timeout
   val QueryThreads              : SystemProperty = SystemProperty("geomesa.query.threads")
+  val LooseBbox                 : SystemProperty = SystemProperty("geomesa.query.loose-bbox")
 
   // rough upper limit on the number of ranges we will generate per query
   val ScanRangesTarget: SystemProperty = SystemProperty("geomesa.scan.ranges.target", "2000")

@@ -6,11 +6,10 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.tools.export
+package org.locationtech.geomesa.fs.tools.`export`
 
 import com.beust.jcommander.{Parameter, Parameters}
-import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
+import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams}
 import org.locationtech.geomesa.fs.tools.export.FsExportCommand.FsExportParams
 import org.locationtech.geomesa.tools.RequiredTypeNameParam

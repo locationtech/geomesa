@@ -38,7 +38,7 @@ object AttributeIndexKey {
 
   import scala.collection.JavaConverters._
 
-  private val TypeRegistry = new TypeRegistry[String](LexiTypeEncoders.LEXI_JAVA_TYPES, TimestampEncoder)
+  val TypeRegistry: TypeRegistry[String] = new TypeRegistry[String](LexiTypeEncoders.LEXI_JAVA_TYPES, TimestampEncoder)
 
   val lexicoders: Seq[Class[_]] = TypeRegistry.getAllEncoders.asScala.map(_.resolves()).toList
 
@@ -59,7 +59,7 @@ object AttributeIndexKey {
   }
 
   /**
-    * Lexicographically encode a value using it's runtime class
+    * Lexicographically encode a value using its runtime class
     *
     * @param value value
     * @return

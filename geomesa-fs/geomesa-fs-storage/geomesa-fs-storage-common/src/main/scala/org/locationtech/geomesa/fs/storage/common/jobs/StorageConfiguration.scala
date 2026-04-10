@@ -19,7 +19,8 @@ import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFileAction, StorageFilePath}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -27,6 +28,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import java.io.{DataInput, DataOutput}
 
 object StorageConfiguration {
+
+  import scala.collection.JavaConverters._
 
   object Counters {
 
@@ -41,16 +44,20 @@ object StorageConfiguration {
     def partition(name: String): String = PartitionPrefix + name
   }
 
-  val PathKey                = "geomesa.fs.path"
-  val PartitionsKey          = "geomesa.fs.partitions"
-  val FileTypeKey            = "geomesa.fs.output.file-type"
-  val FileSizeKey            = "geomesa.fs.output.file-size"
-  val SftNameKey             = "geomesa.fs.sft.name"
-  val SftSpecKey             = "geomesa.fs.sft.spec"
-  val FilterKey              = "geomesa.fs.filter"
-  val TransformSpecKey       = "geomesa.fs.transform.spec"
-  val TransformDefinitionKey = "geomesa.fs.transform.defs"
-  val PathActionKey          = "geomesa.fs.path.action"
+  val PathKey                  = "geomesa.fs.path"
+  val EncodingKey              = "geomesa.fs.encoding"
+  val MetadataTypeKey          = "geomesa.fs.metadata.type"
+  val MetadataConfigKey        = "geomesa.fs.metadata.opt"
+  val PartitionSchemeKeyPrefix = "geomesa.fs.partition.scheme."
+  val PartitionsKeyPrefix      = "geomesa.fs.partitions."
+  val FileTypeKey              = "geomesa.fs.output.file-type"
+  val FileSizeKey              = "geomesa.fs.output.file-size"
+  val SftNameKey               = "geomesa.fs.sft.name"
+  val SftSpecKey               = "geomesa.fs.sft.spec"
+  val FilterKey                = "geomesa.fs.filter"
+  val TransformSpecKey         = "geomesa.fs.transform.spec"
+  val TransformDefinitionKey   = "geomesa.fs.transform.defs"
+  val PathActionKey            = "geomesa.fs.path.action"
 
   def setSft(conf: Configuration, sft: SimpleFeatureType): Unit = {
     val name = Option(sft.getName.getNamespaceURI).map(ns => s"$ns:${sft.getTypeName}").getOrElse(sft.getTypeName)
@@ -66,9 +73,36 @@ object StorageConfiguration {
   def setRootPath(conf: Configuration, path: Path): Unit = conf.set(PathKey, path.toString)
   def getRootPath(conf: Configuration): Path = new Path(conf.get(PathKey))
 
-  def setPartitions(conf: Configuration, partitions: Array[String]): Unit =
-    conf.setStrings(PartitionsKey, partitions: _*)
-  def getPartitions(conf: Configuration): Array[String] = conf.getStrings(PartitionsKey)
+  def setEncoding(conf: Configuration, encoding: String): Unit = conf.set(EncodingKey, encoding)
+  def getEncoding(conf: Configuration): String = conf.get(EncodingKey)
+
+  def setMetadataType(conf: Configuration, metadataType: String): Unit = conf.set(MetadataTypeKey, metadataType)
+  def getMetadataType(conf: Configuration): String = conf.get(MetadataTypeKey)
+
+  def setMetadataConfig(conf: Configuration, metadataConfig: Map[String, String]): Unit =
+    metadataConfig.foreach { case (k, v) => conf.set(s"$MetadataConfigKey.$k", v) }
+  def getMetadataConfig(conf: Configuration): Map[String, String] =
+    conf.getPropsWithPrefix(s"$MetadataConfigKey.").asScala.toMap
+
+  def setPartitionScheme(conf: Configuration, scheme: Set[PartitionScheme]): Unit = {
+    var i = 0
+    scheme.foreach { s =>
+      conf.set(s"$PartitionSchemeKeyPrefix$i", s.name)
+      i += 1
+    }
+  }
+  def getPartitionScheme(conf: Configuration, sft: SimpleFeatureType): Set[PartitionScheme] =
+    conf.getPropsWithPrefix(PartitionSchemeKeyPrefix).asScala.map { case (_, v) => PartitionSchemeFactory.load(sft, v) }.toSet
+
+  def setPartitions(conf: Configuration, partitions: Seq[Partition]): Unit = {
+    var i = 0
+    partitions.foreach { p =>
+      conf.set(s"$PartitionsKeyPrefix$i", p.toString)
+      i += 1
+    }
+  }
+  def getPartitions(conf: Configuration): Seq[Partition] =
+    conf.getPropsWithPrefix(PartitionsKeyPrefix).asScala.map { case (_, v) => Partition(v) }.toSeq
 
   def setFileType(conf: Configuration, fileType: FileType): Unit = conf.set(FileTypeKey, fileType.toString)
   def getFileType(conf: Configuration): FileType = FileType.withName(conf.get(FileTypeKey))
@@ -91,13 +125,13 @@ object StorageConfiguration {
     }
   }
 
-  def setPathActions(conf: Configuration, paths: Seq[StorageFilePath]): Unit = {
-    paths.foreach { case StorageFilePath(f, path) =>
-      conf.set(s"$PathActionKey.${path.getName}", s"${f.timestamp}:${f.action}")
+  def setPathActions(conf: Configuration, root: Path, paths: Seq[StorageFile]): Unit = {
+    paths.foreach { file =>
+      conf.set(s"$PathActionKey.${new Path(root, file.file)}", s"${file.timestamp}:${file.action}")
     }
   }
   def getPathAction(conf: Configuration, path: Path): (Long, StorageFileAction) = {
-    val Array(ts, action) = conf.get(s"$PathActionKey.${path.getName}").split(":")
+    val Array(ts, action) = conf.get(s"$PathActionKey.$path").split(":")
     (ts.toLong, StorageFileAction.withName(action))
   }
 

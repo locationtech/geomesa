@@ -19,7 +19,7 @@ import java.io.{OutputStream, OutputStreamWriter}
 import java.nio.charset.StandardCharsets
 import scala.io.Source
 
-class LeafletMapExporter(out: OutputStream) extends FeatureExporter with LazyLogging {
+class LeafletMapExporter(out: ByteCounterStream) extends FeatureExporter with LazyLogging {
 
   private val coordMap = scala.collection.mutable.Map.empty[Coordinate, Int].withDefaultValue(0)
 
@@ -54,6 +54,8 @@ class LeafletMapExporter(out: OutputStream) extends FeatureExporter with LazyLog
     jsonWriter.flush()
     Some(count)
   }
+
+  override def bytes: Long = out.bytes
 
   override def close(): Unit  = {
     // finish writing GeoJson

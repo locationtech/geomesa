@@ -8,56 +8,30 @@
 
 package org.locationtech.geomesa.fs.storage.common.interop;
 
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigRenderOptions;
-import com.typesafe.config.ConfigValueFactory;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.locationtech.geomesa.utils.text.Suffixes.Memory$;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Java helper class to set file system storage configuration options in a SimpleFeatureType.
- *
+ * <p/>
  * Scala users may prefer the implicits provided by
  * `org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType`
  *
  */
 public class ConfigurationUtils {
 
-    private static ConfigRenderOptions renderOptions = ConfigRenderOptions.concise().setFormatted(true);
-
-    public static void setEncoding(SimpleFeatureType sft, String encoding) {
-        sft.getUserData().put("geomesa.fs.encoding", encoding);
-    }
-
-    public static void setLeafStorage(SimpleFeatureType sft, boolean leafStorage) {
-        sft.getUserData().put("geomesa.fs.leaf-storage", String.valueOf(leafStorage));
-    }
-
     public static void setTargetFileSize(SimpleFeatureType sft, String size) {
         Memory$.MODULE$.bytes(size).get(); // validate input
         sft.getUserData().put("geomesa.fs.file-size", size);
     }
 
-    public static void setScheme(SimpleFeatureType sft, String scheme, Map<String, String> options) {
-        sft.getUserData().put("geomesa.fs.scheme", serialize(scheme, options));
-    }
-
-    public static void setMetadata(SimpleFeatureType sft, String name, Map<String, String> options) {
-        sft.getUserData().put("geomesa.fs.metadata", serialize(name, options));
+    public static void setScheme(SimpleFeatureType sft, String schemes) {
+        sft.getUserData().put("geomesa.fs.scheme", schemes);
     }
 
     public static void setObservers(SimpleFeatureType sft, List<String> observers) {
         sft.getUserData().put("geomesa.fs.observers", String.join(",", observers));
-    }
-
-    private static String serialize(String name, Map<String, String> options) {
-        return ConfigFactory.empty()
-                            .withValue("name", ConfigValueFactory.fromAnyRef(name))
-                            .withValue("options", ConfigValueFactory.fromMap(options))
-                            .root()
-                            .render(renderOptions);
     }
 }
