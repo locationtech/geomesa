@@ -56,7 +56,7 @@ object Z2Scheme {
 
   val Name = "z2"
 
-  class Z2PartitionSchemeFactory extends SpatialPartitionSchemeFactory(Name) {
+  class Z2PartitionSchemeFactory extends SpatialPartitionSchemeFactory[Point](Name) {
     override def buildPartitionScheme(bits: Int, geom: String, geomIndex: Int): SpatialScheme =
       Z2Scheme(bits, geom, geomIndex)
   }

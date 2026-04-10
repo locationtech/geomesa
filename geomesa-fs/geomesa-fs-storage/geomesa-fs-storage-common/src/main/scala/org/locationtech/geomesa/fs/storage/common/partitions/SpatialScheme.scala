@@ -16,8 +16,10 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionKey
 import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
+import org.locationtech.jts.geom.Geometry
 
 import java.util.regex.Pattern
+import scala.reflect.ClassTag
 
 abstract class SpatialScheme(id: String, bits: Int, geom: String) extends PartitionScheme {
 
@@ -69,7 +71,7 @@ object SpatialScheme {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  abstract class SpatialPartitionSchemeFactory(name: String) extends PartitionSchemeFactory {
+  abstract class SpatialPartitionSchemeFactory[T <: Geometry : ClassTag](name: String) extends PartitionSchemeFactory {
 
     private val namePattern: Pattern = Pattern.compile(s"$name-([0-9]+)bits?:?")
 
@@ -80,8 +82,7 @@ object SpatialScheme {
       def build(resolution: Short): Option[PartitionScheme] = {
         val geom = opts.getSingle("attribute").orElse(Option(sft.getGeomField)).orNull
         require(geom != null, s"Spatial schemes requires an attribute to be specified with 'attribute=<attribute>'")
-        val index = sft.indexOf(geom)
-        require(index != -1, s"Attribute '$geom' does not exist in schema '${sft.getTypeName}'")
+        val index = attributeIndex(sft, geom, Some(implicitly[ClassTag[T]].runtimeClass))
         Some(buildPartitionScheme(resolution, geom, index))
       }
 

@@ -26,6 +26,7 @@ The following options are supported:
 
 * ``attribute`` - The name of a ``Date``\ -type attribute from the SimpleFeatureType to use. If not specified, the default
   date attribute is used.
+* ``step`` - The number of time units (hours, days, etc) to include in each partition.
 
 Spatial Schemes
 ---------------

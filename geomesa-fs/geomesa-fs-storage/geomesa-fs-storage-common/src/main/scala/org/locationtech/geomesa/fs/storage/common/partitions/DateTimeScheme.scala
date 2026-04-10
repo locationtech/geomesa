@@ -22,17 +22,16 @@ import java.time.temporal.ChronoUnit
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.{Date, Locale}
 
-case class DateTimeScheme(
-    dtg: String,
-    dtgIndex: Int,
-    unit: ChronoUnit,
-  ) extends PartitionScheme {
+case class DateTimeScheme(dtg: String, dtgIndex: Int, unit: ChronoUnit, step: Int = 1) extends PartitionScheme {
 
   import FilterHelper.ff
 
   private val encoder = LexiTypeEncoders.integerEncoder()
 
-  override val name: String = s"${unit.name().toLowerCase(Locale.US)}:attribute=$dtg"
+  override val name: String = {
+    val stepOpt = if (step == 1) { "" } else { s":step=$step"}
+    s"${unit.name().toLowerCase(Locale.US)}:attribute=$dtg$stepOpt"
+  }
 
   override def getPartition(feature: SimpleFeature): PartitionKey = {
     val instant = feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant
@@ -65,16 +64,13 @@ case class DateTimeScheme(
   }
 
   override def getCoveringFilter(partition: PartitionKey): Filter = {
-    val offset = encoder.decode(partition.value)
+    val offset = encoder.decode(partition.value) * step
     val start = DateTimeScheme.Epoch.plus(offset.longValue(), unit)
-    val end = ff.literal(DateParsing.format(start.plus(1, unit)))
+    val end = ff.literal(DateParsing.format(start.plus(step, unit)))
     ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(DateParsing.format(start))), ff.less(ff.property(dtg), end))
   }
 
-  private def toPartition(dt: ZonedDateTime): Int = {
-    require(!dt.isBefore(DateTimeScheme.Epoch), s"Date exceeds minimum indexable value (${DateTimeScheme.Epoch}): $dt")
-    unit.between(DateTimeScheme.Epoch, dt).toInt
-  }
+  private def toPartition(dt: ZonedDateTime): Int = unit.between(DateTimeScheme.Epoch, dt).toInt / step
 
   private def getBounds(filter: Filter): Option[Seq[Bounds[ZonedDateTime]]] = {
     val bounds = FilterHelper.extractIntervals(filter, dtg)
@@ -107,7 +103,6 @@ object DateTimeScheme {
 
   private val UnboundedUpper = "zzz"
 
-  // TODO allow for 2 hours, etc
   class DateTimePartitionSchemeFactory extends PartitionSchemeFactory {
     override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
       val opts = SchemeOpts(scheme)
@@ -122,10 +117,9 @@ object DateTimeScheme {
       unit.map { u =>
         val dtg = opts.getSingle("attribute").orElse(sft.getDtgField).orNull
         require(dtg != null, s"Date scheme requires an attribute to be specified with 'attribute=<attribute>'")
-        val index = sft.indexOf(dtg)
-        require(index != -1, s"Attribute '$dtg' does not exist in schema '${sft.getTypeName}'")
-        require(classOf[Date].isAssignableFrom(sft.getDescriptor(index).getType.getBinding), s"Attribute '$dtg' is not a date")
-        DateTimeScheme(dtg, index, u)
+        val index = attributeIndex(sft, dtg, Some(classOf[Date]))
+        val step = opts.getSingle("step").map(_.toInt).getOrElse(1)
+        DateTimeScheme(dtg, index, u, step)
       }
     }
   }

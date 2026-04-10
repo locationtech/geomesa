@@ -219,9 +219,7 @@ object HierarchicalDateTimeScheme extends PartitionSchemeFactory {
     lazy val dtg = opts.opts.get(Config.DtgAttribute).orElse(sft.getDtgField).getOrElse {
       throw new IllegalArgumentException(s"DateTime scheme requires valid attribute '${Config.DtgAttribute}'")
     }
-    lazy val dtgIndex = Some(sft.indexOf(dtg)).filter(_ != -1).getOrElse {
-      throw new IllegalArgumentException(s"Attribute '$dtg' does not exist in feature type ${sft.getTypeName}")
-    }
+    lazy val dtgIndex = attributeIndex(sft, dtg, Some(classOf[Date]))
 
     if (opts.name == Name) {
       val unit = opts.opts.get(Config.StepUnitOpt).map(c => ChronoUnit.valueOf(c.toUpperCase)).getOrElse {

@@ -141,8 +141,7 @@ object AttributeScheme {
       if (opts.name != Name) { None } else {
         val attribute = opts.getSingle("attribute").orNull
         require(attribute != null, s"Attribute scheme requires an attribute to be specified with 'attribute=<attribute>'")
-        val index = sft.indexOf(attribute)
-        require(index != -1, s"Attribute '$attribute' does not exist in schema '${sft.getTypeName}'")
+        val index = attributeIndex(sft, attribute)
         val binding = sft.getDescriptor(index).getType.getBinding
         require(AttributeIndexKey.encodable(binding), s"Invalid type binding '${binding.getName}' of attribute '$attribute'")
 
