@@ -76,11 +76,6 @@
             <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-xml_${scala.binary.version}</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.facebook</groupId>
-            <artifactId>nailgun-server</artifactId>
-            <version>1.0.1</version>
-        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>

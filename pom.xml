@@ -111,7 +111,6 @@
         <jackson.version>2.21.1</jackson.version> <!-- used by geoserver, spark and arrow -->
         <jackson.annotations.version>2.21</jackson.annotations.version> <!-- note: in most places this is managed through the jackson bom -->
         <jetty.version>9.4.57.v20241219</jetty.version>
-        <jna.version>5.14.0</jna.version>
         <json.smart.version>2.5.2</json.smart.version> <!-- used by json-path and hadoop-auth -->
         <netty.version>4.1.121.Final</netty.version>
         <commons.cli.version>1.6.0</commons.cli.version>
@@ -1693,16 +1692,6 @@
                 <artifactId>jackson-module-scala_${scala.binary.version}</artifactId>
                 <version>${jackson.version}</version>
                 <scope>provided</scope> <!-- from spark -->
-            </dependency>
-            <dependency>
-                <groupId>net.java.dev.jna</groupId>
-                <artifactId>jna</artifactId> <!-- used by nailgun and testcontainers -->
-                <version>${jna.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>net.java.dev.jna</groupId>
-                <artifactId>jna-platform</artifactId>
-                <version>${jna.version}</version>
             </dependency>
 
             <!-- provided dependencies -->

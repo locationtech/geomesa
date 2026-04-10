@@ -53,33 +53,9 @@ export CUSTOM_JAVA_OPTS="${CUSTOM_JAVA_OPTS} $JAVA_OPTS"
 # export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH:-/path/to/java/native/library}"
 
 # ==================================================================
-# GeoMesa Nailgun Server Variables
-# ==================================================================
-
-# enable or disable a nailgun server for faster commands
-export GEOMESA_NG_ENABLED="${GEOMESA_NG_ENABLED:-false}"
-# host and port used to run nailgun server
-export GEOMESA_NG_SERVER="${GEOMESA_NG_SERVER:-$NAILGUN_SERVER}"
-export GEOMESA_NG_PORT="${GEOMESA_NG_PORT:-$NAILGUN_PORT}"
-# timeout for ng client heartbeats
-export GEOMESA_NG_TIMEOUT="${GEOMESA_NG_TIMEOUT:-}"
-# time before the nailgun server is shut down due to inactivity
-export GEOMESA_NG_IDLE="${GEOMESA_NG_IDLE:-1 hour}"
-# size of the thread pool used for handling requests
-export GEOMESA_NG_POOL_SIZE="${GEOMESA_NG_POOL_SIZE:-}"
-
-# ==================================================================
 # Export the variables configured above as needed
-# This section shouldn't need to be modified
+# The remainder of this file shouldn't need to be modified
 # ==================================================================
-
-# export the above nailgun options for use by the ng client
-if [[ -n "${GEOMESA_NG_SERVER}" ]]; then
-  export NAILGUN_SERVER="${GEOMESA_NG_SERVER}"
-fi
-if [[ -n "${GEOMESA_NG_PORT}" ]]; then
-  export NAILGUN_PORT="${GEOMESA_NG_PORT}"
-fi
 
 # set java opts
 GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami) -Djava.awt.headless=true\
