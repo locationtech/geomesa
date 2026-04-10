@@ -30,7 +30,7 @@ class GmlExportTest extends Specification {
 
   "GmlExport" >> {
     "should properly export to GML" >> {
-      val out = new ByteArrayOutputStream()
+      val out = new ByteArrayExportStream()
       val gml = GmlExporter(out)
       gml.start(sft)
       gml.export(Iterator.single(feature))
@@ -43,7 +43,7 @@ class GmlExportTest extends Specification {
       feat must haveLength(1)
     }
     "should properly export to GML v2" >> {
-      val out = new ByteArrayOutputStream()
+      val out = new ByteArrayExportStream()
       val gml = GmlExporter.gml2(out)
       gml.start(sft)
       gml.export(Iterator.single(feature))
@@ -57,7 +57,7 @@ class GmlExportTest extends Specification {
       xmlFid.text mustEqual "fid-1"
     }
     "should support multiple calls to export" >> {
-      val out = new ByteArrayOutputStream()
+      val out = new ByteArrayExportStream()
       val gml = GmlExporter(out)
       gml.start(sft)
       gml.export(Iterator.fill(2)(feature))
@@ -70,5 +70,12 @@ class GmlExportTest extends Specification {
       feat must not(beNull)
       feat must haveLength(3)
     }
+  }
+
+  class ByteArrayExportStream extends ByteCounterStream {
+    private val os = new ByteArrayOutputStream()
+    override def bytes: Long = os.size()
+    override def write(b: Int): Unit = os.write(b)
+    def toByteArray: Array[Byte] = os.toByteArray
   }
 }
