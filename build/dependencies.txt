@@ -114,11 +114,11 @@ org.antlr:antlr4-runtime:4.9.3:compile
 org.apache.accumulo:accumulo-access:1.0.0-beta:compile
 org.apache.accumulo:accumulo-core:2.1.4:compile
 org.apache.accumulo:accumulo-hadoop-mapreduce:2.1.4:compile
-org.apache.arrow:arrow-format:18.3.0:compile
-org.apache.arrow:arrow-memory-core:18.3.0:compile
-org.apache.arrow:arrow-memory-netty-buffer-patch:18.3.0:compile
-org.apache.arrow:arrow-memory-netty:18.3.0:compile
-org.apache.arrow:arrow-vector:18.3.0:compile
+org.apache.arrow:arrow-format:19.0.0:compile
+org.apache.arrow:arrow-memory-core:19.0.0:compile
+org.apache.arrow:arrow-memory-netty-buffer-patch:19.0.0:compile
+org.apache.arrow:arrow-memory-netty:19.0.0:compile
+org.apache.arrow:arrow-vector:19.0.0:compile
 org.apache.avro:avro:1.11.4:compile
 org.apache.commons:commons-collections4:4.4:compile
 org.apache.commons:commons-compress:1.26.0:compile
