@@ -142,7 +142,7 @@
         <cassandra.driver.version>3.11.5</cassandra.driver.version>
         <cassandra.version>3.11.19</cassandra.version>
         <scylladb.version>2025.1.4</scylladb.version>
-        <kafka.version>3.9.1</kafka.version> <!-- needs to align with confluent version -->
+        <kafka.version>3.9.2</kafka.version> <!-- needs to align with confluent version -->
         <confluent.version>7.8.0</confluent.version> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
         <confluent.protobuf.version>3.25.6</confluent.protobuf.version>
         <sedona.version>1.8.1</sedona.version>

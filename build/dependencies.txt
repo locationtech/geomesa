@@ -272,6 +272,7 @@ tech.units:indriya:2.2:compile
 tech.uom.lib:uom-lib-common:2.2:compile
 
 aopalliance:aopalliance:1.0:provided
+at.yawk.lz4:lz4-java:1.10.1:provided
 ch.qos.reload4j:reload4j:1.2.25:provided
 com.amazonaws:aws-java-sdk-core:1.12.793:provided
 com.amazonaws:aws-java-sdk-kms:1.12.793:provided
@@ -393,9 +394,9 @@ org.apache.htrace:htrace-core4:4.1.0-incubating:provided
 org.apache.httpcomponents:httpclient:4.5.14:provided
 org.apache.httpcomponents:httpcore:4.4.16:provided
 org.apache.ivy:ivy:2.5.1:provided
-org.apache.kafka:kafka-clients:3.9.1:provided
-org.apache.kafka:kafka-streams-scala_2.12:3.9.1:provided
-org.apache.kafka:kafka-streams:3.9.1:provided
+org.apache.kafka:kafka-clients:3.9.2:provided
+org.apache.kafka:kafka-streams-scala_2.12:3.9.2:provided
+org.apache.kafka:kafka-streams:3.9.2:provided
 org.apache.kerby:kerb-core:2.0.3:provided
 org.apache.kerby:kerb-crypto:2.0.3:provided
 org.apache.kerby:kerb-util:2.0.3:provided
