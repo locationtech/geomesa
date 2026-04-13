@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * Java helper class to set file system storage configuration options in a SimpleFeatureType.
- * <p/>
+ * <p>
  * Scala users may prefer the implicits provided by
  * `org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType`
  *
