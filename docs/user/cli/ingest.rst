@@ -41,7 +41,6 @@ Argument                   Description
 ``--converter-error-mode`` Override the error mode defined by the converter
 ``-t, --threads``          Number of parallel threads used
 ``--input-format``         Format of input files (csv, tsv, avro, shp, json, etc)
-``--index``                Specify a particular GeoMesa index to write to, instead of all indices
 ``--no-tracking``          This application closes when ingest job is submitted. Useful for launching jobs with a script
 ``--run-mode``             Must be one of ``local`` or ``distributed`` (for map/reduce ingest)
 ``--combine-inputs``       Combine multiple input files into a single input split (distributed jobs only)
