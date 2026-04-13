@@ -12,7 +12,7 @@ env:
   JAVA_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes
-  MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
+  MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar javadoc:jar -Psite
   MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar -Psite
 
 jobs:
