@@ -1,0 +1,27 @@
+/***********************************************************************
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ ***********************************************************************/
+
+package org.locationtech.geomesa.fs.storage.core.observer.s3
+
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.{PutObjectTaggingRequest, Tag, Tagging}
+
+/**
+ * Creates a tag containing the base64 encoded summary visibility for the observed file
+ *
+ * @param path file path
+ * @param s3 s3 client
+ * @param tag tag name to use
+ */
+class S3VisibilityObserver(path: Path, s3: S3Client, tag: String) extends AbstractS3VisibilityObserver(path) {
+  override protected def makeTagRequest(bucket: String, key: String, visibility: String): Unit = {
+    val tagging = Tagging.builder().tagSet(Tag.builder.key(tag).value(visibility).build()).build()
+    val request = PutObjectTaggingRequest.builder.bucket(bucket).key(key).tagging(tagging).build()
+    s3.putObjectTagging(request)
+  }
+}

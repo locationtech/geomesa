@@ -24,7 +24,6 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, FileValidationEnabled}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.FileValidationObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
@@ -39,7 +38,7 @@ import scala.util.control.NonFatal
  * @param metadata metadata
  */
 class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
-    extends AbstractFileSystemStorage(context, metadata, ParquetFileSystemStorage.FileExtension) {
+    extends FileSystemStorage(context, metadata, ParquetFileSystemStorage.FileExtension) {
 
   import scala.collection.JavaConverters._
 

@@ -29,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-storage-api_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-fs-storage-core_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- test dependencies -->

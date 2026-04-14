@@ -1,0 +1,19 @@
+{
+    "action" : "Add",
+    "count" : 1,
+    "envelope" : {
+        "xmax" : -100.2365,
+        "xmin" : -100.2365,
+        "ymax" : 23.0,
+        "ymin" : 23.0
+    },
+    "files" : [
+        {
+            "action" : "Append",
+            "name" : "05_W341a1c90e3bd444faa96054fa6870a1c.parquet",
+            "timestamp" : 1591813317861
+        }
+    ],
+    "name" : "2015/05",
+    "timestamp" : 1591813317861
+}

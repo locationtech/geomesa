@@ -1,0 +1,43 @@
+{
+    "encoding" : "parquet",
+    "feature-type" : {
+        "attributes" : [
+            {
+                "index" : "false",
+                "name" : "fid",
+                "type" : "Integer"
+            },
+            {
+                "index" : "true",
+                "name" : "name",
+                "type" : "String"
+            },
+            {
+                "index" : "false",
+                "name" : "age",
+                "type" : "Integer"
+            },
+            {
+                "default" : "true",
+                "index" : "false",
+                "name" : "lastseen",
+                "type" : "Date"
+            },
+            {
+                "default" : "true",
+                "name" : "geom",
+                "srid" : "4326",
+                "type" : "Point"
+            }
+        ],
+        "type-name" : "example-csv",
+        "user-data" : {
+            "geomesa.index.dtg" : "lastseen"
+        }
+    },
+    "leaf-storage" : true,
+    "partition-scheme" : {
+        "options" : {},
+        "scheme" : "monthly"
+    }
+}
