@@ -39,8 +39,8 @@ jobs:
             <servers>
               <server>
                 <id>repo.eclipse.org</id>
-                <username>${{ secrets.REPO_USERNAME }}</username>
-                <password>${{ secrets.REPO_PASSWORD }}</password>
+                <username>${{ secrets.REPO_TOKEN_USERNAME }}</username>
+                <password>${{ secrets.REPO_TOKEN_PASSWORD }}</password>
               </server>
             </servers>
           </settings>
