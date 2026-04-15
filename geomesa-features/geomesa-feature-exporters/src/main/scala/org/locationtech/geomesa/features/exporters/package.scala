@@ -44,11 +44,14 @@ package object exporters {
    * @param out file handle
    * @param gzip gzip
    */
-  class ExportStream(out: FileHandle, gzip: Option[Int] = None) extends ByteCounterStream {
+  class ExportStream(out: OutputStream, gzip: Option[Int] = None) extends ByteCounterStream {
+
+    def this(out: FileHandle, gzip: Option[Int]) = this(out.write(CreateMode.Create), gzip)
+    def this(out: FileHandle) = this(out, None)
 
     // lowest level - keep track of the bytes we write
     // do this before any compression, buffering, etc so we get an accurate count
-    private val counter = new CountingOutputStream(out.write(CreateMode.Create))
+    private val counter = new CountingOutputStream(out)
     private val stream = {
       val compressed = gzip match {
         case None => counter
