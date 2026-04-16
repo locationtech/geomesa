@@ -7,6 +7,11 @@ GeoMesa provides several custom CQL filter functions, which can be used for filt
 Filter functions can be created through GeoTool's standard methods, i.e. ``ECQL.toFilter`` or directly through
 ``FilterFactory2.function``.
 
+bucketHash
+----------
+
+Returns the hash of an attribute, modulo a number of buckets.
+
 currentDate
 -----------
 
@@ -20,6 +25,11 @@ dateToLong
 
 Converts a ``java.util.Date`` to a ``Long`` representing milliseconds since the epoch, as returned by
 ``date.getTime()``.
+
+murmurHash
+----------
+
+Returns the hash of an attribute.
 
 jsonPath
 --------

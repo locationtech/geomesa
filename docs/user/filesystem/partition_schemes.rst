@@ -43,12 +43,16 @@ The following options are supported:
 * ``bits`` - The number of bits to use for the curve, which defines the area of each partition. For example, 2 bits would
   create ``2 ^ 2`` (4) regions, while 3 bits would create ``2 ^ 3`` (8) regions.
 
-Attribute Schemes
------------------
+Attribute Scheme
+----------------
 
-Attribute schemes partition data based on a lexicoded attribute value. The name must be:
+The attribute scheme partitions data based on a lexicoded attribute value. The name must be:
 
 * ``attribute``
+
+The following option is required:
+
+* ``attribute`` - The name of the attribute used to partition
 
 The following options are supported:
 
@@ -63,3 +67,20 @@ The following additional options are supported to bucket the partition values, d
   ``divisor``. For example, with ``divisor=10``, ``100``, ``109``, etc will all be truncated to ``100``.
 * ``scale`` - For fractional type attributes (e.g. floats and doubles), the number of digits to keep to the right of the decimal
   place. For example, with ``scale=2``, ``100.001``, ``100.009``, etc will all be truncated to ``100.00``
+
+The attribute scheme supports the following attribute types: ``String``, ``Integer``, ``Long``, ``Float`` and ``Double``.
+
+Hash Scheme
+-----------
+
+The hash scheme partitions data into buckets based on an attribute value. The name must be:
+
+* ``hash``
+
+The following options are required:
+
+* ``attribute`` - The name of the attribute used to partition
+* ``buckets`` - The number of buckets used to partition
+
+The hash scheme supports the following attribute types:
+``String``, ``Integer``, ``Long``, ``Float``, ``Double``, ``Date``, ``Bytes``, and ``UUID``.
