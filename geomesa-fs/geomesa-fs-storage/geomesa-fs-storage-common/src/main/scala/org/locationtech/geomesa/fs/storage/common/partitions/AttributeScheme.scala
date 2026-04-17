@@ -251,10 +251,8 @@ object AttributeScheme {
       ff.like(ff.property(attribute), regex, "%", "_", "\\", false)
     }
 
-    override protected def enumerate(bounds: Bounds[String]): Seq[PartitionKey] = {
-
+    override protected def enumerate(bounds: Bounds[String]): Seq[PartitionKey] =
       throw new UnsupportedOperationException("Can't enumerate string attribute scheme")
-    }
   }
 
   /**
