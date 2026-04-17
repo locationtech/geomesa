@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.core
 
-import org.locationtech.geomesa.fs.storage.core.metadata.StorageMetadata
-
 import java.util.ServiceLoader
 
 /**

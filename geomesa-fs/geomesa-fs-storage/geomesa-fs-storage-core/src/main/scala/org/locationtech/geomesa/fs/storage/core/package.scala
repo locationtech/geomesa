@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage
 
+import com.google.gson._
 import com.typesafe.config.ConfigFactory
 import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -19,6 +20,7 @@ import pureconfig.generic.semiauto.deriveConvert
 import pureconfig.{ConfigConvert, ConfigSource}
 
 import java.io.Closeable
+import java.lang.reflect.Type
 import java.net.URI
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -27,7 +29,15 @@ package object core {
 
   type CloseableFeatureIterator = Iterator[SimpleFeature] with Closeable
 
+  val CacheDurationProperty: SystemProperty = SystemProperty("geomesa.fs.file.cache.duration", "15 minutes")
   val FileValidationEnabled: SystemProperty = SystemProperty("geomesa.fs.validate.file", "false")
+
+  private val gson =
+    new GsonBuilder()
+      .registerTypeAdapter(classOf[PartitionKey], PartitionKey.PartitionKeySerializer)
+      .registerTypeAdapter(classOf[Partition], Partition.PartitionSerializer)
+      .disableHtmlEscaping()
+      .create()
 
   /**
     * Holder for file system references
@@ -56,6 +66,133 @@ package object core {
     def apply(sft: SimpleFeatureType, scheme: Seq[String], fileSize: Option[Long] = None): Metadata = {
       val config: Map[String, String] = fileSize.map(f => TargetFileSize -> java.lang.Long.toString(f)).toMap
       Metadata(sft, scheme, config)
+    }
+  }
+
+
+  /**
+   * A partition
+   *
+   * @param values set of dimensions that make up the partition
+   */
+  case class Partition(values: Set[PartitionKey]) {
+    override lazy val toString: String = gson.toJson(this)
+  }
+
+  object Partition {
+
+    val None: Partition = Partition(Set.empty[PartitionKey])
+
+    def apply(encoded: String): Partition = {
+      try { gson.fromJson(encoded, classOf[Partition]) } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Invalid partition json: $encoded", e)
+      }
+    }
+
+    /**
+     * Json serializer for partitions
+     */
+    private[core] object PartitionSerializer extends JsonSerializer[Partition] with JsonDeserializer[Partition] {
+      override def serialize(src: Partition, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+        val array = new JsonArray(src.values.size)
+        src.values.toSeq.sortBy(k => (k.name, k.value)).foreach { value =>
+          array.add(context.serialize(value))
+        }
+        array
+      }
+
+      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Partition = {
+        val array = json.getAsJsonArray
+        val values = Set.newBuilder[PartitionKey]
+        var i = 0
+        while (i < array.size()) {
+          values += context.deserialize(array.get(i), classOf[PartitionKey])
+          i += 1
+        }
+        Partition(values.result())
+      }
+    }
+
+  }
+
+  /**
+   * A partition tag
+   *
+   * @param name partition scheme
+   * @param value partition value
+   */
+  case class PartitionKey(name: String, value: String) {
+    override lazy val toString: String = gson.toJson(this)
+  }
+
+  object PartitionKey {
+
+    def apply(encoded: String): PartitionKey = {
+      try { gson.fromJson(encoded, classOf[PartitionKey]) } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Invalid partition key json: $encoded", e)
+      }
+    }
+
+    /**
+     * Json serializer for partition keys
+     */
+    private[core] object PartitionKeySerializer extends JsonSerializer[PartitionKey] with JsonDeserializer[PartitionKey] {
+      override def serialize(src: PartitionKey, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
+        val obj = new JsonObject()
+        obj.addProperty("name", src.name)
+        obj.addProperty("value", src.value)
+        obj
+      }
+
+      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): PartitionKey = {
+        val obj = json.getAsJsonObject
+        val name = obj.getAsJsonPrimitive("name").getAsString
+        val value = obj.getAsJsonPrimitive("value").getAsString
+        PartitionKey(name, value)
+      }
+    }
+  }
+
+  /**
+   * Ranged bounds
+   *
+   * @param name partition scheme name
+   * @param lower lower bound, inclusive
+   * @param upper upper bound, exclusive
+   */
+  case class PartitionRange(name: String, lower: String, upper: String) {
+
+    /**
+     * Is the value contained in this bounds
+     *
+     * @param value partition value
+     * @return
+     */
+    def contains(value: String): Boolean = value >= lower && value < upper
+
+    /**
+     * Attempt to merge two bounds. Only overlapping bounds will result in a successful merge. Trying to merge
+     * bounds from a different partition scheme is a logical error.
+     *
+     * @param other bounds to merge
+     * @return
+     */
+    def merge(other: PartitionRange): Option[PartitionRange] = {
+      if (lower <= other.lower) {
+        if (upper >= other.upper) {
+          Some(this)
+        } else if (upper >= other.lower) {
+          Some(PartitionRange(name, lower, other.upper))
+        } else {
+          None
+        }
+      } else if (lower > other.upper) {
+        None
+      } else if (upper >= other.upper) {
+        Some(PartitionRange(name, other.lower, upper))
+      } else {
+        Some(other)
+      }
     }
   }
 

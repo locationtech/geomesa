@@ -17,13 +17,11 @@ import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType.FileType
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage._
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFileAction.StorageFileAction
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{AttributeBounds, SpatialBounds, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
-import org.locationtech.geomesa.fs.storage.core.metadata.StorageMetadata
-import org.locationtech.geomesa.fs.storage.core.metadata.StorageMetadata.StorageFileAction.StorageFileAction
-import org.locationtech.geomesa.fs.storage.core.metadata.StorageMetadata.{AttributeBounds, Partition, PartitionKey, SpatialBounds, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
-import org.locationtech.geomesa.fs.storage.core.partitions.PartitionScheme
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeEstimator
 import org.locationtech.geomesa.fs.storage.core.utils.{FileSize, FileSystemThreadedReader}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
@@ -71,7 +69,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
           case o => throw new IllegalArgumentException(s"Expected a FileSystemObserverFactory but got: ${o.getClass.getName}")
         }
         builder += observer
-        observer.init(context.conf, context.root, metadata.sft)
+        observer.init(context, metadata.sft)
       } catch {
         case NonFatal(e) => CloseQuietly(builder.result).foreach(e.addSuppressed); throw e
       }
@@ -203,7 +201,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
       // tracks newly added files so we can register them atomically
       val fileTracker = new FileTracker(metadata.sft, metadata.schemes)
 
-      WithClose(createWriter(partition, StorageFileAction.Append, Some(FileType.Compacted), target, fileTracker)) { writer =>
+      WithClose(createWriter(partition, StorageFileAction.Append, FileType.Compacted, target, fileTracker)) { writer =>
         WithClose(FileSystemThreadedReader(reader, toCompact, threads)) { reader =>
           while (reader.hasNext) {
             val feature = reader.next()
@@ -223,8 +221,6 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
         if (Try(context.fs.delete(path)).isFailure) {
           failures.append(file.file)
         }
-        // TODO
-//        PathCache.invalidate(context.fs, path)
       }
 
       if (failures.nonEmpty) {
@@ -261,27 +257,36 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
    *
    * @param partition partition being written to
    * @param action write type
+   * @return
+   */
+  private def createWriter(partition: Partition, action: StorageFileAction): FileSystemWriter = {
+    val fileType = action match {
+      case StorageFileAction.Append => FileType.Written
+      case StorageFileAction.Modify => FileType.Modified
+      case StorageFileAction.Delete => FileType.Deleted
+    }
+    createWriter(partition, action, fileType, fileSize.targetSize, metadata)
+  }
+
+  /**
+   * Create a new writer
+   *
+   * @param partition partition being written to
+   * @param action write type
    * @param fileType file type
    * @param targetFileSize target file size
    * @param metadata metata to track added files
    * @return
    */
   private def createWriter(
-    partition: Partition,
-    action: StorageFileAction,
-    fileType: Option[FileType] = None,
-    targetFileSize: Option[Long] = None,
-    metadata: StorageMetadata = this.metadata): FileSystemWriter = {
+      partition: Partition,
+      action: StorageFileAction,
+      fileType: FileType,
+      targetFileSize: Option[Long],
+      metadata: StorageMetadata): FileSystemWriter = {
 
-    val ft = fileType.getOrElse {
-      action match {
-        case StorageFileAction.Append => FileType.Written
-        case StorageFileAction.Modify => FileType.Modified
-        case StorageFileAction.Delete => FileType.Deleted
-      }
-    }
     def pathAndWriter: (URI, FileSystemWriter) = {
-      val file = FileSystemStorage.newFilePath(metadata.sft.getTypeName, ft, encoding)
+      val file = FileSystemStorage.newFilePath(metadata.sft.getTypeName, fileType, encoding)
       val path = context.root.resolve(file)
       val updateObserver = new MetadataObserver(metadata, file, partition, action)
       val observer = if (observers.isEmpty) { updateObserver } else {
@@ -290,7 +295,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
       (path, createWriter(path, partition, observer))
     }
 
-    targetFileSize.orElse(fileSize.targetSize) match {
+    targetFileSize match {
       case None => pathAndWriter._2
       case Some(s) => new ChunkedFileSystemWriter(context.fs, Iterator.continually(pathAndWriter), fileSize.estimator(s))
     }
@@ -375,7 +380,7 @@ object FileSystemStorage {
         writer.close()
         writer = null
         // adjust our estimate to account for the actual bytes written
-        total += fs.size(path)
+        total += fs.size(path).getOrElse(0L)
         estimator.update(total, count)
         remaining = estimator.estimate(0L)
       }

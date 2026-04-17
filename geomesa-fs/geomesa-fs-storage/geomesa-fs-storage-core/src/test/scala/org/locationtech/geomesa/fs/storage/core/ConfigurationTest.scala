@@ -6,10 +6,9 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common
+package org.locationtech.geomesa.fs.storage.core
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.common.interop.ConfigurationUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -23,26 +22,15 @@ class ConfigurationTest extends Specification with AllExpectations {
     "configure scheme options in user data" >> {
       val config = "hourly,z2:bits=10"
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      foreach(Seq(
-        () => ConfigurationUtils.setScheme(sft, config),
-        () => sft.setScheme(config))) { setter =>
-          setter()
-          sft.removeScheme() must beSome(config.split(",").toSeq)
-          sft.removeScheme() must beNone
-      }
+      sft.setScheme(config)
+      sft.removeScheme() must beSome(config.split(",").toSeq)
+      sft.removeScheme() must beNone
     }
 
     "configure observers in user data" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,foo:Date,*bar:Point:srid=4326")
-      val setters = Seq(
-        () => ConfigurationUtils.setObservers(sft, java.util.Arrays.asList("foo.bar", "foo.baz")),
-        () => sft.setObservers(Seq("foo.bar", "foo.baz")))
-      foreach(setters) { setter =>
-        setter.apply()
-        sft.getObservers mustEqual Seq("foo.bar", "foo.baz")
-        sft.getUserData.remove(StorageKeys.ObserversKey)
-        sft.getObservers must beEmpty
-      }
+      sft.setObservers(Seq("foo.bar", "foo.baz"))
+      sft.getObservers mustEqual Seq("foo.bar", "foo.baz")
     }
   }
 }

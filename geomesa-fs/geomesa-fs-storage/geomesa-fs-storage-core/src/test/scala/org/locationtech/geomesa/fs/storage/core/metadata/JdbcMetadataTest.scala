@@ -6,9 +6,8 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common.metadata
+package org.locationtech.geomesa.fs.storage.core.metadata
 
-import org.apache.hadoop.fs.Path
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.io.WithClose
 import org.slf4j.LoggerFactory
@@ -17,6 +16,8 @@ import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
+
+import java.net.URI
 
 @RunWith(classOf[JUnitRunner])
 class JdbcMetadataTest extends TestAbstractMetadata with BeforeAfterAll {
@@ -28,9 +29,9 @@ class JdbcMetadataTest extends TestAbstractMetadata with BeforeAfterAll {
 
   override protected val metadataType = JdbcMetadata.MetadataType
 
-  override protected def getConfig(root: Path): Map[String, String] = {
+  override protected def getConfig(root: URI): Map[String, String] = {
     // the tmp dir is all numbers - change it to chars to make a valid, unique db name for each test
-    val db = new String(root.getName.replace("geomesa", "").toCharArray.map(c => 'a' + c.toInt).map(_.toChar))
+    val db = new String(root.toString.replace("geomesa", "").toCharArray.map(c => 'a' + c.toInt).map(_.toChar))
     WithClose(container.createConnection("")) { connection =>
       WithClose(connection.createStatement()) { statement =>
         statement.execute(s"create database $db")

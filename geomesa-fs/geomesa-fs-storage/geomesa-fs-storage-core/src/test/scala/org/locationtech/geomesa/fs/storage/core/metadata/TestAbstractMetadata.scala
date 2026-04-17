@@ -6,29 +6,27 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common.metadata
+package org.locationtech.geomesa.fs.storage.core
+package metadata
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{AttributeBounds, Partition, PartitionKey, SpatialBounds, StorageFile}
-import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{AttributeBounds, SpatialBounds, StorageFile}
+import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 
-import java.io.File
+import java.net.URI
 import java.nio.file.Files
 
 abstract class TestAbstractMetadata extends Specification with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  lazy val conf = new Configuration()
-  lazy val fs = FileSystem.get(conf)
+  lazy val fs = LocalObjectStore
   val sft = SimpleFeatureTypes.createType("metadata",
     "name:String:fs.bounds=true,dtg:Date,*geom:Point:srid=4326;geomesa.user-data.prefix=desc,desc.name=姓名,desc.dtg=ひづけ,desc.geom=좌표")
   val encoding = "parquet"
@@ -66,9 +64,12 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
 
   protected def metadataType: String
 
-  protected def getConfig(root: Path): Map[String, String]
+  protected def getConfig(root: URI): Map[String, String]
 
-  def newCatalog(context: FileSystemContext) = StorageMetadataCatalog(context, metadataType, getConfig(context.root))
+  def newCatalog(root: URI) = {
+    val conf = getConfig(root)
+    StorageMetadataCatalog(FileSystemContext(fs, root, conf), metadataType, conf)
+  }
 
   "Metadata" should {
     "not load an non-existing table" in {
@@ -188,9 +189,9 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
   }
 
   def withPath[R](code: StorageMetadataCatalog => R): R = {
-    val file = Files.createTempDirectory("geomesa").toFile.getPath
-    try { code(newCatalog(FileSystemContext(fs, conf, new Path(file)))) } finally {
-      FileUtils.deleteDirectory(new File(file))
+    val file = Files.createTempDirectory("geomesa").toFile
+    try { code(newCatalog(file.toURI)) } finally {
+      FileUtils.deleteDirectory(file)
     }
   }
 }

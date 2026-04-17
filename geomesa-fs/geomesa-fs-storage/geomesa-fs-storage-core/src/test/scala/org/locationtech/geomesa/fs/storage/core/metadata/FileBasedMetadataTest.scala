@@ -6,15 +6,16 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common.metadata
+package org.locationtech.geomesa.fs.storage.core.metadata
 
-import org.apache.hadoop.fs.Path
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+
+import java.net.URI
 
 @RunWith(classOf[JUnitRunner])
 class FileBasedMetadataTest extends TestAbstractMetadata {
 
   override protected def metadataType: String = FileBasedMetadata.MetadataType
-  override protected def getConfig(root: Path): Map[String, String] = Map.empty
+  override protected def getConfig(root: URI): Map[String, String] = Map.empty
 }

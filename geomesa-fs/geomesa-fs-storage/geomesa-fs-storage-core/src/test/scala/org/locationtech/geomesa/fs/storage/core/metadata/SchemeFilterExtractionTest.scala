@@ -6,15 +6,15 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common.metadata
+package org.locationtech.geomesa.fs.storage.core
+package metadata
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme.PartitionRange
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
-import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory, StorageMetadata}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
+import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction.{AttributeBound, AttributeOr, SchemeFilter, SpatialBound, SpatialOr}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
 

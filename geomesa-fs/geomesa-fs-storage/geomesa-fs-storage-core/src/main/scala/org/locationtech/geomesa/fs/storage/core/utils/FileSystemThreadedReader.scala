@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.core.utils
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.core.metadata.StorageMetadata.{StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.PhaserUtils
 import org.locationtech.geomesa.utils.io.WithClose

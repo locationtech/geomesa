@@ -1,6 +1,14 @@
-package org.locationtech.geomesa.fs.storage.core.utils
+/***********************************************************************
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ ***********************************************************************/
 
-import org.locationtech.geomesa.fs.storage.core.metadata.StorageMetadata
+package org.locationtech.geomesa.fs.storage.core
+package utils
+
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeEstimator
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Metadata}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -39,7 +47,7 @@ class FileSize(context: FileSystemContext, metadata: StorageMetadata) {
    * @return true if the file is appropriately sized
    */
   def fileIsSized(path: URI, target: Long): Boolean = {
-    val size = context.fs.size(path)
+    val size = context.fs.size(path).getOrElse(0L)
     math.abs((size.toDouble / target) - 1d) <= fileSizeError
   }
 
