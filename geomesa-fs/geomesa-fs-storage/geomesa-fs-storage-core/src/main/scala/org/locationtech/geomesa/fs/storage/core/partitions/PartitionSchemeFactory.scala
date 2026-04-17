@@ -9,9 +9,8 @@
 package org.locationtech.geomesa.fs.storage.core.partitions
 
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.partitions.schemes.{AttributeScheme, DateTimeScheme, FlatScheme, HierarchicalDateTimeScheme, SpatialScheme, XZ2Scheme, Z2Scheme}
-
-import java.util.ServiceLoader
+import org.locationtech.geomesa.fs.storage.core.partitions.schemes._
+import org.locationtech.geomesa.utils.classpath.ServiceLoader
 
 /**
   * Factory for loading partition schemes
@@ -30,10 +29,9 @@ trait PartitionSchemeFactory {
 
 object PartitionSchemeFactory {
 
-  import scala.collection.JavaConverters._
-
-  lazy private val factories = Seq(AttributeScheme, DateTimeScheme, FlatScheme, XZ2Scheme, Z2Scheme) ++
-    ServiceLoader.load(classOf[PartitionSchemeFactory]).asScala.toSeq
+  lazy private val factories =
+    Seq(AttributeScheme, DateTimeScheme, FlatScheme, HashScheme, XZ2Scheme, Z2Scheme) ++
+      ServiceLoader.load[PartitionSchemeFactory]()
 
 
   /**
