@@ -18,14 +18,15 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType.FileType
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFileAction.StorageFileAction
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.{Partition, PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import java.io.{DataInput, DataOutput}
+import java.net.URI
 
 object StorageConfiguration {
 
@@ -70,8 +71,8 @@ object StorageConfiguration {
   def getSftName(conf: Configuration): String = conf.get(SftNameKey)
   def getSftSpec(conf: Configuration): String = conf.get(SftSpecKey)
 
-  def setRootPath(conf: Configuration, path: Path): Unit = conf.set(PathKey, path.toString)
-  def getRootPath(conf: Configuration): Path = new Path(conf.get(PathKey))
+  def setRootPath(conf: Configuration, path: URI): Unit = conf.set(PathKey, path.toString)
+  def getRootPath(conf: Configuration): URI = new URI(conf.get(PathKey))
 
   def setEncoding(conf: Configuration, encoding: String): Unit = conf.set(EncodingKey, encoding)
   def getEncoding(conf: Configuration): String = conf.get(EncodingKey)

@@ -51,7 +51,7 @@ class ParquetFileSystemReader(
   private class ParquetFileIterator(path: URI) extends CloseableIterator[SimpleFeature] {
 
     private val reader: ParquetReader[SimpleFeature] =
-      ParquetReader.builder(new SimpleFeatureReadSupport(), path).withConf(conf).withFilter(parquetFilter).build()
+      ParquetReader.builder(new SimpleFeatureReadSupport(), new Path(path)).withConf(conf).withFilter(parquetFilter).build()
 
     private var staged: SimpleFeature = _
 

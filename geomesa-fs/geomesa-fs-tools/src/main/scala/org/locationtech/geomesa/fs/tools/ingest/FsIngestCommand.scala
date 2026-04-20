@@ -15,7 +15,7 @@ import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.api.Metadata
+import org.locationtech.geomesa.fs.storage.core.Metadata
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.ParquetConverterJob
@@ -27,6 +27,8 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.{Command, TempPathParam}
+
+import java.net.URI
 
 class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistributedCommand {
 
@@ -51,19 +53,20 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
           throw new ParameterException("Please specify --num-reducers for distributed ingest")
         }
         val storage = ds.storage(sft.getTypeName)
-        val tmpPath = Option(params.tempPath).map(d => storage.context.fs.makeQualified(new Path(d)))
+        val tmpPath = Option(params.tempPath).map(new URI(_))
         val targetFileSize = storage.metadata.get(Metadata.TargetFileSize).map(_.toLong)
 
         tmpPath.foreach { tp =>
           if (storage.context.fs.exists(tp)) {
             Command.user.info(s"Deleting temp path $tp")
-            storage.context.fs.delete(tp, true)
+            //TODO
+//            storage.context.fs.delete(tp, true)
           }
         }
 
         new ParquetConverterJob(
           connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths, reducers,
-          storage.context.root, storage.metadata.schemes, tmpPath, targetFileSize) {
+          new Path(storage.context.root), storage.metadata.schemes, tmpPath.map(new Path(_)), targetFileSize) {
           override def configureJob(job: Job): Unit = {
             super.configureJob(job)
             if (params.combineInputs) {

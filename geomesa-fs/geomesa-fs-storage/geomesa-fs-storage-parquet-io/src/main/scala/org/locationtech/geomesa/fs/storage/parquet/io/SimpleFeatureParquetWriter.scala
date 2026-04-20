@@ -12,18 +12,32 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.column.ParquetProperties
-import org.apache.parquet.conf.ParquetConfiguration
+import org.apache.parquet.conf.{HadoopParquetConfiguration, ParquetConfiguration}
 import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
+import org.apache.parquet.hadoop.util.HadoopOutputFile
 import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
+import org.apache.parquet.io.OutputFile
 import org.geotools.api.feature.simple.SimpleFeature
+
+import java.net.URI
 
 object SimpleFeatureParquetWriter extends LazyLogging {
 
-  def builder(file: Path, conf: Configuration): Builder = {
+  import scala.collection.JavaConverters._
+
+  def builder(file: URI, conf: ParquetConfiguration): Builder = {
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "SNAPPY"))
     logger.debug(s"Using Parquet Compression codec ${codec.name()}")
-    new Builder(file)
+    val path = new Path(file)
+    val hadoopConf = conf match {
+      case c: HadoopParquetConfiguration => c.getConfiguration
+      case _ =>
+        val c = new Configuration()
+        conf.iterator().asScala.foreach(e => c.set(e.getKey, e.getValue))
+        c
+    }
+    new Builder(HadoopOutputFile.fromPath(path, hadoopConf))
       .withConf(conf)
       .withCompressionCodec(codec)
       .withDictionaryEncoding(true)
@@ -36,7 +50,7 @@ object SimpleFeatureParquetWriter extends LazyLogging {
       .withRowGroupSize(8*1024*1024)
   }
 
-  class Builder private [SimpleFeatureParquetWriter] (file: Path)
+  class Builder private [SimpleFeatureParquetWriter] (file: OutputFile)
       extends ParquetWriter.Builder[SimpleFeature, Builder](file) {
     override def self(): Builder = this
     override protected def getWriteSupport(conf: Configuration): WriteSupport[SimpleFeature] =

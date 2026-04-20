@@ -52,10 +52,6 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
 
   import scala.collection.JavaConverters._
 
-  require(context.root.toString.endsWith("/"), "Root path must end with a '/'")
-
-  private val fileSize = new FileSize(context, metadata)
-
   // don't require observers if we never write any data
   lazy private val observers = {
     val builder = Seq.newBuilder[FileSystemObserverFactory]
@@ -76,6 +72,8 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
     }
     builder.result
   }
+
+  val sizer: FileSize = new FileSize(context, metadata)
 
   /**
     * Get a reader for all relevant partitions
@@ -175,13 +173,13 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
    * @param threads suggested threads to use for file system operations
    */
   def compact(partition: Partition, fileSize: Option[Long] = None, threads: Int = 1): Unit = {
-    val target = fileSize.orElse(this.fileSize.targetSize)
+    val target = fileSize.orElse(this.sizer.targetSize)
     val files = metadata.getFiles(partition)
     val toCompact = target match {
       case None => files
       case Some(t) =>
         files.filter { f =>
-          if (this.fileSize.fileIsSized(context.root.resolve(f.file), t)) {
+          if (this.sizer.fileIsSized(context.root.resolve(f.file), t)) {
             logger.debug(s"Skipping compaction for file [${f.file}] (already target size)")
             false
           } else {
@@ -265,7 +263,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
       case StorageFileAction.Modify => FileType.Modified
       case StorageFileAction.Delete => FileType.Deleted
     }
-    createWriter(partition, action, fileType, fileSize.targetSize, metadata)
+    createWriter(partition, action, fileType, sizer.targetSize, metadata)
   }
 
   /**
@@ -297,7 +295,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
 
     targetFileSize match {
       case None => pathAndWriter._2
-      case Some(s) => new ChunkedFileSystemWriter(context.fs, Iterator.continually(pathAndWriter), fileSize.estimator(s))
+      case Some(s) => new ChunkedFileSystemWriter(context.fs, Iterator.continually(pathAndWriter), sizer.estimator(s))
     }
   }
 }
@@ -380,7 +378,7 @@ object FileSystemStorage {
         writer.close()
         writer = null
         // adjust our estimate to account for the actual bytes written
-        total += fs.size(path).getOrElse(0L)
+        total += fs.size(path)
         estimator.update(total, count)
         remaining = estimator.estimate(0L)
       }

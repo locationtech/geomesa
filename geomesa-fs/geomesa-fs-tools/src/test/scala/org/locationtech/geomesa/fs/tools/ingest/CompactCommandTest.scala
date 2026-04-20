@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import org.apache.hadoop.fs.Path
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.junit.runner.RunWith
@@ -29,7 +28,7 @@ import org.specs2.specification.BeforeAfterAll
 @RunWith(classOf[JUnitRunner])
 class CompactCommandTest extends Specification with BeforeAfterAll {
 
-  import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+  import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
@@ -140,7 +139,7 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
         val storage = ds.storage(sft.getTypeName)
         foreach(storage.metadata.getFiles().groupBy(_.partition).values) { partition =>
           partition.size must beGreaterThan(1)
-          val sizes = partition.map(f => new Path(storage.context.root, f.file)).map(p => storage.context.fs.getFileStatus(p).getLen)
+          val sizes = partition.map(f => storage.context.root.resolve(f.file)).map(p => storage.context.fs.size(p))
           // hard to get very close with small files...
           foreach(sizes)(_ must beCloseTo(targetFileSize, 6000))
         }

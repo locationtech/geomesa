@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.parquet.jobs
+package org.locationtech.geomesa.fs.storage.jobs.parquet
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
@@ -16,8 +16,8 @@ import org.apache.hadoop.mapreduce.{JobContext, OutputCommitter, TaskAttemptCont
 import org.apache.parquet.hadoop.util.ContextUtil
 import org.apache.parquet.hadoop.{ParquetOutputCommitter, ParquetOutputFormat}
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetSimpleFeatureOutputFormat.ParquetMultiFileOutputCommitter
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
-import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetSimpleFeatureOutputFormat.ParquetMultiFileOutputCommitter
 
 import java.io.IOException
 import scala.collection.mutable
@@ -43,7 +43,7 @@ object ParquetSimpleFeatureOutputFormat {
       extends FileOutputCommitter(outputPath, context) with LazyLogging {
     // based on parquetOutputCommitter, but for multiple output files
     @throws[IOException]
-    override def commitJob(jobContext: JobContext) {
+    override def commitJob(jobContext: JobContext): Unit = {
       super.commitJob(jobContext)
       val conf = ContextUtil.getConfiguration(jobContext)
       listFiles(outputPath, conf, extension).map(_.getParent).distinct.foreach { path =>

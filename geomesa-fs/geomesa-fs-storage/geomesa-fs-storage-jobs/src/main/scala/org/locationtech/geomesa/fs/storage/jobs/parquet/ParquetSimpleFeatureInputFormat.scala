@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.parquet.jobs
+package org.locationtech.geomesa.fs.storage.jobs.parquet
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -17,9 +17,9 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.TransformSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetSimpleFeatureInputFormat.{ParquetSimpleFeatureInputFormatBase, ParquetSimpleFeatureRecordReaderBase, ParquetSimpleFeatureTransformRecordReaderBase}
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
-import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetSimpleFeatureInputFormat.{ParquetSimpleFeatureInputFormatBase, ParquetSimpleFeatureRecordReaderBase, ParquetSimpleFeatureTransformRecordReaderBase}
 import org.locationtech.geomesa.fs.storage.parquet.{ReadFilter, ReadSchema}
 import org.locationtech.geomesa.index.planning.QueryRunner
 

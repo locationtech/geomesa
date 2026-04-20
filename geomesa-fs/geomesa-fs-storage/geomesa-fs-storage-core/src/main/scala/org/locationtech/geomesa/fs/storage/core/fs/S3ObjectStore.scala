@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.fs.storage.core.fs
 
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.ArchiveFormat.ArchiveFormat
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import java.io.{InputStream, OutputStream}
@@ -17,7 +19,7 @@ class S3ObjectStore(val s3Client: S3AsyncClient) extends ObjectStore {
 
   override def exists(path: URI): Boolean = ???
 
-  override def size(path: URI): Option[Long] = ???
+  override def size(path: URI): Long = ???
 
   override def modified(path: URI): Option[Long] = ???
 
@@ -26,6 +28,8 @@ class S3ObjectStore(val s3Client: S3AsyncClient) extends ObjectStore {
   override def overwrite(path: URI): OutputStream = ???
 
   override def read(path: URI): Option[InputStream] = ???
+
+  override def read(path: URI, format: ArchiveFormat): CloseableIterator[ObjectStore.ArchiveInputStream] = ???
 
   override def list(path: URI): Seq[URI] = ???
 

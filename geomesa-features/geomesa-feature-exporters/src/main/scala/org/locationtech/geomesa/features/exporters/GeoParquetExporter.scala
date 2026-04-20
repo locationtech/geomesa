@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features.exporters
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
+import org.apache.parquet.conf.HadoopParquetConfiguration
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.io.PathUtils
@@ -27,8 +27,6 @@ class GeoParquetExporter(path: String) extends FeatureExporter with LazyLogging 
       writer.close()
       writer = null
     }
-    // use PathUtils.getUrl to handle local files, otherwise default can be in hdfs
-    val file = new Path(PathUtils.getUrl(path).toURI)
     val conf = new Configuration()
     try { Class.forName("org.xerial.snappy.Snappy") } catch {
       case _: ClassNotFoundException =>
@@ -36,7 +34,8 @@ class GeoParquetExporter(path: String) extends FeatureExporter with LazyLogging 
         conf.set("parquet.compression", "GZIP")
     }
     SimpleFeatureParquetSchema.setSft(conf, sft)
-    writer = new ParquetFileSystemWriter(file, conf)
+    // use PathUtils.getUrl to handle local files, otherwise default can be in hdfs
+    writer = new ParquetFileSystemWriter(PathUtils.getUrl(path).toURI, new HadoopParquetConfiguration(conf))
   }
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {

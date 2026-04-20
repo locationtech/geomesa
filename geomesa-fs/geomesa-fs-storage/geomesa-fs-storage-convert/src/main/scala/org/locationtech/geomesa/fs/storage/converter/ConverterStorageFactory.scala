@@ -9,26 +9,21 @@
 package org.locationtech.geomesa.fs.storage.converter
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.metadata.ConverterMetadata.ConverterPathParam
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorageFactory._
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.{NamedOptions, PathFiltering, PathFilteringFactory}
-
-import java.util.regex.Pattern
+import org.locationtech.geomesa.fs.storage.core.metadata.ConverterMetadata.ConverterPathParam
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, FileSystemStorageFactory, StorageMetadata}
 
 class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging {
-
-  import scala.collection.JavaConverters._
 
   override val encoding: String = ConverterStorageFactory.Encoding
 
   override def apply(context: FileSystemContext, metadata: StorageMetadata): FileSystemStorage = {
     val converter = {
-      val convertArg = Option(context.conf.get(ConverterConfigParam))
-          .orElse(Option(context.conf.get(ConverterNameParam)))
+      val convertArg = context.conf.get(ConverterConfigParam)
+          .orElse(context.conf.get(ConverterNameParam))
           .getOrElse(throw new IllegalArgumentException(s"Must provide either converter config or name"))
       val converterConfig = ConverterConfigResolver.getArg(ConfArgs(convertArg)) match {
         case Left(e) => throw new IllegalArgumentException("Could not load Converter with provided parameters", e)
@@ -38,11 +33,9 @@ class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging 
     }
 
     val pathFilteringOpts =
-      context.conf.getValByRegex(Pattern.quote(PathFilterOptsPrefix) + ".*").asScala.map {
-        case (k, v) => k.substring(PathFilterOptsPrefix.length) -> v
-      }
+      context.conf.collect { case (k, v) if k.startsWith(PathFilterOptsPrefix) => k.substring(PathFilterOptsPrefix.length) -> v }
 
-    val pathFiltering = Option(context.conf.get(PathFilterName)).flatMap { name =>
+    val pathFiltering = context.conf.get(PathFilterName).flatMap { name =>
       val factory = PathFilteringFactory.load(NamedOptions(name, pathFilteringOpts.toMap))
       if (factory.isEmpty) {
         throw new IllegalArgumentException(s"Failed to load ${classOf[PathFiltering].getName} for config '$name'")
@@ -50,7 +43,7 @@ class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging 
       factory
     }
 
-    val converterPath = Option(context.conf.get(ConverterPathParam)).map(new Path(context.root, _)).getOrElse {
+    val converterPath = context.conf.get(ConverterPathParam).map(context.root.resolve).getOrElse {
       throw new IllegalArgumentException("Must provide converter path")
     }
 

@@ -17,7 +17,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.common.StorageKeys
+import org.locationtech.geomesa.fs.storage.core.StorageKeys
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -37,11 +37,10 @@ import scala.concurrent.duration.DurationInt
 
 class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
-  import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
-
   sequential
 
   def createFormat(geom: String = "Point", createGeom: Int => String = createPoint): (SimpleFeatureType, Seq[SimpleFeature]) = {
+    import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
     val sft = SimpleFeatureTypes.createType("parquet", s"name:String:fs.bounds=true,age:Int,dtg:Date,*geom:$geom:srid=4326")
     sft.setScheme("daily")
     val features = Seq.tabulate(10) { i =>
@@ -242,6 +241,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
     }
 
     "reject schemas with reserved words" in {
+      import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
       foreach(dsParams) { params =>
         val reserved = SimpleFeatureTypes.createType("reserved", "dtg:Date,*point:Point:srid=4326")
         reserved.setScheme("daily")

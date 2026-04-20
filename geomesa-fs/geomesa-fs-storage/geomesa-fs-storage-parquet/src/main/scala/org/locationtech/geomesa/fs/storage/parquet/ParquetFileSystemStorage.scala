@@ -11,6 +11,7 @@ package org.locationtech.geomesa.fs.storage.parquet
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
+import org.apache.parquet.conf.HadoopParquetConfiguration
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.filter2.compat.FilterCompat.FilterPredicateCompat
 import org.apache.parquet.hadoop.ParquetReader
@@ -18,17 +19,16 @@ import org.apache.parquet.hadoop.example.GroupReadSupport
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
-import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
-import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory.CompositeObserver
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
+import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, FileValidationEnabled, Partition, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.FileValidationObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
 import org.locationtech.geomesa.utils.io.WithClose
 
+import java.net.URI
 import scala.util.control.NonFatal
 
 /**
@@ -44,14 +44,15 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
 
   private val authProvider: AuthorizationsProvider =
     AuthUtils.getProvider(
-      Option(context.conf.get(AuthProviderParam.key)).map(p => AuthProviderParam.key -> p).toMap.asJava,
-      context.conf.get(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
+      context.conf.get(AuthProviderParam.key).map(p => AuthProviderParam.key -> p).toMap.asJava,
+      context.conf.getOrElse(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
     )
 
   override val encoding: String = ParquetFileSystemStorage.Encoding
 
-  override protected def createWriter(file: Path, partition: Partition, observer: FileSystemObserver): FileSystemWriter = {
-    val conf = new Configuration(context.conf)
+  override protected def createWriter(file: URI, partition: Partition, observer: FileSystemObserver): FileSystemWriter = {
+    val conf = new Configuration()
+    context.conf.foreach { case (k, v) => conf.set(k, v) }
     SimpleFeatureParquetSchema.setSft(conf, metadata.sft)
     conf.set(SimpleFeatureParquetSchema.PartitionKey, partition.toString)
 
@@ -61,7 +62,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
       } else {
         observer
       }
-    new ParquetFileSystemWriter(file, conf, observers)
+    new ParquetFileSystemWriter(file, new HadoopParquetConfiguration(conf), observers)
   }
 
   override protected def createReader(
@@ -82,8 +83,9 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     // because we communicate the transform SFT set here
     // with the init() method on SimpleFeatureReadSupport via
     // the parquet api. Thus we need to deep copy conf objects
-    val conf = new Configuration(context.conf)
-    StorageConfiguration.setSft(conf, readSft)
+    val conf = new Configuration()
+    context.conf.foreach { case (k, v) => conf.set(k, v) }
+    SimpleFeatureParquetSchema.setSft(conf, readSft)
 
     new ParquetFileSystemReader(conf, context.root, readSft, parquetFilter, gtFilter, visFilter, readTransform)
   }
@@ -101,12 +103,12 @@ object ParquetFileSystemStorage extends LazyLogging {
    *
    * @param file file to validate
    */
-  case class FileValidationObserver(file: Path) extends FileSystemObserver {
+  case class FileValidationObserver(file: URI) extends FileSystemObserver {
     override def apply(feature: SimpleFeature): Unit = {}
     override def flush(): Unit = {}
     override def close(): Unit = {
       try {
-        WithClose(ParquetReader.builder(new GroupReadSupport(), file).build()) { reader =>
+        WithClose(ParquetReader.builder(new GroupReadSupport(), new Path(file)).build()) { reader =>
           var record = reader.read()
           while (record != null) {
             // Process the record

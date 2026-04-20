@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.Parameters
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.status.FsGetFilesCommand.FSGetFilesParams

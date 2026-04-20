@@ -9,19 +9,20 @@
 package org.locationtech.geomesa.fs.data
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
-import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorageFactory}
-import org.locationtech.geomesa.fs.storage.common.metadata.{ConverterMetadata, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorageFactory
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
+import org.locationtech.geomesa.fs.storage.core.metadata.ConverterMetadata
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorageFactory, StorageMetadataCatalog}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.hadoop.HadoopUtils
 
 import java.awt.RenderingHints
 import java.io.ByteArrayInputStream
+import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.{Collections, Properties}
 
@@ -34,16 +35,26 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: java.util.Map[String, _]): DataStore = {
     val xml = ConfigsParam.lookupOpt(params)
     val resources = ConfigPathsParam.lookupOpt(params).toSeq.flatMap(_.split(',')).map(_.trim).filterNot(_.isEmpty)
-
-    val conf = if (xml.isEmpty && resources.isEmpty) { FileSystemDataStoreFactory.configuration } else {
+// TODO allow for passing configs through non-hadoop things
+    val hadoopConf = if (xml.isEmpty && resources.isEmpty) { FileSystemDataStoreFactory.configuration } else {
       val conf = new Configuration(FileSystemDataStoreFactory.configuration)
       // add the explicit props first, they may be needed for loading the path resources
       xml.foreach(x => conf.addResource(new ByteArrayInputStream(x.getBytes(StandardCharsets.UTF_8))))
       resources.foreach(HadoopUtils.addResource(conf, _))
       conf
     }
+    val conf = {
+      val builder = Map.newBuilder[String, String]
+      hadoopConf.forEach(e => builder += e.getKey -> e.getValue)
+      AuthProviderParam.lookupOpt(params).foreach(p => builder += (AuthsParam.key -> p.getClass.getName))
+      AuthsParam.lookupOpt(params).foreach(auths => builder += (AuthsParam.key -> auths))
+      builder.result()
+    }
 
-    val path = new Path(PathParam.lookup(params))
+    val path = {
+      val path = PathParam.lookup(params)
+      if (path.endsWith("/")) { new URI(path) } else { new URI(path + "/") }
+    }
 
     // Need to do more tuning here. On a local system 1 thread (so basic producer/consumer) was best
     // because Parquet is also threading the reads underneath I think. using prod/cons pattern was
@@ -57,9 +68,6 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     val writeTimeout = WriteTimeoutParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite)
 
-    AuthProviderParam.lookupOpt(params).foreach(p => conf.set(AuthsParam.key, p.getClass.getName))
-    AuthsParam.lookupOpt(params).foreach(conf.set(AuthsParam.key, _))
-
     val namespace = NamespaceParam.lookupOpt(params)
 
     val encoding = EncodingParam.lookup(params)
@@ -69,8 +77,8 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
         s"Invalid encoding parameter, does not match a storage factory instance: $encoding\n" +
           s"  Available factories: ${FileSystemStorageFactory.factories.map(_.encoding).mkString(", ")}")
     }
-    val fs = FileSystem.get(path.toUri, conf)
-    val context = FileSystemContext(fs, conf, path, namespace)
+    val fs = ObjectStore(path, conf)
+    val context = FileSystemContext(fs, path, conf, namespace)
     val config = FileSystemDataStoreConfig(context, readThreads, writeTimeout, queryTimeout)
 
     val metadataConfig = MetadataConfigParam.lookupOpt(params).getOrElse(new Properties()).asScala.toMap

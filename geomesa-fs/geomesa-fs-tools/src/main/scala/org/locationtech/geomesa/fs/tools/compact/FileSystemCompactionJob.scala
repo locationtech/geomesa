@@ -15,12 +15,10 @@ import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
-import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
-import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfiguration
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
+import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetStorageConfiguration
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.CompactionMapper
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
@@ -31,6 +29,7 @@ import org.locationtech.geomesa.tools.utils.{DistributedCopy, JobRunner}
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.File
+import java.net.URI
 import java.util.Properties
 
 trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
@@ -49,7 +48,11 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
       libjarsPaths: Iterator[() => Seq[File]],
       statusCallback: StatusCallback): JobResult = {
 
-    val job = Job.getInstance(new Configuration(storage.context.conf), "GeoMesa Storage Compaction")
+    val job = {
+      val conf = new Configuration()
+      storage.context.conf.foreach { case (k, v) => conf.set(k, v) }
+      Job.getInstance(conf, "GeoMesa Storage Compaction")
+    }
 
     setLibJars(job, libjarsFiles, libjarsPaths)
     job.setJarByClass(this.getClass)
@@ -66,8 +69,6 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     job.setOutputKeyClass(classOf[Void])
     job.setOutputValueClass(classOf[SimpleFeature])
 
-    val qualifiedTempPath = tempPath.map(storage.context.fs.makeQualified)
-
     StorageConfiguration.setRootPath(job.getConfiguration, storage.context.root)
     StorageConfiguration.setEncoding(job.getConfiguration, storage.encoding)
     StorageConfiguration.setSft(job.getConfiguration, storage.metadata.sft)
@@ -77,7 +78,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     metadataConfig.foreach(c => StorageConfiguration.setMetadataConfig(job.getConfiguration, c.asScala.toMap))
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
-    FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(storage.context.root))
+    FileOutputFormat.setOutputPath(job, tempPath.getOrElse(new Path(storage.context.root)))
 
     // MapReduce options
     job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
@@ -87,10 +88,9 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
     // save the existing files so we can delete them afterwards
     // mimic the filtering done in PartitionInputFormat
-    val sizeable = Option(storage).collect { case s: SizeableFileSystemStorage => s }
-    val sizeCheck = sizeable.flatMap(s => s.targetSize(targetFileSize).map(t => (p: Path) => s.fileIsSized(p, t)))
+    val sizeCheck = targetFileSize.orElse(storage.sizer.targetSize).map(t => (p: URI) => storage.sizer.fileIsSized(p, t))
     val existingDataFiles = partitions.toList.flatMap { p =>
-      val files = storage.metadata.getFiles(p).filterNot(f => sizeCheck.exists(_.apply(new Path(storage.context.root, f.file))))
+      val files = storage.metadata.getFiles(p).filterNot(f => sizeCheck.exists(_.apply(storage.context.root.resolve(f.file))))
       // TODO get counts right... use m/r counters?
       if (files.isEmpty) { None } else { Some(p -> files) }
     }
@@ -98,8 +98,8 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     def mapCounters = Seq((MappedCounter, written(job)), (FailedCounter, failed(job)))
 
     val result = JobRunner.run(job, statusCallback, mapCounters, Seq.empty).merge {
-      qualifiedTempPath.map { tp =>
-        new DistributedCopy().copy(Seq(tp), storage.context.root, statusCallback)
+      tempPath.map { tp =>
+        new DistributedCopy().copy(Seq(tp), new Path(storage.context.root), statusCallback)
       }
     }
 
@@ -115,7 +115,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
           val count = Option(job.getCounters.findCounter(StorageConfiguration.Counters.Group, counter)).map(_.getValue)
           files.foreach { f =>
             storage.metadata.removeFile(f)
-            storage.context.fs.delete(new Path(storage.context.root, f.file), false)
+            storage.context.fs.delete(storage.context.root.resolve(f.file))
           }
           val removed = count.map(c => s"containing $c features ").getOrElse("")
           Command.user.info(s"Removed ${TextTools.getPlural(files.size, "file")} ${removed}in partition $name")

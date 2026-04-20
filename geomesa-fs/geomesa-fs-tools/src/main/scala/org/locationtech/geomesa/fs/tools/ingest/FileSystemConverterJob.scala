@@ -18,11 +18,10 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
-import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
-import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfiguration
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
+import org.locationtech.geomesa.fs.storage.core.{Partition, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetStorageConfiguration
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{DummyReducer, FsIngestMapper}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
@@ -67,7 +66,7 @@ abstract class FileSystemConverterJob(
     // (default is at 0.05 which takes all the map slots and isn't needed)
     job.getConfiguration.set("mapreduce.job.reduce.slowstart.completedmaps", ".90")
 
-    StorageConfiguration.setRootPath(job.getConfiguration, root)
+    StorageConfiguration.setRootPath(job.getConfiguration, root.toUri)
     StorageConfiguration.setPartitionScheme(job.getConfiguration, schemes)
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Written)
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))

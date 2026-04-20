@@ -11,13 +11,12 @@ package org.locationtech.geomesa.fs.tools.ingest
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.{FileStatus, Path, RemoteIterator}
 import org.geotools.api.data.DataStoreFinder
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
-import org.locationtech.geomesa.fs.storage.common.StorageKeys
-import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
+import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition, StorageKeys}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, MetadataTypeValidator}
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.CheckConsistencyCommand.ConsistencyChecker
@@ -32,6 +31,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.io._
+import java.net.URI
 import java.util.concurrent.{ConcurrentHashMap, Phaser}
 import java.util.{Collections, Date, Properties}
 import scala.collection.mutable.ArrayBuffer
@@ -61,15 +61,16 @@ object FsManageMetadataCommand extends LazyLogging {
       val metadata = storage.metadata
 
       val paths = params.files.asScala.map { file =>
-        val path = new Path(file)
-        if (!path.getFileSystem(storage.context.conf).exists(path)) {
+        val path = new URI(file)
+        // TODO close this?
+        if (!ObjectStore(path, storage.context.conf).exists(path)) {
           throw new IllegalArgumentException(s"File $path does not exist")
         }
         path
       }
 
       def outputResult(file: StorageFile): Unit = {
-        Command.user.info(s"Registered file ${new Path(storage.context.root, file.file)} containing ${file.count} known features")
+        Command.user.info(s"Registered file ${storage.context.root.resolve(file.file)} containing ${file.count} known features")
         val bounds =
           file.spatialBounds.map(b => s"${metadata.sft.getDescriptor(b.attribute).getLocalName} [${b.xmin},${b.ymin},${b.xmax},${b.ymax}]") ++
             file.attributeBounds.map { b =>
@@ -94,14 +95,13 @@ object FsManageMetadataCommand extends LazyLogging {
         paths.foreach { path =>
           outputResult(storage.register(path))
           if (params.delete) {
-            path.getFileSystem(storage.context.conf).delete(path, false)
+            // TODO close this?
+            ObjectStore(path, storage.context.conf).delete(path)
           }
         }
       } catch {
         case NonFatal(e) => throw new RuntimeException("Error registering file:", e)
       }
-
-
     }
   }
 
@@ -115,7 +115,7 @@ object FsManageMetadataCommand extends LazyLogging {
       val metadata = storage.metadata
       val file = StorageFile(params.file, Partition.None, 0L)
       metadata.removeFile(file)
-      Command.user.info(s"Unregistered file ${new Path(storage.context.root, file.file)}")
+      Command.user.info(s"Unregistered file ${storage.context.root.resolve(file.file)}")
     }
   }
 
@@ -179,7 +179,7 @@ object FsManageMetadataCommand extends LazyLogging {
         extends Runnable with Closeable with LazyLogging {
 
       private val pool = new CachedThreadPool(threads)
-      private val onDisk = Collections.newSetFromMap(new ConcurrentHashMap[Path, java.lang.Boolean]())
+      private val onDisk = Collections.newSetFromMap(new ConcurrentHashMap[URI, java.lang.Boolean]())
 
       override def run(): Unit = {
         // list out the files currently in the root directory, results go into onDisk
@@ -190,7 +190,7 @@ object FsManageMetadataCommand extends LazyLogging {
 
         // compare the files known to the metadata to the ones on disk
         storage.metadata.getFiles().foreach { file =>
-          if (onDisk.remove(new Path(storage.context.root, file.file))) {
+          if (onDisk.remove(storage.context.root.resolve(file.file))) {
             // metadata and file are consistent
             checked.add(file.file)
           } else {
@@ -215,7 +215,7 @@ object FsManageMetadataCommand extends LazyLogging {
             // filter out files from other feature types in the same root
             otherTypes.foreach { s =>
               s.metadata.getFiles().foreach { f =>
-                onDisk.remove(new Path(s.context.root, f.file))
+                onDisk.remove(s.context.root.resolve(f.file))
               }
             }
             if (!onDisk.isEmpty) {
@@ -237,7 +237,7 @@ object FsManageMetadataCommand extends LazyLogging {
        * added to onDisk
        */
       private def listRoot(): Unit = {
-        val iter = storage.context.fs.listStatusIterator(storage.context.root)
+        val iter = storage.context.fs.list(storage.context.root).iterator
         // use a phaser to track worker thread completion
         val phaser = new Phaser(2) // 1 for this thread + 1 for the worker
         pool.submit(new TopLevelListWorker(phaser, iter))
@@ -245,19 +245,17 @@ object FsManageMetadataCommand extends LazyLogging {
         phaser.awaitAdvanceInterruptibly(phaser.arrive())
       }
 
-      private class TopLevelListWorker(phaser: Phaser, list: RemoteIterator[FileStatus]) extends Runnable {
+      private class TopLevelListWorker(phaser: Phaser, list: Iterator[URI]) extends Runnable {
         override def run(): Unit = {
           try {
             var i = phaser.getRegisteredParties + 1
             while (list.hasNext && i < PhaserUtils.MaxParties) {
-              val status = list.next
-              val path = status.getPath
-              val name = path.getName
-              if (status.isDirectory) {
-                if (name != FileBasedMetadataCatalog.MetadataDirectory) {
+              val path = list.next
+              if (path.toString.endsWith("/")) { // .isDirectory
+                if (!path.toString.endsWith(s"/${FileBasedMetadataCatalog.MetadataDirectory}/")) {
                   i += 1
                   // use a tiered phaser on each directory avoid the limit of 65535 registered parties
-                  pool.submit(new ListWorker(new Phaser(phaser, 1), name, storage.context.fs.listStatusIterator(path)))
+                  pool.submit(new ListWorker(new Phaser(phaser, 1), storage.context.fs.list(path).iterator))
                 }
               } else {
                 onDisk.add(path)
@@ -272,27 +270,23 @@ object FsManageMetadataCommand extends LazyLogging {
         }
       }
 
-      private class ListWorker(phaser: Phaser, partition: String, listDirectory: => RemoteIterator[FileStatus])
-          extends Runnable {
+      private class ListWorker(phaser: Phaser, listDirectory: => Iterator[URI]) extends Runnable {
         override def run(): Unit = {
           try {
             var i = phaser.getRegisteredParties + 1
             val iter = listDirectory
             while (iter.hasNext && i < PhaserUtils.MaxParties) {
-              val status = iter.next
-              val path = status.getPath
-              val name = path.getName
-              if (status.isDirectory) {
-                val nextPartition = s"$partition/$name"
+              val path = iter.next
+              if (path.toString.endsWith("/")) { // .isDirectory
                 i += 1
                 // use a tiered phaser on each directory avoid the limit of 65535 registered parties
-                pool.submit(new ListWorker(new Phaser(phaser, 1), nextPartition, storage.context.fs.listStatusIterator(path)))
+                pool.submit(new ListWorker(new Phaser(phaser, 1), storage.context.fs.list(path).iterator))
               } else {
                 onDisk.add(path)
               }
             }
             if (iter.hasNext) {
-              pool.submit(new ListWorker(new Phaser(phaser, 1), partition, iter))
+              pool.submit(new ListWorker(new Phaser(phaser, 1), iter))
             }
           } catch {
             case _: FileNotFoundException => // the partition dir was deleted... just return

@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.fs.data
 
 import org.apache.hadoop.conf.Configuration
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
-import org.locationtech.geomesa.fs.storage.common.metadata.{ConverterMetadata, FileBasedMetadata, JdbcMetadata}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorageFactory
+import org.locationtech.geomesa.fs.storage.core.metadata.{ConverterMetadata, FileBasedMetadata, JdbcMetadata}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams

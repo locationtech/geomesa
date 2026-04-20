@@ -12,9 +12,7 @@ import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
 import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
-import org.locationtech.geomesa.fs.storage.common.metadata.{ConverterMetadata, FileBasedMetadata, JdbcMetadata}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorageFactory, Partition}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator, KeyValueConverter}
@@ -172,7 +170,7 @@ object FsDataStoreCommand {
 
   class MetadataTypeValidator extends IValueValidator[String] {
     override def validate(name: String, value: String): Unit = {
-      val valid = Seq(FileBasedMetadata.MetadataType, JdbcMetadata.MetadataType, ConverterMetadata.MetadataType)
+      val valid = FileSystemDataStoreParams.MetadataTypeParam.enumerations
       if (!valid.contains(value)) {
         throw new ParameterException(s"$value is not a valid type for parameter $name." +
           s"Available metadata types are: ${valid.mkString(", ")}")

@@ -15,13 +15,11 @@ import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
 import org.apache.hadoop.mapreduce.security.TokenCache
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey, StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorageFactory}
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.StorageFileObserver
-import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.jobs.PartitionOutputFormat.SingleFileOutputFormat
-import org.locationtech.geomesa.fs.storage.common.metadata.StorageMetadataCatalog
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.StorageFileObserver
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, FileSystemStorageFactory, Partition, PartitionKey, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.jobs.PartitionOutputFormat.SingleFileOutputFormat
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FileSizeEstimator}
 
 import java.util.concurrent.CopyOnWriteArrayList
@@ -56,14 +54,19 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
     import StorageConfiguration.Counters.{Features, Group}
 
     private val storage = {
-      val conf = context.getConfiguration
-      val root = StorageConfiguration.getRootPath(conf)
-      val fsc = FileSystemContext(root, conf)
-      val encoding = StorageConfiguration.getEncoding(conf)
-      val metadataType = StorageConfiguration.getMetadataType(conf)
-      val metadataConfig = StorageConfiguration.getMetadataConfig(conf)
+      val hadoopConf = context.getConfiguration
+      val conf = {
+        val builder = Map.newBuilder[String, String]
+        hadoopConf.forEach(e => builder += e.getKey -> e.getValue)
+        builder.result()
+      }
+      val root = StorageConfiguration.getRootPath(hadoopConf)
+      val fsc = FileSystemContext(ObjectStore(root, conf), root, conf)
+      val encoding = StorageConfiguration.getEncoding(hadoopConf)
+      val metadataType = StorageConfiguration.getMetadataType(hadoopConf)
+      val metadataConfig = StorageConfiguration.getMetadataConfig(hadoopConf)
       val catalog = StorageMetadataCatalog(fsc, metadataType, metadataConfig)
-      FileSystemStorageFactory(encoding).apply(fsc, catalog.load(StorageConfiguration.getSftName(conf)))
+      FileSystemStorageFactory(encoding).apply(fsc, catalog.load(StorageConfiguration.getSftName(hadoopConf)))
     }
 
     private val fileType = StorageConfiguration.getFileType(context.getConfiguration)
@@ -75,10 +78,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
     private val workPath = delegate.getOutputCommitter(context).asInstanceOf[FileOutputCommitter].getWorkPath
 
     private def newState(partitions: Set[PartitionKey]): PartitionState = {
-      val estimator = storage match {
-        case s: SizeableFileSystemStorage => s.targetSize(fileSize).map(s.estimator)
-        case _ => None
-      }
+      val estimator = fileSize.map(storage.sizer.estimator)
       estimator match {
         case None => new SinglePartitionState(Partition(partitions))
         case Some(e) => new ChunkedPartitionState(Partition(partitions), e, context)
@@ -120,7 +120,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
 
       protected def newWriter(): (Path, RecordWriter[Void, SimpleFeature]) = {
         closeCurrentFile()
-        currentFile = StorageUtils.newFilePath(storage.metadata.sft.getTypeName, fileType, "parquet")
+        currentFile = FileSystemStorage.newFilePath(storage.metadata.sft.getTypeName, fileType, "parquet")
         observer = new StorageFileObserver(storage.metadata.sft)
         val path = new Path(workPath, currentFile)
         logger.debug(s"Creating record writer at path $path")
@@ -178,10 +178,11 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
         if (remaining == 0) {
           // TODO if we can access the underlying parquet writer we can check the size without closing the file
           writer.close(context)
-          logger.debug(s"File length: ${storage.context.fs.getFileStatus(path).getLen} $path")
+          val length = storage.context.fs.size(path.toUri)
+          logger.debug(s"File length: ${length} $path")
           writer = null
           // adjust our estimate to account for the actual bytes written
-          total += storage.context.fs.getFileStatus(path).getLen
+          total += length
           estimator.update(total, count)
           remaining = estimator.estimate(0L)
           logger.debug(s"New estimate: $remaining")

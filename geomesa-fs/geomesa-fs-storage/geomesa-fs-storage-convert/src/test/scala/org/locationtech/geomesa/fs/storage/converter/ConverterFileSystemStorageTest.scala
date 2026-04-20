@@ -9,18 +9,19 @@
 package org.locationtech.geomesa.fs.storage.converter
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
 import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorageFactory}
-import org.locationtech.geomesa.fs.storage.common.metadata.{ConverterMetadata, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
+import org.locationtech.geomesa.fs.storage.core.metadata.ConverterMetadata
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorageFactory, StorageMetadataCatalog}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.net.{URI, URL}
 
 @RunWith(classOf[JUnitRunner])
 class ConverterFileSystemStorageTest extends Specification with LazyLogging {
@@ -55,23 +56,23 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
 
   "ConverterFileSystemStorage" should {
     "read features in compressed tar.gz files" in {
-      val dir = Option(getClass.getClassLoader.getResource("example-convert-test-1")).map(_.toURI).orNull
+      val dir = Option(getClass.getClassLoader.getResource("example-convert-test-1")).map(parent).orNull
       dir must not(beNull)
 
       foreach(Seq(true, false)) { useConf =>
-        val conf = new Configuration()
+        val conf = Map.newBuilder[String, String]
         val params = Map.newBuilder[String, String]
 
         // metadata flags can be set in the params, storage params have to go in the conf
-        def addConfig(k: String, v: String): Unit = if (useConf) { conf.set(k, v) } else { params += (k -> v) }
+        def addConfig(k: String, v: String): Unit = if (useConf) { conf += (k -> v) } else { params += (k -> v) }
         addConfig(ConverterMetadata.SftConfigParam, sftConfig)
         addConfig(ConverterMetadata.PartitionSchemeParam, "daily")
         addConfig(ConverterMetadata.LeafStorageParam, "false")
 
-        conf.set(ConverterMetadata.ConverterPathParam, "example-convert-test-1")
-        conf.set(ConverterStorageFactory.ConverterConfigParam, converterConfig)
+        conf += (ConverterMetadata.ConverterPathParam -> "example-convert-test-1")
+        conf += (ConverterStorageFactory.ConverterConfigParam -> converterConfig)
 
-        val context = FileSystemContext(new Path(dir).getParent, conf)
+        val context = FileSystemContext(LocalObjectStore, dir, conf.result())
         val catalog = StorageMetadataCatalog(context, "converter", params.result())
         catalog.getTypeNames mustEqual Seq("example")
         val metadata = catalog.load("example")
@@ -87,15 +88,15 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
     }
 
     "filter file paths by dtg" in {
-      val dir = Option(getClass.getClassLoader.getResource("example-convert-test-2")).map(_.toURI).orNull
+      val dir = Option(getClass.getClassLoader.getResource("example-convert-test-2")).map(parent).orNull
       dir must not(beNull)
 
       foreach(Seq(true, false)) { useConf =>
-        val conf = new Configuration()
+        val conf = Map.newBuilder[String, String]
         val params = Map.newBuilder[String, String]
 
         // metadata flags can be set in the params, storage params have to go in the conf
-        def addConfig(k: String, v: String): Unit = if (useConf) { conf.set(k, v) } else { params += (k -> v) }
+        def addConfig(k: String, v: String): Unit = if (useConf) { conf += (k -> v) } else { params += (k -> v) }
 
         addConfig(ConverterMetadata.SftConfigParam, sftConfig)
         addConfig(ConverterMetadata.PartitionSchemeParam, "receipt-time")
@@ -103,15 +104,15 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
         addConfig(ConverterMetadata.PartitionOptsPrefix + "buffer", "10 minutes")
         addConfig(ConverterMetadata.LeafStorageParam, "false")
 
-        conf.set(ConverterMetadata.ConverterPathParam, "example-convert-test-2")
-        conf.set(ConverterStorageFactory.ConverterConfigParam, converterConfig)
-        conf.set(ConverterStorageFactory.PathFilterName, "dtg")
-        conf.set(ConverterStorageFactory.PathFilterOptsPrefix + "attribute", "dtg")
-        conf.set(ConverterStorageFactory.PathFilterOptsPrefix + "pattern", "^data-(.*)\\.csv$")
-        conf.set(ConverterStorageFactory.PathFilterOptsPrefix + "format", "yyyyMMddHHmm")
-        conf.set(ConverterStorageFactory.PathFilterOptsPrefix + "buffer", "2 hours")
+        conf += (ConverterMetadata.ConverterPathParam -> "example-convert-test-2")
+        conf += (ConverterStorageFactory.ConverterConfigParam -> converterConfig)
+        conf += (ConverterStorageFactory.PathFilterName -> "dtg")
+        conf += (ConverterStorageFactory.PathFilterOptsPrefix + "attribute" -> "dtg")
+        conf += (ConverterStorageFactory.PathFilterOptsPrefix + "pattern" -> "^data-(.*)\\.csv$")
+        conf += (ConverterStorageFactory.PathFilterOptsPrefix + "format" -> "yyyyMMddHHmm")
+        conf += (ConverterStorageFactory.PathFilterOptsPrefix + "buffer" -> "2 hours")
 
-        val context = FileSystemContext(new Path(dir).getParent, conf)
+        val context = FileSystemContext(LocalObjectStore, dir, conf.result())
         val catalog = StorageMetadataCatalog(context, "converter", params.result())
         catalog.getTypeNames mustEqual Seq("example")
         val metadata = catalog.load("example")
@@ -133,5 +134,10 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
         }
       }
     }
+  }
+
+  private def parent(resource: URL): URI = {
+    val uri = resource.toURI.toString
+    new URI(uri.substring(0, uri.lastIndexOf('/') + 1))
   }
 }

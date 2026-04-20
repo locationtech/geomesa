@@ -28,7 +28,7 @@ import scala.collection.mutable.ArrayBuffer
 @RunWith(classOf[JUnitRunner])
 class FsManageMetadataCommandTest extends Specification {
 
-  import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+  import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
@@ -59,7 +59,8 @@ class FsManageMetadataCommandTest extends Specification {
         val storage = ds.storage(sft.getTypeName)
         val files = storage.metadata.getFiles().map(_.file)
         files must haveLength(3)
-        storage.context.fs.rename(new Path(storage.context.root, files.head), new Path(storage.context.root, files.head + ".bak"))
+        storage.context.fs.copy(storage.context.root.resolve(files.head), storage.context.root.resolve(files.head + ".bak"))
+        storage.context.fs.delete(storage.context.root.resolve(files.head))
         // verify we can't retrieve the moved file
         val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
         results must haveLength(2)

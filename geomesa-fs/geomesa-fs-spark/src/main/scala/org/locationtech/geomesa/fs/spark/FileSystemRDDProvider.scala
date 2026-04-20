@@ -20,10 +20,10 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreFactory}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration.SimpleFeatureAction
-import org.locationtech.geomesa.fs.storage.parquet.jobs.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration.SimpleFeatureAction
+import org.locationtech.geomesa.fs.storage.jobs.parquet.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
 import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
@@ -51,7 +51,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
         val job = Job.getInstance(conf)
 
         // note: we have to copy all the conf twice?
-        FileInputFormat.setInputPaths(job, paths.map(p => new Path(storage.context.root, p.file)): _*)
+        FileInputFormat.setInputPaths(job, paths.map(p => new Path(storage.context.root.resolve(p.file))): _*)
         conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
         val newQuery = new Query(query)
         newQuery.setFilter(filter)
@@ -65,7 +65,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
       def runModsQuery(filter: Filter, paths: Seq[StorageFile]): RDD[(SimpleFeatureAction, SimpleFeature)] = {
         configureQuery(filter, paths)
-        StorageConfiguration.setPathActions(conf, storage.context.root, paths)
+        StorageConfiguration.setPathActions(conf, new Path(storage.context.root), paths)
         sc.newAPIHadoopRDD(conf, classOf[ParquetSimpleFeatureActionInputFormat], classOf[SimpleFeatureAction], classOf[SimpleFeature])
       }
 

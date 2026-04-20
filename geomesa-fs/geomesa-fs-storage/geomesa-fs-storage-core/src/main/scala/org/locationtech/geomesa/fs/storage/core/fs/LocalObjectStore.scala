@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.fs.storage.core.fs
 
 import org.apache.commons.io.IOUtils
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.ArchiveFormat.ArchiveFormat
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io._
@@ -18,7 +20,10 @@ object LocalObjectStore extends ObjectStore {
 
   override def exists(path: URI): Boolean = new File(path).exists()
 
-  override def size(path: URI): Option[Long] = Option(new File(path)).collect { case f if f.exists() => f.length() }
+  override def size(path: URI): Long = {
+    val file = new File(path)
+    if (file.exists()) { file.length() } else { 0L }
+  }
 
   override def modified(path: URI): Option[Long] = Option(new File(path)).collect { case f if f.exists() => f.lastModified() }
 
@@ -33,8 +38,12 @@ object LocalObjectStore extends ObjectStore {
     new FileOutputStream(file)
   }
 
-  override def read(path: URI): Option[InputStream] =
+  override def read(path: URI): Option[InputStream] = {
+    // TODO val is = PathUtils.handleCompression(fs.open(file), file.getName)
     Option(new File(path)).collect { case f if f.exists() => new FileInputStream(f) }
+  }
+
+  override def read(path: URI, format: ArchiveFormat): CloseableIterator[ObjectStore.ArchiveInputStream] = ???
 
   override def list(path: URI): Seq[URI] = {
     val file = new File(path)

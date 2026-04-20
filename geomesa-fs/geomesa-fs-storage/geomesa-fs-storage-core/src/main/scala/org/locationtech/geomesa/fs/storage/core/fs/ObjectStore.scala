@@ -8,9 +8,15 @@
 
 package org.locationtech.geomesa.fs.storage.core.fs
 
+import org.apache.commons.compress.archivers.ArchiveStreamFactory.{JAR, TAR, ZIP}
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.ArchiveFormat.ArchiveFormat
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.{ArchiveFormat, ArchiveInputStream}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.PathUtils
+
 import java.io.{Closeable, InputStream, OutputStream}
 import java.net.URI
-import java.time.Instant
+import java.util.Locale
 
 /**
  * Abstraction around object storage for data files
@@ -26,12 +32,12 @@ trait ObjectStore extends Closeable {
   def exists(path: URI): Boolean
 
   /**
-   * Get the size of the object stored at this path. If the file does not exist, an empty option will be returned
+   * Get the size of the object stored at this path. If the file does not exist, 0L will be returned
    *
    * @param path file path
    * @return
    */
-  def size(path: URI): Option[Long]
+  def size(path: URI): Long
 
   /**
    * Get the last modified date of the object stored at this path. If the file does not exist, an empty option will be returned
@@ -58,12 +64,36 @@ trait ObjectStore extends Closeable {
   def overwrite(path: URI): OutputStream
 
   /**
+   * Gets the archive format of a file, if any.
+   *
+   * Currently, this is just based on the file name
+   *
+   * @param path file path
+   * @return
+   */
+  def format(path: URI): Option[ArchiveFormat] = {
+    PathUtils.getUncompressedExtension(path.toString).toLowerCase(Locale.US) match {
+      case TAR => Some(ArchiveFormat.Tar)
+      case ZIP | JAR => Some(ArchiveFormat.Zip)
+      case _ => None
+    }
+  }
+
+  /**
    * Reads the file at the given path. If the file does not exist, an empty option will be returned
    *
    * @param path file path
    * @return input stream for reading to the file
    */
   def read(path: URI): Option[InputStream]
+
+  /**
+   * Reads an archive file (tar, zip or jar) into its constituent files
+   *
+   * @param path file path
+   * @return
+   */
+  def read(path: URI, format: ArchiveFormat): CloseableIterator[ArchiveInputStream]
 
   /**
    * List any files directly under the given directory path
@@ -100,4 +130,11 @@ object ObjectStore {
       case scheme => throw new UnsupportedOperationException(s"No object store implemented for scheme: $scheme")
     }
   }
+
+  object ArchiveFormat extends Enumeration {
+    type ArchiveFormat = Value
+    val Tar, Zip = Value
+  }
+
+  case class ArchiveInputStream(name: String, is: InputStream)
 }

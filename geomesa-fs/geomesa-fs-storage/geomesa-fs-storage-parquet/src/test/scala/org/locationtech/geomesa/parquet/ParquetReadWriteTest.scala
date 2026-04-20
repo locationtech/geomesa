@@ -13,6 +13,7 @@ package org.locationtech.geomesa.parquet
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
+import org.apache.parquet.conf.{HadoopParquetConfiguration, ParquetConfiguration}
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
@@ -21,10 +22,9 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.parquet.FilterConverter
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.{FileValidationObserver, ParquetCompressionOpt}
-import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetWriter, SimpleFeatureReadSupport}
+import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetSchema, SimpleFeatureParquetWriter, SimpleFeatureReadSupport}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -42,10 +42,10 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
 
   sequential
 
-  def transformConf(tsft: SimpleFeatureType): Configuration = {
+  def transformConf(tsft: SimpleFeatureType): ParquetConfiguration = {
     val c = new Configuration()
-    StorageConfiguration.setSft(c, tsft)
-    c
+    SimpleFeatureParquetSchema.setSft(c, tsft)
+    new HadoopParquetConfiguration(c)
   }
 
   lazy val f = Files.createTempFile("geomesa", ".parquet")
@@ -55,10 +55,10 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
 
   val sftConf = {
     val c = new Configuration()
-    StorageConfiguration.setSft(c, sft)
+    SimpleFeatureParquetSchema.setSft(c, sft)
     // Use GZIP in tests but snappy in prod due to license issues
     c.set(ParquetCompressionOpt, CompressionCodecName.GZIP.toString)
-    c
+    new HadoopParquetConfiguration(c)
   }
 
   val features = Seq(
@@ -67,7 +67,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
     ScalaSimpleFeature.create(sft, "3", "third", 300, "2017-01-03T00:00:00Z", "POINT (73.0 73.0)")
   )
 
-  def readFile(filter: FilterCompat.Filter = FilterCompat.NOOP, conf: Configuration = sftConf): Seq[SimpleFeature] = {
+  def readFile(filter: FilterCompat.Filter = FilterCompat.NOOP, conf: ParquetConfiguration = sftConf): Seq[SimpleFeature] = {
     val builder = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
     val result = ArrayBuffer.empty[SimpleFeature]
     WithClose(builder.withFilter(filter).withConf(conf).build()) { reader =>
@@ -91,8 +91,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
   "SimpleFeatureParquetWriter" should {
 
     "fail if a corrupt parquet file is written" >> {
-      val filePath = new Path(f.toUri)
-      WithClose(SimpleFeatureParquetWriter.builder(filePath, sftConf).build()) { writer =>
+      WithClose(SimpleFeatureParquetWriter.builder(f.toUri, sftConf).build()) { writer =>
         features.foreach(writer.write)
       }
 
@@ -105,13 +104,13 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
       randomAccessFile.close()
 
       // Validate the file
-      FileValidationObserver(filePath).close() must throwA[RuntimeException].like {
+      FileValidationObserver(f.toUri).close() must throwA[RuntimeException].like {
         case e => e.getMessage must contain("corrupted")
       }
     }
 
     "write parquet files" >> {
-      WithClose(SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf).build()) { writer =>
+      WithClose(SimpleFeatureParquetWriter.builder(f.toUri, sftConf).build()) { writer =>
         features.foreach(writer.write)
       }
       Files.size(f) must beGreaterThan(0L)

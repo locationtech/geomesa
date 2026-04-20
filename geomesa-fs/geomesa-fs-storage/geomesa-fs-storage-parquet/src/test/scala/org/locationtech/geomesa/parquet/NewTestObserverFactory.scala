@@ -8,18 +8,18 @@
 
 package org.locationtech.geomesa.parquet
 
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.api.observer.{FileSystemObserver, FileSystemObserverFactory}
+import org.locationtech.geomesa.fs.storage.core.FileSystemContext
+import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.parquet.NewTestObserverFactory.NewTestObserver
 
+import java.net.URI
 import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
 class NewTestObserverFactory extends FileSystemObserverFactory {
-  override def init(conf: Configuration, root: Path, sft: SimpleFeatureType): Unit = {}
-  override def apply(path: Path): FileSystemObserver = {
+  override def init(context: FileSystemContext, sft: SimpleFeatureType): Unit = {}
+  override def apply(path: URI): FileSystemObserver = {
     val observer = new NewTestObserver(path)
     NewTestObserverFactory.observers += observer
     observer
@@ -34,7 +34,7 @@ object NewTestObserverFactory {
   val observers: scala.collection.mutable.Set[NewTestObserver] =
     Collections.synchronizedSet(new java.util.HashSet[NewTestObserver]()).asScala
 
-  class NewTestObserver(val path: Path) extends FileSystemObserver {
+  class NewTestObserver(val path: URI) extends FileSystemObserver {
 
     val features = ArrayBuffer.empty[SimpleFeature]
     var closed = false

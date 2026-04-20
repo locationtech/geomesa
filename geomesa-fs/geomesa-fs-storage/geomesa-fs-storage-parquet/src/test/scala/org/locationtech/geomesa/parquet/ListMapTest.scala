@@ -10,6 +10,7 @@ package org.locationtech.geomesa.parquet
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
+import org.apache.parquet.conf.HadoopParquetConfiguration
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
@@ -17,8 +18,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetWriter, SimpleFeatureReadSupport}
+import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetSchema, SimpleFeatureParquetWriter, SimpleFeatureReadSupport}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.{Coordinate, Point}
 import org.specs2.mutable.Specification
@@ -46,13 +46,13 @@ class ListMapTest extends Specification {
 
       val sftConf = {
         val c = new Configuration()
-        StorageConfiguration.setSft(c, sft)
+        SimpleFeatureParquetSchema.setSft(c, sft)
         c
       }
 
       "write" >> {
         // Use GZIP in tests but snappy in prod due to license issues
-        val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf)
+        val writer = SimpleFeatureParquetWriter.builder(f.toUri, new HadoopParquetConfiguration(sftConf))
           .withCompressionCodec(CompressionCodecName.GZIP).build()
 
         val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
@@ -100,7 +100,6 @@ class ListMapTest extends Specification {
       }
     }
 
-
     "do map stuff" >> {
 
       val f = Files.createTempFile("geomesa", ".parquet")
@@ -109,13 +108,13 @@ class ListMapTest extends Specification {
 
       val sftConf = {
         val c = new Configuration()
-        StorageConfiguration.setSft(c, sft)
+        SimpleFeatureParquetSchema.setSft(c, sft)
         c
       }
 
       "write" >> {
         // Use GZIP in tests but snappy in prod due to license issues
-        val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf)
+        val writer = SimpleFeatureParquetWriter.builder(f.toUri, new HadoopParquetConfiguration(sftConf))
           .withCompressionCodec(CompressionCodecName.GZIP).build()
 
         val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
@@ -174,13 +173,13 @@ class ListMapTest extends Specification {
 
       val sftConf = {
         val c = new Configuration()
-        StorageConfiguration.setSft(c, sft)
+        SimpleFeatureParquetSchema.setSft(c, sft)
         c
       }
 
       "write" >> {
         // Use GZIP in tests but snappy in prod due to license issues
-        val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf)
+        val writer = SimpleFeatureParquetWriter.builder(f.toUri, new HadoopParquetConfiguration(sftConf))
           .withCompressionCodec(CompressionCodecName.GZIP).build()
 
         val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))

@@ -6,14 +6,14 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.parquet.jobs
+package org.locationtech.geomesa.fs.storage.jobs.parquet
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.mapreduce.Job
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.{ParquetInputFormat, ParquetOutputFormat}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureReadSupport, SimpleFeatureWriteSupport}
 
 trait ParquetStorageConfiguration extends StorageConfiguration with LazyLogging {

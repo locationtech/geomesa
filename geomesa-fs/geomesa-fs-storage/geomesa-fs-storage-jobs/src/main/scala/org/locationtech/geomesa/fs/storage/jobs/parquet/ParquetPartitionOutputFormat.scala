@@ -6,8 +6,8 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.parquet.jobs
+package org.locationtech.geomesa.fs.storage.jobs.parquet
 
-import org.locationtech.geomesa.fs.storage.common.jobs.PartitionOutputFormat
+import org.locationtech.geomesa.fs.storage.jobs.PartitionOutputFormat
 
 class ParquetPartitionOutputFormat extends PartitionOutputFormat(new ParquetSimpleFeatureOutputFormat())

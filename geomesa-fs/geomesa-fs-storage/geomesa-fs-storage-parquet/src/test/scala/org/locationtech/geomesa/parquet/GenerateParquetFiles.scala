@@ -11,6 +11,7 @@ package org.locationtech.geomesa.parquet
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
+import org.apache.parquet.conf.HadoopParquetConfiguration
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
@@ -72,7 +73,7 @@ object GenerateParquetFiles extends StrictLogging {
       config.set(SimpleFeatureParquetSchema.GeometryEncodingKey, encoding.toString)
       val dir = new Path(sys.props("java.io.tmpdir"))
       val file = new Path(dir, s"${encoding.toString.replace("GeoParquet", "geoparquet-").toLowerCase(Locale.US)}-test.parquet")
-      WithClose(new ParquetFileSystemWriter(file, config)) { writer =>
+      WithClose(new ParquetFileSystemWriter(file.toUri, new HadoopParquetConfiguration(config))) { writer =>
         features.foreach(writer.write)
       }
       logger.info(s"Wrote ${features.length} features to $file")

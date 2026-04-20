@@ -19,9 +19,8 @@ import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
-import org.locationtech.geomesa.fs.storage.api.{CloseableFeatureIterator, FileSystemStorage}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.core.{CloseableFeatureIterator, FileSystemStorage, Partition}
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushWithLogging}
@@ -92,16 +91,12 @@ class FileSystemFeatureStore(
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
   }
 
-  override def canLimit: Boolean = false
   override def canLimit(query: Query): Boolean = false
   override def canTransact: Boolean = false
   override def canEvent: Boolean = false
   override def canReproject: Boolean = false
-  override def canSort: Boolean = false
   override def canSort(query: Query): Boolean = false
-  override def canFilter: Boolean = true
   override def canFilter(query: Query): Boolean = true
-  override def canRetype: Boolean = true
   override def canRetype(query: Query): Boolean = true
 
   override protected def buildQueryCapabilities(): QueryCapabilities = FileSystemFeatureStore.capabilities

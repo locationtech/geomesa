@@ -8,13 +8,14 @@
 
 package org.locationtech.geomesa.fs.storage.parquet.io
 
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
+import org.apache.parquet.conf.ParquetConfiguration
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
-import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory.NoOpObserver
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.NoOpObserver
 import org.locationtech.geomesa.utils.io.CloseQuietly
+
+import java.net.URI
 
 /**
  * Parquet writer
@@ -24,8 +25,8 @@ import org.locationtech.geomesa.utils.io.CloseQuietly
  * @param observer any observers
  */
 class ParquetFileSystemWriter(
-    file: Path,
-    conf: Configuration,
+    file: URI,
+    conf: ParquetConfiguration,
     observer: FileSystemObserver = NoOpObserver
   ) extends FileSystemWriter {
 

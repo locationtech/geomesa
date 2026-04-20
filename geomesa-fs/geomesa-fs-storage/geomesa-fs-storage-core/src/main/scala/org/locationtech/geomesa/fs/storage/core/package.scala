@@ -46,7 +46,9 @@ package object core {
     * @param conf configuration
     * @param root root path
     */
-  case class FileSystemContext(fs: ObjectStore, root: URI, conf: Map[String, String], namespace: Option[String] = None)
+  case class FileSystemContext(fs: ObjectStore, root: URI, conf: Map[String, String], namespace: Option[String] = None) {
+    require(root.toString.endsWith("/"), s"Invalid root URI, must end with '/': $root")
+  }
 
   /**
     * Holder for the metadata defining a storage instance

@@ -47,7 +47,7 @@ class FileSize(context: FileSystemContext, metadata: StorageMetadata) {
    * @return true if the file is appropriately sized
    */
   def fileIsSized(path: URI, target: Long): Boolean = {
-    val size = context.fs.size(path).getOrElse(0L)
+    val size = context.fs.size(path)
     math.abs((size.toDouble / target) - 1d) <= fileSizeError
   }
 
