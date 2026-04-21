@@ -28,7 +28,7 @@ class S3VisibilityObserverFactory extends FileSystemObserverFactory {
   override def init(context: FileSystemContext, sft: SimpleFeatureType): Unit = {
     try {
       fs = context.fs.asInstanceOf[S3ObjectStore]
-      s3 = fs.s3Client
+      s3 = fs.client
       tag = context.conf.getOrElse(S3VisibilityObserverFactory.TagNameConfig, S3VisibilityObserverFactory.DefaultTag)
     } catch {
       case e: Exception => throw new RuntimeException("Unable to get s3 client", e)

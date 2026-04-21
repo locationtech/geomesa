@@ -59,7 +59,7 @@ class ConverterMetadataCatalog(context: FileSystemContext, config: Map[String, S
   private val converterPath =
     config.get(ConverterPathParam)
       .orElse(context.conf.get(ConverterPathParam))
-      .map(context.root.resolve)
+      .map(p => FileSystemContext.ensureTrailingSlash(context.root.resolve(p)))
       .getOrElse(throw new IllegalArgumentException("Must provide converter path"))
 
   private val leafStorage =

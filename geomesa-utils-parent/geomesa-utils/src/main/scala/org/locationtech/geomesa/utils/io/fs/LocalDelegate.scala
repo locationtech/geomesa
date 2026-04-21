@@ -138,7 +138,7 @@ object LocalDelegate {
 
   class LocalZipHandle(file: File) extends LocalFileHandle(file) {
     override def open: CloseableIterator[(Option[String], InputStream)] =
-      new ZipFileIterator(new ZipFile(file), file.getAbsolutePath)
+      new ZipFileIterator(new ZipFile(file), file.getAbsolutePath).map { case (name, is) => Some(name) -> is }
     override def write(mode: CreateMode): OutputStream =
       factory.createArchiveOutputStream(ArchiveStreamFactory.ZIP, super.write(mode))
   }
@@ -148,7 +148,7 @@ object LocalDelegate {
       val uncompressed = PathUtils.handleCompression(new FileInputStream(file), file.getName)
       val archive: ArchiveInputStream[_ <: ArchiveEntry] =
         factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
-      new ArchiveFileIterator(archive, file.getAbsolutePath)
+      new ArchiveFileIterator(archive, file.getAbsolutePath).map { case (name, is) => Option(name) -> is }
     }
     override def write(mode: CreateMode): OutputStream =
       factory.createArchiveOutputStream(ArchiveStreamFactory.TAR, super.write(mode))

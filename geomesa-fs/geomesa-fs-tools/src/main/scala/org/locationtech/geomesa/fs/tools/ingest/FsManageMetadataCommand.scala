@@ -25,6 +25,7 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -35,6 +36,7 @@ import java.net.URI
 import java.util.concurrent.{ConcurrentHashMap, Phaser}
 import java.util.{Collections, Date, Properties}
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
 import scala.util.control.NonFatal
 
 class FsManageMetadataCommand extends CommandWithSubCommands {
@@ -237,7 +239,7 @@ object FsManageMetadataCommand extends LazyLogging {
        * added to onDisk
        */
       private def listRoot(): Unit = {
-        val iter = storage.context.fs.list(storage.context.root).iterator
+        val iter = storage.context.fs.list(storage.context.root)
         // use a phaser to track worker thread completion
         val phaser = new Phaser(2) // 1 for this thread + 1 for the worker
         pool.submit(new TopLevelListWorker(phaser, iter))
@@ -245,7 +247,7 @@ object FsManageMetadataCommand extends LazyLogging {
         phaser.awaitAdvanceInterruptibly(phaser.arrive())
       }
 
-      private class TopLevelListWorker(phaser: Phaser, list: Iterator[URI]) extends Runnable {
+      private class TopLevelListWorker(phaser: Phaser, list: CloseableIterator[URI]) extends Runnable {
         override def run(): Unit = {
           try {
             var i = phaser.getRegisteredParties + 1
@@ -255,7 +257,7 @@ object FsManageMetadataCommand extends LazyLogging {
                 if (!path.toString.endsWith(s"/${FileBasedMetadataCatalog.MetadataDirectory}/")) {
                   i += 1
                   // use a tiered phaser on each directory avoid the limit of 65535 registered parties
-                  pool.submit(new ListWorker(new Phaser(phaser, 1), storage.context.fs.list(path).iterator))
+                  pool.submit(new ListWorker(new Phaser(phaser, 1), storage.context.fs.list(path)))
                 }
               } else {
                 onDisk.add(path)
@@ -263,7 +265,11 @@ object FsManageMetadataCommand extends LazyLogging {
             }
             if (list.hasNext) {
               pool.submit(new TopLevelListWorker(new Phaser(phaser, 1), list))
+            } else {
+              list.close()
             }
+          } catch {
+            case NonFatal(e) => Try(list.close()); throw e
           } finally {
             phaser.arriveAndDeregister()
           }
@@ -280,7 +286,7 @@ object FsManageMetadataCommand extends LazyLogging {
               if (path.toString.endsWith("/")) { // .isDirectory
                 i += 1
                 // use a tiered phaser on each directory avoid the limit of 65535 registered parties
-                pool.submit(new ListWorker(new Phaser(phaser, 1), storage.context.fs.list(path).iterator))
+                pool.submit(new ListWorker(new Phaser(phaser, 1), storage.context.fs.list(path)))
               } else {
                 onDisk.add(path)
               }

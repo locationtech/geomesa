@@ -50,6 +50,10 @@ package object core {
     require(root.toString.endsWith("/"), s"Invalid root URI, must end with '/': $root")
   }
 
+  object FileSystemContext {
+    def ensureTrailingSlash(path: URI): URI = if (path.toString.endsWith("/")) { path } else { new URI(path.toString + "/") }
+  }
+
   /**
     * Holder for the metadata defining a storage instance
     *

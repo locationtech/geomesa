@@ -24,7 +24,7 @@ class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetada
   private val directory = context.root.resolve(FileBasedMetadataCatalog.MetadataDirectory + "/")
 
   override def getTypeNames: Seq[String] = {
-    context.fs.list(directory).flatMap { file =>
+    val iter = context.fs.list(directory).flatMap { file =>
       Option(file.getPath).flatMap { path =>
         Option(path.lastIndexOf('/'))
           .collect { case i if i != -1 => path.substring(i + 1) }
@@ -33,6 +33,7 @@ class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetada
           }
       }
     }
+    WithClose(iter)(_.toList)
   }
 
   override def load(typeName: String): FileBasedMetadata = {

@@ -8,15 +8,21 @@
 
 package org.locationtech.geomesa.fs.storage.core.fs
 
+import org.apache.commons.compress.archivers.zip.ZipFile
+import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.ArchiveFormat.ArchiveFormat
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.{ArchiveFormat, NamedInputStream}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, ZipFileIterator}
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 import java.io._
 import java.net.URI
 
 object LocalObjectStore extends ObjectStore {
+
+  private lazy val archiveFactory = new ArchiveStreamFactory()
 
   override def exists(path: URI): Boolean = new File(path).exists()
 
@@ -38,19 +44,36 @@ object LocalObjectStore extends ObjectStore {
     new FileOutputStream(file)
   }
 
-  override def read(path: URI): Option[InputStream] = {
-    // TODO val is = PathUtils.handleCompression(fs.open(file), file.getName)
+  override def read(path: URI): Option[InputStream] =
     Option(new File(path)).collect { case f if f.exists() => new FileInputStream(f) }
+
+  override def read(path: URI, format: ArchiveFormat): CloseableIterator[NamedInputStream] = {
+    val iter = format match {
+      case ArchiveFormat.Tar =>
+        CloseableIterator(read(path).iterator).flatMap { is =>
+          val uncompressed = PathUtils.handleCompression(is, path.toString)
+          val archive: ArchiveInputStream[_ <: ArchiveEntry] =
+            archiveFactory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
+          new ArchiveFileIterator(archive, path.toString)
+        }
+
+      case ArchiveFormat.Zip =>
+        CloseableIterator.single(new File(path)).filter(_.exists()).flatMap { file =>
+          new ZipFileIterator(new ZipFile(file), path.toString)
+        }
+
+      case _ =>
+        throw new UnsupportedOperationException(s"An implementation is missing for format $format")
+    }
+    iter.map { case (name, is) => NamedInputStream(name, is) }
   }
 
-  override def read(path: URI, format: ArchiveFormat): CloseableIterator[ObjectStore.ArchiveInputStream] = ???
-
-  override def list(path: URI): Seq[URI] = {
+  override def list(path: URI): CloseableIterator[URI] = {
     val file = new File(path)
     if (!file.isDirectory) {
-      return Seq.empty
+      return CloseableIterator.empty
     }
-    file.listFiles().map(_.toURI).toSeq
+    CloseableIterator(file.listFiles().map(_.toURI).iterator)
   }
 
   override def copy(from: URI, to: URI): Unit =

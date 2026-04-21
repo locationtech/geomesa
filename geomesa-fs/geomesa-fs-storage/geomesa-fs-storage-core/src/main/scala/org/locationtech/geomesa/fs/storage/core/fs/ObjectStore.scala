@@ -10,12 +10,13 @@ package org.locationtech.geomesa.fs.storage.core.fs
 
 import org.apache.commons.compress.archivers.ArchiveStreamFactory.{JAR, TAR, ZIP}
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.ArchiveFormat.ArchiveFormat
-import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.{ArchiveFormat, ArchiveInputStream}
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.{ArchiveFormat, NamedInputStream}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.PathUtils
 
 import java.io.{Closeable, InputStream, OutputStream}
 import java.net.URI
+import java.nio.file.Paths
 import java.util.Locale
 
 /**
@@ -93,7 +94,7 @@ trait ObjectStore extends Closeable {
    * @param path file path
    * @return
    */
-  def read(path: URI, format: ArchiveFormat): CloseableIterator[ArchiveInputStream]
+  def read(path: URI, format: ArchiveFormat): CloseableIterator[NamedInputStream]
 
   /**
    * List any files directly under the given directory path
@@ -101,7 +102,7 @@ trait ObjectStore extends Closeable {
    * @param path directory path
    * @return
    */
-  def list(path: URI): Seq[URI]
+  def list(path: URI): CloseableIterator[URI]
 
   /**
    * Copy a file
@@ -117,8 +118,6 @@ trait ObjectStore extends Closeable {
    * @param path file path
    */
   def delete(path: URI): Unit
-
-//  def deleteRecursively(path: URI): Unit = ???
 }
 
 object ObjectStore {
@@ -131,10 +130,12 @@ object ObjectStore {
     }
   }
 
+  def filename(path: URI): String = Paths.get(path).getFileName.toString
+
   object ArchiveFormat extends Enumeration {
     type ArchiveFormat = Value
     val Tar, Zip = Value
   }
 
-  case class ArchiveInputStream(name: String, is: InputStream)
+  case class NamedInputStream(name: String, is: InputStream)
 }
