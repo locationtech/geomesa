@@ -23,6 +23,8 @@ import pureconfig.error.CannotConvert
 import pureconfig.generic.ProductHint
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.core.async.{AsyncRequestBody, AsyncResponseTransformer}
+import software.amazon.awssdk.core.checksums.{RequestChecksumCalculation, ResponseChecksumValidation}
+import software.amazon.awssdk.core.retry.RetryMode
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model._
@@ -32,9 +34,11 @@ import software.amazon.awssdk.transfer.s3.model.DownloadRequest
 import java.io._
 import java.net.URI
 import java.nio.file.Files
+import java.time.Duration
+import java.util.Locale
 import scala.util.Try
 
-class S3ObjectStore(val client: S3AsyncClient) extends ObjectStore {
+class S3ObjectStore(val client: S3AsyncClient, writeBuffer: Int) extends ObjectStore {
 
   import S3ObjectStore.parseS3Path
 
@@ -79,7 +83,7 @@ class S3ObjectStore(val client: S3AsyncClient) extends ObjectStore {
   override def overwrite(path: URI): OutputStream = {
     val key = parseS3Path(path)
     val request = PutObjectRequest.builder().bucket(key.bucket).key(key.key).build()
-    val in = new PipedInputStream(1048576) // TODO configurable
+    val in = new PipedInputStream(writeBuffer)
     val executor = new CachedThreadPool(1)
     val body = AsyncRequestBody.fromInputStream(in, null /* length unknown */, executor)
 
@@ -92,7 +96,7 @@ class S3ObjectStore(val client: S3AsyncClient) extends ObjectStore {
           try {
             response.join()
           } finally  {
-            executor.shutdown()
+            executor.shutdownNow()
           }
         }
       }
@@ -222,6 +226,31 @@ object S3ObjectStore {
         .left.map(_ => CannotConvert(s, "Region", s"Must be one of: ${Region.regions().asScala.mkString(", ")}"))
     }
 
+  // noinspection ScalaUnusedSymbol
+  private implicit val retryModeConfigReader: ConfigReader[RetryMode] =
+    enumReader(classOf[RetryMode])
+
+  // noinspection ScalaUnusedSymbol
+  private implicit val requestChecksumCalculationConfigReader: ConfigReader[RequestChecksumCalculation] =
+    enumReader(classOf[RequestChecksumCalculation])
+
+  // noinspection ScalaUnusedSymbol
+  private implicit val responseChecksumCalculationConfigReader: ConfigReader[ResponseChecksumValidation] =
+    enumReader(classOf[ResponseChecksumValidation])
+
+  // noinspection ScalaUnusedSymbol
+  private implicit val JavaDurationConfigReader: ConfigReader[Duration] =
+    ConfigReader.fromNonEmptyString[Duration](s =>
+      Try(Duration.ofMillis(scala.concurrent.duration.Duration(s).toMillis))
+        .toEither.left.map(e => CannotConvert(s, classOf[Duration].getName, e.toString)))
+
+  private def enumReader[T <: Enum[T]](clas: Class[T]): ConfigReader[T] = {
+    ConfigReader.fromString { s =>
+      Try(Enum.valueOf[T](clas, s.toUpperCase(Locale.US))).toEither
+        .left.map(_ => CannotConvert(s, clas.getSimpleName, s"Must be one of: ${clas.getEnumConstants.mkString(", ")}"))
+    }
+  }
+
   private def parseS3Path(path: URI): S3Path = {
     if (!path.getScheme.startsWith("s3")) {
       throw new UnsupportedOperationException(s"Trying to use S3 to operate on a non-s3 URI: $path")
@@ -229,8 +258,13 @@ object S3ObjectStore {
     S3Path(path.getHost, path.getPath.stripPrefix("/"))
   }
 
+  /**
+   * Create a new S3 store
+   *
+   * @param conf config
+   * @return
+   */
   def apply(conf: Map[String, String]): S3ObjectStore = {
-
     val configSource =
       ConfigFactory.parseMap(conf.asJava)
         .withFallback(ConfigFactory.load())
@@ -254,9 +288,22 @@ object S3ObjectStore {
     if (config.pathStyleAccess) {
       builder.forcePathStyle(true) // path-style access, often needed for MinIO/LocalStack
     }
+
+    config.numRetries.foreach(m => builder.retryConfiguration(c => c.numRetries(m)))
+    config.targetThroughputInGbps.foreach(builder.targetThroughputInGbps(_))
+    config.minimumPartSizeInBytes.foreach(builder.minimumPartSizeInBytes(_))
+    config.maxConcurrency.foreach(builder.maxConcurrency(_))
+    config.connectionTimeout.foreach(t => builder.httpConfiguration(c => c.connectionTimeout(t)))
+    config.maxNativeMemoryLimitInBytes.foreach(builder.maxNativeMemoryLimitInBytes(_))
+    config.requestChecksumCalculation.foreach(builder.requestChecksumCalculation)
+    config.responseChecksumValidation.foreach(builder.responseChecksumValidation)
+    config.initialReadBufferSizeInBytes.foreach(builder.initialReadBufferSizeInBytes(_))
+    config.accelerate.foreach(builder.accelerate(_))
+    config.thresholdInBytes.foreach(builder.thresholdInBytes(_))
+
     val client = builder.build()
 
-    new S3ObjectStore(client)
+    new S3ObjectStore(client, config.writeBufferInBytes)
   }
 
   private def s3aValues(conf: Map[String, String]): Config = {
@@ -266,6 +313,10 @@ object S3ObjectStore {
     conf.get("fs.s3a.endpoint").foreach(s3aConfig.put("s3-endpoint", _))
     conf.get("fs.s3a.endpoint.region").foreach(s3aConfig.put("region", _))
     conf.get("fs.s3a.path.style.access").foreach(s3aConfig.put("path-style-access", _))
+    conf.get("fs.s3a.attempts.maximum").foreach(s3aConfig.put("num-retries", _))
+    conf.get("fs.s3a.connection.timeout").foreach(ms => s3aConfig.put("connection-timeout", s"${ms}ms"))
+    conf.get("fs.s3a.connection.maximum").foreach(s3aConfig.put("max-concurrency", _)) // TODO think max-concurrency is per-request
+    conf.get("fs.s3a.socket.send.buffer").foreach(s3aConfig.put("write-buffer-in-bytes", _))
     ConfigFactory.parseMap(s3aConfig)
   }
 
@@ -275,6 +326,18 @@ object S3ObjectStore {
     accessKeyId: Option[String],
     secretAccessKey: Option[String],
     pathStyleAccess: Boolean,
+    numRetries: Option[Int],
+    targetThroughputInGbps: Option[Double],
+    minimumPartSizeInBytes: Option[Long],
+    maxConcurrency: Option[Int],
+    connectionTimeout: Option[Duration],
+    maxNativeMemoryLimitInBytes: Option[Long],
+    requestChecksumCalculation: Option[RequestChecksumCalculation],
+    responseChecksumValidation: Option[ResponseChecksumValidation],
+    initialReadBufferSizeInBytes: Option[Long],
+    accelerate: Option[Boolean],
+    thresholdInBytes: Option[Long],
+    writeBufferInBytes: Int,
   )
 
   private case class S3Path(bucket: String, key: String)
