@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.converter
 
-import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter

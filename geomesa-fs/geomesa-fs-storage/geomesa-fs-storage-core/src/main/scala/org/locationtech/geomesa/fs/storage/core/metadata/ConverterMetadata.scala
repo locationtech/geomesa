@@ -67,7 +67,7 @@ class ConverterMetadata(
             context.fs.list(file).foreach(toCheck.add)
           }
         } else {
-          val relativePath = file.toString.substring(rootPathLength + 1)
+          val relativePath = file.toString.substring(rootPathLength)
           var partitionParts = relativePath.split("/")
           if (leafStorage) {
             partitionParts(partitionParts.length - 1) = partitionParts.last.takeWhile(_ != '_')

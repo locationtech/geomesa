@@ -38,7 +38,7 @@ import java.time.Duration
 import java.util.Locale
 import scala.util.Try
 
-class S3ObjectStore(val client: S3AsyncClient, writeBuffer: Int) extends ObjectStore {
+class S3ObjectStore(val client: S3AsyncClient, writeBuffer: Int = 1048576) extends ObjectStore {
 
   import S3ObjectStore.parseS3Path
 
@@ -252,7 +252,7 @@ object S3ObjectStore {
   }
 
   private def parseS3Path(path: URI): S3Path = {
-    if (!path.getScheme.startsWith("s3")) {
+    if (path.getScheme != "s3" && path.getScheme != "s3a") {
       throw new UnsupportedOperationException(s"Trying to use S3 to operate on a non-s3 URI: $path")
     }
     S3Path(path.getHost, path.getPath.stripPrefix("/"))
