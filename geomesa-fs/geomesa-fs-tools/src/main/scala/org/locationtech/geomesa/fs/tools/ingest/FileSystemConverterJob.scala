@@ -19,6 +19,7 @@ import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
+import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import org.locationtech.geomesa.fs.storage.core.{Partition, PartitionScheme}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetStorageConfiguration
@@ -33,6 +34,7 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters
 import org.locationtech.geomesa.tools.utils.DistributedCopy
 
 import java.io.File
+import java.net.URI
 
 abstract class FileSystemConverterJob(
     dsParams: Map[String, String],
@@ -42,7 +44,7 @@ abstract class FileSystemConverterJob(
     libjarsFiles: Seq[String],
     libjarsPaths: Iterator[() => Seq[File]],
     reducers: Int,
-    root: Path,
+    root: URI,
     schemes: Set[PartitionScheme],
     tmpPath: Option[Path],
     targetFileSize: Option[Long]
@@ -66,12 +68,12 @@ abstract class FileSystemConverterJob(
     // (default is at 0.05 which takes all the map slots and isn't needed)
     job.getConfiguration.set("mapreduce.job.reduce.slowstart.completedmaps", ".90")
 
-    StorageConfiguration.setRootPath(job.getConfiguration, root.toUri)
+    StorageConfiguration.setRootPath(job.getConfiguration, root)
     StorageConfiguration.setPartitionScheme(job.getConfiguration, schemes)
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Written)
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
-    FileOutputFormat.setOutputPath(job, tmpPath.getOrElse(root))
+    FileOutputFormat.setOutputPath(job, tmpPath.getOrElse(new Path(S3ObjectStore.s3aUri(root))))
 
     configureOutput(sft, job)
   }
@@ -80,7 +82,7 @@ abstract class FileSystemConverterJob(
     super.await(reporter).merge {
       tmpPath.map { tp =>
         reporter.reset()
-        new DistributedCopy().copy(Seq(tp), root, reporter) match {
+        new DistributedCopy().copy(Seq(tp), new Path(S3ObjectStore.s3aUri(root)), reporter) match {
           case JobSuccess(message, counts) =>
             Command.user.info(message)
             JobSuccess("", counts)
@@ -102,7 +104,7 @@ object FileSystemConverterJob {
       libjarsFiles: Seq[String],
       libjarsPaths: Iterator[() => Seq[File]],
       reducers: Int,
-      root: Path,
+      root: URI,
       schemes: Set[PartitionScheme],
       tmpPath: Option[Path],
       targetFileSize: Option[Long]

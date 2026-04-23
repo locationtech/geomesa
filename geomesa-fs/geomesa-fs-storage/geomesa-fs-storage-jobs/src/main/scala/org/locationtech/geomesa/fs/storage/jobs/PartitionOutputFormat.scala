@@ -180,7 +180,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
           // TODO if we can access the underlying parquet writer we can check the size without closing the file
           writer.close(context)
           val length = storage.fs.size(path.toUri)
-          logger.debug(s"File length: ${length} $path")
+          logger.debug(s"File length: $length $path")
           writer = null
           // adjust our estimate to account for the actual bytes written
           total += length

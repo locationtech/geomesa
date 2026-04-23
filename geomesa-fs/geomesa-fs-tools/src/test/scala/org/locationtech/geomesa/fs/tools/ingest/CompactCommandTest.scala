@@ -48,7 +48,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
   sft.setScheme("daily")
 
   val numFeatures = 10000
-  val targetFileSize = 35000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
+  val targetFileSize = 30000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
 
   val bucket = "geomesa"
 
@@ -106,8 +106,8 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
   "Compaction command" should {
     "be multiple files per partition before compacting" in {
       WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
-        val fs = ds.getFeatureSource(sft.getTypeName)
         var count = 0
+        val fs = ds.getFeatureSource(sft.getTypeName)
         WithClose(fs.getFeatures.features) { iter =>
           while (iter.hasNext) {
             val feat = iter.next
@@ -129,22 +129,24 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
       command.params.metadataType = "file"
       command.params.runMode = RunModes.Distributed.toString
       command.params.configuration = configFlags.toList.asJava
-      command.execute()
-      ok //must not(throwAn[Exception])
+      command.execute() must not(throwAn[Exception])
     }
 
     "be one file per partition after compacting" in {
       WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.storage(sft.getTypeName).metadata.getFiles() must haveLength(3)
 
+        var count = 0
         val fs = ds.getFeatureSource(sft.getTypeName)
         WithClose(fs.getFeatures.features) { iter =>
           while (iter.hasNext) {
             val feat = iter.next
             feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
             featureMustHaveProperGeometries(feat)
+            count += 1
           }
         }
+        count mustEqual numFeatures
         fs.getCount(Query.ALL) mustEqual numFeatures
       }
     }
@@ -170,14 +172,17 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
           foreach(sizes)(_ must beCloseTo(targetFileSize, 6000))
         }
 
+        var count = 0
         val fs = ds.getFeatureSource(sft.getTypeName)
         WithClose(fs.getFeatures.features) { iter =>
           while (iter.hasNext) {
             val feat = iter.next
             feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
             featureMustHaveProperGeometries(feat)
+            count += 1
           }
         }
+        count mustEqual numFeatures
         fs.getCount(Query.ALL) mustEqual numFeatures
       }
     }

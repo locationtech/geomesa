@@ -16,10 +16,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
+import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetStorageConfiguration
-import org.locationtech.geomesa.fs.storage.jobs.s3a.S3Utils
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.CompactionMapper
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
@@ -31,7 +31,6 @@ import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.File
 import java.net.URI
-import java.util.Properties
 
 trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
@@ -49,6 +48,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     val job = {
       val conf = new Configuration()
       storage.context.conf.foreach { case (k, v) => conf.set(k, v) }
+      S3ObjectStore.s3aConfigs(storage.context.conf).foreach { case (k, v) => conf.set(k, v) }
       Job.getInstance(conf, "GeoMesa Storage Compaction")
     }
 
@@ -74,7 +74,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Compacted)
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
-    FileOutputFormat.setOutputPath(job, tempPath.getOrElse { new Path(S3Utils.hadoopCompatbleUri(storage.context.root)) })
+    FileOutputFormat.setOutputPath(job, tempPath.getOrElse { new Path(S3ObjectStore.s3aUri(storage.context.root)) })
 
     // MapReduce options
     job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")

@@ -270,6 +270,15 @@ object S3ObjectStore {
     new S3ObjectStore(client, buffering)
   }
 
+  def s3aConfigs(conf: Map[String, String]): Map[String, String] =
+    conf.flatMap { case (k, v) => S3ObjectStoreConfig.s3aReverseConfigMappings.get(k).map(_ -> v )}
+
+  def s3aUri(path: URI): URI = {
+    if (path.getScheme != "s3") { path } else {
+      new URI("s3a", path.getHost, path.getPath, path.getFragment)
+    }
+  }
+
   object WriteBuffering extends Enumeration {
     type WriteBuffering = Value
     val Disk, Memory = Value
@@ -373,6 +382,8 @@ object S3ObjectStore {
       //  }
     )
 
+    val s3aReverseConfigMappings: Map[String, String] = s3aConfigMappings.map { case (k, v) => v -> k }
+
     def apply(conf: Map[String, String]): S3ObjectStoreConfig = {
       val s3 = conf.flatMap { case (k, v) => s3aConfigMappings.get(k).map(_ -> v) }.asJava
       val configSource =
@@ -384,6 +395,7 @@ object S3ObjectStore {
       ConfigSource.fromConfig(configSource).loadOrThrow[S3ObjectStoreConfig]
     }
   }
+
   //<property>
   //  <name>fs.s3a.aws.credentials.provider</name>
   //  <description>
