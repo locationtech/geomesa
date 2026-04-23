@@ -11,20 +11,18 @@ package org.locationtech.geomesa.parquet
 
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
-import org.apache.parquet.conf.{HadoopParquetConfiguration, ParquetConfiguration}
+import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.filter2.compat.FilterCompat
-import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.parquet.FilterConverter
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.{FileValidationObserver, ParquetCompressionOpt}
-import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetSchema, SimpleFeatureParquetWriter, SimpleFeatureReadSupport}
+import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -43,9 +41,9 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
   sequential
 
   def transformConf(tsft: SimpleFeatureType): ParquetConfiguration = {
-    val c = new Configuration()
+    val c = new PlainParquetConfiguration()
     SimpleFeatureParquetSchema.setSft(c, tsft)
-    new HadoopParquetConfiguration(c)
+    c
   }
 
   lazy val f = Files.createTempFile("geomesa", ".parquet")
@@ -54,11 +52,11 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
   val nameAndGeom = SimpleFeatureTypes.createType("test", "name:String,*position:Point:srid=4326")
 
   val sftConf = {
-    val c = new Configuration()
+    val c = new PlainParquetConfiguration()
     SimpleFeatureParquetSchema.setSft(c, sft)
     // Use GZIP in tests but snappy in prod due to license issues
     c.set(ParquetCompressionOpt, CompressionCodecName.GZIP.toString)
-    new HadoopParquetConfiguration(c)
+    c
   }
 
   val features = Seq(
@@ -68,7 +66,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
   )
 
   def readFile(filter: FilterCompat.Filter = FilterCompat.NOOP, conf: ParquetConfiguration = sftConf): Seq[SimpleFeature] = {
-    val builder = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
+    val builder = ParquetFileSystemReader.builder(LocalObjectStore, f.toUri)
     val result = ArrayBuffer.empty[SimpleFeature]
     WithClose(builder.withFilter(filter).withConf(conf).build()) { reader =>
       var sf = reader.read()
@@ -91,7 +89,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
   "SimpleFeatureParquetWriter" should {
 
     "fail if a corrupt parquet file is written" >> {
-      WithClose(SimpleFeatureParquetWriter.builder(f.toUri, sftConf).build()) { writer =>
+      WithClose(ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf).build()) { writer =>
         features.foreach(writer.write)
       }
 
@@ -110,7 +108,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
     }
 
     "write parquet files" >> {
-      WithClose(SimpleFeatureParquetWriter.builder(f.toUri, sftConf).build()) { writer =>
+      WithClose(ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf).build()) { writer =>
         features.foreach(writer.write)
       }
       Files.size(f) must beGreaterThan(0L)

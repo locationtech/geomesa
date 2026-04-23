@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.storage.core.fs
 
 import org.apache.commons.compress.archivers.ArchiveStreamFactory.{JAR, TAR, ZIP}
+import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.ArchiveFormat.ArchiveFormat
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.{ArchiveFormat, NamedInputStream}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -16,13 +17,19 @@ import org.locationtech.geomesa.utils.io.PathUtils
 
 import java.io.{Closeable, InputStream, OutputStream}
 import java.net.URI
-import java.nio.file.Paths
 import java.util.Locale
 
 /**
  * Abstraction around object storage for data files
  */
 trait ObjectStore extends Closeable {
+
+  /**
+   * Default URI scheme
+   *
+   * @return
+   */
+  def scheme: String
 
   /**
    * Does an object exist at the given path
@@ -118,19 +125,36 @@ trait ObjectStore extends Closeable {
    * @param path file path
    */
   def delete(path: URI): Unit
+
+  /**
+   * Utility method to return the "name" of a file
+   *
+   * @param path path
+   * @return
+   */
+  def filename(path: URI): String = filename(path.toString)
+
+  private def filename(path: String): String = {
+    val i = path.lastIndexOf('/')
+    if (i == -1) {
+      path
+    } else if (i == path.length - 1) {
+      filename(path.substring(0, path.length - 1))
+    } else {
+      path.substring(i + 1)
+    }
+  }
 }
 
 object ObjectStore {
 
-  def apply(root: URI, conf: Map[String, String]): ObjectStore = {
-    root.getScheme match {
-      case null | "" => LocalObjectStore
-      case "s3" | "s3a" => S3ObjectStore(conf)
+  def apply(context: FileSystemContext): ObjectStore = {
+    context.root.getScheme match {
+      case "file" => LocalObjectStore
+      case "s3" | "s3a" => S3ObjectStore(context.conf)
       case scheme => throw new UnsupportedOperationException(s"No object store implemented for scheme: $scheme")
     }
   }
-
-  def filename(path: URI): String = Paths.get(path).getFileName.toString
 
   object ArchiveFormat extends Enumeration {
     type ArchiveFormat = Value

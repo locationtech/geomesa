@@ -9,8 +9,9 @@
 package org.locationtech.geomesa.fs.storage.core
 package utils
 
+import org.locationtech.geomesa.fs.storage.core.Metadata
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeEstimator
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Metadata}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.FileSizeEstimator
 
@@ -20,10 +21,10 @@ import java.net.URI
 /**
  * Utility for tracking target file sizes
  *
- * @param context context
+ * @param fs filesystem - note, not cleaned up, must be closed externally
  * @param metadata metadata
  */
-class FileSize(context: FileSystemContext, metadata: StorageMetadata) {
+class FileSize(fs: ObjectStore, metadata: StorageMetadata) {
 
   private val fileSizeError = FileSize.FileSizeErrorThreshold.toFloat.get
 
@@ -47,7 +48,7 @@ class FileSize(context: FileSystemContext, metadata: StorageMetadata) {
    * @return true if the file is appropriately sized
    */
   def fileIsSized(path: URI, target: Long): Boolean = {
-    val size = context.fs.size(path)
+    val size = fs.size(path)
     math.abs((size.toDouble / target) - 1d) <= fileSizeError
   }
 

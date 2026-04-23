@@ -14,7 +14,6 @@ import org.apache.commons.io.FileUtils
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{AttributeBounds, SpatialBounds, StorageFile}
-import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -26,7 +25,6 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  lazy val fs = LocalObjectStore
   val sft = SimpleFeatureTypes.createType("metadata",
     "name:String:fs.bounds=true,dtg:Date,*geom:Point:srid=4326;geomesa.user-data.prefix=desc,desc.name=姓名,desc.dtg=ひづけ,desc.geom=좌표")
   val encoding = "parquet"
@@ -66,9 +64,9 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
 
   protected def getConfig(root: URI): Map[String, String]
 
-  def newCatalog(root: URI) = {
-    val conf = getConfig(root)
-    StorageMetadataCatalog(FileSystemContext(fs, root, conf), metadataType, conf)
+  def newCatalog(root: URI): StorageMetadataCatalog = {
+    val conf = getConfig(root) ++ Map(StorageMetadataCatalog.MetadataTypeConfig -> metadataType)
+    StorageMetadataCatalog(FileSystemContext.create(root, conf))
   }
 
   "Metadata" should {

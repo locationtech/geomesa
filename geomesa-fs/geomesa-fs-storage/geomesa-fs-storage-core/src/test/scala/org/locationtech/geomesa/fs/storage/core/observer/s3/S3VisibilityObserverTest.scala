@@ -11,8 +11,8 @@ package s3
 
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -42,8 +42,11 @@ class S3VisibilityObserverTest extends SpecificationWithJUnit with Mockito {
   def mockS3(factory: S3VisibilityObserverFactory): S3AsyncClient = {
     val s3 = mock[S3AsyncClient]
     s3.putObjectTagging(any[PutObjectTaggingRequest]()) returns CompletableFuture.completedFuture(null: PutObjectTaggingResponse)
-    val fs = new S3ObjectStore(s3)
-    factory.init(FileSystemContext(fs, URI.create("s3a://foo/"), Map.empty), sft)
+    val fs = new S3ObjectStore(s3, null)
+    val storage = mock[FileSystemStorage]
+    storage.context returns FileSystemContext.create(URI.create("s3a://foo/"), Map.empty)
+    storage.fs returns fs
+    factory.init(storage)
     s3
   }
 

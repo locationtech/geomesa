@@ -4,6 +4,5 @@ curator-framework
 curator-recipes
 hive
 libthrift
-orc
 parquet
 shapeless

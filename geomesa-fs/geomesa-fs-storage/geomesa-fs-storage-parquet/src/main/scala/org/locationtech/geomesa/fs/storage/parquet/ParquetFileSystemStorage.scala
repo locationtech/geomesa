@@ -9,9 +9,7 @@
 package org.locationtech.geomesa.fs.storage.parquet
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-import org.apache.parquet.conf.HadoopParquetConfiguration
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.filter2.compat.FilterCompat.FilterPredicateCompat
 import org.apache.parquet.hadoop.ParquetReader
@@ -51,10 +49,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
   override val encoding: String = ParquetFileSystemStorage.Encoding
 
   override protected def createWriter(file: URI, partition: Partition, observer: FileSystemObserver): FileSystemWriter = {
-    val conf = new Configuration()
-    context.conf.foreach { case (k, v) => conf.set(k, v) }
-    SimpleFeatureParquetSchema.setSft(conf, metadata.sft)
-    conf.set(SimpleFeatureParquetSchema.PartitionKey, partition.toString)
+    val conf = context.conf ++ Map(SimpleFeatureParquetSchema.PartitionKey -> partition.toString)
 
     val observers =
       if (FileValidationEnabled.toBoolean.get) {
@@ -62,7 +57,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
       } else {
         observer
       }
-    new ParquetFileSystemWriter(file, new HadoopParquetConfiguration(conf), observers)
+    new ParquetFileSystemWriter(fs, conf, metadata.sft, file, observers)
   }
 
   override protected def createReader(
@@ -79,15 +74,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
       s"    Parquet filter: ${parquetFilter match { case f: FilterPredicateCompat => f.getFilterPredicate; case f => f }} " +
         s"and modified gt filter: ${gtFilter.getOrElse(Filter.INCLUDE)}")
 
-    // WARNING it is important to create a new conf per query
-    // because we communicate the transform SFT set here
-    // with the init() method on SimpleFeatureReadSupport via
-    // the parquet api. Thus we need to deep copy conf objects
-    val conf = new Configuration()
-    context.conf.foreach { case (k, v) => conf.set(k, v) }
-    SimpleFeatureParquetSchema.setSft(conf, readSft)
-
-    new ParquetFileSystemReader(conf, context.root, readSft, parquetFilter, gtFilter, visFilter, readTransform)
+    new ParquetFileSystemReader(fs, context, readSft, parquetFilter, gtFilter, visFilter, readTransform)
   }
 }
 

@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.PartitionScheme
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.schemes.HierarchicalDateTimeScheme
 
 import java.net.URI
@@ -43,6 +44,8 @@ class ConverterMetadata(
     case _ => 1
   }.sum - (if (leafStorage) { 1 } else { 0 })
 
+  private val fs = ObjectStore(context)
+
   filesCache.refresh(BoxedUnit.UNIT) // kick off the initial load asynchronously
 
   override def addFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
@@ -50,13 +53,15 @@ class ConverterMetadata(
   override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit =
     throw new UnsupportedOperationException()
 
+  override def close(): Unit = try { super.close() } finally { fs.close() }
+
   override protected def buildFileList(): Seq[StorageFile] = {
     logger.debug("Building file list")
     val start = System.currentTimeMillis()
     val result = Seq.newBuilder[StorageFile]
     try {
       val toCheck = new java.util.LinkedList[URI]()
-      context.fs.list(context.root).foreach(toCheck.add)
+      fs.list(context.root).foreach(toCheck.add)
       val maxDepth = depth + context.root.toString.count(_ == '/')
       val rootPathLength = context.root.toString.length
       while (!toCheck.isEmpty) {
@@ -64,9 +69,9 @@ class ConverterMetadata(
         logger.debug(s"Checking ${file.getPath}")
         if (file.getPath.endsWith("/")) {
           if (file.toString.count(_ == '/') <= maxDepth) {
-            context.fs.list(file).foreach(toCheck.add)
+            fs.list(file).foreach(toCheck.add)
           }
-        } else {
+        } else if (!fs.filename(file).startsWith(".")) { // ignore "hidden" files
           val relativePath = file.toString.substring(rootPathLength)
           var partitionParts = relativePath.split("/")
           if (leafStorage) {

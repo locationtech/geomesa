@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs
+package org.locationtech.geomesa.fs.data
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
@@ -16,7 +16,6 @@ import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.core.StorageKeys
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
@@ -89,9 +88,9 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
       .withUsername("postgres")
 
   private lazy val jdbcConfig =
-    s"""jdbc.url=${container.getJdbcUrl}
-       |jdbc.user=${container.getUsername}
-       |jdbc.password=${container.getPassword}
+    s"""fs.metadata.jdbc.url=${container.getJdbcUrl}
+       |fs.metadata.jdbc.user=${container.getUsername}
+       |fs.metadata.jdbc.password=${container.getPassword}
        |""".stripMargin
 
   private lazy val dsParams = Seq(
@@ -104,7 +103,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
     Map(
       "fs.path" -> s"${dir.getPath}/jdbc",
       "fs.metadata.type" -> "jdbc",
-      "fs.metadata.config" -> jdbcConfig,
+      "fs.config" -> jdbcConfig,
       "fs.config.xml" -> gzip,
       "geomesa.security.auths" -> "user",
     ),

@@ -10,7 +10,6 @@ package org.locationtech.geomesa.fs.storage.core
 package observer
 package s3
 
-import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
@@ -25,11 +24,11 @@ class S3VisibilityObserverFactory extends FileSystemObserverFactory {
   private var s3: S3AsyncClient = _
   private var tag: String = _
 
-  override def init(context: FileSystemContext, sft: SimpleFeatureType): Unit = {
+  override def init(storage: FileSystemStorage): Unit = {
     try {
-      fs = context.fs.asInstanceOf[S3ObjectStore]
+      fs = storage.fs.asInstanceOf[S3ObjectStore]
       s3 = fs.client
-      tag = context.conf.getOrElse(S3VisibilityObserverFactory.TagNameConfig, S3VisibilityObserverFactory.DefaultTag)
+      tag = storage.context.conf.getOrElse(S3VisibilityObserverFactory.TagNameConfig, S3VisibilityObserverFactory.DefaultTag)
     } catch {
       case e: Exception => throw new RuntimeException("Unable to get s3 client", e)
     }

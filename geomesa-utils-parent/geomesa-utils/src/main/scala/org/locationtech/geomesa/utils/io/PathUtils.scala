@@ -89,10 +89,9 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     * @return
     */
   def handleCompression(is: InputStream, filename: String): InputStream = {
-    val buffered = new BufferedInputStream(is)
     CompressionUtils.Utils.find(_.isCompressedFilename(filename)) match {
-      case None => buffered
-      case Some(utils) => utils.decompress(buffered)
+      case None => is
+      case Some(utils) => utils.decompress(is)
     }
   }
 

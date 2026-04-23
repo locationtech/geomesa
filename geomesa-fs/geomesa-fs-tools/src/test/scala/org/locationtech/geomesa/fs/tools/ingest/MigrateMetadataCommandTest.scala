@@ -44,12 +44,6 @@ class MigrateMetadataCommandTest extends Specification with BeforeAfterAll with 
       .withDatabaseName("postgres") // if we don't set the default db/name to postgres, the startup check fails as it restarts 3 times instead of the expected 2
       .withUsername("postgres")
 
-  private lazy val jdbcConfig =
-    s"""jdbc.url=${container.getJdbcUrl}
-       |jdbc.user=${container.getUsername}
-       |jdbc.password=${container.getPassword}
-       |""".stripMargin
-
   private lazy val commonParams = Map(
     "fs.path" -> dir.getPath,
     "fs.config.xml" -> gzip,
@@ -61,7 +55,10 @@ class MigrateMetadataCommandTest extends Specification with BeforeAfterAll with 
 
   private lazy val jdbcParams = commonParams ++ Map(
     "fs.metadata.type" -> "jdbc",
-    "fs.metadata.config" -> jdbcConfig,
+    "fs.config" -> s"""fs.metadata.jdbc.url=${container.getJdbcUrl}
+                      |fs.metadata.jdbc.user=${container.getUsername}
+                      |fs.metadata.jdbc.password=${container.getPassword}
+                      |""".stripMargin
   )
 
   private lazy val sft =
@@ -106,9 +103,9 @@ class MigrateMetadataCommandTest extends Specification with BeforeAfterAll with 
 
       val args = Array(
         "manage-metadata", "migrate", "--path", dir.getPath, "--metadata-type", "file", "-f", sft.getTypeName,
-        "--new-metadata-type", "jdbc", "--new-metadata-config", s"jdbc.url=${container.getJdbcUrl}",
-        "--new-metadata-config", s"jdbc.user=${container.getUsername}",
-        "--new-metadata-config", s"jdbc.password=${container.getPassword}"
+        "--new-metadata-type", "jdbc", "--new-metadata-config", s"fs.metadata.jdbc.url=${container.getJdbcUrl}",
+        "--new-metadata-config", s"fs.metadata.jdbc.user=${container.getUsername}",
+        "--new-metadata-config", s"fs.metadata.jdbc.password=${container.getPassword}"
       )
       FsRunner.parseCommand(args).execute()
 

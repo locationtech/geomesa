@@ -18,19 +18,15 @@ import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 /**
  * Synthetic metadata catalog that examines files on disk
  *
- * @param context file system
- * @param config converter configuration options
+ * @param context file system context
  */
-class ConverterMetadataCatalog(context: FileSystemContext, config: Map[String, String])
-    extends StorageMetadataCatalog with LazyLogging {
+class ConverterMetadataCatalog(context: FileSystemContext) extends StorageMetadataCatalog with LazyLogging {
 
   import ConverterMetadata._
 
   private val sft = {
     val sftArg =
-      config.get(SftConfigParam)
-        .orElse(config.get(SftNameParam))
-        .orElse(context.conf.get(SftConfigParam))
+      context.conf.get(SftConfigParam)
         .orElse(context.conf.get(SftNameParam))
         .getOrElse(throw new IllegalArgumentException(s"Must provide either simple feature type config or name"))
     SftArgResolver.getArg(SftArgs(sftArg, null)) match {
@@ -41,12 +37,10 @@ class ConverterMetadataCatalog(context: FileSystemContext, config: Map[String, S
 
   private val schemes = {
     val partitionSchemeName =
-      config.get(PartitionSchemeParam)
-        .orElse(context.conf.get(PartitionSchemeParam))
-        .getOrElse(throw new IllegalArgumentException("Must provide partition scheme name"))
+      context.conf.getOrElse(PartitionSchemeParam, throw new IllegalArgumentException("Must provide partition scheme name"))
     val partitionSchemeOpts = {
       val opts =
-        (config ++ context.conf).collect { case (k, v) if k.startsWith(PartitionOptsPrefix) => s"${k.substring(PartitionOptsPrefix.length)}=$v" }
+        context.conf.collect { case (k, v) if k.startsWith(PartitionOptsPrefix) => s"${k.substring(PartitionOptsPrefix.length)}=$v" }
       opts.mkString(":")
     }
     partitionSchemeName.split(",").map { n =>
@@ -57,29 +51,26 @@ class ConverterMetadataCatalog(context: FileSystemContext, config: Map[String, S
   }
 
   private val converterPath =
-    config.get(ConverterPathParam)
-      .orElse(context.conf.get(ConverterPathParam))
-      .map(p => FileSystemContext.ensureTrailingSlash(context.root.resolve(p)))
+    context.conf.get(ConverterPathParam)
+      .map(p => context.root.resolve(p))
       .getOrElse(throw new IllegalArgumentException("Must provide converter path"))
 
   private val leafStorage =
-    config.get(LeafStorageParam)
-      .orElse(context.conf.get(LeafStorageParam))
+    context.conf.get(LeafStorageParam)
       .map(_.toBoolean)
       .getOrElse {
         val deprecated = s"${PartitionOptsPrefix}leaf-storage"
-        config.get(deprecated).orElse(context.conf.get(deprecated)).fold(true) { s =>
+        context.conf.get(deprecated).fold(true) { s =>
           logger.warn(s"Using deprecated leaf-storage partition-scheme option. Please define leaf-storage using '$LeafStorageParam'")
           s.toBoolean
         }
       }
 
-  override def getTypeNames: Seq[String] =
-    if (context.fs.exists(converterPath)) { Seq(sft.getTypeName) } else { Seq.empty }
+  override def getTypeNames: Seq[String] = Seq(sft.getTypeName)
 
   override def load(typeName: String): StorageMetadata = {
     if (typeName == sft.getTypeName) {
-      new ConverterMetadata(context.copy(root = converterPath), sft, schemes, leafStorage)
+      new ConverterMetadata(FileSystemContext.create(converterPath, context.conf, context.namespace), sft, schemes, leafStorage)
     } else {
       throw new IllegalArgumentException(s"Schema '$typeName' doesn't exist - available schemas: ${sft.getTypeName}")
     }

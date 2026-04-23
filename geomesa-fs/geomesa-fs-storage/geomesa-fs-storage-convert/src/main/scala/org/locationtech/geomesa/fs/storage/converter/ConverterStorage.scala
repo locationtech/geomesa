@@ -41,7 +41,7 @@ class ConverterStorage(
   override protected def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader = {
-    new ConverterFileSystemReader(context.fs, context.root, converter, filter, transform, pathFiltering)
+    new ConverterFileSystemReader(fs, context.root, converter, filter, transform, pathFiltering)
   }
 
   override def compact(partition: Partition, fileSize: Option[Long], threads: Int): Unit =

@@ -17,7 +17,6 @@ import org.apache.hadoop.mapreduce.security.TokenCache
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.StorageFileObserver
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, FileSystemStorageFactory, Partition, PartitionKey, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.jobs.PartitionOutputFormat.SingleFileOutputFormat
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FileSizeEstimator}
@@ -53,7 +52,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
 
     import StorageConfiguration.Counters.{Features, Group}
 
-    private val storage = {
+    private val fsc = {
       val hadoopConf = context.getConfiguration
       val conf = {
         val builder = Map.newBuilder[String, String]
@@ -61,11 +60,13 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
         builder.result()
       }
       val root = StorageConfiguration.getRootPath(hadoopConf)
-      val fsc = FileSystemContext(ObjectStore(root, conf), root, conf)
+      FileSystemContext.create(root, conf)
+    }
+
+    private val storage = {
+      val hadoopConf = context.getConfiguration
       val encoding = StorageConfiguration.getEncoding(hadoopConf)
-      val metadataType = StorageConfiguration.getMetadataType(hadoopConf)
-      val metadataConfig = StorageConfiguration.getMetadataConfig(hadoopConf)
-      val catalog = StorageMetadataCatalog(fsc, metadataType, metadataConfig)
+      val catalog = StorageMetadataCatalog(fsc)
       FileSystemStorageFactory(encoding).apply(fsc, catalog.load(StorageConfiguration.getSftName(hadoopConf)))
     }
 
@@ -178,7 +179,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
         if (remaining == 0) {
           // TODO if we can access the underlying parquet writer we can check the size without closing the file
           writer.close(context)
-          val length = storage.context.fs.size(path.toUri)
+          val length = storage.fs.size(path.toUri)
           logger.debug(s"File length: ${length} $path")
           writer = null
           // adjust our estimate to account for the actual bytes written

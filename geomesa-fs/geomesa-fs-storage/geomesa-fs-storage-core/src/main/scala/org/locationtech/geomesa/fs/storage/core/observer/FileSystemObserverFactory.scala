@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.fs.storage.core.observer
 
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.core.FileSystemContext
+import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
 
 import java.io.Closeable
 import java.net.URI
@@ -23,10 +23,9 @@ trait FileSystemObserverFactory extends Closeable {
   /**
    * Called once after instantiating the factory
    *
-   * @param context fs context
-   * @param sft simple feature type
+   * @param storage parent storage
    */
-  def init(context: FileSystemContext, sft: SimpleFeatureType): Unit
+  def init(storage: FileSystemStorage): Unit
 
   /**
    * Create an observer for the given path

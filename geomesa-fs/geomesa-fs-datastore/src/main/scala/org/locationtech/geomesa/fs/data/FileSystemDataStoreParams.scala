@@ -8,26 +8,22 @@
 
 package org.locationtech.geomesa.fs.data
 
-import org.apache.hadoop.conf.Configuration
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorageFactory
 import org.locationtech.geomesa.fs.storage.core.metadata.{ConverterMetadata, FileBasedMetadata, JdbcMetadata}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorageFactory, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, ReadWriteFlag, SystemPropertyDurationParam}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ReadWriteFlag, SystemPropertyDurationParam}
 
-import java.io.{StringReader, StringWriter}
 import java.util.Properties
 import scala.concurrent.duration.Duration
 
 object FileSystemDataStoreParams extends FileSystemDataStoreParams
 
 trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
-
-  import scala.collection.JavaConverters._
 
   val WriterFileTimeout: SystemProperty = SystemProperty("geomesa.fs.writer.partition.timeout", "60s")
 
@@ -51,19 +47,18 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
 
   val MetadataTypeParam =
     new GeoMesaParam[String](
-      "fs.metadata.type",
+      StorageMetadataCatalog.MetadataTypeConfig,
       "Type of metadata to use",
-      optional = false,
       default = "", // needed to prevent geoserver from selecting something
       enumerations = Seq(FileBasedMetadata.MetadataType, JdbcMetadata.MetadataType, ConverterMetadata.MetadataType),
       supportsNiFiExpressions = true,
       readWrite = ReadWriteFlag.ReadWrite,
     )
 
-  val MetadataConfigParam =
+  val ConfigParam =
     new GeoMesaParam[Properties](
-      "fs.metadata.config",
-      "Configuration options for the metadata implementation, in Java properties format",
+      "fs.config",
+      "Configuration options, in Java properties format",
       supportsNiFiExpressions = true,
       readWrite = ReadWriteFlag.ReadWrite,
     )
@@ -75,12 +70,11 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
       supportsNiFiExpressions = true
     )
 
-  val ConfigsParam =
+  val ConfigXmlParam =
     new GeoMesaParam[String](
       "fs.config.xml",
       "Additional Hadoop configuration properties, as a standard XML `<configuration>` element",
       largeText = true,
-      deprecatedParams = Seq(new ConvertedParam[String, String]("fs.config", convertPropsToXml)),
       supportsNiFiExpressions = true
     )
 
@@ -104,22 +98,4 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
     )
 
   val QueryTimeoutParam: GeoMesaParam[Duration] = GeoMesaDataStoreFactory.QueryTimeoutParam
-
-  /**
-   * Convert java properties format to *-site.xml
-   *
-   * @param properties props
-   * @return
-   */
-  private def convertPropsToXml(properties: String): String = {
-    val conf = new Configuration(false)
-
-    val props = new Properties()
-    props.load(new StringReader(properties))
-    props.asScala.foreach { case (k, v) => conf.set(k, v) }
-
-    val out = new StringWriter()
-    conf.writeXml(out)
-    out.toString
-  }
 }

@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.converter
+package org.locationtech.geomesa.fs.data
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveOutputStream}
@@ -17,12 +17,10 @@ import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs.{CreateFlag, FileContext, Path}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.filter.Filter
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.slf4j.LoggerFactory
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.MinIOContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -31,8 +29,7 @@ import org.testcontainers.utility.DockerImageName
 import java.io.{BufferedOutputStream, ByteArrayInputStream}
 import java.nio.charset.StandardCharsets
 
-@RunWith(classOf[JUnitRunner])
-class ConverterDataStoreTest extends Specification with BeforeAfterAll {
+class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll {
 
   import scala.collection.JavaConverters._
 
@@ -91,7 +88,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
   def prop(key: String, value: String): String = s"  <property><name>$key</name><value>$value</value></property>"
 
   "ConverterDataStore" should {
-    "work with one datastore" >> {
+    "work with one datastore" in {
       val ds = DataStoreFinder.getDataStore(Map(
         "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"   -> "converter",
@@ -108,7 +105,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
       feats must haveLength(4)
     }
 
-    "work with something else" >> {
+    "work with something else" in {
       val params = Map(
         "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"   -> "converter",
@@ -127,7 +124,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
       }
     }
 
-    "read tar.gz files from s3 storage" >> {
+    "read tar.gz files from s3 storage" in {
       val bucket = s"s3a://${this.bucket}/"
       val config = {
         val props = Seq(
@@ -177,7 +174,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
               val q = new Query("fs-test", Filter.INCLUDE)
               WithClose(CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)))(_.length)
             } catch {
-              case _: RuntimeException => -1
+              case e: RuntimeException => e.printStackTrace(); -1
             }
             if (expectTimeout) {
               count mustEqual -1
@@ -189,8 +186,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
       }
     }
 
-    "load sft as a string" >> {
-
+    "load sft as a string" in {
       val conf = ConfigFactory.parseString(
         """
           |geomesa {
@@ -243,7 +239,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
   }
 
   private def writePlain(fc: FileContext, path: String, contents: Array[Byte], multiplier: Int): Unit = {
-    WithClose(fc.create(new Path(path), java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent())) { os =>
+    WithClose(fc.create(new Path(s"$path.csv"), java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent())) { os =>
       WithClose(new BufferedOutputStream(os)) { buf =>
         var i = 0
         while (i < multiplier) {

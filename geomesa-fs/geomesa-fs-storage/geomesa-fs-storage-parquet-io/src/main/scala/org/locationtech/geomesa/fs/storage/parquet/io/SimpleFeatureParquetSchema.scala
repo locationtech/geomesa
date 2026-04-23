@@ -92,7 +92,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * @param conf conf
    * @param sft feature type
    */
-  def setSft(conf: Configuration, sft: SimpleFeatureType): Unit = {
+  def setSft(conf: ParquetConfiguration, sft: SimpleFeatureType): Unit = {
     val name = Option(sft.getName.getNamespaceURI).map(ns => s"$ns:${sft.getTypeName}").getOrElse(sft.getTypeName)
     conf.set(SftNameKey, name)
     conf.set(SftSpecKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))

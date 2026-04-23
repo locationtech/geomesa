@@ -8,53 +8,40 @@
 
 package org.locationtech.geomesa.parquet
 
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
-import org.apache.parquet.conf.HadoopParquetConfiguration
+import org.apache.parquet.conf.PlainParquetConfiguration
 import org.apache.parquet.filter2.compat.FilterCompat
-import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
-import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetSchema, SimpleFeatureParquetWriter, SimpleFeatureReadSupport}
+import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
+import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.{Coordinate, Point}
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 
 import java.nio.file.Files
 import java.time.Instant
 import java.util.UUID
 
-@RunWith(classOf[JUnitRunner])
-class ListMapTest extends Specification {
+class ListMapTest extends SpecificationWithJUnit {
 
   import scala.collection.JavaConverters._
 
-  sequential
-
-  //TODO test things other than lists of strings
   "Parquet simple feature storage" should {
 
-    "do list stuff" >> {
-
-      val f = Files.createTempFile("geomesa", ".parquet")
+    "read and write lists" in {
       val gf = JTSFactoryFinder.getGeometryFactory
       val sft = SimpleFeatureTypes.createType("test", "foobar:List[String],dtg:Date,*geom:Point:srid=4326")
 
       val sftConf = {
-        val c = new Configuration()
+        val c = new PlainParquetConfiguration()
         SimpleFeatureParquetSchema.setSft(c, sft)
         c
       }
 
-      "write" >> {
-        // Use GZIP in tests but snappy in prod due to license issues
-        val writer = SimpleFeatureParquetWriter.builder(f.toUri, new HadoopParquetConfiguration(sftConf))
-          .withCompressionCodec(CompressionCodecName.GZIP).build()
-
+      val f = Files.createTempFile("geomesa", ".parquet")
+      try {
         val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
         val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))
         val d3 = java.util.Date.from(Instant.parse("2017-01-03T00:00:00Z"))
@@ -62,125 +49,124 @@ class ListMapTest extends Specification {
         val sf = new ScalaSimpleFeature(sft, "1", Array(List("a", "b", "c").asJava, d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
         val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
         val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[String].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
-        writer.write(sf)
-        writer.write(sf2)
-        writer.write(sf3)
-        writer.close()
+
+        // Use GZIP in tests but snappy in prod due to license issues
+        val writeBuilder =
+          ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf)
+            .withCompressionCodec(CompressionCodecName.GZIP)
+
+        WithClose(writeBuilder.build()) { writer =>
+          writer.write(sf)
+          writer.write(sf2)
+          writer.write(sf3)
+        }
         Files.size(f) must be greaterThan 0
-      }
 
-      "read" >> {
-        val reader = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
-          .withFilter(FilterCompat.NOOP)
-          .withConf(sftConf)
-          .build()
-        val sf = reader.read()
-        sf.getAttributeCount mustEqual 3
-        sf.getID must be equalTo "1"
-        sf.getAttribute("foobar").asInstanceOf[java.util.List[String]].asScala must containTheSameElementsAs(List("a", "b", "c"))
-        sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
-        sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
+        val readBuilder = ParquetFileSystemReader.builder(LocalObjectStore, f.toUri).withFilter(FilterCompat.NOOP).withConf(sftConf)
+        WithClose(readBuilder.build()) { reader =>
+          val sf = reader.read()
+          sf.getAttributeCount mustEqual 3
+          sf.getID must be equalTo "1"
+          sf.getAttribute("foobar").asInstanceOf[java.util.List[String]].asScala must containTheSameElementsAs(List("a", "b", "c"))
+          sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
+          sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
 
-        val sf2 = reader.read()
-        sf2.getAttributeCount mustEqual 3
-        sf2.getID must be equalTo "2"
-        sf2.getAttribute("foobar").asInstanceOf[java.util.List[String]] must beNull
-        sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
-        sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
+          val sf2 = reader.read()
+          sf2.getAttributeCount mustEqual 3
+          sf2.getID must be equalTo "2"
+          sf2.getAttribute("foobar").asInstanceOf[java.util.List[String]] must beNull
+          sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
+          sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
 
-        val sf3 = reader.read()
-        sf3.getAttributeCount mustEqual 3
-        sf3.getID must be equalTo "3"
-        sf3.getAttribute("foobar").asInstanceOf[java.util.List[String]].asScala must beEmpty
-        sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
-        sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
-      }
-      step {
+          val sf3 = reader.read()
+          sf3.getAttributeCount mustEqual 3
+          sf3.getID must be equalTo "3"
+          sf3.getAttribute("foobar").asInstanceOf[java.util.List[String]].asScala must beEmpty
+          sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
+          sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
+        }
+      } finally {
         Files.deleteIfExists(f)
       }
     }
 
-    "do map stuff" >> {
-
-      val f = Files.createTempFile("geomesa", ".parquet")
+    "read and write maps" in {
       val gf = JTSFactoryFinder.getGeometryFactory
       val sft = SimpleFeatureTypes.createType("test", "foobar:Map[String,String],dtg:Date,*geom:Point:srid=4326")
 
       val sftConf = {
-        val c = new Configuration()
+        val c = new PlainParquetConfiguration()
         SimpleFeatureParquetSchema.setSft(c, sft)
         c
       }
 
-      "write" >> {
-        // Use GZIP in tests but snappy in prod due to license issues
-        val writer = SimpleFeatureParquetWriter.builder(f.toUri, new HadoopParquetConfiguration(sftConf))
-          .withCompressionCodec(CompressionCodecName.GZIP).build()
-
+      val f = Files.createTempFile("geomesa", ".parquet")
+      try {
         val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
         val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))
         val d3 = java.util.Date.from(Instant.parse("2017-01-03T00:00:00Z"))
 
         val sf = new ScalaSimpleFeature(sft, "1", Array(Map("a" -> "1", "b" -> "2", "c" -> "3").asJava, d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
         val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
-        val sf3 = new ScalaSimpleFeature(sft, "3", Array(Map.empty[String,String].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
-        writer.write(sf)
-        writer.write(sf2)
-        writer.write(sf3)
-        writer.close()
+        val sf3 = new ScalaSimpleFeature(sft, "3", Array(Map.empty[String, String].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
+
+        // Use GZIP in tests but snappy in prod due to license issues
+        val writeBuilder =
+          ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf)
+            .withCompressionCodec(CompressionCodecName.GZIP)
+
+        WithClose(writeBuilder.build()) { writer =>
+          writer.write(sf)
+          writer.write(sf2)
+          writer.write(sf3)
+        }
+
         Files.size(f) must be greaterThan 0
-      }
 
-      // TODO really need to test with more maps and values and stuff
-      "read" >> {
-        val reader = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
-          .withFilter(FilterCompat.NOOP)
-          .withConf(sftConf)
-          .build()
+        val readBuilder =
+          ParquetFileSystemReader.builder(LocalObjectStore, f.toUri)
+            .withFilter(FilterCompat.NOOP).withConf(sftConf)
+        WithClose(readBuilder.build()) { reader =>
+          val sf = reader.read()
+          sf.getAttributeCount mustEqual 3
+          sf.getID must be equalTo "1"
+          val m = sf.getAttribute("foobar").asInstanceOf[java.util.Map[String, String]].asScala
+          m must containTheSameElementsAs(Seq("a" -> "1", "b" -> "2", "c" -> "3"))
+          sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
+          sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
 
-        val sf = reader.read()
-        sf.getAttributeCount mustEqual 3
-        sf.getID must be equalTo "1"
-        val m = sf.getAttribute("foobar").asInstanceOf[java.util.Map[String,String]].asScala
-        m must containTheSameElementsAs(Seq("a" -> "1", "b" -> "2", "c" -> "3"))
-        sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
-        sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
+          val sf2 = reader.read()
+          sf2.getAttributeCount mustEqual 3
+          sf2.getID must be equalTo "2"
+          sf2.getAttribute("foobar").asInstanceOf[java.util.Map[String, String]] must beNull
+          sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
+          sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
 
-        val sf2 = reader.read()
-        sf2.getAttributeCount mustEqual 3
-        sf2.getID must be equalTo "2"
-        sf2.getAttribute("foobar").asInstanceOf[java.util.Map[String,String]] must beNull
-        sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
-        sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
-
-        val sf3 = reader.read()
-        sf3.getAttributeCount mustEqual 3
-        sf3.getID must be equalTo "3"
-        sf3.getAttribute("foobar").asInstanceOf[java.util.Map[String,String]].asScala must beEmpty
-        sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
-        sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
-      }
-      step {
+          val sf3 = reader.read()
+          sf3.getAttributeCount mustEqual 3
+          sf3.getID must be equalTo "3"
+          sf3.getAttribute("foobar").asInstanceOf[java.util.Map[String, String]].asScala must beEmpty
+          sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
+          sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
+        }
+      } finally {
         Files.deleteIfExists(f)
       }
     }
 
-     "do non string list map stuff" >> {
+    "read and write non-string lists and maps" >> {
 
-      val f = Files.createTempFile("geomesa", ".parquet")
       val gf = JTSFactoryFinder.getGeometryFactory
       val sft = SimpleFeatureTypes.createType("test", "foo:List[UUID],bar:Map[Int,Double],dtg:Date,*geom:Point:srid=4326")
 
       val sftConf = {
-        val c = new Configuration()
+        val c = new PlainParquetConfiguration()
         SimpleFeatureParquetSchema.setSft(c, sft)
         c
       }
 
-      "write" >> {
-        // Use GZIP in tests but snappy in prod due to license issues
-        val writer = SimpleFeatureParquetWriter.builder(f.toUri, new HadoopParquetConfiguration(sftConf))
-          .withCompressionCodec(CompressionCodecName.GZIP).build()
+      val f = Files.createTempFile("geomesa", ".parquet")
+      try {
 
         val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
         val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))
@@ -189,56 +175,57 @@ class ListMapTest extends Specification {
         val u2 = UUID.fromString("00000000-0000-2222-0000-000000000000")
         val u3 = UUID.fromString("00000000-0000-3333-0000-000000000000")
 
-        val sf = new ScalaSimpleFeature(sft, "1", Array(List(u1, u2).asJava,Map[Int, Double](1 -> 2.0, 3 -> 6.0).asJava, d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
+        val sf = new ScalaSimpleFeature(sft, "1", Array(List(u1, u2).asJava, Map[Int, Double](1 -> 2.0, 3 -> 6.0).asJava, d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
         val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
-        val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[UUID].asJava,Map.empty[Int, Double].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
-        writer.write(sf)
-        writer.write(sf2)
-        writer.write(sf3)
-        writer.close()
+        val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[UUID].asJava, Map.empty[Int, Double].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
+
+        // Use GZIP in tests but snappy in prod due to license issues
+        val writeBuilder =
+          ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf)
+            .withCompressionCodec(CompressionCodecName.GZIP)
+        WithClose(writeBuilder.build()) { writer =>
+          writer.write(sf)
+          writer.write(sf2)
+          writer.write(sf3)
+        }
         Files.size(f) must be greaterThan 0
-      }
 
-      // TODO really need to test with more maps and values and stuff
-      "read aruff" >> {
-        val reader = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
-          .withFilter(FilterCompat.NOOP)
-          .withConf(sftConf)
-          .build()
+        val readBuilder =
+          ParquetFileSystemReader.builder(LocalObjectStore, f.toUri).withFilter(FilterCompat.NOOP).withConf(sftConf)
 
-        val u1 = "00000000-0000-1111-0000-000000000000"
-        val u2 = "00000000-0000-2222-0000-000000000000"
+        WithClose(readBuilder.build()) { reader =>
+          val u1 = "00000000-0000-1111-0000-000000000000"
+          val u2 = "00000000-0000-2222-0000-000000000000"
 
-        val sf = reader.read()
-        sf.getAttributeCount mustEqual 4
-        sf.getID must be equalTo "1"
-        val u = sf.getAttribute("foo").asInstanceOf[java.util.List[UUID]].asScala.map(_.toString)
-        u must containTheSameElementsAs(Seq[String](u2, u1))
-        val m = sf.getAttribute("bar").asInstanceOf[java.util.Map[Int, Double]].asScala
-        m must containTheSameElementsAs(Seq(1 -> 2.0, 3 -> 6.0))
-        sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
-        sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
+          val sf = reader.read()
+          sf.getAttributeCount mustEqual 4
+          sf.getID must be equalTo "1"
+          val u = sf.getAttribute("foo").asInstanceOf[java.util.List[UUID]].asScala.map(_.toString)
+          u must containTheSameElementsAs(Seq[String](u2, u1))
+          val m = sf.getAttribute("bar").asInstanceOf[java.util.Map[Int, Double]].asScala
+          m must containTheSameElementsAs(Seq(1 -> 2.0, 3 -> 6.0))
+          sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
+          sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
 
-        val sf2 = reader.read()
-        sf2.getAttributeCount mustEqual 4
-        sf2.getID must be equalTo "2"
-        sf2.getAttribute("foo") must beNull
-        sf2.getAttribute("bar") must beNull
-        sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
-        sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
+          val sf2 = reader.read()
+          sf2.getAttributeCount mustEqual 4
+          sf2.getID must be equalTo "2"
+          sf2.getAttribute("foo") must beNull
+          sf2.getAttribute("bar") must beNull
+          sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
+          sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
 
-        val sf3 = reader.read()
-        sf3.getAttributeCount mustEqual 4
-        sf3.getID must be equalTo "3"
-        sf3.getAttribute("foo").asInstanceOf[java.util.List[_]].asScala must beEmpty
-        sf3.getAttribute("bar").asInstanceOf[java.util.Map[_,_]].asScala must beEmpty
-        sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
-        sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
-      }
-      step {
+          val sf3 = reader.read()
+          sf3.getAttributeCount mustEqual 4
+          sf3.getID must be equalTo "3"
+          sf3.getAttribute("foo").asInstanceOf[java.util.List[_]].asScala must beEmpty
+          sf3.getAttribute("bar").asInstanceOf[java.util.Map[_, _]].asScala must beEmpty
+          sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
+          sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
+        }
+      } finally {
         Files.deleteIfExists(f)
       }
     }
-
   }
 }

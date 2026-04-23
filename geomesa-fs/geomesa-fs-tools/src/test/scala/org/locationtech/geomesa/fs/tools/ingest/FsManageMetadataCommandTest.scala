@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import org.apache.hadoop.fs.Path
 import org.apache.log4j.spi.LoggingEvent
 import org.apache.log4j.{AppenderSkeleton, Level, Logger}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
@@ -18,15 +17,16 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.FsRunner
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.io.WithClose
-import org.specs2.mutable.Specification
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+import org.specs2.mutable.{Specification, SpecificationWithJUnit}
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.BeforeAfterAll
 
+import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable.ArrayBuffer
 
-@RunWith(classOf[JUnitRunner])
-class FsManageMetadataCommandTest extends Specification {
+class FsManageMetadataCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
 
   import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
 
@@ -44,13 +44,15 @@ class FsManageMetadataCommandTest extends Specification {
 
   val counter = new AtomicInteger(0)
 
-  def nextPath(): String =
-    s"${HadoopSharedCluster.Container.getHdfsUrl}/${getClass.getSimpleName}/${counter.incrementAndGet()}/"
+  var out: java.nio.file.Path = _
+
+  override def beforeAll(): Unit = out = Files.createTempDirectory("gm-fs-manage-meta-test")
+
+  override def afterAll(): Unit = PathUtils.deleteRecursively(out)
 
   "ManageMetadata command" should {
     "find file inconsistencies" in {
-      val dir = nextPath()
-      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> HadoopSharedCluster.ContainerConfig, "fs.metadata.type" -> "file" )
+      val dsParams = Map("fs.path" -> out.toString, "fs.metadata.type" -> "file" )
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(SimpleFeatureTypes.copy(sft))
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
@@ -59,8 +61,8 @@ class FsManageMetadataCommandTest extends Specification {
         val storage = ds.storage(sft.getTypeName)
         val files = storage.metadata.getFiles().map(_.file)
         files must haveLength(3)
-        storage.context.fs.copy(storage.context.root.resolve(files.head), storage.context.root.resolve(files.head + ".bak"))
-        storage.context.fs.delete(storage.context.root.resolve(files.head))
+        storage.fs.copy(storage.context.root.resolve(files.head), storage.context.root.resolve(files.head + ".bak"))
+        storage.fs.delete(storage.context.root.resolve(files.head))
         // verify we can't retrieve the moved file
         val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
         results must haveLength(2)
@@ -73,9 +75,8 @@ class FsManageMetadataCommandTest extends Specification {
         logger.addAppender(logCaptor)
         try {
           val args =
-            Seq("manage-metadata", "check-consistency", "--path", dir, "--metadata-type", "file", "-f", sft.getTypeName) ++
-              HadoopSharedCluster.ContainerConfiguration.asScala.flatMap(e => Seq("--config", s"${e.getKey}=${e.getValue}"))
-          FsRunner.parseCommand(args.toArray).execute()
+            Array("manage-metadata", "check-consistency", "--path", out.toString, "--metadata-type", "file", "-f", sft.getTypeName)
+          FsRunner.parseCommand(args).execute()
         } finally {
           logger.setLevel(logLevel)
           logger.removeAppender(logCaptor)

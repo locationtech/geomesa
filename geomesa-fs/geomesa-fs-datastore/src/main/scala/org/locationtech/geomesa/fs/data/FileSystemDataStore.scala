@@ -101,7 +101,7 @@ class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: Sto
 
 object FileSystemDataStore {
   case class FileSystemDataStoreConfig(
-    context: FileSystemContext, // note, this is expected to be a shared resource, and is not cleaned up on data store dispose
+    context: FileSystemContext,
     readThreads: Int,
     writeTimeout: Duration,
     queryTimeout: Option[Duration],

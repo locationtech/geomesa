@@ -14,7 +14,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.DataStoreFinder
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
-import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition, StorageKeys}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
@@ -63,9 +62,18 @@ object FsManageMetadataCommand extends LazyLogging {
       val metadata = storage.metadata
 
       val paths = params.files.asScala.map { file =>
-        val path = new URI(file)
-        // TODO close this?
-        if (!ObjectStore(path, storage.context.conf).exists(path)) {
+        val path = {
+          val tmp = new URI(file)
+          if (tmp.getScheme == null || tmp.getScheme.isEmpty) {
+            new URI(storage.context.root.getScheme, tmp.getHost, tmp.getPath, tmp.getFragment)
+          } else if (tmp.getScheme == storage.context.root.getScheme) {
+            tmp
+          } else {
+            throw new IllegalArgumentException(
+              s"File $file must have the same scheme as the storage context: ${storage.context.root}")
+          }
+        }
+        if (!storage.fs.exists(path)) {
           throw new IllegalArgumentException(s"File $path does not exist")
         }
         path
@@ -97,8 +105,7 @@ object FsManageMetadataCommand extends LazyLogging {
         paths.foreach { path =>
           outputResult(storage.register(path))
           if (params.delete) {
-            // TODO close this?
-            ObjectStore(path, storage.context.conf).delete(path)
+            storage.fs.delete(path)
           }
         }
       } catch {
@@ -143,7 +150,7 @@ object FsManageMetadataCommand extends LazyLogging {
         if (!metadataProps.isEmpty) {
           val out = new StringWriter()
           metadataProps.store(out, null)
-          builder += (FileSystemDataStoreParams.MetadataConfigParam.getName -> out.toString)
+          builder += (FileSystemDataStoreParams.ConfigParam.getName -> out.toString)
         }
         builder.result()
       }
@@ -239,7 +246,7 @@ object FsManageMetadataCommand extends LazyLogging {
        * added to onDisk
        */
       private def listRoot(): Unit = {
-        val iter = storage.context.fs.list(storage.context.root)
+        val iter = storage.fs.list(storage.context.root)
         // use a phaser to track worker thread completion
         val phaser = new Phaser(2) // 1 for this thread + 1 for the worker
         pool.submit(new TopLevelListWorker(phaser, iter))
@@ -257,9 +264,9 @@ object FsManageMetadataCommand extends LazyLogging {
                 if (!path.toString.endsWith(s"/${FileBasedMetadataCatalog.MetadataDirectory}/")) {
                   i += 1
                   // use a tiered phaser on each directory avoid the limit of 65535 registered parties
-                  pool.submit(new ListWorker(new Phaser(phaser, 1), storage.context.fs.list(path)))
+                  pool.submit(new ListWorker(new Phaser(phaser, 1), storage.fs.list(path)))
                 }
-              } else {
+              } else if (!storage.fs.filename(path).startsWith(".")) { // ignore "hidden" files
                 onDisk.add(path)
               }
             }
@@ -286,8 +293,8 @@ object FsManageMetadataCommand extends LazyLogging {
               if (path.toString.endsWith("/")) { // .isDirectory
                 i += 1
                 // use a tiered phaser on each directory avoid the limit of 65535 registered parties
-                pool.submit(new ListWorker(new Phaser(phaser, 1), storage.context.fs.list(path)))
-              } else {
+                pool.submit(new ListWorker(new Phaser(phaser, 1), storage.fs.list(path)))
+              } else if (!storage.fs.filename(path).startsWith(".")) { // ignore "hidden" files
                 onDisk.add(path)
               }
             }

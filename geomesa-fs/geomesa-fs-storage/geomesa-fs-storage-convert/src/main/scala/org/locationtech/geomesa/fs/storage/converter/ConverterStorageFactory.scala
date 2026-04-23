@@ -44,11 +44,11 @@ class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging 
     }
 
     val converterPath =
-      context.conf.get(ConverterPathParam).map(p => FileSystemContext.ensureTrailingSlash(context.root.resolve(p))).getOrElse {
+      context.conf.get(ConverterPathParam).map(context.root.resolve).getOrElse {
         throw new IllegalArgumentException("Must provide converter path")
       }
 
-    new ConverterStorage(context.copy(root = converterPath), metadata, converter, pathFiltering)
+    new ConverterStorage(FileSystemContext.create(converterPath, context.conf, context.namespace), metadata, converter, pathFiltering)
   }
 }
 

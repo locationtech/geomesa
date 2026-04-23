@@ -15,7 +15,6 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
-import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Partition}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
@@ -56,7 +55,7 @@ class ExportToFsTest extends Specification with BeforeAfterAll {
           .addFeatures(new ListFeatureCollection(sft, features: _*))
 
       def storage() = {
-        val context = FileSystemContext(LocalObjectStore, out.toUri, Map.empty)
+        val context = FileSystemContext.create(out.toUri, Map.empty)
         val metadata = new FileBasedMetadataCatalog(context).create(sft, Seq("daily"))
         new ParquetFileSystemStorageFactory().apply(context, metadata)
       }

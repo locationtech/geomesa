@@ -56,7 +56,8 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
   override val sft: SimpleFeatureType = meta.sft
   override val schemes: Set[PartitionScheme] = meta.partitions.map(PartitionSchemeFactory.load(sft, _)).toSet
 
-  filesCache.refresh(BoxedUnit.UNIT) // kick off the initial load asynchronously
+  filesCache.put(BoxedUnit.UNIT, buildFileList())
+//  filesCache.refresh(BoxedUnit.UNIT) // kick off the initial load asynchronously
 
   override def get(key: String): Option[String] = Option(kvs.get(key))
 
@@ -88,14 +89,18 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
     }
   }
 
+  override def close(): Unit = try { super.close() } finally { fs.close() }
+
   /**
    * Load files from the JSON file
    */
   override protected def buildFileList(): Seq[StorageFile] = {
     try {
-      fs.read(filesFilePath).fold(Seq.empty[StorageFile]) { is =>
-        val listType = new TypeToken[java.util.List[StorageFile]]() {}.getType
-        gson.fromJson[java.util.List[StorageFile]](new InputStreamReader(is, StandardCharsets.UTF_8), listType).asScala.toSeq
+      WithClose(fs.read(filesFilePath)) { opt =>
+        opt.fold(Seq.empty[StorageFile]) { is =>
+          val listType = new TypeToken[java.util.List[StorageFile]]() {}.getType
+          gson.fromJson[java.util.List[StorageFile]](new InputStreamReader(is, StandardCharsets.UTF_8), listType).asScala.toSeq
+        }
       }
     } catch {
       case NonFatal(e) =>

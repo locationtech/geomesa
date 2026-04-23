@@ -12,7 +12,6 @@ import com.google.gson._
 import com.typesafe.config.ConfigFactory
 import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.ConvertToBoolean
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
@@ -40,18 +39,31 @@ package object core {
       .create()
 
   /**
-    * Holder for file system references
-    *
-    * @param fs file system
-    * @param conf configuration
-    * @param root root path
-    */
-  case class FileSystemContext(fs: ObjectStore, root: URI, conf: Map[String, String], namespace: Option[String] = None) {
+   * Holder for file system references
+   *
+   * @param conf configuration
+   * @param root root path
+   * @param namespace optional feature namespace
+   */
+  case class FileSystemContext(root: URI, conf: Map[String, String], namespace: Option[String]) {
+    require(root.getScheme != null && root.getScheme.nonEmpty, s"Invalid root, no scheme specified: $root")
     require(root.toString.endsWith("/"), s"Invalid root URI, must end with '/': $root")
   }
 
   object FileSystemContext {
-    def ensureTrailingSlash(path: URI): URI = if (path.toString.endsWith("/")) { path } else { new URI(path.toString + "/") }
+
+    def create(root: URI, conf: Map[String, String]): FileSystemContext = create(root, conf, None)
+
+    def create(root: URI, conf: Map[String, String], namespace: Option[String]): FileSystemContext = {
+      val validatedRoot = {
+        val rootWithScheme = if (root.getScheme != null && root.getScheme.nonEmpty) { root } else {
+          new URI("file", root.getAuthority, root.getPath, root.getQuery, root.getFragment)
+        }
+        val rootWithSlash = if (rootWithScheme.toString.endsWith("/")) { rootWithScheme } else { new URI(rootWithScheme.toString + "/") }
+        rootWithSlash
+      }
+      FileSystemContext(validatedRoot, conf, namespace)
+    }
   }
 
   /**

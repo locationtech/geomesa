@@ -43,19 +43,22 @@ trait StorageMetadataCatalog {
 
 object StorageMetadataCatalog {
 
+  val MetadataTypeConfig = "fs.metadata.type"
+
   /**
    * Create a new catalog instance
    *
    * @param context file system context
-   * @param metadataType type of metadata
-   * @param config catalog configuration options
    * @return
    */
-  def apply(context: FileSystemContext, metadataType: String, config: Map[String, String]): StorageMetadataCatalog = {
+  def apply(context: FileSystemContext): StorageMetadataCatalog = {
+    val metadataType = context.conf.get(MetadataTypeConfig).filterNot(_.isBlank).getOrElse {
+      throw new IllegalArgumentException(s"No $MetadataTypeConfig config provided")
+    }
     metadataType.toLowerCase(Locale.US) match {
       case FileBasedMetadata.MetadataType => new FileBasedMetadataCatalog(context)
-      case JdbcMetadata.MetadataType      => new JdbcMetadataCatalog(context, config)
-      case ConverterMetadata.MetadataType => new ConverterMetadataCatalog(context, config)
+      case JdbcMetadata.MetadataType      => new JdbcMetadataCatalog(context)
+      case ConverterMetadata.MetadataType => new ConverterMetadataCatalog(context)
       case t => throw new UnsupportedOperationException(s"Metadata implementation not found for type: $t")
     }
   }

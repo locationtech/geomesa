@@ -51,6 +51,10 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-aws</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -77,12 +81,12 @@
             <artifactId>testcontainers</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.geomesa.testcontainers</groupId>
-            <artifactId>testcontainers-accumulo</artifactId>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-postgresql</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers-postgresql</artifactId>
+            <artifactId>testcontainers-minio</artifactId>
         </dependency>
     </dependencies>
 

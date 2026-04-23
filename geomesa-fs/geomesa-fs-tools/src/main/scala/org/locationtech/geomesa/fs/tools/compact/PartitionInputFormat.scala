@@ -15,7 +15,6 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.{CloseableFeatureIterator, FileSystemContext, FileSystemStorage, FileSystemStorageFactory, Partition, PartitionScheme, StorageMetadata, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.tools.compact.PartitionInputFormat.{PartitionInputSplit, PartitionRecordReader}
@@ -40,14 +39,12 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
     }
 
     val root = StorageConfiguration.getRootPath(hadoopConf)
-    val fsc = FileSystemContext(ObjectStore(root, conf), root, conf)
     val fileSize = StorageConfiguration.getTargetFileSize(hadoopConf)
-    val metadataType = StorageConfiguration.getMetadataType(hadoopConf)
-    val metadataConfig = StorageConfiguration.getMetadataConfig(hadoopConf)
     val typeName = StorageConfiguration.getSftName(hadoopConf)
     val encoding = StorageConfiguration.getEncoding(hadoopConf)
 
-    val catalog = StorageMetadataCatalog(fsc, metadataType, metadataConfig)
+    val fsc = FileSystemContext.create(root, conf)
+    val catalog = StorageMetadataCatalog(fsc)
     val factory = FileSystemStorageFactory(encoding)
     WithClose(factory.apply(fsc, catalog.load(typeName))) { storage =>
       val sizeCheck = fileSize.orElse(storage.sizer.targetSize).map(t => (p: URI) => storage.sizer.fileIsSized(p, t))
@@ -55,7 +52,7 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
         var size = 0L
         val files = storage.metadata.getFiles(partition).filter { f =>
           if (sizeCheck.exists(_.apply(fsc.root.resolve(f.file)))) { false } else {
-            size += fsc.fs.size(fsc.root.resolve(f.file))
+            size += storage.fs.size(fsc.root.resolve(f.file))
             true
           }
         }
@@ -140,7 +137,7 @@ object PartitionInputFormat {
         builder.result()
       }
       val root = StorageConfiguration.getRootPath(hadoopConf)
-      val fsc = FileSystemContext(ObjectStore(root, conf), root, conf)
+      val fsc = FileSystemContext.create(root, conf)
       val sft = StorageConfiguration.getSft(hadoopConf)
       val encoding = StorageConfiguration.getEncoding(hadoopConf)
 

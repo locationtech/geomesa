@@ -97,10 +97,6 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-minio</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.geomesa.testcontainers</groupId>
-            <artifactId>testcontainers-accumulo</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

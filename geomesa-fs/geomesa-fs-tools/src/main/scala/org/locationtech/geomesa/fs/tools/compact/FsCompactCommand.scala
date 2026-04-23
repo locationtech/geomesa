@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.tools.compact
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
-import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
+import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.ParquetCompactionJob
@@ -109,8 +109,7 @@ object FsCompactCommand {
         case RunModes.Distributed =>
           val job = new ParquetCompactionJob()
           val tempDir = Option(params.tempPath).map(t => new Path(t))
-          val metadataConfig = FileSystemDataStoreParams.MetadataConfigParam.lookupOpt(connection.asJava)
-          job.run(storage, metadataConfig, toCompact.toSeq, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
+          job.run(storage, toCompact.toSeq, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
             case JobSuccess(message, counts) =>
               Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
               val success = counts(FileSystemCompactionJob.MappedCounter)

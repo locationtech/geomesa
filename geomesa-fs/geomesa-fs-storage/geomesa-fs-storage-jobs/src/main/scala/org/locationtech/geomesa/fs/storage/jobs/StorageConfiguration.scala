@@ -47,8 +47,6 @@ object StorageConfiguration {
 
   val PathKey                  = "geomesa.fs.path"
   val EncodingKey              = "geomesa.fs.encoding"
-  val MetadataTypeKey          = "geomesa.fs.metadata.type"
-  val MetadataConfigKey        = "geomesa.fs.metadata.opt"
   val PartitionSchemeKeyPrefix = "geomesa.fs.partition.scheme."
   val PartitionsKeyPrefix      = "geomesa.fs.partitions."
   val FileTypeKey              = "geomesa.fs.output.file-type"
@@ -76,14 +74,6 @@ object StorageConfiguration {
 
   def setEncoding(conf: Configuration, encoding: String): Unit = conf.set(EncodingKey, encoding)
   def getEncoding(conf: Configuration): String = conf.get(EncodingKey)
-
-  def setMetadataType(conf: Configuration, metadataType: String): Unit = conf.set(MetadataTypeKey, metadataType)
-  def getMetadataType(conf: Configuration): String = conf.get(MetadataTypeKey)
-
-  def setMetadataConfig(conf: Configuration, metadataConfig: Map[String, String]): Unit =
-    metadataConfig.foreach { case (k, v) => conf.set(s"$MetadataConfigKey.$k", v) }
-  def getMetadataConfig(conf: Configuration): Map[String, String] =
-    conf.getPropsWithPrefix(s"$MetadataConfigKey.").asScala.toMap
 
   def setPartitionScheme(conf: Configuration, scheme: Set[PartitionScheme]): Unit = {
     var i = 0

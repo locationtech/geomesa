@@ -8,21 +8,22 @@
 
 package org.locationtech.geomesa.fs.storage.core.fs
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
 import org.apache.commons.io.{FilenameUtils, IOUtils}
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.ArchiveFormat.ArchiveFormat
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.{ArchiveFormat, NamedInputStream}
+import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore.WriteBuffering.WriteBuffering
+import org.locationtech.geomesa.fs.storage.core.fs.S3WriteBuffering.{DiskBuffering, MemoryBuffering}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, ZipFileIterator}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
 import pureconfig._
 import pureconfig.error.CannotConvert
 import pureconfig.generic.ProductHint
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
-import software.amazon.awssdk.core.async.{AsyncRequestBody, AsyncResponseTransformer}
+import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.core.checksums.{RequestChecksumCalculation, ResponseChecksumValidation}
 import software.amazon.awssdk.core.retry.RetryMode
 import software.amazon.awssdk.regions.Region
@@ -30,15 +31,19 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model._
 import software.amazon.awssdk.transfer.s3.S3TransferManager
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest
+import software.amazon.s3.analyticsaccelerator.{S3SdkObjectClient, S3SeekableInputStreamConfiguration, S3SeekableInputStreamFactory}
 
 import java.io._
 import java.net.URI
 import java.nio.file.Files
 import java.time.Duration
 import java.util.Locale
+import java.util.concurrent.CompletionException
+import java.util.function.BiFunction
 import scala.util.Try
+import scala.util.control.NonFatal
 
-class S3ObjectStore(val client: S3AsyncClient, writeBuffer: Int = 1048576) extends ObjectStore {
+class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends ObjectStore {
 
   import S3ObjectStore.parseS3Path
 
@@ -46,84 +51,55 @@ class S3ObjectStore(val client: S3AsyncClient, writeBuffer: Int = 1048576) exten
 
   private val transferManager = S3TransferManager.builder().s3Client(client).build()
 
+  val seekableInputStreamFactory: S3SeekableInputStreamFactory =
+    new S3SeekableInputStreamFactory(new S3SdkObjectClient(client, false), S3SeekableInputStreamConfiguration.DEFAULT)
+
+  override val scheme: String = "s3"
+
   override def exists(path: URI): Boolean = {
     val key = parseS3Path(path)
-    try {
-      val request = HeadObjectRequest.builder().bucket(key.bucket).key(key.key).build()
-      client.headObject(request).join()
-      true
-    } catch {
-      case _: NoSuchKeyException => false
-    }
+    val request = HeadObjectRequest.builder().bucket(key.bucket).key(key.key).build()
+    client.headObject(request).handle[Option[Boolean]](noSuchKey(_ => true)).join().getOrElse(false)
   }
 
   override def size(path: URI): Long = {
     val key = parseS3Path(path)
-    try {
-      val request =
-        GetObjectAttributesRequest.builder().bucket(key.bucket).key(key.key).objectAttributes(ObjectAttributes.OBJECT_SIZE).build()
-      client.getObjectAttributes(request).join().objectSize()
-    } catch {
-      case _: NoSuchKeyException => 0L
-    }
+    val request =
+      GetObjectAttributesRequest.builder().bucket(key.bucket).key(key.key).objectAttributes(ObjectAttributes.OBJECT_SIZE).build()
+    client.getObjectAttributes(request).handle[Option[Long]](noSuchKey(_.objectSize())).join().getOrElse(0L)
   }
 
   override def modified(path: URI): Option[Long] = {
     val key = parseS3Path(path)
-    try {
-      val request = HeadObjectRequest.builder().bucket(key.bucket).key(key.key).build()
-      Some(client.headObject(request).join().lastModified().toEpochMilli)
-    } catch {
-      case _: NoSuchKeyException => None
-    }
+    val request = HeadObjectRequest.builder().bucket(key.bucket).key(key.key).build()
+    client.headObject(request).handle[Option[Long]](noSuchKey(_.lastModified().toEpochMilli)).join()
   }
 
   override def create(path: URI): Option[OutputStream] = if (exists(path)) { None } else { Some(overwrite(path)) }
 
   override def overwrite(path: URI): OutputStream = {
     val key = parseS3Path(path)
-    val request = PutObjectRequest.builder().bucket(key.bucket).key(key.key).build()
-    val in = new PipedInputStream(writeBuffer)
-    val executor = new CachedThreadPool(1)
-    val body = AsyncRequestBody.fromInputStream(in, null /* length unknown */, executor)
-
-    new PipedOutputStream(in) {
-      private val response = client.putObject(request, body)
-      override def close(): Unit = {
-        try {
-          super.close()
-        } finally {
-          try {
-            response.join()
-          } finally  {
-            executor.shutdownNow()
-          }
-        }
-      }
-    }
+    buffer.write(key.bucket, key.key)
   }
 
   override def read(path: URI): Option[InputStream] = {
     val key = parseS3Path(path)
-    try {
-      val request =
-        DownloadRequest.builder()
-          .getObjectRequest(GetObjectRequest.builder().bucket(key.bucket).key(key.key).build())
-          .responseTransformer(AsyncResponseTransformer.toBlockingInputStream())
-          .build()
-      Some(transferManager.download(request).completionFuture().join().result())
-    } catch {
-      case _: NoSuchKeyException => None
-    }
+    val request =
+      DownloadRequest.builder()
+        .getObjectRequest(GetObjectRequest.builder().bucket(key.bucket).key(key.key).build())
+        .responseTransformer(AsyncResponseTransformer.toBlockingInputStream())
+        .build()
+    transferManager.download(request).completionFuture()
+      .handle[Option[InputStream]](noSuchKey(r => PathUtils.handleCompression(r.result(), path.toString)))
+      .join()
   }
 
   override def read(path: URI, format: ArchiveFormat): CloseableIterator[NamedInputStream] = {
     val iter = format match {
       case ArchiveFormat.Tar =>
         CloseableIterator(read(path).iterator).flatMap { is =>
-          val uncompressed = PathUtils.handleCompression(is, path.toString)
           val archive: ArchiveInputStream[_ <: ArchiveEntry] =
-            S3ObjectStore.archiveFactory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
+            S3ObjectStore.archiveFactory.createArchiveInputStream(ArchiveStreamFactory.TAR, is)
           new ArchiveFileIterator(archive, path.toString)
         }
 
@@ -132,7 +108,7 @@ class S3ObjectStore(val client: S3AsyncClient, writeBuffer: Int = 1048576) exten
         // note: there is a potential way to wrap the request in a Seekable Channel using
         // https://github.com/awslabs/aws-java-nio-spi-for-s3/, but it doesn't seem worthwhile assuming
         // we end up reading the whole file
-        val name = ObjectStore.filename(path)
+        val name = filename(path)
         val tmp = Files.createTempFile(FilenameUtils.removeExtension(name), FilenameUtils.getExtension(name))
         CloseableIterator(read(path).iterator).flatMap { is =>
           WithClose(is)(IOUtils.copy(_, new FileOutputStream(tmp.toFile)))
@@ -157,10 +133,10 @@ class S3ObjectStore(val client: S3AsyncClient, writeBuffer: Int = 1048576) exten
     val key = parseS3Path(path)
     // ensure prefix ends with '/' to target only items inside it
     val prefix = if (key.key.endsWith("/")) { key.key } else { key.key + "/" }
-    list(path, key.bucket, prefix, null)
+    list(path.getScheme, key.bucket, prefix, null)
   }
 
-  private def list(path: URI, bucket: String, prefix: String, continuation: String): CloseableIterator[URI] = {
+  private def list(scheme: String, bucket: String, prefix: String, continuation: String): CloseableIterator[URI] = {
     val request =
       ListObjectsV2Request.builder()
         .bucket(bucket)
@@ -169,11 +145,11 @@ class S3ObjectStore(val client: S3AsyncClient, writeBuffer: Int = 1048576) exten
         .continuationToken(continuation)
         .build()
     val response = client.listObjectsV2(request).join()
-    val files = response.contents().asScala.map(o => new URI(s"${path.getScheme}://$bucket/${o.key()}"))
-    val folders = response.commonPrefixes().asScala.map(p => new URI(p.prefix()))
-    val results = CloseableIterator.wrap(files ++ folders)
+    val files = response.contents().asScala.map(_.key())
+    val folders = response.commonPrefixes().asScala.map(_.prefix())
+    val results = CloseableIterator.wrap(files ++ folders).map(key => new URI(s"$scheme://$bucket/$key"))
     if (response.isTruncated) {
-      results.concat(list(path, bucket, prefix, response.continuationToken()))
+      results.concat(list(scheme, bucket, prefix, response.continuationToken()))
     } else {
       results
     }
@@ -203,55 +179,37 @@ class S3ObjectStore(val client: S3AsyncClient, writeBuffer: Int = 1048576) exten
   }
 
   override def close(): Unit = CloseWithLogging(client, transferManager)
+
+  /**
+   * Helper method to handle missing key errors in completable futures
+   *
+   * @param resultTransform success result
+   * @return
+   */
+  private def noSuchKey[T, U](resultTransform: T => U): BiFunction[T, Throwable, Option[U]] = { (result, error) =>
+    if (error == null) {
+      Option(resultTransform(result))
+    } else {
+      val unwrapped = error match {
+        case e: CompletionException => e.getCause
+        case _ => error
+      }
+      unwrapped match {
+        case e: S3Exception if e.statusCode() == 404 => None
+        case _: NoSuchKeyException => None
+        case _ => throw error
+      }
+    }
+  }
 }
 
 object S3ObjectStore {
-
-  import pureconfig.generic.auto._
-
-  import scala.collection.JavaConverters._
 
   val Type = "s3"
 
   private val archiveFactory = new ArchiveStreamFactory()
 
-  // noinspection ScalaUnusedSymbol
-  private implicit val productHint: ProductHint[S3ObjectStoreConfig] =
-    ProductHint[S3ObjectStoreConfig](ConfigFieldMapping(CamelCase, KebabCase).withOverrides("s3Endpoint" -> "s3-endpoint"))
-
-  // noinspection ScalaUnusedSymbol
-  private implicit val awsRegionConfigReader: ConfigReader[Region] =
-    ConfigReader.fromString { s =>
-      Try(Region.of(s)).toEither
-        .left.map(_ => CannotConvert(s, "Region", s"Must be one of: ${Region.regions().asScala.mkString(", ")}"))
-    }
-
-  // noinspection ScalaUnusedSymbol
-  private implicit val retryModeConfigReader: ConfigReader[RetryMode] =
-    enumReader(classOf[RetryMode])
-
-  // noinspection ScalaUnusedSymbol
-  private implicit val requestChecksumCalculationConfigReader: ConfigReader[RequestChecksumCalculation] =
-    enumReader(classOf[RequestChecksumCalculation])
-
-  // noinspection ScalaUnusedSymbol
-  private implicit val responseChecksumCalculationConfigReader: ConfigReader[ResponseChecksumValidation] =
-    enumReader(classOf[ResponseChecksumValidation])
-
-  // noinspection ScalaUnusedSymbol
-  private implicit val JavaDurationConfigReader: ConfigReader[Duration] =
-    ConfigReader.fromNonEmptyString[Duration](s =>
-      Try(Duration.ofMillis(scala.concurrent.duration.Duration(s).toMillis))
-        .toEither.left.map(e => CannotConvert(s, classOf[Duration].getName, e.toString)))
-
-  private def enumReader[T <: Enum[T]](clas: Class[T]): ConfigReader[T] = {
-    ConfigReader.fromString { s =>
-      Try(Enum.valueOf[T](clas, s.toUpperCase(Locale.US))).toEither
-        .left.map(_ => CannotConvert(s, clas.getSimpleName, s"Must be one of: ${clas.getEnumConstants.mkString(", ")}"))
-    }
-  }
-
-  private def parseS3Path(path: URI): S3Path = {
+  def parseS3Path(path: URI): S3Path = {
     if (path.getScheme != "s3" && path.getScheme != "s3a") {
       throw new UnsupportedOperationException(s"Trying to use S3 to operate on a non-s3 URI: $path")
     }
@@ -265,27 +223,24 @@ object S3ObjectStore {
    * @return
    */
   def apply(conf: Map[String, String]): S3ObjectStore = {
-    val configSource =
-      ConfigFactory.parseMap(conf.asJava)
-        .withFallback(ConfigFactory.load())
-        .withFallback(s3aValues(conf))
-        .withFallback(ConfigFactory.load("s3-defaults"))
-        .resolve()
-
-    val config = ConfigSource.fromConfig(configSource).loadOrThrow[S3ObjectStoreConfig]
+    val config = S3ObjectStoreConfig(conf)
+    val bufferSize = org.locationtech.geomesa.utils.text.Suffixes.Memory.bytes(config.writeBufferInBytes).get
+    if (bufferSize > Int.MaxValue) {
+      throw new IllegalArgumentException(s"Buffer size exceeds max size in bytes (${Int.MaxValue}b): $bufferSize")
+    }
 
     val builder = S3AsyncClient.crtBuilder()
     // or AWS_REGION
     config.region.foreach(builder.region)
     // endpoint override (for MinIO, LocalStack, or other S3-compatible services)
-    config.s3Endpoint.foreach(builder.endpointOverride)
+    config.endpoint.foreach(builder.endpointOverride)
     // AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY, or ~/.aws/credentials
     config.accessKeyId.foreach { accessKeyId =>
       config.secretAccessKey.foreach { secretAccessKey =>
         builder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKeyId, secretAccessKey)))
       }
     }
-    if (config.pathStyleAccess) {
+    if (config.forcePathStyle) {
       builder.forcePathStyle(true) // path-style access, often needed for MinIO/LocalStack
     }
 
@@ -303,29 +258,31 @@ object S3ObjectStore {
 
     val client = builder.build()
 
-    new S3ObjectStore(client, config.writeBufferInBytes)
+    val buffering = try {
+      config.writeBuffering match {
+        case WriteBuffering.Disk => new DiskBuffering(client, bufferSize.toInt, new File(config.writeBufferDir))
+        case WriteBuffering.Memory => new MemoryBuffering(client, bufferSize.toInt)
+      }
+    } catch {
+      case NonFatal(e) => client.close(); throw e
+    }
+
+    new S3ObjectStore(client, buffering)
   }
 
-  private def s3aValues(conf: Map[String, String]): Config = {
-    val s3aConfig = new java.util.HashMap[String, String]()
-    conf.get("fs.s3a.access.key").foreach(s3aConfig.put("access-key-id", _))
-    conf.get("fs.s3a.secret.key").foreach(s3aConfig.put("secret-access-key", _))
-    conf.get("fs.s3a.endpoint").foreach(s3aConfig.put("s3-endpoint", _))
-    conf.get("fs.s3a.endpoint.region").foreach(s3aConfig.put("region", _))
-    conf.get("fs.s3a.path.style.access").foreach(s3aConfig.put("path-style-access", _))
-    conf.get("fs.s3a.attempts.maximum").foreach(s3aConfig.put("num-retries", _))
-    conf.get("fs.s3a.connection.timeout").foreach(ms => s3aConfig.put("connection-timeout", s"${ms}ms"))
-    conf.get("fs.s3a.connection.maximum").foreach(s3aConfig.put("max-concurrency", _)) // TODO think max-concurrency is per-request
-    conf.get("fs.s3a.socket.send.buffer").foreach(s3aConfig.put("write-buffer-in-bytes", _))
-    ConfigFactory.parseMap(s3aConfig)
+  object WriteBuffering extends Enumeration {
+    type WriteBuffering = Value
+    val Disk, Memory = Value
   }
+
+  case class S3Path(bucket: String, key: String)
 
   private case class S3ObjectStoreConfig(
     region: Option[Region],
-    s3Endpoint: Option[URI],
+    endpoint: Option[URI],
     accessKeyId: Option[String],
     secretAccessKey: Option[String],
-    pathStyleAccess: Boolean,
+    forcePathStyle: Boolean,
     numRetries: Option[Int],
     targetThroughputInGbps: Option[Double],
     minimumPartSizeInBytes: Option[Long],
@@ -337,11 +294,96 @@ object S3ObjectStore {
     initialReadBufferSizeInBytes: Option[Long],
     accelerate: Option[Boolean],
     thresholdInBytes: Option[Long],
-    writeBufferInBytes: Int,
+    writeBuffering: WriteBuffering,
+    writeBufferDir: String,
+    writeBufferInBytes: String,
   )
 
-  private case class S3Path(bucket: String, key: String)
+  private object S3ObjectStoreConfig {
 
+    import pureconfig.generic.auto._
+
+    import scala.collection.JavaConverters._
+
+    // noinspection ScalaUnusedSymbol
+    private implicit val productHint: ProductHint[S3ObjectStoreConfig] = {
+      val baseMapping = ConfigFieldMapping(CamelCase, KebabCase).withOverrides("s3Endpoint" -> "s3-endpoint")
+      val mapping = ConfigFieldMapping(s => "fs.s3." + baseMapping(s))
+      ProductHint[S3ObjectStoreConfig](mapping)
+    }
+
+    // noinspection ScalaUnusedSymbol
+    private implicit val awsRegionConfigReader: ConfigReader[Region] =
+      ConfigReader.fromString { s =>
+        Try(Region.of(s)).toEither
+          .left.map(_ => CannotConvert(s, "Region", s"Must be one of: ${Region.regions().asScala.mkString(", ")}"))
+      }
+
+    // noinspection ScalaUnusedSymbol
+    private implicit val retryModeConfigReader: ConfigReader[RetryMode] =
+      enumReader(classOf[RetryMode])
+
+    // noinspection ScalaUnusedSymbol
+    private implicit val requestChecksumCalculationConfigReader: ConfigReader[RequestChecksumCalculation] =
+      enumReader(classOf[RequestChecksumCalculation])
+
+    // noinspection ScalaUnusedSymbol
+    private implicit val responseChecksumCalculationConfigReader: ConfigReader[ResponseChecksumValidation] =
+      enumReader(classOf[ResponseChecksumValidation])
+
+    // noinspection ScalaUnusedSymbol
+    private implicit val javaDurationConfigReader: ConfigReader[Duration] =
+      ConfigReader.fromNonEmptyString[Duration](s =>
+        Try(Duration.ofMillis(scala.concurrent.duration.Duration(s).toMillis))
+          .toEither.left.map(e => CannotConvert(s, classOf[Duration].getName, e.toString)))
+
+    // noinspection ScalaUnusedSymbol
+    private implicit val writeBufferingReader: ConfigReader[WriteBuffering] =
+      ConfigReader.fromString { s =>
+        WriteBuffering.values.find(_.toString.equalsIgnoreCase(s)).toRight {
+          CannotConvert(s, "WriteBuffering", s"Must be one of: ${WriteBuffering.values.mkString(", ")}")
+        }
+      }
+
+    private def enumReader[T <: Enum[T]](clas: Class[T]): ConfigReader[T] = {
+      ConfigReader.fromString { s =>
+        Try(Enum.valueOf[T](clas, s.toUpperCase(Locale.US))).toEither
+          .left.map(_ => CannotConvert(s, clas.getSimpleName, s"Must be one of: ${clas.getEnumConstants.mkString(", ")}"))
+      }
+    }
+
+    private val s3aConfigMappings = Map(
+      "fs.s3a.access.key"         -> "fs.s3.access-key-id",
+      "fs.s3a.secret.key"         -> "fs.s3.secret-access-key",
+      "fs.s3a.endpoint"           -> "fs.s3.endpoint",
+      "fs.s3a.endpoint.region"    -> "fs.s3.region",
+      "fs.s3a.path.style.access"  -> "fs.s3.force-path-style",
+      "fs.s3a.attempts.maximum"   -> "fs.s3.num-retries",
+      "fs.s3a.connection.maximum" -> "fs.s3.max-concurrency", // TODO think max-concurrency is per-request
+      "fs.s3a.connection.timeout" -> "fs.s3.connection-timeout",
+      "fs.s3a.multipart.size"     -> "fs.s3.write-buffer-in-bytes",
+      "fs.s3a.buffer.dir"         -> "fs.s3.write-buffer-dir"
+      //  ).foreach { ms =>
+      //    // this is supposed to be in ms but sometimes seems to include a unit?
+      //    if (ms.matches("^[0-9]+$")) {
+      //      s3aConfig.put("connection-timeout", s"${ms}ms")
+      //    } else {
+      //      s3aConfig.put("connection-timeout", ms)
+      //    }
+      //  }
+    )
+
+    def apply(conf: Map[String, String]): S3ObjectStoreConfig = {
+      val s3 = conf.flatMap { case (k, v) => s3aConfigMappings.get(k).map(_ -> v) }.asJava
+      val configSource =
+        ConfigValueFactory.fromMap(conf.asJava).toConfig
+          .withFallback(ConfigFactory.load())
+          .withFallback(ConfigValueFactory.fromMap(s3))
+          .withFallback(ConfigFactory.load("s3-defaults"))
+          .resolve()
+      ConfigSource.fromConfig(configSource).loadOrThrow[S3ObjectStoreConfig]
+    }
+  }
   //<property>
   //  <name>fs.s3a.aws.credentials.provider</name>
   //  <description>

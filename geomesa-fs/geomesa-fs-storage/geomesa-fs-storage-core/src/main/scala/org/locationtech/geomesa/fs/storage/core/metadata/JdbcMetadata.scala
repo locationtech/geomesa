@@ -207,20 +207,20 @@ object JdbcMetadata extends LazyLogging {
   val MetadataType = "jdbc"
 
   object Config {
-    val UrlKey      = "jdbc.url"
-    val SchemaKey   = "jdbc.schema"
-    val PrefixKey   = "jdbc.table.prefix"
-    val DriverKey   = "jdbc.driver"
-    val UserKey     = "jdbc.user"
-    val PasswordKey = "jdbc.password"
+    val UrlKey      = "fs.metadata.jdbc.url"
+    val SchemaKey   = "fs.metadata.jdbc.schema"
+    val PrefixKey   = "fs.metadata.jdbc.table.prefix"
+    val DriverKey   = "fs.metadata.jdbc.driver"
+    val UserKey     = "fs.metadata.jdbc.user"
+    val PasswordKey = "fs.metadata.jdbc.password"
 
-    val MinIdleKey      = "jdbc.pool.min-idle"
-    val MaxIdleKey      = "jdbc.pool.max-idle"
-    val MaxSizeKey      = "jdbc.pool.max-size"
-    val FairnessKey     = "jdbc.pool.fairness"
-    val TestOnBorrowKey = "jdbc.pool.test-on-borrow"
-    val TestOnCreateKey = "jdbc.pool.test-on-create"
-    val TestWhileIdlKey = "jdbc.pool.test-while-idle"
+    val MinIdleKey      = "fs.metadata.jdbc.pool.min-idle"
+    val MaxIdleKey      = "fs.metadata.jdbc.pool.max-idle"
+    val MaxSizeKey      = "fs.metadata.jdbc.pool.max-size"
+    val FairnessKey     = "fs.metadata.jdbc.pool.fairness"
+    val TestOnBorrowKey = "fs.metadata.jdbc.pool.test-on-borrow"
+    val TestOnCreateKey = "fs.metadata.jdbc.pool.test-on-create"
+    val TestWhileIdlKey = "fs.metadata.jdbc.pool.test-while-idle"
   }
 
   case class JdbcMetadataConfig(

@@ -23,13 +23,12 @@ import scala.util.control.NonFatal
 /**
  * Catalog for jdbc metadata
  *
- * @param context file system
- * @param config jdbc config
+ * @param context file system context
  */
-class JdbcMetadataCatalog(context: FileSystemContext, config: Map[String, String]) extends StorageMetadataCatalog {
+class JdbcMetadataCatalog(context: FileSystemContext) extends StorageMetadataCatalog {
 
   // fail fast if url is not defined or invalid
-  private val conf = JdbcMetadataConfig(config)
+  private val conf = JdbcMetadataConfig(context.conf)
   private val driver = JdbcMetadataCatalog.createConnectionFactory(conf)
   private val metaTable = new MetadataTable(conf.schema, conf.tablePrefix)
   private val root = context.root.toString

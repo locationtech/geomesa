@@ -27,7 +27,7 @@ import org.locationtech.geomesa.fs.storage.core.utils.{FileSize, FileSystemThrea
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQuietly, WithClose}
 import org.locationtech.jts.geom.{Envelope, Geometry}
 
 import java.io.{Closeable, Flushable}
@@ -65,7 +65,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
           case o => throw new IllegalArgumentException(s"Expected a FileSystemObserverFactory but got: ${o.getClass.getName}")
         }
         builder += observer
-        observer.init(context, metadata.sft)
+        observer.init(this)
       } catch {
         case NonFatal(e) => CloseQuietly(builder.result).foreach(e.addSuppressed); throw e
       }
@@ -73,7 +73,9 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
     builder.result
   }
 
-  val sizer: FileSize = new FileSize(context, metadata)
+  val fs = ObjectStore(context)
+
+  val sizer: FileSize = new FileSize(fs, metadata)
 
   /**
     * Get a reader for all relevant partitions
@@ -157,7 +159,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
 
     val destination = context.root.resolve(storageFile.file)
     logger.debug(s"Copying $file to $destination")
-    context.fs.copy(file, destination)
+    fs.copy(file, destination)
     metadata.addFile(storageFile)
     storageFile
   }
@@ -216,7 +218,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
       val failures = ArrayBuffer.empty[String]
       toCompact.foreach { file =>
         val path = context.root.resolve(file.file)
-        if (Try(context.fs.delete(path)).isFailure) {
+        if (Try(fs.delete(path)).isFailure) {
           failures.append(file.file)
         }
       }
@@ -229,7 +231,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
     }
   }
 
-  override def close(): Unit = metadata.close()
+  override def close(): Unit = CloseWithLogging(metadata, fs)
 
   /**
    * Create a writer for the given file
@@ -295,7 +297,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
 
     targetFileSize match {
       case None => pathAndWriter._2
-      case Some(s) => new ChunkedFileSystemWriter(context.fs, Iterator.continually(pathAndWriter), sizer.estimator(s))
+      case Some(s) => new ChunkedFileSystemWriter(fs, Iterator.continually(pathAndWriter), sizer.estimator(s))
     }
   }
 }

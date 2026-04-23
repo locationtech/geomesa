@@ -19,6 +19,7 @@ import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetStorageConfiguration
+import org.locationtech.geomesa.fs.storage.jobs.s3a.S3Utils
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.CompactionMapper
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
@@ -36,11 +37,8 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
   import FileSystemCompactionJob.{FailedCounter, MappedCounter}
 
-  import scala.collection.JavaConverters._
-
   def run(
       storage: FileSystemStorage,
-      metadataConfig: Option[Properties],
       partitions: Seq[Partition],
       targetFileSize: Option[Long],
       tempPath: Option[Path],
@@ -74,11 +72,9 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     StorageConfiguration.setSft(job.getConfiguration, storage.metadata.sft)
     StorageConfiguration.setPartitions(job.getConfiguration, partitions)
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Compacted)
-    StorageConfiguration.setMetadataType(job.getConfiguration, storage.metadata.`type`)
-    metadataConfig.foreach(c => StorageConfiguration.setMetadataConfig(job.getConfiguration, c.asScala.toMap))
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
-    FileOutputFormat.setOutputPath(job, tempPath.getOrElse(new Path(storage.context.root)))
+    FileOutputFormat.setOutputPath(job, tempPath.getOrElse { new Path(S3Utils.hadoopCompatbleUri(storage.context.root)) })
 
     // MapReduce options
     job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
@@ -115,7 +111,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
           val count = Option(job.getCounters.findCounter(StorageConfiguration.Counters.Group, counter)).map(_.getValue)
           files.foreach { f =>
             storage.metadata.removeFile(f)
-            storage.context.fs.delete(storage.context.root.resolve(f.file))
+            storage.fs.delete(storage.context.root.resolve(f.file))
           }
           val removed = count.map(c => s"containing $c features ").getOrElse("")
           Command.user.info(s"Removed ${TextTools.getPlural(files.size, "file")} ${removed}in partition $name")
