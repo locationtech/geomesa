@@ -21,8 +21,8 @@ here are FileSystem-specific.
 General Arguments
 -----------------
 
-Most commands require the ``--path`` argument, to specify the root storage path. Hadoop configuration properties can
-be passed in using ``--config``, which can be used to specify e.g. s3a-related properties.
+Most commands require the ``--path`` argument, to specify the root storage path. Configuration properties can
+be passed in using ``--config`` or ``--config-file``, which can be used to specify e.g. s3-related properties.
 
 The ``--auths`` argument corresponds to the data store parameter ``geomesa.security.auths``. See
 :ref:`data_security` for more information.
@@ -65,7 +65,6 @@ Argument                 Description
 ``-q, --cql``            CQL predicate to determine the partitions to operate on
 ``--partitions``         Partitions to operate on
 ``--no-header``          Suppress the column headers in the output
-``--config``             Hadoop configuration properties, in the form key=value
 ======================== =========================================================
 
 At least one of ``--cql`` or ``--partitions`` must be specified, to select the partitions being operated on.
@@ -112,20 +111,17 @@ All data and metadata will be stored in the filesystem under the hierarchy of th
 Argument                 Description
 ======================== =============================================================
 ``-p, --path *``         The filesystem root path used to store data
-``-e, --encoding``       The encoding used for the underlying files. Implementations are provided for ``parquet`` and ``orc``.
-``--partition-scheme``   Common partition scheme name (e.g. daily, z2) or path to a file containing a scheme config
+``--partition-scheme``   Partition schemes
 ``--num-reducers``       Number of reducers to use (required for distributed ingest)
-``--leaf-storage``       Use leaf storage
 ``--target-file-size``   Target size for data files (e.g. 500MB or 1GB)
 ``--temp-path``          Path to a temp directory used for working files
 ``--storage-opt``        Additional storage options to set as SimpleFeatureType user data, in the form ``key=value``
 ======================== =============================================================
 
-If the schema does not already exist, then ``--encoding`` and ``--partition-scheme`` are required, otherwise
-they may be omitted.
+If the schema does not already exist, then ``--partition-scheme`` is required, otherwise it may be omitted.
 
-The ``--partition-scheme`` argument should be the well-known name of a provided partition scheme, or the name
-of a file containing a partition scheme. See :ref:`fsds_partition_schemes` for more information.
+The ``--partition-scheme`` argument should be the well-known name of a provided partition scheme. See
+:ref:`fsds_partition_schemes` for more information.
 
 The ``--num-reducers`` should generally be set to half the number of partitions.
 
@@ -159,7 +155,8 @@ Argument                 Description
 ~~~~~~~~~~~~
 
 The ``register`` sub-command will add metadata associated with a particular file. When new data files are created through some
-external bulk process, then they must be registered using this command before they are queryable.
+external bulk process, then they must be registered using this command before they are queryable. Note that generally
+files must already be in the same filesystem in order to be registered.
 
 ======================== =====================================================================================================
 Argument                 Description

@@ -68,7 +68,7 @@ object ReceiptTimeScheme extends PartitionSchemeFactory {
     val BufferOpt        : String = "buffer"
   }
 
-  override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
+  override def load(sft: SimpleFeatureType, scheme: String): Option[ReceiptTimeScheme] = {
     val opts = SchemeOpts(scheme)
     if (opts.name != Name) { None } else {
       val buffer = opts.opts.get(Config.BufferOpt).map(Duration.apply).getOrElse(Duration(30, TimeUnit.MINUTES))

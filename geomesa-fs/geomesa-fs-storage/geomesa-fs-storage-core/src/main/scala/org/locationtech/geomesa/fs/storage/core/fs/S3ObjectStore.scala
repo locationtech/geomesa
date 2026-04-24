@@ -368,6 +368,7 @@ object S3ObjectStore {
       "fs.s3a.endpoint.region"    -> "fs.s3.region",
       "fs.s3a.path.style.access"  -> "fs.s3.force-path-style",
       "fs.s3a.attempts.maximum"   -> "fs.s3.num-retries",
+      // TODO try increasing this and see if it works for the older version?
       "fs.s3a.connection.maximum" -> "fs.s3.max-concurrency", // TODO think max-concurrency is per-request
       "fs.s3a.connection.timeout" -> "fs.s3.connection-timeout",
       "fs.s3a.multipart.size"     -> "fs.s3.write-buffer-in-bytes",

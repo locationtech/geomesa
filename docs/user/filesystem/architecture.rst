@@ -2,7 +2,7 @@ Architecture
 ============
 
 The GeoMesa FileSystem Datastore (GeoMesa FSDS) takes advantage of the performance characteristics of modern
-cloud-native and distributed filesystems to scale bulk analytic queries. The FSDS is a good choice for doing bulk egress
+cloud-native object stores to scale bulk analytic queries. The FSDS is a good choice for doing bulk egress
 queries or large analytic jobs using frameworks such as Spark SQL and MapReduce. The FSDS differs from other datastores
 in that ingest and point query latencies are traded for high-throughput query performance. The FSDS pairs well with
 low-latency ingest and cache-based datastores systems such as HBase or Kafka to provide an optimal pairing of "hot" and
@@ -17,23 +17,12 @@ The GeoMesa FSDS consists of a few primary components:
 FileSystem
 ----------
 
-GeoMesa FSDS can utilize any filesystem that implements the Hadoop FileSystem API. The most common filesystems used
-with GeoMesa FSDS are:
+GeoMesa FSDS currently supports the following filesystems:
 
-* **HDFS** - Hadoop Distributed File System
 * **S3** - Amazon Simple Storage
-* **GCS** - Google Cloud Storage
-* **WASB** - Windows Azure Blob Storage
 * **Local** - Locally mounted file system (e.g. local disk or NFS)
 
-Choosing a filesystem depends generally on cost and performance requirements. One thing to note is that S3, GCS, and
-WASB are all "cloud-native" storage meaning that they are built into Amazon, Google, and Microsoft Azure cloud
-platforms. These cloud-native filesystems are scaled separately from the compute nodes which generally provides a more
-cost efficient storage solution. Compared to HDFS, their price per GB of storage is lower but their latency is
-higher. They also have the ability to persist data after you turn off all your compute nodes.
-
-Any of the filesystems mentioned about are good choices for the FSDS. If you have more questions about making a choice
-contact the `GeoMesa team <https://github.com/locationtech/geomesa#join-the-community>`__
+Support for additional object stores may be added in the future.
 
 Partition Schemes
 -----------------
@@ -53,8 +42,8 @@ see :ref:`fsds_metadata`.
 Storage Formats
 ---------------
 
-* **Apache Parquet** - Apache Parquet is the leading interoperable columnar format in the Hadoop ecosystem. It
-  provides efficient compression, storage, and query of structured data.
+* **Apache Parquet** - Apache Parquet is the leading interoperable columnar format. It provides efficient compression,
+  storage, and query of structured data.
 
 * **Converter Storage** - The converter storage format is a synthetic format which allows you to overlay a GeoMesa
   converter on top of a filesystem using a defined partition scheme. This allows you to utilize existing data stored

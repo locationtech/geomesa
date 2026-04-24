@@ -37,7 +37,9 @@ import scala.util.control.NonFatal
  */
 class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
     extends FileSystemStorage(context, metadata, ParquetFileSystemStorage.FileExtension) {
-
+// TODO ZSTD?
+// TODO compact preserve sort order
+// TODO __bbox__ field can't be used for partition pruning since it's a struct - potentially can flatten it? verify if we have other filtering
   import scala.collection.JavaConverters._
 
   private val authProvider: AuthorizationsProvider =

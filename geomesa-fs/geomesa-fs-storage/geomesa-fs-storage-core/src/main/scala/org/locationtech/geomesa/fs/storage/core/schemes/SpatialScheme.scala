@@ -86,7 +86,10 @@ object SpatialScheme {
       }
 
       if (opts.name == this.name) {
-        build(opts.getSingle("bits").map(_.toShort).getOrElse(2.toShort))
+        val bits = opts.getSingle("bits").map(_.toShort).getOrElse {
+          throw new IllegalArgumentException(s"Spatial schemes requires a resolution to be specified with 'bits=<resolution>'")
+        }
+        build(bits)
       } else if (matcher.matches()) {
         build(matcher.group(1).toShort)
       } else {

@@ -57,25 +57,18 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
 
   val ConfigParam =
     new GeoMesaParam[Properties](
-      "fs.config",
+      "fs.config.properties",
       "Configuration options, in Java properties format",
       supportsNiFiExpressions = true,
       readWrite = ReadWriteFlag.ReadWrite,
     )
 
-  val ConfigPathsParam =
+  val ConfigFileParam =
     new GeoMesaParam[String](
-      "fs.config.paths",
-      "Additional Hadoop configuration resource files (comma-delimited)",
-      supportsNiFiExpressions = true
-    )
-
-  val ConfigXmlParam =
-    new GeoMesaParam[String](
-      "fs.config.xml",
-      "Additional Hadoop configuration properties, as a standard XML `<configuration>` element",
-      largeText = true,
-      supportsNiFiExpressions = true
+      "fs.config.file",
+      "A file containing configuration options, in Java properties format",
+      supportsNiFiExpressions = true,
+      readWrite = ReadWriteFlag.ReadWrite,
     )
 
   val ReadThreadsParam =
@@ -98,4 +91,21 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
     )
 
   val QueryTimeoutParam: GeoMesaParam[Duration] = GeoMesaDataStoreFactory.QueryTimeoutParam
+
+  @deprecated("Use fs.config.properties and/or fs.config.file")
+  private[data] val ConfigPathsParam =
+    new GeoMesaParam[String](
+      "fs.config.paths",
+      "Additional Hadoop configuration resource files (comma-delimited)",
+      supportsNiFiExpressions = true
+    )
+
+  @deprecated("Use fs.config.properties and/or fs.config.file")
+  private[data] val ConfigXmlParam =
+    new GeoMesaParam[String](
+      "fs.config.xml",
+      "Additional Hadoop configuration properties, as a standard XML `<configuration>` element",
+      largeText = true,
+      supportsNiFiExpressions = true
+    )
 }

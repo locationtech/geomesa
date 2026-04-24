@@ -66,7 +66,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
   )
   lazy val params = Map(
     "fs.path" -> path,
-    "fs.config" -> configFlags.map { case (k, v) => s"$k=$v" }.mkString("\n")
+    "fs.config.properties" -> configFlags.map { case (k, v) => s"$k=$v" }.mkString("\n")
   )
 
   def features(sft: SimpleFeatureType): Seq[ScalaSimpleFeature] = {

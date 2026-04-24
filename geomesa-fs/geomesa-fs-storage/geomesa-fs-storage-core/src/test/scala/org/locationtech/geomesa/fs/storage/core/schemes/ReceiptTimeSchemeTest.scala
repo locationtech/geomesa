@@ -25,11 +25,11 @@ class ReceiptTimeSchemeTest extends SpecificationWithJUnit {
   "ReceiptTimeScheme" should {
 
     "load from conf with named datetime scheme" in {
-      val scheme = PartitionSchemeFactory.load(sft, "receipt-time:buffer=60 minutes:datetime-scheme=daily")
-      scheme must beAnInstanceOf[ReceiptTimeScheme]
-      scheme.asInstanceOf[ReceiptTimeScheme].buffer mustEqual Duration(60, TimeUnit.MINUTES)
-      scheme.asInstanceOf[ReceiptTimeScheme].dtg mustEqual "dtg"
-      scheme.asInstanceOf[ReceiptTimeScheme].pattern mustEqual "yyyy/MM/dd"
+      val scheme = ReceiptTimeScheme.load(sft, "receipt-time:buffer=60 minutes:datetime-scheme=daily").orNull
+      scheme must not(beNull)
+      scheme.buffer mustEqual Duration(60, TimeUnit.MINUTES)
+      scheme.dtg mustEqual "dtg"
+      scheme.pattern mustEqual "yyyy/MM/dd"
     }
 
     "load from conf with configured datetime scheme" in {
@@ -49,15 +49,16 @@ class ReceiptTimeSchemeTest extends SpecificationWithJUnit {
       sft.setScheme(conf)
       val names = sft.removeScheme().fold(null: String)(_.headOption.orNull)
       names must not(beNull)
-      val scheme = PartitionSchemeFactory.load(sft, names)
-      scheme must beAnInstanceOf[ReceiptTimeScheme]
-      scheme.asInstanceOf[ReceiptTimeScheme].buffer mustEqual Duration(60, TimeUnit.MINUTES)
-      scheme.asInstanceOf[ReceiptTimeScheme].dtg mustEqual "dtg"
-      scheme.asInstanceOf[ReceiptTimeScheme].pattern mustEqual "yyyy"
+      val scheme = ReceiptTimeScheme.load(sft, names).orNull
+      scheme must not(beNull)
+      scheme.buffer mustEqual Duration(60, TimeUnit.MINUTES)
+      scheme.dtg mustEqual "dtg"
+      scheme.pattern mustEqual "yyyy"
     }
 
     "buffer filters appropriately" in {
-      val ps = PartitionSchemeFactory.load(sft, "receipt-time:buffer=60 minutes:datetime-scheme=daily")
+      val ps = ReceiptTimeScheme.load(sft, "receipt-time:buffer=60 minutes:datetime-scheme=daily").orNull
+      ps must not(beNull)
 
       val filtersAndResults = Seq(
         ("dtg == '2024-01-02T00:01:00.000Z'", Seq(PartitionRange(ps.name, "2024/01/01", "2024/01/03"))),
@@ -77,7 +78,8 @@ class ReceiptTimeSchemeTest extends SpecificationWithJUnit {
     }
 
     "buffer inverted filters appropriately" in {
-      val ps = PartitionSchemeFactory.load(sft, "receipt-time:buffer=60 minutes:datetime-scheme=daily")
+      val ps = ReceiptTimeScheme.load(sft, "receipt-time:buffer=60 minutes:datetime-scheme=daily").orNull
+      ps must not(beNull)
 
       val filters = Seq(
         "not(dtg during 2024-01-02T12:00:00.000Z/2024-01-02T13:00:00.000Z)",

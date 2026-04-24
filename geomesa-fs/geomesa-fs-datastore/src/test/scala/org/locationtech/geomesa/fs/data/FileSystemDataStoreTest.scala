@@ -80,31 +80,29 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
     "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-07T04:04:00.0000Z and bbox(geom, 5, 5, 15, 15)"
   ).map(ECQL.toFilter)
 
-  private val gzip = "<configuration><property><name>parquet.compression</name><value>gzip</value></property></configuration>"
-
   private val container =
     new PostgreSQLContainer(DockerImageName.parse("postgres").withTag(sys.props("postgres.docker.tag")).asCompatibleSubstituteFor("postgres"))
       .withDatabaseName("postgres") // if we don't set the default db/name to postgres, the startup check fails as it restarts 3 times instead of the expected 2
       .withUsername("postgres")
 
   private lazy val jdbcConfig =
-    s"""fs.metadata.jdbc.url=${container.getJdbcUrl}
+    s"""fs.metadata.type=jdbc
+       |fs.metadata.jdbc.url=${container.getJdbcUrl}
        |fs.metadata.jdbc.user=${container.getUsername}
        |fs.metadata.jdbc.password=${container.getPassword}
+       |parquet.compression=gzip
        |""".stripMargin
 
   private lazy val dsParams = Seq(
     Map(
       "fs.path" -> s"${dir.getPath}/file",
       "fs.metadata.type" -> "file",
-      "fs.config.xml" -> gzip,
+      "fs.config.properties" -> "parquet.compression=gzip",
       "geomesa.security.auths" -> "user",
     ),
     Map(
       "fs.path" -> s"${dir.getPath}/jdbc",
-      "fs.metadata.type" -> "jdbc",
-      "fs.config" -> jdbcConfig,
-      "fs.config.xml" -> gzip,
+      "fs.config.properties" -> jdbcConfig,
       "geomesa.security.auths" -> "user",
     ),
   )

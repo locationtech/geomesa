@@ -12,7 +12,7 @@ package metadata
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.PartitionSchemeFactory
-import org.locationtech.geomesa.fs.storage.core.schemes.HierarchicalDateTimeScheme
+import org.locationtech.geomesa.fs.storage.core.schemes.{HierarchicalDateTimeScheme, ReceiptTimeScheme}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 
 /**
@@ -45,8 +45,10 @@ class ConverterMetadataCatalog(context: FileSystemContext) extends StorageMetada
     }
     partitionSchemeName.split(",").map { n =>
       val nameWithOpts = s"$n:$partitionSchemeOpts"
-      // back-compatible hierarchical date check
-      HierarchicalDateTimeScheme.load(sft, nameWithOpts).getOrElse(PartitionSchemeFactory.load(sft, nameWithOpts))
+      // expose hierarchical/receipt time schemes (only used by the converter metadata)
+      HierarchicalDateTimeScheme.load(sft, nameWithOpts)
+        .orElse(ReceiptTimeScheme.load(sft, nameWithOpts))
+        .getOrElse(PartitionSchemeFactory.load(sft, nameWithOpts))
     }
   }
 

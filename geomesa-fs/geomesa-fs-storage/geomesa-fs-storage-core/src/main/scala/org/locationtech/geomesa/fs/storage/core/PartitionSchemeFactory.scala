@@ -30,7 +30,7 @@ trait PartitionSchemeFactory {
 object PartitionSchemeFactory {
 
   lazy private val factories =
-    Seq(AttributeScheme, DateTimeScheme, FlatScheme, HashScheme, ReceiptTimeScheme, XZ2Scheme, Z2Scheme) ++
+    Seq(AttributeScheme, DateTimeScheme, FlatScheme, HashScheme, XZ2Scheme, Z2Scheme) ++
       ServiceLoader.load[PartitionSchemeFactory]()
 
 

@@ -37,8 +37,6 @@ class MigrateMetadataCommandTest extends Specification with BeforeAfterAll with 
 
   private var dir: File = _
 
-  private val gzip = "<configuration><property><name>parquet.compression</name><value>gzip</value></property></configuration>"
-
   private val container =
     new PostgreSQLContainer(DockerImageName.parse("postgres").withTag(sys.props("postgres.docker.tag")).asCompatibleSubstituteFor("postgres"))
       .withDatabaseName("postgres") // if we don't set the default db/name to postgres, the startup check fails as it restarts 3 times instead of the expected 2
@@ -46,19 +44,19 @@ class MigrateMetadataCommandTest extends Specification with BeforeAfterAll with 
 
   private lazy val commonParams = Map(
     "fs.path" -> dir.getPath,
-    "fs.config.xml" -> gzip,
   )
 
   private lazy val fileParams = commonParams ++ Map(
-    "fs.metadata.type" -> "file",
+    "fs.config.properties" -> "fs.metadata.type=file\nparquet.compression=gzip"
   )
 
   private lazy val jdbcParams = commonParams ++ Map(
-    "fs.metadata.type" -> "jdbc",
-    "fs.config" -> s"""fs.metadata.jdbc.url=${container.getJdbcUrl}
-                      |fs.metadata.jdbc.user=${container.getUsername}
-                      |fs.metadata.jdbc.password=${container.getPassword}
-                      |""".stripMargin
+    "fs.config.properties" -> s"""fs.metadata.type=jdbc
+                                 |fs.metadata.jdbc.url=${container.getJdbcUrl}
+                                 |fs.metadata.jdbc.user=${container.getUsername}
+                                 |fs.metadata.jdbc.password=${container.getPassword}
+                                 |parquet.compression=gzip
+                                 |""".stripMargin
   )
 
   private lazy val sft =

@@ -11,7 +11,7 @@ Configuration
 -------------
 
 Converter mode requires several properties to be specified in the data store configuration. These can be set using
-``fs.config.paths``, ``fs.config.xml``, or by modifying the default ``core-site.xml`` file in your Hadoop setup.
+the :ref:`fsds_parameters` ``fs.config.properties`` and ``fs.config.file``.
 
 ``fs.options.converter.path``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -79,7 +79,8 @@ Hierarchical Temporal Partitioning
 The standard temporal partition schemes supported by the FileSystem data store are somewhat opaque, as they correspond
 to a number of days (or weeks/years/etc) since the Unix epoch (1970/01/01). The converter mode supports an additional
 temporal scheme that uses standard date formatting, which may be easier to use with external processes. Note that where
-the names overlap, the hierarchical schemes will take precedence over the standard partition schemes.
+the names overlap, the hierarchical schemes will take precedence over the standard partition schemes (when using the converter
+store).
 
 Custom Scheme
 ^^^^^^^^^^^^^
