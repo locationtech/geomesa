@@ -18,12 +18,10 @@ import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
-import org.slf4j.LoggerFactory
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.MinIOContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.DockerImageName
 
 class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
@@ -54,7 +52,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
 
   val path = s"s3://$bucket/${getClass.getSimpleName}/"
 
-  var minio: MinIOContainer = _
+  val minio = new MinIOContainer(DockerImageName.parse("minio/minio").withTag(sys.props("minio.docker.tag")))
 
   lazy val configFlags = Map(
     "fs.metadata.type" -> "file",
@@ -79,11 +77,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
   }
 
   override def beforeAll(): Unit = {
-    minio =
-      new MinIOContainer(
-        DockerImageName.parse("minio/minio").withTag(sys.props.getOrElse("minio.docker.tag", "RELEASE.2024-10-29T16-01-48Z")))
     minio.start()
-    minio.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("minio")))
     minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName, minio.getPassword)
     minio.execInContainer("mc", "mb", s"localhost/$bucket")
 

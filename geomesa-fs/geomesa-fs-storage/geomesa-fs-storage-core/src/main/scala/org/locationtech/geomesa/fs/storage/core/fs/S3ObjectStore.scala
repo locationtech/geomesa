@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.storage.core.fs
 
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
 import org.apache.commons.io.{FilenameUtils, IOUtils}
@@ -308,7 +309,7 @@ object S3ObjectStore {
     writeBufferInBytes: String,
   )
 
-  private object S3ObjectStoreConfig {
+  private object S3ObjectStoreConfig extends LazyLogging {
 
     import pureconfig.generic.auto._
 
@@ -393,7 +394,30 @@ object S3ObjectStore {
           .withFallback(ConfigValueFactory.fromMap(s3))
           .withFallback(ConfigFactory.load("s3-defaults"))
           .resolve()
-      ConfigSource.fromConfig(configSource).loadOrThrow[S3ObjectStoreConfig]
+      val config = ConfigSource.fromConfig(configSource).loadOrThrow[S3ObjectStoreConfig]
+      logger.debug(
+        s"""S3 client configuration:
+           |  region=${config.region.getOrElse("")}
+           |  endpoint=${config.endpoint.getOrElse("")}
+           |  accessKeyId=${config.accessKeyId.fold("")(_ => "***")}
+           |  secretAccessKey=${config.secretAccessKey.fold("")(_ => "***")}
+           |  forcePathStyle=${config.forcePathStyle}
+           |  numRetries=${config.numRetries.getOrElse("")}
+           |  targetThroughputInGbps=${config.targetThroughputInGbps.getOrElse("")}
+           |  minimumPartSizeInBytes=${config.minimumPartSizeInBytes.getOrElse("")}
+           |  maxConcurrency=${config.maxConcurrency.getOrElse("")}
+           |  connectionTimeout=${config.connectionTimeout.getOrElse("")}
+           |  maxNativeMemoryLimitInBytes=${config.maxNativeMemoryLimitInBytes.getOrElse("")}
+           |  requestChecksumCalculation=${config.requestChecksumCalculation.getOrElse("")}
+           |  responseChecksumValidation=${config.responseChecksumValidation.getOrElse("")}
+           |  initialReadBufferSizeInBytes=${config.initialReadBufferSizeInBytes.getOrElse("")}
+           |  accelerate=${config.accelerate.getOrElse("")}
+           |  thresholdInBytes=${config.thresholdInBytes.getOrElse("")}
+           |  writeBuffering=${config.writeBuffering}
+           |  writeBufferDir=${config.writeBufferDir}
+           |  writeBufferInBytes=${config.writeBufferInBytes}""".stripMargin
+      )
+      config
     }
   }
 
