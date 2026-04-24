@@ -369,19 +369,10 @@ object S3ObjectStore {
       "fs.s3a.endpoint.region"    -> "fs.s3.region",
       "fs.s3a.path.style.access"  -> "fs.s3.force-path-style",
       "fs.s3a.attempts.maximum"   -> "fs.s3.num-retries",
-      // TODO try increasing this and see if it works for the older version?
       "fs.s3a.connection.maximum" -> "fs.s3.max-concurrency", // TODO think max-concurrency is per-request
       "fs.s3a.connection.timeout" -> "fs.s3.connection-timeout",
       "fs.s3a.multipart.size"     -> "fs.s3.write-buffer-in-bytes",
       "fs.s3a.buffer.dir"         -> "fs.s3.write-buffer-dir"
-      //  ).foreach { ms =>
-      //    // this is supposed to be in ms but sometimes seems to include a unit?
-      //    if (ms.matches("^[0-9]+$")) {
-      //      s3aConfig.put("connection-timeout", s"${ms}ms")
-      //    } else {
-      //      s3aConfig.put("connection-timeout", ms)
-      //    }
-      //  }
     )
 
     val s3aReverseConfigMappings: Map[String, String] = s3aConfigMappings.map { case (k, v) => v -> k }

@@ -31,6 +31,8 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
 
   import scala.collection.JavaConverters._
 
+  skipAllIf(true) // need an update to spark 4 to get compatible parquet jars
+
   private val sparkRuntimeJar =
     WithClose(Files.newDirectoryStream(Path.of(sys.props("maven.target.dir")), "geomesa-fs-spark*-runtime.jar")) { files =>
       val iter = files.iterator()
@@ -60,7 +62,7 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
       "fs.config.properties" ->
         s"""fs.metadata.type=file
            |fs.s3.region=us-east-1
-           |fs.s3.endpoint=http://minio:9000
+           |fs.s3.endpoint=${minio.getS3URL}
            |fs.s3.access-key-id=${minio.getUserName}
            |fs.s3.secret-access-key=${minio.getPassword}
            |fs.s3.force-path-style=true
