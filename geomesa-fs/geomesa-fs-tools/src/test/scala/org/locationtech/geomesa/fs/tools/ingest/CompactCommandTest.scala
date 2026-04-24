@@ -58,6 +58,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
 
   lazy val configFlags = Map(
     "fs.metadata.type" -> "file",
+    "fs.s3.region" -> "us-east-1",
     "fs.s3.endpoint" -> minio.getS3URL,
     "fs.s3.access-key-id" -> minio.getUserName,
     "fs.s3.secret-access-key" -> minio.getPassword,

@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.tools.`export`
 
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -28,7 +27,9 @@ import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
-import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, SimpleFeatureParquetSchema}
+import org.locationtech.geomesa.fs.storage.core.FileSystemContext
+import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
+import org.locationtech.geomesa.fs.storage.parquet.io.ParquetFileSystemReader
 import org.locationtech.geomesa.tools.`export`.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -37,6 +38,7 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
 import org.specs2.runner.JUnitRunner
 
 import java.io.{File, FileInputStream, FileWriter}
+import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.{Collections, Date}
@@ -272,9 +274,8 @@ class AccumuloExportCommandTest extends TestWithDataStore {
   }
 
   def readParquet(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val conf = new Configuration()
-    SimpleFeatureParquetSchema.setSft(conf, sft)
-    WithClose(new ParquetFileSystemReader(conf, new Path("/"), sft, FilterCompat.NOOP, None, _ => true, None).read(new Path("/", file))) { iter =>
+    val fsc = FileSystemContext.create(new URI("/"), Map.empty)
+    WithClose(new ParquetFileSystemReader(LocalObjectStore, fsc, sft, FilterCompat.NOOP, None, _ => true, None).read(new URI(s"file://$file"))) { iter =>
       iter.map(ScalaSimpleFeature.copy).toList
     }
   }
