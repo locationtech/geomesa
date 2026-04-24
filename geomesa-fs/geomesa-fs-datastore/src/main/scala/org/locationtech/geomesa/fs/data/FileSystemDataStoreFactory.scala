@@ -23,10 +23,11 @@ import org.locationtech.geomesa.utils.hadoop.HadoopUtils
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.awt.RenderingHints
-import java.io.{ByteArrayInputStream, File, FileInputStream, IOException}
+import java.io.{ByteArrayInputStream, IOException}
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.Collections
+import scala.util.control.NonFatal
 
 class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
@@ -62,11 +63,14 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
         conf.iterator().forEachRemaining { e => builder += e.getKey -> conf.get(e.getKey) } // re- .get to resolve envs
       }
       ConfigFileParam.lookupOpt(params).foreach { f =>
-        val file = new File(f)
-        if (!file.exists()) {
-          throw new IllegalArgumentException(s"Invalid parameter ${ConfigFileParam.key} - file does not exist: $f")
+        var uri = new URI(f)
+        if (uri.getScheme == null) {
+          uri = new URI("file", uri.getHost, uri.getPath, uri.getFragment)
         }
-        val asString = WithClose(new FileInputStream(file))(IOUtils.toString(_, StandardCharsets.UTF_8))
+        val asString = try { WithClose(uri.toURL.openStream())(IOUtils.toString(_, StandardCharsets.UTF_8)) } catch {
+          case NonFatal(e) =>
+            throw new IllegalArgumentException(s"Invalid parameter ${ConfigFileParam.key} - could not open file: $f", e)
+        }
         // use our properties parameter parsing to evaluate env vars
         ConfigParam.lookup(java.util.Map.of(ConfigParam.key, asString)).asScala.foreach { case (k, v) => builder += k -> v }
       }

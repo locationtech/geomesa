@@ -30,6 +30,7 @@ class GeoParquetExporter(path: String) extends FeatureExporter with LazyLogging 
       writer.close()
       writer = null
     }
+    // TODO make it easier to configure this in a manner consistent with the file system data store
     val hadoopConf = new Configuration()
     try { Class.forName("org.xerial.snappy.Snappy") } catch {
       case _: ClassNotFoundException =>

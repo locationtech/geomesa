@@ -129,6 +129,7 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
       val config = {
         val props = Seq(
           sftByName("fs-test"),
+          prop("fs.s3a.endpoint.region", "us-east-1"),
           prop("fs.s3a.endpoint", minio.getS3URL),
           prop("fs.s3a.access.key", minio.getUserName),
           prop("fs.s3a.secret.key", minio.getPassword),
@@ -170,16 +171,11 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
           types.head mustEqual "fs-test"
 
           foreach(Range(0, 5)) { _ =>
-            val count = try {
-              val q = new Query("fs-test", Filter.INCLUDE)
-              WithClose(CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)))(_.length)
-            } catch {
-              case e: RuntimeException => e.printStackTrace(); -1
-            }
+            val q = new Query("fs-test", Filter.INCLUDE)
             if (expectTimeout) {
-              count mustEqual -1
+              WithClose(CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)))(_.length) must throwAn[Exception]
             } else {
-              count mustEqual multiplier * 12
+              WithClose(CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)))(_.length) mustEqual multiplier * 12
             }
           }
         }

@@ -17,9 +17,8 @@ import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator, KeyValueConverter}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-import org.locationtech.geomesa.utils.io.WithClose
 
-import java.io.{File, FileReader, StringWriter}
+import java.io.{File, StringWriter}
 import java.util.Properties
 import scala.util.control.NonFatal
 
@@ -36,17 +35,15 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
     val builder = Map.newBuilder[String, String]
     builder += (FileSystemDataStoreParams.PathParam.key -> params.path)
     builder += (FileSystemDataStoreParams.MetadataTypeParam.key -> params.metadataType)
-    val props = new Properties()
-    if (params.configFile != null) {
-      WithClose(new FileReader(params.configFile))(props.load)
-    }
     if (!params.configuration.isEmpty) {
+      val props = new Properties()
       params.configuration.asScala.foreach { case (k, v) => props.put(k, v) }
-    }
-    if (!props.isEmpty) {
       val out = new StringWriter()
       props.store(out, null)
       builder += (FileSystemDataStoreParams.ConfigParam.key -> out.toString)
+    }
+    if (params.configFile != null) {
+      builder += (FileSystemDataStoreParams.ConfigFileParam.key -> params.configFile)
     }
     if (params.auths != null) {
       builder += (FileSystemDataStoreParams.AuthsParam.key -> params.auths)
@@ -91,7 +88,7 @@ object FsDataStoreCommand {
     @Parameter(
       names = Array("--config-file"),
       description = "Name of a configuration file, in Java properties format")
-    var configFile: File = _
+    var configFile: String = _
 
     @Parameter(
       names = Array("--config"),
