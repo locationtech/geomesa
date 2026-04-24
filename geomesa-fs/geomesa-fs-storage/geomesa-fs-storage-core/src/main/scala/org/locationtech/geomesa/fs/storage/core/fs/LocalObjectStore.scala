@@ -23,6 +23,9 @@ import java.nio.file.Path
 
 object LocalObjectStore extends LocalObjectStore
 
+/**
+ * Object store for local files
+ */
 trait LocalObjectStore extends ObjectStore {
 
   private lazy val archiveFactory = new ArchiveStreamFactory()

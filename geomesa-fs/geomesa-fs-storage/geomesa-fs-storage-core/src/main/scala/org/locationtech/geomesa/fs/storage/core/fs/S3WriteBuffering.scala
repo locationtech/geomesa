@@ -107,24 +107,24 @@ object S3WriteBuffering {
     private val uploads = ArrayBuffer.empty[CompletableFuture[UploadPartResponse]]
 
     override def write(data: Int): Unit = {
-      currentChunkSize += 1
       currentChunk.os.write(data)
+      currentChunkSize += 1
       if (currentChunkSize >= bufferSize) {
         closeChunk()
       }
     }
 
     override def write(data: Array[Byte]): Unit = {
-      currentChunkSize += data.length
       currentChunk.os.write(data)
+      currentChunkSize += data.length
       if (currentChunkSize >= bufferSize) {
         closeChunk()
       }
     }
 
     override def write(data: Array[Byte], off: Int, len: Int): Unit = {
-      currentChunkSize += len
       currentChunk.os.write(data, off, len)
+      currentChunkSize += len
       if (currentChunkSize >= bufferSize) {
         closeChunk()
       }

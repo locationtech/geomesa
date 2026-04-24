@@ -18,6 +18,7 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFea
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.PathFiltering
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.ArchiveFormat
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.net.URI
@@ -38,7 +39,7 @@ class ConverterFileSystemReader(
     if (pathFilter.forall(_.accept(new Path(file)))) {
       logger.debug(s"Opening file $file")
       val iter = try {
-        val streams = fs.format(file) match {
+        val streams = ArchiveFormat(file) match {
           case None => CloseableIterator.wrap(fs.read(file).map(fs.toString -> _).toIterator)
           case Some(f) => fs.read(file, f).map(a => (a.name, a.is))
         }
