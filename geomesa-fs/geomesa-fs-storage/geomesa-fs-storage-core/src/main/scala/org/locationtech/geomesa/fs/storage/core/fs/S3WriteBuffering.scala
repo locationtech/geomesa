@@ -150,7 +150,7 @@ object S3WriteBuffering {
         }
         val future = retry(currentChunk, uploads.size + 1, 2)
         uploads += future
-        future.whenCompleteAsync { case (_, _) => currentChunk.cleanup() }
+        future.whenCompleteAsync((_, _) => currentChunk.cleanup())
         logger.debug(s"Initiated part ${uploads.size} for upload with id $uploadId to $bucket/$key")
         if (done) {
           var partNumber = 0
