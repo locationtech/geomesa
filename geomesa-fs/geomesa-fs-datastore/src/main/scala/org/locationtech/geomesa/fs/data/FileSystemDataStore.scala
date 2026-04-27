@@ -16,8 +16,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
-import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.metadata.StorageMetadataCatalog
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, FileSystemStorageFactory, StorageMetadataCatalog}
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -55,8 +54,7 @@ class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: Sto
   }
 
   override def createSchema(original: SimpleFeatureType): Unit = {
-    import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
-
+    import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
     if (catalog.getTypeNames.contains(original.getTypeName)) {
       logger.warn(
         s"Schema already exists: ${SimpleFeatureTypes.encodeType(cache.get(original.getTypeName).metadata.sft, includeUserData = true)}")
@@ -103,7 +101,7 @@ class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: Sto
 
 object FileSystemDataStore {
   case class FileSystemDataStoreConfig(
-    context: FileSystemContext, // note, this is expected to be a shared resource, and is not cleaned up on data store dispose
+    context: FileSystemContext,
     readThreads: Int,
     writeTimeout: Duration,
     queryTimeout: Option[Duration],

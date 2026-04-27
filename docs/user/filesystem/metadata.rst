@@ -20,25 +20,25 @@ Relational Database Persistence
 -------------------------------
 
 Alternatively, metadata may be stored in a relational database through JDBC. A relational database may be
-specified by using the name ``jdbc``, and supports the following configuration options (required options are
-marked with ``*``):
+specified by using the name ``jdbc``, and supports the following configuration options, which can be specified
+through the :ref:`fsds_parameters` ``fs.config.properties`` and ``fs.config.file`` (required options are marked with ``*``):
 
-============================= ===================================================================================
-Key                           Description
-============================= ===================================================================================
-``jdbc.url *``                The JDBC connection URL, e.g. ``jdbc:postgresql://localhost/geomesa``
-``jdbc.driver``               The fully-qualified name of a JDBC driver class, e.g. ``org.postgresql.Driver``
-``jdbc.user``                 The database user used to create connections
-``jdbc.password``             The password for the database user
-``jdbc.pool.min-idle``        The minimum number of connections to keep idle in the database connection pool
-``jdbc.pool.max-idle``        The maximum number of connections to keep idle in the database connection pool
-``jdbc.pool.max-size``        The maximum size of the database connection pool
-``jdbc.pool.fairness``        Enable fairness when retrieving from the database connection pool (``true`` or
-                              ``false``)
-``jdbc.pool.test-on-borrow``  Test connections when retrieving them from the database connection pool (``true``
-                              or ``false``)
-``jdbc.pool.test-on-create``  Test connections when initially creating them (``true`` or ``false``)
-``jdbc.pool.test-while-idle`` Test idle connections in the database connection pool (``true`` or ``false``)
-============================= ===================================================================================
+========================================= ===================================================================================
+Key                                       Description
+========================================= ===================================================================================
+``fs.metadata.type *``                    Must be ``jdbc``. Can alternatively be specified through the data store parameter
+                                          ``fs.metadata.type``
+``fs.metadata.jdbc.url *``                The JDBC connection URL, e.g. ``jdbc:postgresql://localhost/geomesa``
+``fs.metadata.jdbc.driver``               The fully-qualified name of a JDBC driver class, e.g. ``org.postgresql.Driver``
+``fs.metadata.jdbc.user``                 The database user used to create connections
+``fs.metadata.jdbc.password``             The password for the database user
+``fs.metadata.jdbc.pool.min-idle``        The minimum number of connections to keep idle in the connection pool
+``fs.metadata.jdbc.pool.max-idle``        The maximum number of connections to keep idle in the connection pool
+``fs.metadata.jdbc.pool.max-size``        The maximum size of the connection pool
+``fs.metadata.jdbc.pool.fairness``        Boolean to enable fairness when retrieving from the connection pool
+``fs.metadata.jdbc.pool.test-on-borrow``  Boolean to enable testing connections when retrieved them from the connection pool
+``fs.metadata.jdbc.pool.test-on-create``  Boolean to enable testing connections when initially creating them
+``fs.metadata.jdbc.pool.test-while-idle`` Boolean to enable testing idle connections in the connection pool
+========================================= ===================================================================================
 
 Currently, only Postgres is officially supported. Other databases may work, but have not been tested.

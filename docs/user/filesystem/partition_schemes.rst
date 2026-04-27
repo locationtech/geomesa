@@ -26,7 +26,7 @@ The following options are supported:
 
 * ``attribute`` - The name of a ``Date``\ -type attribute from the SimpleFeatureType to use. If not specified, the default
   date attribute is used.
-* ``step`` - The number of time units (hours, days, etc) to include in each partition.
+* ``step`` - The number of time units (hours, days, etc) to include in each partition. If not specified, the default is ``1``.
 
 Spatial Schemes
 ---------------
@@ -36,12 +36,15 @@ Spatial schemes lay out data based on a space-filling curve. The following names
 * ``z2`` - A curve suitable for point-type geometries
 * ``xz2`` - A curve suitable for geometries with extents (e.g. non-points such as line strings or polygons)
 
+The following options is required:
+
+* ``bits`` - The number of bits to use for the curve, which defines the area of each partition. For example, 2 bits would
+  create ``2 ^ 2`` (4) regions, while 3 bits would create ``2 ^ 3`` (8) regions.
+
 The following options are supported:
 
 * ``attribute`` - The name of a ``Geometry``\ -type attribute from the SimpleFeatureType to use. If not specified, the
   default geometry is used.
-* ``bits`` - The number of bits to use for the curve, which defines the area of each partition. For example, 2 bits would
-  create ``2 ^ 2`` (4) regions, while 3 bits would create ``2 ^ 3`` (8) regions.
 
 Attribute Scheme
 ----------------

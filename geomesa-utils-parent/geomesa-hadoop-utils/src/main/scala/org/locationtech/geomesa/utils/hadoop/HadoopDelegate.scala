@@ -171,6 +171,7 @@ object HadoopDelegate extends LazyLogging {
         IOUtils.toByteArray(is)
       }
       new ZipFileIterator(new ZipFile(new SeekableInMemoryByteChannel(bytes)), file.toString)
+        .map { case (name, is) => Option(name) -> is }
     }
 
     override def write(mode: CreateMode): OutputStream =
@@ -182,7 +183,7 @@ object HadoopDelegate extends LazyLogging {
       val uncompressed = PathUtils.handleCompression(fs.open(file), file.getName)
       val archive: ArchiveInputStream[_ <: ArchiveEntry] =
         factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
-      new ArchiveFileIterator(archive, file.toString)
+      new ArchiveFileIterator(archive, file.toString).map { case (name, is) => Option(name) -> is }
     }
 
     override def write(mode: CreateMode): OutputStream =

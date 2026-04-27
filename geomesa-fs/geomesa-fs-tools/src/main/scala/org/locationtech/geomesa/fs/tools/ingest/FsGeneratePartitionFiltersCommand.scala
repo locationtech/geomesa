@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
+import org.locationtech.geomesa.fs.storage.core.Partition
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.ingest.FsGeneratePartitionFiltersCommand.FsGeneratePartitionFiltersParams

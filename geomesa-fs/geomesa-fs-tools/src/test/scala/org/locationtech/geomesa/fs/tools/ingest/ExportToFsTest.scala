@@ -8,17 +8,15 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
 import org.geotools.api.data.{DataStore, Query, SimpleFeatureStore}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.memory.MemoryDataStore
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.FileSystemContext
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
-import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataCatalog
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
+import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Partition}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.tools.`export`.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
@@ -57,8 +55,7 @@ class ExportToFsTest extends Specification with BeforeAfterAll {
           .addFeatures(new ListFeatureCollection(sft, features: _*))
 
       def storage() = {
-        val conf = new Configuration()
-        val context = FileSystemContext(new Path(out.toUri), conf)
+        val context = FileSystemContext.create(out.toUri, Map.empty)
         val metadata = new FileBasedMetadataCatalog(context).create(sft, Seq("daily"))
         new ParquetFileSystemStorageFactory().apply(context, metadata)
       }

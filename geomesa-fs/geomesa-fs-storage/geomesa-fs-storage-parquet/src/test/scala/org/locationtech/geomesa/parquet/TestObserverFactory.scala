@@ -8,18 +8,18 @@
 
 package org.locationtech.geomesa.parquet
 
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
+import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.parquet.TestObserverFactory.TestObserver
 
+import java.net.URI
 import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
 class TestObserverFactory extends FileSystemObserverFactory {
-  override def init(conf: Configuration, root: Path, sft: SimpleFeatureType): Unit = {}
-  override def apply(path: Path): FileSystemObserver = {
+  override def init(storage: FileSystemStorage): Unit = {}
+  override def apply(path: URI): FileSystemObserver = {
     val observer = new TestObserver(path)
     TestObserverFactory.observers += observer
     observer
@@ -34,12 +34,12 @@ object TestObserverFactory {
   val observers: scala.collection.mutable.Set[TestObserver] =
     Collections.synchronizedSet(new java.util.HashSet[TestObserver]()).asScala
 
-  class TestObserver(val path: Path) extends FileSystemObserver {
+  class TestObserver(val path: URI) extends FileSystemObserver {
 
     val features = ArrayBuffer.empty[SimpleFeature]
     var closed = false
 
-    override def write(feature: SimpleFeature): Unit = features += feature
+    override def apply(feature: SimpleFeature): Unit = features += feature
     override def flush(): Unit = {}
     override def close(): Unit = closed = true
   }

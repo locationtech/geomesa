@@ -84,24 +84,23 @@ Configuring Visibility Persistence
 
 GeoMesa will by default persist feature visibility flags as a column in the FSDS files. If feature visibilities are not being
 used, this may be disabled by settings ``geomesa.fs.visibilities`` to ``false``, either in the feature type user data
-or in any Hadoop configuration files.
+or in the ``fs.config.properties`` or ``fs.config.file`` data store parameters.
 
 Configuring Custom Observer Callbacks
 -------------------------------------
 
 The FSDS provides a mechanism to add custom handling during file writing. Users can implement observer factories,
 which will be invoked for each new file that is created. Observer factories must extend the trait
-``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``:
+``org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory``:
 
 .. code-block:: scala
 
-    package org.locationtech.geomesa.fs.storage.api.observer
+    package org.locationtech.geomesa.fs.storage.core.observer
 
-    import org.apache.hadoop.conf.Configuration
-    import org.apache.hadoop.fs.Path
-    import org.geotools.api.feature.simple.SimpleFeatureType
+    import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
 
     import java.io.Closeable
+    import java.net.URI
 
     /**
      * Factory for observing file writes
@@ -115,7 +114,7 @@ which will be invoked for each new file that is created. Observer factories must
        * @param root root path
        * @param sft simple feature type
        */
-      def init(conf: Configuration, root: Path, sft: SimpleFeatureType): Unit
+      def init(storage: FileSystemStorage): Unit
 
       /**
        * Create an observer for the given path
@@ -123,7 +122,7 @@ which will be invoked for each new file that is created. Observer factories must
        * @param path file path being written
        * @return
        */
-      def apply(path: Path): FileSystemObserver
+      def apply(path: URI): FileSystemObserver
     }
 
 .. note::
@@ -136,7 +135,6 @@ Observers can be specified through the user data key ``geomesa.fs.observers``:
 
     .. code-tab:: java
 
-        import org.locationtech.geomesa.fs.storage.common.interop.ConfigurationUtils;
         import java.util.Arrays;
         import java.util.Collections;
         import java.util.List;
@@ -144,14 +142,12 @@ Observers can be specified through the user data key ``geomesa.fs.observers``:
         SimpleFeatureType sft = ...
         List<String> factories =
           Arrays.asList("com.example.MyCustomObserverFactory", "com.example.MySecondObserverFactory");
-        // use the static utility method
-        ConfigurationUtils.setObservers(sft, factories);
-        // or set directly in the user data as a comma-delimited string
+        // set directly in the user data as a comma-delimited string
         sft.getUserData().put("geomesa.fs.observers", String.join(",", factories));
 
     .. code-tab:: scala
 
-        import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+        import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
 
         val sft: SimpleFeatureType = ???
         val factories = Seq("com.example.MyCustomObserverFactory", "com.example.MySecondObserverFactory")

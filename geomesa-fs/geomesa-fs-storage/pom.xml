@@ -17,9 +17,9 @@
     </properties>
 
     <modules>
-        <module>geomesa-fs-storage-api</module>
-        <module>geomesa-fs-storage-common</module>
+        <module>geomesa-fs-storage-core</module>
         <module>geomesa-fs-storage-convert</module>
+        <module>geomesa-fs-storage-jobs</module>
         <module>geomesa-fs-storage-parquet</module>
         <module>geomesa-fs-storage-parquet-io</module>
     </modules>

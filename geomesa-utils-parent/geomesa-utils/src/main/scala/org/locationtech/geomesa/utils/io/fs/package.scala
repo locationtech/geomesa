@@ -17,7 +17,7 @@ import scala.collection.mutable.ListBuffer
 
 package object fs {
 
-  class ZipFileIterator(zipfile: ZipFile, path: String) extends CloseableIterator[(Option[String], InputStream)]() {
+  class ZipFileIterator(zipfile: ZipFile, path: String) extends CloseableIterator[(String, InputStream)]() {
 
     private val entries = zipfile.getEntries
     private val open = ListBuffer.empty[InputStream]
@@ -33,12 +33,12 @@ package object fs {
       entry != null
     }
 
-    override def next(): (Option[String], InputStream) = {
+    override def next(): (String, InputStream) = {
       if (!hasNext) { Iterator.empty.next() } else {
         try {
           val is = zipfile.getInputStream(entry)
           open += is
-          Some(s"$path/${entry.getName}") -> is
+          s"$path/${entry.getName}" -> is
         } finally {
           entry = null
         }
@@ -52,7 +52,7 @@ package object fs {
   }
 
   class ArchiveFileIterator(archive: ArchiveInputStream[_ <: ArchiveEntry], path: String)
-      extends CloseableIterator[(Option[String], InputStream)]() {
+      extends CloseableIterator[(String, InputStream)]() {
 
     // the archive input stream will only read the current entry
     // but we need to wrap it to prevent it from being closed before reading all entries
@@ -69,9 +69,9 @@ package object fs {
       entry != null
     }
 
-    override def next(): (Option[String], InputStream) = {
+    override def next(): (String, InputStream) = {
       if (!hasNext) { Iterator.empty.next() } else {
-        try { Some(s"$path/${entry.getName}") -> wrapper } finally {
+        try { s"$path/${entry.getName}" -> wrapper } finally {
           entry = null
         }
       }

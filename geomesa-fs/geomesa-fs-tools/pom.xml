@@ -28,6 +28,10 @@
             <artifactId>geomesa-fs-storage-parquet_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-fs-storage-jobs_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-wkt</artifactId>
         </dependency>
@@ -46,6 +50,10 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-aws</artifactId>
         </dependency>
 
         <dependency>
@@ -73,12 +81,12 @@
             <artifactId>testcontainers</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.geomesa.testcontainers</groupId>
-            <artifactId>testcontainers-accumulo</artifactId>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-postgresql</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers-postgresql</artifactId>
+            <artifactId>testcontainers-minio</artifactId>
         </dependency>
     </dependencies>
 

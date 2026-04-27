@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.parquet.io
 import com.google.gson.{GsonBuilder, JsonArray, JsonObject}
 import org.geotools.api.feature.`type`.GeometryDescriptor
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata.ColumnMetadata
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.utils.geotools.ObjectType

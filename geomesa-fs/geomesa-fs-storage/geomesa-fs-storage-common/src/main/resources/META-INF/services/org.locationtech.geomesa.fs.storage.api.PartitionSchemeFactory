@@ -1,7 +1,0 @@
-org.locationtech.geomesa.fs.storage.common.partitions.AttributeScheme$AttributePartitionSchemeFactory
-org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme$DateTimePartitionSchemeFactory
-org.locationtech.geomesa.fs.storage.common.partitions.FlatScheme$FlatPartitionSchemeFactory
-org.locationtech.geomesa.fs.storage.common.partitions.HashScheme$HashPartitionSchemeFactory
-org.locationtech.geomesa.fs.storage.common.partitions.ReceiptTimeScheme$ReceiptTimePartitionSchemeFactory
-org.locationtech.geomesa.fs.storage.common.partitions.Z2Scheme$Z2PartitionSchemeFactory
-org.locationtech.geomesa.fs.storage.common.partitions.XZ2Scheme$XZ2PartitionSchemeFactory

@@ -10,7 +10,6 @@ package org.locationtech.geomesa.fs.spark
 
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.spark.sql.{SQLContext, SparkSession}
-import org.geomesa.testcontainers.HadoopContainer
 import org.geomesa.testcontainers.spark.SparkCluster
 import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -20,7 +19,8 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.Network
+import org.testcontainers.containers.{MinIOContainer, Network}
+import org.testcontainers.utility.DockerImageName
 
 import java.nio.file.{Files, Path}
 import java.util.Collections
@@ -30,6 +30,8 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
   import org.locationtech.geomesa.spark.jts._
 
   import scala.collection.JavaConverters._
+
+  skipAllIf(true) // need an update to spark 4 to get compatible parquet jars
 
   private val sparkRuntimeJar =
     WithClose(Files.newDirectoryStream(Path.of(sys.props("maven.target.dir")), "geomesa-fs-spark*-runtime.jar")) { files =>
@@ -43,7 +45,11 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
 
   val network = Network.newNetwork()
   val cluster = new SparkCluster(Collections.singleton(sparkRuntimeJar)).withNetwork(network)
-  val hadoop = new HadoopContainer().withNetwork(network)
+
+  val minio =
+    new MinIOContainer(DockerImageName.parse("minio/minio").withTag(sys.props("minio.docker.tag")))
+      .withNetwork(network)
+      .withNetworkAliases("minio")
 
   // TODO enforce only a single instance at once
   lazy val spark: SparkSession = cluster.getOrCreateSession().withJTS
@@ -51,20 +57,30 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
 
   // these params will work in the spark executor, but not locally outside the docker network
   lazy val sparkDsParams = {
-    val host = hadoop.execInContainer("hostname", "-s").getStdout.trim
-    logger.debug("Using host: {}", host)
     Map(
-      "fs.path" -> s"${hadoop.getHdfsUrl}/${getClass.getSimpleName}/".replaceAll(hadoop.getHost, host),
-      "fs.metadata.type" -> "file",
-      "fs.config.xml" -> hadoop.getConfigurationXml.replaceAll(hadoop.getHost, host)
+      "fs.path" -> s"s3://geomesa/${getClass.getSimpleName}/",
+      "fs.config.properties" ->
+        s"""fs.metadata.type=file
+           |fs.s3.region=us-east-1
+           |fs.s3.endpoint=${minio.getS3URL}
+           |fs.s3.access-key-id=${minio.getUserName}
+           |fs.s3.secret-access-key=${minio.getPassword}
+           |fs.s3.force-path-style=true
+           |""".stripMargin
     )
   }
 
   lazy val ds: DataStore = {
     val params = Map(
-      "fs.path" -> s"${hadoop.getHdfsUrl}/${getClass.getSimpleName}/",
-      "fs.metadata.type" -> "file",
-      "fs.config.xml" -> hadoop.getConfigurationXml
+      "fs.path" -> s"s3://geomesa/${getClass.getSimpleName}/",
+      "fs.config.properties" ->
+        s"""fs.metadata.type=file
+           |fs.s3.region=us-east-1
+           |fs.s3.endpoint=${minio.getS3URL}
+           |fs.s3.access-key-id=${minio.getUserName}
+           |fs.s3.secret-access-key=${minio.getPassword}
+           |fs.s3.force-path-style=true
+           |""".stripMargin
     )
     DataStoreFinder.getDataStore(params.asJava)
   }
@@ -74,8 +90,10 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
   sft.getUserData.put("geomesa.fs.scheme", """{"name":"z2-8bits"}""")
 
   override def beforeAll(): Unit = {
-    // note: the host reach-back networking required for spark seems to mess up the hadoop networking unless hadoop starts first
-    hadoop.start()
+    minio.start()
+    minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName, minio.getPassword)
+    minio.execInContainer("mc", "mb", "localhost/geomesa")
+
     cluster.start()
 
     // note: have to create all data up front to avoid caching issues in the spark executor
@@ -161,7 +179,7 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
 
   override def afterAll(): Unit = {
     CloseWithLogging(ds)
-    CloseWithLogging(hadoop, cluster)
+    CloseWithLogging(minio, cluster)
   }
 
   "FileSystemRDDProvider" should {

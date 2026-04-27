@@ -9,15 +9,11 @@
 package org.locationtech.geomesa.parquet
 
 import org.apache.commons.io.FileUtils
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.FileSystemContext
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey}
-import org.locationtech.geomesa.fs.storage.common.metadata.StorageMetadataCatalog
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Partition, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -34,15 +30,13 @@ class CompactionTest extends SpecificationWithJUnit {
     "compact partitions" in {
       val tempDir = Files.createTempDirectory("geomesa")
       try {
-        val fs = FileSystem.get(tempDir.toUri, new Configuration())
-        val conf = new Configuration()
-        conf.set("parquet.compression", "gzip")
-        val context = FileSystemContext(fs, conf, new Path(tempDir.toUri))
+        val conf = Map("parquet.compression" -> "gzip", StorageMetadataCatalog.MetadataTypeConfig -> "file")
+        val context = FileSystemContext.create(tempDir.toUri, conf)
 
         val dtg = "2017-01-01"
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", 100, dtg, "POINT (10 10)")
 
-        val catalog = StorageMetadataCatalog(context, "file", Map.empty)
+        val catalog = StorageMetadataCatalog(context)
         WithClose(new ParquetFileSystemStorageFactory().apply(context, catalog.create(sft, Seq("daily")))) { storage =>
           val partition = Partition(storage.metadata.schemes.map(_.getPartition(sf1)))
 
@@ -97,7 +91,7 @@ class CompactionTest extends SpecificationWithJUnit {
           // compact to a given file size
           // verify if file is appropriately sized, it won't be modified
           val paths = storage.metadata.getFiles(partition).map(_.file)
-          val size = paths.map(f => fs.getFileStatus(new Path(context.root, f)).getLen).sum
+          val size = paths.map(f => storage.fs.size(context.root.resolve(f))).sum
           storage.compact(partition, Some(size))
           storage.metadata.getFiles(partition).map(_.file) mustEqual paths
           // verify files are split into smaller ones

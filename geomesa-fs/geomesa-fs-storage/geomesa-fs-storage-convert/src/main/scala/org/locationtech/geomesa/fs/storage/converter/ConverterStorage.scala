@@ -8,22 +8,23 @@
 
 package org.locationtech.geomesa.fs.storage.converter
 
-import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile}
-import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.PathFiltering
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
+import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Partition, StorageMetadata}
 
-class ConverterStorage(context: FileSystemContext,
-                       metadata: StorageMetadata,
-                       converter: SimpleFeatureConverter,
-                       pathFiltering: Option[PathFiltering])
-    extends AbstractFileSystemStorage(context, metadata, "") {
+import java.net.URI
+
+class ConverterStorage(
+    context: FileSystemContext,
+    metadata: StorageMetadata,
+    converter: SimpleFeatureConverter,
+    pathFiltering: Option[PathFiltering]
+  ) extends FileSystemStorage(context, metadata, "") {
 
   override val encoding: String = ConverterStorage.Encoding
 
@@ -34,19 +35,19 @@ class ConverterStorage(context: FileSystemContext,
   // actually need to be closed, and since they will only open a single connection per converter, the
   // impact should be low
 
-  override protected def createWriter(file: Path, partition: Partition, observer: FileSystemObserver): FileSystemWriter =
+  override protected def createWriter(file: URI, partition: Partition, observer: FileSystemObserver): FileSystemWriter =
     throw new UnsupportedOperationException()
 
   override protected def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader = {
-    new ConverterFileSystemReader(context.fs, context.root, converter, filter, transform, pathFiltering)
+    new ConverterFileSystemReader(fs, context.root, converter, filter, transform, pathFiltering)
   }
 
   override def compact(partition: Partition, fileSize: Option[Long], threads: Int): Unit =
     throw new UnsupportedOperationException("Converter storage does not support compactions")
 
-  override def register(file: Path): StorageFile =
+  override def register(file: URI): StorageFile =
     throw new UnsupportedOperationException("Converter storage does not support file registration")
 }
 

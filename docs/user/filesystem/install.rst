@@ -1,5 +1,5 @@
-Installing GeoMesa FileSystem
-=============================
+Installing the GeoMesa FileSystem Data Store
+============================================
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -95,14 +95,6 @@ to match the target environment, and then run the script:
 .. code-block:: bash
 
     $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
-
-The FileSystem data store requires the configuration file ``core-site.xml`` to be on the classpath. This can
-be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it
-doesn't exist). Utilizing a symbolic link will be useful here so any changes are reflected in GeoServer.
-
-.. code-block:: bash
-
-    $ ln -s /path/to/core-site.xml /path/to/geoserver/WEB-INF/classes/core-site.xml
 
 Restart GeoServer after the JARs are installed.
 

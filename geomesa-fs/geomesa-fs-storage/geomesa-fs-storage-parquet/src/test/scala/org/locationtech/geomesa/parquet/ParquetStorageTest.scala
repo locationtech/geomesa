@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.parquet
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.hadoop.ParquetFileReader
@@ -21,11 +22,9 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.json.{JSONObject, JSONTokener}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, PartitionKey}
-import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.StorageKeys
-import org.locationtech.geomesa.fs.storage.common.metadata.{FileBasedMetadataCatalog, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Partition, StorageKeys, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.parquet.io.{GeoParquetMetadata, SimpleFeatureParquetSchema}
@@ -40,6 +39,8 @@ import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 
+import java.io.File
+import java.net.URI
 import java.nio.file.Files
 import java.sql.DriverManager
 import java.util.{Locale, UUID}
@@ -47,9 +48,6 @@ import java.util.{Locale, UUID}
 class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
   import scala.collection.JavaConverters._
-
-  lazy val config = new Configuration()
-  config.set("parquet.compression", "gzip")
 
   // 8 bits resolution creates 3 partitions with our test data
   val schemes = Seq("z2:bits=8")
@@ -63,10 +61,11 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
       .withDatabaseName("postgres") // if we don't set the default db/name to postgres, the startup check fails as it restarts 3 times instead of the expected 2
       .withUsername("postgres")
 
-  private lazy val jdbcConfig = Map(
-    "jdbc.url" -> container.getJdbcUrl,
-    "jdbc.user" -> container.getUsername,
-    "jdbc.password" -> container.getPassword,
+  private lazy val config = Map(
+    "parquet.compression" -> "gzip",
+    "fs.metadata.jdbc.url" -> container.getJdbcUrl,
+    "fs.metadata.jdbc.user" -> container.getUsername,
+    "fs.metadata.jdbc.password" -> container.getPassword,
   )
 
   override def beforeAll(): Unit = container.start()
@@ -87,13 +86,13 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
         sf
       }
 
-      foreach(Seq("jdbc" -> jdbcConfig, "file" -> Map.empty[String, String])) { case (metadataType, metadataConfig) =>
+      foreach(Seq("jdbc", "file")) { metadataType =>
         foreach(Seq(GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb)) { encoding =>
           withTestDir { dir =>
-            val config = new Configuration(this.config)
-            config.set(SimpleFeatureParquetSchema.GeometryEncodingKey, encoding.toString)
-            val context = FileSystemContext(dir, config)
-            val catalog = StorageMetadataCatalog(context, metadataType, metadataConfig)
+            val geomConfig = Map(SimpleFeatureParquetSchema.GeometryEncodingKey -> encoding.toString)
+            val metaConfig = Map(StorageMetadataCatalog.MetadataTypeConfig -> metadataType)
+            val context = FileSystemContext.create(dir, config ++ geomConfig ++ metaConfig)
+            val catalog = StorageMetadataCatalog(context)
             val metadata = catalog.create(sft, schemes)
             WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
               storage must not(beNull)
@@ -136,7 +135,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
               // verify GeoParquet metadata - look for partition 225 so we can verify the expected bounds
               val firstPartitionFile = storage.metadata.getFiles().find(_.partition.values.map(_.value).contains("225")).orNull
               firstPartitionFile must not(beNull)
-              WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(new Path(dir, firstPartitionFile.file), context.conf))) { reader =>
+              WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(new Path(dir.resolve(firstPartitionFile.file)), new Configuration()))) { reader =>
                 val meta = reader.getFileMetaData.getKeyValueMetaData
                 val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
                 geo must not(beNull)
@@ -205,9 +204,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
 
       foreach(Seq(GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb)) { encoding =>
         withTestDir { dir =>
-          val config = new Configuration(this.config)
-          config.set(SimpleFeatureParquetSchema.GeometryEncodingKey, encoding.toString)
-          val context = FileSystemContext(dir, config)
+          val context = FileSystemContext.create(dir, Map(SimpleFeatureParquetSchema.GeometryEncodingKey -> encoding.toString))
           val metadata = new FileBasedMetadataCatalog(context).create(sft, schemes)
           WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
             storage must not(beNull)
@@ -248,7 +245,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
             val firstPartitionFile = storage.metadata.getFiles().find(_.partition.values.map(_.value).contains("225")).orNull
             firstPartitionFile must not(beNull)
 
-            val firstPartitionPath = new Path(dir, firstPartitionFile.file)
+            val firstPartitionPath = dir.resolve(firstPartitionFile.file)
             // verify 3rd party integration by reading with DuckDB
             if (encoding == GeometryEncoding.GeoParquetWkb) {
               val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
@@ -268,7 +265,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
               // geopandas seems to be the only thing that currently reads GeoParquet native encoding
             }
             // verify GeoParquet metadata
-            WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(firstPartitionPath, context.conf))) { reader =>
+            WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(new Path(firstPartitionPath), new Configuration()))) { reader =>
               val meta = reader.getFileMetaData.getKeyValueMetaData
               val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
               geo must not(beNull)
@@ -355,9 +352,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
       }
 
       withTestDir { dir =>
-        val config = new Configuration(this.config)
-        config.set(AuthsParam.key, "user,admin")
-        val context = FileSystemContext(dir, config)
+        val context = FileSystemContext.create(dir, config ++ Map(AuthsParam.key -> "user,admin"))
         val catalog = new FileBasedMetadataCatalog(context)
         val metadata = catalog.create(sft, schemes)
         WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
@@ -383,9 +378,8 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
 
         // verify we can load an existing storage, without specifying vis
         foreach(Seq("user", "")) { auths =>
-          val config = new Configuration(this.config)
-          config.set(AuthsParam.key, auths)
-          WithClose(new ParquetFileSystemStorageFactory().apply(FileSystemContext(dir, config), catalog.load(sft.getTypeName))) { storage =>
+          val config =  this.config ++ Map(AuthsParam.key -> auths)
+          WithClose(new ParquetFileSystemStorageFactory().apply(FileSystemContext.create(dir, config), catalog.load(sft.getTypeName))) { storage =>
             foreach(testCases) { case (filter, transforms, expected) =>
               val isVisible = VisibilityUtils.visible(new DefaultAuthorizationsProvider(auths.split(",").filter(_.nonEmpty)))
               testQuery(storage, sft)(filter, transforms, expected.filter(isVisible))
@@ -409,7 +403,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
       }
 
       withTestDir { dir =>
-        val context = FileSystemContext(dir, config)
+        val context = FileSystemContext.create(dir, config)
         val metadata = new FileBasedMetadataCatalog(context).create(sft, schemes)
         WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
           storage must not(beNull)
@@ -454,7 +448,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
     }
 
     "use custom file observers" in {
-      val userData = s"${StorageKeys.ObserversKey}='${classOf[NewTestObserverFactory].getName},${classOf[TestObserverFactory].getName}'"
+      val userData = s"${StorageKeys.ObserversKey}='${classOf[TestObserverFactory].getName}'"
       val sft = SimpleFeatureTypes.createType("parquet-test",
         s"*geom:Point:srid=4326,name:String,age:Int,dtg:Date;$userData")
 
@@ -469,7 +463,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
       }
 
       withTestDir { dir =>
-        val context = FileSystemContext(dir, config)
+        val context = FileSystemContext.create(dir, config)
         val metadata = new FileBasedMetadataCatalog(context).create(sft, schemes)
         WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
           storage must not(beNull)
@@ -482,15 +476,10 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
             writer.write(f)
           }
 
-          NewTestObserverFactory.observers must haveSize(3) // 3 partitions due to our data and scheme
-          forall(NewTestObserverFactory.observers)(_.closed must beFalse)
           TestObserverFactory.observers must haveSize(3) // 3 partitions due to our data and scheme
           forall(TestObserverFactory.observers)(_.closed must beFalse)
 
           writers.foreach(_._2.close())
-          forall(NewTestObserverFactory.observers)(_.closed must beTrue)
-          NewTestObserverFactory.observers.flatMap(_.features) must containTheSameElementsAs(features)
-          NewTestObserverFactory.observers.clear()
           forall(TestObserverFactory.observers)(_.closed must beTrue)
           TestObserverFactory.observers.flatMap(_.features) must containTheSameElementsAs(features)
           TestObserverFactory.observers.clear()
@@ -501,7 +490,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
 
           updater.hasNext must beTrue
           while (updater.hasNext) {
-            val feature = updater.next
+            val feature = updater.next()
             if (feature.getID == "0") {
               updater.remove()
             } else if (feature.getID == "1") {
@@ -510,15 +499,11 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
             }
           }
 
-          NewTestObserverFactory.observers must haveSize(2) // 2 partitions were updated
-          forall(NewTestObserverFactory.observers)(_.closed must beFalse)
           TestObserverFactory.observers must haveSize(2) // 2 partitions were updated
           forall(TestObserverFactory.observers)(_.closed must beFalse)
 
           updater.close()
 
-          forall(NewTestObserverFactory.observers)(_.closed must beTrue)
-          NewTestObserverFactory.observers.flatMap(_.features) must haveLength(2)
           forall(TestObserverFactory.observers)(_.closed must beTrue)
           TestObserverFactory.observers.flatMap(_.features) must haveLength(2)
         }
@@ -542,7 +527,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
       val targetSize = 3600L
 
       withTestDir { dir =>
-        val context = FileSystemContext(dir, config)
+        val context = FileSystemContext.create(dir, config)
         val metadata = new FileBasedMetadataCatalog(context).create(sft, schemes, Some(targetSize))
         WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
           storage must not(beNull)
@@ -564,17 +549,17 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
           foreach(partitions) { partition =>
             val paths = storage.metadata.getFiles(partition)
             paths.size must beGreaterThan(1)
-            foreach(paths)(p => context.fs.getFileStatus(new Path(context.root, p.file)).getLen must beCloseTo(targetSize, targetSize / 10))
+            foreach(paths)(p => storage.fs.size(context.root.resolve(p.file)) must beCloseTo(targetSize, targetSize / 10))
           }
         }
       }
     }
   }
 
-  def withTestDir[R](code: Path => R): R = {
-    val file = new Path(Files.createTempDirectory("gm-parquet-test").toUri)
+  def withTestDir[R](code: URI => R): R = {
+    val file = Files.createTempDirectory("gm-parquet-test").toUri
     try { code(file) } finally {
-      file.getFileSystem(new Configuration).delete(file, true)
+      FileUtils.deleteDirectory(new File(file))
     }
   }
 

@@ -10,19 +10,15 @@ package org.locationtech.geomesa.fs.tools
 
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
-import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.Partition
-import org.locationtech.geomesa.fs.storage.common.metadata.{ConverterMetadata, FileBasedMetadata, JdbcMetadata}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorageFactory, Partition}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator, KeyValueConverter}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-import org.locationtech.geomesa.utils.io.WithClose
 
-import java.io.{File, FileReader, StringWriter}
+import java.io.{File, StringWriter}
 import java.util.Properties
 import scala.util.control.NonFatal
 
@@ -37,36 +33,23 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
 
   override def connection: Map[String, String] = {
     val builder = Map.newBuilder[String, String]
-    builder += (FileSystemDataStoreParams.PathParam.getName -> params.path)
-    builder += (FileSystemDataStoreParams.MetadataTypeParam.getName -> params.metadataType)
-    val metadataProps = new Properties()
-    if (params.metadataConfigFile != null) {
-      WithClose(new FileReader(params.metadataConfigFile))(metadataProps.load)
-    }
-    if (!params.metadataConfig.isEmpty) {
-      params.metadataConfig.asScala.foreach { case (k, v) => metadataProps.put(k, v) }
-    }
-    if (!metadataProps.isEmpty) {
-      val out = new StringWriter()
-      metadataProps.store(out, null)
-      builder += (FileSystemDataStoreParams.MetadataConfigParam.getName -> out.toString)
-    }
-
+    builder += (FileSystemDataStoreParams.PathParam.key -> params.path)
+    builder += (FileSystemDataStoreParams.MetadataTypeParam.key -> params.metadataType)
     if (!params.configuration.isEmpty) {
-      val xml = {
-        val conf = new Configuration(false)
-        params.configuration.asScala.foreach { case (k, v) => conf.set(k, v) }
-        val out = new StringWriter()
-        conf.writeXml(out)
-        out.toString
-      }
-      builder += (FileSystemDataStoreParams.ConfigsParam.getName -> xml)
+      val props = new Properties()
+      params.configuration.asScala.foreach { case (k, v) => props.put(k, v) }
+      val out = new StringWriter()
+      props.store(out, null)
+      builder += (FileSystemDataStoreParams.ConfigParam.key -> out.toString)
+    }
+    if (params.configFile != null) {
+      builder += (FileSystemDataStoreParams.ConfigFileParam.key -> params.configFile)
     }
     if (params.auths != null) {
-      builder += (FileSystemDataStoreParams.AuthsParam.getName -> params.auths)
+      builder += (FileSystemDataStoreParams.AuthsParam.key -> params.auths)
     }
     if (params.encoding != null) {
-      builder += (FileSystemDataStoreParams.EncodingParam.getName -> params.encoding)
+      builder += (FileSystemDataStoreParams.EncodingParam.key -> params.encoding)
     }
     builder.result()
   }
@@ -103,16 +86,9 @@ object FsDataStoreCommand {
     var metadataType: String = _
 
     @Parameter(
-      names = Array("--metadata-config"),
-      description = "Metadata configuration properties, in the form k=v",
-      converter = classOf[KeyValueConverter],
-      splitter = classOf[NoopParameterSplitter])
-    var metadataConfig: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
-
-    @Parameter(
-      names = Array("--metadata-config-file"),
-      description = "Name of a metadata configuration file, in Java properties format")
-    var metadataConfigFile: File = _
+      names = Array("--config-file"),
+      description = "Name of a configuration file, in Java properties format")
+    var configFile: String = _
 
     @Parameter(
       names = Array("--config"),
@@ -172,7 +148,7 @@ object FsDataStoreCommand {
 
   class MetadataTypeValidator extends IValueValidator[String] {
     override def validate(name: String, value: String): Unit = {
-      val valid = Seq(FileBasedMetadata.MetadataType, JdbcMetadata.MetadataType, ConverterMetadata.MetadataType)
+      val valid = FileSystemDataStoreParams.MetadataTypeParam.enumerations
       if (!valid.contains(value)) {
         throw new ParameterException(s"$value is not a valid type for parameter $name." +
           s"Available metadata types are: ${valid.mkString(", ")}")

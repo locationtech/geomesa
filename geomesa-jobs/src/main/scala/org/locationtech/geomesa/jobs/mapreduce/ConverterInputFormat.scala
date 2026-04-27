@@ -115,13 +115,14 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
         case ArchiveStreamFactory.TAR =>
           val archive: ArchiveInputStream[_ <: ArchiveEntry] =
             new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR, stream)
-          new ArchiveFileIterator(archive, filePath.toString)
+          new ArchiveFileIterator(archive, filePath.toString).map { case (name, is) => Option(name) -> is }
 
         case ArchiveStreamFactory.ZIP | ArchiveStreamFactory.JAR =>
           // we have to read the bytes into memory to get random access reads
           // note: stream is closed in super class
           val bytes = new SeekableInMemoryByteChannel(IOUtils.toByteArray(stream))
           new ZipFileIterator(ZipFile.builder.setSeekableByteChannel(bytes).get(), filePath.toString)
+            .map { case (name, is) => Option(name) -> is }
 
         case _ =>
           CloseableIterator.single(None -> stream, stream.close())

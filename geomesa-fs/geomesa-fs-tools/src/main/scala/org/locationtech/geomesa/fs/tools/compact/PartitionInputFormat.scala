@@ -9,22 +9,19 @@
 package org.locationtech.geomesa.fs.tools.compact
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{Partition, StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.common.metadata.StorageMetadataCatalog
-import org.locationtech.geomesa.fs.storage.common.utils.PathCache
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.{CloseableFeatureIterator, FileSystemContext, FileSystemStorage, FileSystemStorageFactory, Partition, PartitionScheme, StorageMetadata, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.tools.compact.PartitionInputFormat.{PartitionInputSplit, PartitionRecordReader}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
 import java.io.{DataInput, DataOutput}
+import java.net.URI
 
 /**
   * An Input format that creates splits based on FSDS Partitions. This is used for compaction, when we want a single
@@ -34,26 +31,28 @@ import java.io.{DataInput, DataOutput}
 class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
 
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
-    val conf = context.getConfiguration
+    val hadoopConf = context.getConfiguration
+    val conf = {
+      val builder = Map.newBuilder[String, String]
+      hadoopConf.forEach(e => builder += e.getKey -> e.getValue)
+      builder.result()
+    }
 
-    val root = StorageConfiguration.getRootPath(conf)
-    val fsc = FileSystemContext(root, conf)
-    val fileSize = StorageConfiguration.getTargetFileSize(conf)
-    val metadataType = StorageConfiguration.getMetadataType(conf)
-    val metadataConfig = StorageConfiguration.getMetadataConfig(conf)
-    val typeName = StorageConfiguration.getSftName(conf)
-    val encoding = StorageConfiguration.getEncoding(conf)
+    val root = StorageConfiguration.getRootPath(hadoopConf)
+    val fileSize = StorageConfiguration.getTargetFileSize(hadoopConf)
+    val typeName = StorageConfiguration.getSftName(hadoopConf)
+    val encoding = StorageConfiguration.getEncoding(hadoopConf)
 
-    val catalog = StorageMetadataCatalog(fsc, metadataType, metadataConfig)
+    val fsc = FileSystemContext.create(root, conf)
+    val catalog = StorageMetadataCatalog(fsc)
     val factory = FileSystemStorageFactory(encoding)
     WithClose(factory.apply(fsc, catalog.load(typeName))) { storage =>
-      val sizeable = Option(storage).collect { case s: SizeableFileSystemStorage => s }
-      val sizeCheck = sizeable.flatMap(s => s.targetSize(fileSize).map(t => (p: Path) => s.fileIsSized(p, t)))
-      val splits = StorageConfiguration.getPartitions(conf).map { partition =>
+      val sizeCheck = fileSize.orElse(storage.sizer.targetSize).map(t => (p: URI) => storage.sizer.fileIsSized(p, t))
+      val splits = StorageConfiguration.getPartitions(hadoopConf).map { partition =>
         var size = 0L
         val files = storage.metadata.getFiles(partition).filter { f =>
-          if (sizeCheck.exists(_.apply(new Path(fsc.root, f.file)))) { false } else {
-            size += PathCache.status(fsc.fs, new Path(fsc.root, f.file)).getLen
+          if (sizeCheck.exists(_.apply(fsc.root.resolve(f.file)))) { false } else {
+            size += storage.fs.size(fsc.root.resolve(f.file))
             true
           }
         }
@@ -131,11 +130,16 @@ object PartitionInputFormat {
     private var curValue: SimpleFeature = _
 
     override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
-      val conf = context.getConfiguration
-      val root = StorageConfiguration.getRootPath(conf)
-      val fsc = FileSystemContext(root, conf)
-      val sft = StorageConfiguration.getSft(conf)
-      val encoding = StorageConfiguration.getEncoding(conf)
+      val hadoopConf = context.getConfiguration
+      val conf = {
+        val builder = Map.newBuilder[String, String]
+        hadoopConf.forEach(e => builder += e.getKey -> e.getValue)
+        builder.result()
+      }
+      val root = StorageConfiguration.getRootPath(hadoopConf)
+      val fsc = FileSystemContext.create(root, conf)
+      val sft = StorageConfiguration.getSft(hadoopConf)
+      val encoding = StorageConfiguration.getEncoding(hadoopConf)
 
       // use a cached metadata impl instead of reloading
       val cached = new StaticMetadata(sft, files)

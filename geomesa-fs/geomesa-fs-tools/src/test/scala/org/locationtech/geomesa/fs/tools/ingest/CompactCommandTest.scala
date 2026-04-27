@@ -8,10 +8,8 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import org.apache.hadoop.fs.Path
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
@@ -21,15 +19,14 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
+import org.testcontainers.containers.MinIOContainer
+import org.testcontainers.utility.DockerImageName
 
+class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
 
-@RunWith(classOf[JUnitRunner])
-class CompactCommandTest extends Specification with BeforeAfterAll {
-
-  import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+  import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
@@ -49,17 +46,26 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
   sft.setScheme("daily")
 
   val numFeatures = 10000
-  val targetFileSize = 35000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
+  val targetFileSize = 30000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
 
-  lazy val path = s"${HadoopSharedCluster.Container.getHdfsUrl}/${getClass.getSimpleName}/"
+  val bucket = "geomesa"
 
+  val path = s"s3://$bucket/${getClass.getSimpleName}/"
+
+  val minio = new MinIOContainer(DockerImageName.parse("minio/minio").withTag(sys.props("minio.docker.tag")))
+
+  lazy val configFlags = Map(
+    "fs.metadata.type" -> "file",
+    "fs.s3.region" -> "us-east-1",
+    "fs.s3.endpoint" -> minio.getS3URL,
+    "fs.s3.access-key-id" -> minio.getUserName,
+    "fs.s3.secret-access-key" -> minio.getPassword,
+    "fs.s3.force-path-style" -> "true",
+    "geomesa.parquet.bounding-boxes" -> "false",
+  )
   lazy val params = Map(
     "fs.path" -> path,
-    "fs.metadata.type" -> "file",
-    "fs.config.xml" ->
-      HadoopSharedCluster.ContainerConfig
-        .replaceFirst("<configuration>",
-          "<configuration><property><name>geomesa.parquet.bounding-boxes</name><value>false</value></property>")
+    "fs.config.properties" -> configFlags.map { case (k, v) => s"$k=$v" }.mkString("\n")
   )
 
   def features(sft: SimpleFeatureType): Seq[ScalaSimpleFeature] = {
@@ -71,7 +77,11 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
   }
 
   override def beforeAll(): Unit = {
-    WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+    minio.start()
+    minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName, minio.getPassword)
+    minio.execInContainer("mc", "mb", s"localhost/$bucket")
+
+    WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
       ds.createSchema(sft)
       // create 2 files per partition
       features(sft).grouped(numFeatures / 2).foreach { feats =>
@@ -82,19 +92,26 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
     }
   }
 
-  override def afterAll(): Unit = {}
+  override def afterAll(): Unit = {
+    if (minio != null) {
+      minio.close()
+    }
+  }
 
   "Compaction command" should {
     "be multiple files per partition before compacting" in {
       WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+        var count = 0
         val fs = ds.getFeatureSource(sft.getTypeName)
         WithClose(fs.getFeatures.features) { iter =>
           while (iter.hasNext) {
             val feat = iter.next
             feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
             featureMustHaveProperGeometries(feat)
+            count += 1
           }
         }
+        count mustEqual numFeatures
         fs.getCount(Query.ALL) mustEqual numFeatures
         ds.storage(sft.getTypeName).metadata.getFiles() must haveLength(6)
       }
@@ -106,6 +123,7 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
       command.params.path = path
       command.params.metadataType = "file"
       command.params.runMode = RunModes.Distributed.toString
+      command.params.configuration = configFlags.toList.asJava
       command.execute() must not(throwAn[Exception])
     }
 
@@ -113,14 +131,17 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
       WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.storage(sft.getTypeName).metadata.getFiles() must haveLength(3)
 
+        var count = 0
         val fs = ds.getFeatureSource(sft.getTypeName)
         WithClose(fs.getFeatures.features) { iter =>
           while (iter.hasNext) {
             val feat = iter.next
             feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
             featureMustHaveProperGeometries(feat)
+            count += 1
           }
         }
+        count mustEqual numFeatures
         fs.getCount(Query.ALL) mustEqual numFeatures
       }
     }
@@ -132,6 +153,7 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
       command.params.metadataType = "file"
       command.params.runMode = RunModes.Distributed.toString
       command.params.targetFileSize = targetFileSize
+      command.params.configuration = configFlags.toList.asJava
       command.execute() must not(throwAn[Exception])
     }
 
@@ -140,19 +162,22 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
         val storage = ds.storage(sft.getTypeName)
         foreach(storage.metadata.getFiles().groupBy(_.partition).values) { partition =>
           partition.size must beGreaterThan(1)
-          val sizes = partition.map(f => new Path(storage.context.root, f.file)).map(p => storage.context.fs.getFileStatus(p).getLen)
+          val sizes = partition.map(f => storage.context.root.resolve(f.file)).map(p => storage.fs.size(p))
           // hard to get very close with small files...
           foreach(sizes)(_ must beCloseTo(targetFileSize, 6000))
         }
 
+        var count = 0
         val fs = ds.getFeatureSource(sft.getTypeName)
         WithClose(fs.getFeatures.features) { iter =>
           while (iter.hasNext) {
             val feat = iter.next
             feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
             featureMustHaveProperGeometries(feat)
+            count += 1
           }
         }
+        count mustEqual numFeatures
         fs.getCount(Query.ALL) mustEqual numFeatures
       }
     }

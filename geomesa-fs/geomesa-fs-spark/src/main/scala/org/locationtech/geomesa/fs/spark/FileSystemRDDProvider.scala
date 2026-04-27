@@ -20,10 +20,11 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreFactory}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration.SimpleFeatureAction
-import org.locationtech.geomesa.fs.storage.parquet.jobs.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
+import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration.SimpleFeatureAction
+import org.locationtech.geomesa.fs.storage.jobs.parquet.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
 import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
@@ -44,6 +45,9 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
       val sft = ds.getSchema(query.getTypeName)
       val storage = ds.storage(query.getTypeName)
 
+      // set s3a configs first, may be needed to set input paths
+      S3ObjectStore.s3aConfigs(storage.context.conf).foreach { case (k, v) => conf.set(k, v) }
+
       def configureQuery(filter: Filter, paths: Seq[StorageFile]): Unit = {
         logger.debug(s"Reading ${paths.length} files with filter: ${ECQL.toCQL(filter)}")
         // note: file input format requires a job object, but conf gets copied in job object creation,
@@ -51,7 +55,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
         val job = Job.getInstance(conf)
 
         // note: we have to copy all the conf twice?
-        FileInputFormat.setInputPaths(job, paths.map(p => new Path(storage.context.root, p.file)): _*)
+        FileInputFormat.setInputPaths(job, paths.map(p => new Path(S3ObjectStore.s3aUri(storage.context.root.resolve(p.file)))): _*)
         conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
         val newQuery = new Query(query)
         newQuery.setFilter(filter)
@@ -65,7 +69,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
       def runModsQuery(filter: Filter, paths: Seq[StorageFile]): RDD[(SimpleFeatureAction, SimpleFeature)] = {
         configureQuery(filter, paths)
-        StorageConfiguration.setPathActions(conf, storage.context.root, paths)
+        StorageConfiguration.setPathActions(conf, new Path(storage.context.root), paths)
         sc.newAPIHadoopRDD(conf, classOf[ParquetSimpleFeatureActionInputFormat], classOf[SimpleFeatureAction], classOf[SimpleFeature])
       }
 

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import org.apache.hadoop.conf.Configuration
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -18,7 +18,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ParquetJobUtilsTest extends Specification {
 
-  import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+  import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
 
   "ParquetJobUtils" should {
     "properly serialize sft with partition scheme user data" >> {

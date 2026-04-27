@@ -3,9 +3,7 @@ FileSystem Data Store Example
 
 In this simple example we will ingest a small CSV into a local filesystem data store partitioned by a daily,z2-2bit
 scheme. To begin, start by untaring the geomesa-fs distribution. Inside this distribution you will find an examples
-folder which contains an example csv file that we will ingest. First set the version you want to use:
-
-Then download and extract the binary distribution:
+folder which contains an example csv file that we will ingest. First download and extract the binary distribution:
 
 .. code-block:: bash
 
@@ -24,8 +22,7 @@ The output should look like::
 
 As you can see, there are 3 records in the file. GeoMesa ships with a pre-installed SimpleFeatureType and converter
 for this example file which can be found in the ``conf/application.conf`` file. Running ``bin/geomesa-fs env`` will
-show that there is an ``example-csv`` type and converter installed along with many other types including twitter, gdelt,
-osm, etc:
+show that there is an ``example-csv`` type and converter installed along with many other types including gdelt, ais, etc:
 
 .. code-block:: bash
 
@@ -64,7 +61,7 @@ Now lets ingest.
 .. code-block:: bash
 
     $ bin/geomesa-fs ingest -p /tmp/dstest --metadata-type file -s example-csv -C example-csv \
-      --partition-scheme daily,z2-2bit examples/csv/example.csv
+      --partition-scheme daily,z2:bits=2 examples/csv/example.csv
 
 The output should look like::
 
@@ -79,7 +76,7 @@ We can verify our ingest by running an export:
 
 .. code-block:: bash
 
-    $ bin/geomesa-fs export -p /tmp/dstest -f example-csv
+    $ bin/geomesa-fs export -p /tmp/dstest -f example-csv --metadata-type file
 
 The output should look like::
 
@@ -103,23 +100,18 @@ The output should look something like::
     /tmp/dstest/1010/0111/0111
     /tmp/dstest/1010/0111/0111/00100000
     /tmp/dstest/1010/0111/0111/00100000/w_example-csv_65929c1f102c4014bf2302924304339f.parquet
-    /tmp/dstest/1010/0111/0111/00100000/.w_example-csv_65929c1f102c4014bf2302924304339f.parquet.crc
     /tmp/dstest/1010/1000
     /tmp/dstest/1010/1000/0011
     /tmp/dstest/1010/1000/0011/00111110
     /tmp/dstest/1010/1000/0011/00111110/w_example-csv_4d8630199c614e189d0e25af9bc21e53.parquet
-    /tmp/dstest/1010/1000/0011/00111110/.w_example-csv_4d8630199c614e189d0e25af9bc21e53.parquet.crc
     /tmp/dstest/1011
     /tmp/dstest/1011/1000
     /tmp/dstest/1011/1000/0101
     /tmp/dstest/1011/1000/0101/00010011
     /tmp/dstest/1011/1000/0101/00010011/w_example-csv_3cf140998e08439397ecb53425dcb2d1.parquet
-    /tmp/dstest/1011/1000/0101/00010011/.w_example-csv_3cf140998e08439397ecb53425dcb2d1.parquet.crc
     /tmp/dstest/metadata
     /tmp/dstest/metadata/.example_2dcsv_files.json
-    /tmp/dstest/metadata/..example_2dcsv_files.json.crc
     /tmp/dstest/metadata/example_2dcsv.json
-    /tmp/dstest/metadata/.example_2dcsv.json.crc
 
 Note that the file paths are laid out based on a hash, in order to optimize read/write throughput. The data files include
 the feature type name::
@@ -163,4 +155,3 @@ metadata in a relational database). This includes the partitions and various bou
             "lower": "8000014d26859c00",
             "upper": "8000014d26859c00"
           }
-

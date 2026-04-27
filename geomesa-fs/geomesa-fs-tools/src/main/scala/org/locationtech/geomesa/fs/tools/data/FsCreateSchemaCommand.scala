@@ -19,7 +19,7 @@ package org.locationtech.geomesa.fs.tools.data
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.common.StorageKeys
+import org.locationtech.geomesa.fs.storage.core.StorageKeys
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand.FsCreateSchemaParams
@@ -42,7 +42,7 @@ object FsCreateSchemaCommand {
   class FsCreateSchemaParams extends CreateSchemaParams with FsParams with OptionalSchemeParams
 
   def setOptions(sft: SimpleFeatureType, params: OptionalSchemeParams): Unit = {
-    import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+    import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
 
     if (params.scheme == null || params.scheme.isEmpty) {
       if (sft.getUserData.get(StorageKeys.SchemeKey) == null) {
