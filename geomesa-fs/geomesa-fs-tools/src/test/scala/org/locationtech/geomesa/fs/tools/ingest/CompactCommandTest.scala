@@ -46,7 +46,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
   sft.setScheme("daily")
 
   val numFeatures = 10000
-  val targetFileSize = 30000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
+  val targetFileSize = 10000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
 
   val bucket = "geomesa"
 
@@ -164,7 +164,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
           partition.size must beGreaterThan(1)
           val sizes = partition.map(f => storage.context.root.resolve(f.file)).map(p => storage.fs.size(p))
           // hard to get very close with small files...
-          foreach(sizes)(_ must beCloseTo(targetFileSize, 6000))
+          foreach(sizes)(_ must beCloseTo(targetFileSize, 2000))
         }
 
         var count = 0

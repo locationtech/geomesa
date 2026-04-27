@@ -47,7 +47,7 @@ class MigrateMetadataCommandTest extends Specification with BeforeAfterAll with 
   )
 
   private lazy val fileParams = commonParams ++ Map(
-    "fs.config.properties" -> "fs.metadata.type=file\nparquet.compression=gzip"
+    "fs.config.properties" -> "fs.metadata.type=file"
   )
 
   private lazy val jdbcParams = commonParams ++ Map(
@@ -55,7 +55,6 @@ class MigrateMetadataCommandTest extends Specification with BeforeAfterAll with 
                                  |fs.metadata.jdbc.url=${container.getJdbcUrl}
                                  |fs.metadata.jdbc.user=${container.getUsername}
                                  |fs.metadata.jdbc.password=${container.getPassword}
-                                 |parquet.compression=gzip
                                  |""".stripMargin
   )
 

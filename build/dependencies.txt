@@ -8,7 +8,7 @@ com.fasterxml.jackson.core:jackson-core:2.21.1:compile
 com.fasterxml.jackson.core:jackson-databind:2.21.1:compile
 com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.1:compile
 com.github.ben-manes.caffeine:caffeine:3.1.8:compile
-com.github.luben:zstd-jni:1.5.5-11:compile
+com.github.luben:zstd-jni:1.5.7-7:compile
 com.github.pureconfig:pureconfig-core_2.12:0.17.4:compile
 com.github.pureconfig:pureconfig-generic-base_2.12:0.17.4:compile
 com.github.pureconfig:pureconfig-generic_2.12:0.17.4:compile

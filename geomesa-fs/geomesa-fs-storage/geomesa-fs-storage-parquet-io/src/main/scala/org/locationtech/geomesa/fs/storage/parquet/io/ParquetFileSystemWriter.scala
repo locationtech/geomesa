@@ -64,7 +64,7 @@ class ParquetFileSystemWriter(
 object ParquetFileSystemWriter extends LazyLogging {
 
   def builder(fs: ObjectStore, path: URI, conf: ParquetConfiguration): Builder = {
-    val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "SNAPPY"))
+    val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "ZSTD"))
     logger.debug(s"Using Parquet Compression codec ${codec.name()}")
 
     val file = fs match {

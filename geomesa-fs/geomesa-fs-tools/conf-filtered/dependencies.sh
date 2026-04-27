@@ -15,8 +15,7 @@ hadoop_install_version="%%hadoop.version.recommended%%"
 aws_sdk_v1_install_version="%%aws.sdk.v1.version%%"
 aws_sdk_v2_install_version="%%aws.sdk.version%%"
 aws_crt_install_version="%%aws.crt.version%%"
-# this should match the parquet desired version
-snappy_install_version="1.1.1.6"
+zstd_install_version="%%zstd.version%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
 guava_install_version="%%hadoop.guava.version%%"
 
@@ -29,14 +28,14 @@ function dependencies() {
   local hadoop_version="$hadoop_install_version"
   local aws_sdk_v1_version="$aws_sdk_v1_install_version"
   local aws_sdk_v2_version="$aws_sdk_v2_install_version"
-  local snappy_version="$snappy_install_version"
+  local zstd_version="$zstd_install_version"
 
   if [[ -n "$classpath" ]]; then
     hadoop_version="$(get_classpath_version hadoop-common "$classpath" "$hadoop_version")"
     hadoop_version="$(get_classpath_version hadoop-client-api "$classpath" "$hadoop_version")"
     aws_sdk_v1_version="$(get_classpath_version aws-java-sdk-core "$classpath" "$aws_sdk_v1_version")"
     aws_sdk_v2_version="$(get_classpath_version aws-core "$classpath" "$aws_sdk_v2_version")"
-    snappy_version="$(get_classpath_version snappy-java "$classpath" "$snappy_version")"
+    zstd_version="$(get_classpath_version zstd-jni "$classpath" "$zstd_version")"
   fi
 
   if [[ "$hadoop_version" == "3.2.3" ]]; then
@@ -48,7 +47,7 @@ function dependencies() {
     "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-aws:${hadoop_version}:jar"
-    "org.xerial.snappy:snappy-java:${snappy_version}:jar"
+    "com.github.luben:zstd-jni:${zstd_version}:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
     "commons-logging:commons-logging:1.3.3:jar"
     "org.apache.httpcomponents:httpclient:4.5.13:jar"

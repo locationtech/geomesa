@@ -36,7 +36,7 @@ trait ParquetStorageConfiguration extends StorageConfiguration with LazyLogging 
       Option(job.getConfiguration.get(ParquetOutputFormat.COMPRESSION))
           .orElse(Option(sft.getUserData.get(ParquetOutputFormat.COMPRESSION).asInstanceOf[String]))
           .map(CompressionCodecName.valueOf)
-          .getOrElse(CompressionCodecName.SNAPPY)
+          .getOrElse(CompressionCodecName.ZSTD)
     ParquetOutputFormat.setCompression(job, compression)
     logger.debug(s"Parquet compression is $compression")
   }
