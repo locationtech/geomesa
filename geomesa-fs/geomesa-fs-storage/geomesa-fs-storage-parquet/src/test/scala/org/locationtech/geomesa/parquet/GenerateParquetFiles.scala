@@ -66,7 +66,7 @@ object GenerateParquetFiles extends StrictLogging {
     }
 
     Seq(GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb, GeometryEncoding.GeoMesaV1).foreach { encoding =>
-      val conf = Map("parquet.compression" -> "gzip", SimpleFeatureParquetSchema.GeometryEncodingKey -> encoding.toString)
+      val conf = Map(SimpleFeatureParquetSchema.GeometryEncodingKey -> encoding.toString)
       val dir = new Path(sys.props("java.io.tmpdir"))
       val file = new Path(dir, s"${encoding.toString.replace("GeoParquet", "geoparquet-").toLowerCase(Locale.US)}-test.parquet")
       WithClose(new ParquetFileSystemWriter(LocalObjectStore, conf, sft, file.toUri)) { writer =>

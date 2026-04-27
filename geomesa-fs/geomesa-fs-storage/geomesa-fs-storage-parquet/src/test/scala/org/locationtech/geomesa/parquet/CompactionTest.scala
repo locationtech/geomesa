@@ -30,7 +30,7 @@ class CompactionTest extends SpecificationWithJUnit {
     "compact partitions" in {
       val tempDir = Files.createTempDirectory("geomesa")
       try {
-        val conf = Map("parquet.compression" -> "gzip", StorageMetadataCatalog.MetadataTypeConfig -> "file")
+        val conf = Map(StorageMetadataCatalog.MetadataTypeConfig -> "file")
         val context = FileSystemContext.create(tempDir.toUri, conf)
 
         val dtg = "2017-01-01"

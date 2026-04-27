@@ -62,7 +62,6 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
       .withUsername("postgres")
 
   private lazy val config = Map(
-    "parquet.compression" -> "gzip",
     "fs.metadata.jdbc.url" -> container.getJdbcUrl,
     "fs.metadata.jdbc.user" -> container.getUsername,
     "fs.metadata.jdbc.password" -> container.getPassword,

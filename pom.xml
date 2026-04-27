@@ -103,6 +103,7 @@
         <sizeof.version>0.4.3</sizeof.version>
         <spring.security.version>5.8.16</spring.security.version> <!-- geoserver is still on 5.x -->
         <typesafe.config.version>1.4.3</typesafe.config.version>
+        <zstd.version>1.5.7-7</zstd.version>
 
         <!-- standardized transitive dependencies -->
         <aircompressor.version>0.27</aircompressor.version>
@@ -1243,6 +1244,11 @@
                 <version>${parquet.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.github.luben</groupId>
+                <artifactId>zstd-jni</artifactId>
+                <version>${zstd.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.parboiled</groupId>
                 <artifactId>parboiled-scala_${scala.binary.version}</artifactId>
                 <version>${parboiled.scala.version}</version>
@@ -1585,11 +1591,6 @@
                         <artifactId>animal-sniffer-annotations</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.github.luben</groupId>
-                <artifactId>zstd-jni</artifactId>
-                <version>1.5.5-11</version>
             </dependency>
             <dependency>
                 <groupId>org.hsqldb</groupId>

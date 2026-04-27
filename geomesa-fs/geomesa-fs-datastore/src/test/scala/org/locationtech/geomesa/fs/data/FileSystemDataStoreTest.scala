@@ -90,14 +90,12 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
        |fs.metadata.jdbc.url=${container.getJdbcUrl}
        |fs.metadata.jdbc.user=${container.getUsername}
        |fs.metadata.jdbc.password=${container.getPassword}
-       |parquet.compression=gzip
        |""".stripMargin
 
   private lazy val dsParams = Seq(
     Map(
       "fs.path" -> s"${dir.getPath}/file",
       "fs.metadata.type" -> "file",
-      "fs.config.properties" -> "parquet.compression=gzip",
       "geomesa.security.auths" -> "user",
     ),
     Map(

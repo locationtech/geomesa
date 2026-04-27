@@ -13,7 +13,6 @@ package org.locationtech.geomesa.parquet
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.filter2.compat.FilterCompat
-import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
@@ -21,7 +20,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.parquet.FilterConverter
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.{FileValidationObserver, ParquetCompressionOpt}
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.FileValidationObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -54,8 +53,6 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
   val sftConf = {
     val c = new PlainParquetConfiguration()
     SimpleFeatureParquetSchema.setSft(c, sft)
-    // Use GZIP in tests but snappy in prod due to license issues
-    c.set(ParquetCompressionOpt, CompressionCodecName.GZIP.toString)
     c
   }
 
@@ -93,12 +90,12 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
         features.foreach(writer.write)
       }
 
-      // Corrupt the file by writing an invalid byte somewhere
+      // corrupt the file by writing invalid bytes somewhere
       val randomAccessFile = new RandomAccessFile(f.toFile, "rw")
       logger.debug(s"File length: ${randomAccessFile.length()}")
       Files.size(f) must beGreaterThan(50L)
-      randomAccessFile.seek(50)
-      randomAccessFile.writeByte(999)
+      randomAccessFile.seek(40)
+      randomAccessFile.writeBytes("abcdefghij")
       randomAccessFile.close()
 
       // Validate the file

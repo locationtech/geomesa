@@ -50,10 +50,9 @@ class ListMapTest extends SpecificationWithJUnit {
         val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
         val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[String].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
 
-        // Use GZIP in tests but snappy in prod due to license issues
         val writeBuilder =
           ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf)
-            .withCompressionCodec(CompressionCodecName.GZIP)
+            .withCompressionCodec(CompressionCodecName.ZSTD)
 
         WithClose(writeBuilder.build()) { writer =>
           writer.write(sf)
@@ -110,10 +109,9 @@ class ListMapTest extends SpecificationWithJUnit {
         val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
         val sf3 = new ScalaSimpleFeature(sft, "3", Array(Map.empty[String, String].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
 
-        // Use GZIP in tests but snappy in prod due to license issues
         val writeBuilder =
           ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf)
-            .withCompressionCodec(CompressionCodecName.GZIP)
+            .withCompressionCodec(CompressionCodecName.ZSTD)
 
         WithClose(writeBuilder.build()) { writer =>
           writer.write(sf)
@@ -179,10 +177,9 @@ class ListMapTest extends SpecificationWithJUnit {
         val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
         val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[UUID].asJava, Map.empty[Int, Double].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
 
-        // Use GZIP in tests but snappy in prod due to license issues
         val writeBuilder =
           ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf)
-            .withCompressionCodec(CompressionCodecName.GZIP)
+            .withCompressionCodec(CompressionCodecName.ZSTD)
         WithClose(writeBuilder.build()) { writer =>
           writer.write(sf)
           writer.write(sf2)

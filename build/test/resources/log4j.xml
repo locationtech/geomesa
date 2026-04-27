@@ -6,9 +6,7 @@
             <param name="ConversionPattern" value="[%d] %5p %c{1}: %m%n"/>
         </layout>
     </appender>
-    <category name="org.locationtech.geomesa.fs">
-        <priority value="debug"/>
-    </category>
+
     <category name="org.locationtech.geomesa">
         <priority value="info"/>
     </category>
