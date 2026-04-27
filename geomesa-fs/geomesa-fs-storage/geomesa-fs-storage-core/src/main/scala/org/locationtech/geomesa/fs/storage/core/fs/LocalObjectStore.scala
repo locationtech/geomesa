@@ -41,7 +41,7 @@ trait LocalObjectStore extends ObjectStore {
 
   override def modified(path: URI): Option[Long] = Option(toFile(path)).collect { case f if f.exists() => f.lastModified() }
 
-  override def create(path: URI): Option[OutputStream] = Option(toFile(path)).collect { case f if !f.exists() => write(f) }
+  override def create(path: URI): Option[OutputStream] = Option(toFile(path)).collect { case f if f.createNewFile() => write(f) }
 
   override def overwrite(path: URI): OutputStream = write(toFile(path))
 

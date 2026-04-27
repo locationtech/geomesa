@@ -307,14 +307,9 @@ tech.uom.lib:uom-lib-common:2.2:compile
 aopalliance:aopalliance:1.0:provided
 at.yawk.lz4:lz4-java:1.10.1:provided
 ch.qos.reload4j:reload4j:1.2.25:provided
-com.amazonaws:aws-java-sdk-core:1.12.793:provided
-com.amazonaws:aws-java-sdk-kms:1.12.793:provided
-com.amazonaws:aws-java-sdk-s3:1.12.793:provided
-com.amazonaws:jmespath-java:1.12.793:provided
 com.datastax.cassandra:cassandra-driver-core:3.11.5:provided
 com.datastax.cassandra:cassandra-driver-mapping:3.11.5:provided
 com.eclipsesource.minimal-json:minimal-json:0.9.5:provided
-com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.21.1:provided
 com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.21.1:provided
 com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:2.21.1:provided
 com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.21.1:provided

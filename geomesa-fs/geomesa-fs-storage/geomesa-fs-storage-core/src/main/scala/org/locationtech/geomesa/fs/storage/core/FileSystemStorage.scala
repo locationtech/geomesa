@@ -560,7 +560,7 @@ object FileSystemStorage {
    * @param action file action
    */
   private class MetadataObserver(metadata: StorageMetadata, path: String, partition: Partition, action: StorageFileAction)
-    extends FileSystemObserver {
+      extends FileSystemObserver {
 
     private val delegate = new StorageFileObserver(metadata.sft)
 

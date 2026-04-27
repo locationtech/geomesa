@@ -83,11 +83,18 @@ class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends
     client.headObject(request).handle[Option[Long]](ifFound(_.lastModified().toEpochMilli)).join()
   }
 
-  override def create(path: URI): Option[OutputStream] = if (exists(path)) { None } else { Some(overwrite(path)) }
+  // note: since the write is not finalized until it is uploaded, this may return a Some but then throw an exception on close
+  // if the path is written to after the existence check
+  override def create(path: URI): Option[OutputStream] = {
+    if (exists(path)) { None } else {
+      val key = parseS3Path(path)
+      Some(buffer.write(key.bucket, key.key, overwrite = false))
+    }
+  }
 
   override def overwrite(path: URI): OutputStream = {
     val key = parseS3Path(path)
-    buffer.write(key.bucket, key.key)
+    buffer.write(key.bucket, key.key, overwrite = true)
   }
 
   override def read(path: URI): Option[InputStream] = {

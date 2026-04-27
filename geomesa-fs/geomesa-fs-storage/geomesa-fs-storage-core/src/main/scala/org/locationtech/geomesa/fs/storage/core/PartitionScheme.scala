@@ -12,7 +12,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 
 /**
-  * Scheme for partitioning features into various named partitions (e.g. file paths) on disk, for
+  * Scheme for partitioning features into various named partitions (e.g. buckets) on disk, for
   * faster querying. Partition schemes do not have any persistent state, they only know how to map features
   * and filters to partition names
   */

@@ -16,7 +16,7 @@ import java.io.{IOException, OutputStream}
 import java.net.URI
 
 /**
- * S3 parquet output file
+ * S3 parquet output file, to bypass hadoop when using parquet
  *
  * @param fs file system
  * @param path file path

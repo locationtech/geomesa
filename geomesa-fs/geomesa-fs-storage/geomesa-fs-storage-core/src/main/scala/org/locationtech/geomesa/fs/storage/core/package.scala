@@ -39,10 +39,10 @@ package object core {
       .create()
 
   /**
-   * Holder for file system references
+   * Holder for file system configuration
    *
-   * @param conf configuration
    * @param root root path
+   * @param conf configuration
    * @param namespace optional feature namespace
    */
   case class FileSystemContext(root: URI, conf: Map[String, String], namespace: Option[String]) {
@@ -52,8 +52,23 @@ package object core {
 
   object FileSystemContext {
 
+    /**
+     * Helper method to ensure the root is property formatted
+     *
+     * @param root root path
+     * @param conf configuration
+     * @return
+     */
     def create(root: URI, conf: Map[String, String]): FileSystemContext = create(root, conf, None)
 
+    /**
+     * Helper method to ensure the root is property formatted
+     *
+     * @param root root path
+     * @param conf configuration
+     * @param namespace namespace
+     * @return
+     */
     def create(root: URI, conf: Map[String, String], namespace: Option[String]): FileSystemContext = {
       val validatedRoot = {
         val rootWithScheme = if (root.getScheme != null && root.getScheme.nonEmpty) { root } else {
@@ -87,7 +102,6 @@ package object core {
     }
   }
 
-
   /**
    * A partition
    *
@@ -101,6 +115,12 @@ package object core {
 
     val None: Partition = Partition(Set.empty[PartitionKey])
 
+    /**
+     * Create a partition from a json-encoded string
+     *
+     * @param encoded json representation of the partition
+     * @return
+     */
     def apply(encoded: String): Partition = {
       try { gson.fromJson(encoded, classOf[Partition]) } catch {
         case NonFatal(e) => throw new RuntimeException(s"Invalid partition json: $encoded", e)
@@ -111,6 +131,7 @@ package object core {
      * Json serializer for partitions
      */
     private[core] object PartitionSerializer extends JsonSerializer[Partition] with JsonDeserializer[Partition] {
+
       override def serialize(src: Partition, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
         val array = new JsonArray(src.values.size)
         src.values.toSeq.sortBy(k => (k.name, k.value)).foreach { value =>
@@ -130,11 +151,10 @@ package object core {
         Partition(values.result())
       }
     }
-
   }
 
   /**
-   * A partition tag
+   * A partition tag. A set of tags makes up a partition
    *
    * @param name partition scheme
    * @param value partition value
@@ -145,6 +165,12 @@ package object core {
 
   object PartitionKey {
 
+    /**
+     * Create a partition key from a json-encoded string
+     *
+     * @param encoded json representation of the partition key
+     * @return
+     */
     def apply(encoded: String): PartitionKey = {
       try { gson.fromJson(encoded, classOf[PartitionKey]) } catch {
         case NonFatal(e) => throw new RuntimeException(s"Invalid partition key json: $encoded", e)
@@ -155,6 +181,7 @@ package object core {
      * Json serializer for partition keys
      */
     private[core] object PartitionKeySerializer extends JsonSerializer[PartitionKey] with JsonDeserializer[PartitionKey] {
+
       override def serialize(src: PartitionKey, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
         val obj = new JsonObject()
         obj.addProperty("name", src.name)
@@ -172,9 +199,9 @@ package object core {
   }
 
   /**
-   * Ranged bounds
+   * Ranged bounds, used for filtering on partitions
    *
-   * @param name partition scheme name
+   * @param name partition that this bound applies to
    * @param lower lower bound, inclusive
    * @param upper upper bound, exclusive
    */

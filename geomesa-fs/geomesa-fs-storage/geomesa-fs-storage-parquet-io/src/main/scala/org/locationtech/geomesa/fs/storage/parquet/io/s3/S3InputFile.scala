@@ -21,6 +21,13 @@ import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
 import java.util.function.{Consumer, IntFunction}
 
+/**
+ * Parquet input file implementation for reading from S3. Uses the aws-s3-analyticsaccelerator project to improve
+ * read times.
+ *
+ * @param fs object store impl
+ * @param path file path
+ */
 class S3InputFile(fs: S3ObjectStore, path: URI) extends InputFile {
 
   private val key = S3ObjectStore.parseS3Path(path)

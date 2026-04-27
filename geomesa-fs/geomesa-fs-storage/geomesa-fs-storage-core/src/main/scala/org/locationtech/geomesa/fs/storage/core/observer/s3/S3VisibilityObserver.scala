@@ -12,6 +12,7 @@ package s3
 
 import org.apache.accumulo.access.AccessExpression
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import org.locationtech.geomesa.security.SecurityUtils
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.{PutObjectTaggingRequest, Tag, Tagging}
@@ -32,11 +33,7 @@ class S3VisibilityObserver(path: URI, s3: S3AsyncClient, tag: String) extends Fi
 
   private val visibilities = scala.collection.mutable.Set.empty[String]
 
-  private val (bucket, key) = {
-    val uriPath = path.getPath
-    val key = if (uriPath.startsWith("/")) { uriPath.substring(1) } else { uriPath }
-    (path.getHost, key)
-  }
+  private val key = S3ObjectStore.parseS3Path(path)
 
   override def apply(feature: SimpleFeature): Unit = {
     val vis = SecurityUtils.getVisibility(feature)
@@ -48,7 +45,7 @@ class S3VisibilityObserver(path: URI, s3: S3AsyncClient, tag: String) extends Fi
   override def flush(): Unit = {}
 
   override def close(): Unit = {
-    try { makeTagRequest(bucket, key) } catch {
+    try { makeTagRequest(key.bucket, key.key) } catch {
       case e: Exception => throw new IOException("Error tagging object", e)
     }
   }

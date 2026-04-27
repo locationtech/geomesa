@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.storage.core
 package metadata
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, PartitionSchemeFactory}
@@ -22,7 +23,7 @@ import scala.util.control.NonFatal
  *
  * @param context file system
  */
-class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetadataCatalog {
+class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetadataCatalog with LazyLogging {
 
   private val directory = context.root.resolve(FileBasedMetadataCatalog.MetadataDirectory + "/")
 
@@ -46,8 +47,7 @@ class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetada
     val fs = ObjectStore(context)
     try {
       WithClose(fs.read(file)) { opt =>
-        val is = opt.orNull
-        if (is == null) {
+        val is = opt.getOrElse {
           throw new IllegalArgumentException(s"Type '$typeName' does not exit")
         }
         val meta = MetadataSerialization.deserialize(is)
@@ -65,9 +65,9 @@ class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetada
     val file = directory.resolve(StringSerialization.alphaNumericSafeString(sft.getTypeName) + ".json")
     val fs = ObjectStore(context)
     try {
-      // TODO overwrite?
-      WithClose(fs.overwrite(file)) { out =>
-        MetadataSerialization.serialize(out, meta)
+      WithClose(fs.create(file)) {
+        case Some(out) => MetadataSerialization.serialize(out, meta)
+        case None => logger.warn(s"Trying to create schema but it already exists: ${sft.getTypeName}")
       }
       new FileBasedMetadata(fs, meta.copy(sft = namespaced(meta.sft, context.namespace)), directory)
     } catch {
