@@ -21,7 +21,7 @@ class FsPlaybackCommand extends PlaybackCommand[FileSystemDataStore] with FsDist
   override val params = new FsPlaybackParams
 
   override def connection: Map[String, String] =
-    super.connection + (FileSystemDataStoreParams.ReadThreadsParam.getName -> params.threads.toString)
+    super.connection + (FileSystemDataStoreParams.QueryThreadsParam.getName -> params.threads.toString)
 }
 
 object FsPlaybackCommand {
