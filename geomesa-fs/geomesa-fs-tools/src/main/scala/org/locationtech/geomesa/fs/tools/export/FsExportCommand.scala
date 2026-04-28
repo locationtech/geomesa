@@ -21,7 +21,7 @@ class FsExportCommand extends ExportCommand[FileSystemDataStore] with FsDistribu
   override val params = new FsExportParams
 
   override def connection: Map[String, String] =
-    super.connection + (FileSystemDataStoreParams.ReadThreadsParam.getName -> params.threads.toString)
+    super.connection + (FileSystemDataStoreParams.QueryThreadsParam.getName -> params.threads.toString)
 }
 
 object FsExportCommand {

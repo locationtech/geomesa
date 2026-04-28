@@ -100,7 +100,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     // However, if you are doing lots of filtering it appears that bumping the threads up high
     // can be very useful. Seems possibly numcores/2 might is a good setting (which is a standard idea)
 
-    val readThreads = ReadThreadsParam.lookup(params)
+    val readThreads = QueryThreadsParam.lookup(params)
     val writeTimeout = WriteTimeoutParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite)
 
@@ -147,8 +147,8 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.MetadataTypeParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigFileParam,
-      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ReadThreadsParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.WriteTimeoutParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.QueryThreadsParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.QueryTimeoutParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.AuthProviderParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.AuthsParam,
