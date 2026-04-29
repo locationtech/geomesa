@@ -122,6 +122,24 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
   }
 
   "FileSystemDataStore" should {
+    "load deprecated hadoop configs" in {
+      val params = Map(
+        "fs.path" -> s"${dir.getPath}/tmp",
+        "fs.metadata.type" -> "file",
+        "fs.config.xml" -> "<configuration><property><name>config.xml</name><value>test</value></property></configuration>",
+        "fs.config.paths" -> new File(getClass.getClassLoader.getResource("test-site.xml").toURI).getAbsolutePath,
+      )
+      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+        ds.createSchema(sft)
+        ds.storage(sft.getTypeName).context.conf must containAllOf(
+          Map(
+            "config.xml" -> "test", // from direct data store param
+            "test-site" -> "bar", // from test-site.xml
+            "geomesa.test" -> "foo", // auto-loaded from core-site.xml on classpath
+          ).toSeq
+        )
+      }
+    }
     "create a DS" in {
       foreach(dsParams) { params =>
         WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>

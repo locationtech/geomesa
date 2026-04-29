@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.parquet.io
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.parquet.conf.ParquetConfiguration
+import org.apache.parquet.conf.{HadoopParquetConfiguration, ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.hadoop.api.InitContext
 import org.apache.parquet.hadoop.metadata.FileMetaData
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimeUnit
@@ -137,11 +137,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * @param conf write configuration, including the sft spec
    * @return
    */
-  def write(conf: Configuration): Option[SimpleFeatureParquetSchema] = {
-    val vis = conf.get(VisibilityEncodingKey)
-    val partition = conf.get(PartitionKey)
-    write(conf.get(SftNameKey), conf.get(SftSpecKey), conf.get(GeometryEncodingKey), conf.get(BBoxEncodingKey), vis, partition)
-  }
+  def write(conf: Configuration): Option[SimpleFeatureParquetSchema] = write(new HadoopParquetConfiguration(conf))
 
   /**
    * Get a schema for writing. Encoding can be configured through `geomesa.parquet.geometries` and `geomesa.fs.visibilities`
@@ -150,9 +146,42 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * @return
    */
   def write(conf: ParquetConfiguration): Option[SimpleFeatureParquetSchema] = {
-    val vis = conf.get(VisibilityEncodingKey)
-    val partition = conf.get(PartitionKey)
-    write(conf.get(SftNameKey), conf.get(SftSpecKey), conf.get(GeometryEncodingKey), conf.get(BBoxEncodingKey), vis, partition)
+    for {
+      name <- Option(conf.get(SftNameKey))
+      spec <- Option(conf.get(SftSpecKey))
+    } yield {
+      val sft = SimpleFeatureTypes.createType(name, spec)
+      val geometries = Option(conf.get(GeometryEncodingKey)).map(GeometryEncoding.apply).getOrElse(GeometryEncoding.GeoParquetWkb)
+      // only include bboxes if they help with push-down filters
+      val bboxes =
+        if (Option(conf.get(BBoxEncodingKey)).forall(_.toBoolean)) { BoundingBoxField(sft, geometries) } else { Seq.empty }
+      val visibilities =
+        Option(sft.getUserData.get(VisibilityEncodingKey)).orElse(Option(conf.get(VisibilityEncodingKey))).forall(_.toString.toBoolean)
+      val metadata = new java.util.HashMap[String, String]()
+      metadata.put(SftNameKey, name)
+      metadata.put(SftSpecKey, spec)
+      metadata.put(PartitionKey, conf.get(PartitionKey))
+      metadata.put(GeometryEncodingKey, geometries.toString)
+      if (geometries == GeometryEncoding.GeoMesaV1) {
+        // noinspection ScalaDeprecation
+        metadata.put(SchemaVersionKey, "1") // include schema version for back-compatibility when possible
+      }
+      val encodings = Encodings(geometries)
+      SimpleFeatureParquetSchema(sft, encodings, visibilities, bboxes, Collections.unmodifiableMap(metadata))
+    }
+  }
+
+  /**
+   * Gets the parquet schema
+   *
+   * @param sft simple feature type
+   * @param conf storage configuration
+   * @return
+   */
+  def schema(sft: SimpleFeatureType, conf: Map[String, String]): MessageType = {
+    val config = new PlainParquetConfiguration(conf.asJava)
+    setSft(config, sft)
+    write(config).get.schema
   }
 
   /**
@@ -175,40 +204,6 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       val encodings = Encodings(geometries)
       val bboxes = fileSchema.getFields.asScala.map(_.getName).flatMap(BoundingBoxField.fromBoundingBox).toSeq
       val visibilities = fileSchema.containsField(VisibilitiesField)
-      SimpleFeatureParquetSchema(sft, encodings, visibilities, bboxes, Collections.unmodifiableMap(metadata))
-    }
-  }
-
-  /**
-   * Gets a schema for writing
-   *
-   * @param sftName sft name config
-   * @param sftSpec sft spec config
-   * @param geoms geometry encoding config
-   * @param bboxOpt bounding box encoding config
-   * @param vis visibility config
-   * @return
-   */
-  private def write(sftName: String, sftSpec: String, geoms: String, bboxOpt: String, vis: String, partition: String): Option[SimpleFeatureParquetSchema] = {
-    for {
-      name <- Option(sftName)
-      spec <- Option(sftSpec)
-    } yield {
-      val sft = SimpleFeatureTypes.createType(name, spec)
-      val geometries = Option(geoms).map(GeometryEncoding.apply).getOrElse(GeometryEncoding.GeoParquetWkb)
-      // only include bboxes if they help with push-down filters
-      val bboxes = if (bboxOpt != null && !bboxOpt.toBoolean) { Seq.empty } else { BoundingBoxField(sft, geometries) }
-      val visibilities = Option(sft.getUserData.get(VisibilityEncodingKey)).orElse(Option(vis)).forall(_.toString.toBoolean)
-      val metadata = new java.util.HashMap[String, String]()
-      metadata.put(SftNameKey, name)
-      metadata.put(SftSpecKey, spec)
-      metadata.put(PartitionKey, partition)
-      metadata.put(GeometryEncodingKey, geometries.toString)
-      if (geometries == GeometryEncoding.GeoMesaV1) {
-        // noinspection ScalaDeprecation
-        metadata.put(SchemaVersionKey, "1") // include schema version for back-compatibility when possible
-      }
-      val encodings = Encodings(geometries)
       SimpleFeatureParquetSchema(sft, encodings, visibilities, bboxes, Collections.unmodifiableMap(metadata))
     }
   }

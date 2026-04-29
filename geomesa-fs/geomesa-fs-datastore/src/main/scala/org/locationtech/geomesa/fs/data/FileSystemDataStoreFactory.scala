@@ -42,10 +42,12 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val conf = {
       val builder = Map.newBuilder[String, String]
       // pick up any hadoop props, to e.g. make it a bit easier to configure s3 access based on s3a settings
-      FileSystemDataStoreFactory.configuration.forEach { e =>
-        val key = e.getKey
-        if (key.startsWith("geomesa.") || key.startsWith("fs.") || key.startsWith("parquet.")) {
-          builder += e.getKey -> FileSystemDataStoreFactory.configuration.get(e.getKey) // use .get to resolve envs
+      if (Seq("core-site.xml", "hdfs-site.xml").exists(getClass.getClassLoader.getResource(_) != null)) {
+        FileSystemDataStoreFactory.configuration.forEach { e =>
+          val key = e.getKey
+          if (key.startsWith("geomesa.") || key.startsWith("fs.") || key.startsWith("parquet.")) {
+            builder += e.getKey -> FileSystemDataStoreFactory.configuration.get(e.getKey) // use .get to resolve envs
+          }
         }
       }
       ConfigXmlParam.lookupOpt(params).foreach { xml =>

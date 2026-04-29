@@ -16,12 +16,12 @@ import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.SpatialPar
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.locationtech.jts.geom.Geometry
 
-case class XZ2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialScheme(XZ2Scheme.name, bits, geom) {
+case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends SpatialScheme(XZ2Scheme.name, attribute, bits) {
 
   private val xz2 = XZ2SFC((bits / 2).asInstanceOf[Short])
 
   override def getPartition(feature: SimpleFeature): PartitionKey = {
-    val geometry = feature.getAttribute(geom).asInstanceOf[Geometry]
+    val geometry = feature.getAttribute(index).asInstanceOf[Geometry]
     val envelope = geometry.getEnvelopeInternal
     PartitionKey(name, format.format(xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)))
   }
@@ -39,5 +39,5 @@ case class XZ2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSch
 
 object XZ2Scheme extends SpatialPartitionSchemeFactory[Geometry]("xz2") {
   override def buildPartitionScheme(bits: Int, geom: String, geomIndex: Int): SpatialScheme =
-    XZ2Scheme(bits, geom, geomIndex)
+    XZ2Scheme(geom, geomIndex, bits)
 }

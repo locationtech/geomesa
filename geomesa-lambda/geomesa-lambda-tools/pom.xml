@@ -53,7 +53,7 @@
             <artifactId>commons-csv</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.beust</groupId>
+            <groupId>org.jcommander</groupId>
             <artifactId>jcommander</artifactId>
         </dependency>
         <dependency>

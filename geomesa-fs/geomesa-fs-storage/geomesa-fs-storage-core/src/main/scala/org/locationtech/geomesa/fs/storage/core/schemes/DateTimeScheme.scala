@@ -21,7 +21,7 @@ import java.time.temporal.ChronoUnit
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.{Date, Locale}
 
-case class DateTimeScheme(dtg: String, dtgIndex: Int, unit: ChronoUnit, step: Int = 1) extends PartitionScheme {
+case class DateTimeScheme(attribute: String, index: Int, unit: ChronoUnit, step: Int = 1) extends PartitionScheme {
 
   import FilterHelper.ff
 
@@ -29,11 +29,11 @@ case class DateTimeScheme(dtg: String, dtgIndex: Int, unit: ChronoUnit, step: In
 
   override val name: String = {
     val stepOpt = if (step == 1) { "" } else { s":step=$step"}
-    s"${unit.name().toLowerCase(Locale.US)}:attribute=$dtg$stepOpt"
+    s"${unit.name().toLowerCase(Locale.US)}:attribute=$attribute$stepOpt"
   }
 
   override def getPartition(feature: SimpleFeature): PartitionKey = {
-    val instant = feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant
+    val instant = feature.getAttribute(index).asInstanceOf[Date].toInstant
     PartitionKey(name, encoder.encode(toPartition(ZonedDateTime.ofInstant(instant, ZoneOffset.UTC))))
   }
 
@@ -66,13 +66,13 @@ case class DateTimeScheme(dtg: String, dtgIndex: Int, unit: ChronoUnit, step: In
     val offset = encoder.decode(partition.value) * step
     val start = DateTimeScheme.Epoch.plus(offset.longValue(), unit)
     val end = ff.literal(DateParsing.format(start.plus(step, unit)))
-    ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(DateParsing.format(start))), ff.less(ff.property(dtg), end))
+    ff.and(ff.greaterOrEqual(ff.property(attribute), ff.literal(DateParsing.format(start))), ff.less(ff.property(attribute), end))
   }
 
   private def toPartition(dt: ZonedDateTime): Int = unit.between(DateTimeScheme.Epoch, dt).toInt / step
 
   private def getBounds(filter: Filter): Option[Seq[Bounds[ZonedDateTime]]] = {
-    val bounds = FilterHelper.extractIntervals(filter, dtg)
+    val bounds = FilterHelper.extractIntervals(filter, attribute)
     if (bounds.isEmpty) {
       None
     } else if (bounds.disjoint) {

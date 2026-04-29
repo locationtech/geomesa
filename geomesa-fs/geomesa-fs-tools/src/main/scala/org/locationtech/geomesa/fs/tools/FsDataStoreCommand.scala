@@ -34,7 +34,9 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
   override def connection: Map[String, String] = {
     val builder = Map.newBuilder[String, String]
     builder += (FileSystemDataStoreParams.PathParam.key -> params.path)
-    builder += (FileSystemDataStoreParams.MetadataTypeParam.key -> params.metadataType)
+    if (params.metadataType != null) {
+      builder += (FileSystemDataStoreParams.MetadataTypeParam.key -> params.metadataType)
+    }
     if (!params.configuration.isEmpty) {
       val props = new Properties()
       params.configuration.asScala.foreach { case (k, v) => props.put(k, v) }
@@ -81,7 +83,6 @@ object FsDataStoreCommand {
     @Parameter(
       names = Array("--metadata-type"),
       description = "Metadata type to use",
-      required = true,
       validateValueWith = Array(classOf[MetadataTypeValidator]))
     var metadataType: String = _
 
@@ -105,6 +106,16 @@ object FsDataStoreCommand {
     @Parameter(
       names = Array("--partition"),
       description = "Partition(s) to operate on",
+      converter = classOf[PartitionConverter],
+      splitter = classOf[NoopParameterSplitter])
+    var partitions: java.util.List[Partition] = new java.util.ArrayList[Partition]()
+  }
+
+  trait RequiredPartitionParam {
+    @Parameter(
+      names = Array("--partition"),
+      description = "Partition(s) to operate on",
+      required = true,
       converter = classOf[PartitionConverter],
       splitter = classOf[NoopParameterSplitter])
     var partitions: java.util.List[Partition] = new java.util.ArrayList[Partition]()

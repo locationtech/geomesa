@@ -12,11 +12,10 @@ import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveOutputStream}
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import org.apache.commons.io.IOUtils
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Options.CreateOpts
-import org.apache.hadoop.fs.{CreateFlag, FileContext, Path}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.fs.storage.core.FileSystemContext
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.slf4j.LoggerFactory
@@ -26,8 +25,9 @@ import org.testcontainers.containers.MinIOContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.DockerImageName
 
-import java.io.{BufferedOutputStream, ByteArrayInputStream}
-import java.nio.charset.StandardCharsets
+import java.io.{BufferedOutputStream, StringReader}
+import java.net.URI
+import java.util.Properties
 
 class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll {
 
@@ -56,43 +56,37 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
 
   def fsConfig(converter: String, path: String): String = {
     val props = Seq(
-      prop("fs.options.converter.path", path),
-      prop("fs.partition-scheme.name", "datetime"),
-      prop("fs.partition-scheme.opts.datetime-format", "yyyy/DDD/HH/mm"),
-      prop("fs.partition-scheme.opts.step-unit", "MINUTES"),
-      prop("fs.partition-scheme.opts.step", "15"),
-      prop("fs.partition-scheme.opts.dtg-attribute", "dtg"),
-      prop("fs.options.leaf-storage", "true"),
+      s"fs.options.converter.path=$path",
+      "fs.partition-scheme.name=datetime",
+      "fs.partition-scheme.opts.datetime-format=yyyy/DDD/HH/mm",
+      "fs.partition-scheme.opts.step-unit=MINUTES",
+      "fs.partition-scheme.opts.step=15",
+      "fs.partition-scheme.opts.dtg-attribute=dtg",
+      "fs.options.leaf-storage=true",
     )
-    s"""<configuration>
-      |$converter
-      |${props.mkString("\n")}
-      |</configuration>
-      |""".stripMargin
+    s"$converter\n${props.mkString("\n")}".stripMargin
   }
 
   def sftByName(name: String): String = {
     Seq(
-      prop("fs.options.sft.name", name),
-      prop("fs.options.converter.name", name),
+      s"fs.options.sft.name=$name",
+      s"fs.options.converter.name=$name",
     ).mkString("\n")
   }
 
   def sftByConf(conf: String): String = {
     Seq(
-      prop("fs.options.sft.conf", conf),
-      prop("fs.options.converter.conf", conf),
+      s"fs.options.sft.conf=$conf",
+      s"fs.options.converter.conf=$conf",
     ).mkString("\n")
   }
-
-  def prop(key: String, value: String): String = s"  <property><name>$key</name><value>$value</value></property>"
 
   "ConverterDataStore" should {
     "work with one datastore" in {
       val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
-        "fs.encoding"   -> "converter",
-        "fs.config.xml" -> fsConfig(sftByName("fs-test"), "datastore1")
+        "fs.path"              -> this.getClass.getClassLoader.getResource("example").getFile,
+        "fs.encoding"          -> "converter",
+        "fs.config.properties" -> fsConfig(sftByName("fs-test"), "datastore1")
       ).asJava)
       ds must not(beNull)
 
@@ -107,9 +101,9 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
 
     "work with something else" in {
       val params = Map(
-        "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
-        "fs.encoding"   -> "converter",
-        "fs.config.xml" -> fsConfig(sftByName("fs-test"), "datastore2")
+        "fs.path"              -> this.getClass.getClassLoader.getResource("example").getFile,
+        "fs.encoding"          -> "converter",
+        "fs.config.properties" -> fsConfig(sftByName("fs-test"), "datastore2")
       )
       WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
         ds must not(beNull)
@@ -129,37 +123,40 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
       val config = {
         val props = Seq(
           sftByName("fs-test"),
-          prop("fs.s3a.endpoint.region", "us-east-1"),
-          prop("fs.s3a.endpoint", minio.getS3URL),
-          prop("fs.s3a.access.key", minio.getUserName),
-          prop("fs.s3a.secret.key", minio.getPassword),
-          prop("fs.s3a.path.style.access", "true"),
-          prop("dfs.client.use.datanode.hostname", "true"),
-          prop("fs.s3a.connection.maximum", "20") // reduce connection pool size to show resource leaks quickly
+          "fs.s3a.endpoint.region=us-east-1",
+          s"fs.s3a.endpoint=${minio.getS3URL}",
+          s"fs.s3a.access.key=${minio.getUserName}",
+          s"fs.s3a.secret.key=${minio.getPassword}",
+          "fs.s3a.path.style.access=true",
+          "dfs.client.use.datanode.hostname=true",
+          "fs.s3a.connection.maximum=20" // reduce connection pool size to show resource leaks quickly
         ).mkString("\n")
         fsConfig(props, "datastore1")
       }
-      val fc = {
-        val conf = new Configuration()
-        conf.addResource(new ByteArrayInputStream(config.getBytes(StandardCharsets.UTF_8)))
-        FileContext.getFileContext(conf)
+      val props = {
+        val properties = new Properties()
+        properties.load(new StringReader(config))
+        properties.asScala.toMap
       }
       // number of times to write the sample files into our tgz
       // note: we need fairly large files to trigger GEOMESA-3411
       val multiplier = 177156
-      Seq("00", "15", "30", "45").foreach { file =>
-        val path = s"datastore1/2017/001/01/$file"
-        val contents = WithClose(getClass.getClassLoader.getResourceAsStream(s"example/$path"))(IOUtils.toByteArray)
-        writePlain(fc, s"$bucket$path", contents, multiplier)
-        writePlainGz(fc, s"$bucket$path", contents, multiplier)
-        writeTarGz(fc, s"$bucket$path", contents, multiplier)
+      val fsc = FileSystemContext.create(new URI(bucket), props)
+      WithClose(ObjectStore(fsc)) { fs =>
+        Seq("00", "15", "30", "45").foreach { file =>
+          val path = s"datastore1/2017/001/01/$file"
+          val contents = WithClose(getClass.getClassLoader.getResourceAsStream(s"example/$path"))(IOUtils.toByteArray)
+          writePlain(fs, s"$bucket$path", contents, multiplier)
+          writePlainGz(fs, s"$bucket$path", contents, multiplier)
+          writeTarGz(fs, s"$bucket$path", contents, multiplier)
+        }
       }
 
       foreach(Seq(("100 millis", true), ("5 minutes", false))) { case (timeout, expectTimeout) =>
         val params = Map(
           "fs.path"               -> bucket,
           "fs.encoding"           -> "converter",
-          "fs.config.xml"         -> config,
+          "fs.config.properties"  -> config,
           "fs.read-threads"       -> "12",
           "geomesa.query.timeout" -> timeout,
         )
@@ -216,9 +213,9 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
       ).root().render(ConfigRenderOptions.concise)
 
       val params = Map(
-        "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
-        "fs.encoding"   -> "converter",
-        "fs.config.xml" -> fsConfig(sftByConf(conf), "datastore1")
+        "fs.path"              -> this.getClass.getClassLoader.getResource("example").getFile,
+        "fs.encoding"          -> "converter",
+        "fs.config.properties" -> fsConfig(sftByConf(conf), "datastore1")
       )
       WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
         ds must not(beNull)
@@ -234,8 +231,8 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
     }
   }
 
-  private def writePlain(fc: FileContext, path: String, contents: Array[Byte], multiplier: Int): Unit = {
-    WithClose(fc.create(new Path(s"$path.csv"), java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent())) { os =>
+  private def writePlain(fs: ObjectStore, path: String, contents: Array[Byte], multiplier: Int): Unit = {
+    WithClose(fs.overwrite(new URI(s"$path.csv"))) { os =>
       WithClose(new BufferedOutputStream(os)) { buf =>
         var i = 0
         while (i < multiplier) {
@@ -246,8 +243,8 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
     }
   }
 
-  private def writePlainGz(fc: FileContext, path: String, contents: Array[Byte], multiplier: Int): Unit = {
-    WithClose(fc.create(new Path(s"$path.gz"), java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent())) { os =>
+  private def writePlainGz(fs: ObjectStore, path: String, contents: Array[Byte], multiplier: Int): Unit = {
+    WithClose(fs.overwrite(new URI(s"$path.gz"))) { os =>
       WithClose(new BufferedOutputStream(os)) { buf =>
         WithClose(new GzipCompressorOutputStream(buf)) { gz =>
           var i = 0
@@ -260,8 +257,8 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
     }
   }
 
-  private def writeTarGz(fc: FileContext, path: String, contents: Array[Byte], multiplier: Int): Unit = {
-    WithClose(fc.create(new Path(s"$path.tgz"), java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent())) { os =>
+  private def writeTarGz(fs: ObjectStore, path: String, contents: Array[Byte], multiplier: Int): Unit = {
+    WithClose(fs.overwrite(new URI(s"$path.tgz"))) { os =>
       WithClose(new BufferedOutputStream(os)) { buf =>
         WithClose(new GzipCompressorOutputStream(buf)) { gz =>
           WithClose(new TarArchiveOutputStream(gz)) { tar =>

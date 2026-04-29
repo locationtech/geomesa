@@ -17,7 +17,7 @@ import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.SpatialPar
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.locationtech.jts.geom.Point
 
-case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialScheme(Z2Scheme.name, bits, geom) {
+case class Z2Scheme(attribute: String, index: Int, bits: Int) extends SpatialScheme(Z2Scheme.name, attribute, bits) {
 
   import org.locationtech.geomesa.filter.{andFilters, ff}
   import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
@@ -28,7 +28,7 @@ case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSche
   private val yRadius = (180d / math.pow(2, xyBits)) / 2
 
   override def getPartition(feature: SimpleFeature): PartitionKey = {
-    val pt = feature.getAttribute(geomIndex).asInstanceOf[Point]
+    val pt = feature.getAttribute(index).asInstanceOf[Point]
     PartitionKey(name, format.format(z2.index(pt.getX, pt.getY)))
   }
 
@@ -36,13 +36,13 @@ case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSche
     val (x, y) = z2.invert(partition.value.toLong)
     val (xmin, xmax) = (x - xRadius, x + xRadius)
     val (ymin, ymax) = (y - yRadius, y + yRadius)
-    val bbox = ff.bbox(ff.property(geom), new ReferencedEnvelope(xmin, xmax, ymin, ymax, CRS_EPSG_4326))
+    val bbox = ff.bbox(ff.property(attribute), new ReferencedEnvelope(xmin, xmax, ymin, ymax, CRS_EPSG_4326))
     // account for borders between z-cells (make upper bounds exclusive except on the upper-right edge)
     val xExclusive = if (xmax == z2.lon.max) { None } else {
-      Some(ff.less(ff.function("getX", ff.property(geom)), ff.literal(xmax)))
+      Some(ff.less(ff.function("getX", ff.property(attribute)), ff.literal(xmax)))
     }
     val yExclusive = if (ymax == z2.lat.max) { None } else {
-      Some(ff.less(ff.function("getY", ff.property(geom)), ff.literal(ymax)))
+      Some(ff.less(ff.function("getY", ff.property(attribute)), ff.literal(ymax)))
     }
     andFilters(Seq(bbox) ++ xExclusive ++ yExclusive)
   }
@@ -54,5 +54,5 @@ case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSche
 
 object Z2Scheme extends SpatialPartitionSchemeFactory[Point]("z2") {
   override def buildPartitionScheme(bits: Int, geom: String, geomIndex: Int): SpatialScheme =
-    Z2Scheme(bits, geom, geomIndex)
+    Z2Scheme(geom, geomIndex, bits)
 }

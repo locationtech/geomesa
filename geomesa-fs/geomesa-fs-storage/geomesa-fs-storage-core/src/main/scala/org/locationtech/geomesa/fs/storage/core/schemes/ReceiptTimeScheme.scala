@@ -16,8 +16,8 @@ import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
 import org.geotools.api.temporal.{Instant, Period}
 import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
+import org.locationtech.geomesa.fs.storage.core.PartitionSchemeFactory
 import org.locationtech.geomesa.fs.storage.core.schemes.ReceiptTimeScheme.BufferingFilterVisitor
-import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
 import java.time.format.DateTimeFormatter
@@ -38,15 +38,15 @@ class ReceiptTimeScheme(
     pattern: String,
     stepUnit: ChronoUnit,
     step: Int,
-    dtg: String,
-    dtgIndex: Int,
+    attribute: String,
+    index: Int,
     val buffer: Duration,
-  ) extends HierarchicalDateTimeScheme(formatter, pattern, stepUnit, step, dtg, dtgIndex) {
+  ) extends HierarchicalDateTimeScheme(formatter, pattern, stepUnit, step, attribute, index) {
 
   import ReceiptTimeScheme.Config
 
   override val name: String =
-    HierarchicalDateTimeScheme(formatter, pattern, stepUnit, step, dtg, dtgIndex).name
+    HierarchicalDateTimeScheme(formatter, pattern, stepUnit, step, attribute, index).name
       .replaceFirst(HierarchicalDateTimeScheme.Name, ReceiptTimeScheme.Name) + s":${Config.BufferOpt}=${buffer.toMillis}ms"
 
   override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] =
@@ -56,7 +56,7 @@ class ReceiptTimeScheme(
     throw new UnsupportedOperationException("Dates may overlap in multiple partitions")
 
   private def buffered(filter: Filter): Filter =
-    filter.accept(new BufferingFilterVisitor(buffer, dtg), null).asInstanceOf[Filter]
+    filter.accept(new BufferingFilterVisitor(buffer, attribute), null).asInstanceOf[Filter]
 }
 
 object ReceiptTimeScheme extends PartitionSchemeFactory {
@@ -76,7 +76,7 @@ object ReceiptTimeScheme extends PartitionSchemeFactory {
       val dt = HierarchicalDateTimeScheme.load(sft, s"$dateTimeName:${scheme.drop(Name.length + 1)}").getOrElse {
         throw new IllegalArgumentException(s"Could not load HierarchicalDateTimeScheme from provided options: $scheme")
       }
-      Some(new ReceiptTimeScheme(dt.formatter, dt.pattern, dt.stepUnit, dt.step, dt.dtg, dt.dtgIndex, buffer))
+      Some(new ReceiptTimeScheme(dt.formatter, dt.pattern, dt.stepUnit, dt.step, dt.attribute, dt.index, buffer))
     }
   }
 

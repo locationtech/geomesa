@@ -28,7 +28,7 @@ class ReceiptTimeSchemeTest extends SpecificationWithJUnit {
       val scheme = ReceiptTimeScheme.load(sft, "receipt-time:buffer=60 minutes:datetime-scheme=daily").orNull
       scheme must not(beNull)
       scheme.buffer mustEqual Duration(60, TimeUnit.MINUTES)
-      scheme.dtg mustEqual "dtg"
+      scheme.attribute mustEqual "dtg"
       scheme.pattern mustEqual "yyyy/MM/dd"
     }
 
@@ -52,7 +52,7 @@ class ReceiptTimeSchemeTest extends SpecificationWithJUnit {
       val scheme = ReceiptTimeScheme.load(sft, names).orNull
       scheme must not(beNull)
       scheme.buffer mustEqual Duration(60, TimeUnit.MINUTES)
-      scheme.dtg mustEqual "dtg"
+      scheme.attribute mustEqual "dtg"
       scheme.pattern mustEqual "yyyy"
     }
 

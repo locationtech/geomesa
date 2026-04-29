@@ -17,6 +17,8 @@ object FlatScheme extends PartitionScheme with PartitionSchemeFactory {
 
   override val name: String = "flat"
 
+  override val attribute: String = ""
+
   override def getPartition(feature: SimpleFeature): PartitionKey = PartitionKey(name, "")
 
   override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = None

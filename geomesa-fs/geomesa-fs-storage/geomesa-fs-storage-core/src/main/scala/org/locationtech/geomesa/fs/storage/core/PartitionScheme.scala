@@ -26,6 +26,13 @@ trait PartitionScheme {
   def name: String
 
   /**
+   * Name of the attribute used for partitioning
+   *
+   * @return
+   */
+  def attribute: String
+
+  /**
     * Return the partition in which a SimpleFeature should be stored
     *
     * @param feature simple feature
