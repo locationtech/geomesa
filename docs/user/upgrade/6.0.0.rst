@@ -61,6 +61,7 @@ Dependency Version Upgrades
 The following dependencies have been upgraded:
 
 * accumulo ``2.1.4`` -> ``2.1.6``
+* accumulo-access ``1.0.0-beta`` -> ``1.0.0-beta3``
 * aircompressor ``0.27`` -> ``2.0.3``
 * arrow ``18.3.0`` -> ``19.0.0``
 * avro ``1.11.4`` -> ``1.12.1``

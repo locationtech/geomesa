@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.security
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.access.{AccessEvaluator, Authorizations}
+import org.apache.accumulo.access.Access
 import org.geotools.api.feature.simple.SimpleFeature
 
 import scala.util.control.NonFatal
@@ -33,14 +33,15 @@ object VisibilityUtils {
    * @param provider auth provider
    * @return
    */
-  def check(provider: AuthorizationsProvider): String => Boolean = new AuthVisibilityCheck(provider.getAuthorizations)
+  def check(provider: AuthorizationsProvider): String => Boolean =
+    new AuthVisibilityCheck(new java.util.HashSet[String](provider.getAuthorizations))
 
   /**
    * Parses any visibilities in the feature and compares with the user's authorizations
    *
    * @param auths authorizations for the current user
    */
-  private class AuthVisibilityFeatureCheck(auths: java.util.List[String]) extends (SimpleFeature => Boolean) {
+  private class AuthVisibilityFeatureCheck(auths: java.util.Set[String]) extends (SimpleFeature => Boolean) {
 
     private val check = new AuthVisibilityCheck(auths)
 
@@ -58,9 +59,9 @@ object VisibilityUtils {
    *
    * @param auths authorizations for the current user
    */
-  private class AuthVisibilityCheck(auths: java.util.List[String]) extends (String => Boolean) with LazyLogging {
+  private class AuthVisibilityCheck(auths: java.util.Set[String]) extends (String => Boolean) with LazyLogging {
 
-    private val access = AccessEvaluator.of(Authorizations.of(auths))
+    private val access = Access.builder().build().newEvaluator(auths)
     private val cache = scala.collection.mutable.Map.empty[String, Boolean]
 
     /**

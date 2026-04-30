@@ -52,10 +52,10 @@ class S3VisibilityObserver(path: String, fs: S3FileIO, tag: String) extends File
 
   private def makeTagRequest(bucket: String, key: String): Unit = {
     if (visibilities.nonEmpty) {
-      val vis = visibilities.mkString("(", ")&(", ")")
-      // this call simplifies and de-duplicates the expression
-      val expression = AccessExpression.of(vis, /*normalize = */true).getExpression
-      val visibility = Base64.getEncoder.encodeToString(expression.getBytes(StandardCharsets.UTF_8))
+      val vis = visibilities.toList.sorted.mkString("(", ")&(", ")")
+      // TODO simplify and de-duplicates the expression
+      val visibility = Base64.getEncoder.encodeToString(vis.getBytes(StandardCharsets.UTF_8))
+      val tagging = Tagging.builder().tagSet(Tag.builder.key(tag).value(visibility).build()).build()
       val request =
         PutObjectTaggingRequest.builder()
           .bucket(bucket)
