@@ -37,6 +37,7 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
+* accumulo-access ``1.0.0-beta`` -> ``1.0.0-beta3``
 * arrow ``18.3.0`` -> ``19.0.0``
 * commons-codec ``1.17.1`` -> ``1.18.0``
 * commons-lang ``3.15.0`` -> ``3.20.0``
