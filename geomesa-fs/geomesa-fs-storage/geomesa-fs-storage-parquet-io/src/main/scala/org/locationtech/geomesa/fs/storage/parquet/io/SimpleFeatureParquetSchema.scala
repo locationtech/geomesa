@@ -290,9 +290,10 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       encodings: Encodings,
       bboxes: BoundingBoxes,
       visibilities: Boolean): MessageType = {
-    val fieldIds = new AtomicInteger(10) // start at 10 to reserve some space for additional fields
+    val fieldIds = new AtomicInteger(2)
     val id = Types.required(PrimitiveTypeName.BINARY).id(1).as(LogicalTypeAnnotation.stringType()).named(FeatureIdField)
     val vis = if (!visibilities) { None } else {
+      fieldIds.incrementAndGet()
       Some(Types.optional(PrimitiveTypeName.BINARY).id(2).as(LogicalTypeAnnotation.stringType()).named(VisibilitiesField))
     }
     val attributes = {
