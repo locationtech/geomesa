@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.fs.tools.`export`
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
-import org.apache.iceberg.{DataFiles, FileFormat, MetricsConfig, PartitionSpec}
 import org.apache.iceberg.catalog.{Catalog, Namespace, TableIdentifier}
-import org.apache.iceberg.parquet.{ParquetSchemaUtil, ParquetUtil}
+import org.apache.iceberg.parquet.ParquetUtil
+import org.apache.iceberg._
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.core.PartitionScheme
 import org.locationtech.geomesa.fs.storage.core.schemes.AttributeScheme.{IntegralBucketing, WidthBucketing}
@@ -110,7 +110,8 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand {
       }
     }
 
-    val schema = ParquetSchemaUtil.convert(SimpleFeatureParquetSchema.schema(storage.metadata.sft, storage.context.conf))
+    val schema = SimpleFeatureParquetSchema(storage.metadata.sft, storage.context.conf).iceberg
+    Command.user.info(SchemaParser.toJson(schema))
     val partitions = storage.metadata.sft.getAttributeDescriptors.asScala.flatMap { d =>
       val name = d.getLocalName
       storage.metadata.schemes.find(_.attribute == name).flatMap { scheme =>
@@ -171,9 +172,9 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand {
 
     Command.user.info(s"Files: ${files.mkString("\n")}")
 
-//    val append = table.newAppend()
-//    files.foreach(append.appendFile)
-//    append.commit()
+    val append = table.newAppend()
+    files.foreach(append.appendFile)
+    append.commit()
 
     Command.user.info("Complete")
 //    val manifests = files.map { file =>

@@ -23,7 +23,6 @@ import org.locationtech.geomesa.convert.parquet.AvroReadSupport.AvroRecordMateri
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport._
 import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetSchema, SimpleFeatureReadSupport}
-import org.locationtech.geomesa.utils.geotools.ObjectType
 
 import java.util.{Collections, Date}
 
@@ -63,33 +62,52 @@ object AvroReadSupport {
 
   class AvroRecordMaterializer(fileSchema: MessageType, schema: Option[SimpleFeatureParquetSchema])
       extends RecordMaterializer[GenericRecord] {
-    private val root = new GenericGroupConverter(fileSchema, schema)
+    private val root = schema match {
+      case None => new GenericGroupConverter(fileSchema)
+      case Some(s) => new SimpleFeatureGroupConverter(fileSchema, s)
+    }
     override def getCurrentRecord: GenericRecord = root.materialize()
     override def getRootConverter: GroupConverter = root
+  }
+
+  /**
+   * Group converter for a record. Since these are geomesa records, we use our custom parquet read support
+   * so that values get parsed into standard simple feature attributes (including geometries) instead
+   * of generic avro types
+   *
+   * @param fileSchema parquet schema
+   * @param schema geomesa schema encodings, if it's a geomesa file
+   */
+  private class SimpleFeatureGroupConverter(fileSchema: MessageType, schema: SimpleFeatureParquetSchema)
+      extends GroupConverter with ValueMaterializer[GenericRecord] {
+
+    private val avroSchema = new AvroSchemaConverter().convert(fileSchema)
+    private val delegate = new SimpleFeatureReadSupport.SimpleFeatureGroupConverter(schema)
+
+    override def getConverter(fieldIndex: Int): Converter = delegate.getConverter(fieldIndex)
+    override def start(): Unit = delegate.start()
+    override def end(): Unit = delegate.end()
+    override def reset(): Unit = delegate.reset()
+    override def materialize(): GenericRecord = {
+      val rec = new GenericData.Record(avroSchema)
+      var i = 0
+      while (i < delegate.fieldCount) {
+        rec.put(i, delegate.getConverter(i).materialize())
+        i += 1
+      }
+      rec
+    }
   }
 
   /**
    * Group converter for a record
    *
    * @param fileSchema parquet schema
-   * @param schema geomesa schema encodings, if it's a geomesa file
    */
-  private class GenericGroupConverter(fileSchema: MessageType, schema: Option[SimpleFeatureParquetSchema])
-      extends GroupConverter with ValueMaterializer[GenericRecord] {
+  private class GenericGroupConverter(fileSchema: MessageType) extends GroupConverter with ValueMaterializer[GenericRecord] {
 
     private val avroSchema = new AvroSchemaConverter().convert(fileSchema)
-    private val fields = fileSchema.getFields.asScala.toSeq
-    private val converters = schema match {
-      case None => Array.tabulate(fields.length)(i => converter(fields(i)))
-      case Some(s) =>
-        // for attributes, we re-use our parquet read support so that they get parsed into standard simple feature attribute
-        // types (including geometries) instead of generic avro types
-        val attributes =
-          s.sft.getAttributeDescriptors.asScala.map(d => SimpleFeatureReadSupport.attribute(ObjectType.selectType(d), s.encodings))
-        // the remaining non-attribute fields are added as generic types (currently fid, vis, and bboxes)
-        val remaining = fields.drop(s.sft.getAttributeCount).map(converter).toArray
-        attributes.toArray ++ remaining
-    }
+    private val converters = fileSchema.getFields.asScala.map(converter).toArray
 
     private var rec: GenericRecord = _
 
@@ -100,7 +118,7 @@ object AvroReadSupport {
     }
     override def end(): Unit = {
       var i = 0
-      while (i < fields.length) {
+      while (i < converters.length) {
         rec.put(i, converters(i).materialize())
         i += 1
       }
@@ -144,8 +162,7 @@ object AvroReadSupport {
       }
     } else {
       val group = field.asGroupType()
-      def genericGroupConverter(): GenericGroupConverter =
-        new GenericGroupConverter(new MessageType(group.getName, group.getFields), None)
+      def genericGroupConverter(): GenericGroupConverter = new GenericGroupConverter(new MessageType(group.getName, group.getFields))
       logical match {
         case _: ListLogicalTypeAnnotation =>
           ParquetConverterFactory.getListElementType(group) match {

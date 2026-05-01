@@ -249,7 +249,7 @@ object GeoParquetMetadata {
       }
       // TODO add z for 3d points
       val types = if (binding == classOf[Geometry]) { Seq.empty } else { Seq(GeoParquetColumnType.withName(binding.getSimpleName)) }
-      val covering = schema.boundingBoxes.collectFirst { case b if b.geometry == name => b.bbox }
+      val covering = schema.bboxes.get(name)
       ColumnMetadata(name, encoding, types, covering)
     }
 

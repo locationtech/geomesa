@@ -26,7 +26,7 @@ package object parquet {
     * @param read read schema, includes fields to filter on
     * @param transform return schema, if different from read schema
     */
-  case class ReadSchema(read: SimpleFeatureType, transform: Option[(String, SimpleFeatureType)])
+  case class ReadSchema(read: Option[SimpleFeatureType], transform: Option[(String, SimpleFeatureType)])
 
   /**
     * Filter to read files
@@ -53,7 +53,7 @@ package object parquet {
         filter: Option[Filter],
         transform: Option[(String, SimpleFeatureType)]): ReadSchema = {
       transform match {
-        case None => ReadSchema(sft, None)
+        case None => ReadSchema(None, None)
         case Some((tdefs, _)) =>
           val definitions = Transforms(sft, tdefs)
           val secondary = definitions.exists {
@@ -76,7 +76,7 @@ package object parquet {
           }
           projectedSft.getUserData.putAll(sft.getUserData)
 
-          ReadSchema(projectedSft, if (secondary || filterCols.nonEmpty) { transform } else { None })
+          ReadSchema(Some(projectedSft), if (secondary || filterCols.nonEmpty) { transform } else { None })
       }
     }
   }

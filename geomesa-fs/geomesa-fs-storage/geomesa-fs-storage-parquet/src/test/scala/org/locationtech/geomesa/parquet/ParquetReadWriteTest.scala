@@ -16,7 +16,6 @@ import org.apache.parquet.filter2.compat.FilterCompat
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.parquet.FilterConverter
@@ -24,16 +23,13 @@ import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.File
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
-import org.specs2.specification.AllExpectations
+import org.specs2.mutable.SpecificationWithJUnit
 
 import java.io.RandomAccessFile
 import java.nio.file.Files
 import scala.collection.mutable.ArrayBuffer
 
-@RunWith(classOf[JUnitRunner])
-class ParquetReadWriteTest extends Specification with AllExpectations with LazyLogging {
+class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
 
   import scala.collection.JavaConverters._
 

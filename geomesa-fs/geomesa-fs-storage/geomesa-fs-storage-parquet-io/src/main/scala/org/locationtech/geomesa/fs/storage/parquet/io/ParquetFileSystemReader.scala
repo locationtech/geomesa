@@ -31,7 +31,8 @@ import scala.util.control.NonFatal
 class ParquetFileSystemReader(
     fs: ObjectStore,
     context: FileSystemContext,
-    readSft: SimpleFeatureType,
+    sft: SimpleFeatureType,
+    readSft: Option[SimpleFeatureType],
     parquetFilter: FilterCompat.Filter,
     gtFilter: Option[org.geotools.api.filter.Filter],
     visFilter: SimpleFeature => Boolean,
@@ -45,12 +46,13 @@ class ParquetFileSystemReader(
   private val transformFeature: SimpleFeature => SimpleFeature = transform match {
     case None => null
     case Some((tdefs, tsft)) =>
-      val definitions = Transforms(readSft, tdefs).toArray
+      val definitions = Transforms(readSft.getOrElse(sft), tdefs).toArray
       f => new TransformSimpleFeature(tsft, definitions, f)
   }
 
   private val conf = new PlainParquetConfiguration(context.conf.asJava)
-  SimpleFeatureParquetSchema.setSft(conf, readSft)
+  SimpleFeatureParquetSchema.setSft(conf, sft)
+  readSft.foreach(SimpleFeatureParquetSchema.setReadSft(conf, _))
 
   override def root: URI = context.root
 

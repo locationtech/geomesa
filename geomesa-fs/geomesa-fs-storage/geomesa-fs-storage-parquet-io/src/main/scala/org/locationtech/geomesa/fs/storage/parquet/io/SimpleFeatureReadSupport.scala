@@ -18,9 +18,7 @@ import org.apache.parquet.schema.MessageType
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.parquet.io.DateEncoding.DateEncoding
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
-import org.locationtech.geomesa.fs.storage.parquet.io.ListEncoding.ListEncoding
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
@@ -91,8 +89,11 @@ object SimpleFeatureReadSupport {
   /**
     * Group converter that can create simple features
     */
-  private class SimpleFeatureGroupConverter(schema: SimpleFeatureParquetSchema)
+  class SimpleFeatureGroupConverter(schema: SimpleFeatureParquetSchema)
       extends GroupConverter with ValueMaterializer[SimpleFeature] {
+
+    // account for field ordering changes in our schema evolution
+    private val consistentOrdering = schema.schema.getFieldName(0) == SimpleFeatureParquetSchema.FeatureIdField
 
     private val idConverter = new StringConverter()
 
@@ -105,19 +106,44 @@ object SimpleFeatureReadSupport {
       }
     }
 
+    private val attributes = Array.ofDim[ValueMaterializer[_ <: AnyRef]](schema.sft.getAttributeCount)
+
     private val converters = {
       val builder = Array.newBuilder[ValueMaterializer[_ <: AnyRef]]
-      var i = 0
-      while (i < schema.sft.getAttributeCount) {
-        builder += attribute(ObjectType.selectType(schema.sft.getDescriptor(i)), schema.encodings)
-        i += 1
+      if (consistentOrdering) {
+        builder += idConverter
+        if (schema.hasVisibilities) {
+          builder += visConverter
+        }
+        var i = 0
+        while (i < schema.sft.getAttributeCount) {
+          val descriptor = schema.sft.getDescriptor(i)
+          val materializer = attribute(ObjectType.selectType(descriptor))
+          builder += materializer
+          attributes(i) = materializer
+          // note: we read bounding boxes since they're present, but we don't do anything with the result
+          schema.bboxes.get(descriptor.getLocalName).foreach { _ =>
+            builder += new BoundingBoxConverter()
+          }
+          i += 1
+        }
+      } else {
+        var i = 0
+        while (i < schema.sft.getAttributeCount) {
+          val materializer = attribute(ObjectType.selectType(schema.sft.getDescriptor(i)))
+          builder += materializer
+          attributes(i) = materializer
+          i += 1
+        }
+        builder += idConverter
+        if (schema.hasVisibilities) {
+          builder += visConverter
+        }
+        // note: we read bounding boxes since they're present, but we don't do anything with the result
+        schema.bboxes.fields.foreach { _ =>
+          builder += new BoundingBoxConverter()
+        }
       }
-      builder += idConverter
-      if (schema.hasVisibilities) {
-        builder += visConverter
-      }
-      // note: we read bounding boxes since they're present, but we don't do anything with the result
-      schema.boundingBoxes.foreach(_ => builder += new BoundingBoxConverter())
       builder.result()
     }
 
@@ -126,7 +152,7 @@ object SimpleFeatureReadSupport {
     override def materialize(): SimpleFeature = {
       val id = idConverter.materialize()
       val vis = visConverter.materialize()
-      val values = Array.tabulate[AnyRef](schema.sft.getAttributeCount)(i => converters(i).materialize())
+      val values = Array.tabulate[AnyRef](schema.sft.getAttributeCount)(i => attributes(i).materialize())
       val userData = if (vis == null) { null } else {
         val map = new java.util.HashMap[AnyRef, AnyRef](1)
         map.put("geomesa.feature.visibility", vis)
@@ -137,76 +163,71 @@ object SimpleFeatureReadSupport {
 
     override def start(): Unit = converters.foreach(_.reset())
 
-    override def getConverter(fieldIndex: Int): Converter = converters(fieldIndex)
+    override def getConverter(fieldIndex: Int): ValueMaterializer[_ <: AnyRef] = converters(fieldIndex)
 
     override def end(): Unit = {}
-  }
 
-  /**
-   * Gets a reader for a simple feature attribute
-   *
-   * @param bindings bindings
-   * @param encodings schema encodings
-   * @return
-   */
-  def attribute(bindings: Seq[ObjectType], encodings: Encodings): ValueMaterializer[_ <: AnyRef] = {
-    bindings.head match {
-      case ObjectType.GEOMETRY => geometry(bindings.last, encodings.geometry)
-      case ObjectType.DATE     => date(encodings.date)
-      case ObjectType.STRING   => new StringConverter()
-      case ObjectType.INT      => new IntConverter()
-      case ObjectType.DOUBLE   => new DoubleConverter()
-      case ObjectType.LONG     => new LongConverter()
-      case ObjectType.FLOAT    => new FloatConverter()
-      case ObjectType.BOOLEAN  => new BooleanConverter()
-      case ObjectType.BYTES    => new BytesConverter()
-      case ObjectType.LIST     => list(attribute(bindings.drop(1), encodings), encodings.list)
-      case ObjectType.MAP      => new MapConverter(attribute(bindings.slice(1, 2), encodings), attribute(bindings.slice(2, 3), encodings))
-      case ObjectType.UUID     => new UuidConverter()
-      case _ => throw new IllegalArgumentException(s"Can't deserialize field of type ${bindings.head}")
-    }
-  }
+    def fieldCount: Int = converters.length
 
-  private def geometry(binding: ObjectType, encoding: GeometryEncoding): ValueMaterializer[_ <: Geometry] = {
-    if (encoding == GeometryEncoding.GeoParquetWkb) {
-      new WkbConverter()
-    } else if (encoding == GeometryEncoding.GeoParquetNative) {
-      binding match {
-        case ObjectType.POINT           => new PointConverter()
-        case ObjectType.LINESTRING      => new GeoParquetNativeLineStringConverter()
-        case ObjectType.POLYGON         => new GeoParquetNativePolygonConverter()
-        case ObjectType.MULTIPOINT      => new GeoParquetNativeMultiPointConverter()
-        case ObjectType.MULTILINESTRING => new GeoParquetNativeMultiLineStringConverter()
-        case ObjectType.MULTIPOLYGON    => new GeoParquetNativeMultiPolygonConverter()
-        case _                          => new WkbConverter()
-      }
-    } else {
-      // geomesa v1+v0
-      binding match {
-        case ObjectType.POINT           => new PointConverter()
-        case ObjectType.LINESTRING      => new LineStringConverter()
-        case ObjectType.POLYGON         => new PolygonConverter()
-        case ObjectType.MULTIPOINT      => new MultiPointConverter()
-        case ObjectType.MULTILINESTRING => new MultiLineStringConverter()
-        case ObjectType.MULTIPOLYGON    => new MultiPolygonConverter()
-        case _                          => new WkbConverter()
+    private def attribute(bindings: Seq[ObjectType]): ValueMaterializer[_ <: AnyRef] = {
+      bindings.head match {
+        case ObjectType.GEOMETRY => geometry(bindings.last)
+        case ObjectType.DATE     => date()
+        case ObjectType.STRING   => new StringConverter()
+        case ObjectType.INT      => new IntConverter()
+        case ObjectType.DOUBLE   => new DoubleConverter()
+        case ObjectType.LONG     => new LongConverter()
+        case ObjectType.FLOAT    => new FloatConverter()
+        case ObjectType.BOOLEAN  => new BooleanConverter()
+        case ObjectType.BYTES    => new BytesConverter()
+        case ObjectType.LIST     => list(attribute(bindings.drop(1)))
+        case ObjectType.MAP      => new MapConverter(attribute(bindings.slice(1, 2)), attribute(bindings.slice(2, 3)))
+        case ObjectType.UUID     => new UuidConverter()
+        case _ => throw new IllegalArgumentException(s"Can't deserialize field of type ${bindings.head}")
       }
     }
-  }
 
-  private def date(encoding: DateEncoding): ValueMaterializer[Date] = {
-    encoding match {
-      case DateEncoding.Millis => new DateMillisConverter()
-      case DateEncoding.Micros => new DateMicrosConverter()
-      case encoding => throw new UnsupportedOperationException(encoding.toString)
+    private def geometry(binding: ObjectType): ValueMaterializer[_ <: Geometry] = {
+      if (schema.encodings.geometry == GeometryEncoding.GeoParquetWkb) {
+        new WkbConverter()
+      } else if (schema.encodings.geometry == GeometryEncoding.GeoParquetNative) {
+        binding match {
+          case ObjectType.POINT           => new PointConverter()
+          case ObjectType.LINESTRING      => new GeoParquetNativeLineStringConverter()
+          case ObjectType.POLYGON         => new GeoParquetNativePolygonConverter()
+          case ObjectType.MULTIPOINT      => new GeoParquetNativeMultiPointConverter()
+          case ObjectType.MULTILINESTRING => new GeoParquetNativeMultiLineStringConverter()
+          case ObjectType.MULTIPOLYGON    => new GeoParquetNativeMultiPolygonConverter()
+          case _                          => new WkbConverter()
+        }
+      } else {
+        // geomesa v1+v0
+        binding match {
+          case ObjectType.POINT           => new PointConverter()
+          case ObjectType.LINESTRING      => new LineStringConverter()
+          case ObjectType.POLYGON         => new PolygonConverter()
+          case ObjectType.MULTIPOINT      => new MultiPointConverter()
+          case ObjectType.MULTILINESTRING => new MultiLineStringConverter()
+          case ObjectType.MULTIPOLYGON    => new MultiPolygonConverter()
+          case _                          => new WkbConverter()
+        }
+      }
     }
-  }
 
-  private def list(elements: ValueMaterializer[_ <: AnyRef], encoding: ListEncoding): ValueMaterializer[java.util.List[AnyRef]] = {
-    encoding match {
-      case ListEncoding.ThreeLevel => new ListConverter(elements)
-      case ListEncoding.TwoLevel   => new TwoLevelListConverter(elements)
-      case encoding => throw new UnsupportedOperationException(encoding.toString)
+    private def date(): ValueMaterializer[Date] = {
+      schema.encodings.date match {
+        case DateEncoding.Millis => new DateMillisConverter()
+        case DateEncoding.Micros => new DateMicrosConverter()
+        case encoding => throw new UnsupportedOperationException(encoding.toString)
+      }
+    }
+
+    private def list(elements: ValueMaterializer[_ <: AnyRef]): ValueMaterializer[java.util.List[AnyRef]] = {
+      schema.encodings.list match {
+        case ListEncoding.ThreeLevel => new ListConverter(elements)
+        case ListEncoding.TwoLevel   => new TwoLevelListConverter(elements)
+        case encoding => throw new UnsupportedOperationException(encoding.toString)
+      }
     }
   }
 

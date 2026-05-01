@@ -28,7 +28,7 @@ package object io {
 
   case object UuidEncoding extends Enumeration {
     type UuidEncoding = Value
-    val FixedLength, Bytes = Value
+    val FixedLength: Value = Value
   }
 
   case class Encodings(geometry: GeometryEncoding, date: DateEncoding, list: ListEncoding, uuid: UuidEncoding)
@@ -43,9 +43,7 @@ package object io {
      * @return
      */
     def apply(geometries: GeometryEncoding): Encodings = {
-      if (geometries == GeometryEncoding.GeoMesaV0) {
-        Encodings(geometries, DateEncoding.Millis, ListEncoding.TwoLevel, UuidEncoding.Bytes)
-      } else if (geometries == GeometryEncoding.GeoMesaV1) {
+      if (geometries == GeometryEncoding.GeoMesaV1) {
         Encodings(geometries, DateEncoding.Millis, ListEncoding.TwoLevel, UuidEncoding.FixedLength)
       } else {
         Encodings(geometries, DateEncoding.Micros, ListEncoding.ThreeLevel, UuidEncoding.FixedLength)

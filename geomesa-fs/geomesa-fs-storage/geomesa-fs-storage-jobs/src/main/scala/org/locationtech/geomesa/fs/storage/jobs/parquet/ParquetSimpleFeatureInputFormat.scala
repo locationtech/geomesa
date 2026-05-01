@@ -73,17 +73,18 @@ object ParquetSimpleFeatureInputFormat {
     val filter = Option(q.getFilter).filter(_ != Filter.INCLUDE)
 
     // Parquet read schema and final transform
-    val ReadSchema(readSft, readTransform) = ReadSchema(sft, filter, q.getHints.getTransform)
+    val readSchema = ReadSchema(sft, filter, q.getHints.getTransform)
     // push-down Parquet predicates and remaining gt-filter
-    val ReadFilter(parquetFilter, residualFilter) = ReadFilter(readSft, filter)
+    val ReadFilter(parquetFilter, residualFilter) = ReadFilter(readSchema.read.getOrElse(sft), filter)
 
     // set the parquet push-down filter
     parquetFilter.foreach(ParquetInputFormat.setFilterPredicate(conf, _))
 
     // set our residual filters and transforms
-    StorageConfiguration.setSft(conf, readSft)
+    StorageConfiguration.setSft(conf, sft)
+    readSchema.read.foreach(StorageConfiguration.setReadSft(conf, _))
     residualFilter.foreach(StorageConfiguration.setFilter(conf, _))
-    readTransform.foreach(StorageConfiguration.setTransforms(conf, _))
+    readSchema.transform.foreach(StorageConfiguration.setTransforms(conf, _))
 
     // need this for query planning
     conf.set("parquet.filter.dictionary.enabled", "true")
