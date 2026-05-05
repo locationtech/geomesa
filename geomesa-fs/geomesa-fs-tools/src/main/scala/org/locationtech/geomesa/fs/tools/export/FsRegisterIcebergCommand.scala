@@ -9,15 +9,23 @@
 package org.locationtech.geomesa.fs.tools.`export`
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.iceberg._
 import org.apache.iceberg.catalog.{Catalog, Namespace, TableIdentifier}
 import org.apache.iceberg.parquet.ParquetUtil
-import org.apache.iceberg._
+import org.apache.parquet.ParquetReadOptions
+import org.apache.parquet.avro.AvroSchemaConverter
+import org.apache.parquet.hadoop.ParquetFileReader
+import org.apache.parquet.hadoop.metadata.ParquetMetadata
+import org.calrissian.mango.types.{LexiTypeEncoders, TypeEncoder}
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.core.PartitionScheme
+import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import org.locationtech.geomesa.fs.storage.core.schemes.AttributeScheme.{IntegralBucketing, WidthBucketing}
 import org.locationtech.geomesa.fs.storage.core.schemes.{AttributeScheme, DateTimeScheme, HashScheme}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.parquet.io.s3.S3InputFile
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, RequiredPartitionParam}
 import org.locationtech.geomesa.fs.tools.`export`.FsRegisterIcebergCommand.{FsRegisterIcebergParams, PartitionMapper}
@@ -32,7 +40,7 @@ import java.time.temporal.ChronoUnit
 import java.util.{Collections, Locale, Properties}
 import scala.util.control.NonFatal
 
-class FsRegisterIcebergCommand extends FsDataStoreCommand {
+class FsRegisterIcebergCommand extends FsDataStoreCommand with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -111,8 +119,8 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand {
     }
 
     val schema = SimpleFeatureParquetSchema(storage.metadata.sft, storage.context.conf).iceberg
-    Command.user.info(SchemaParser.toJson(schema))
-    val partitions = storage.metadata.sft.getAttributeDescriptors.asScala.flatMap { d =>
+    Command.user.info("iceberg schema: " + SchemaParser.toJson(schema))
+    val partitionMappers = storage.metadata.sft.getAttributeDescriptors.asScala.flatMap { d =>
       val name = d.getLocalName
       storage.metadata.schemes.find(_.attribute == name).flatMap { scheme =>
         val mapper = PartitionMapper(scheme)
@@ -123,7 +131,7 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand {
         mapper
       }
     }
-    val icebergPartitions = partitions.foldLeft(PartitionSpec.builderFor(schema))((b, m) => m.toIceberg(b)).build()
+    val icebergPartitions = partitionMappers.foldLeft(PartitionSpec.builderFor(schema))((b, m) => m.toIceberg(b)).build()
 
     val namespace = Namespace.of(params.icebergNamespace)
     // TODO valid identifiers vary based on the catalog... this is for glue and not comprehensive
@@ -138,7 +146,17 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand {
       if (warehouse == null) {
         throw new IllegalArgumentException("Iceberg properties must specify a 'warehouse' location")
       }
-      catalog.createTable(tableId, schema, icebergPartitions, warehouse, icebergProps)
+      val icebergPropsWithVersion = new java.util.HashMap[String, String]()
+      icebergPropsWithVersion.putAll(icebergProps)
+      // not yet supported in spark or trino
+      // icebergPropsWithVersion.put(TableProperties.FORMAT_VERSION, "3")
+      // force parquet to read by field ID, not position
+      icebergPropsWithVersion.put(TableProperties.PARQUET_VECTORIZATION_ENABLED, "false")
+      icebergPropsWithVersion.put("read.parquet.vectorization.enabled", "false")
+      // ensure field IDs are used for column resolution
+      icebergPropsWithVersion.put("parquet.strict.typing", "false")
+      icebergPropsWithVersion.put("parquet.avro.read-int96-as-fixed", "false")
+      catalog.createTable(tableId, schema, icebergPartitions, warehouse, icebergPropsWithVersion)
     }
     Command.user.info(s"$table")
 
@@ -146,15 +164,21 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand {
 
     val files = params.partitions.asScala.flatMap { p =>
       // get partition values in order (list instead of set)
-      val partitionValues = partitions.map { m =>
+      val partitionValues = partitionMappers.map { m =>
         // we should have validated that all the partitions map correctly in our setup, above
         val key = p.values.find(_.name == m.scheme.name).getOrElse {
           throw new IllegalStateException(s"Could not find associated partition: ${m.scheme.name} out of ${p.values.mkString(", ")}")
         }
-        key.value
+        m.toIceberg(key.value)
       }
       storage.metadata.getFiles(p).map { f =>
-        val file = table.io().newInputFile(storage.context.root.resolve(f.file).toString)
+        val url = storage.context.root.resolve(f.file)
+        val s3f = new S3InputFile(storage.fs.asInstanceOf[S3ObjectStore], url)
+        val footer = ParquetFileReader.readFooter(s3f, ParquetReadOptions.builder().build(), s3f.newStream())
+        val pschema = ParquetMetadata.toJSON(footer)
+        Command.user.info("parquet schema: " + pschema)
+        logger.debug(s"Registering file $url")
+        val file = table.io().newInputFile(url.toString)
         val metrics = ParquetUtil.fileMetrics(file, metricsSpec, null)
         // TODO withSort(f.sort)
         DataFiles.builder(table.spec())
@@ -220,41 +244,72 @@ object FsRegisterIcebergCommand {
     var icebergNamespace: String = _
   }
 
-  case class PartitionMapper(scheme: PartitionScheme, toIceberg: PartitionSpec.Builder => PartitionSpec.Builder)
+  trait PartitionMapper {
+    def scheme: PartitionScheme
+    def toIceberg(b: PartitionSpec.Builder): PartitionSpec.Builder
+    def toIceberg(key: String): String
+  }
+
+  case class HourMapper(scheme: DateTimeScheme) extends PartitionMapper {
+    override def toIceberg(b: PartitionSpec.Builder): PartitionSpec.Builder = b.hour(scheme.attribute)
+    override def toIceberg(key: String): String = LexiTypeEncoders.integerEncoder().decode(key).toString
+  }
+
+  case class DayMapper(scheme: DateTimeScheme) extends PartitionMapper {
+    override def toIceberg(b: PartitionSpec.Builder): PartitionSpec.Builder = b.day(scheme.attribute)
+    override def toIceberg(key: String): String = LexiTypeEncoders.integerEncoder().decode(key).toString
+  }
+
+
+  case class MonthMapper(scheme: DateTimeScheme) extends PartitionMapper {
+    override def toIceberg(b: PartitionSpec.Builder): PartitionSpec.Builder = b.month(scheme.attribute)
+    override def toIceberg(key: String): String = LexiTypeEncoders.integerEncoder().decode(key).toString
+  }
+
+  case class YearMapper(scheme: DateTimeScheme) extends PartitionMapper {
+    override def toIceberg(b: PartitionSpec.Builder): PartitionSpec.Builder = b.year(scheme.attribute)
+    override def toIceberg(key: String): String = LexiTypeEncoders.integerEncoder().decode(key).toString
+  }
+
+  case class HashMapper(scheme: HashScheme[_]) extends PartitionMapper {
+    override def toIceberg(b: PartitionSpec.Builder): PartitionSpec.Builder = b.bucket(scheme.attribute, scheme.buckets)
+    override def toIceberg(key: String): String = key
+  }
+
+  case class IdentityMapper(scheme: PartitionScheme, lexicoder: TypeEncoder[_, String]) extends PartitionMapper {
+    override def toIceberg(b: PartitionSpec.Builder): PartitionSpec.Builder = b.identity(scheme.attribute)
+    override def toIceberg(key: String): String = lexicoder.decode(key).toString
+  }
+
+  case class TruncateMapper(scheme: PartitionScheme, lexicoder: TypeEncoder[_, String], width: Int) extends PartitionMapper {
+    override def toIceberg(b: PartitionSpec.Builder): PartitionSpec.Builder = b.truncate(scheme.attribute, width)
+    override def toIceberg(key: String): String = lexicoder.decode(key).toString
+  }
 
   object PartitionMapper {
     def apply(scheme: PartitionScheme): Option[PartitionMapper] = scheme match {
-      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.HOURS =>
-        Some(PartitionMapper(s, b => b.hour(s.attribute)))
-
-      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.DAYS =>
-        Some(PartitionMapper(s, b => b.day(s.attribute)))
-
-      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.MONTHS =>
-        Some(PartitionMapper(s, b => b.month(s.attribute)))
-
-      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.YEARS =>
-        Some(PartitionMapper(s, b => b.year(s.attribute)))
-
-      case s: HashScheme[_] =>
-        Some(PartitionMapper(s, b => b.bucket(s.attribute, s.buckets)))
+      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.HOURS => Some(HourMapper(s))
+      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.DAYS => Some(DayMapper(s))
+      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.MONTHS => Some(MonthMapper(s))
+      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.YEARS => Some(YearMapper(s))
+      case s: HashScheme[_] => Some(HashMapper(s))
 
       case s: AttributeScheme[String] =>
         s.bucketing match {
-          case None => Some(PartitionMapper(s, b => b.identity(s.attribute)))
-          case Some(w: WidthBucketing) => Some(PartitionMapper(s, b => b.truncate(s.attribute, w.max)))
+          case None => Some(IdentityMapper(s, LexiTypeEncoders.stringEncoder()))
+          case Some(w: WidthBucketing) => Some(TruncateMapper(s, LexiTypeEncoders.stringEncoder(), w.max))
         }
 
       case s: AttributeScheme[Int] =>
         s.bucketing match {
-          case None => Some(PartitionMapper(s, b => b.identity(s.attribute)))
-          case Some(i: IntegralBucketing[Int]) => Some(PartitionMapper(s, b => b.truncate(s.attribute, i.divisor)))
+          case None => Some(IdentityMapper(s, LexiTypeEncoders.integerEncoder()))
+          case Some(i: IntegralBucketing[Int]) => Some(TruncateMapper(s, LexiTypeEncoders.integerEncoder(), i.divisor))
         }
 
       case s: AttributeScheme[Long] =>
         s.bucketing match {
-          case None => Some(PartitionMapper(s, b => b.identity(s.attribute)))
-          case Some(i: IntegralBucketing[Long]) => Some(PartitionMapper(s, b => b.truncate(s.attribute, i.divisor.toInt)))
+          case None => Some(IdentityMapper(s, LexiTypeEncoders.longEncoder()))
+          case Some(i: IntegralBucketing[Long]) => Some(TruncateMapper(s, LexiTypeEncoders.longEncoder(), i.divisor.toInt))
         }
 
       case _ => None

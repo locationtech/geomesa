@@ -28,10 +28,11 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata.{ColumnMetadata, GeoParquetColumnEncoding, GeoParquetColumnType}
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding.GeoParquetNative
-import org.locationtech.geomesa.fs.storage.parquet.io.{GeoParquetMetadata, GeometrySchema, SimpleFeatureParquetSchema}
-import org.locationtech.geomesa.utils.geotools.ObjectType
+import org.locationtech.geomesa.fs.storage.parquet.io.{GeoParquetMetadata, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.text.StringSerialization
 
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
@@ -64,11 +65,11 @@ class ParquetConverterFactory
         // note: get the path as a URI so that we handle local files appropriately
         val filePath = new Path(PathUtils.getUrl(p).toURI)
         val footer = ParquetFileReader.readFooter(new Configuration(), filePath, ParquetMetadataConverter.NO_FILTER)
-        val (schema, fields, id, userData) = SimpleFeatureParquetSchema.read(footer.getFileMetaData) match {
+        val (schema, fields, id, userData) = Try(SimpleFeatureParquetSchema.read(footer.getFileMetaData)).toOption.flatten match {
           case Some(parquet) =>
             // this is a geomesa encoded parquet file
             val fields = parquet.sft.getAttributeDescriptors.asScala.map { descriptor =>
-              val name = parquet.field(parquet.sft.indexOf(descriptor.getLocalName))
+              val name = StringSerialization.alphaNumericSafeString(descriptor.getLocalName)
               // note: parquet converter stores the generic record under index 0
               BasicField(descriptor.getLocalName, Some(Expression(s"avroPath($$0, '/$name')")))
             }
@@ -81,8 +82,13 @@ class ParquetConverterFactory
               }
 
             // validate the existing schema, if any
-            if (sft.exists(_.getAttributeDescriptors.asScala != parquet.sft.getAttributeDescriptors.asScala)) {
-              throw new IllegalArgumentException("Inferred schema does not match existing schema")
+            sft.foreach { schema =>
+              if (schema.getAttributeDescriptors.asScala != parquet.sft.getAttributeDescriptors.asScala) {
+                throw new IllegalArgumentException(
+                  s"Inferred schema does not match existing schema:\n  " +
+                    s"Existing schema: ${SimpleFeatureTypes.encodeType(schema)}\n  " +
+                    s"Inferred schema: ${SimpleFeatureTypes.encodeType(parquet.sft)}")
+              }
             }
             (parquet.sft, fields, Some(id), userData)
 
@@ -308,7 +314,7 @@ object ParquetConverterFactory extends LazyLogging {
   private def isNativeType(field: Type, objectType: ObjectType): Boolean = {
     if (field.isRepetition(Repetition.REPEATED)) { false } else {
       // custom compare, so we don't consider optional vs required, id, name, logicalTypes, etc
-      compareGeomFields(field, GeometrySchema(objectType, GeoParquetNative, new AtomicInteger(1)).named(field.getName))
+      compareGeomFields(field, GeoParquetNative.schema(objectType, new AtomicInteger(1), new AtomicInteger(1000)).named(field.getName))
     }
   }
 

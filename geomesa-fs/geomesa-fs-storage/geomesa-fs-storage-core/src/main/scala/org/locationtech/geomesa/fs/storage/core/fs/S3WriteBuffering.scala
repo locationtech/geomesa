@@ -49,10 +49,13 @@ object S3WriteBuffering {
     override def write(bucket: String, key: String, overwrite: Boolean): OutputStream =
       new DiskOutputStream(bucket, key, overwrite)
 
-    private class DiskOutputStream(bucket: String, key: String, overwrite: Boolean)
-        extends ChunkedOutputStream(client, bucket, key, bufferSize, overwrite) {
-      private val uid = UUID.randomUUID().toString.substring(0, 8)
-      private var i = 0
+    private class DiskOutputStream(
+        bucket: String,
+        key: String,
+        overwrite: Boolean,
+        uid: String = UUID.randomUUID().toString.substring(0, 8),
+        private var i: Int = 0
+      ) extends ChunkedOutputStream(client, bucket, key, bufferSize, overwrite) {
       override protected def newChunk(): Chunk = {
         val path = s"${bucket.replaceAll("[^a-zA-Z0-9_-]", "_")}/${key.replaceAll("[^a-zA-Z0-9_-]", "_")}/part_${uid}_$i"
         val file = new File(dir, path)
@@ -156,9 +159,10 @@ object S3WriteBuffering {
           uploadId = client.createMultipartUpload(b => b.bucket(bucket).key(key)).join().uploadId()
           logger.debug(s"Initiated multipart upload with id $uploadId to $bucket/$key")
         }
-        val future = retry(currentChunk, uploads.size + 1, 2)
+        val chunk = currentChunk
+        val future = retry(chunk, uploads.size + 1, 2)
         uploads += future
-        future.whenCompleteAsync((_, _) => currentChunk.cleanup())
+        future.whenCompleteAsync((_, _) => chunk.cleanup())
         logger.debug(s"Initiated part ${uploads.size} for upload with id $uploadId to $bucket/$key")
         if (done) {
           var partNumber = 0

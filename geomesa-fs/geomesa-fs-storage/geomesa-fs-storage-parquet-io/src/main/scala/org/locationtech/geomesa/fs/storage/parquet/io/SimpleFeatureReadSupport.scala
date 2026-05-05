@@ -172,7 +172,7 @@ object SimpleFeatureReadSupport {
     private def attribute(bindings: Seq[ObjectType]): ValueMaterializer[_ <: AnyRef] = {
       bindings.head match {
         case ObjectType.GEOMETRY => geometry(bindings.last)
-        case ObjectType.DATE     => date()
+        case ObjectType.DATE     => new DateMicrosConverter()
         case ObjectType.STRING   => new StringConverter()
         case ObjectType.INT      => new IntConverter()
         case ObjectType.DOUBLE   => new DoubleConverter()
@@ -180,7 +180,7 @@ object SimpleFeatureReadSupport {
         case ObjectType.FLOAT    => new FloatConverter()
         case ObjectType.BOOLEAN  => new BooleanConverter()
         case ObjectType.BYTES    => new BytesConverter()
-        case ObjectType.LIST     => list(attribute(bindings.drop(1)))
+        case ObjectType.LIST     => new ListConverter(attribute(bindings.drop(1)))
         case ObjectType.MAP      => new MapConverter(attribute(bindings.slice(1, 2)), attribute(bindings.slice(2, 3)))
         case ObjectType.UUID     => new UuidConverter()
         case _ => throw new IllegalArgumentException(s"Can't deserialize field of type ${bindings.head}")
@@ -213,22 +213,6 @@ object SimpleFeatureReadSupport {
         }
       }
     }
-
-    private def date(): ValueMaterializer[Date] = {
-      schema.encodings.date match {
-        case DateEncoding.Millis => new DateMillisConverter()
-        case DateEncoding.Micros => new DateMicrosConverter()
-        case encoding => throw new UnsupportedOperationException(encoding.toString)
-      }
-    }
-
-    private def list(elements: ValueMaterializer[_ <: AnyRef]): ValueMaterializer[java.util.List[AnyRef]] = {
-      schema.encodings.list match {
-        case ListEncoding.ThreeLevel => new ListConverter(elements)
-        case ListEncoding.TwoLevel   => new TwoLevelListConverter(elements)
-        case encoding => throw new UnsupportedOperationException(encoding.toString)
-      }
-    }
   }
 
   /**
@@ -237,18 +221,6 @@ object SimpleFeatureReadSupport {
   trait ValueMaterializer[T <: AnyRef] extends Converter {
     def reset(): Unit
     def materialize(): T
-  }
-
-  class DateMillisConverter extends PrimitiveConverter with ValueMaterializer[Date] {
-    private var value: Long = -1
-    private var set = false
-
-    override def addLong(value: Long): Unit = {
-      this.value = value
-      set = true
-    }
-    override def reset(): Unit = set = false
-    override def materialize(): Date = if (set) { new Date(value) } else { null }
   }
 
   class DateMicrosConverter extends PrimitiveConverter with ValueMaterializer[Date] {
@@ -354,36 +326,8 @@ object SimpleFeatureReadSupport {
 
     private var list: java.util.List[AnyRef] = _
 
-    private val elements = items match {
-      case g: GroupConverter => g
-      case _ =>
-        new GroupConverter {
-          override def getConverter(fieldIndex: Int): Converter = items
-          override def start(): Unit = {}
-          override def end(): Unit = {}
-        }
-    }
-
     private val group: GroupConverter = new GroupConverter {
-      override def getConverter(fieldIndex: Int): Converter = elements
-      override def start(): Unit = items.reset()
-      override def end(): Unit = list.add(items.materialize())
-    }
-
-    override def getConverter(fieldIndex: Int): GroupConverter = group
-    override def start(): Unit = list = new java.util.ArrayList[AnyRef]()
-    override def end(): Unit = {}
-    override def reset(): Unit = list = null
-    override def materialize(): java.util.List[AnyRef] = list
-  }
-
-  private class TwoLevelListConverter(items: ValueMaterializer[_ <: AnyRef])
-      extends GroupConverter with ValueMaterializer[java.util.List[AnyRef]] {
-
-    private var list: java.util.List[AnyRef] = _
-
-    private val group: GroupConverter = new GroupConverter {
-      override def getConverter(fieldIndex: Int): Converter = items // better only be one field (0)
+      override def getConverter(fieldIndex: Int): Converter = items
       override def start(): Unit = items.reset()
       override def end(): Unit = list.add(items.materialize())
     }

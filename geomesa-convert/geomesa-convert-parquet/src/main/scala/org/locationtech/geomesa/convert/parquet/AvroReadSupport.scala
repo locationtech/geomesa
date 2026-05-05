@@ -139,7 +139,7 @@ object AvroReadSupport {
       lazy val logicalConverter = logical match {
         case _: StringLogicalTypeAnnotation => Some(new StringConverter())
         case _: DateLogicalTypeAnnotation => Some(new DaysConverter())
-        case t: TimestampLogicalTypeAnnotation if t.getUnit == LogicalTypeAnnotation.TimeUnit.MILLIS => Some(new DateMillisConverter())
+        case t: TimestampLogicalTypeAnnotation if t.getUnit == LogicalTypeAnnotation.TimeUnit.MILLIS => Some(new MillisConverter())
         case t: TimestampLogicalTypeAnnotation if t.getUnit == LogicalTypeAnnotation.TimeUnit.MICROS => Some(new DateMicrosConverter())
         case t: TimestampLogicalTypeAnnotation if t.getUnit == LogicalTypeAnnotation.TimeUnit.NANOS => Some(new NanosConverter())
         case _: UUIDLogicalTypeAnnotation => Some(new UuidConverter())
@@ -226,7 +226,22 @@ object AvroReadSupport {
   }
 
   /**
-   * Converter for a MICROS encoded INT64 field
+   * Converter for a MILLIS encoded INT64 field
+   */
+  private class MillisConverter extends PrimitiveConverter with ValueMaterializer[Date] {
+    private var value: Long = -1
+    private var set = false
+
+    override def addLong(value: Long): Unit = {
+      this.value = value
+      set = true
+    }
+    override def reset(): Unit = set = false
+    override def materialize(): Date = if (set) { new Date(value) } else { null }
+  }
+
+  /**
+   * Converter for a NANOS encoded INT64 field
    */
   private class NanosConverter extends PrimitiveConverter with ValueMaterializer[Date] {
     private var value: Long = -1

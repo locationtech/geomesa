@@ -18,6 +18,7 @@ import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemWriter, 
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 
+import java.net.URI
 import java.util.{Locale, UUID}
 
 /**
@@ -65,11 +66,11 @@ object GenerateParquetFiles extends StrictLogging {
       sf
     }
 
-    Seq(GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb, GeometryEncoding.GeoMesaV1).foreach { encoding =>
+    Seq(GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb).foreach { encoding =>
       val conf = Map(SimpleFeatureParquetSchema.GeometryEncodingKey -> encoding.toString)
-      val dir = new Path(sys.props("java.io.tmpdir"))
-      val file = new Path(dir, s"${encoding.toString.replace("GeoParquet", "geoparquet-").toLowerCase(Locale.US)}-test.parquet")
-      WithClose(new ParquetFileSystemWriter(LocalObjectStore, conf, sft, file.toUri)) { writer =>
+      val file =
+        s"${sys.props("java.io.tmpdir")}/${encoding.toString.replace("GeoParquet", "geoparquet-").toLowerCase(Locale.US)}-test.parquet"
+      WithClose(new ParquetFileSystemWriter(LocalObjectStore, conf, sft, new URI(s"file://$file"))) { writer =>
         features.foreach(writer.write)
       }
       logger.info(s"Wrote ${features.length} features to $file")

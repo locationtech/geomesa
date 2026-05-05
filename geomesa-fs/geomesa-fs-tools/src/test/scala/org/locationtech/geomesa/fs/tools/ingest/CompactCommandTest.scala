@@ -61,7 +61,6 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
     "fs.s3.access-key-id" -> minio.getUserName,
     "fs.s3.secret-access-key" -> minio.getPassword,
     "fs.s3.force-path-style" -> "true",
-    "geomesa.parquet.bounding-boxes" -> "false",
   )
   lazy val params = Map(
     "fs.path" -> path,

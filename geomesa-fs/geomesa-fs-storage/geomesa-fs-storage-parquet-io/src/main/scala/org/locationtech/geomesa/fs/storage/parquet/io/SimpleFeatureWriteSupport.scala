@@ -118,14 +118,14 @@ object SimpleFeatureWriteSupport {
       lazy val safeName = alphaNumericSafeString(name)
       bindings.head match {
         case ObjectType.GEOMETRY => geometry(safeName, index, bindings.last, schema.bboxes.get(name))
-        case ObjectType.DATE     => date(safeName, index)
+        case ObjectType.DATE     => new DateMicrosWriter(safeName, index)
         case ObjectType.STRING   => new StringWriter(safeName, index)
         case ObjectType.INT      => new IntegerWriter(safeName, index)
         case ObjectType.LONG     => new LongWriter(safeName, index)
         case ObjectType.FLOAT    => new FloatWriter(safeName, index)
         case ObjectType.DOUBLE   => new DoubleWriter(safeName, index)
         case ObjectType.BYTES    => new BytesWriter(safeName, index)
-        case ObjectType.LIST     => list(safeName, index, attribute("element", 0, bindings.drop(1)))
+        case ObjectType.LIST     => new ListWriter(safeName, index, attribute("element", 0, bindings.drop(1)))
         case ObjectType.MAP      => new MapWriter(safeName, index, attribute("key", 0, bindings.slice(1, 2)), attribute("value", 1, bindings.slice(2, 3)))
         case ObjectType.BOOLEAN  => new BooleanWriter(safeName, index)
         case ObjectType.UUID     => new UuidWriter(safeName, index)
@@ -155,22 +155,6 @@ object SimpleFeatureWriteSupport {
           case ObjectType.GEOMETRY                  => new WkbWriter(name, index, bbox)
           case _ => throw new IllegalArgumentException(s"Can't serialize field '$name' of type $binding")
         }
-      }
-    }
-
-    private def list(name: String, index: Int, elements: AttributeWriter[_]): AttributeWriter[_] = {
-      schema.encodings.list match {
-        case ListEncoding.ThreeLevel => new ListWriter(name, index, elements)
-        case ListEncoding.TwoLevel   => new TwoLevelListWriter(name, index, elements)
-        case encoding => throw new UnsupportedOperationException(encoding.toString)
-      }
-    }
-
-    private def date(name: String, index: Int): AttributeWriter[_] = {
-      schema.encodings.date match {
-        case DateEncoding.Millis => new DateMillisWriter(name, index)
-        case DateEncoding.Micros => new DateMicrosWriter(name, index)
-        case encoding => throw new UnsupportedOperationException(encoding.toString)
       }
     }
   }
@@ -263,37 +247,13 @@ object SimpleFeatureWriteSupport {
         consumer.startField("element", 0)
         val iter = value.iterator
         while (iter.hasNext) {
-          consumer.startGroup()
           val item = iter.next
           if (item != null) {
-            elements(consumer, item)
+            elements.writeFields(consumer, item)
           }
-          consumer.endGroup()
         }
         consumer.endField("element", 0)
         consumer.endGroup()
-        consumer.endField("list", 0)
-      }
-      consumer.endGroup()
-    }
-  }
-
-  private class TwoLevelListWriter[T <: Any](name: String, index: Int, elements: AttributeWriter[T])
-    extends AttributeWriter[java.util.List[T]](name, index) {
-
-    override def writeFields(consumer: RecordConsumer, value: java.util.List[T]): Unit = {
-      consumer.startGroup()
-      if (!value.isEmpty) {
-        consumer.startField("list", 0)
-        val iter = value.iterator
-        while (iter.hasNext) {
-          consumer.startGroup()
-          val item = iter.next
-          if (item != null) {
-            elements(consumer, item)
-          }
-          consumer.endGroup()
-        }
         consumer.endField("list", 0)
       }
       consumer.endGroup()
@@ -351,8 +311,8 @@ object SimpleFeatureWriteSupport {
         writeFields(consumer, value)
         consumer.endField(name, index)
         bbox.foreach { name =>
-          consumer.startField(name, index + 1)
           val bbox = value.getEnvelopeInternal
+          consumer.startField(name, index + 1)
           consumer.startGroup()
           consumer.startField(GeometrySchema.BoundingBoxField.XMin, 0)
           consumer.addFloat(bbox.getMinX.toFloat)
@@ -371,8 +331,6 @@ object SimpleFeatureWriteSupport {
         }
       }
     }
-
-    def writeFields(consumer: RecordConsumer, value: T): Unit
   }
 
   private class PointWriter(name: String, index: Int, bbox: Option[String])
