@@ -101,13 +101,12 @@ class ParquetFileSystemReader(
 
 object ParquetFileSystemReader {
 
-  def builder(fs: ObjectStore, path: URI): Builder = {
-    val file = fs match {
-      case _: LocalObjectStore => new LocalInputFile(Path.of(path))
-      case s3: S3ObjectStore   => new S3InputFile(s3, path)
-      case _ => throw new UnsupportedOperationException(s"No file implementation for scheme ${fs.scheme}")
-    }
-    new Builder(file)
+  def builder(fs: ObjectStore, path: URI): Builder = new Builder(inputFile(fs, path))
+
+  def inputFile(fs: ObjectStore, path: URI): InputFile = fs match {
+    case _: LocalObjectStore => new LocalInputFile(Path.of(path))
+    case s3: S3ObjectStore   => new S3InputFile(s3, path)
+    case _ => throw new UnsupportedOperationException(s"No file implementation for scheme ${fs.scheme}")
   }
 
   class Builder(file: InputFile) extends ParquetReader.Builder[SimpleFeature](file) {
