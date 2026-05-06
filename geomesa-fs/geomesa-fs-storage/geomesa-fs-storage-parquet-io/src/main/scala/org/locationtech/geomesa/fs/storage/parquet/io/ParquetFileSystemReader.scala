@@ -101,8 +101,22 @@ class ParquetFileSystemReader(
 
 object ParquetFileSystemReader {
 
+  /**
+   * Create a new configurable reader
+   *
+   * @param fs object store
+   * @param path file to read
+   * @return
+   */
   def builder(fs: ObjectStore, path: URI): Builder = new Builder(inputFile(fs, path))
 
+  /**
+   * Get an input file compatible with the parquet api
+   *
+   * @param fs object store
+   * @param path file path
+   * @return
+   */
   def inputFile(fs: ObjectStore, path: URI): InputFile = fs match {
     case _: LocalObjectStore => new LocalInputFile(Path.of(path))
     case s3: S3ObjectStore   => new S3InputFile(s3, path)

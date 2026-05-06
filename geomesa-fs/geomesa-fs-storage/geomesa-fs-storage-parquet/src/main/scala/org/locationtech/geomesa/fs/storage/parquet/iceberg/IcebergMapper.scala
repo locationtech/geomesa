@@ -28,7 +28,7 @@ import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Maps geomesa partitions to iceberg partitions
+ * Maps geomesa storage to iceberg
  */
 class IcebergMapper(storage: FileSystemStorage) extends LazyLogging {
 
@@ -57,22 +57,6 @@ class IcebergMapper(storage: FileSystemStorage) extends LazyLogging {
   val spec: PartitionSpec = mappers.foldLeft(PartitionSpec.builderFor(schema))((b, m) => m.spec(b)).build()
 
   /**
-   * Gets the iceberg partition values that correspond to a given partition
-   *
-   * @param partition partition
-   * @return
-   */
-  private def partitionValues(partition: Partition): Seq[String] = {
-    mappers.map { m =>
-      val key = partition.values.find(_.name == m.scheme.name).getOrElse {
-        throw new IllegalArgumentException(
-          s"Could not find associated partition: ${m.scheme.name} out of ${partition.values.mkString(", ")}")
-      }
-      m.toIceberg(key.value)
-    }
-  }
-
-  /**
    * Convert geomesa file metadata to iceberg file metadata
    *
    * @param table iceberg table
@@ -98,10 +82,29 @@ class IcebergMapper(storage: FileSystemStorage) extends LazyLogging {
       .withRecordCount(file.count)
       .build()
   }
+
+  /**
+   * Gets the iceberg partition values that correspond to a given partition
+   *
+   * @param partition partition
+   * @return
+   */
+  private def partitionValues(partition: Partition): Seq[String] = {
+    mappers.map { m =>
+      val key = partition.values.find(_.name == m.scheme.name).getOrElse {
+        throw new IllegalArgumentException(
+          s"Could not find associated partition: ${m.scheme.name} out of ${partition.values.mkString(", ")}")
+      }
+      m.toIceberg(key.value)
+    }
+  }
 }
 
 object IcebergMapper {
 
+  /**
+   * Maps a partition scheme to iceberg
+   */
   private trait SchemeMapper {
 
     /**

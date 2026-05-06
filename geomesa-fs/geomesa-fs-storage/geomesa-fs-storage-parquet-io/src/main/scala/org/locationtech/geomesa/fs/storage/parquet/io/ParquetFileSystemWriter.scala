@@ -63,6 +63,14 @@ class ParquetFileSystemWriter(
 
 object ParquetFileSystemWriter extends LazyLogging {
 
+  /**
+   * Create a new configurable writer
+   *
+   * @param fs object store
+   * @param path file path
+   * @param conf write configuration
+   * @return
+   */
   def builder(fs: ObjectStore, path: URI, conf: ParquetConfiguration): Builder = {
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "ZSTD"))
     logger.debug(s"Using Parquet Compression codec ${codec.name()}")
@@ -81,6 +89,13 @@ object ParquetFileSystemWriter extends LazyLogging {
       .withRowGroupSize(8L*1024*1024)
   }
 
+  /**
+   * Get an output file compatible with the parquet api
+   *
+   * @param fs object store
+   * @param path file path
+   * @return
+   */
   def outputFile(fs: ObjectStore, path: URI): OutputFile = fs match {
     case _: LocalObjectStore => new LocalOutputFileWithParent(Path.of(path))
     case s3: S3ObjectStore => new S3OutputFile(s3, path)

@@ -26,7 +26,6 @@ import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 
 import java.util.{Date, UUID}
-import scala.collection.mutable.ArrayBuffer
 
 class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
 
@@ -122,7 +121,7 @@ object SimpleFeatureReadSupport {
           builder += materializer
           attributes(i) = materializer
           // note: we read bounding boxes since they're present, but we don't do anything with the result
-          schema.bboxes.get(descriptor.getLocalName).foreach { _ =>
+          if (schema.bboxes.get(descriptor.getLocalName).isDefined) {
             builder += new BoundingBoxConverter()
           }
           i += 1
@@ -201,16 +200,7 @@ object SimpleFeatureReadSupport {
           case _                          => new WkbConverter()
         }
       } else {
-        // geomesa v1+v0
-        binding match {
-          case ObjectType.POINT           => new PointConverter()
-          case ObjectType.LINESTRING      => new LineStringConverter()
-          case ObjectType.POLYGON         => new PolygonConverter()
-          case ObjectType.MULTIPOINT      => new MultiPointConverter()
-          case ObjectType.MULTILINESTRING => new MultiLineStringConverter()
-          case ObjectType.MULTIPOLYGON    => new MultiPolygonConverter()
-          case _                          => new WkbConverter()
-        }
+        throw new UnsupportedOperationException(s"Can't read geometries encoded with '${schema.encodings.geometry}'")
       }
     }
   }
@@ -372,33 +362,6 @@ object SimpleFeatureReadSupport {
     override def materialize(): Point = gf.createPoint(new Coordinate(x.c, y.c))
   }
 
-  private class LineStringConverter extends GroupConverter with ValueMaterializer[LineString] {
-
-    private val gf = JTSFactoryFinder.getGeometryFactory
-
-    private val x = new CoordinateArrayConverter()
-    private val y = new CoordinateArrayConverter()
-
-    override def getConverter(fieldIndex: Int): Converter = if (fieldIndex == 0) { x } else { y }
-
-    override def start(): Unit = {
-      x.i = 0
-      y.i = 0
-    }
-
-    override def end(): Unit = {}
-    override def reset(): Unit = {}
-    override def materialize(): LineString = {
-      val coords = Array.ofDim[Coordinate](x.i)
-      var i = 0
-      while (i < coords.length) {
-        coords(i) = new Coordinate(x.coords(i), y.coords(i))
-        i += 1
-      }
-      gf.createLineString(coords)
-    }
-  }
-
   private class GeoParquetNativeLineStringConverter extends GroupConverter with ValueMaterializer[LineString] {
 
     private val coords = new CoordinateGroupConverter()
@@ -422,31 +385,6 @@ object SimpleFeatureReadSupport {
     }
   }
 
-  private class MultiPointConverter extends GroupConverter with ValueMaterializer[MultiPoint] {
-
-    private val x = new CoordinateArrayConverter()
-    private val y = new CoordinateArrayConverter()
-
-    override def getConverter(fieldIndex: Int): Converter = if (fieldIndex == 0) { x } else { y }
-
-    override def start(): Unit = {
-      x.i = 0
-      y.i = 0
-    }
-
-    override def end(): Unit = {}
-    override def reset(): Unit = {}
-    override def materialize(): MultiPoint = {
-      val coords = Array.ofDim[Coordinate](x.i)
-      var i = 0
-      while (i < coords.length) {
-        coords(i) = new Coordinate(x.coords(i), y.coords(i))
-        i += 1
-      }
-      gf.createMultiPointFromCoords(coords)
-    }
-  }
-
   private class GeoParquetNativeMultiPointConverter extends GroupConverter with ValueMaterializer[MultiPoint] {
     private val coords = new CoordinateGroupConverter()
     private var list: scala.collection.mutable.ArrayBuilder[Coordinate] = Array.newBuilder[Coordinate]
@@ -466,25 +404,6 @@ object SimpleFeatureReadSupport {
       if (coords.isEmpty) { null } else {
         gf.createMultiPointFromCoords(coords)
       }
-    }
-  }
-
-  private class PolygonConverter extends GroupConverter with ValueMaterializer[Polygon] {
-
-    private val x = new LineArrayConverter()
-    private val y = new LineArrayConverter()
-
-    override def getConverter(fieldIndex: Int): Converter =  if (fieldIndex == 0) { x } else { y }
-
-    override def start(): Unit = {}
-    override def end(): Unit = {}
-    override def reset(): Unit = {}
-    override def materialize(): Polygon = {
-      val shell = gf.createLinearRing(zip(x.lines.head, y.lines.head))
-      val holes = if (x.lines.lengthCompare(1) == 0) { null } else {
-        Array.tabulate(x.lines.length - 1)(i => gf.createLinearRing(zip(x.lines(i + 1), y.lines(i + 1))))
-      }
-      gf.createPolygon(shell, holes)
     }
   }
 
@@ -515,22 +434,6 @@ object SimpleFeatureReadSupport {
     }
   }
 
-  private class MultiLineStringConverter extends GroupConverter with ValueMaterializer[MultiLineString] {
-
-    private val x = new LineArrayConverter()
-    private val y = new LineArrayConverter()
-
-    override def getConverter(fieldIndex: Int): Converter =  if (fieldIndex == 0) { x } else { y }
-
-    override def start(): Unit = {}
-    override def end(): Unit = {}
-    override def reset(): Unit = {}
-    override def materialize(): MultiLineString = {
-      val lines = Array.tabulate(x.lines.length)(i => gf.createLineString(zip(x.lines(i), y.lines(i))))
-      gf.createMultiLineString(lines)
-    }
-  }
-
   private class GeoParquetNativeMultiLineStringConverter extends GroupConverter with ValueMaterializer[MultiLineString] {
 
     private val lines = new GeoParquetNativeLineStringConverter()
@@ -551,28 +454,6 @@ object SimpleFeatureReadSupport {
       if (lines.isEmpty) { null } else {
         gf.createMultiLineString(lines)
       }
-    }
-  }
-
-  private class MultiPolygonConverter extends GroupConverter with ValueMaterializer[MultiPolygon] {
-
-    private val x = new PolygonArrayConverter()
-    private val y = new PolygonArrayConverter()
-
-    override def getConverter(fieldIndex: Int): Converter = if (fieldIndex == 0) { x } else { y }
-
-    override def start(): Unit = {}
-    override def end(): Unit = {}
-    override def reset(): Unit = {}
-    override def materialize(): MultiPolygon = {
-      val polys = Array.tabulate(x.polys.length) { i =>
-        val shell = gf.createLinearRing(zip(x.polys(i).head, y.polys(i).head))
-        val holes = if (x.polys(i).lengthCompare(1) == 0) { null } else {
-          Array.tabulate(x.polys(i).length - 1)(j => gf.createLinearRing(zip(x.polys(i)(j + 1), y.polys(i)(j + 1))))
-        }
-        gf.createPolygon(shell, holes)
-      }
-      gf.createMultiPolygon(polys)
     }
   }
 
@@ -626,70 +507,6 @@ object SimpleFeatureReadSupport {
     override def addFloat(value: Float): Unit = c = value
     override def addLong(value: Long): Unit = c = value
     override def addDouble(value: Double): Unit = c = value
-  }
-
-  /**
-    * Primitive converter for handling repeated unboxed double values
-    */
-  private class CoordinateArrayConverter extends PrimitiveConverter {
-
-    var i: Int = 0
-    var coords: Array[Double] = Array.ofDim(16)
-
-    override def addInt(value: Int): Unit = addDouble(value)
-    override def addFloat(value: Float): Unit = addDouble(value)
-    override def addLong(value: Long): Unit = addDouble(value)
-    override def addDouble(value: Double): Unit = {
-      if (coords.length == i) {
-        val tmp = Array.ofDim[Double](coords.length * 2)
-        System.arraycopy(coords, 0, tmp, 0, coords.length)
-        coords = tmp
-      }
-      coords(i) = value
-      i += 1
-    }
-  }
-
-  /**
-    * Group converter for handling lists of repeated unboxed double values
-    */
-  private class LineArrayConverter extends GroupConverter {
-
-    val lines: ArrayBuffer[Array[Double]] = ArrayBuffer.empty
-
-    private val group: GroupConverter = new GroupConverter {
-      private val converter = new CoordinateArrayConverter
-      override def getConverter(fieldIndex: Int): Converter = converter
-      override def start(): Unit = converter.i = 0
-      override def end(): Unit = {
-        val coords = Array.ofDim[Double](converter.i)
-        System.arraycopy(converter.coords, 0, coords, 0, coords.length)
-        lines += coords
-      }
-    }
-
-    override def getConverter(fieldIndex: Int): GroupConverter = group
-    override def start(): Unit = lines.clear()
-    override def end(): Unit = {}
-  }
-
-  /**
-    * Group converter for handling lists of lists of repeated unboxed double values
-    */
-  private class PolygonArrayConverter extends GroupConverter {
-
-    val polys: ArrayBuffer[Array[Array[Double]]] = ArrayBuffer.empty
-
-    private val group: GroupConverter = new GroupConverter {
-      private val converter = new LineArrayConverter
-      override def getConverter(fieldIndex: Int): Converter = converter
-      override def start(): Unit = {}
-      override def end(): Unit = polys += converter.lines.toArray
-    }
-
-    override def getConverter(fieldIndex: Int): GroupConverter = group
-    override def start(): Unit = polys.clear()
-    override def end(): Unit = {}
   }
 
   private class CoordinateGroupConverter extends GroupConverter with ValueMaterializer[Coordinate] {

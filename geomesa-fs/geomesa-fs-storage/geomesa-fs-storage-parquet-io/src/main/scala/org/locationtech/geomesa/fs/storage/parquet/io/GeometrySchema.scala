@@ -118,7 +118,7 @@ object GeometrySchema {
     }
 
     /**
-     * The parquet schema for a bbox field
+     * The iceberg schema for a bbox field
      *
      * @param bbox field name
      * @return

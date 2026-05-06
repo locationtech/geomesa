@@ -138,14 +138,6 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * @param conf write configuration, including the sft spec
    * @return
    */
-  def write(conf: Configuration): Option[SimpleFeatureParquetSchema] = write(new HadoopParquetConfiguration(conf))
-
-  /**
-   * Get a schema for writing. Encoding can be configured through `geomesa.parquet.geometries` and `geomesa.fs.visibilities`
-   *
-   * @param conf write configuration, including the sft spec
-   * @return
-   */
   def write(conf: ParquetConfiguration): Option[SimpleFeatureParquetSchema] = {
     for {
       name <- Option(conf.get(SftNameKey))
@@ -170,7 +162,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
   }
 
   /**
-   * Gets the parquet schema
+   * Gets the parquet schema for a feature type
    *
    * @param sft simple feature type
    * @param conf storage configuration
@@ -292,7 +284,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     val attributeFields = readSft.getOrElse(sft).getAttributeDescriptors.asScala.flatMap { d =>
       attributes(alphaNumericSafeString(d.getLocalName))
     }
-    // note: id field goes at the front of the record, then vis, then any bounding boxes
+    // note: id field goes at the front of the record, then vis, then attributes and bounding boxes
     val fields = Seq(id) ++ vis ++ attributeFields
     val name = alphaNumericSafeString(sft.getTypeName)
     new MessageType(name, fields.asJava)

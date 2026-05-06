@@ -316,8 +316,11 @@ object S3ObjectStore {
 
   case class S3Path(bucket: String, key: String)
 
-  // note: these need to stay in sync with s3-defaults.conf
+  /**
+   * Configuration keys accepted by the S3ObjectStore
+   */
   object S3Config {
+    // note: these need to stay in sync with s3-defaults.conf
     val Endpoint                     = "fs.s3.endpoint"
     val Region                       = "fs.s3.region"
     val AccessKeyId                  = "fs.s3.access-key-id"
@@ -337,7 +340,6 @@ object S3ObjectStore {
     val InitialReadBufferSizeInBytes = "fs.s3.initial-read-buffer-size-in-bytes"
     val Accelerate                   = "fs.s3.accelerate"
     val ThresholdInBytes             = "fs.s3.threshold-in-bytes"
-
   }
 
   // TODO checksum-enabled on upload ?

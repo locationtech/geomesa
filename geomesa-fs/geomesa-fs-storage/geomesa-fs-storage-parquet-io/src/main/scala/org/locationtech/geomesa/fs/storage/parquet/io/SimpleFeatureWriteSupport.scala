@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.parquet.io
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.parquet.conf.ParquetConfiguration
+import org.apache.parquet.conf.{HadoopParquetConfiguration, ParquetConfiguration}
 import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.api.WriteSupport.{FinalizedWriteContext, WriteContext}
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
@@ -36,12 +36,7 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
   override val getName: String = "SimpleFeatureWriteSupport"
 
   // called once
-  override def init(conf: Configuration): WriteContext = {
-    val schema = SimpleFeatureParquetSchema.write(conf).getOrElse {
-      throw new IllegalArgumentException("Could not extract SimpleFeatureType from write context")
-    }
-    init(schema)
-  }
+  override def init(conf: Configuration): WriteContext = init(new HadoopParquetConfiguration(conf))
 
   override def init(conf: ParquetConfiguration): WriteContext = {
     val schema = SimpleFeatureParquetSchema.write(conf).getOrElse {

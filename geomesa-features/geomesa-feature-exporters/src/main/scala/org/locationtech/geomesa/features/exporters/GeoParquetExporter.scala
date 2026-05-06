@@ -31,7 +31,10 @@ class GeoParquetExporter(path: String) extends FeatureExporter with LazyLogging 
       writer = null
     }
     // TODO make it easier to configure this in a manner consistent with the file system data store
-    val conf = new Configuration().iterator().asScala.map(e => e.getKey -> e.getValue).toMap
+    val conf = {
+      val c = new Configuration()
+      c.iterator().asScala.map(e => e.getKey -> c.get(e.getKey) /* use .get to resolve envs */).toMap
+    }
 
     // use PathUtils.getUrl to handle local file paths (without a scheme)
     val uri = PathUtils.getUrl(path).toURI

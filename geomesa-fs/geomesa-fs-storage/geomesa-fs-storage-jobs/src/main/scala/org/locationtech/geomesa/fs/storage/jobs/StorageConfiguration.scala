@@ -67,9 +67,8 @@ object StorageConfiguration {
   def getSft(conf: Configuration): SimpleFeatureType =
     SimpleFeatureTypes.createType(conf.get(SftNameKey), conf.get(SftSpecKey))
 
-  def setReadSft(conf: Configuration, sft: SimpleFeatureType): Unit = {
+  def setReadSft(conf: Configuration, sft: SimpleFeatureType): Unit =
     conf.set(SftReadSpecKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
-  }
 
   def getSftName(conf: Configuration): String = conf.get(SftNameKey)
   def getSftSpec(conf: Configuration): String = conf.get(SftSpecKey)

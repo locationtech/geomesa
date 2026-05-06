@@ -12,10 +12,14 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 
 /**
-  * Scheme for partitioning features into various named partitions (e.g. buckets) on disk, for
-  * faster querying. Partition schemes do not have any persistent state, they only know how to map features
-  * and filters to partition names
-  */
+ * Scheme for partitioning features into various named partitions (e.g. buckets) on disk, for
+ * faster querying. Partition schemes do not have any persistent state, they only know how to map features
+ * and filters to partition names.
+ *
+ * Note that generally partitioning is implemented to align with iceberg's partitioning logic, so
+ * that partitions in iceberg have a 1:1 mapping with partitions in geomesa (the reverse is not true,
+ * as geomesa supports more partition schemes than iceberg, e.g. spatial partitions, multi-hour partitions, etc)
+ */
 trait PartitionScheme {
 
   /**
