@@ -37,7 +37,7 @@ class IcebergMapper(storage: FileSystemStorage) extends LazyLogging {
   private val metricsConfigs = new ConcurrentHashMap[String, MetricsConfig]()
 
   // need to be in attribute order
-  private val mappers = storage.metadata.sft.getAttributeDescriptors.asScala.flatMap { d =>
+  private val mappers = storage.metadata.sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
     storage.metadata.schemes.find(_.attribute == d.getLocalName).flatMap { scheme =>
       val mapper = SchemeMapper(scheme)
       if (mapper.isEmpty) {
@@ -62,7 +62,7 @@ class IcebergMapper(storage: FileSystemStorage) extends LazyLogging {
    * @param partition partition
    * @return
    */
-  def partitionValues(partition: Partition): Seq[String] = {
+  private def partitionValues(partition: Partition): Seq[String] = {
     mappers.map { m =>
       val key = partition.values.find(_.name == m.scheme.name).getOrElse {
         throw new IllegalArgumentException(
