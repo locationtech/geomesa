@@ -39,7 +39,7 @@ class IcebergMapper(storage: FileSystemStorage) extends LazyLogging {
   // need to be in attribute order
   private val mappers = storage.metadata.sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
     storage.metadata.schemes.find(_.attribute == d.getLocalName).flatMap { scheme =>
-      val mapper = SchemeMapper(scheme)
+      val mapper = SchemeMapper(scheme, d.getType.getBinding)
       if (mapper.isEmpty) {
         logger.warn(s"Partition scheme '${scheme.name}' is not supported by iceberg and will not be available for query filtering")
       }
@@ -89,7 +89,7 @@ class IcebergMapper(storage: FileSystemStorage) extends LazyLogging {
    * @param partition partition
    * @return
    */
-  private def partitionValues(partition: Partition): Seq[String] = {
+  def partitionValues(partition: Partition): Seq[String] = {
     mappers.map { m =>
       val key = partition.values.find(_.name == m.scheme.name).getOrElse {
         throw new IllegalArgumentException(
@@ -139,26 +139,26 @@ object IcebergMapper {
      * @param scheme the scheme to map
      * @return a mapping, if the scheme is supported by iceberg
      */
-    def apply(scheme: PartitionScheme): Option[SchemeMapper] = scheme match {
+    def apply(scheme: PartitionScheme, binding: Class[_]): Option[SchemeMapper] = scheme match {
       case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.HOURS => Some(HourMapper(s))
       case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.DAYS => Some(DayMapper(s))
       case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.MONTHS => Some(MonthMapper(s))
       case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.YEARS => Some(YearMapper(s))
       case s: HashScheme[_] => Some(HashMapper(s))
 
-      case s: AttributeScheme[String] =>
+      case s: AttributeScheme[_] if classOf[String].isAssignableFrom(binding) =>
         s.bucketing match {
           case None => Some(IdentityMapper(s, LexiTypeEncoders.stringEncoder()))
           case Some(w: WidthBucketing) => Some(TruncateMapper(s, LexiTypeEncoders.stringEncoder(), w.max))
         }
 
-      case s: AttributeScheme[Int] =>
+      case s: AttributeScheme[_] if classOf[Integer].isAssignableFrom(binding) =>
         s.bucketing match {
           case None => Some(IdentityMapper(s, LexiTypeEncoders.integerEncoder()))
           case Some(i: IntegralBucketing[Int]) => Some(TruncateMapper(s, LexiTypeEncoders.integerEncoder(), i.divisor))
         }
 
-      case s: AttributeScheme[Long] =>
+      case s: AttributeScheme[_] if classOf[java.lang.Long].isAssignableFrom(binding) =>
         s.bucketing match {
           case None => Some(IdentityMapper(s, LexiTypeEncoders.longEncoder()))
           case Some(i: IntegralBucketing[Long]) => Some(TruncateMapper(s, LexiTypeEncoders.longEncoder(), i.divisor.toInt))
