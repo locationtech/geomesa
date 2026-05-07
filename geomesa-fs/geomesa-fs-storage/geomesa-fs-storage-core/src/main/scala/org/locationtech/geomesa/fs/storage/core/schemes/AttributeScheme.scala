@@ -22,12 +22,12 @@ import java.util.Locale
 import scala.reflect.ClassTag
 
 abstract class AttributeScheme[T: ClassTag](
-    attribute: String,
+    val attribute: String,
     index: Int,
     defaultValue: Option[T],
     allowedValues: Seq[T],
     nullValue: T,
-    bucketing: Option[Bucketing[T]],
+    val bucketing: Option[Bucketing[T]],
     lexicoder: TypeEncoder[T, String],
   ) extends PartitionScheme {
 
@@ -168,19 +168,19 @@ object AttributeScheme extends PartitionSchemeFactory {
         "Default partition must be one of the allowed values")
 
       if (isString) {
-        Some(StringScheme(attribute, index, width, defaultValue, allowedValues))
+        Some(new StringScheme(attribute, index, width, defaultValue, allowedValues))
       } else if (binding == classOf[Integer]) {
         val bucketing = divisor.map(IntegralBucketing.apply[Int])
-        Some(IntScheme(attribute, index, bucketing, defaultValue.map(_.toInt), allowedValues.map(_.toInt)))
+        Some(new IntScheme(attribute, index, bucketing, defaultValue.map(_.toInt), allowedValues.map(_.toInt)))
       } else if (binding == classOf[java.lang.Long]) {
         val bucketing = divisor.map(d => IntegralBucketing(d.toLong))
-        Some(LongScheme(attribute, index, bucketing, defaultValue.map(_.toLong), allowedValues.map(_.toLong)))
+        Some(new LongScheme(attribute, index, bucketing, defaultValue.map(_.toLong), allowedValues.map(_.toLong)))
       } else if (binding == classOf[java.lang.Float]) {
         val bucketing = scale.map(FractionalBucketing.apply[Float])
-        Some(FloatScheme(attribute, index, bucketing, defaultValue.map(_.toFloat), allowedValues.map(_.toFloat)))
+        Some(new FloatScheme(attribute, index, bucketing, defaultValue.map(_.toFloat), allowedValues.map(_.toFloat)))
       } else if (binding == classOf[java.lang.Double]) {
         val bucketing = scale.map(FractionalBucketing.apply[Double])
-        Some(DoubleScheme(attribute, index, bucketing, defaultValue.map(_.toDouble), allowedValues.map(_.toDouble)))
+        Some(new DoubleScheme(attribute, index, bucketing, defaultValue.map(_.toDouble), allowedValues.map(_.toDouble)))
       } else {
         throw new IllegalArgumentException(
           s"Attribute scheme is not supported for type ${binding.getSimpleName} - " +
@@ -194,7 +194,7 @@ object AttributeScheme extends PartitionSchemeFactory {
    *
    * @tparam T attribute type
    */
-  private trait Bucketing[T] extends (T => T) {
+  sealed trait Bucketing[T] extends (T => T) {
 
     /**
      * Encoded option, used to identify this bucketing
@@ -204,19 +204,19 @@ object AttributeScheme extends PartitionSchemeFactory {
     def encoded: String
   }
 
-  private case class WidthBucketing(max: Int) extends Bucketing[String] {
+  case class WidthBucketing(max: Int) extends Bucketing[String] {
     override def apply(value: String): String = value.slice(0, max)
     override def encoded: String = s"width=$max"
   }
 
-  private case class IntegralBucketing[T: Integral](divisor: T) extends Bucketing[T] {
+  case class IntegralBucketing[T: Integral](divisor: T) extends Bucketing[T] {
     import Integral.Implicits.infixIntegralOps
-    override def apply(value: T): T = divisor * (value / divisor)
+    override def apply(value: T): T = value - (((value % divisor) + divisor) % divisor)
     override def encoded: String = s"divisor=$divisor"
   }
 
   // scale here refers to the number of digits to the right of the decimal place that are kept
-  private case class FractionalBucketing[T: Fractional](scale: Int) extends Bucketing[T] {
+  case class FractionalBucketing[T: Fractional](scale: Int) extends Bucketing[T] {
     import Fractional.Implicits.infixFractionalOps
     private val fractional = implicitly[Fractional[T]]
     val scaleT: T = fractional.fromInt(math.pow(10, scale).toInt)
@@ -233,7 +233,7 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param defaultValue default value
    * @param allowedValues list of allowedValues to partition
    */
-  private case class StringScheme(
+  private class StringScheme(
       attribute: String,
       index: Int,
       maxWidth: Option[WidthBucketing],
@@ -305,7 +305,7 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param defaultValue default value
    * @param allowedValues list of allowedValues to partition
    */
-  private case class IntScheme(
+  private class IntScheme(
       attribute: String,
       index: Int,
       divisor: Option[IntegralBucketing[Int]],
@@ -322,7 +322,7 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param defaultValue default value
    * @param allowedValues list of allowedValues to partition
    */
-  private case class LongScheme(
+  private class LongScheme(
       attribute: String,
       index: Int,
       divisor: Option[IntegralBucketing[Long]],
@@ -403,7 +403,7 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param defaultValue default value
    * @param allowedValues list of allowedValues to partition
    */
-  private case class FloatScheme(
+  private class FloatScheme(
       attribute: String,
       index: Int,
       scale: Option[FractionalBucketing[Float]],
@@ -420,7 +420,7 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param defaultValue default value
    * @param allowedValues list of allowedValues to partition
    */
-  private case class DoubleScheme(
+  private class DoubleScheme(
       attribute: String,
       index: Int,
       scale: Option[FractionalBucketing[Double]],

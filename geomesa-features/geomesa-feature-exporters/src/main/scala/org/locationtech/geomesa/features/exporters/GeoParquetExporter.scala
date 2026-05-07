@@ -31,13 +31,10 @@ class GeoParquetExporter(path: String) extends FeatureExporter with LazyLogging 
       writer = null
     }
     // TODO make it easier to configure this in a manner consistent with the file system data store
-    val hadoopConf = new Configuration()
-    try { Class.forName("org.xerial.snappy.Snappy") } catch {
-      case _: ClassNotFoundException =>
-        logger.warn("SNAPPY compression is not available on the classpath - falling back to GZIP")
-        hadoopConf.set("parquet.compression", "GZIP")
+    val conf = {
+      val c = new Configuration()
+      c.iterator().asScala.map(e => e.getKey -> c.get(e.getKey) /* use .get to resolve envs */).toMap
     }
-    val conf = hadoopConf.iterator().asScala.map(e => e.getKey -> e.getValue).toMap
 
     // use PathUtils.getUrl to handle local file paths (without a scheme)
     val uri = PathUtils.getUrl(path).toURI

@@ -63,8 +63,9 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
   override protected def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader = {
-    // readSft has all the fields needed for filtering and return
-    val ReadSchema(readSft, readTransform) = ReadSchema(metadata.sft, filter, transform)
+    // readSchema has all the fields needed for filtering and return
+    val readSchema = ReadSchema(metadata.sft, filter, transform)
+    val readSft = readSchema.read.getOrElse(metadata.sft)
     val ReadFilter(fc, residualFilter) = ReadFilter(readSft, filter)
     val parquetFilter = fc.map(FilterCompat.get).getOrElse(FilterCompat.NOOP)
     val gtFilter = residualFilter.map(FastFilterFactory.optimize(readSft, _))
@@ -74,7 +75,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
       s"    Parquet filter: ${parquetFilter match { case f: FilterPredicateCompat => f.getFilterPredicate; case f => f }} " +
         s"and modified gt filter: ${gtFilter.getOrElse(Filter.INCLUDE)}")
 
-    new ParquetFileSystemReader(fs, context, readSft, parquetFilter, gtFilter, visFilter, readTransform)
+    new ParquetFileSystemReader(fs, context, metadata.sft, readSchema.read, parquetFilter, gtFilter, visFilter, readSchema.transform)
   }
 }
 

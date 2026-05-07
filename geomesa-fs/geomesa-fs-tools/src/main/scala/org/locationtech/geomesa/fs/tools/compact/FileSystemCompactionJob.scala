@@ -74,7 +74,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Compacted)
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
-    FileOutputFormat.setOutputPath(job, tempPath.getOrElse { new Path(S3ObjectStore.s3aUri(storage.context.root)) })
+    FileOutputFormat.setOutputPath(job, tempPath.getOrElse(new Path(S3ObjectStore.s3aUri(storage.context.root))))
 
     // MapReduce options
     job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")

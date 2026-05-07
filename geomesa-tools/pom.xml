@@ -69,7 +69,7 @@
             <artifactId>gt-epsg-wkt</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.beust</groupId>
+            <groupId>org.jcommander</groupId>
             <artifactId>jcommander</artifactId>
         </dependency>
         <dependency>

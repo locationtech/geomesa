@@ -29,16 +29,16 @@ import scala.util.control.NonFatal
  * @param pattern pattern used by the date format
  * @param stepUnit time unit
  * @param step how many units per partition
- * @param dtg date attribute
- * @param dtgIndex date attribute index
+ * @param attribute date attribute
+ * @param index date attribute index
  */
 case class HierarchicalDateTimeScheme(
     formatter: DateTimeFormatter,
     pattern: String,
     stepUnit: ChronoUnit,
     step: Int,
-    dtg: String,
-    dtgIndex: Int
+    attribute: String,
+    index: Int
   ) extends PartitionScheme {
 
   import FilterHelper.ff
@@ -99,10 +99,10 @@ case class HierarchicalDateTimeScheme(
       s":${Config.DateTimeFormatOpt}=$pattern" +
       s":${Config.StepUnitOpt}=${stepUnit.name()}" +
       s":${Config.StepOpt}=$step" +
-      s":${Config.DtgAttribute}=$dtg"
+      s":${Config.DtgAttribute}=$attribute"
 
   override def getPartition(feature: SimpleFeature): PartitionKey = {
-    val dt = ZonedDateTime.ofInstant(feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant, ZoneOffset.UTC)
+    val dt = ZonedDateTime.ofInstant(feature.getAttribute(index).asInstanceOf[Date].toInstant, ZoneOffset.UTC)
     PartitionKey(name, formatter.format(truncateToPartitionStart(dt)))
   }
 
@@ -143,11 +143,11 @@ case class HierarchicalDateTimeScheme(
     val zdt = DateParsing.parse(partition.value, formatter)
     val start = DateParsing.format(zdt)
     val end = DateParsing.format(zdt.plus(step, stepUnit))
-    ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(start)), ff.less(ff.property(dtg), ff.literal(end)))
+    ff.and(ff.greaterOrEqual(ff.property(attribute), ff.literal(start)), ff.less(ff.property(attribute), ff.literal(end)))
   }
 
   private def getBounds(filter: Filter): Option[Seq[Bounds[ZonedDateTime]]] = {
-    val bounds = FilterHelper.extractIntervals(filter, dtg)
+    val bounds = FilterHelper.extractIntervals(filter, attribute)
     if (bounds.isEmpty) {
       None
     } else if (bounds.disjoint) {

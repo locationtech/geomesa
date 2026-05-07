@@ -1,0 +1,6 @@
+<configuration>
+  <property>
+    <name>geomesa.test</name>
+    <value>foo</value>
+  </property>
+</configuration>

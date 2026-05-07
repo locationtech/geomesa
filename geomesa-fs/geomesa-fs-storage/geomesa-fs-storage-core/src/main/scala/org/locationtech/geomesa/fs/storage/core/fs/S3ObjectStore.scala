@@ -316,6 +316,33 @@ object S3ObjectStore {
 
   case class S3Path(bucket: String, key: String)
 
+  /**
+   * Configuration keys accepted by the S3ObjectStore
+   */
+  object S3Config {
+    // note: these need to stay in sync with s3-defaults.conf
+    val Endpoint                     = "fs.s3.endpoint"
+    val Region                       = "fs.s3.region"
+    val AccessKeyId                  = "fs.s3.access-key-id"
+    val SecretAccessKey              = "fs.s3.secret-access-key"
+    val ForcePathStyle               = "fs.s3.force-path-style"
+    val WriteBuffering               = "fs.s3.write-buffering"
+    val WriteBufferDir               = "fs.s3.write-buffer-dir"
+    val WriteBufferInBytes           = "fs.s3.write-buffer-in-bytes"
+    val NumRetries                   = "fs.s3.num-retries"
+    val TargetThroughputInGbps       = "fs.s3.target-throughput-in-gbps"
+    val MinimumPartSizeInBytes       = "fs.s3.minimum-part-size-in-bytes"
+    val MaxConcurrency               = "fs.s3.max-concurrency"
+    val ConnectionTimeout            = "fs.s3.connection-timeout"
+    val MaxNativeMemoryLimitInBytes  = "fs.s3.max-native-memory-limit-in-bytes"
+    val RequestChecksumCalculation   = "fs.s3.request-checksum-calculation"
+    val ResponseChecksumValidation   = "fs.s3.response-checksum-validation"
+    val InitialReadBufferSizeInBytes = "fs.s3.initial-read-buffer-size-in-bytes"
+    val Accelerate                   = "fs.s3.accelerate"
+    val ThresholdInBytes             = "fs.s3.threshold-in-bytes"
+  }
+
+  // TODO checksum-enabled on upload ?
   private case class S3ObjectStoreConfig(
     region: Option[Region],
     endpoint: Option[URI],
@@ -392,16 +419,16 @@ object S3ObjectStore {
     }
 
     private val s3aConfigMappings = Map(
-      "fs.s3a.access.key"         -> "fs.s3.access-key-id",
-      "fs.s3a.secret.key"         -> "fs.s3.secret-access-key",
-      "fs.s3a.endpoint"           -> "fs.s3.endpoint",
-      "fs.s3a.endpoint.region"    -> "fs.s3.region",
-      "fs.s3a.path.style.access"  -> "fs.s3.force-path-style",
-      "fs.s3a.attempts.maximum"   -> "fs.s3.num-retries",
-      "fs.s3a.connection.maximum" -> "fs.s3.max-concurrency", // TODO think max-concurrency is per-request
-      "fs.s3a.connection.timeout" -> "fs.s3.connection-timeout",
-      "fs.s3a.multipart.size"     -> "fs.s3.write-buffer-in-bytes",
-      "fs.s3a.buffer.dir"         -> "fs.s3.write-buffer-dir"
+      "fs.s3a.access.key"         -> S3Config.AccessKeyId,
+      "fs.s3a.secret.key"         -> S3Config.SecretAccessKey,
+      "fs.s3a.endpoint"           -> S3Config.Endpoint,
+      "fs.s3a.endpoint.region"    -> S3Config.Region,
+      "fs.s3a.path.style.access"  -> S3Config.ForcePathStyle,
+      "fs.s3a.attempts.maximum"   -> S3Config.NumRetries,
+      "fs.s3a.connection.maximum" -> S3Config.MaxConcurrency, // TODO think max-concurrency is per-request
+      "fs.s3a.connection.timeout" -> S3Config.ConnectionTimeout,
+      "fs.s3a.multipart.size"     -> S3Config.WriteBufferInBytes,
+      "fs.s3a.buffer.dir"         -> S3Config.WriteBufferDir,
     )
 
     val s3aReverseConfigMappings: Map[String, String] = s3aConfigMappings.map { case (k, v) => v -> k }

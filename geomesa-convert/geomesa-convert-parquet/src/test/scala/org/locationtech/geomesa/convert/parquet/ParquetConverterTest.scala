@@ -98,9 +98,7 @@ class ParquetConverterTest extends Specification {
 
     "infer a converter from a complex geomesa parquet file, for all supported encodings" >> {
       val factory = new ParquetConverterFactory()
-      val files =
-        Seq("geomesav1-test.parquet", "geoparquet-native-test.parquet", "geoparquet-wkb-test.parquet")
-          .map(getClass.getClassLoader.getResource)
+      val files = Seq("geoparquet-native-test.parquet", "geoparquet-wkb-test.parquet").map(getClass.getClassLoader.getResource)
       val attributes =
         Seq("dtg", "name", "age", "time", "height", "weight", "bool", "uuid", "bytes", "list", "map", "line",
             "multipt", "poly", "multiline", "multipoly", "geom", "pt")
@@ -322,74 +320,6 @@ class ParquetConverterTest extends Specification {
       res.map(_.getAttribute("lastseen")) mustEqual Seq("2015-05-06", "2015-06-07", "2015-10-23").map(FastConverter.convert(_, classOf[Date]))
       res.map(_.getAttribute("geom")) mustEqual Seq("POINT (-100.2365 23)", "POINT (40.232 -53.2356)", "POINT (3 -62.23)").map(FastConverter.convert(_, classOf[Point]))
       res.map(_.getUserData.get("geomesa.feature.visibility")) mustEqual Seq("user", "user", "user&admin")
-    }
-
-    "handle all attribute types" >> {
-      val file = getClass.getClassLoader.getResource("infer-complex.parquet")
-      val path = new File(file.toURI).getAbsolutePath
-
-      val factory = new ParquetConverterFactory()
-      val inferred = WithClose(file.openStream())(factory.infer(_, None, EvaluationContext.inputFileParam(path)))
-      inferred must beASuccessfulTry
-
-      val (sft, config) = inferred.get
-
-      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual
-          Seq("name", "age", "time", "height", "weight", "bool", "uuid", "bytes", "list", "map",
-            "line", "mpt", "poly", "mline", "mpoly", "dtg", "geom")
-      sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
-          Seq(classOf[String], classOf[Integer], classOf[java.lang.Long], classOf[java.lang.Float],
-            classOf[java.lang.Double], classOf[java.lang.Boolean], classOf[UUID], classOf[Array[Byte]],
-            classOf[java.util.List[Integer]], classOf[java.util.Map[String, Long]],
-            classOf[LineString], classOf[MultiPoint], classOf[Polygon], classOf[MultiLineString],
-            classOf[MultiPolygon], classOf[Date], classOf[Point])
-
-      val res = WithClose(SimpleFeatureConverter(sft, config)) { converter =>
-        val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(path))
-        WithClose(converter.process(file.openStream(), ec))(_.toList)
-      }
-
-      res must haveLength(10)
-
-      // features used to write the parquet file
-      val expected = Seq.tabulate(10) { i =>
-        val sf = new ScalaSimpleFeature(sft, i.toString)
-        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-        sf.setAttribute("name", s"name$i")
-        sf.setAttribute("age", s"$i")
-        sf.setAttribute("time", s"$i")
-        sf.setAttribute("height", s"$i")
-        sf.setAttribute("weight", s"$i")
-        sf.setAttribute("bool", Boolean.box(i < 5))
-        sf.setAttribute("uuid", UUID.fromString(s"00000000-0000-0000-0000-00000000000$i"))
-        sf.setAttribute("bytes", Array.tabulate[Byte](i)(i => i.toByte))
-        sf.setAttribute("list", Seq.tabulate[Integer](i)(i => Int.box(i)))
-        sf.setAttribute("map", (0 until i).map(i => i.toString -> Long.box(i)).toMap)
-        sf.setAttribute("line", s"LINESTRING(0 $i, 2 $i, 8 ${10 - i})")
-        sf.setAttribute("mpt", s"MULTIPOINT(0 $i, 2 3)")
-        sf.setAttribute("poly",
-          if (i == 5) {
-            // multipolygon example from wikipedia
-            "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10),(20 30, 35 35, 30 20, 20 30))"
-          } else {
-            s"POLYGON((40 3$i, 42 3$i, 42 2$i, 40 2$i, 40 3$i))"
-          }
-        )
-        sf.setAttribute("mline", s"MULTILINESTRING((0 2, 2 $i, 8 6),(0 $i, 2 $i, 8 ${10 - i}))")
-        sf.setAttribute("mpoly", s"MULTIPOLYGON(((-1 0, 0 $i, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6)), ((-1 5, 2 5, 2 2, -1 2, -1 5)))")
-        sf.setAttribute("dtg", f"2014-01-${i + 1}%02dT00:00:01.000Z")
-        sf.setAttribute("geom", s"POINT(4$i 5$i)")
-        sf
-      }
-
-      // compare bytes first, as they aren't 'equals'
-      res.map(_.getAttribute("bytes").asInstanceOf[Array[Byte]].mkString(",")) mustEqual
-          expected.map(_.getAttribute("bytes").asInstanceOf[Array[Byte]].mkString(","))
-
-      // now clear the bytes and compare the rest of the attributes
-      (res ++ expected).foreach(_.setAttribute("bytes", null))
-
-      res mustEqual expected
     }
   }
 }

@@ -1,0 +1,6 @@
+<configuration>
+  <property>
+    <name>test-site</name>
+    <value>bar</value>
+  </property>
+</configuration>

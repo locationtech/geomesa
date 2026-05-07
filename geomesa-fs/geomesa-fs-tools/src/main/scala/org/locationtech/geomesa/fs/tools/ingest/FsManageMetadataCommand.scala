@@ -70,7 +70,7 @@ object FsManageMetadataCommand extends LazyLogging {
             tmp
           } else {
             throw new IllegalArgumentException(
-              s"File $file must have the same scheme as the storage context: ${storage.context.root}")
+              s"File $file must be in the same filesystem as the storage context: ${storage.context.root}")
           }
         }
         if (!storage.fs.exists(path)) {

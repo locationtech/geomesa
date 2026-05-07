@@ -63,29 +63,19 @@ class ParquetFileSystemWriter(
 
 object ParquetFileSystemWriter extends LazyLogging {
 
+  /**
+   * Create a new configurable writer
+   *
+   * @param fs object store
+   * @param path file path
+   * @param conf write configuration
+   * @return
+   */
   def builder(fs: ObjectStore, path: URI, conf: ParquetConfiguration): Builder = {
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "ZSTD"))
     logger.debug(s"Using Parquet Compression codec ${codec.name()}")
 
-    val file = fs match {
-      case _: LocalObjectStore =>
-        val p = Path.of(path)
-        new LocalOutputFile(p) {
-          override def create(blockSize: Long): PositionOutputStream = {
-            Option(p.toFile.getParentFile).foreach(_.mkdirs())
-            super.create(blockSize)
-          }
-          override def createOrOverwrite(blockSize: Long): PositionOutputStream = {
-            Option(p.toFile.getParentFile).foreach(_.mkdirs())
-            super.createOrOverwrite(blockSize)
-          }
-        }
-
-      case s3: S3ObjectStore => new S3OutputFile(s3, path)
-
-      case _ => throw new UnsupportedOperationException(s"No file implementation for scheme ${fs.scheme}")
-    }
-
+    val file = outputFile(fs, path)
     new Builder(file)
       .withConf(conf)
       .withCompressionCodec(codec)
@@ -99,11 +89,35 @@ object ParquetFileSystemWriter extends LazyLogging {
       .withRowGroupSize(8L*1024*1024)
   }
 
+  /**
+   * Get an output file compatible with the parquet api
+   *
+   * @param fs object store
+   * @param path file path
+   * @return
+   */
+  def outputFile(fs: ObjectStore, path: URI): OutputFile = fs match {
+    case _: LocalObjectStore => new LocalOutputFileWithParent(Path.of(path))
+    case s3: S3ObjectStore => new S3OutputFile(s3, path)
+    case _ => throw new UnsupportedOperationException(s"No file implementation for scheme ${fs.scheme}")
+  }
+
   class Builder(file: OutputFile) extends ParquetWriter.Builder[SimpleFeature, Builder](file) {
     override def self(): Builder = this
     override protected def getWriteSupport(conf: Configuration): WriteSupport[SimpleFeature] =
       new SimpleFeatureWriteSupport()
     override protected def getWriteSupport(conf: ParquetConfiguration): WriteSupport[SimpleFeature] =
       new SimpleFeatureWriteSupport()
+  }
+
+  private class LocalOutputFileWithParent(file: Path) extends LocalOutputFile(file) {
+    override def create(blockSize: Long): PositionOutputStream = {
+      Option(file.toFile.getParentFile).foreach(_.mkdirs())
+      super.create(blockSize)
+    }
+    override def createOrOverwrite(blockSize: Long): PositionOutputStream = {
+      Option(file.toFile.getParentFile).foreach(_.mkdirs())
+      super.createOrOverwrite(blockSize)
+    }
   }
 }

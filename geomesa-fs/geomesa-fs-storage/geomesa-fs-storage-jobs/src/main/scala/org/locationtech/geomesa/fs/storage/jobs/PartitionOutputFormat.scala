@@ -56,7 +56,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
       val hadoopConf = context.getConfiguration
       val conf = {
         val builder = Map.newBuilder[String, String]
-        hadoopConf.forEach(e => builder += e.getKey -> e.getValue)
+        hadoopConf.forEach(e => builder += e.getKey -> hadoopConf.get(e.getKey)) // use .get to resolve envs
         builder.result()
       }
       val root = StorageConfiguration.getRootPath(hadoopConf)

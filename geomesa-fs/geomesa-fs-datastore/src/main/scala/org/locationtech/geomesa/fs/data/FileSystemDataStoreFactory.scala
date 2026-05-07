@@ -42,10 +42,13 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val conf = {
       val builder = Map.newBuilder[String, String]
       // pick up any hadoop props, to e.g. make it a bit easier to configure s3 access based on s3a settings
-      FileSystemDataStoreFactory.configuration.forEach { e =>
-        val key = e.getKey
-        if (key.startsWith("geomesa.") || key.startsWith("fs.") || key.startsWith("parquet.")) {
-          builder += e.getKey -> FileSystemDataStoreFactory.configuration.get(e.getKey) // use .get to resolve envs
+      // only do this if hadoop file exist on the classpath, to avoid a hard runtime dependency on hadoop
+      if (Seq("core-site.xml", "hdfs-site.xml").exists(getClass.getClassLoader.getResource(_) != null)) {
+        FileSystemDataStoreFactory.configuration.forEach { e =>
+          val key = e.getKey
+          if (key.startsWith("geomesa.") || key.startsWith("fs.") || key.startsWith("parquet.")) {
+            builder += e.getKey -> FileSystemDataStoreFactory.configuration.get(e.getKey) // use .get to resolve envs
+          }
         }
       }
       ConfigXmlParam.lookupOpt(params).foreach { xml =>
@@ -53,14 +56,14 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
         val conf = new Configuration(false)
         conf.addResource(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))
         // note: need to call iterator() to force loading of the resource
-        conf.iterator().forEachRemaining { e => builder += e.getKey -> conf.get(e.getKey) } // re- .get to resolve envs
+        conf.iterator().forEachRemaining { e => builder += e.getKey -> conf.get(e.getKey) } // use .get to resolve envs
       }
       ConfigPathsParam.lookupOpt(params).map(_.split(',').map(_.trim).filterNot(_.isEmpty)).filterNot(_.isEmpty).foreach { resources =>
         logger.warn(s"Parameter '${ConfigPathsParam.key}' is deprecated, please use '${ConfigFileParam.key}' instead")
         val conf = new Configuration(false)
         resources.foreach(HadoopUtils.addResource(conf, _))
         // note: need to call iterator() to force loading of the resource
-        conf.iterator().forEachRemaining { e => builder += e.getKey -> conf.get(e.getKey) } // re- .get to resolve envs
+        conf.iterator().forEachRemaining { e => builder += e.getKey -> conf.get(e.getKey) }  // use .get to resolve envs
       }
       ConfigFileParam.lookupOpt(params).foreach { f =>
         var uri = new URI(f)

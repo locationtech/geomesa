@@ -20,13 +20,13 @@ import org.locationtech.jts.geom.Geometry
 import java.util.regex.Pattern
 import scala.reflect.ClassTag
 
-abstract class SpatialScheme(id: String, bits: Int, geom: String) extends PartitionScheme {
+abstract class SpatialScheme(id: String, attribute: String, bits: Int) extends PartitionScheme {
 
   require(bits % 2 == 0, "Resolution must be an even number")
 
   protected val format = s"%0${digits(bits)}d"
 
-  override val name: String = s"$id:attribute=$geom:bits=$bits"
+  override val name: String = s"$id:attribute=$attribute:bits=$bits"
 
   protected def digits(bits: Int): Int
 
@@ -55,7 +55,7 @@ abstract class SpatialScheme(id: String, bits: Int, geom: String) extends Partit
   }
 
   private def getGeoms(filter: Filter): Option[Seq[IndexRange]] = {
-    val geometries = FilterHelper.extractGeometries(filter, geom, intersect = true)
+    val geometries = FilterHelper.extractGeometries(filter, attribute, intersect = true)
     if (geometries.isEmpty) {
       None
     } else if (geometries.disjoint) {

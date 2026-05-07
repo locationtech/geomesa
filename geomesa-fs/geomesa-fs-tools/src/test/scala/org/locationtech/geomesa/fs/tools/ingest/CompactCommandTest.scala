@@ -46,7 +46,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
   sft.setScheme("daily")
 
   val numFeatures = 10000
-  val targetFileSize = 10000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
+  val targetFileSize = 20000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
 
   val bucket = "geomesa"
 
@@ -61,7 +61,6 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
     "fs.s3.access-key-id" -> minio.getUserName,
     "fs.s3.secret-access-key" -> minio.getPassword,
     "fs.s3.force-path-style" -> "true",
-    "geomesa.parquet.bounding-boxes" -> "false",
   )
   lazy val params = Map(
     "fs.path" -> path,

@@ -8,33 +8,22 @@
 
 package org.locationtech.geomesa.fs.storage.parquet.io
 
+import org.apache.iceberg.types.Types.{FloatType, NestedField, StructType}
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema.{GroupType, Type, Types}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.features.serialization.TwkbSerialization.GeometryBytes
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.StringSerialization.alphaNumericSafeString
 import org.locationtech.jts.geom.{Geometry, Point}
 
+import java.util.concurrent.atomic.AtomicInteger
+
 object GeometrySchema {
 
   val GeometryColumnX = "x"
   val GeometryColumnY = "y"
-
-  /**
-   * Create a builder for a parquet geometry field
-   *
-   * @param binding geometry type
-   * @param encoding encoding scheme
-   * @return
-   */
-  def apply(binding: ObjectType, encoding: GeometryEncoding): Types.Builder[_, _ <: Type] = {
-    encoding.fn.lift(binding).getOrElse {
-      throw new UnsupportedOperationException(s"No mapping defined for geometry type $binding with encoding $encoding")
-    }
-  }
 
   /**
    * Holder for a bounding box field, along with a reference back to the original geometry field
@@ -44,9 +33,45 @@ object GeometrySchema {
    */
   case class BoundingBoxField(geometry: String, bbox: String)
 
-  object BoundingBoxField {
+  /**
+   * Holder for multiple bounding box fields
+   *
+   * @param fields fields
+   */
+  case class BoundingBoxes(fields: Seq[BoundingBoxField]) {
+    private val fieldMap = fields.map(f => f.geometry -> f.bbox).toMap
+    def isEmpty: Boolean = fields.isEmpty
+    def nonEmpty: Boolean = fields.nonEmpty
+    def get(field: String): Option[String] = fieldMap.get(field)
+  }
+
+  object BoundingBoxes {
 
     import scala.collection.JavaConverters._
+
+    /**
+     * Gets the fields of this schema that have per-row bounding-boxes. We only add bounding boxes when
+     * they help with predicate push-down, e.g. when a geometry is a non-point or WKB encoded
+     *
+     * @param sft simple feature type
+     * @param encoding geometry encoding
+     * @return
+     */
+    def apply(sft: SimpleFeatureType, encoding: GeometryEncoding): BoundingBoxes = {
+      val bboxes = sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
+        val binding = d.getType.getBinding
+        if (classOf[Geometry].isAssignableFrom(binding) &&
+          (encoding == GeometryEncoding.GeoParquetWkb || binding != classOf[Point])) {
+          Some(BoundingBoxField(d.getLocalName))
+        } else {
+          None
+        }
+      }
+      BoundingBoxes(bboxes)
+    }
+  }
+
+  object BoundingBoxField {
 
     val BoundingBoxFieldPrefix = "__"
     val BoundingBoxFieldSuffix = "_bbox__"
@@ -60,26 +85,6 @@ object GeometrySchema {
       val geom = if (encoded) { geometry } else { alphaNumericSafeString(geometry) }
       val bbox = s"$BoundingBoxFieldPrefix$geom$BoundingBoxFieldSuffix"
       BoundingBoxField(geom, bbox)
-    }
-
-    /**
-     * Gets the fields of this schema that have per-row bounding-boxes. We only add bounding boxes when
-     * they help with predicate push-down, e.g. when a geometry is a non-point or WKB encoded
-     *
-     * @param sft simple feature type
-     * @param encoding geometry encoding
-     * @return
-     */
-    def apply(sft: SimpleFeatureType, encoding: GeometryEncoding): Seq[BoundingBoxField] = {
-      sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
-        val binding = d.getType.getBinding
-        if (classOf[Geometry].isAssignableFrom(binding) &&
-            (encoding == GeometryEncoding.GeoParquetWkb || binding != classOf[Point])) {
-          Some(BoundingBoxField(d.getLocalName))
-        } else {
-          None
-        }
-      }
     }
 
     /**
@@ -102,13 +107,29 @@ object GeometrySchema {
      * @param bbox field name
      * @return
      */
-    def schema(bbox: String): GroupType = {
+    def schema(bbox: String, fieldIds: AtomicInteger, nestedFieldIds: AtomicInteger): GroupType = {
       Types.optionalGroup()
-        .required(PrimitiveTypeName.FLOAT).named(BoundingBoxField.XMin)
-        .required(PrimitiveTypeName.FLOAT).named(BoundingBoxField.YMin)
-        .required(PrimitiveTypeName.FLOAT).named(BoundingBoxField.XMax)
-        .required(PrimitiveTypeName.FLOAT).named(BoundingBoxField.YMax)
+        .id(fieldIds.getAndIncrement())
+        .required(PrimitiveTypeName.FLOAT).id(nestedFieldIds.getAndIncrement()).named(BoundingBoxField.XMin)
+        .required(PrimitiveTypeName.FLOAT).id(nestedFieldIds.getAndIncrement()).named(BoundingBoxField.YMin)
+        .required(PrimitiveTypeName.FLOAT).id(nestedFieldIds.getAndIncrement()).named(BoundingBoxField.XMax)
+        .required(PrimitiveTypeName.FLOAT).id(nestedFieldIds.getAndIncrement()).named(BoundingBoxField.YMax)
         .named(bbox)
+    }
+
+    /**
+     * The iceberg schema for a bbox field
+     *
+     * @param bbox field name
+     * @return
+     */
+    def icebergSchema(bbox: String, fieldIds: AtomicInteger, nestedFieldIds: AtomicInteger): NestedField = {
+      NestedField.optional(bbox).withId(fieldIds.getAndIncrement()).ofType(StructType.of(
+        NestedField.required(BoundingBoxField.XMin).withId(nestedFieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
+        NestedField.required(BoundingBoxField.YMin).withId(nestedFieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
+        NestedField.required(BoundingBoxField.XMax).withId(nestedFieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
+        NestedField.required(BoundingBoxField.YMax).withId(nestedFieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
+      )).build()
     }
   }
 
@@ -116,119 +137,84 @@ object GeometrySchema {
    * Enumeration of supported geometry encodings
    */
   sealed trait GeometryEncoding {
-    protected[GeometrySchema] def fn: PartialFunction[ObjectType, _ <: Types.Builder[_, _ <: Type]]
+
+    /**
+     * Create a builder for a parquet geometry field
+     *
+     * @param binding geometry type
+     * @param fieldIds field id tracker
+     * @param nestedFieldIds nested field id tracker
+     * @return
+     */
+    def schema(binding: ObjectType, fieldIds: AtomicInteger, nestedFieldIds: AtomicInteger): Types.Builder[_, _ <: Type]
   }
 
   object GeometryEncoding {
 
     def apply(name: String): GeometryEncoding = {
-      Seq(GeoMesaV1, GeoMesaV0, GeoParquetNative, GeoParquetWkb).find(_.toString.equalsIgnoreCase(name)).getOrElse {
-        throw new IllegalArgumentException(s"No geometry encoding defined for $name")
-      }
-    }
-
-    case object GeoMesaV1 extends GeometryEncoding {
-      override protected[GeometrySchema] val fn: PartialFunction[ObjectType, _ <: Types.Builder[_, _ <: Type]] = {
-        case ObjectType.POINT =>
-          Types.optionalGroup().id(GeometryBytes.TwkbPoint)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
-
-        case ObjectType.LINESTRING =>
-          Types.optionalGroup().id(GeometryBytes.TwkbLineString)
-            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
-
-        case ObjectType.MULTIPOINT =>
-          Types.optionalGroup().id(GeometryBytes.TwkbMultiPoint)
-            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
-
-        case ObjectType.POLYGON =>
-          Types.optionalGroup().id(GeometryBytes.TwkbPolygon)
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
-
-        case ObjectType.MULTILINESTRING =>
-          Types.optionalGroup().id(GeometryBytes.TwkbMultiLineString)
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
-
-        case ObjectType.MULTIPOLYGON =>
-          Types.optionalGroup().id(GeometryBytes.TwkbMultiPolygon)
-            .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
-            .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
-
-        case ObjectType.GEOMETRY_COLLECTION =>
-          Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
-
-        case ObjectType.GEOMETRY =>
-          Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
-      }
-    }
-
-    case object GeoMesaV0 extends GeometryEncoding {
-      override protected[GeometrySchema] val fn: PartialFunction[ObjectType, _ <: Types.Builder[_, _ <: Type]] = {
-        case ObjectType.POINT =>
-          Types.buildGroup(Repetition.REQUIRED)
-            .primitive(PrimitiveTypeName.DOUBLE, Repetition.REQUIRED).named(GeometryColumnX)
-            .primitive(PrimitiveTypeName.DOUBLE, Repetition.REQUIRED).named(GeometryColumnY)
+      Seq(GeoParquetNative, GeoParquetWkb).find(_.toString.equalsIgnoreCase(name)).getOrElse {
+        if (name.equalsIgnoreCase("GeoMesaV0") || name.equalsIgnoreCase("GeoMesaV1")) {
+          throw new UnsupportedOperationException(s"Geometry encoding '$name' is not longer supported")
+        }
+        throw new IllegalArgumentException(s"No geometry encoding defined for '$name'")
       }
     }
 
     case object GeoParquetNative extends GeometryEncoding {
-      override protected[GeometrySchema] val fn: PartialFunction[ObjectType, _ <: Types.Builder[_, _ <: Type]] = {
-        case ObjectType.POINT =>
-          Types.optionalGroup().id(GeometryBytes.TwkbPoint)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
+      override def schema(binding: ObjectType, fieldIds: AtomicInteger, nestedFieldIds: AtomicInteger): Types.Builder[_, _ <: Type] = {
+        binding match {
+          case ObjectType.POINT =>
+            Types.optionalGroup().id(fieldIds.getAndIncrement())
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
 
-        case ObjectType.LINESTRING =>
-          Types.optionalList().id(GeometryBytes.TwkbLineString)
-            .requiredGroupElement() // the coordinate
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
+          case ObjectType.LINESTRING =>
+            // TODO do we need multiple levels of nesting field ids???
+            Types.optionalList().id(fieldIds.getAndIncrement())
+              .requiredGroupElement().id(nestedFieldIds.getAndIncrement()) // the coordinate
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
 
-        case ObjectType.MULTIPOINT =>
-          Types.optionalList.id(GeometryBytes.TwkbMultiPoint)
-            .requiredGroupElement() // the coordinate
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
+          case ObjectType.MULTIPOINT =>
+            Types.optionalList.id(fieldIds.getAndIncrement())
+              .requiredGroupElement().id(nestedFieldIds.getAndIncrement()) // the coordinate
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
 
-        case ObjectType.POLYGON =>
-          Types.optionalList.id(GeometryBytes.TwkbPolygon)
-            .requiredListElement() // the coordinates of one ring
-            .requiredGroupElement() // the coordinate
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
+          case ObjectType.POLYGON =>
+            Types.optionalList.id(fieldIds.getAndIncrement())
+              .requiredListElement().id(nestedFieldIds.getAndIncrement()) // the coordinates of one ring
+              .requiredGroupElement().id(nestedFieldIds.getAndIncrement()) // the coordinate
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
 
-        case ObjectType.MULTILINESTRING =>
-          Types.optionalList.id(GeometryBytes.TwkbMultiLineString)
-            .requiredListElement() // the coordinates of one line string
-            .requiredGroupElement() // the coordinate
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
+          case ObjectType.MULTILINESTRING =>
+            Types.optionalList.id(fieldIds.getAndIncrement())
+              .requiredListElement().id(nestedFieldIds.getAndIncrement()) // the coordinates of one line string
+              .requiredGroupElement().id(nestedFieldIds.getAndIncrement()) // the coordinate
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
 
-        case ObjectType.MULTIPOLYGON =>
-          Types.optionalList.id(GeometryBytes.TwkbMultiPolygon)
-            .requiredListElement() // the rings of the MultiPolygon
-            .requiredListElement() // the coordinates of one ring
-            .requiredGroupElement() // the coordinate
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
+          case ObjectType.MULTIPOLYGON =>
+            Types.optionalList.id(fieldIds.getAndIncrement())
+              .requiredListElement().id(nestedFieldIds.getAndIncrement()) // the rings of the MultiPolygon
+              .requiredListElement().id(nestedFieldIds.getAndIncrement()) // the coordinates of one ring
+              .requiredGroupElement().id(nestedFieldIds.getAndIncrement()) // the coordinate
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
 
-        case ObjectType.GEOMETRY_COLLECTION =>
-          Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
+          case ObjectType.GEOMETRY_COLLECTION =>
+            Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL).id(fieldIds.getAndIncrement())
 
-        case ObjectType.GEOMETRY =>
-          Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
+          case ObjectType.GEOMETRY =>
+            Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL).id(fieldIds.getAndIncrement())
+        }
       }
     }
 
     case object GeoParquetWkb extends GeometryEncoding {
-      override protected[GeometrySchema] val fn: PartialFunction[ObjectType, _ <: Types.Builder[_, _ <: Type]] = {
-        case _ => Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
-      }
+      override def schema(binding: ObjectType, fieldIds: AtomicInteger, nestedFieldIds: AtomicInteger): Types.Builder[_, _ <: Type] =
+        Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL).id(fieldIds.getAndIncrement())
     }
   }
 }

@@ -270,50 +270,32 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
               geo must not(beNull)
               geoParquetSchema.validate(geo) must not(throwAn[Exception])
               val cols = geo.getJSONObject("columns")
-              if (encoding == GeometryEncoding.GeoMesaV1) {
-                cols.length() mustEqual 2
-                val geom = cols.getJSONObject("geom")
-                geom.getString("encoding") mustEqual "point"
-                geom.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq("Point")
-                geom.getJSONArray("bbox").asScala.map(_.asInstanceOf[Number].doubleValue()) mustEqual Seq(40d, 50d, 44d, 54d)
-                geom.has("covering") must beFalse
-
-                val wkb = cols.getJSONObject("g")
-                wkb.getString("encoding") mustEqual "WKB"
-                wkb.getJSONArray("geometry_types").asScala.toSeq must beEmpty
-                wkb.getJSONArray("bbox").asScala.map(_.asInstanceOf[Number].doubleValue()) mustEqual Seq(-2d, -1d, 42d, 32d)
-                val covering = wkb.getJSONObject("covering").getJSONObject("bbox")
-                foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
-                  covering.getJSONArray(corner).toString mustEqual s"""["__g_bbox__","$corner"]"""
+              cols.length() mustEqual 7
+              val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
+              foreach(geoms) { geom =>
+                val binding = sft.getDescriptor(geom).getType.getBinding
+                val col = cols.getJSONObject(geom)
+                if (encoding == GeometryEncoding.GeoParquetWkb || binding == classOf[Geometry]) {
+                  col.getString("encoding") mustEqual "WKB"
+                } else {
+                  col.getString("encoding") mustEqual binding.getSimpleName.toLowerCase(Locale.US)
                 }
-              } else {
-                cols.length() mustEqual 7
-                val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
-                foreach(geoms) { geom =>
-                  val binding = sft.getDescriptor(geom).getType.getBinding
-                  val col = cols.getJSONObject(geom)
-                  if (encoding == GeometryEncoding.GeoParquetWkb || binding == classOf[Geometry]) {
-                    col.getString("encoding") mustEqual "WKB"
-                  } else {
-                    col.getString("encoding") mustEqual binding.getSimpleName.toLowerCase(Locale.US)
-                  }
-                  if (binding == classOf[Geometry]) {
-                    col.getJSONArray("geometry_types").asScala.toSeq must beEmpty
-                  } else {
-                    col.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq(binding.getSimpleName)
-                  }
-                  if (encoding == GeometryEncoding.GeoParquetNative && binding == classOf[Point]) {
-                    col.has("covering") must beFalse
-                  } else {
-                    val covering = col.getJSONObject("covering").getJSONObject("bbox")
-                    foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
-                      covering.getJSONArray(corner).toString mustEqual s"""["__${geom}_bbox__","$corner"]"""
-                    }
-                  }
-                  val bbox = col.getJSONArray("bbox").asScala.toSeq
-                  bbox must haveLength(4)
-                  foreach(bbox)(_ must beAnInstanceOf[Number])
+                if (binding == classOf[Geometry]) {
+                  col.getJSONArray("geometry_types").asScala.toSeq must beEmpty
+                } else {
+                  col.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq(binding.getSimpleName)
                 }
+                if (encoding == GeometryEncoding.GeoParquetNative && binding == classOf[Point]) {
+                  col.has("covering") must beFalse
+                } else {
+                  val covering = col.getJSONObject("covering").getJSONObject("bbox")
+                  foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
+                    covering.getJSONArray(corner).toString mustEqual s"""["__${geom}_bbox__","$corner"]"""
+                  }
+                }
+                val bbox = col.getJSONArray("bbox").asScala.toSeq
+                bbox must haveLength(4)
+                foreach(bbox)(_ must beAnInstanceOf[Number])
               }
             }
           }

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.parquet.io
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.parquet.conf.ParquetConfiguration
+import org.apache.parquet.conf.{HadoopParquetConfiguration, ParquetConfiguration}
 import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.api.WriteSupport.{FinalizedWriteContext, WriteContext}
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
@@ -36,12 +36,7 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
   override val getName: String = "SimpleFeatureWriteSupport"
 
   // called once
-  override def init(conf: Configuration): WriteContext = {
-    val schema = SimpleFeatureParquetSchema.write(conf).getOrElse {
-      throw new IllegalArgumentException("Could not extract SimpleFeatureType from write context")
-    }
-    init(schema)
-  }
+  override def init(conf: Configuration): WriteContext = init(new HadoopParquetConfiguration(conf))
 
   override def init(conf: ParquetConfiguration): WriteContext = {
     val schema = SimpleFeatureParquetSchema.write(conf).getOrElse {
@@ -85,91 +80,76 @@ object SimpleFeatureWriteSupport {
 
   private class SimpleFeatureWriter(schema: SimpleFeatureParquetSchema) {
 
-    private val attributes =
-      Array.tabulate(schema.sft.getAttributeCount)(i => attribute(schema.sft.getDescriptor(i), i).asInstanceOf[AttributeWriter[AnyRef]])
-    private val fids = new FidWriter(attributes.length) // put the ID at the end of the record
-    private val vis = if (schema.hasVisibilities) { new VisibilityWriter(attributes.length + 1) } else { null }
-    private val bboxes = schema.boundingBoxes.zipWithIndex.map { case (field, bi) =>
-      val i = schema.sft.indexOf(StringSerialization.decodeAlphaNumericSafeString(field.geometry))
-      i -> new BBoxWriter(field.bbox, attributes.length + 1 + Option(vis).size + bi)
+    private val fids = new FidWriter(0) // ID is the 1st field
+    private val vis = if (schema.hasVisibilities) { new VisibilityWriter(1) } else { null } // vis is 2nd field
+
+    private val attributes = {
+      var index = if (vis == null) { 1 } else { 2 }
+      Array.tabulate(schema.sft.getAttributeCount) { i =>
+        val writer = attribute(schema.sft.getDescriptor(i), index).asInstanceOf[AttributeWriter[AnyRef]]
+        index += writer.numFields
+        writer
+      }
     }
 
     def write(consumer: RecordConsumer, value: SimpleFeature): Unit = {
       consumer.startMessage()
+      fids.apply(consumer, value.getID)
+      if (vis != null) {
+        vis.apply(consumer, value.getUserData.get("geomesa.feature.visibility").asInstanceOf[String])
+      }
       var i = 0
       while (i < attributes.length) {
         attributes(i).apply(consumer, value.getAttribute(i))
         i += 1
       }
-      fids.apply(consumer, value.getID)
-      if (vis != null) {
-        vis.apply(consumer, value.getUserData.get("geomesa.feature.visibility").asInstanceOf[String])
-      }
-      bboxes.foreach { case (i, writer) =>
-        writer.apply(consumer, value.getAttribute(i).asInstanceOf[Geometry])
-      }
       consumer.endMessage()
     }
 
     private def attribute(descriptor: AttributeDescriptor, index: Int): AttributeWriter[_] =
-      attribute(alphaNumericSafeString(descriptor.getLocalName), index, ObjectType.selectType(descriptor))
+      attribute(descriptor.getLocalName, index, ObjectType.selectType(descriptor))
 
     private def attribute(name: String, index: Int, bindings: Seq[ObjectType]): AttributeWriter[_] = {
+      lazy val safeName = alphaNumericSafeString(name)
       bindings.head match {
-        case ObjectType.GEOMETRY => geometry(name, index, bindings.last)
-        case ObjectType.DATE     => date(name, index)
-        case ObjectType.STRING   => new StringWriter(name, index)
-        case ObjectType.INT      => new IntegerWriter(name, index)
-        case ObjectType.LONG     => new LongWriter(name, index)
-        case ObjectType.FLOAT    => new FloatWriter(name, index)
-        case ObjectType.DOUBLE   => new DoubleWriter(name, index)
-        case ObjectType.BYTES    => new BytesWriter(name, index)
-        case ObjectType.LIST     => list(name, index, attribute("element", 0, bindings.drop(1)))
-        case ObjectType.MAP      => new MapWriter(name, index, attribute("key", 0, bindings.slice(1, 2)), attribute("value", 1, bindings.slice(2, 3)))
-        case ObjectType.BOOLEAN  => new BooleanWriter(name, index)
-        case ObjectType.UUID     => new UuidWriter(name, index)
+        case ObjectType.GEOMETRY => geometry(safeName, index, bindings.last, schema.bboxes.get(name))
+        case ObjectType.DATE     => new DateMicrosWriter(safeName, index)
+        case ObjectType.STRING   => new StringWriter(safeName, index)
+        case ObjectType.INT      => new IntegerWriter(safeName, index)
+        case ObjectType.LONG     => new LongWriter(safeName, index)
+        case ObjectType.FLOAT    => new FloatWriter(safeName, index)
+        case ObjectType.DOUBLE   => new DoubleWriter(safeName, index)
+        case ObjectType.BYTES    => new BytesWriter(safeName, index)
+        case ObjectType.LIST     => new ListWriter(safeName, index, attribute("element", 0, bindings.drop(1)))
+        case ObjectType.MAP      => new MapWriter(safeName, index, attribute("key", 0, bindings.slice(1, 2)), attribute("value", 1, bindings.slice(2, 3)))
+        case ObjectType.BOOLEAN  => new BooleanWriter(safeName, index)
+        case ObjectType.UUID     => new UuidWriter(safeName, index)
         case _ => throw new IllegalArgumentException(s"Can't serialize field '$name' of type ${bindings.head}")
       }
     }
 
     // TODO support z/m
-    private def geometry(name: String, index: Int, binding: ObjectType): AttributeWriter[_] = {
+    private def geometry(name: String, index: Int, binding: ObjectType, bbox: Option[String]): AttributeWriter[_] = {
       if (schema.encodings.geometry == GeometryEncoding.GeoParquetWkb) {
-        new WkbWriter(name, index)
+        new WkbWriter(name, index, bbox)
       } else {
         val native = schema.encodings.geometry == GeometryEncoding.GeoParquetNative
         binding match {
-          case ObjectType.POINT                     => new PointWriter(name, index)
-          case ObjectType.LINESTRING      if native => new GeoParquetNativeLineStringWriter(name, index)
-          case ObjectType.LINESTRING                => new LineStringWriter(name, index)
-          case ObjectType.POLYGON         if native => new GeoParquetNativePolygonWriter(name, index)
-          case ObjectType.POLYGON                   => new PolygonWriter(name, index)
-          case ObjectType.MULTIPOINT      if native => new GeoParquetNativeMultiPointWriter(name, index)
-          case ObjectType.MULTIPOINT                => new MultiPointWriter(name, index)
-          case ObjectType.MULTILINESTRING if native => new GeoParquetNativeMultiLineStringWriter(name, index)
-          case ObjectType.MULTILINESTRING           => new MultiLineStringWriter(name, index)
-          case ObjectType.MULTIPOLYGON    if native => new GeoParquetNativeMultiPolygonWriter(name, index)
-          case ObjectType.MULTIPOLYGON              => new MultiPolygonWriter(name, index)
-          case ObjectType.GEOMETRY_COLLECTION       => new WkbWriter(name, index)
-          case ObjectType.GEOMETRY                  => new WkbWriter(name, index)
+          case ObjectType.POINT                     => new PointWriter(name, index, bbox)
+          case ObjectType.LINESTRING      if native => new GeoParquetNativeLineStringWriter(name, index, bbox)
+          case ObjectType.LINESTRING                => new LineStringWriter(name, index, bbox)
+          case ObjectType.POLYGON         if native => new GeoParquetNativePolygonWriter(name, index, bbox)
+          case ObjectType.POLYGON                   => new PolygonWriter(name, index, bbox)
+          case ObjectType.MULTIPOINT      if native => new GeoParquetNativeMultiPointWriter(name, index, bbox)
+          case ObjectType.MULTIPOINT                => new MultiPointWriter(name, index, bbox)
+          case ObjectType.MULTILINESTRING if native => new GeoParquetNativeMultiLineStringWriter(name, index, bbox)
+          case ObjectType.MULTILINESTRING           => new MultiLineStringWriter(name, index, bbox)
+          case ObjectType.MULTIPOLYGON    if native => new GeoParquetNativeMultiPolygonWriter(name, index, bbox)
+          case ObjectType.MULTIPOLYGON              => new MultiPolygonWriter(name, index, bbox)
+          case ObjectType.GEOMETRY_COLLECTION       => new WkbWriter(name, index, bbox)
+          case ObjectType.GEOMETRY                  => new WkbWriter(name, index, bbox)
           case _ => throw new IllegalArgumentException(s"Can't serialize field '$name' of type $binding")
         }
-      }
-    }
-
-    private def list(name: String, index: Int, elements: AttributeWriter[_]): AttributeWriter[_] = {
-      schema.encodings.list match {
-        case ListEncoding.ThreeLevel => new ListWriter(name, index, elements)
-        case ListEncoding.TwoLevel   => new TwoLevelListWriter(name, index, elements)
-        case encoding => throw new UnsupportedOperationException(encoding.toString)
-      }
-    }
-
-    private def date(name: String, index: Int): AttributeWriter[_] = {
-      schema.encodings.date match {
-        case DateEncoding.Millis => new DateMillisWriter(name, index)
-        case DateEncoding.Micros => new DateMicrosWriter(name, index)
-        case encoding => throw new UnsupportedOperationException(encoding.toString)
       }
     }
   }
@@ -177,7 +157,7 @@ object SimpleFeatureWriteSupport {
   /**
     * Writes a simple feature attribute to a Parquet file
     */
-  private abstract class AttributeWriter[T <: Any](name: String, index: Int) {
+  private abstract class AttributeWriter[T <: Any](name: String, index: Int, val numFields: Int = 1) {
 
     /**
       * Writes a value to the current record
@@ -262,37 +242,13 @@ object SimpleFeatureWriteSupport {
         consumer.startField("element", 0)
         val iter = value.iterator
         while (iter.hasNext) {
-          consumer.startGroup()
           val item = iter.next
           if (item != null) {
-            elements(consumer, item)
+            elements.writeFields(consumer, item)
           }
-          consumer.endGroup()
         }
         consumer.endField("element", 0)
         consumer.endGroup()
-        consumer.endField("list", 0)
-      }
-      consumer.endGroup()
-    }
-  }
-
-  private class TwoLevelListWriter[T <: Any](name: String, index: Int, elements: AttributeWriter[T])
-    extends AttributeWriter[java.util.List[T]](name, index) {
-
-    override def writeFields(consumer: RecordConsumer, value: java.util.List[T]): Unit = {
-      consumer.startGroup()
-      if (!value.isEmpty) {
-        consumer.startField("list", 0)
-        val iter = value.iterator
-        while (iter.hasNext) {
-          consumer.startGroup()
-          val item = iter.next
-          if (item != null) {
-            elements(consumer, item)
-          }
-          consumer.endGroup()
-        }
         consumer.endField("list", 0)
       }
       consumer.endGroup()
@@ -332,7 +288,48 @@ object SimpleFeatureWriteSupport {
     }
   }
 
-  private class PointWriter(name: String, index: Int) extends AttributeWriter[Point](name, index) {
+  /**
+   * Writes a simple feature attribute to a Parquet file
+   */
+  private abstract class GeometryWriter[T <: Geometry](name: String, index: Int, bbox: Option[String])
+      extends AttributeWriter[T](name, index, if (bbox.isEmpty) { 1 } else { 2 }) {
+
+    /**
+     * Writes a value to the current record
+     *
+     * @param consumer the Parquet record consumer
+     * @param value value to write
+     */
+    override def apply(consumer: RecordConsumer, value: T): Unit = {
+      if (value != null) {
+        consumer.startField(name, index)
+        writeFields(consumer, value)
+        consumer.endField(name, index)
+        bbox.foreach { name =>
+          val bbox = value.getEnvelopeInternal
+          consumer.startField(name, index + 1)
+          consumer.startGroup()
+          consumer.startField(GeometrySchema.BoundingBoxField.XMin, 0)
+          consumer.addFloat(bbox.getMinX.toFloat)
+          consumer.endField(GeometrySchema.BoundingBoxField.XMin, 0)
+          consumer.startField(GeometrySchema.BoundingBoxField.YMin, 1)
+          consumer.addFloat(bbox.getMinY.toFloat)
+          consumer.endField(GeometrySchema.BoundingBoxField.YMin, 1)
+          consumer.startField(GeometrySchema.BoundingBoxField.XMax, 2)
+          consumer.addFloat(bbox.getMaxX.toFloat)
+          consumer.endField(GeometrySchema.BoundingBoxField.XMax, 2)
+          consumer.startField(GeometrySchema.BoundingBoxField.YMax, 3)
+          consumer.addFloat(bbox.getMaxY.toFloat)
+          consumer.endField(GeometrySchema.BoundingBoxField.YMax, 3)
+          consumer.endGroup()
+          consumer.endField(name, index + 1)
+        }
+      }
+    }
+  }
+
+  private class PointWriter(name: String, index: Int, bbox: Option[String])
+      extends GeometryWriter[Point](name, index, bbox) {
     override def writeFields(consumer: RecordConsumer, value: Point): Unit = writeFields(consumer, value.getCoordinate)
     def writeFields(consumer: RecordConsumer, value: Coordinate): Unit = {
       consumer.startGroup()
@@ -346,7 +343,8 @@ object SimpleFeatureWriteSupport {
     }
   }
 
-  private class LineStringWriter(name: String, index: Int) extends AttributeWriter[LineString](name, index) {
+  private class LineStringWriter(name: String, index: Int, bbox: Option[String])
+      extends GeometryWriter[LineString](name, index, bbox) {
     override def writeFields(consumer: RecordConsumer, value: LineString): Unit = {
       consumer.startGroup()
       consumer.startField(GeometryColumnX, 0)
@@ -367,8 +365,11 @@ object SimpleFeatureWriteSupport {
     }
   }
 
-  private class GeoParquetNativeLineStringWriter(name: String, index: Int) extends AttributeWriter[LineString](name, index) {
-    private val pointWriter = new PointWriter("", -1)
+  private class GeoParquetNativeLineStringWriter(name: String, index: Int, bbox: Option[String])
+      extends GeometryWriter[LineString](name, index, bbox) {
+
+    private val pointWriter = new PointWriter("", -1, None)
+
     override def writeFields(consumer: RecordConsumer, value: LineString): Unit = {
       consumer.startGroup()
       consumer.startField("list", 0)
@@ -387,7 +388,8 @@ object SimpleFeatureWriteSupport {
     }
   }
 
-  private class MultiPointWriter(name: String, index: Int) extends AttributeWriter[MultiPoint](name, index) {
+  private class MultiPointWriter(name: String, index: Int, bbox: Option[String])
+      extends GeometryWriter[MultiPoint](name, index, bbox) {
     override def writeFields(consumer: RecordConsumer, value: MultiPoint): Unit = {
       consumer.startGroup()
       consumer.startField(GeometryColumnX, 0)
@@ -408,8 +410,11 @@ object SimpleFeatureWriteSupport {
     }
   }
 
-  private class GeoParquetNativeMultiPointWriter(name: String, index: Int) extends AttributeWriter[MultiPoint](name, index) {
-    private val pointWriter = new PointWriter("", -1)
+  private class GeoParquetNativeMultiPointWriter(name: String, index: Int, bbox: Option[String])
+      extends GeometryWriter[MultiPoint](name, index, bbox) {
+
+    private val pointWriter = new PointWriter("", -1, None)
+
     override def writeFields(consumer: RecordConsumer, value: MultiPoint): Unit = {
       consumer.startGroup()
       consumer.startField("list", 0)
@@ -445,8 +450,9 @@ object SimpleFeatureWriteSupport {
       Seq.tabulate(value.getNumGeometries)(i => value.getGeometryN(i).asInstanceOf[LineString])
   }
 
-  private abstract class AbstractLinesWriter[T <: Geometry](name: String, index: Int)
-      extends AttributeWriter[T](name, index) with HasLines[T] {
+  private abstract class AbstractLinesWriter[T <: Geometry](name: String, index: Int, bbox: Option[String])
+      extends GeometryWriter[T](name, index, bbox) with HasLines[T] {
+
     override def writeFields(consumer: RecordConsumer, value: T): Unit = {
       val lines = this.lines(value)
       consumer.startGroup()
@@ -479,9 +485,11 @@ object SimpleFeatureWriteSupport {
     }
   }
 
-  private abstract class GeoParquetNativeLinesWriter[T <: Geometry](name: String, index: Int)
-      extends AttributeWriter[T](name, index) with HasLines[T] {
-    private val lineWriter = new GeoParquetNativeLineStringWriter(null, -1)
+  private abstract class GeoParquetNativeLinesWriter[T <: Geometry](name: String, index: Int, bbox: Option[String])
+      extends GeometryWriter[T](name, index, bbox) with HasLines[T] {
+
+    private val lineWriter = new GeoParquetNativeLineStringWriter(null, -1, None)
+
     override def writeFields(consumer: RecordConsumer, value: T): Unit = {
       consumer.startGroup()
       consumer.startField("list", 0)
@@ -497,18 +505,21 @@ object SimpleFeatureWriteSupport {
     }
   }
 
-  private class PolygonWriter(name: String, index: Int) extends AbstractLinesWriter[Polygon](name, index) with PolygonHasLines
+  private class PolygonWriter(name: String, index: Int, bbox: Option[String])
+    extends AbstractLinesWriter[Polygon](name, index, bbox) with PolygonHasLines
 
-  private class GeoParquetNativePolygonWriter(name: String, index: Int)
-    extends GeoParquetNativeLinesWriter[Polygon](name, index) with PolygonHasLines
+  private class GeoParquetNativePolygonWriter(name: String, index: Int, bbox: Option[String])
+    extends GeoParquetNativeLinesWriter[Polygon](name, index, bbox) with PolygonHasLines
 
-  private class MultiLineStringWriter(name: String, index: Int)
-    extends AbstractLinesWriter[MultiLineString](name, index) with MultiLineStringHasLines
+  private class MultiLineStringWriter(name: String, index: Int, bbox: Option[String])
+    extends AbstractLinesWriter[MultiLineString](name, index, bbox) with MultiLineStringHasLines
 
-  private class GeoParquetNativeMultiLineStringWriter(name: String, index: Int)
-      extends GeoParquetNativeLinesWriter[MultiLineString](name, index) with MultiLineStringHasLines
+  private class GeoParquetNativeMultiLineStringWriter(name: String, index: Int, bbox: Option[String])
+      extends GeoParquetNativeLinesWriter[MultiLineString](name, index, bbox) with MultiLineStringHasLines
 
-  private class MultiPolygonWriter(name: String, index: Int) extends AttributeWriter[MultiPolygon](name, index) {
+  private class MultiPolygonWriter(name: String, index: Int, bbox: Option[String])
+      extends GeometryWriter[MultiPolygon](name, index, bbox) {
+
     override def writeFields(consumer: RecordConsumer, value: MultiPolygon): Unit = {
       val polys = Seq.tabulate(value.getNumGeometries) { i =>
         val poly = value.getGeometryN(i).asInstanceOf[Polygon]
@@ -566,9 +577,11 @@ object SimpleFeatureWriteSupport {
     }
   }
 
-  private class GeoParquetNativeMultiPolygonWriter(name: String, index: Int)
-      extends AttributeWriter[MultiPolygon](name, index) with PolygonHasLines {
-    private val polygonWriter = new GeoParquetNativePolygonWriter("", -1)
+  private class GeoParquetNativeMultiPolygonWriter(name: String, index: Int, bbox: Option[String])
+      extends GeometryWriter[MultiPolygon](name, index, bbox) with PolygonHasLines {
+
+    private val polygonWriter = new GeoParquetNativePolygonWriter("", -1, None)
+
     override def writeFields(consumer: RecordConsumer, value: MultiPolygon): Unit = {
       val polys = Seq.tabulate(value.getNumGeometries)(value.getGeometryN(_).asInstanceOf[Polygon])
       consumer.startGroup()
@@ -605,28 +618,8 @@ object SimpleFeatureWriteSupport {
     consumer.endField("element", 0)
   }
 
-  private class WkbWriter(name: String, index: Int) extends AttributeWriter[Geometry](name, index) {
+  private class WkbWriter(name: String, index: Int, bbox: Option[String]) extends GeometryWriter[Geometry](name, index, bbox) {
     override def writeFields(consumer: RecordConsumer, value: Geometry): Unit =
       consumer.addBinary(Binary.fromConstantByteArray(WKBUtils.write(value)))
-  }
-
-  private class BBoxWriter(name: String, index: Int) extends AttributeWriter[Geometry](name, index) {
-    override def writeFields(consumer: RecordConsumer, value: Geometry): Unit = {
-      val bbox = value.getEnvelopeInternal
-      consumer.startGroup()
-      consumer.startField(GeometrySchema.BoundingBoxField.XMin, 0)
-      consumer.addFloat(bbox.getMinX.toFloat)
-      consumer.endField(GeometrySchema.BoundingBoxField.XMin, 0)
-      consumer.startField(GeometrySchema.BoundingBoxField.YMin, 1)
-      consumer.addFloat(bbox.getMinY.toFloat)
-      consumer.endField(GeometrySchema.BoundingBoxField.YMin, 1)
-      consumer.startField(GeometrySchema.BoundingBoxField.XMax, 2)
-      consumer.addFloat(bbox.getMaxX.toFloat)
-      consumer.endField(GeometrySchema.BoundingBoxField.XMax, 2)
-      consumer.startField(GeometrySchema.BoundingBoxField.YMax, 3)
-      consumer.addFloat(bbox.getMaxY.toFloat)
-      consumer.endField(GeometrySchema.BoundingBoxField.YMax, 3)
-      consumer.endGroup()
-    }
   }
 }

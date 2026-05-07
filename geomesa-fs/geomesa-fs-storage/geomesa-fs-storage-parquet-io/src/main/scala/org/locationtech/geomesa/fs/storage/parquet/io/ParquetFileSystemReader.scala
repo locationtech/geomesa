@@ -31,7 +31,8 @@ import scala.util.control.NonFatal
 class ParquetFileSystemReader(
     fs: ObjectStore,
     context: FileSystemContext,
-    readSft: SimpleFeatureType,
+    sft: SimpleFeatureType,
+    readSft: Option[SimpleFeatureType],
     parquetFilter: FilterCompat.Filter,
     gtFilter: Option[org.geotools.api.filter.Filter],
     visFilter: SimpleFeature => Boolean,
@@ -45,12 +46,13 @@ class ParquetFileSystemReader(
   private val transformFeature: SimpleFeature => SimpleFeature = transform match {
     case None => null
     case Some((tdefs, tsft)) =>
-      val definitions = Transforms(readSft, tdefs).toArray
+      val definitions = Transforms(readSft.getOrElse(sft), tdefs).toArray
       f => new TransformSimpleFeature(tsft, definitions, f)
   }
 
   private val conf = new PlainParquetConfiguration(context.conf.asJava)
-  SimpleFeatureParquetSchema.setSft(conf, readSft)
+  SimpleFeatureParquetSchema.setSft(conf, sft)
+  readSft.foreach(SimpleFeatureParquetSchema.setReadSft(conf, _))
 
   override def root: URI = context.root
 
@@ -99,13 +101,26 @@ class ParquetFileSystemReader(
 
 object ParquetFileSystemReader {
 
-  def builder(fs: ObjectStore, path: URI): Builder = {
-    val file = fs match {
-      case _: LocalObjectStore => new LocalInputFile(Path.of(path))
-      case s3: S3ObjectStore   => new S3InputFile(s3, path)
-      case _ => throw new UnsupportedOperationException(s"No file implementation for scheme ${fs.scheme}")
-    }
-    new Builder(file)
+  /**
+   * Create a new configurable reader
+   *
+   * @param fs object store
+   * @param path file to read
+   * @return
+   */
+  def builder(fs: ObjectStore, path: URI): Builder = new Builder(inputFile(fs, path))
+
+  /**
+   * Get an input file compatible with the parquet api
+   *
+   * @param fs object store
+   * @param path file path
+   * @return
+   */
+  def inputFile(fs: ObjectStore, path: URI): InputFile = fs match {
+    case _: LocalObjectStore => new LocalInputFile(Path.of(path))
+    case s3: S3ObjectStore   => new S3InputFile(s3, path)
+    case _ => throw new UnsupportedOperationException(s"No file implementation for scheme ${fs.scheme}")
   }
 
   class Builder(file: InputFile) extends ParquetReader.Builder[SimpleFeature](file) {

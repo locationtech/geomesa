@@ -12,12 +12,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.parquet</groupId>
-            <artifactId>parquet-column</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-fs-storage-core_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.parquet</groupId>
-            <artifactId>parquet-hadoop</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-fs-storage-parquet-io_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -26,22 +26,6 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-reflect</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.parboiled</groupId>
-            <artifactId>parboiled-scala_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-storage-parquet-io_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-storage-core_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- Test dependencies -->

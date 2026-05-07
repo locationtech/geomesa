@@ -21,7 +21,10 @@ class FsGetPartitionsCommand extends FsDataStoreCommand {
 
   override def execute(): Unit = withDataStore { ds =>
     Command.user.info(s"Partitions for type ${params.featureName}:")
-    ds.storage(params.featureName).metadata.getFiles().map(_.partition.toString).distinct.sorted.foreach(p => Command.output.info(p))
+    Command.output.info("partition\tfile_count\tfeature_count")
+    ds.storage(params.featureName).metadata.getFiles().groupBy(_.partition.toString).toSeq.sortBy(_._1).foreach { case (p, files) =>
+      Command.output.info(p + s"\t${files.size}\t${files.map(_.count).sum}")
+    }
   }
 }
 

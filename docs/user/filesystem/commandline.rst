@@ -202,3 +202,30 @@ Argument                 Description
 ``--partition``          The name of partitions to check, or none for all partitions
 ``--threads, -t``        Number of threads to use when listing data files
 ======================== ==================================================================
+
+register-iceberg-files
+^^^^^^^^^^^^^^^^^^^^^^
+
+This command will register GeoMesa files into an Apache Iceberg table, allowing the data to be queried by any Iceberg-compatible
+query engine such as Apache Spark or Apache Trino.
+
+========================= ====================================================================================================
+Argument                  Description
+========================= ====================================================================================================
+``-p, --path *``          The filesystem root path used to store data
+``-f, --feature-name *``  The name of the schema containing the files to register
+``--partition``           The partitions to register
+``--iceberg-config``      Configuration properties for connecting to Iceberg, in the form ``key=value``
+``--iceberg-config-file`` Name of a configuration file for connecting to Iceberg, in Java properties format
+``--iceberg-namespace``   Iceberg namespace to use for tables
+``--allow-duplicates``    Do not check the table for existing files - this may cause duplicate results when querying if some
+                          files have already been registered
+========================= ====================================================================================================
+
+See the `Apache Iceberg documentation <https://iceberg.apache.org/docs/latest/configuration/#catalog-properties>`__ for details
+on configuration properties.
+
+.. note::
+
+    You may need to add additional dependencies to the GeoMesa classpath, depending on the Iceberg catalog implementation being
+    used.

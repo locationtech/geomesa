@@ -20,10 +20,10 @@ As Kafka 4+ no longer supports Zookeeper, GeoMesa has deprecated support for usi
 FileSystem Data Store Compatibility
 -----------------------------------
 
-The file system data store has been substantially rewritten to improve performance. As part of that, the Orc file format is no
-longer supported. In addition, feature types created with previous versions of GeoMesa will not be readable. To migrate existing
-data, re-create the schema using the latest GeoMesa version, then use the ``manage-metadata register`` CLI command to re-register
-the existing data files.
+The file system data store has been substantially rewritten to improve performance. As part of this, the Orc file format is no
+longer supported, and the Parquet file format is only supported if created with GeoMesa version ``5.3.0`` or later. For supported
+formats, layers must be migrated by re-creating the schema using the latest GeoMesa version, and then re-registering the existing
+data files using the ``manage-metadata register`` CLI command.
 
 Default Secondary Attribute Index Changes
 -----------------------------------------
@@ -38,6 +38,7 @@ Dependency Version Upgrades
 The following dependencies have been upgraded:
 
 * arrow ``18.3.0`` -> ``19.0.0``
+* avro ``1.11.4`` -> ``1.12.1``
 * commons-codec ``1.17.1`` -> ``1.18.0``
 * commons-lang ``3.15.0`` -> ``3.20.0``
 * commons-logging ``1.3.3`` -> ``1.3.5``
@@ -45,9 +46,11 @@ The following dependencies have been upgraded:
 * geotools ``33.2`` -> ``34.2``
 * hadoop ``3.4.2`` -> ``3.5.0``
 * jackson ``2.19.0`` -> ``2.21.1``
+* jcommander ``1.82`` -> ``3.0``
 * kafka ``3.9.0`` -> ``3.9.2``
 * micrometer ``1.15.4`` -> ``1.16.4``
 * nifi ``2.6.0`` -> ``2.7.2``
+* parquet ``1.15.2`` -> ``1.17.0``
 * postgresql ``42.7.7`` -> ``42.7.11``
 * prometheus ``1.4.1`` -> ``1.5.1``
 * rhino ``1.7.14`` -> ``1.8.1``

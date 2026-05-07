@@ -15,12 +15,16 @@ import org.locationtech.geomesa.filter.function.{BucketHashFunction, MurmurHashF
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
 
-class HashScheme[T](
-    attribute: String,
-    index: Int,
-    buckets: Int,
-    hasher: MurmurHashFunction.Hashing[T],
-  ) extends PartitionScheme {
+/**
+ * Hash (bucket) scheme
+ *
+ * @param attribute attribute name
+ * @param index index of the attribute in the feature type
+ * @param buckets number of buckets values are hashed into
+ * @param hasher type-specific hasher
+ */
+case class HashScheme[T](attribute: String, index: Int, buckets: Int, hasher: MurmurHashFunction.Hashing[T])
+    extends PartitionScheme {
 
   import FilterHelper.ff
 
