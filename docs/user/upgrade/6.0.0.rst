@@ -11,6 +11,11 @@ Accumulo Version Support
 
 GeoMesa no longer supports Accumulo 2.0. Users should upgrade to Accumulo 2.1.4.
 
+NiFi Version Support
+--------------------
+
+GeoMesa no longer supports NiFi 1.x. Users should upgrade to the latest NiFi 2.x.
+
 Kafka Zookeeper Deprecation
 ---------------------------
 
@@ -49,7 +54,7 @@ The following dependencies have been upgraded:
 * jcommander ``1.82`` -> ``3.0``
 * kafka ``3.9.0`` -> ``3.9.2``
 * micrometer ``1.15.4`` -> ``1.16.4``
-* nifi ``2.6.0`` -> ``2.7.2``
+* nifi ``2.6.0`` -> ``2.9.0``
 * parquet ``1.15.2`` -> ``1.17.0``
 * postgresql ``42.7.7`` -> ``42.7.11``
 * prometheus ``1.4.1`` -> ``1.5.1``
