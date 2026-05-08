@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.ingest
 
 import com.beust.jcommander.{IParameterValidator, IStringConverter, Parameter, ParameterException}
-import org.apache.accumulo.access.{AccessExpression, IllegalAccessExpressionException}
+import org.apache.accumulo.access.Access
 import org.geotools.api.data.{DataStore, Transaction}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
@@ -101,7 +101,7 @@ object UpdateFeaturesCommand {
     var visibility: String = _
   }
 
-  class TupleConverter extends IStringConverter[(String, String)] {
+  private class TupleConverter extends IStringConverter[(String, String)] {
     override def convert(value: String): (String, String) = {
       value.split("=", 2) match {
         case Array(one, two) => (one, two)
@@ -109,7 +109,7 @@ object UpdateFeaturesCommand {
     }
   }
 
-  class TupleValidator extends IParameterValidator {
+  private class TupleValidator extends IParameterValidator {
     @throws[ParameterException]
     override def validate(name: String, value: String): Unit = {
       if (value == null || value.isEmpty || value.indexOf('=') == -1) {
@@ -118,11 +118,11 @@ object UpdateFeaturesCommand {
     }
   }
 
-  class VisibilityValidator extends IParameterValidator {
+  private class VisibilityValidator extends IParameterValidator {
     @throws[ParameterException]
     override def validate(name: String, value: String): Unit = {
-      try { AccessExpression.validate(value) } catch {
-        case e: IllegalAccessExpressionException =>
+      try { Access.builder().build().validateExpression(value) } catch {
+        case e: IllegalArgumentException =>
           throw new ParameterException(s"Parameter $name $value is not a valid visibility: ${e.getMessage}", e)
       }
     }

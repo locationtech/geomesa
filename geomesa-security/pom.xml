@@ -17,7 +17,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-access</artifactId>
+            <artifactId>accumulo-access-core</artifactId>
         </dependency>
 
         <!-- provided dependencies -->

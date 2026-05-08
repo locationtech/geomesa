@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.security
 
-import org.apache.accumulo.access.{AccessEvaluator, Authorizations}
+import org.apache.accumulo.access.Access
 import org.geotools.api.feature.simple.SimpleFeature
 
 import scala.util.control.NonFatal
@@ -24,16 +24,17 @@ object VisibilityUtils {
    * @param provider auth provider
    * @return
    */
-  def visible(provider: AuthorizationsProvider): IsVisible = new AuthVisibilityCheck(provider.getAuthorizations)
+  def visible(provider: AuthorizationsProvider): IsVisible =
+    new AuthVisibilityCheck(new java.util.HashSet[String](provider.getAuthorizations))
 
   /**
    * Parses any visibilities in the feature and compares with the user's authorizations
    *
    * @param auths authorizations for the current user
    */
-  private class AuthVisibilityCheck(auths: java.util.List[String]) extends (SimpleFeature => Boolean) {
+  private class AuthVisibilityCheck(auths: java.util.Set[String]) extends (SimpleFeature => Boolean) {
 
-    private val access = AccessEvaluator.of(Authorizations.of(auths))
+    private val access = Access.builder().build().newEvaluator(auths)
     private val cache = scala.collection.mutable.Map.empty[String, Boolean]
 
     /**

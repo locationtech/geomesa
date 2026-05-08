@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.security.filter
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
-import org.apache.accumulo.access.AccessEvaluator
+import org.apache.accumulo.access.{Access, AccessEvaluator}
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.capability.FunctionName
 import org.geotools.api.filter.expression.Expression
@@ -70,7 +70,8 @@ object IsVisibleFilterFunction {
 
   private val evaluatorCache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(5)).build(
     new CacheLoader[String, AccessEvaluator]() {
-      override def load(auths: String): AccessEvaluator = AccessEvaluator.of(auths.split(','): _*)
+      override def load(auths: String): AccessEvaluator =
+        Access.builder().build().newEvaluator(new java.util.HashSet[String](java.util.Arrays.asList(auths.split(','): _*)))
     }
   )
 

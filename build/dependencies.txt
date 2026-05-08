@@ -111,7 +111,7 @@ net.sf.geographiclib:GeographicLib-Java:1.49:compile
 net.sf.saxon:Saxon-HE:12.4:compile
 org.antlr:antlr4-runtime:4.7.2:compile
 org.antlr:antlr4-runtime:4.9.3:compile
-org.apache.accumulo:accumulo-access:1.0.0-beta:compile
+org.apache.accumulo:accumulo-access-core:1.0.0-beta3:compile
 org.apache.accumulo:accumulo-core:2.1.4:compile
 org.apache.accumulo:accumulo-hadoop-mapreduce:2.1.4:compile
 org.apache.arrow:arrow-format:19.0.0:compile
