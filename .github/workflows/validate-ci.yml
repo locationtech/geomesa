@@ -50,8 +50,11 @@ jobs:
             grep -q 'packaging>pom' "$pom" || {
               module="${pom%/pom.xml}"
               module="${module#./}"
-              echo "Checking $module"
-              yq -e '.jobs.javadocs.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/javadocs.yml >/dev/null 2>&1 || exit 1
+              # trino support/benchmark modules aren't javadoc'd
+              if [[ $module != *iceberg-spatial* && $module != *geomesa-trino-benchmark* ]]; then
+                echo "Checking $module"
+                yq -e '.jobs.javadocs.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/javadocs.yml >/dev/null 2>&1 || exit 1
+              fi
             }
           done < <(find . -name pom.xml -print0)
           echo "done"

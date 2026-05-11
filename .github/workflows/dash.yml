@@ -11,6 +11,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 env:
   JAVA_VERSION: 17
+  TRINO_JAVA_VERSION: 25
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_COMPILE_NO_OP_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip
   MAVEN_DASH_ARGS: org.eclipse.dash:license-tool-plugin:license-check -Ddash.fail=true -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa
@@ -24,11 +25,15 @@ jobs:
       - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: temurin
-          java-version: "${{ env.JAVA_VERSION }}"
+          java-version: |
+            ${{ env.TRINO_JAVA_VERSION }}
+            ${{ env.JAVA_VERSION }}
       - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           key: ${{ hashFiles('**/pom.xml') }}-dash
           path: ~/.m2/repository/
+      - name: Configure Maven toolchains (JDK 25 for geomesa-trino)
+        run: ./build/scripts/update-maven-toolchains.sh
       - name: Check for dependency changes
         id: dependency_changes
         run: |

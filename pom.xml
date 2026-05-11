@@ -42,6 +42,7 @@
         <module>geomesa-security</module>
         <module>geomesa-spark</module>
         <module>geomesa-tools</module>
+        <module>geomesa-trino</module>
         <module>geomesa-utils-parent</module>
         <module>geomesa-z3</module>
         <module>docs</module>
@@ -52,7 +53,9 @@
 
         <!-- java/scala -->
         <jdk.version>17</jdk.version>
+        <trino.jdk.version>25</trino.jdk.version>
         <scala.version>2.12.21</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
+
         <scala.binary.version>2.12</scala.binary.version>
         <scala.xml.version>2.2.0</scala.xml.version>
         <scala.parsers.version>2.3.0</scala.parsers.version>

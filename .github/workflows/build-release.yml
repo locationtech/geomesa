@@ -8,6 +8,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 env:
   JAVA_VERSION: 17
+  TRINO_JAVA_VERSION: 25
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_RELEASE_ARGS: clean deploy -Prelease,docs,python -Dmaven.test.skip -Daether.checksums.algorithms=MD5,SHA-1,SHA-256
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,7 +45,9 @@ jobs:
       - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: temurin
-          java-version: "${{ env.JAVA_VERSION }}"
+          java-version: |
+            ${{ env.TRINO_JAVA_VERSION }}
+            ${{ env.JAVA_VERSION }}
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 #v6.2.0
         with:
           python-version: "3.10"
@@ -52,6 +55,8 @@ jobs:
         run: pip install -r docs/requirements.txt
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
+      - name: Configure Maven toolchains
+        run: ./build/scripts/update-maven-toolchains.sh
       - name: Build
         id: build
         continue-on-error: true

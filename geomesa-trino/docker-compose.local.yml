@@ -1,0 +1,91 @@
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 admin password &&
+      mc mb local/warehouse --ignore-existing &&
+      echo 'MinIO bucket ready'
+      "
+
+  iceberg-rest:
+    image: tabulario/iceberg-rest:latest
+    container_name: iceberg-rest
+    depends_on:
+      minio:
+        condition: service_healthy
+    ports:
+      - "8181:8181"
+    environment:
+      # Override the upstream image's malformed default URI
+      # (jdbc:sqlite:file:/tmp/iceberg_rest_mode=memory — `mode=memory` ended up
+      # in the filename instead of as a query parameter). The default also has
+      # no busy_timeout, so transient contention from Iceberg's connection pool
+      # surfaces as SQLITE_BUSY 500s during multi-table ingests.
+      CATALOG_URI: "jdbc:sqlite:file:/tmp/iceberg_rest.db?journal_mode=WAL&synchronous=NORMAL&busy_timeout=30000"
+      CATALOG_WAREHOUSE: s3://warehouse/
+      CATALOG_IO__IMPL: org.apache.iceberg.aws.s3.S3FileIO
+      CATALOG_S3_ENDPOINT: http://minio:9000
+      CATALOG_S3_ACCESS__KEY__ID: admin
+      CATALOG_S3_SECRET__ACCESS__KEY: password
+      CATALOG_S3_PATH__STYLE__ACCESS: "true"
+      CATALOG_S3_REGION: us-east-1
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: password
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8181 && echo -e 'GET /v1/config HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '200 OK' <&3"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  trino:
+    image: trinodb/trino:481
+    container_name: trino
+    depends_on:
+      iceberg-rest:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/trino/config.properties:/etc/trino/config.properties
+      - ./config/trino/jvm.config:/etc/trino/jvm.config
+      - ./config/trino/node.properties:/etc/trino/node.properties
+      # Plain iceberg catalog — exposed here for local tooling, admin-only on deployed stack
+      - ./config/trino/catalog/iceberg-local.properties:/etc/trino/catalog/iceberg.properties
+      - ./config/trino/catalog/spatial_iceberg-local.properties:/etc/trino/catalog/spatial_iceberg.properties
+      - ./config/trino/auth/geomesa-auth-mapping.properties:/etc/trino/auth/geomesa-auth-mapping.properties:ro
+      - ./config/trino/auth/group-provider.properties:/etc/trino/group-provider.properties:ro
+      - ./config/trino/auth/groups.txt:/etc/trino/group.txt:ro
+      - ./dist/geomesa-trino-plugin:/usr/lib/trino/plugin/iceberg-spatial:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/info"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  minio-data:

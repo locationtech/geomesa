@@ -1,0 +1,82 @@
+/***********************************************************************
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ ***********************************************************************/
+
+package org.locationtech.geomesa.trino.datastore;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Properties;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+class TrinoDataStoreConnectionTest {
+
+    @Test
+    void userAlwaysSet() {
+        Properties props = TrinoDataStore.connectionProperties("geomesa", null, null);
+        assertThat(props.getProperty("user")).isEqualTo("geomesa");
+        assertThat(props.getProperty("extraCredentials")).isNull();
+    }
+
+    @Test
+    void emptyAuthsSendNoCredential() {
+        Properties props = TrinoDataStore.connectionProperties("geomesa", List.of(), null);
+        assertThat(props.getProperty("extraCredentials")).isNull();
+    }
+
+    @Test
+    void authsBecomePipeDelimitedExtraCredential() {
+        // Pipe-delimited, NOT space/comma: the Trino JDBC extraCredentials value
+        // forbids spaces and uses comma/colon as structural separators. The
+        // resolver splits the value on pipes, commas, or whitespace.
+        Properties props = TrinoDataStore.connectionProperties("svc", List.of("U", "FOUO"), null);
+        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:U|FOUO");
+    }
+
+    @Test
+    void singleAuthEncodes() {
+        Properties props = TrinoDataStore.connectionProperties("svc", List.of("U"), null);
+        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:U");
+    }
+
+    @Test
+    void secretAddedAsSecondPairDelimitedBySemicolon() {
+        // Trino JDBC extraCredentials delimits name:value pairs with SEMICOLONS.
+        Properties props = TrinoDataStore.connectionProperties("svc", List.of("U", "FOUO"), "tok3n");
+        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:U|FOUO;secret:tok3n");
+    }
+
+    @Test
+    void noValueContainsSpaces() {
+        // Guards against the Trino JDBC "contains spaces or is not printable ASCII"
+        // rejection of extraCredentials values.
+        Properties props = TrinoDataStore.connectionProperties("svc", List.of("U", "FOUO"), "tok3n");
+        assertThat(props.getProperty("extraCredentials")).doesNotContain(" ");
+    }
+
+    @Test
+    void secretSentEvenWithoutAuths() {
+        Properties props = TrinoDataStore.connectionProperties("svc", List.of(), "tok3n");
+        assertThat(props.getProperty("extraCredentials")).isEqualTo("secret:tok3n");
+    }
+
+    @Test
+    void authTokenContainingTransportDelimiterIsRejected() {
+        // '|' joins tokens in the credential value, ';'/':' delimit its pairs, and the
+        // server-side resolver splits on pipes/commas/whitespace — a token containing
+        // any of them would be silently re-split into auths that were never issued.
+        for (String bad : List.of("FOO,BAR", "FOO|BAR", "FOO;BAR", "FOO:BAR", "FOO BAR", "")) {
+            assertThatThrownBy(() ->
+                TrinoDataStore.connectionProperties("svc", List.of("U", bad), null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("authorization token");
+        }
+    }
+}

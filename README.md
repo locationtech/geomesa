@@ -189,7 +189,15 @@ git clone git@github.com:locationtech/geomesa.git
 cd geomesa
 ```
 
-The project is built using Maven. To build, run:
+The project is built using Maven, with Maven Toolchains to manage various target JVM version requirements.
+Current required JDKs:  17, 25
+
+A script has been provided to create/update the toolchains configuration to support these requirements:
+```bash
+./build/scripts/update-maven-toolchains.sh
+```
+
+To build, run:
 
 ```bash
 mvn clean install -Dmaven.test.skip
