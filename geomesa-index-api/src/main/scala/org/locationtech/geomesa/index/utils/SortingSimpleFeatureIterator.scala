@@ -135,7 +135,7 @@ object SortingSimpleFeatureIterator extends LazyLogging {
     val files = ArrayBuffer.empty[File] // tmp files we create when we exceed in-memory threshold
     lazy val serializer = KryoFeatureSerializer(head.getFeatureType, SerializationOption.WithUserData)
     // use ArrayList for sort-in-place of the underlying array
-    val list = new java.util.ArrayList[SimpleFeature](100)
+    val list = new java.util.ArrayList[SimpleFeature](1000)
     list.add(head)
     var size = sizable.sizeOf(head)
 

@@ -19,7 +19,7 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetSimpleFeatureInputFormat.{ParquetSimpleFeatureInputFormatBase, ParquetSimpleFeatureRecordReaderBase, ParquetSimpleFeatureTransformRecordReaderBase}
-import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.fs.storage.parquet.io.rw.SimpleFeatureReadSupport
 import org.locationtech.geomesa.fs.storage.parquet.{ReadFilter, ReadSchema}
 import org.locationtech.geomesa.index.planning.QueryRunner
 

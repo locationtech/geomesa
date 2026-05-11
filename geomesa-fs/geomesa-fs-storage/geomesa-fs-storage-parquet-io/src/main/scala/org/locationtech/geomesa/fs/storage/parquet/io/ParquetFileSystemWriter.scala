@@ -21,6 +21,7 @@ import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWrit
 import org.locationtech.geomesa.fs.storage.core.fs.{LocalObjectStore, ObjectStore, S3ObjectStore}
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.NoOpObserver
+import org.locationtech.geomesa.fs.storage.parquet.io.rw.SimpleFeatureWriteSupport
 import org.locationtech.geomesa.fs.storage.parquet.io.s3.S3OutputFile
 import org.locationtech.geomesa.utils.io.CloseQuietly
 

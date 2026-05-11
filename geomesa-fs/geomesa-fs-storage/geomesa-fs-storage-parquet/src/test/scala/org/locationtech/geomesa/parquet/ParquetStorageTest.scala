@@ -26,7 +26,7 @@ import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWrit
 import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Partition, StorageKeys, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
-import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.parquet.io.geometry.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.parquet.io.{GeoParquetMetadata, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.security.{AuthsParam, DefaultAuthorizationsProvider, SecurityUtils, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -505,7 +505,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
       }
 
       // note: this is somewhat of a magic number, in that it works the first time through with no remainder
-      val targetSize = 3600L
+      val targetSize = 4000L
 
       withTestDir { dir =>
         val context = FileSystemContext.create(dir, config)
