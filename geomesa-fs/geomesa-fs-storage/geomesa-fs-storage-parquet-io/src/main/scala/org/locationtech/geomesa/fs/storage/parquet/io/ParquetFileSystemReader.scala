@@ -19,6 +19,7 @@ import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.core.fs.{LocalObjectStore, ObjectStore, S3ObjectStore}
+import org.locationtech.geomesa.fs.storage.parquet.io.rw.SimpleFeatureReadSupport
 import org.locationtech.geomesa.fs.storage.parquet.io.s3.S3InputFile
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms

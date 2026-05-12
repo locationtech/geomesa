@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.parquet
 
 import com.typesafe.scalalogging.StrictLogging
-import org.apache.hadoop.fs.Path
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
-import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.parquet.io.geometry.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose

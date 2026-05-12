@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.parquet
 
 package object io {
 
-  import GeometrySchema.GeometryEncoding
+  import org.locationtech.geomesa.fs.storage.parquet.io.geometry.GeometrySchema.GeometryEncoding
 
   case class Encodings(geometry: GeometryEncoding)
 }

@@ -7,7 +7,7 @@
  ***********************************************************************/
 
 
-package org.locationtech.geomesa.fs.storage.parquet.io
+package org.locationtech.geomesa.fs.storage.parquet.io.rw
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.parquet.conf.ParquetConfiguration
@@ -18,8 +18,9 @@ import org.apache.parquet.schema.MessageType
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
-import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.parquet.io.geometry.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.parquet.io.rw.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
@@ -91,9 +92,6 @@ object SimpleFeatureReadSupport {
   class SimpleFeatureGroupConverter(schema: SimpleFeatureParquetSchema)
       extends GroupConverter with ValueMaterializer[SimpleFeature] {
 
-    // account for field ordering changes in our schema evolution
-    private val consistentOrdering = schema.schema.getFieldName(0) == SimpleFeatureParquetSchema.FeatureIdField
-
     private val idConverter = new StringConverter()
 
     private val visConverter = new StringConverter() {
@@ -109,39 +107,22 @@ object SimpleFeatureReadSupport {
 
     private val converters = {
       val builder = Array.newBuilder[ValueMaterializer[_ <: AnyRef]]
-      if (consistentOrdering) {
-        builder += idConverter
-        if (schema.hasVisibilities) {
-          builder += visConverter
-        }
-        var i = 0
-        while (i < schema.sft.getAttributeCount) {
-          val descriptor = schema.sft.getDescriptor(i)
-          val materializer = attribute(ObjectType.selectType(descriptor))
-          builder += materializer
-          attributes(i) = materializer
-          // note: we read bounding boxes since they're present, but we don't do anything with the result
-          if (schema.bboxes.get(descriptor.getLocalName).isDefined) {
-            builder += new BoundingBoxConverter()
-          }
-          i += 1
-        }
-      } else {
-        var i = 0
-        while (i < schema.sft.getAttributeCount) {
-          val materializer = attribute(ObjectType.selectType(schema.sft.getDescriptor(i)))
-          builder += materializer
-          attributes(i) = materializer
-          i += 1
-        }
-        builder += idConverter
-        if (schema.hasVisibilities) {
-          builder += visConverter
-        }
+      builder += idConverter
+      if (schema.hasVisibilities) {
+        builder += visConverter
+      }
+      var i = 0
+      while (i < schema.sft.getAttributeCount) {
+        val descriptor = schema.sft.getDescriptor(i)
+        val materializer = attribute(ObjectType.selectType(descriptor))
+        builder += materializer
+        attributes(i) = materializer
         // note: we read bounding boxes since they're present, but we don't do anything with the result
-        schema.bboxes.fields.foreach { _ =>
+        // note: zValues are excluded from our read schema, they are only used for partitioning
+        if (schema.bboxes.get(descriptor.getLocalName).isDefined) {
           builder += new BoundingBoxConverter()
         }
+        i += 1
       }
       builder.result()
     }

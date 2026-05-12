@@ -76,6 +76,13 @@ are:
 * ``GeoParquetNative`` - This schema uses `GeoParquet 1.1.0 <https://geoparquet.org/releases/v1.1.0/>`__ with geometries
   encoded "natively". This format doesn't require special libraries to read, but isn't as widely supported as WKB.
 
+geomesa.parquet.z-value-column
+++++++++++++++++++++++++++++++
+
+This property can be used to skip writing an additional Z-value column for geometry-type columns when using Parquet, by setting
+it to ``false``. By default, each geometry will include an int-64-type column that includes the index value from a Z2 or XZ2
+space-filling-curve (as appropriate). This can be used to accelerate queries through partition pruning.
+
 AWS S3 Configuration
 --------------------
 

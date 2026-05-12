@@ -13,7 +13,7 @@ import org.geotools.api.feature.`type`.GeometryDescriptor
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata.ColumnMetadata
-import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.parquet.io.geometry.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.StringSerialization
