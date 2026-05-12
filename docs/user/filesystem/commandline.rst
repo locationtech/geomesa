@@ -44,7 +44,6 @@ Argument                 Description
 ``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
 ``--partitions``         Partitions to compact (omit to compact all partitions)
-``--target-file-size``   Target size for data files (e.g. 500MB or 1GB)
 ``--mode``               One of ``local`` or ``distributed`` (to use map/reduce)
 ``--temp-path``          Path to a temp directory used for working files
 ======================== =========================================================
@@ -113,7 +112,6 @@ Argument                 Description
 ``-p, --path *``         The filesystem root path used to store data
 ``--partition-scheme``   Partition schemes
 ``--num-reducers``       Number of reducers to use (required for distributed ingest)
-``--target-file-size``   Target size for data files (e.g. 500MB or 1GB)
 ``--temp-path``          Path to a temp directory used for working files
 ``--storage-opt``        Additional storage options to set as SimpleFeatureType user data, in the form ``key=value``
 ======================== =============================================================
@@ -137,6 +135,7 @@ sub-commands:
 
 * ``register`` - create a new metadata entry for an existing data file
 * ``unregister`` - remove a metadata entry for an existing data file
+* ``configure`` - set or unset metadata configuration values
 * ``migrate`` - migrate metadata from one type to another
 * ``check-consistency`` - check consistency between the metadata and data files
 
@@ -174,6 +173,17 @@ The ``unregister`` sub-command will the delete metadata associated with a partic
 Argument                 Description
 ======================== =====================================================================================================
 ``<file> *``             The path of the file to unregister, relative to the storage root path
+======================== =====================================================================================================
+
+``configure``
+~~~~~~~~~~~~~
+
+The ``configure`` sub-command lets you set storage-level configuration options.
+
+======================== =====================================================================================================
+Argument                 Description
+======================== =====================================================================================================
+``--set *``              The configuration to set, in the form ``key=value``. To remove a key, use an empty value
 ======================== =====================================================================================================
 
 ``migrate``

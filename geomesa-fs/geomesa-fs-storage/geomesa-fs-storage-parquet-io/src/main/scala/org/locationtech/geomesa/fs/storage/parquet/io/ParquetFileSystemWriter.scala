@@ -49,8 +49,10 @@ class ParquetFileSystemWriter(
   SimpleFeatureParquetSchema.setSft(parquetConf, sft)
 
   private val writer = ParquetFileSystemWriter.builder(fs, file, parquetConf).build()
+  @volatile
+  private var closed = false
 
-  def getDataSize: Long = writer.getDataSize
+  override def size: Long = if (closed) { fs.size(file) }  else { writer.getDataSize }
 
   override def write(f: SimpleFeature): Unit = {
     writer.write(f)
@@ -59,7 +61,10 @@ class ParquetFileSystemWriter(
 
   override def flush(): Unit = observer.flush()
 
-  override def close(): Unit = CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
+  override def close(): Unit = {
+    closed = true
+    CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
+  }
 }
 
 object ParquetFileSystemWriter extends LazyLogging {

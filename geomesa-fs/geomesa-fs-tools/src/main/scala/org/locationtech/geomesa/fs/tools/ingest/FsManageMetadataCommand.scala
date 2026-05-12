@@ -19,7 +19,7 @@ import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition, S
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, MetadataTypeValidator}
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.CheckConsistencyCommand.ConsistencyChecker
-import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.MigrateCommand
+import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.{ConfigureCommand, MigrateCommand}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
@@ -45,7 +45,7 @@ class FsManageMetadataCommand extends CommandWithSubCommands {
   override val name: String = "manage-metadata"
   override val params = new ManageMetadataParams
   override val subCommands: Seq[Command] =
-    Seq(new RegisterCommand(), new UnregisterCommand(), new CheckConsistencyCommand(), new MigrateCommand())
+    Seq(new RegisterCommand(), new UnregisterCommand(), new ConfigureCommand(), new CheckConsistencyCommand(), new MigrateCommand())
 }
 
 object FsManageMetadataCommand extends LazyLogging {
@@ -128,9 +128,25 @@ object FsManageMetadataCommand extends LazyLogging {
     }
   }
 
-  private class MigrateCommand extends FsDataStoreCommand {
+  private class ConfigureCommand extends FsDataStoreCommand {
 
-    import scala.collection.JavaConverters._
+    override val params = new ConfigureParams()
+
+    override val name: String = "configure"
+
+    override def execute(): Unit = withDataStore { ds =>
+      val metadata = ds.storage(params.featureName).metadata
+      params.conf.asScala.foreach { case (k, v) =>
+        val key = k.trim
+        val value = Option(v.trim).filterNot(_.isEmpty)
+        val current = metadata.get(key)
+        metadata.set(k, value.orNull)
+        Command.output.info(s"Updated $key from '${current.getOrElse("<unset>")}' to '${value.getOrElse("<unset>")}'")
+      }
+    }
+  }
+
+  private class MigrateCommand extends FsDataStoreCommand {
 
     override val params = new MigrateParams()
 
@@ -333,6 +349,20 @@ object FsManageMetadataCommand extends LazyLogging {
     @Parameter(description = "Path of the file to unregister, relative to the storage root", required = true)
     var file: String = _
   }
+
+
+  @Parameters(commandDescription = "Configure storage-level options")
+  // noinspection VarCouldBeVal
+  private class ConfigureParams extends FsParams with RequiredTypeNameParam {
+    @Parameter(
+      names = Array("--set"),
+      description = "Storage properties to set, in the form k=v",
+      converter = classOf[KeyValueConverter],
+      splitter = classOf[NoopParameterSplitter],
+      required = true)
+    var conf: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
+  }
+
 
   @Parameters(commandDescription = "Migrate metadata from one type to another")
   // noinspection VarCouldBeVal

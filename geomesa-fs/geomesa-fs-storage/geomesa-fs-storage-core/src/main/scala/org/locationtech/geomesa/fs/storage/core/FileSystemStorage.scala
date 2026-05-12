@@ -171,13 +171,11 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
    * multiple threads or storage instances attempt to compact the same partition simultaneously.
    *
    * @param partition partition to compact, or all partitions
-   * @param fileSize approximate target size of files, in bytes
    * @param threads suggested threads to use for file system operations
    */
-  def compact(partition: Partition, fileSize: Option[Long] = None, threads: Int = 1): Unit = {
-    val target = fileSize.orElse(this.sizer.targetSize)
+  def compact(partition: Partition, threads: Int = 1): Unit = {
     val files = metadata.getFiles(partition)
-    val toCompact = target match {
+    val toCompact = sizer.targetSize match {
       case None => files
       case Some(t) =>
         files.filter { f =>
@@ -201,7 +199,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
       // tracks newly added files so we can register them atomically
       val fileTracker = new FileTracker(metadata.sft, metadata.schemes)
 
-      WithClose(createWriter(partition, StorageFileAction.Append, FileType.Compacted, target, fileTracker)) { writer =>
+      WithClose(createWriter(partition, StorageFileAction.Append, FileType.Compacted, fileTracker)) { writer =>
         WithClose(FileSystemThreadedReader(reader, toCompact, threads)) { reader =>
           while (reader.hasNext) {
             val feature = reader.next()
@@ -265,7 +263,7 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
       case StorageFileAction.Modify => FileType.Modified
       case StorageFileAction.Delete => FileType.Deleted
     }
-    createWriter(partition, action, fileType, sizer.targetSize, metadata)
+    createWriter(partition, action, fileType, metadata)
   }
 
   /**
@@ -274,7 +272,6 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
    * @param partition partition being written to
    * @param action write type
    * @param fileType file type
-   * @param targetFileSize target file size
    * @param metadata metata to track added files
    * @return
    */
@@ -282,22 +279,21 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
       partition: Partition,
       action: StorageFileAction,
       fileType: FileType,
-      targetFileSize: Option[Long],
       metadata: StorageMetadata): FileSystemWriter = {
 
-    def pathAndWriter: (URI, FileSystemWriter) = {
+    def newWriter(): FileSystemWriter = {
       val file = FileSystemStorage.newFilePath(metadata.sft.getTypeName, fileType, encoding)
       val path = context.root.resolve(file)
       val updateObserver = new MetadataObserver(metadata, file, partition, action)
       val observer = if (observers.isEmpty) { updateObserver } else {
         new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))
       }
-      (path, createWriter(path, partition, observer))
+      createWriter(path, partition, observer)
     }
 
-    targetFileSize match {
-      case None => pathAndWriter._2
-      case Some(s) => new ChunkedFileSystemWriter(fs, Iterator.continually(pathAndWriter), sizer.estimator(s))
+    sizer.targetSize match {
+      case None => newWriter()
+      case Some(s) => new ChunkedFileSystemWriter(Iterator.continually(newWriter()), sizer.estimator(s))
     }
   }
 }
@@ -345,46 +341,53 @@ object FileSystemStorage {
       * @param feature feature
       */
     def write(feature: SimpleFeature): Unit
+
+    /**
+     * Gets the size of the data written so far, in bytes. May not be accurate until the writer is
+     * closed, due to buffering, etc
+     *
+     * @return
+     */
+    def size: Long
   }
 
   /**
    * Writes files up to a given size, then starts a new file
    *
-   * @param fs file system
    * @param writers iterator of files to write
    * @param estimator target file size estimator
    */
-  private class ChunkedFileSystemWriter(
-      fs: ObjectStore,
-      writers: Iterator[(URI, FileSystemWriter)],
-      estimator: UpdatingFileSizeEstimator
-    ) extends FileSystemWriter {
+  class ChunkedFileSystemWriter(writers: Iterator[FileSystemWriter], estimator: UpdatingFileSizeEstimator)
+      extends FileSystemWriter {
 
-    private var count = 0L // number of features written
-    private var total = 0L // sum size of all finished chunks
+    private var totalCount = 0L // total number of features written across all chunks
+    private var totalBytes = 0L // sum size of all finished chunks
     private var remaining = estimator.estimate(0L)
-
-    private var path: URI = _
     private var writer: FileSystemWriter = _
 
     override def write(feature: SimpleFeature): Unit = {
       if (writer == null) {
-        val (path, writer) = writers.next()
-        this.path = path
-        this.writer = writer
+        writer = writers.next()
       }
       writer.write(feature)
-      count += 1
+      totalCount += 1
       remaining -= 1
       if (remaining == 0) {
-        writer.close()
-        writer = null
-        // adjust our estimate to account for the actual bytes written
-        total += fs.size(path)
-        estimator.update(total, count)
-        remaining = estimator.estimate(0L)
+        val dataSize = writer.size
+        if (estimator.done(dataSize)) {
+          writer.close()
+          totalBytes += writer.size // re-calculate now that writer is closed, so we get the final, accurate size
+          writer = null
+          // adjust our estimate to account for the actual bytes written
+          estimator.update(totalBytes, totalCount)
+          remaining = estimator.estimate(0L)
+        } else {
+          remaining = math.max(100L, estimator.estimate(dataSize))
+        }
       }
     }
+
+    override def size: Long = totalBytes + Option(writer).fold(0L)(_.size)
 
     override def flush(): Unit = if (writer != null) { writer.flush() }
 

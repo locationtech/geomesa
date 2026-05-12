@@ -13,7 +13,7 @@ import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Partition, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Metadata, Partition, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -90,12 +90,15 @@ class CompactionTest extends SpecificationWithJUnit {
 
           // compact to a given file size
           // verify if file is appropriately sized, it won't be modified
+
           val paths = storage.metadata.getFiles(partition).map(_.file)
           val size = paths.map(f => storage.fs.size(context.root.resolve(f))).sum
-          storage.compact(partition, Some(size))
+          storage.metadata.set(Metadata.TargetFileSize, size.toString)
+          storage.compact(partition)
           storage.metadata.getFiles(partition).map(_.file) mustEqual paths
           // verify files are split into smaller ones
-          storage.compact(partition, Some(size / 2))
+          storage.metadata.set(Metadata.TargetFileSize, (size / 2).toString)
+          storage.compact(partition)
           storage.metadata.getFiles(partition).size must beGreaterThan(1)
           CloseableIterator(storage.getReader(Query.ALL)).toList must haveSize(299)
         }

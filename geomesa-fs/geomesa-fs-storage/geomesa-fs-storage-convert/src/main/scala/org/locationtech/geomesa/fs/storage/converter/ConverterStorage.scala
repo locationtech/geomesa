@@ -44,7 +44,7 @@ class ConverterStorage(
     new ConverterFileSystemReader(fs, context.root, converter, filter, transform, pathFiltering)
   }
 
-  override def compact(partition: Partition, fileSize: Option[Long], threads: Int): Unit =
+  override def compact(partition: Partition, threads: Int): Unit =
     throw new UnsupportedOperationException("Converter storage does not support compactions")
 
   override def register(file: URI): StorageFile =

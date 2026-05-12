@@ -75,9 +75,9 @@ the user data key ``geomesa.fs.file-size``:
         // or set directly in the user data as a string
         sft.getUserData.put("geomesa.fs.file-size", "1GB")
 
-Note that target file size can also be specified in some operations, which will override any default configured
-in the feature type. See :ref:`fsds_compact_command` and :ref:`fsds_ingest_command` for details. See
-:ref:`fsds_size_threshold_prop` for controlling the file size error margin.
+Once the schema has been created, the file size can be configured through the storage metadata key ``target-file-size``. See
+:ref:`fsds_manage_metadata_command` for setting metadata keys, and see :ref:`fsds_size_threshold_prop` for controlling the file
+size error margin.
 
 Configuring Visibility Persistence
 ----------------------------------

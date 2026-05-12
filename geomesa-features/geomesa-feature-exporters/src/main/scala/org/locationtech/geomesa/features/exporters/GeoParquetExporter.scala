@@ -54,7 +54,7 @@ class GeoParquetExporter(path: String) extends FeatureExporter with LazyLogging 
     Some(i)
   }
 
-  override def bytes: Long = if (writer == null) { 0 } else { writer.getDataSize }
+  override def bytes: Long = if (writer == null) { 0 } else { writer.size }
 
   override def close(): Unit = CloseWithLogging(Seq(writer, fs).filter(_ != null))
 }

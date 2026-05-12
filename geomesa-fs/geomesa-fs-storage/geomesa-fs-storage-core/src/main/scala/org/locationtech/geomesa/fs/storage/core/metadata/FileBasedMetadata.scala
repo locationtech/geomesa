@@ -62,7 +62,11 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
 
   // note: this isn't synchronized across jvms
   override def set(key: String, value: String): Unit = FileBasedMetadata.synchronized {
-    kvs.put(key, value)
+    if (value == null) {
+      kvs.remove(key)
+    } else {
+      kvs.put(key, value)
+    }
     WithClose(fs.overwrite(metadataFilePath)) { out =>
       MetadataSerialization.serialize(out, meta.copy(config = kvs.asScala.toMap))
     }

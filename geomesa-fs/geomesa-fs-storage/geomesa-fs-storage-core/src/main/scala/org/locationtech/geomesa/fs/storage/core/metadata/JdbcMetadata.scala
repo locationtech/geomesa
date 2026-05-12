@@ -118,7 +118,11 @@ class JdbcMetadata(
   override def get(key: String): Option[String] = Option(kvs.get(key))
 
   override def set(key: String, value: String): Unit = {
-    kvs.put(key, value)
+    if (value == null) {
+      kvs.remove(key)
+    } else {
+      kvs.put(key, value)
+    }
     WithClose(pool.getConnection()) { connection =>
       metaTable.update(connection, root, meta.copy(config = kvs.asScala.toMap))
     }

@@ -39,7 +39,6 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
   def run(
       storage: FileSystemStorage,
       partitions: Seq[Partition],
-      targetFileSize: Option[Long],
       tempPath: Option[Path],
       libjarsFiles: Seq[String],
       libjarsPaths: Iterator[() => Seq[File]],
@@ -72,7 +71,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     StorageConfiguration.setSft(job.getConfiguration, storage.metadata.sft)
     StorageConfiguration.setPartitions(job.getConfiguration, partitions)
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Compacted)
-    targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
+    storage.sizer.targetSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
     FileOutputFormat.setOutputPath(job, tempPath.getOrElse(new Path(S3ObjectStore.s3aUri(storage.context.root))))
 
@@ -82,9 +81,9 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
     configureOutput(storage.metadata.sft, job)
 
-    // save the existing files so we can delete them afterwards
+    // save the existing files so we can delete them afterward
     // mimic the filtering done in PartitionInputFormat
-    val sizeCheck = targetFileSize.orElse(storage.sizer.targetSize).map(t => (p: URI) => storage.sizer.fileIsSized(p, t))
+    val sizeCheck = storage.sizer.targetSize.map(t => (p: URI) => storage.sizer.fileIsSized(p, t))
     val existingDataFiles = partitions.toList.flatMap { p =>
       val files = storage.metadata.getFiles(p).filterNot(f => sizeCheck.exists(_.apply(storage.context.root.resolve(f.file))))
       // TODO get counts right... use m/r counters?

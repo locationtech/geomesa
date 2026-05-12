@@ -83,7 +83,7 @@ object FileSize {
   val FileSizeErrorThreshold: SystemProperty = SystemProperty("geomesa.fs.size.threshold", "0.05")
 
   class UpdatingFileSizeEstimator(target: Long, instance: FileSize)
-    extends FileSizeEstimator(target, instance.fileSizeError, instance.averageBytesPerFeature) with Closeable {
+      extends FileSizeEstimator(target, instance.fileSizeError, instance.averageBytesPerFeature) with Closeable {
     override def close(): Unit = getBytesPerFeature.foreach(instance.updateFileSize)
   }
 }
