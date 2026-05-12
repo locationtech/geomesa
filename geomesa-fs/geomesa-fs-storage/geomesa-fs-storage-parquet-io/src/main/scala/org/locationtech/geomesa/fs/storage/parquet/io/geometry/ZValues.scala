@@ -14,7 +14,7 @@ import org.apache.parquet.schema.{PrimitiveType, Types}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.parquet.io.geometry.ZValues.ZValueField
 import org.locationtech.geomesa.utils.text.StringSerialization.alphaNumericSafeString
-import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.{Geometry, Point}
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -41,15 +41,17 @@ object ZValues {
    * @return
    */
   def apply(sft: SimpleFeatureType): ZValues = {
-    val bboxes = sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
+    val fields = sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
       val binding = d.getType.getBinding
-      if (classOf[Geometry].isAssignableFrom(binding)) {
-        Some(ZValueField(d.getLocalName))
+      if (binding == classOf[Point]) {
+        Some(ZValueField.z2(d.getLocalName))
+      } else if (classOf[Geometry].isAssignableFrom(binding)) {
+        Some(ZValueField.xz2(d.getLocalName))
       } else {
         None
       }
     }
-    ZValues(bboxes)
+    ZValues(fields)
   }
 
   /**
@@ -63,11 +65,18 @@ object ZValues {
   object ZValueField {
 
     val ZValueFieldPrefix = "__"
-    val ZValueFieldSuffix = "_z__"
+    val Z2ValueFieldSuffix = "_z2__"
+    val XZ2ValueFieldSuffix = "_xz2__"
 
-    def apply(geometry: String, encoded: Boolean = false): ZValueField = {
+    def z2(geometry: String, encoded: Boolean = false): ZValueField = {
       val geom = if (encoded) { geometry } else { alphaNumericSafeString(geometry) }
-      val zValue = s"$ZValueFieldPrefix$geom$ZValueFieldSuffix"
+      val zValue = s"$ZValueFieldPrefix$geom$Z2ValueFieldSuffix"
+      ZValueField(geom, zValue)
+    }
+
+    def xz2(geometry: String, encoded: Boolean = false): ZValueField = {
+      val geom = if (encoded) { geometry } else { alphaNumericSafeString(geometry) }
+      val zValue = s"$ZValueFieldPrefix$geom$XZ2ValueFieldSuffix"
       ZValueField(geom, zValue)
     }
 
@@ -78,8 +87,11 @@ object ZValues {
      * @return
      */
     def fromFieldName(field: String): Option[ZValueField] = {
-      if (field.startsWith(ZValueFieldPrefix) && field.endsWith(ZValueFieldSuffix)) {
-        Some(ZValueField(field.substring(ZValueFieldPrefix.length, field.length - ZValueFieldSuffix.length), field))
+      if (field.startsWith(ZValueFieldPrefix)) {
+        Seq(Z2ValueFieldSuffix, XZ2ValueFieldSuffix).collectFirst {
+          case suffix if field.endsWith(suffix) =>
+            ZValueField(field.substring(ZValueFieldPrefix.length, field.length - suffix.length), field)
+        }
       } else {
         None
       }
