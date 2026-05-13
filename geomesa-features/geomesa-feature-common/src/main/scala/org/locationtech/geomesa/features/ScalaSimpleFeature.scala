@@ -56,7 +56,23 @@ class ScalaSimpleFeature private (sft: SimpleFeatureType, values: Array[AnyRef])
     userData
   }
 
-  override def calculateSizeOf(): Long = Sizable.sizeOf(this) + Sizable.deepSizeOf(id, values, userData)
+  override def calculateSizeOf(): Long = {
+    var size = Sizable.sizeOf(this) + Sizable.sizeOf(id) + Sizable.sizeOf(values)
+    values.foreach { value =>
+      if (value != null) {
+        size += Sizable.sizeOf(value)
+      }
+    }
+    if (userData != null) {
+      userData.forEach { (k, v) =>
+        size += Sizable.sizeOf(k)
+        if (v != null) {
+          size += Sizable.sizeOf(v)
+        }
+      }
+    }
+    size
+  }
 }
 
 object ScalaSimpleFeature {
