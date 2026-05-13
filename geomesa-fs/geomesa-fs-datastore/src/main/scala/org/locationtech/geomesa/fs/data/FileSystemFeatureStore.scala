@@ -81,6 +81,7 @@ class FileSystemFeatureStore(
         val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
         new ManagedScan(new FileSystemScanner(storage, query, readThreads), Timeout(timeout), query.getTypeName, filter)
     }
+
     // get a closeable java iterator that DelegateSimpleFeatureIterator will process correctly
     val iter = new FileSystemFeatureIterator(reader)
 
@@ -91,11 +92,11 @@ class FileSystemFeatureStore(
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
   }
 
-  override def canLimit(query: Query): Boolean = false
   override def canTransact: Boolean = false
   override def canEvent: Boolean = false
   override def canReproject: Boolean = false
-  override def canSort(query: Query): Boolean = false
+  override def canLimit(query: Query): Boolean = true
+  override def canSort(query: Query): Boolean = true
   override def canFilter(query: Query): Boolean = true
   override def canRetype(query: Query): Boolean = true
 

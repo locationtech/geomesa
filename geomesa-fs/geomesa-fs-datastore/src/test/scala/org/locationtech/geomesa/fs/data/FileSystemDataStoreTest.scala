@@ -13,9 +13,11 @@ import org.apache.commons.io.FileUtils
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
+import org.geotools.api.filter.sort.SortOrder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.core.StorageKeys
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
@@ -288,6 +290,25 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
           }
         }
         ok
+      }
+    }
+
+    "support sorting and limiting" in {
+      foreach(dsParams) { params =>
+        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+          foreach(Seq(SortOrder.ASCENDING, SortOrder.DESCENDING)) { sortOrder =>
+            val query = new Query(sft.getTypeName)
+            query.setSortBy(FilterHelper.ff.sort("name", sortOrder))
+            query.setMaxFeatures(1)
+            val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            results must haveSize(1)
+            if (sortOrder == SortOrder.ASCENDING) {
+              results.head.getID mustEqual "0"
+            } else {
+              results.head.getID mustEqual "9"
+            }
+          }
+        }
       }
     }
 

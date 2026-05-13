@@ -26,6 +26,7 @@ import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeE
 import org.locationtech.geomesa.fs.storage.core.utils.{FileSize, FileSystemThreadedReader}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.index.planning.QueryRunner
+import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQuietly, WithClose}
 import org.locationtech.jts.geom.{Envelope, Geometry}
@@ -87,15 +88,17 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
   def getReader(query: Query, threads: Int = 1): CloseableFeatureIterator = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val (filter, transform) = {
-      val configured = QueryRunner.configureQuery(metadata.sft, query)
-      val filter = Option(configured.getFilter).getOrElse(Filter.INCLUDE)
-      val transform = configured.getHints.getTransform
-      logger.debug(s"Running query '${query.getTypeName}' ${ECQL.toCQL(filter)}")
-      logger.debug(s"  Original filter: ${ECQL.toCQL(query.getFilter)}")
-      logger.debug(s"  Transforms: " + transform.fold("none") { case (t, _) => if (t.isEmpty) { "empty" } else { t }})
-      (filter, transform)
-    }
+    val configured = QueryRunner.configureQuery(metadata.sft, query)
+    val filter = Option(configured.getFilter).getOrElse(Filter.INCLUDE)
+    val transform = configured.getHints.getTransform
+    val sort = configured.getHints.getSortFields
+    val max = configured.getHints.getMaxFeatures
+
+    logger.debug(s"Running query '${query.getTypeName}' ${ECQL.toCQL(filter)}")
+    logger.debug(s"  Original filter: ${ECQL.toCQL(query.getFilter)}")
+    logger.debug(s"  Transforms: ${transform.fold("none") { case (t, _) => if (t.isEmpty) { "empty" } else { t }}}")
+    logger.debug(s"  Sort: ${sort.fold("none") { fields => fields.map { case (f, rev) => s"$f ${if (rev) "descending" else ""}"}.mkString(", ")}}")
+    logger.debug(s"  Max features: ${max.getOrElse("none")}")
 
     val files = metadata.getFiles(filter)
     logger.debug(s"  Threading the read of ${files.size} files with $threads reader threads")
@@ -105,7 +108,10 @@ abstract class FileSystemStorage(val context: FileSystemContext, val metadata: S
       CloseableIterator.empty
     } else {
       val reader = createReader(Option(filter).filterNot(_ == Filter.INCLUDE), transform)
-      FileSystemThreadedReader(reader, files, threads)
+      val threaded = FileSystemThreadedReader(reader, files, threads)
+      val sorted = sort.fold(threaded)(s => new SortingSimpleFeatureIterator(threaded, s))
+      val limited = max.fold(sorted)(m => sorted.take(m))
+      limited
     }
   }
 
