@@ -59,12 +59,16 @@ class ScalaSimpleFeature private (sft: SimpleFeatureType, values: Array[AnyRef])
   override def calculateSizeOf(): Long = {
     var size = Sizable.sizeOf(this) + Sizable.sizeOf(id) + Sizable.sizeOf(values)
     values.foreach { value =>
-      size += Sizable.sizeOf(value)
+      if (value != null) {
+        size += Sizable.sizeOf(value)
+      }
     }
     if (userData != null) {
       userData.forEach { (k, v) =>
         size += Sizable.sizeOf(k)
-        size += Sizable.sizeOf(v)
+        if (v != null) {
+          size += Sizable.sizeOf(v)
+        }
       }
     }
     size
