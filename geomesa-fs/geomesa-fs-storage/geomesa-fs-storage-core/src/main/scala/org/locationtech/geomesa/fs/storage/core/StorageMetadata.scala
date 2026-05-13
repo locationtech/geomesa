@@ -98,7 +98,7 @@ trait StorageMetadata extends Closeable {
    * Set a key-value pair
    *
    * @param key key
-   * @param value value
+   * @param value value - may be null
    */
   def set(key: String, value: String): Unit = throw new UnsupportedOperationException()
 }

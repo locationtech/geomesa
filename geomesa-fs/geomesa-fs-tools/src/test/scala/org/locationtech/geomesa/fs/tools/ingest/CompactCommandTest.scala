@@ -12,6 +12,7 @@ import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
+import org.locationtech.geomesa.fs.storage.core.Metadata
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -146,12 +147,14 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
     }
 
     "run successfully with target file size" in {
+      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+        ds.storage(sft.getTypeName).metadata.set(Metadata.TargetFileSize, targetFileSize.toString)
+      }
       val command = new FsCompactCommand()
       command.params.featureName = sft.getTypeName
       command.params.path = path
       command.params.metadataType = "file"
       command.params.runMode = RunModes.Distributed.toString
-      command.params.targetFileSize = targetFileSize
       command.params.configuration = configFlags.toList.asJava
       command.execute() must not(throwAn[Exception])
     }

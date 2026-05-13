@@ -21,7 +21,6 @@ import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand
-import org.locationtech.geomesa.tools.utils.ParameterConverters.BytesConverter
 import org.locationtech.geomesa.tools.utils.TerminalCallback
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
@@ -65,7 +64,6 @@ object FsCompactCommand {
       val mode = params.mode.getOrElse {
         if (PathUtils.isRemote(storage.context.root.toString)) { RunModes.Distributed } else { RunModes.Local }
       }
-      val fileSize = Option(params.targetFileSize).map(_.longValue)
 
       Command.user.info(s"Compacting ${toCompact.size} files in ${mode.toString.toLowerCase(Locale.US)} mode")
 
@@ -85,7 +83,7 @@ object FsCompactCommand {
                   override def run(): Unit = {
                     try {
                       logger.info(s"Compacting $p")
-                      storage.compact(p, fileSize)
+                      storage.compact(p)
                     } catch {
                       case NonFatal(e) => logger.error(s"Error processing partition '$p':", e)
                     } finally {
@@ -109,7 +107,7 @@ object FsCompactCommand {
         case RunModes.Distributed =>
           val job = new ParquetCompactionJob()
           val tempDir = Option(params.tempPath).map(t => new Path(t))
-          job.run(storage, toCompact.toSeq, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
+          job.run(storage, toCompact.toSeq, tempDir, libjarsFiles, libjarsPaths, status) match {
             case JobSuccess(message, counts) =>
               Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
               val success = counts(FileSystemCompactionJob.MappedCounter)
@@ -130,11 +128,5 @@ object FsCompactCommand {
 
     @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local mode")
     var threads: Integer = 4
-
-    @Parameter(
-      names = Array("--target-file-size"),
-      description = "Target size for data files",
-      converter = classOf[BytesConverter])
-    var targetFileSize: java.lang.Long = _
   }
 }

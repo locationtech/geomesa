@@ -67,8 +67,8 @@ class FileSize(fs: ObjectStore, metadata: StorageMetadata) {
     if (metadata.get(FileSize.UseDynamicSizing).forall(_.toBoolean)) {
       synchronized {
         if (math.abs((bytesPerFeature / averageBytesPerFeature) - 1f) > fileSizeError) {
-          metadata.set(FileSize.BytesPerFeature, java.lang.Float.toString(bytesPerFeature))
           averageBytesPerFeature = bytesPerFeature
+          metadata.set(FileSize.BytesPerFeature, java.lang.Float.toString(bytesPerFeature))
         }
       }
     }
@@ -83,7 +83,7 @@ object FileSize {
   val FileSizeErrorThreshold: SystemProperty = SystemProperty("geomesa.fs.size.threshold", "0.05")
 
   class UpdatingFileSizeEstimator(target: Long, instance: FileSize)
-    extends FileSizeEstimator(target, instance.fileSizeError, instance.averageBytesPerFeature) with Closeable {
+      extends FileSizeEstimator(target, instance.fileSizeError, instance.averageBytesPerFeature) with Closeable {
     override def close(): Unit = getBytesPerFeature.foreach(instance.updateFileSize)
   }
 }

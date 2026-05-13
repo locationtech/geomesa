@@ -30,25 +30,26 @@ class JdbcMetadataCatalog(context: FileSystemContext) extends StorageMetadataCat
   // fail fast if url is not defined or invalid
   private val conf = JdbcMetadataConfig(context.conf)
   private val driver = JdbcMetadataCatalog.createConnectionFactory(conf)
-  private val metaTable = new MetadataTable(conf.schema, conf.tablePrefix)
   private val root = context.root.toString
 
   override def getTypeNames: Seq[String] = {
+    val meta = new MetadataTable(conf.schema, conf.tablePrefix, root, null)
     WithClose(driver.createConnection()) { cx =>
-      WithClose(cx.getMetaData.getTables(null, metaTable.schema, metaTable.tableName, null)) { rs =>
+      WithClose(cx.getMetaData.getTables(null, meta.schema, meta.tableName, null)) { rs =>
         if (!rs.next()) {
           return Seq.empty
         }
       }
-      metaTable.selectTypeNames(cx, root)
+      meta.selectTypeNames(cx, root)
     }
   }
 
   override def load(typeName: String): StorageMetadata = {
     val pool = JdbcMetadataCatalog.createDataSource(driver, conf)
     try {
-      val meta = WithClose(pool.getConnection())(metaTable.selectMetadata(_, root, typeName))
-      newJdbcMeta(pool, meta)
+      val meta = new MetadataTable(conf.schema, conf.tablePrefix, root, typeName)
+      val files = new FilesTable(conf.schema, conf.tablePrefix, root, typeName)
+      new JdbcMetadata(pool, meta, files, context.namespace)
     } catch {
       case NonFatal(e) => CloseQuietly(pool).foreach(e.addSuppressed); throw e
     }
@@ -57,22 +58,22 @@ class JdbcMetadataCatalog(context: FileSystemContext) extends StorageMetadataCat
   override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long]): StorageMetadata = {
     // load the partition scheme first in case it fails
     partitions.foreach(PartitionSchemeFactory.load(sft, _))
-    val meta = Metadata(sft, partitions, targetFileSize)
     val pool = JdbcMetadataCatalog.createDataSource(driver, conf)
     try {
+      val meta = new MetadataTable(conf.schema, conf.tablePrefix, root, sft.getTypeName)
+      val files = new FilesTable(conf.schema, conf.tablePrefix, root, sft.getTypeName)
       WithClose(pool.getConnection()) { cx =>
-        metaTable.create(cx)
-        metaTable.insert(cx, root, meta)
-        new FilesTable(conf.schema, conf.tablePrefix).create(cx)
+        meta.create(cx)
+        meta.insert(cx, sft)
+        meta.insert(cx, partitions)
+        targetFileSize.foreach(size => meta.insert(cx, Metadata.TargetFileSize, size.toString))
+        files.create(cx)
       }
-      newJdbcMeta(pool, meta)
+      new JdbcMetadata(pool, meta, files, context.namespace)
     } catch {
       case NonFatal(e) => CloseQuietly(pool).foreach(e.addSuppressed); throw e
     }
   }
-
-  private def newJdbcMeta(pool: PoolingDataSource[PoolableConnection], meta: Metadata): JdbcMetadata =
-    new JdbcMetadata(pool, root, conf.schema, conf.tablePrefix, meta.copy(sft = namespaced(meta.sft, context.namespace)))
 }
 
 private object JdbcMetadataCatalog extends LazyLogging {
