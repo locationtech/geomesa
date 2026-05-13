@@ -345,7 +345,7 @@ object JdbcMetadata extends LazyLogging {
     private val spatialBoundsTable = s""""$schema"."${tablePrefix}spatial_bounds""""
     private val attrBoundsTable = s""""$schema"."${tablePrefix}attr_bounds""""
 
-    def create(cx: Connection): FilesTable = {
+    def create(cx: Connection): Unit = {
       WithClose(cx.createStatement()) { st =>
         st.executeUpdate(
           s"""CREATE TABLE IF NOT EXISTS $filesTable (
@@ -403,7 +403,6 @@ object JdbcMetadata extends LazyLogging {
         st.executeUpdate(s"""CREATE INDEX IF NOT EXISTS ${tablePrefix}attr_bounds_idx_bounds ON $attrBoundsTable(attribute, lower, upper);""")
         st.executeUpdate(s"""CREATE INDEX IF NOT EXISTS ${tablePrefix}spatial_bounds_idx_bounds ON $spatialBoundsTable(attribute, x_min, x_max, y_min, y_max);""")
       }
-      this
     }
 
     def insert(cx: Connection, file: StorageFile): Unit = {
