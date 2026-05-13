@@ -67,8 +67,8 @@ class FileSize(fs: ObjectStore, metadata: StorageMetadata) {
     if (metadata.get(FileSize.UseDynamicSizing).forall(_.toBoolean)) {
       synchronized {
         if (math.abs((bytesPerFeature / averageBytesPerFeature) - 1f) > fileSizeError) {
-          metadata.set(FileSize.BytesPerFeature, java.lang.Float.toString(bytesPerFeature))
           averageBytesPerFeature = bytesPerFeature
+          metadata.set(FileSize.BytesPerFeature, java.lang.Float.toString(bytesPerFeature))
         }
       }
     }

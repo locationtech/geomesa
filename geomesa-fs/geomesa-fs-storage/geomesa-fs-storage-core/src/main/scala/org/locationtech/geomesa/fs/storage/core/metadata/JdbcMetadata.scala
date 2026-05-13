@@ -14,17 +14,15 @@ import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{AttributeBounds, SpatialBounds, StorageFile}
-import org.locationtech.geomesa.fs.storage.core.metadata.JdbcMetadata.MetadataTable
+import org.locationtech.geomesa.fs.storage.core.metadata.JdbcMetadata.{FilesTable, MetadataTable}
 import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction.{AttributeBound, AttributeOr, SpatialBound, SpatialOr}
 import org.locationtech.geomesa.fs.storage.core.schemes.ZeroChar
 import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.nio.charset.StandardCharsets
 import java.sql._
 import java.time.Instant
-import java.util.concurrent.ConcurrentHashMap
 import scala.Array
 import scala.util.control.NonFatal
 
@@ -40,8 +38,9 @@ import scala.util.control.NonFatal
  *
  * ** root varchar(256) not null
  * ** typeName varchar(256) not null
- * ** meta text not null
- * ** primary key (root, typeName)
+ * ** key varchar(256) not null,
+ * ** value text not null,
+ * ** primary key (root, typeName, key)
  *
  * `storage_files`
  *
@@ -49,6 +48,7 @@ import scala.util.control.NonFatal
  *
  * ** id bigint primary key (generated identity)
  * ** root varchar(256) not null
+ * ** typeName varchar(256) not null
  * ** file varchar(256) not null
  * ** count bigint not null
  * ** action char(1) not null (A=Append, M=Modify, D=Delete)
@@ -87,44 +87,36 @@ import scala.util.control.NonFatal
  * ** primary key (file_id, attribute)
  *
  * @param pool connection pool
- * @param root storage root path
- * @param schema database schema name
- * @param tablePrefix table name prefix
- * @param meta basic metadata config
+ * @param meta metadata table reference
+ * @param files files table reference
+ * @param namespace feature type namespace
  **/
 class JdbcMetadata(
     pool: PoolingDataSource[PoolableConnection],
-    root: String,
-    schema: String,
-    tablePrefix: String,
-    meta: Metadata
+    meta: MetadataTable,
+    files: FilesTable,
+    namespace: Option[String],
   ) extends StorageMetadata with SchemeFilterExtraction with LazyLogging {
 
   // TODO allow for partition changes
 
-  import JdbcMetadata.FilesTable
-
-  import scala.collection.JavaConverters._
-
-  private val metaTable = new MetadataTable(schema, tablePrefix)
-  private val filesTable = new FilesTable(schema, tablePrefix)
-
-  private val kvs = new ConcurrentHashMap[String, String](meta.config.asJava)
-
   override val `type`: String = JdbcMetadata.MetadataType
-  override val sft: SimpleFeatureType = meta.sft
-  override val schemes: Set[PartitionScheme] = meta.partitions.map(PartitionSchemeFactory.load(sft, _)).toSet
 
-  override def get(key: String): Option[String] = Option(kvs.get(key))
+  override val sft: SimpleFeatureType =
+    WithClose(pool.getConnection())(cx => namespaced(meta.selectFeatureType(cx), namespace))
+
+  override val schemes: Set[PartitionScheme] =
+    WithClose(pool.getConnection())(meta.selectPartitionSchemes).map(PartitionSchemeFactory.load(sft, _))
+
+  override def get(key: String): Option[String] = WithClose(pool.getConnection())(meta.select(_, key))
 
   override def set(key: String, value: String): Unit = {
-    if (value == null) {
-      kvs.remove(key)
-    } else {
-      kvs.put(key, value)
-    }
-    WithClose(pool.getConnection()) { connection =>
-      metaTable.update(connection, root, meta.copy(config = kvs.asScala.toMap))
+    WithClose(pool.getConnection()) { cx =>
+      if (value == null) {
+        meta.delete(cx, key)
+      } else {
+        meta.insert(cx, key, value)
+      }
     }
   }
 
@@ -132,7 +124,7 @@ class JdbcMetadata(
     WithClose(pool.getConnection()) { cx =>
       cx.setAutoCommit(false)
       try {
-        filesTable.insert(cx, root, file)
+        files.insert(cx, file)
         cx.commit()
       } catch {
         case NonFatal(e) =>
@@ -148,7 +140,7 @@ class JdbcMetadata(
     WithClose(pool.getConnection()) { cx =>
       cx.setAutoCommit(false)
       try {
-        filesTable.delete(cx, root, file)
+        files.delete(cx, file)
         cx.commit()
       } catch {
         case NonFatal(e) =>
@@ -164,8 +156,8 @@ class JdbcMetadata(
     WithClose(pool.getConnection()) { cx =>
       cx.setAutoCommit(false)
       try {
-        existing.foreach(filesTable.delete(cx, root, _))
-        replacements.foreach(filesTable.insert(cx, root, _))
+        existing.foreach(files.delete(cx, _))
+        replacements.foreach(files.insert(cx, _))
         cx.commit()
       } catch {
         case NonFatal(e) =>
@@ -178,11 +170,11 @@ class JdbcMetadata(
   }
 
   override def getFiles(): Seq[StorageFile] =
-    WithClose(pool.getConnection())(filesTable.select(_, root, Seq.empty, Seq.empty, Seq.empty))
+    WithClose(pool.getConnection())(files.select(_, Seq.empty, Seq.empty, Seq.empty))
 
   override def getFiles(partition: Partition): Seq[StorageFile] = {
     val filters = partition.values.toSeq.map(p => PartitionRange(p.name, p.value, p.value + ZeroChar))
-    WithClose(pool.getConnection())(filesTable.select(_, root, filters, Seq.empty, Seq.empty))
+    WithClose(pool.getConnection())(files.select(_, filters, Seq.empty, Seq.empty))
   }
 
   override def getFiles(filter: Filter): Seq[StorageFile] = {
@@ -195,13 +187,12 @@ class JdbcMetadata(
       } else {
         WithClose(pool.getConnection()) { cx =>
           filters.flatMap { f =>
-            filesTable.select(cx, root, f.partitions, f.spatialBounds, f.attributeBounds)
+            files.select(cx, f.partitions, f.spatialBounds, f.attributeBounds)
           }
         }
       }
     }
   }
-
 
   override def close(): Unit = pool.close()
 }
@@ -265,48 +256,27 @@ object JdbcMetadata extends LazyLogging {
       )
   }
 
-  class MetadataTable(val schema: String, tablePrefix: String) {
+  class MetadataTable(val schema: String, tablePrefix: String, root: String, typeName: String) {
 
     val tableName: String = s"${tablePrefix}meta"
 
     private val qualifiedTableName = s""""$schema"."$tableName""""
 
-    def create(connection: Connection): Unit = {
-      WithClose(connection.createStatement()) { st =>
+    def create(cx: Connection): Unit = {
+      WithClose(cx.createStatement()) { st =>
         st.executeUpdate(
           s"""create table if not exists $qualifiedTableName (
               root varchar(256) not null,
               typeName varchar(256) not null,
-              meta text not null,
-              primary key (root, typeName))"""
+              key varchar(256) not null,
+              value text not null,
+              primary key (root, typeName, key))"""
         )
       }
     }
 
-    def insert(connection: Connection, root: String, metadata: Metadata): Unit = {
-      val serialized = new ByteArrayOutputStream()
-      MetadataSerialization.serialize(serialized, metadata)
-      WithClose(connection.prepareStatement(s"insert into $qualifiedTableName (root, typeName, meta) values (?, ?, ?)")) { st =>
-        st.setString(1, root)
-        st.setString(2, metadata.sft.getTypeName)
-        st.setString(3, new String(serialized.toByteArray, StandardCharsets.UTF_8))
-        st.executeUpdate()
-      }
-    }
-
-    def update(connection: Connection, root: String, metadata: Metadata): Unit = {
-      val serialized = new ByteArrayOutputStream()
-      MetadataSerialization.serialize(serialized, metadata)
-      WithClose(connection.prepareStatement(s"update $qualifiedTableName set meta= ? where root = ? and typeName = ?")) { st =>
-        st.setString(1, new String(serialized.toByteArray, StandardCharsets.UTF_8))
-        st.setString(2, root)
-        st.setString(3, metadata.sft.getTypeName)
-        st.executeUpdate()
-      }
-    }
-
-    def selectTypeNames(connection: Connection, root: String): Seq[String] = {
-      WithClose(connection.prepareStatement(s"select typeName from $qualifiedTableName where root = ?")) { st =>
+    def selectTypeNames(cx: Connection, root: String): Seq[String] = {
+      WithClose(cx.prepareStatement(s"SELECT DISTINCT typeName FROM $qualifiedTableName WHERE root = ?")) { st =>
         st.setString(1, root)
         val builder = Seq.newBuilder[String]
         WithClose(st.executeQuery()) { rs =>
@@ -318,17 +288,49 @@ object JdbcMetadata extends LazyLogging {
       }
     }
 
-    def selectMetadata(connection: Connection, root: String, typeName: String): Metadata = {
-      WithClose(connection.prepareStatement(s"select meta from $qualifiedTableName where root = ? and typeName = ?")) { st =>
+    def insert(cx: Connection, sft: SimpleFeatureType): Unit =
+      insert(cx, "__sft__", SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+
+    def insert(cx: Connection, partitions: Seq[String]): Unit = insert(cx, "__partitions__", partitions.mkString(","))
+
+    def insert(cx: Connection, key: String, value: String): Unit = {
+      val sql =
+        s"INSERT INTO $qualifiedTableName (root, typeName, key, value) " +
+          "VALUES (?, ?, ?, ?) ON CONFLICT (root, typeName, key) DO UPDATE SET value = EXCLUDED.value"
+      WithClose(cx.prepareStatement(sql)) { st =>
         st.setString(1, root)
         st.setString(2, typeName)
+        st.setString(3, key)
+        st.setString(4, value)
+        st.executeUpdate()
+      }
+    }
+
+    def selectFeatureType(cx: Connection): SimpleFeatureType = SimpleFeatureTypes.createType(typeName, select(cx, "__sft__").get)
+
+    def selectPartitionSchemes(cx: Connection): Set[String] = select(cx, "__partitions__").fold(Set.empty[String])(_.split(",").toSet)
+
+    def select(cx: Connection, key: String): Option[String] = {
+      WithClose(cx.prepareStatement(s"SELECT value FROM $qualifiedTableName WHERE root = ? AND typeName = ? AND key = ?")) { st =>
+        st.setString(1, root)
+        st.setString(2, typeName)
+        st.setString(3, key)
         WithClose(st.executeQuery()) { rs =>
           if (rs.next()) {
-            MetadataSerialization.deserialize(new ByteArrayInputStream(rs.getString(1).getBytes(StandardCharsets.UTF_8)))
+            Option(rs.getString(1))
           } else {
-            throw new IllegalArgumentException(s"Type '$typeName' does not exist under root $root")
+            None
           }
         }
+      }
+    }
+
+    def delete(cx: Connection, key: String): Unit = {
+      WithClose(cx.prepareStatement(s"DELETE FROM $qualifiedTableName WHERE root = ? AND typeName = ? AND key = ?")) { st =>
+        st.setString(1, root)
+        st.setString(2, typeName)
+        st.setString(3, key)
+        st.executeUpdate()
       }
     }
   }
@@ -336,19 +338,20 @@ object JdbcMetadata extends LazyLogging {
   /**
     * An add/update/delete partition action. Files associated with each action are stored in the FilesTable
     */
-  class FilesTable(val schema: String, tablePrefix: String) {
+  class FilesTable(val schema: String, tablePrefix: String, root: String, typeName: String) {
 
     private val filesTable = s""""$schema"."${tablePrefix}files""""
     private val partitionsTable = s""""$schema"."${tablePrefix}partitions""""
     private val spatialBoundsTable = s""""$schema"."${tablePrefix}spatial_bounds""""
     private val attrBoundsTable = s""""$schema"."${tablePrefix}attr_bounds""""
 
-    def create(cx: Connection): Unit = {
+    def create(cx: Connection): FilesTable = {
       WithClose(cx.createStatement()) { st =>
         st.executeUpdate(
           s"""CREATE TABLE IF NOT EXISTS $filesTable (
              |  id BIGINT PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY,
              |  root VARCHAR(256) NOT NULL,
+             |  typeName varchar(256) not null,
              |  file VARCHAR(256) NOT NULL,
              |  count BIGINT NOT NULL,
              |  action CHAR(1) NOT NULL,
@@ -400,22 +403,24 @@ object JdbcMetadata extends LazyLogging {
         st.executeUpdate(s"""CREATE INDEX IF NOT EXISTS ${tablePrefix}attr_bounds_idx_bounds ON $attrBoundsTable(attribute, lower, upper);""")
         st.executeUpdate(s"""CREATE INDEX IF NOT EXISTS ${tablePrefix}spatial_bounds_idx_bounds ON $spatialBoundsTable(attribute, x_min, x_max, y_min, y_max);""")
       }
+      this
     }
 
-    def insert(cx: Connection, root: String, file: StorageFile): Unit = {
+    def insert(cx: Connection, file: StorageFile): Unit = {
       val id = WithClose(cx.prepareStatement(
-        s"INSERT INTO $filesTable (root, file, count, action, sort, ts) " +
-          "VALUES (?, ?, ?, ?, ?, ?) RETURNING id", Statement.RETURN_GENERATED_KEYS)) { st =>
+        s"INSERT INTO $filesTable (root, typeName, file, count, action, sort, ts) " +
+          "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id", Statement.RETURN_GENERATED_KEYS)) { st =>
         st.setString(1, root)
-        st.setString(2, file.file)
-        st.setLong(3, file.count)
-        st.setString(4, file.action.toString.substring(0, 1))
+        st.setString(2, typeName)
+        st.setString(3, file.file)
+        st.setLong(4, file.count)
+        st.setString(5, file.action.toString.substring(0, 1))
         if (file.sort.isEmpty) {
-          st.setNull(5, java.sql.Types.ARRAY)
+          st.setNull(6, java.sql.Types.ARRAY)
         } else {
-          st.setArray(5, cx.createArrayOf("integer", file.sort.map(Int.box).toArray[AnyRef]))
+          st.setArray(6, cx.createArrayOf("integer", file.sort.map(Int.box).toArray[AnyRef]))
         }
-        st.setTimestamp(6, Timestamp.from(Instant.ofEpochMilli(file.timestamp)))
+        st.setTimestamp(7, Timestamp.from(Instant.ofEpochMilli(file.timestamp)))
         st.executeUpdate()
         WithClose(st.getGeneratedKeys) { rs =>
           if (rs.next()) {
@@ -459,17 +464,17 @@ object JdbcMetadata extends LazyLogging {
       }
     }
 
-    def delete(cx: Connection, root: String, file: StorageFile): Unit = {
-      WithClose(cx.prepareStatement(s"DELETE FROM $filesTable WHERE root = ? AND file = ?")) { st =>
+    def delete(cx: Connection, file: StorageFile): Unit = {
+      WithClose(cx.prepareStatement(s"DELETE FROM $filesTable WHERE root = ? AND typeName = ? AND file = ?")) { st =>
         st.setString(1, root)
-        st.setString(2, file.file)
+        st.setString(2, typeName)
+        st.setString(3, file.file)
         st.executeUpdate()
       }
     }
 
     def select(
         cx: Connection,
-        root: String,
         partitions: Seq[PartitionRange],
         spatialBounds: Seq[SpatialOr],
         attributeBounds: Seq[AttributeOr],
@@ -515,9 +520,9 @@ object JdbcMetadata extends LazyLogging {
       // in subqueries. This ensures each file returns exactly one row with no Cartesian products.
       // The sp_filter, sb_filter, and ab_filter joins are used for filtering and must remain on the raw tables.
       val whereClause = if (allWhereClauses.isEmpty) {
-        "WHERE sf.root = ?"
+        "WHERE sf.root = ? AND sf.typeName = ?"
       } else {
-        s"WHERE sf.root = ? AND ${allWhereClauses.mkString(" AND ")}"
+        s"WHERE sf.root = ? AND sf.typeName = ? AND ${allWhereClauses.mkString(" AND ")}"
       }
 
       val query =
@@ -573,6 +578,8 @@ object JdbcMetadata extends LazyLogging {
         }
         // set root parameter
         st.setString(paramIndex, root)
+        paramIndex += 1
+        st.setString(paramIndex, typeName)
         paramIndex += 1
         // set spatial bound WHERE clause parameters
         spatialBoundJoins.foreach { join =>
