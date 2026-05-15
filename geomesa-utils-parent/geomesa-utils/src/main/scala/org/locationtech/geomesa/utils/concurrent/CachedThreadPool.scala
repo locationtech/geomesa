@@ -156,6 +156,14 @@ object CachedThreadPool {
   def submit(command: Runnable): Future[_] = pool.submit(command)
 
   /**
+   * Submit a single command to run in a potentially cached thread
+   *
+   * @param command command
+   * @return
+   */
+  def call[T](command: Callable[T]): Future[T] = pool.submit(command)
+
+  /**
    * Run commands in a executor with a fixed level of concurrency, potentially re-using threads. Will block
    * until any submitted tasks are complete.
    *

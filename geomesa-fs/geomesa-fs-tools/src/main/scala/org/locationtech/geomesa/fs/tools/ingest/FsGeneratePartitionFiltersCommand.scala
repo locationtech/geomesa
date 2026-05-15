@@ -28,7 +28,7 @@ class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
 
   override def execute(): Unit = withDataStore { ds =>
     if (params.cqlFilter == null && params.partitions.isEmpty) {
-      throw new ParameterException("At least one of --partitions or --cql must be specified")
+      throw new ParameterException("At least one of --partition or --cql must be specified")
     }
 
     val metadata = ds.storage(params.featureName).metadata

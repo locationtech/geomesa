@@ -53,7 +53,7 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
         there were exactly(4)(features).hasNext
         there were two(features).next
-        there were no(features).close
+        there was one(features).close
 
         test.close()
         there was one(features).close
@@ -75,7 +75,7 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
         there were exactly(4)(features).hasNext
         there were two(features).next
-        there were no(features).close
+        there was one(features).close
 
         test.close()
         there was one(features).close
@@ -125,7 +125,6 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
       } finally {
         QueryProperties.SortMemoryThreshold.threadLocalValue.remove()
       }
-      ok
     }
   }
 
