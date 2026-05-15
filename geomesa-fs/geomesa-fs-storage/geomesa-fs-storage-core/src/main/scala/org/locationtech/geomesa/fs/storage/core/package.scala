@@ -130,7 +130,7 @@ package object core {
     /**
      * Json serializer for partitions
      */
-    private[core] object PartitionSerializer extends JsonSerializer[Partition] with JsonDeserializer[Partition] {
+    object PartitionSerializer extends JsonSerializer[Partition] with JsonDeserializer[Partition] {
 
       override def serialize(src: Partition, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
         val array = new JsonArray(src.values.size)
@@ -180,7 +180,7 @@ package object core {
     /**
      * Json serializer for partition keys
      */
-    private[core] object PartitionKeySerializer extends JsonSerializer[PartitionKey] with JsonDeserializer[PartitionKey] {
+    object PartitionKeySerializer extends JsonSerializer[PartitionKey] with JsonDeserializer[PartitionKey] {
 
       override def serialize(src: PartitionKey, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
         val obj = new JsonObject()
