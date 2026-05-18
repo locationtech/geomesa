@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.tools.status
 
-import com.beust.jcommander.Parameters
+import com.beust.jcommander.{Parameter, Parameters}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.status.FsGetPartitionsCommand.FsGetPartitionsParams
@@ -21,14 +21,21 @@ class FsGetPartitionsCommand extends FsDataStoreCommand {
 
   override def execute(): Unit = withDataStore { ds =>
     Command.user.info(s"Partitions for type ${params.featureName}:")
-    Command.output.info("partition\tfile_count\tfeature_count")
+    if (!params.noHeader) {
+      Command.output.info("partition\tfile_count\tfeature_count")
+    }
     ds.storage(params.featureName).metadata.getFiles().groupBy(_.partition.toString).toSeq.sortBy(_._1).foreach { case (p, files) =>
-      Command.output.info(p + s"\t${files.size}\t${files.map(_.count).sum}")
+      Command.output.info(s"$p\t${files.size}\t${files.map(_.count).sum}")
     }
   }
 }
 
 object FsGetPartitionsCommand {
   @Parameters(commandDescription = "List partitions for a given feature type")
-  class FsGetPartitionsParams extends FsParams with RequiredTypeNameParam
+  class FsGetPartitionsParams extends FsParams with RequiredTypeNameParam {
+    @Parameter(
+      names = Array("--no-header"),
+      description = "Do not export the column header")
+    var noHeader: Boolean = false
+  }
 }

@@ -50,12 +50,12 @@ object FsCompactCommand {
 
       val storage = ds.storage(params.featureName)
 
-      val toCompact = if (params.partitions.isEmpty) { storage.metadata.getFiles().map(_.partition).distinct } else {
-        val filtered = params.partitions.asScala.filter(storage.metadata.getFiles(_).nonEmpty)
+      val toCompact = if (params.loadedPartitions.isEmpty) { storage.metadata.getFiles().map(_.partition).distinct } else {
+        val filtered = params.loadedPartitions.filter(storage.metadata.getFiles(_).nonEmpty)
         if (filtered.isEmpty) {
-          throw new ParameterException(s"Partition(s) did not match any files: ${params.partitions.asScala.mkString(", ")}")
-        } else if (filtered.size != params.partitions.size) {
-          val unmatched = params.partitions.asScala.filterNot(filtered.contains)
+          throw new ParameterException(s"Partition(s) did not match any files: ${params.loadedPartitions.mkString(", ")}")
+        } else if (filtered.size != params.loadedPartitions.size) {
+          val unmatched = params.loadedPartitions.filterNot(filtered.contains)
           Command.user.warn(s"Some partition did not match any files: ${unmatched.mkString(", ")}")
         }
         filtered

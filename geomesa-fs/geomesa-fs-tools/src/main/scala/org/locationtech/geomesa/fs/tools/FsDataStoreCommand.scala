@@ -17,9 +17,11 @@ import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator, KeyValueConverter}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.{File, StringWriter}
 import java.util.Properties
+import scala.io.{Codec, Source}
 import scala.util.control.NonFatal
 
 /**
@@ -103,22 +105,31 @@ object FsDataStoreCommand {
   }
 
   trait PartitionParam {
-    @Parameter(
-      names = Array("--partition"),
-      description = "Partition(s) to operate on",
-      converter = classOf[PartitionConverter],
-      splitter = classOf[NoopParameterSplitter])
-    var partitions: java.util.List[Partition] = new java.util.ArrayList[Partition]()
-  }
 
-  trait RequiredPartitionParam {
+    import scala.collection.JavaConverters._
+
     @Parameter(
       names = Array("--partition"),
       description = "Partition(s) to operate on",
-      required = true,
       converter = classOf[PartitionConverter],
       splitter = classOf[NoopParameterSplitter])
     var partitions: java.util.List[Partition] = new java.util.ArrayList[Partition]()
+
+    @Parameter(
+      names = Array("--partition-file"),
+      description = "Name of a file containing partition(s) to operate on, one per line")
+    var partitionFile: File = _
+
+    lazy val loadedPartitions: Seq[Partition] = {
+      partitions.asScala ++ Seq(partitionFile).flatMap { file =>
+        if (file == null) { Seq.empty } else {
+          val converter = new PartitionConverter("--partition-file")
+          WithClose(Source.fromFile(file)(Codec.UTF8)) { source =>
+            source.getLines().map(converter.convert).toList
+          }
+        }
+      }
+    }
   }
 
   trait OptionalSchemeParams {
