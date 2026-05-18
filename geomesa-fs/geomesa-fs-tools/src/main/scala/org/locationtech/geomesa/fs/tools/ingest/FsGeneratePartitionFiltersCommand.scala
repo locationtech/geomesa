@@ -27,8 +27,8 @@ class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
   override val name: String = "generate-partition-filters"
 
   override def execute(): Unit = withDataStore { ds =>
-    if (params.cqlFilter == null && params.partitions.isEmpty) {
-      throw new ParameterException("At least one of --partition or --cql must be specified")
+    if (params.cqlFilter == null && params.loadedPartitions.isEmpty) {
+      throw new ParameterException("At least one of --partition, --partition-file, or --cql must be specified")
     }
 
     val metadata = ds.storage(params.featureName).metadata
@@ -46,7 +46,7 @@ class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
       }
     }
 
-    val partitions = if (params.partitions.isEmpty) { fromFilter} else { (params.partitions.asScala ++ fromFilter).distinct }
+    val partitions = if (params.loadedPartitions.isEmpty) { fromFilter} else { (params.loadedPartitions ++ fromFilter).distinct }
 
     Command.user.info(s"Generating filters for ${partitions.size} partitions")
     if (!params.noHeader) {

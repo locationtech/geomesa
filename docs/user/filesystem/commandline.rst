@@ -81,6 +81,7 @@ Argument                 Description
 ``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
 ``--partition``          Partitions to list (omit to list all partitions)
+``--partition-file``     A file containing partitions to list, one per line (omit to list all partitions)
 ``-q, --cql``            CQL predicate to determine the partitions to operate on
 ======================== =========================================================
 
@@ -94,6 +95,7 @@ Argument                 Description
 ======================== =============================================================
 ``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
+``--no-header``          Do not output a header line with column names
 ======================== =============================================================
 
 .. _fsds_ingest_command:
@@ -209,7 +211,8 @@ correspond to data files.
 ======================== ==================================================================
 Argument                 Description
 ======================== ==================================================================
-``--partition``          The name of partitions to check, or none for all partitions
+``--partition``          The name of partitions to check (omit to check all partitions)
+``--partition-file``     A file containing partitions to check, one per line (omit to check all partitions)
 ``--threads, -t``        Number of threads to use when listing data files
 ======================== ==================================================================
 
@@ -225,12 +228,17 @@ Argument                  Description
 ``-p, --path *``          The filesystem root path used to store data
 ``-f, --feature-name *``  The name of the schema containing the files to register
 ``--partition``           The partitions to register
+``--partition-file``      A file containing partitions to register, one per line
 ``--iceberg-config``      Configuration properties for connecting to Iceberg, in the form ``key=value``
 ``--iceberg-config-file`` Name of a configuration file for connecting to Iceberg, in Java properties format
-``--iceberg-namespace``   Iceberg namespace to use for tables
-``--allow-duplicates``    Do not check the table for existing files - this may cause duplicate results when querying if some
-                          files have already been registered
+``--iceberg-namespace *`` Iceberg namespace to use for tables
+``--allow-duplicates``    Do not check the table for existing files - if the partition has not been registered before,
+                          checking for duplicates is unnecessary work. However, care should be taken with this option, as
+                          duplicate files will cause duplicate results when querying
 ========================= ====================================================================================================
+
+Note: at least one of ``--partition`` or ``--partition-file`` must be specified. At least one of ``--iceberg-config`` or
+``--iceberg-config-file`` must be specified.
 
 See the `Apache Iceberg documentation <https://iceberg.apache.org/docs/latest/configuration/#catalog-properties>`__ for details
 on configuration properties.

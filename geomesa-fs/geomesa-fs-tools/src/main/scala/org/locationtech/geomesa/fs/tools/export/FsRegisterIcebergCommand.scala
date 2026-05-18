@@ -12,16 +12,11 @@ import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg._
 import org.apache.iceberg.catalog.{Catalog, Namespace, TableIdentifier}
-import org.apache.iceberg.parquet.ParquetUtil
-import org.apache.parquet.ParquetReadOptions
-import org.apache.parquet.hadoop.ParquetFileReader
-import org.apache.parquet.hadoop.metadata.ParquetMetadata
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.parquet.iceberg.IcebergMapper
-import org.locationtech.geomesa.fs.storage.parquet.io.ParquetFileSystemReader
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, RequiredPartitionParam}
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.`export`.FsRegisterIcebergCommand.FsRegisterIcebergParams
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
@@ -29,7 +24,6 @@ import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.FileReader
-import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.{Collections, Locale, Properties}
 import scala.util.control.NonFatal
@@ -43,6 +37,9 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand with LazyLogging {
   override val name: String = "register-iceberg-files"
 
   override def execute(): Unit = {
+    if (params.loadedPartitions.isEmpty) {
+      throw new ParameterException("At least one of --partition or --partition-file must be specified")
+    }
     if (params.icebergConfigFile == null && params.icebergConfig.isEmpty) {
       throw new ParameterException("At least one of --iceberg-config or --iceberg-config-file must be specified")
     }
@@ -75,7 +72,7 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand with LazyLogging {
       throw new UnsupportedOperationException(s"Iceberg is only implemented for Parquet storage: found ${storage.encoding}")
     }
 
-    params.partitions.asScala.foreach { p =>
+    params.loadedPartitions.foreach { p =>
       storage.metadata.schemes.foreach { s =>
         if (!p.values.exists(_.name == s.name)) {
           throw new IllegalArgumentException(
@@ -116,20 +113,22 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand with LazyLogging {
       builder.result()
     }
 
-    val files = params.partitions.asScala.flatMap { p =>
-      storage.metadata.getFiles(p).flatMap { f =>
-        val df = iceberg.toDataFile(table, f)
-        if (existingFiles.contains(df.location())) {
-          Command.user.info(s"Skipping already registered file: ${df.location()}")
-          None
-        } else {
-          Command.user.info(s"Registering file: ${df.location()}")
-          Some(df)
-        }
+    val gmFiles = params.loadedPartitions.flatMap(p => storage.metadata.getFiles(p))
+    Command.user.info(s"Registering ${gmFiles.size} files from ${params.loadedPartitions.size} partitions")
+
+    var i = 0
+    val files = gmFiles.flatMap { f =>
+      i += 1
+      val df = iceberg.toDataFile(table, f)
+      logger.debug(s"File: $df")
+      if (existingFiles.contains(df.location())) {
+        Command.user.info(s"Skipping already registered file: ${df.location()}")
+        None
+      } else {
+        Command.user.info(f"Registering file (${math.floor(100 * (i.toFloat / gmFiles.size)).toInt}%02d%% complete): ${df.location()}")
+        Some(df)
       }
     }
-
-    logger.debug(s"Files:\n  ${files.mkString("\n  ")}")
 
     if (files.nonEmpty) {
       Command.user.info("Updating table")
@@ -144,7 +143,7 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand with LazyLogging {
 object FsRegisterIcebergCommand {
 
   @Parameters(commandDescription = "Register GeoMesa files with an Iceberg store")
-  class FsRegisterIcebergParams extends FsParams with RequiredTypeNameParam with RequiredPartitionParam {
+  class FsRegisterIcebergParams extends FsParams with RequiredTypeNameParam with PartitionParam {
 
     @Parameter(
       names = Array("--iceberg-config-file"),
