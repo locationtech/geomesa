@@ -30,7 +30,7 @@ import java.util
 import java.util.Collections
 import scala.util.Try
 
-class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
+class GeoMesaFeatureSource(val ds: GeoMesaBaseStore, val sft: SimpleFeatureType)
     extends SimpleFeatureSource with LazyLogging {
 
   lazy private val hints = Collections.unmodifiableSet(Collections.emptySet[Key])

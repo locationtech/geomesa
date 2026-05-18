@@ -16,8 +16,8 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
+import org.locationtech.geomesa.fs.data.stats.FileSystemStats
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, FileSystemStorageFactory, StorageMetadataCatalog}
-import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
@@ -45,7 +45,7 @@ class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: Sto
 
   config.context.namespace.foreach(setNamespaceURI)
 
-  override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
+  override val stats: GeoMesaStats = new FileSystemStats(this)
 
   override def createTypeNames(): java.util.List[Name] = {
     val names = new java.util.ArrayList[Name]()
@@ -100,6 +100,15 @@ class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: Sto
 }
 
 object FileSystemDataStore {
+
+  /**
+   * Config options
+   *
+   * @param context handle to the file system
+   * @param readThreads number of threads per read
+   * @param writeTimeout write timeout
+   * @param queryTimeout read timeout
+   */
   case class FileSystemDataStoreConfig(
     context: FileSystemContext,
     readThreads: Int,
