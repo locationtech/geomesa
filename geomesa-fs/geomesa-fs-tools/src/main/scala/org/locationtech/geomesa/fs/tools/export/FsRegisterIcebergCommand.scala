@@ -113,20 +113,22 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand with LazyLogging {
       builder.result()
     }
 
-    val files = params.loadedPartitions.flatMap { p =>
-      storage.metadata.getFiles(p).flatMap { f =>
-        val df = iceberg.toDataFile(table, f)
-        if (existingFiles.contains(df.location())) {
-          Command.user.info(s"Skipping already registered file: ${df.location()}")
-          None
-        } else {
-          Command.user.info(s"Registering file: ${df.location()}")
-          Some(df)
-        }
+    val gmFiles = params.loadedPartitions.flatMap(p => storage.metadata.getFiles(p))
+    Command.user.info(s"Registering ${gmFiles.size} files from ${params.loadedPartitions.size} partitions")
+
+    var i = 0
+    val files = gmFiles.flatMap { f =>
+      i += 1
+      val df = iceberg.toDataFile(table, f)
+      logger.debug(s"File: $df")
+      if (existingFiles.contains(df.location())) {
+        Command.user.info(s"Skipping already registered file: ${df.location()}")
+        None
+      } else {
+        Command.user.info(f"Registering file (${math.floor(100 * (i.toFloat / gmFiles.size)).toInt}%02d%% complete): ${df.location()}")
+        Some(df)
       }
     }
-
-    logger.debug(s"Files:\n  ${files.mkString("\n  ")}")
 
     if (files.nonEmpty) {
       Command.user.info("Updating table")

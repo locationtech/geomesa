@@ -121,7 +121,7 @@ object FsDataStoreCommand {
     var partitionFile: File = _
 
     lazy val loadedPartitions: Seq[Partition] = {
-      partitions.asScala ++ Seq(partitionFile).flatMap { file =>
+      partitions.asScala.toSeq ++ Seq(partitionFile).flatMap { file =>
         if (file == null) { Seq.empty } else {
           val converter = new PartitionConverter("--partition-file")
           WithClose(Source.fromFile(file)(Codec.UTF8)) { source =>
