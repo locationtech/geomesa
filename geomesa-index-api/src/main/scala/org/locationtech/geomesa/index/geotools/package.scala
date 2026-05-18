@@ -14,5 +14,5 @@ import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 
 package object geotools {
 
-  type GeoMeasBaseStore = DataStore with HasGeoMesaFeatureReader with HasGeoMesaStats
+  type GeoMesaBaseStore = DataStore with HasGeoMesaFeatureReader with HasGeoMesaStats
 }

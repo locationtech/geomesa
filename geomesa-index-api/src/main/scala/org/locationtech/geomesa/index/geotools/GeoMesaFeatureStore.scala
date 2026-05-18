@@ -24,7 +24,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
-class GeoMesaFeatureStore(ds: GeoMeasBaseStore, sft: SimpleFeatureType)
+class GeoMesaFeatureStore(ds: GeoMesaBaseStore, sft: SimpleFeatureType)
     extends GeoMesaFeatureSource(ds, sft) with SimpleFeatureStore {
 
   private var transaction: Transaction = Transaction.AUTO_COMMIT

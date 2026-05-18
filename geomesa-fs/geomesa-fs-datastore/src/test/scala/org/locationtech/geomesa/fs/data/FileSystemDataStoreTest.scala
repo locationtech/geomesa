@@ -173,6 +173,15 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
             fs2.getCount(Query.ALL) must beEqualTo(10)
             fs2.getBounds must equalTo(new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
           }
+
+          // test stats queries
+          ds.stats.getCount(sft) must beSome(10L)
+          ds.stats.getCount(sft, exact = true) must beSome(10L)
+          val minMax = ds.stats.getMinMax[String](sft, "name").orNull
+          minMax must not(beNull)
+          minMax.min mustEqual "test0"
+          minMax.max mustEqual "test9"
+          ds.stats.getMinMax[Int](sft, "age") must beNone // only attributes with fs.bounds will return cached stats
         }
       }
     }
