@@ -54,7 +54,7 @@ class S3VisibilityObserver(path: URI, fs: S3ObjectStore, tag: String) extends Fi
       // this call simplifies and de-duplicates the expression
       val expression = AccessExpression.of(vis, /*normalize = */true).getExpression
       val visibility = Base64.getEncoder.encodeToString(expression.getBytes(StandardCharsets.UTF_8))
-      fs.tag(bucket, key, Seq(tag -> visibility))
+      fs.putObjectTagging(bucket, key, Seq(tag -> visibility))
     }
   }
 }

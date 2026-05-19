@@ -144,7 +144,7 @@ object S3WriteBuffering {
       if (done && uploadId == null) {
         // didn't hit our multipart threshold, just use a regular put object
         logger.debug(s"Starting regular s3 upload to $bucket/$key")
-        fs.put(bucket, key, currentChunk.read, overwrite)
+        fs.putObject(bucket, key, currentChunk.read, overwrite)
         logger.debug(s"Completed regular s3 upload to $bucket/$key")
       } else {
         if (uploadId == null) {

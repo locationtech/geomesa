@@ -81,12 +81,9 @@ class S3ObjectStore(client: S3AsyncClient, buffer: S3WriteBuffering) extends Obj
    * @return
    */
   private def ensureOpen[T](fn: => T): T = {
-    // ensure calls to register are gated by a check against closed
-    if (closed || open.register() < 0) {
-      throw new IllegalStateException("This instance has been closed")
-    }
+    val deregister = ensureOpen()
     try { fn } finally {
-      open.arriveAndDeregister()
+      deregister()
     }
   }
 
@@ -96,12 +93,16 @@ class S3ObjectStore(client: S3AsyncClient, buffer: S3WriteBuffering) extends Obj
    * @return
    */
   private def ensureOpen(): DeregisterOnce = {
-    // ensure calls to register are gated by a check against closed
+    // note: the closed check is so that we don't initiate new calls after closing but before all open connections spin down
+    // since we're not synchronized, it's possible a call will slip through after close() is called,
+    // but then we'll just wait for it based on the phaser anyway
     if (closed || open.register() < 0) {
       throw new IllegalStateException("This instance has been closed")
     }
     new DeregisterOnce()
   }
+
+  // start of s3-specific methods, proxied here to ensure we can manage calls based on the open/closed state of the client
 
   /**
    * Create a seekable input stream for reading from S3
@@ -123,7 +124,7 @@ class S3ObjectStore(client: S3AsyncClient, buffer: S3WriteBuffering) extends Obj
    * @param body object
    * @param overwrite overwrite any existing object
    */
-  def put(bucket: String, key: String, body: AsyncRequestBody, overwrite: Boolean = true): Unit = {
+  def putObject(bucket: String, key: String, body: AsyncRequestBody, overwrite: Boolean = true): Unit = {
     val request = PutObjectRequest.builder().bucket(bucket).key(key)
     if (!overwrite) {
       request.ifNoneMatch("*")
@@ -186,12 +187,14 @@ class S3ObjectStore(client: S3AsyncClient, buffer: S3WriteBuffering) extends Obj
    * @param key key
    * @param tags key-value tag pairs
    */
-  def tag(bucket: String, key: String, tags: Seq[(String, String)]): Unit = {
+  def putObjectTagging(bucket: String, key: String, tags: Seq[(String, String)]): Unit = {
     val tagSet = tags.map { case (k, v) => Tag.builder.key(k).value(v).build() }
     val tagging = Tagging.builder().tagSet(tagSet.asJava).build()
     val request = PutObjectTaggingRequest.builder.bucket(bucket).key(key).tagging(tagging).build()
     ensureOpen(client.putObjectTagging(request).join())
   }
+
+  // end of s3-specific methods
 
   override def exists(path: URI): Boolean = {
     val key = parseS3Path(path)
@@ -345,11 +348,14 @@ class S3ObjectStore(client: S3AsyncClient, buffer: S3WriteBuffering) extends Obj
 
   override def close(): Unit = {
     closed = true // set closed true first, this prevents any new attempts to register against the phaser
-    val phase = open.arriveAndDeregister() // arrive
+    val phase = open.arriveAndDeregister() // arrive, this will terminate the phaser once all registered parties complete
+    // wait for any currently registered parties to complete
     try { open.awaitAdvanceInterruptibly(phase, 1L, TimeUnit.SECONDS) } catch {
       case _: Throwable => logger.warn(s"Closing S3Client with ${open.getRegisteredParties} operations in flight")
     }
     if (!open.isTerminated) {
+      // this might prevent some clients from starting calls depending on threading order (if they've already cleared
+      // the `closed` check but haven't yet registered to the phaser)
       open.forceTermination()
     }
     CloseWithLogging(Seq(seekableInputStreamFactory, transferManager, client))
