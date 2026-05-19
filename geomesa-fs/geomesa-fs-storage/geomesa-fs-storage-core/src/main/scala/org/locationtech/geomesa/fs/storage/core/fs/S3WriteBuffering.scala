@@ -158,7 +158,7 @@ object S3WriteBuffering {
         future.whenCompleteAsync((_, _) => chunk.cleanup())
         logger.debug(s"Initiated part ${uploads.size} for upload with id $uploadId to $bucket/$key")
         if (done) {
-          val parts = uploads.map(_.join())
+          val parts = uploads.map(_.join()).toSeq
           fs.completeMultipartUpload(bucket, key, uploadId, parts, overwrite)
           logger.debug(s"Completed multipart upload with id $uploadId consisting of ${uploads.size} parts to $bucket/$key")
         } else {
