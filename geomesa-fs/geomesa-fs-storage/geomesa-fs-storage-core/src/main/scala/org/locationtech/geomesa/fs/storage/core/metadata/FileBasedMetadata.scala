@@ -125,27 +125,33 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
     while (!lockAcquired && retries < maxAttempts) {
       try {
         // try to create lock file with overwrite=false for atomicity
-        WithClose(fs.create(lockFilePath)) {
-          case None =>
-            // lock file exists, check if it's stale
-            retries += 1
-            if (isLockStale(lockFilePath)) {
-              // remove stale lock and retry
-              try {
-                fs.delete(lockFilePath)
-              } catch {
-                case NonFatal(_) => // ignore, will retry
-              }
-            } else {
-              // wait and retry
-              Thread.sleep(LockRetryDelay.toMillis.get)
+        try {
+          fs.create(lockFilePath).foreach { out =>
+            try {
+              // write lock info for debugging - hostname + timestamp
+              val lockInfo = s"${java.net.InetAddress.getLocalHost.getHostName}:${System.currentTimeMillis()}"
+              out.write(lockInfo.getBytes(StandardCharsets.UTF_8))
+            } finally {
+              out.close()
             }
-          case Some(out) =>
-            // write lock info for debugging - hostname + timestamp
-            val lockInfo = s"${java.net.InetAddress.getLocalHost.getHostName}:${System.currentTimeMillis()}"
-            out.write(lockInfo.getBytes(StandardCharsets.UTF_8))
+            lockAcquired = true
+          }
+        } catch {
+          case NonFatal(e) => logger.debug("Error writing lock file, may already exist?", e)
         }
-        lockAcquired = true
+
+        if (!lockAcquired) {
+          // lock file exists, check if it's stale
+          retries += 1
+          fs.modified(lockFilePath).foreach { modified =>
+            val age = System.currentTimeMillis() - modified
+            if (age > LockTimeout.toMillis.get) {
+              fs.delete(lockFilePath)
+            }
+          }
+          // wait and retry
+          Thread.sleep(LockRetryDelay.toMillis.get)
+        }
       } catch {
         case NonFatal(e) => throw new RuntimeException(s"Failed to acquire lock at $lockFilePath", e)
       }
@@ -176,20 +182,6 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
       } catch {
         case NonFatal(e) => logger.warn(s"Failed to release lock at $lockFilePath", e)
       }
-    }
-  }
-
-  /**
-   * Check if a lock file is stale (older than lock timeout)
-   */
-  private def isLockStale(lockPath: URI): Boolean = {
-    try {
-      fs.modified(lockPath).forall { modified =>
-        val age = System.currentTimeMillis() - modified
-        age > LockTimeout.toMillis.get
-      }
-    } catch {
-      case NonFatal(_) => true // if we can't read it, consider it stale
     }
   }
 }
