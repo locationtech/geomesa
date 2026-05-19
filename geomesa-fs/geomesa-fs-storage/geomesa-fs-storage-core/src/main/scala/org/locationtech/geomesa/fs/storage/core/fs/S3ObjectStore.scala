@@ -24,7 +24,7 @@ import pureconfig._
 import pureconfig.error.CannotConvert
 import pureconfig.generic.ProductHint
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
-import software.amazon.awssdk.core.async.AsyncResponseTransformer
+import software.amazon.awssdk.core.async.{AsyncRequestBody, AsyncResponseTransformer}
 import software.amazon.awssdk.core.checksums.{RequestChecksumCalculation, ResponseChecksumValidation}
 import software.amazon.awssdk.core.retry.RetryMode
 import software.amazon.awssdk.regions.Region
@@ -32,17 +32,18 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model._
 import software.amazon.awssdk.transfer.s3.S3TransferManager
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest
-import software.amazon.s3.analyticsaccelerator.{S3SdkObjectClient, S3SeekableInputStreamConfiguration, S3SeekableInputStreamFactory}
+import software.amazon.s3.analyticsaccelerator.util.S3URI
+import software.amazon.s3.analyticsaccelerator.{S3SdkObjectClient, S3SeekableInputStream, S3SeekableInputStreamConfiguration, S3SeekableInputStreamFactory}
 
 import java.io._
 import java.net.URI
 import java.nio.file.Files
 import java.time.Duration
 import java.util.Locale
-import java.util.concurrent.CompletionException
+import java.util.concurrent._
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.BiFunction
 import scala.util.Try
-import scala.util.control.NonFatal
 
 /**
  * S3 object store implementation
@@ -50,37 +51,165 @@ import scala.util.control.NonFatal
  * @param client s3 client
  * @param buffer write buffering strategy
  */
-class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends ObjectStore {
+class S3ObjectStore(client: S3AsyncClient, buffer: S3WriteBuffering) extends ObjectStore with LazyLogging {
 
   import S3ObjectStore.parseS3Path
 
   import scala.collection.JavaConverters._
 
+  // we need to ensure we don't invoke methods on a closed s3 client, as that can cause segfaults
+  // we do this with 2 variables -
+  // `open` tracks how many open calls we have, and allows us to wait for them to complete before closing
+  // `closed` prevents us from opening new calls once `close()` has been called
+
+  @volatile
+  private var closed = false
+  private val open = new Phaser(1)
+
   private val transferManager = S3TransferManager.builder().s3Client(client).build()
 
   // accelerated input stream for working with parquet files
-  val seekableInputStreamFactory: S3SeekableInputStreamFactory =
+  private val seekableInputStreamFactory =
     new S3SeekableInputStreamFactory(new S3SdkObjectClient(client, false), S3SeekableInputStreamConfiguration.DEFAULT)
 
   override val scheme: String = "s3"
 
+  /**
+   * Wrapper to ensure our client is a: open and b: won't be closed until the call completes
+   *
+   * @param fn function to run using the s3 client
+   * @return
+   */
+  private def ensureOpen[T](fn: => T): T = {
+    // ensure calls to register are gated by a check against closed
+    if (closed || open.register() < 0) {
+      throw new IllegalStateException("This instance has been closed")
+    }
+    try { fn } finally {
+      open.arriveAndDeregister()
+    }
+  }
+
+  /**
+   * Alternate method for ensuring open, when the connection is closed externally
+   *
+   * @return
+   */
+  private def ensureOpen(): DeregisterOnce = {
+    // ensure calls to register are gated by a check against closed
+    if (closed || open.register() < 0) {
+      throw new IllegalStateException("This instance has been closed")
+    }
+    new DeregisterOnce()
+  }
+
+  /**
+   * Create a seekable input stream for reading from S3
+   *
+   * @param bucket bucket
+   * @param key object key
+   * @return
+   */
+  def createStream(bucket: String, key: String): S3SeekableInputStream = {
+    // TODO we can't easily hook into the close method to deregister the open connection
+    ensureOpen(seekableInputStreamFactory.createStream(S3URI.of(bucket, key)))
+  }
+
+  /**
+   * Put an object
+   *
+   * @param bucket bucket
+   * @param key key
+   * @param body object
+   * @param overwrite overwrite any existing object
+   */
+  def put(bucket: String, key: String, body: AsyncRequestBody, overwrite: Boolean = true): Unit = {
+    val request = PutObjectRequest.builder().bucket(bucket).key(key)
+    if (!overwrite) {
+      request.ifNoneMatch("*")
+    }
+    ensureOpen(client.putObject(request.build(), body).join())
+  }
+
+  /**
+   * Start a new multipart upload
+   *
+   * @param bucket bucket
+   * @param key key
+   * @return upload id
+   */
+  def createMultipartUpload(bucket: String, key: String): String =
+    ensureOpen(client.createMultipartUpload(b => b.bucket(bucket).key(key)).join().uploadId())
+
+  /**
+   * Upload a part of a multipart upload
+   *
+   * @param bucket bucket
+   * @param key key
+   * @param uploadId multipart upload id
+   * @param partNumber part number
+   * @param body object part
+   * @return
+   */
+  def uploadPart(bucket: String, key: String, uploadId: String, partNumber: Int, body: AsyncRequestBody): CompletableFuture[CompletedPart] = {
+    val request = UploadPartRequest.builder().bucket(bucket).key(key).uploadId(uploadId).partNumber(partNumber).build()
+    val deregister = ensureOpen()
+    try {
+      client.uploadPart(request, body)
+        .whenComplete((_, _) => deregister())
+        .thenApply(r => CompletedPart.builder().partNumber(partNumber).eTag(r.eTag()).build())
+    } catch {
+      case e: Throwable => deregister(); throw e
+    }
+  }
+
+  /**
+   *
+   * @param bucket bucket
+   * @param key key
+   * @param uploadId multipart upload id
+   */
+  def completeMultipartUpload(bucket: String, key: String, uploadId: String, parts: Seq[CompletedPart], overwrite: Boolean = true): Unit = {
+    val request =
+      CompleteMultipartUploadRequest.builder()
+        .bucket(bucket).key(key).uploadId(uploadId).multipartUpload(b => b.parts(parts.asJava))
+    if (!overwrite) {
+      request.ifNoneMatch("*")
+    }
+    ensureOpen(client.completeMultipartUpload(request.build()).join())
+  }
+
+  /**
+   * Tag an object
+   *
+   * @param bucket bucket
+   * @param key key
+   * @param tags key-value tag pairs
+   */
+  def tag(bucket: String, key: String, tags: Seq[(String, String)]): Unit = {
+    val tagSet = tags.map { case (k, v) => Tag.builder.key(k).value(v).build() }
+    val tagging = Tagging.builder().tagSet(tagSet.asJava).build()
+    val request = PutObjectTaggingRequest.builder.bucket(bucket).key(key).tagging(tagging).build()
+    ensureOpen(client.putObjectTagging(request).join())
+  }
+
   override def exists(path: URI): Boolean = {
     val key = parseS3Path(path)
     val request = HeadObjectRequest.builder().bucket(key.bucket).key(key.key).build()
-    client.headObject(request).handle[Option[Boolean]](ifFound(_ => true)).join().getOrElse(false)
+    ensureOpen(client.headObject(request).handle[Option[Boolean]](ifFound(_ => true)).join().getOrElse(false))
   }
 
   override def size(path: URI): Long = {
     val key = parseS3Path(path)
     val request =
       GetObjectAttributesRequest.builder().bucket(key.bucket).key(key.key).objectAttributes(ObjectAttributes.OBJECT_SIZE).build()
-    client.getObjectAttributes(request).handle[Option[Long]](ifFound(_.objectSize())).join().getOrElse(0L)
+    ensureOpen(client.getObjectAttributes(request).handle[Option[Long]](ifFound(_.objectSize())).join().getOrElse(0L))
   }
 
   override def modified(path: URI): Option[Long] = {
     val key = parseS3Path(path)
     val request = HeadObjectRequest.builder().bucket(key.bucket).key(key.key).build()
-    client.headObject(request).handle[Option[Long]](ifFound(_.lastModified().toEpochMilli)).join()
+    ensureOpen(client.headObject(request).handle[Option[Long]](ifFound(_.lastModified().toEpochMilli)).join())
   }
 
   // note: since the write is not finalized until it is uploaded, this may return a Some but then throw an exception on close
@@ -88,13 +217,13 @@ class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends
   override def create(path: URI): Option[OutputStream] = {
     if (exists(path)) { None } else {
       val key = parseS3Path(path)
-      Some(buffer.write(key.bucket, key.key, overwrite = false))
+      Some(buffer.write(this, key.bucket, key.key, overwrite = false))
     }
   }
 
   override def overwrite(path: URI): OutputStream = {
     val key = parseS3Path(path)
-    buffer.write(key.bucket, key.key, overwrite = true)
+    buffer.write(this, key.bucket, key.key, overwrite = true)
   }
 
   override def read(path: URI): Option[InputStream] = {
@@ -104,9 +233,28 @@ class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends
         .getObjectRequest(GetObjectRequest.builder().bucket(key.bucket).key(key.key).build())
         .responseTransformer(AsyncResponseTransformer.toBlockingInputStream())
         .build()
-    transferManager.download(request).completionFuture()
-      .handle[Option[InputStream]](ifFound(r => PathUtils.handleCompression(r.result(), path.toString)))
-      .join()
+    val deregister = ensureOpen()
+    val result =
+      try {
+        transferManager.download(request).completionFuture()
+          .handle[Option[InputStream]](ifFound(r => PathUtils.handleCompression(r.result(), path.toString)))
+          .join()
+      } catch {
+        case e: Throwable => deregister(); throw e
+      }
+    result match {
+      case None =>
+        deregister()
+        None
+      case Some(is) =>
+        val wrapped = new FilterInputStream(is) {
+          override def close(): Unit = {
+            deregister()
+            super.close()
+          }
+        }
+        Some(wrapped)
+    }
   }
 
   override def read(path: URI, format: ArchiveFormat): CloseableIterator[NamedInputStream] = {
@@ -123,6 +271,7 @@ class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends
         // note: there is a potential way to wrap the request in a Seekable Channel using
         // https://github.com/awslabs/aws-java-nio-spi-for-s3/, but it doesn't seem worthwhile assuming
         // we end up reading the whole file
+        // another potential option is to wrap an S3SeekableInputStream
         val name = filename(path)
         val tmp = Files.createTempFile(FilenameUtils.removeExtension(name), FilenameUtils.getExtension(name))
         CloseableIterator(read(path).iterator).flatMap { is =>
@@ -138,6 +287,7 @@ class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends
             }
           }
         }
+
       case _ =>
         throw new UnsupportedOperationException(s"An implementation is missing for format $format")
     }
@@ -159,7 +309,7 @@ class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends
         .delimiter("/") // prevents listing more than 1 directory deep
         .continuationToken(continuation)
         .build()
-    val response = client.listObjectsV2(request).join()
+    val response = ensureOpen(client.listObjectsV2(request).join())
     val files = response.contents().asScala.map(_.key())
     val folders = response.commonPrefixes().asScala.map(_.prefix())
     val results = CloseableIterator.wrap(files ++ folders).map(key => new URI(s"$scheme://$bucket/$key"))
@@ -180,7 +330,7 @@ class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends
         .destinationBucket(toKey.bucket)
         .destinationKey(toKey.key)
         .build()
-    client.copyObject(request).join()
+    ensureOpen(client.copyObject(request).join())
   }
 
   override def delete(path: URI): Unit = {
@@ -190,10 +340,20 @@ class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends
         .bucket(key.bucket)
         .key(key.key)
         .build()
-    client.deleteObject(request).join()
+    ensureOpen(client.deleteObject(request).join())
   }
 
-  override def close(): Unit = CloseWithLogging(client, transferManager)
+  override def close(): Unit = {
+    closed = true // set closed true first, this prevents any new attempts to register against the phaser
+    val phase = open.arriveAndDeregister() // arrive
+    try { open.awaitAdvanceInterruptibly(phase, 1L, TimeUnit.SECONDS) } catch {
+      case _: Throwable => logger.warn(s"Closing S3Client with ${open.getRegisteredParties} operations in flight")
+    }
+    if (!open.isTerminated) {
+      open.forceTermination()
+    }
+    CloseWithLogging(Seq(seekableInputStreamFactory, transferManager, client))
+  }
 
   /**
    * Helper method to handle missing key errors in completable futures
@@ -215,6 +375,14 @@ class S3ObjectStore(val client: S3AsyncClient, buffer: S3WriteBuffering) extends
         case _ => throw error
       }
     }
+  }
+
+  /**
+   * Ensures we don't deregister more than once, which is a logical error and may cause issues later on
+   */
+  private class DeregisterOnce extends (() => Unit) {
+    private val deregistered = new AtomicBoolean(false)
+    override def apply(): Unit = if (deregistered.compareAndSet(false, true)) { open.arriveAndDeregister() }
   }
 }
 
@@ -242,6 +410,11 @@ object S3ObjectStore {
     val bufferSize = org.locationtech.geomesa.utils.text.Suffixes.Memory.bytes(config.writeBufferInBytes).get
     if (bufferSize > Int.MaxValue) {
       throw new IllegalArgumentException(s"Buffer size exceeds max size in bytes (${Int.MaxValue}b): $bufferSize")
+    }
+
+    val buffering = config.writeBuffering match {
+      case WriteBuffering.Disk => new DiskBuffering(bufferSize.toInt, new File(config.writeBufferDir))
+      case WriteBuffering.Memory => new MemoryBuffering(bufferSize.toInt)
     }
 
     val builder = S3AsyncClient.crtBuilder()
@@ -272,15 +445,6 @@ object S3ObjectStore {
     config.thresholdInBytes.foreach(builder.thresholdInBytes(_))
 
     val client = builder.build()
-
-    val buffering = try {
-      config.writeBuffering match {
-        case WriteBuffering.Disk => new DiskBuffering(client, bufferSize.toInt, new File(config.writeBufferDir))
-        case WriteBuffering.Memory => new MemoryBuffering(client, bufferSize.toInt)
-      }
-    } catch {
-      case NonFatal(e) => client.close(); throw e
-    }
 
     new S3ObjectStore(client, buffering)
   }

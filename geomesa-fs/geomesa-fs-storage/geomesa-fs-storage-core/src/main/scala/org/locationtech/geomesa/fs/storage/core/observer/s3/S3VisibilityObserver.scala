@@ -14,8 +14,6 @@ import org.apache.accumulo.access.AccessExpression
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import org.locationtech.geomesa.security.SecurityUtils
-import software.amazon.awssdk.services.s3.S3AsyncClient
-import software.amazon.awssdk.services.s3.model.{PutObjectTaggingRequest, Tag, Tagging}
 
 import java.io.IOException
 import java.net.URI
@@ -26,10 +24,10 @@ import java.util.Base64
  * Creates a tag containing the base64 encoded summary visibility for the observed file
  *
  * @param path file path
- * @param s3 s3 client
+ * @param fs s3 client
  * @param tag tag name to use
  */
-class S3VisibilityObserver(path: URI, s3: S3AsyncClient, tag: String) extends FileSystemObserver {
+class S3VisibilityObserver(path: URI, fs: S3ObjectStore, tag: String) extends FileSystemObserver {
 
   private val visibilities = scala.collection.mutable.Set.empty[String]
 
@@ -56,9 +54,7 @@ class S3VisibilityObserver(path: URI, s3: S3AsyncClient, tag: String) extends Fi
       // this call simplifies and de-duplicates the expression
       val expression = AccessExpression.of(vis, /*normalize = */true).getExpression
       val visibility = Base64.getEncoder.encodeToString(expression.getBytes(StandardCharsets.UTF_8))
-      val tagging = Tagging.builder().tagSet(Tag.builder.key(tag).value(visibility).build()).build()
-      val request = PutObjectTaggingRequest.builder.bucket(bucket).key(key).tagging(tagging).build()
-      s3.putObjectTagging(request).join()
+      fs.tag(bucket, key, Seq(tag -> visibility))
     }
   }
 }

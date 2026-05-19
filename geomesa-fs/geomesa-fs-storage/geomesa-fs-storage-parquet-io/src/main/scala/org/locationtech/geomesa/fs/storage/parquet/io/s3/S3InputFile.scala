@@ -11,9 +11,8 @@ package org.locationtech.geomesa.fs.storage.parquet.io.s3
 import org.apache.parquet.bytes.ByteBufferAllocator
 import org.apache.parquet.io.{InputFile, ParquetFileRange, SeekableInputStream}
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
-import org.locationtech.geomesa.fs.storage.parquet.io.s3.S3InputFile.S3SeekableInputStream
+import org.locationtech.geomesa.fs.storage.parquet.io.s3.S3InputFile.AcceleratedS3SeekableInputStream
 import software.amazon.s3.analyticsaccelerator.common.ObjectRange
-import software.amazon.s3.analyticsaccelerator.util.S3URI
 
 import java.io.{EOFException, OutputStream}
 import java.net.URI
@@ -34,13 +33,13 @@ class S3InputFile(fs: S3ObjectStore, path: URI) extends InputFile {
 
   override lazy val getLength: Long = fs.size(path)
 
-  override def newStream(): SeekableInputStream =
-    new S3SeekableInputStream(fs.seekableInputStreamFactory.createStream(S3URI.of(key.bucket, key.key)))
+  override def newStream(): SeekableInputStream = new AcceleratedS3SeekableInputStream(fs.createStream(key.bucket, key.key))
 }
 
 object S3InputFile {
 
-  class S3SeekableInputStream(s3: software.amazon.s3.analyticsaccelerator.S3SeekableInputStream) extends SeekableInputStream {
+  class AcceleratedS3SeekableInputStream(s3: software.amazon.s3.analyticsaccelerator.S3SeekableInputStream)
+      extends SeekableInputStream {
 
     import scala.collection.JavaConverters._
 

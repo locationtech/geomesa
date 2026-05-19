@@ -10,7 +10,6 @@ package org.locationtech.geomesa.fs.storage.core.fs
 
 import com.typesafe.scalalogging.LazyLogging
 import software.amazon.awssdk.core.async.AsyncRequestBody
-import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model._
 
 import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
@@ -27,12 +26,13 @@ trait S3WriteBuffering {
   /**
    * Gets an output stream for writing to S3
    *
+   * @param fs object store
    * @param bucket bucket
    * @param key key
    * @param overwrite overwrite any existing object
    * @return
    */
-  def write(bucket: String, key: String, overwrite: Boolean): OutputStream
+  def write(fs: S3ObjectStore, bucket: String, key: String, overwrite: Boolean): OutputStream
 }
 
 object S3WriteBuffering {
@@ -40,22 +40,22 @@ object S3WriteBuffering {
   /**
    * Disk write buffering
    *
-   * @param client s3 client
    * @param bufferSize buffer size, in bytes
    * @param dir tmp dir used for buffering
    */
-  class DiskBuffering(client: S3AsyncClient, bufferSize: Int, dir: File) extends S3WriteBuffering {
+  class DiskBuffering(bufferSize: Int, dir: File) extends S3WriteBuffering {
 
-    override def write(bucket: String, key: String, overwrite: Boolean): OutputStream =
-      new DiskOutputStream(bucket, key, overwrite)
+    override def write(fs: S3ObjectStore, bucket: String, key: String, overwrite: Boolean): OutputStream =
+      new DiskOutputStream(fs, bucket, key, overwrite)
 
     private class DiskOutputStream(
+        fs: S3ObjectStore,
         bucket: String,
         key: String,
         overwrite: Boolean,
         uid: String = UUID.randomUUID().toString.substring(0, 8),
         private var i: Int = 0
-      ) extends ChunkedOutputStream(client, bucket, key, bufferSize, overwrite) {
+      ) extends ChunkedOutputStream(fs, bucket, key, bufferSize, overwrite) {
       override protected def newChunk(): Chunk = {
         val path = s"${bucket.replaceAll("[^a-zA-Z0-9_-]", "_")}/${key.replaceAll("[^a-zA-Z0-9_-]", "_")}/part_${uid}_$i"
         val file = new File(dir, path)
@@ -74,16 +74,15 @@ object S3WriteBuffering {
   /**
    * Off-heap memory buffering
    *
-   * @param client s3 client
    * @param bufferSize buffer size, in bytes
    */
-  class MemoryBuffering(client: S3AsyncClient, bufferSize: Int) extends S3WriteBuffering {
+  class MemoryBuffering(bufferSize: Int) extends S3WriteBuffering {
 
-    override def write(bucket: String, key: String, overwrite: Boolean): OutputStream =
-      new MemoryOutputStream(bucket, key, overwrite)
+    override def write(fs: S3ObjectStore, bucket: String, key: String, overwrite: Boolean): OutputStream =
+      new MemoryOutputStream(fs, bucket, key, overwrite)
 
-    private class MemoryOutputStream(bucket: String, key: String, overwrite: Boolean)
-        extends ChunkedOutputStream(client, bucket, key, bufferSize, overwrite) {
+    private class MemoryOutputStream(fs: S3ObjectStore, bucket: String, key: String, overwrite: Boolean)
+        extends ChunkedOutputStream(fs, bucket, key, bufferSize, overwrite) {
       override protected def newChunk(): Chunk = new MemoryChunk(ByteBuffer.allocateDirect(bufferSize))
     }
 
@@ -104,15 +103,13 @@ object S3WriteBuffering {
     }
   }
 
-  private abstract class ChunkedOutputStream(client: S3AsyncClient, bucket: String, key: String, bufferSize: Int, overwrite: Boolean)
+  private abstract class ChunkedOutputStream(fs: S3ObjectStore, bucket: String, key: String, bufferSize: Int, overwrite: Boolean)
       extends OutputStream with LazyLogging {
-
-    import scala.collection.JavaConverters._
 
     private var currentChunk = newChunk()
     private var currentChunkSize = 0
     private var uploadId: String = _
-    private val uploads = ArrayBuffer.empty[CompletableFuture[UploadPartResponse]]
+    private val uploads = ArrayBuffer.empty[CompletableFuture[CompletedPart]]
 
     override def write(data: Int): Unit = {
       currentChunk.os.write(data)
@@ -147,16 +144,12 @@ object S3WriteBuffering {
       if (done && uploadId == null) {
         // didn't hit our multipart threshold, just use a regular put object
         logger.debug(s"Starting regular s3 upload to $bucket/$key")
-        val request = PutObjectRequest.builder().bucket(bucket).key(key)
-        if (!overwrite) {
-          request.ifNoneMatch("*")
-        }
-        client.putObject(request.build(), currentChunk.read).join()
+        fs.put(bucket, key, currentChunk.read, overwrite)
         logger.debug(s"Completed regular s3 upload to $bucket/$key")
       } else {
         if (uploadId == null) {
           logger.debug(s"Starting multipart upload to $bucket/$key")
-          uploadId = client.createMultipartUpload(b => b.bucket(bucket).key(key)).join().uploadId()
+          uploadId = fs.createMultipartUpload(bucket, key)
           logger.debug(s"Initiated multipart upload with id $uploadId to $bucket/$key")
         }
         val chunk = currentChunk
@@ -165,19 +158,8 @@ object S3WriteBuffering {
         future.whenCompleteAsync((_, _) => chunk.cleanup())
         logger.debug(s"Initiated part ${uploads.size} for upload with id $uploadId to $bucket/$key")
         if (done) {
-          var partNumber = 0
-          val parts = uploads.map { future =>
-            partNumber += 1
-            val response = future.join()
-            CompletedPart.builder().partNumber(partNumber).eTag(response.eTag()).build()
-          }
-          val request =
-            CompleteMultipartUploadRequest.builder()
-              .bucket(bucket).key(key).uploadId(uploadId).multipartUpload(b => b.parts(parts.asJava))
-          if (!overwrite) {
-            request.ifNoneMatch("*")
-          }
-          client.completeMultipartUpload(request.build()).join()
+          val parts = uploads.map(_.join())
+          fs.completeMultipartUpload(bucket, key, uploadId, parts, overwrite)
           logger.debug(s"Completed multipart upload with id $uploadId consisting of ${uploads.size} parts to $bucket/$key")
         } else {
           currentChunk = newChunk()
@@ -186,9 +168,8 @@ object S3WriteBuffering {
       }
     }
 
-    private def retry(currentChunk: Chunk, partNumber: Int, retries: Int): CompletableFuture[UploadPartResponse] = {
-      val request = UploadPartRequest.builder().bucket(bucket).key(key).uploadId(uploadId).partNumber(partNumber).build()
-      client.uploadPart(request, currentChunk.read).exceptionallyCompose { e =>
+    private def retry(currentChunk: Chunk, partNumber: Int, retries: Int): CompletableFuture[CompletedPart] = {
+      fs.uploadPart(bucket, key, uploadId, partNumber, currentChunk.read).exceptionallyCompose { e =>
         if (retries > 0) {
           logger.warn(s"Error with multipart upload, retrying $retries more times:", e)
           retry(currentChunk, partNumber, retries - 1)

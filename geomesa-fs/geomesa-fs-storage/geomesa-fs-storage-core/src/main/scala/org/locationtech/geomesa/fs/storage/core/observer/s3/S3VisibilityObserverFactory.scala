@@ -11,7 +11,6 @@ package observer
 package s3
 
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
-import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import java.net.URI
 
@@ -21,20 +20,18 @@ import java.net.URI
 class S3VisibilityObserverFactory extends FileSystemObserverFactory {
 
   private var fs: S3ObjectStore = _
-  private var s3: S3AsyncClient = _
   private var tag: String = _
 
   override def init(storage: FileSystemStorage): Unit = {
     try {
       fs = storage.fs.asInstanceOf[S3ObjectStore]
-      s3 = fs.client
       tag = storage.context.conf.getOrElse(S3VisibilityObserverFactory.TagNameConfig, S3VisibilityObserverFactory.DefaultTag)
     } catch {
       case e: Exception => throw new RuntimeException("Unable to get s3 client", e)
     }
   }
 
-  override def apply(path: URI): FileSystemObserver = new S3VisibilityObserver(path, s3, tag)
+  override def apply(path: URI): FileSystemObserver = new S3VisibilityObserver(path, fs, tag)
 
   override def close(): Unit = {}
 }
