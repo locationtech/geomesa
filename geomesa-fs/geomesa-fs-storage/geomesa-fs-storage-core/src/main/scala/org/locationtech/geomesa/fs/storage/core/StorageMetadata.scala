@@ -8,10 +8,14 @@
 
 package org.locationtech.geomesa.fs.storage.core
 
+import org.calrissian.mango.types.encoders.lexi.LongEncoder
+import org.calrissian.mango.types.{TypeEncoder, TypeRegistry}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
-import org.locationtech.jts.geom.Envelope
+import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
+import org.locationtech.jts.geom._
 
 import java.io.Closeable
 
@@ -107,6 +111,18 @@ object StorageMetadata {
 
   implicit val StorageFileOrdering: Ordering[StorageFile] = Ordering.by[StorageFile, Long](_.timestamp).reverse
 
+  val TypeRegistry: TypeRegistry[String] = new TypeRegistry[String](AttributeIndexKey.TypeRegistry, Z2Encoder, XZ2Encoder)
+
+  def typeAlias(binding: Class[_]): String = {
+    if (binding == classOf[Point]) {
+      Z2Encoder.getAlias
+    } else if (classOf[Geometry].isAssignableFrom(binding)) {
+      XZ2Encoder.getAlias
+    } else {
+      TypeRegistry.getClassAlias(binding)
+    }
+  }
+
   /**
    * Holds a storage file
    *
@@ -114,8 +130,7 @@ object StorageMetadata {
    * @param partition list of partitions that the file belongs to
    * @param count number of entries in the file
    * @param action type of file (append, modify, delete)
-   * @param spatialBounds known bounds, if any, keyed by feature type attribute number
-   * @param attributeBounds known bounds, if any, keyed by feature type attribute number
+   * @param bounds known column bounds, if any, keyed by feature type attribute number
    * @param sort sort fields for the file, if any, as feature type attribute number
    * @param timestamp timestamp for the file
    */
@@ -124,8 +139,7 @@ object StorageMetadata {
       partition: Partition,
       count: Long,
       action: StorageFileAction.StorageFileAction = StorageFileAction.Append,
-      spatialBounds: Seq[SpatialBounds] = Seq.empty,
-      attributeBounds: Seq[AttributeBounds] = Seq.empty,
+      bounds: Seq[ColumnBounds] = Seq.empty,
       sort: Seq[Int] = Seq.empty,
       timestamp: Long = System.currentTimeMillis(),
     )
@@ -139,65 +153,85 @@ object StorageMetadata {
   }
 
   /**
-   * Immutable representation of an envelope
-   *
-   * Note that conversions to/from 'null' envelopes should be handled carefully, as envelopes are considered
-   * null if xmin > xmax, however, when instantiating an envelope it will re-order the coordinates:
-   *
-   * {{{
-   *   val env = new Envelope()
-   *   val copy = new Envelope(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
-   *   copy == env // false
-   * }}}
-   *
-   * Thus, ensure that 'null' envelopes are converted to `None` and not directly to a bounds object. See
-   * `PartitionBounds.apply`
-   *
-   * @param attribute index of the attribute being bounded
-   * @param xmin min x dimension
-   * @param ymin min y dimension
-   * @param xmax max x dimension
-   * @param ymax max y dimension
-   */
-  case class SpatialBounds(attribute: Int, xmin: Double, ymin: Double, xmax: Double, ymax: Double) {
-
-    /**
-     * Calculate the minimal bounds encompassing both bounds
-     *
-     * @param b other bounds
-     * @return
-     */
-    def +(b: SpatialBounds): SpatialBounds = {
-      require(attribute == b.attribute, "Trying to merge bounds from different attributes")
-      SpatialBounds(attribute, math.min(xmin, b.xmin), math.min(ymin, b.ymin), math.max(xmax, b.xmax), math.max(ymax, b.ymax))
-    }
-
-    /**
-     * Convert to a mutable envelope
-     *
-     * @return
-     */
-    def envelope: Envelope = new Envelope(xmin, xmax, ymin, ymax)
-  }
-
-  object SpatialBounds {
-
-    /**
-     * Converts an envelope to a bounds, handling 'null' (empty) envelopes
-     *
-     * @param env envelope
-     * @return
-     */
-    def apply(attribute: Int, env: Envelope): Option[SpatialBounds] =
-      if (env.isNull) { None } else { Some(SpatialBounds(attribute, env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)) }
-  }
-
-  /**
    * Bounds for an attribute
    *
    * @param attribute index of the attribute in the feature type
    * @param lower lower bound (lexicoded)
    * @param upper upper bound (lexicoded)
    */
-  case class AttributeBounds(attribute: Int, lower: String, upper: String)
+  case class ColumnBounds(attribute: Int, lower: String, upper: String) {
+    def decode(sft: SimpleFeatureType): (Any, Any) = {
+      val alias = typeAlias(sft.getDescriptor(attribute).getType.getBinding)
+      TypeRegistry.decode(alias, lower) -> TypeRegistry.decode(alias, upper)
+    }
+  }
+
+  /**
+   * Encoder for points
+   */
+  object Z2Encoder extends TypeEncoder[Point, String] {
+
+    val sfc: Z2SFC = Z2SFC
+
+    private val longEncoder = new LongEncoder()
+    private val factory = new GeometryFactory()
+
+    override val getAlias: String = "z2"
+
+    override def resolves(): Class[Point] = classOf[Point]
+
+    override def encode(value: Point): String = {
+      if (value == null) {
+        throw new NullPointerException("Null values are not allowed")
+      }
+      longEncoder.encode(sfc.index(value.getX, value.getY))
+    }
+
+    def encode(z: Long): String = longEncoder.encode(z)
+
+    override def decode(value: String): Point = {
+      val (x, y) = sfc.invert(longEncoder.decode(value))
+      factory.createPoint(new Coordinate(x, y))
+    }
+  }
+
+  /**
+   * Encoder for points
+   */
+  object XZ2Encoder extends TypeEncoder[Geometry, String] {
+
+    val sfc: XZ2SFC = XZ2SFC
+
+    private val longEncoder = new LongEncoder()
+    private val factory = new GeometryFactory()
+
+    override val getAlias: String = "xz2"
+
+    override def resolves(): Class[Geometry] = classOf[Geometry]
+
+    override def encode(value: Geometry): String = {
+      if (value == null) {
+        throw new NullPointerException("Null values are not allowed")
+      }
+      val env = value.getEnvelopeInternal
+      if (env.isNull) {
+        throw new NullPointerException("Geometry has a null envelope")
+      }
+      longEncoder.encode(sfc.index(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY))
+    }
+
+    def encode(z: Long): String = longEncoder.encode(z)
+
+    override def decode(value: String): Geometry = {
+      val (xmin, ymin, xmax, ymax) = sfc.invert(longEncoder.decode(value))
+      val ring = Array(
+        new Coordinate(xmin, ymin),
+        new Coordinate(xmin, ymax),
+        new Coordinate(xmax, ymax),
+        new Coordinate(xmax, ymin),
+        new Coordinate(xmin, ymin)
+      )
+      factory.createPolygon(ring)
+    }
+  }
 }

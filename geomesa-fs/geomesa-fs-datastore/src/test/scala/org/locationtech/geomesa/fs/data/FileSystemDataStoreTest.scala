@@ -24,7 +24,7 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, Sim
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.slf4j.LoggerFactory
-import org.specs2.matcher.Matcher
+import org.specs2.matcher.{MatchResult, Matcher}
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -162,7 +162,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
 
           // This shows that the FeatureSource doing the writing has an up-to-date view of the metadata
           fs.getCount(Query.ALL) must beEqualTo(10)
-          fs.getBounds must equalTo(new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
+          compareBounds(fs.getBounds, new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
 
           val results = CloseableIterator(fs.getFeatures(new Query(sft.getTypeName)).features()).toList
           results must containTheSameElementsAs(features)
@@ -171,7 +171,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
           WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds2 =>
             val fs2 = ds2.getFeatureSource(sft.getTypeName)
             fs2.getCount(Query.ALL) must beEqualTo(10)
-            fs2.getBounds must equalTo(new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
+            compareBounds(fs2.getBounds, new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
           }
 
           // test stats queries
@@ -406,7 +406,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
             fs.getCount(Query.ALL) mustEqual 10
             val env = new ReferencedEnvelope(CRS_EPSG_4326)
             features.foreach(f => env.expandToInclude(f.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal))
-            fs.getBounds mustEqual env
+            compareBounds(fs.getBounds, env, 10) // xz2 inversion is not very precise...
 
             foreach(Seq("INCLUDE", s"bbox(geom,${env.getMinX},${env.getMinY},${env.getMaxX},${env.getMaxY})")) { filter =>
               val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
@@ -422,6 +422,13 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
           FileUtils.deleteDirectory(dir)
         }
       }
+    }
+  }
+
+  private def compareBounds(bounds: ReferencedEnvelope, expected: ReferencedEnvelope, delta: Double = 0.01): MatchResult[_] = {
+    def toSeq(b: ReferencedEnvelope): Seq[Double] = Seq(b.getMinX, b.getMinY, b.getMaxX, b.getMaxY)
+    foreach(toSeq(bounds).zip(toSeq(expected))) { case (b, e) =>
+      b must beCloseTo(e, delta)
     }
   }
 }

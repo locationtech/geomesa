@@ -24,6 +24,7 @@ import org.locationtech.geomesa.fs.storage.core.{CloseableFeatureIterator, FileS
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushWithLogging}
+import org.locationtech.jts.geom.Geometry
 
 import java.io.{Closeable, Flushable}
 import java.util.concurrent.TimeUnit
@@ -59,7 +60,11 @@ class FileSystemFeatureStore(
     Option(sft.getGeometryDescriptor).foreach { g =>
       val i = sft.indexOf(g.getLocalName)
       storage.metadata.getFiles(query.getFilter).foreach { file =>
-        file.spatialBounds.find(_.attribute == i).foreach(b => envelope.expandToInclude(b.envelope))
+        file.bounds.find(_.attribute == i).foreach { b =>
+          b.decode(sft).productIterator.foreach {
+            case g: Geometry => envelope.expandToInclude(g.getEnvelopeInternal)
+          }
+        }
       }
     }
     envelope

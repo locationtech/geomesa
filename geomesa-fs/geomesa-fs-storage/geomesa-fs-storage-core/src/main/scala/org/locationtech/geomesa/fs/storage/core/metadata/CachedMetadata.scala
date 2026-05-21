@@ -12,7 +12,7 @@ package metadata
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
-import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction.{AttributeOr, SchemeFilter, SpatialOr}
+import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction.{ColumnOr, SchemeFilter}
 
 import java.util.concurrent.TimeUnit
 import scala.runtime.BoxedUnit
@@ -61,18 +61,13 @@ trait CachedMetadata extends StorageMetadata with SchemeFilterExtraction {
   }
 
   private def matches(file: StorageFile, f: SchemeFilter): Boolean =
-    matches(file, f.partitions) && matches(file, f.spatialBounds) && matches(file, f.attributeBounds)
+    matches(file, f.partitions) && matches(file, f.columnBounds)
 
   private def matches(file: StorageFile, partitions: Seq[PartitionRange]): Boolean =
     partitions.forall(p => file.partition.values.exists(v => p.name == v.name && p.contains(v.value)))
 
-  private def matches(file: StorageFile, spatialBounds: Seq[SpatialOr])(implicit d: DummyImplicit): Boolean =
-    spatialBounds.forall { or =>
-      file.spatialBounds.find(b => b.attribute == or.attribute).forall(b => or.bounds.exists(_.intersects(b)))
-    }
-
-  private def matches(file: StorageFile, attributeBounds: Seq[AttributeOr])(implicit d0: DummyImplicit, d1: DummyImplicit): Boolean =
-    attributeBounds.forall { or =>
-      file.attributeBounds.find(b => b.attribute == or.attribute).forall(b => or.bounds.exists(_.intersects(b)))
+  private def matches(file: StorageFile, columnBounds: Seq[ColumnOr])(implicit d0: DummyImplicit): Boolean =
+    columnBounds.forall { or =>
+      file.bounds.find(b => b.attribute == or.attribute).forall(b => or.bounds.exists(_.intersects(b)))
     }
 }

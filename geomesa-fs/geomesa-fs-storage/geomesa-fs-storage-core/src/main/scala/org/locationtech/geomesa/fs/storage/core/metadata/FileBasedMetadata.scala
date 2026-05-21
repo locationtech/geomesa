@@ -13,7 +13,7 @@ import com.google.gson._
 import com.google.gson.reflect.TypeToken
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{AttributeBounds, SpatialBounds, StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -217,12 +217,9 @@ object FileBasedMetadata {
       obj.add("partition", context.serialize(src.partition))
       obj.addProperty("count", src.count)
       obj.addProperty("action", src.action.toString)
-      val spatialBounds = new JsonArray(src.spatialBounds.size)
-      src.spatialBounds.foreach(b => spatialBounds.add(context.serialize(b)))
-      obj.add("spatialBounds", spatialBounds)
-      val attributeBounds = new JsonArray(src.attributeBounds.size)
-      src.attributeBounds.foreach(b => attributeBounds.add(context.serialize(b)))
-      obj.add("attributeBounds", attributeBounds)
+      val bounds = new JsonArray(src.bounds.size)
+      src.bounds.foreach(b => bounds.add(context.serialize(b)))
+      obj.add("bounds", bounds)
       val sort = new JsonArray(src.sort.size)
       src.sort.foreach(sort.add(_))
       obj.add("sort", sort)
@@ -232,19 +229,13 @@ object FileBasedMetadata {
 
     override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): StorageFile = {
       val obj = json.getAsJsonObject
-      val spatialBounds =
-        obj.getAsJsonArray("spatialBounds").asList().asScala.map(context.deserialize[SpatialBounds](_, classOf[SpatialBounds])).toSeq
-      val attributeBounds =
-        obj.getAsJsonArray("attributeBounds").asList().asScala.map(context.deserialize[AttributeBounds](_, classOf[AttributeBounds])).toSeq
-      val sort = obj.getAsJsonArray("sort").asList().asScala.map(_.getAsInt).toSeq
       StorageFile(
         obj.getAsJsonPrimitive("file").getAsString,
         context.deserialize(obj.get("partition"), classOf[Partition]),
         obj.getAsJsonPrimitive("count").getAsLong,
         StorageFileAction.withName(obj.getAsJsonPrimitive("action").getAsString),
-        spatialBounds,
-        attributeBounds,
-        sort,
+        obj.getAsJsonArray("bounds").asList().asScala.map(context.deserialize[ColumnBounds](_, classOf[ColumnBounds])).toSeq,
+        obj.getAsJsonArray("sort").asList().asScala.map(_.getAsInt).toSeq,
         obj.getAsJsonPrimitive("timestamp").getAsLong,
       )
     }

@@ -21,7 +21,7 @@ import scala.collection.mutable.ArrayBuffer
   *
   * @param g resolution level of the curve - i.e. how many times the space will be recursively quartered
   */
-class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
+class XZ2SFC(val g: Short, val xBounds: (Double, Double), val yBounds: (Double, Double)) {
 
   // TODO see what the max value of g can be where we can use Ints instead of Longs and possibly refactor to use Ints
 
@@ -34,7 +34,7 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
   private val ySize = yHi - yLo
 
   /**
-    * Index a polygon by it's bounding box
+    * Index a polygon by its bounding box
     *
     * @param bounds (xmin, ymin, xmax, ymax)
     * @return z value for the bounding box
@@ -42,7 +42,7 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
   def index(bounds: (Double, Double, Double, Double)): Long = index(bounds._1, bounds._2, bounds._3, bounds._4)
 
   /**
-    * Index a polygon by it's bounding box
+    * Index a polygon by its bounding box
     *
     * @param xmin min x value in xBounds
     * @param ymin min y value in yBounds
@@ -75,6 +75,17 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
 
     sequenceCode(nxmin, nymin, length)
   }
+
+  /**
+   * Invert a curve value back to a bounding box.
+   *
+   * Note: this may not be accurate
+   *
+   * @param z indexed curve value
+   * @return
+   */
+  def invert(z: Long): (Double, Double, Double, Double) =
+    XZ2Reversal.reverseIndex(this, z).getOrElse((xBounds._1, yBounds._1, xBounds._2, yBounds._2))
 
   /**
     * Determine XZ-curve ranges that will cover a given query window
@@ -290,7 +301,7 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     *
     * @param x normalized x value [0,1]
     * @param y normalized y value [0,1]
-    * @param length length of the sequence code that will used as the basis for this interval
+    * @param length length of the sequence code that will be used as the basis for this interval
     * @param partial true if the element partially intersects the query window, false if it is fully contained
     * @return
     */
@@ -350,7 +361,7 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
   }
 }
 
-object XZ2SFC {
+object XZ2SFC extends XZ2SFC(XZSFC.DefaultPrecision, (-180.0, 180.0), (-90.0, 90.0)) {
 
   // the initial level of quads
   private val LevelOneElements = XElement(0.0, 0.0, 1.0, 1.0, 1.0).children
@@ -394,8 +405,8 @@ object XZ2SFC {
   private case class XElement(xmin: Double, ymin: Double, xmax: Double, ymax: Double, length: Double) {
 
     // extended x and y bounds
-    lazy val xext = xmax + length
-    lazy val yext = ymax + length
+    lazy private val xext = xmax + length
+    lazy private val yext = ymax + length
 
     def isContained(window: QueryWindow): Boolean =
       window.xmin <= xmin && window.ymin <= ymin && window.xmax >= xext && window.ymax >= yext

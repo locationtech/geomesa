@@ -13,9 +13,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{AttributeBounds, SpatialBounds, StorageFile}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, StorageFile}
 import org.locationtech.geomesa.fs.storage.core.metadata.JdbcMetadata.{FilesTable, MetadataTable}
-import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction.{AttributeBound, AttributeOr, SpatialBound, SpatialOr}
+import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction.{ColumnBound, ColumnOr}
 import org.locationtech.geomesa.fs.storage.core.schemes.ZeroChar
 import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -170,11 +170,11 @@ class JdbcMetadata(
   }
 
   override def getFiles(): Seq[StorageFile] =
-    WithClose(pool.getConnection())(files.select(_, Seq.empty, Seq.empty, Seq.empty))
+    WithClose(pool.getConnection())(files.select(_, Seq.empty, Seq.empty))
 
   override def getFiles(partition: Partition): Seq[StorageFile] = {
     val filters = partition.values.toSeq.map(p => PartitionRange(p.name, p.value, p.value + ZeroChar))
-    WithClose(pool.getConnection())(files.select(_, filters, Seq.empty, Seq.empty))
+    WithClose(pool.getConnection())(files.select(_, filters, Seq.empty))
   }
 
   override def getFiles(filter: Filter): Seq[StorageFile] = {
@@ -187,7 +187,7 @@ class JdbcMetadata(
       } else {
         WithClose(pool.getConnection()) { cx =>
           filters.flatMap { f =>
-            files.select(cx, f.partitions, f.spatialBounds, f.attributeBounds)
+            files.select(cx, f.partitions, f.columnBounds)
           }
         }
       }
@@ -342,8 +342,7 @@ object JdbcMetadata extends LazyLogging {
 
     private val filesTable = s""""$schema"."${tablePrefix}files""""
     private val partitionsTable = s""""$schema"."${tablePrefix}partitions""""
-    private val spatialBoundsTable = s""""$schema"."${tablePrefix}spatial_bounds""""
-    private val attrBoundsTable = s""""$schema"."${tablePrefix}attr_bounds""""
+    private val columnBoundsTable = s""""$schema"."${tablePrefix}col_bounds""""
 
     def create(cx: Connection): Unit = {
       WithClose(cx.createStatement()) { st =>
@@ -372,22 +371,7 @@ object JdbcMetadata extends LazyLogging {
              |);""".stripMargin
         )
         st.executeUpdate(
-          s"""CREATE TABLE IF NOT EXISTS $spatialBoundsTable (
-             |  file_id BIGINT NOT NULL,
-             |  attribute SMALLINT NOT NULL,
-             |  x_min DOUBLE PRECISION,
-             |  x_max DOUBLE PRECISION,
-             |  y_min DOUBLE PRECISION,
-             |  y_max DOUBLE PRECISION,
-             |  PRIMARY KEY (file_id, attribute),
-             |  CONSTRAINT fk_storage_file
-             |    FOREIGN KEY (file_id)
-             |    REFERENCES storage_files(id)
-             |    ON DELETE CASCADE
-             |);""".stripMargin
-        )
-        st.executeUpdate(
-          s"""CREATE TABLE IF NOT EXISTS $attrBoundsTable (
+          s"""CREATE TABLE IF NOT EXISTS $columnBoundsTable (
              |  file_id BIGINT NOT NULL,
              |  attribute SMALLINT NOT NULL,
              |  lower TEXT,
@@ -400,8 +384,7 @@ object JdbcMetadata extends LazyLogging {
              |);""".stripMargin
         )
         st.executeUpdate(s"""CREATE INDEX IF NOT EXISTS ${tablePrefix}partitions_idx_partition ON $partitionsTable(name, value);""")
-        st.executeUpdate(s"""CREATE INDEX IF NOT EXISTS ${tablePrefix}attr_bounds_idx_bounds ON $attrBoundsTable(attribute, lower, upper);""")
-        st.executeUpdate(s"""CREATE INDEX IF NOT EXISTS ${tablePrefix}spatial_bounds_idx_bounds ON $spatialBoundsTable(attribute, x_min, x_max, y_min, y_max);""")
+        st.executeUpdate(s"""CREATE INDEX IF NOT EXISTS ${tablePrefix}col_bounds_idx_bounds ON $columnBoundsTable(attribute, lower, upper);""")
       }
     }
 
@@ -437,22 +420,9 @@ object JdbcMetadata extends LazyLogging {
           st.executeUpdate()
         }
       }
-      if (file.spatialBounds.nonEmpty) {
-        WithClose(cx.prepareStatement(s"INSERT INTO $spatialBoundsTable (file_id, attribute, x_min, x_max, y_min, y_max) VALUES (?, ?, ?, ?, ?, ?)")) { st =>
-          file.spatialBounds.foreach { bounds =>
-            st.setLong(1, id)
-            st.setInt(2, bounds.attribute)
-            st.setDouble(3, bounds.xmin)
-            st.setDouble(4, bounds.xmax)
-            st.setDouble(5, bounds.ymin)
-            st.setDouble(6, bounds.ymax)
-            st.executeUpdate()
-          }
-        }
-      }
-      if (file.attributeBounds.nonEmpty) {
-        WithClose(cx.prepareStatement(s"INSERT INTO $attrBoundsTable (file_id, attribute, lower, upper) VALUES (?, ?, ?, ?)")) { st =>
-          file.attributeBounds.foreach { bounds =>
+      if (file.bounds.nonEmpty) {
+        WithClose(cx.prepareStatement(s"INSERT INTO $columnBoundsTable (file_id, attribute, lower, upper) VALUES (?, ?, ?, ?)")) { st =>
+          file.bounds.foreach { bounds =>
             st.setLong(1, id)
             st.setInt(2, bounds.attribute)
             st.setString(3, bounds.lower)
@@ -472,63 +442,45 @@ object JdbcMetadata extends LazyLogging {
       }
     }
 
-    def select(
-        cx: Connection,
-        partitions: Seq[PartitionRange],
-        spatialBounds: Seq[SpatialOr],
-        attributeBounds: Seq[AttributeOr],
-      ): Seq[StorageFile] = {
+    def select(cx: Connection, partitions: Seq[PartitionRange], columnBounds: Seq[ColumnOr]): Seq[StorageFile] = {
 
       // build query with multiple joins - one for each partition filter (AND logic)
       val partitionJoins = partitions.zipWithIndex.map {
         case (PartitionRange(name, lower, upper), i) => PartitionJoin(name, lower, upper, s"sp_filter_$i")
       }
 
-      // build spatial bound filters - one LEFT JOIN per attribute with OR logic for bounds
-      val spatialBoundJoins = spatialBounds.zipWithIndex.map {
-        case (SpatialOr(attribute, bounds), i) => SpatialBoundsJoin(attribute, bounds, s"sb_filter_$i")
-      }
-
-      // build attribute bound filters - one LEFT JOIN per attribute with OR logic for bounds
-      val attrBoundJoins = attributeBounds.zipWithIndex.map {
-        case (AttributeOr(attribute, bounds), i) => AttributeBoundsJoin(attribute, bounds, s"ab_filter_$i")
+      // build column bound filters - one LEFT JOIN per attribute with OR logic for bounds
+      val columnBoundJoins = columnBounds.zipWithIndex.map {
+        case (ColumnOr(attribute, bounds), i) => ColumnBoundsJoin(attribute, bounds, s"cb_filter_$i")
       }
 
       val joinClause =
         partitionJoins.map { j =>
           s"JOIN $partitionsTable ${j.tableAlias} ON sf.id = ${j.tableAlias}.file_id AND ${j.onClause}"
         } ++
-        spatialBoundJoins.map { j =>
-          s"LEFT JOIN $spatialBoundsTable ${j.tableAlias} ON sf.id = ${j.tableAlias}.file_id AND ${j.tableAlias}.attribute = ?"
-        } ++
-        attrBoundJoins.map { j =>
-          s"LEFT JOIN $attrBoundsTable ${j.tableAlias} ON sf.id = ${j.tableAlias}.file_id AND ${j.tableAlias}.attribute = ?"
+        columnBoundJoins.map { j =>
+          s"LEFT JOIN $columnBoundsTable ${j.tableAlias} ON sf.id = ${j.tableAlias}.file_id AND ${j.tableAlias}.attribute = ?"
         }
 
-      // build WHERE clause for spatial and attribute bounds
+      // build WHERE clause for column bounds
       // if bounds don't exist (NULL), we count it as a match
-      val spatialWhereClause = spatialBoundJoins.map { j =>
+      val boundsWhereClause = columnBoundJoins.map { j =>
         s"(${j.tableAlias}.file_id IS NULL OR ${j.whereClause})"
       }
-      val attrWhereClause = attrBoundJoins.map { j =>
-        s"(${j.tableAlias}.file_id IS NULL OR ${j.whereClause})"
-      }
-      val allWhereClauses = spatialWhereClause ++ attrWhereClause
 
-      // note: all child tables (partitions, spatial bounds, attribute bounds) are pre-aggregated
+      // note: all child tables (partitions, column bounds) are pre-aggregated
       // in subqueries. This ensures each file returns exactly one row with no Cartesian products.
-      // The sp_filter, sb_filter, and ab_filter joins are used for filtering and must remain on the raw tables.
-      val whereClause = if (allWhereClauses.isEmpty) {
+      // The sp_filter and cb_filter joins are used for filtering and must remain on the raw tables.
+      val whereClause = if (boundsWhereClause.isEmpty) {
         "WHERE sf.root = ? AND sf.typeName = ?"
       } else {
-        s"WHERE sf.root = ? AND sf.typeName = ? AND ${allWhereClauses.mkString(" AND ")}"
+        s"WHERE sf.root = ? AND sf.typeName = ? AND ${boundsWhereClause.mkString(" AND ")}"
       }
 
       val query =
         s"""SELECT sf.id, sf.file, sf.count, sf.action, sf.sort, sf.ts,
            |  sp.partition_names, sp.partition_values,
-           |  sb.sb_attributes, sb.sb_x_mins, sb.sb_x_maxs, sb.sb_y_mins, sb.sb_y_maxs,
-           |  ab.ab_attributes, ab.ab_lowers, ab.ab_uppers
+           |  cb.cb_attributes, cb.cb_lowers, cb.cb_uppers
            |FROM $filesTable sf
            |${joinClause.mkString("\n")}
            |LEFT JOIN (
@@ -540,22 +492,12 @@ object JdbcMetadata extends LazyLogging {
            |) sp ON sf.id = sp.file_id
            |LEFT JOIN (
            |  SELECT file_id,
-           |    array_agg(attribute ORDER BY attribute) as sb_attributes,
-           |    array_agg(x_min ORDER BY attribute) as sb_x_mins,
-           |    array_agg(x_max ORDER BY attribute) as sb_x_maxs,
-           |    array_agg(y_min ORDER BY attribute) as sb_y_mins,
-           |    array_agg(y_max ORDER BY attribute) as sb_y_maxs
-           |  FROM $spatialBoundsTable
+           |    array_agg(attribute ORDER BY attribute) as cb_attributes,
+           |    array_agg(lower ORDER BY attribute) as cb_lowers,
+           |    array_agg(upper ORDER BY attribute) as cb_uppers
+           |  FROM $columnBoundsTable
            |  GROUP BY file_id
-           |) sb ON sf.id = sb.file_id
-           |LEFT JOIN (
-           |  SELECT file_id,
-           |    array_agg(attribute ORDER BY attribute) as ab_attributes,
-           |    array_agg(lower ORDER BY attribute) as ab_lowers,
-           |    array_agg(upper ORDER BY attribute) as ab_uppers
-           |  FROM $attrBoundsTable
-           |  GROUP BY file_id
-           |) ab ON sf.id = ab.file_id
+           |) cb ON sf.id = cb.file_id
            |$whereClause
            |ORDER BY sf.id DESC""".stripMargin
 
@@ -565,13 +507,8 @@ object JdbcMetadata extends LazyLogging {
         partitionJoins.foreach { join =>
           paramIndex += join.apply(st, paramIndex)
         }
-        // set spatial bound join parameters (attribute IDs in JOIN clauses)
-        spatialBoundJoins.foreach { join =>
-          st.setInt(paramIndex, join.attribute)
-          paramIndex += 1
-        }
-        // set attribute bound join parameters (attribute IDs in JOIN clauses)
-        attrBoundJoins.foreach { join =>
+        // set column bound join parameters (attribute IDs in JOIN clauses)
+        columnBoundJoins.foreach { join =>
           st.setInt(paramIndex, join.attribute)
           paramIndex += 1
         }
@@ -580,12 +517,8 @@ object JdbcMetadata extends LazyLogging {
         paramIndex += 1
         st.setString(paramIndex, typeName)
         paramIndex += 1
-        // set spatial bound WHERE clause parameters
-        spatialBoundJoins.foreach { join =>
-          paramIndex += join.apply(st, paramIndex)
-        }
-        // set attribute bound WHERE clause parameters
-        attrBoundJoins.foreach { join =>
+        // set column bound WHERE clause parameters
+        columnBoundJoins.foreach { join =>
           paramIndex += join.apply(st, paramIndex)
         }
         WithClose(st.executeQuery())(toStorageFiles)
@@ -613,25 +546,14 @@ object JdbcMetadata extends LazyLogging {
           names.indices.map(i => PartitionKey(names(i), values(i))).toSet
         }
 
-        val spatialBounds = {
+        val bounds = {
           val attributes = Option(rs.getArray(9)).map(_.getArray.asInstanceOf[Array[java.lang.Short]]).getOrElse(Array.empty)
-          val xMins = Option(rs.getArray(10)).map(_.getArray.asInstanceOf[Array[java.lang.Double]]).getOrElse(Array.empty)
-          val xMaxs = Option(rs.getArray(11)).map(_.getArray.asInstanceOf[Array[java.lang.Double]]).getOrElse(Array.empty)
-          val yMins = Option(rs.getArray(12)).map(_.getArray.asInstanceOf[Array[java.lang.Double]]).getOrElse(Array.empty)
-          val yMaxs = Option(rs.getArray(13)).map(_.getArray.asInstanceOf[Array[java.lang.Double]]).getOrElse(Array.empty)
-          attributes.indices.map { i =>
-            SpatialBounds(attributes(i).intValue(), xMins(i).doubleValue(), yMins(i).doubleValue(), xMaxs(i).doubleValue(), yMaxs(i).doubleValue())
-          }
+          val lowers = Option(rs.getArray(10)).map(_.getArray.asInstanceOf[Array[String]]).getOrElse(Array.empty)
+          val uppers = Option(rs.getArray(11)).map(_.getArray.asInstanceOf[Array[String]]).getOrElse(Array.empty)
+          attributes.indices.map(i => ColumnBounds(attributes(i).intValue(), lowers(i), uppers(i)))
         }
 
-        val attributeBounds = {
-          val attributes = Option(rs.getArray(14)).map(_.getArray.asInstanceOf[Array[java.lang.Short]]).getOrElse(Array.empty)
-          val lowers = Option(rs.getArray(15)).map(_.getArray.asInstanceOf[Array[String]]).getOrElse(Array.empty)
-          val uppers = Option(rs.getArray(16)).map(_.getArray.asInstanceOf[Array[String]]).getOrElse(Array.empty)
-          attributes.indices.map(i => AttributeBounds(attributes(i).intValue(), lowers(i), uppers(i)))
-        }
-
-        result += StorageFile(file, Partition(partitions), count, action, spatialBounds, attributeBounds, sort, timestamp)
+        result += StorageFile(file, Partition(partitions), count, action, bounds, sort, timestamp)
       }
 
       result.result()
@@ -648,32 +570,8 @@ object JdbcMetadata extends LazyLogging {
       }
     }
 
-    // spatial bounds filter with OR logic for multiple bounds on the same attribute
-    private case class SpatialBoundsJoin(attribute: Int, bounds: Seq[SpatialBound], tableAlias: String) {
-      // generate WHERE clause with OR logic for all bounds
-      // checks if any of the bounds intersect with the file's spatial bounds
-      def whereClause: String = {
-        bounds.map { _ =>
-          s"($tableAlias.x_min <= ? AND $tableAlias.x_max >= ? AND $tableAlias.y_min <= ? AND $tableAlias.y_max >= ?)"
-        }.mkString(" OR ")
-      }
-
-      def apply(st: PreparedStatement, i: Int): Int = {
-        var paramIndex = i
-        bounds.foreach { bound =>
-          // for intersection: file.xmin <= filter.xmax AND file.xmax >= filter.xmin
-          st.setDouble(paramIndex, bound.xmax)
-          st.setDouble(paramIndex + 1, bound.xmin)
-          st.setDouble(paramIndex + 2, bound.ymax)
-          st.setDouble(paramIndex + 3, bound.ymin)
-          paramIndex += 4
-        }
-        bounds.size * 4
-      }
-    }
-
     // attribute bounds filter with OR logic for multiple bounds on the same attribute
-    private case class AttributeBoundsJoin(attribute: Int, bounds: Seq[AttributeBound], tableAlias: String) {
+    private case class ColumnBoundsJoin(attribute: Int, bounds: Seq[ColumnBound], tableAlias: String) {
       // generate WHERE clause with OR logic for all bounds
       // checks if any of the bounds intersect with the file's attribute bounds
       def whereClause: String = {
