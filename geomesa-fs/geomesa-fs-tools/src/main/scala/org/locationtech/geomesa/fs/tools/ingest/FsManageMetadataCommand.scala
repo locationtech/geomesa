@@ -81,6 +81,7 @@ object FsManageMetadataCommand extends LazyLogging {
 
       def outputResult(file: StorageFile): Unit = {
         Command.user.info(s"Registered file ${storage.context.root.resolve(file.file)} containing ${file.count} known features")
+        lazy val padding = file.bounds.map(b => metadata.sft.getDescriptor(b.attribute).getLocalName.length).max
         val bounds = file.bounds.map { b =>
           val (lower, upper) = b.decode(metadata.sft) match {
             case (lower: Geometry, upper: Geometry) =>
@@ -93,7 +94,7 @@ object FsManageMetadataCommand extends LazyLogging {
 
             case other => other
           }
-          s"${metadata.sft.getDescriptor(b.attribute).getLocalName} [$lower,$upper]"
+          s"${metadata.sft.getDescriptor(b.attribute).getLocalName.padTo(padding, " ")} [ $lower,$upper ]"
         }
         Command.user.info(s"File bounds:\n  ${bounds.mkString("\n  ")}")
       }

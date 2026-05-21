@@ -79,16 +79,18 @@ object FilterConverter {
         val (field, ranges) =
           if (typed == ObjectType.POINT) {
             val field = ZValueField.z2(col, encoded = true).zValue
-            val ranges = Z2Encoder.sfc.ranges(bounds, 64, Some(8)) // TODO make configurable
+            // TODO make max ranges configurable
+            val ranges = Z2Encoder.ranges(bounds, Some(8))
             (field, ranges)
           } else {
             val field = ZValueField.xz2(col, encoded = true).zValue
-            val ranges = XZ2Encoder.sfc.ranges(bounds, Some(8))
+            val ranges = XZ2Encoder.ranges(bounds, Some(8))
             (field, ranges)
           }
-
-        val zcol = FilterApi.longColumn(field)
-        val filters = ranges.map(r => FilterApi.and(FilterApi.gtEq(zcol, Long.box(r.lower)), FilterApi.ltEq(zcol, Long.box(r.upper))))
+        val zcol = FilterApi.binaryColumn(field)
+        val filters = ranges.map { case (lower, upper) =>
+          FilterApi.and(FilterApi.gtEq(zcol, Binary.fromString(lower)), FilterApi.ltEq(zcol, Binary.fromString(upper)))
+        }
         filters.reduce(FilterApi.or)
       }
     }

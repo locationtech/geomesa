@@ -68,16 +68,13 @@ trait SchemeFilterExtraction extends AnyLogging {
       if (classOf[Geometry].isAssignableFrom(d.getType.getBinding)) {
         val ors = FilterHelper.extractGeometries(filter, sft.getDescriptor(i).getLocalName).values.flatMap { g =>
           val env = g.getEnvelopeInternal
-          if (d.getType.getBinding == classOf[Point]) {
-            // TODO make max ranges configurable
-            Z2Encoder.sfc.ranges(Seq((env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)), maxRanges = Some(8)).map { range =>
-              ColumnBound(Z2Encoder.encode(range.lower), Z2Encoder.encode(range.upper))
-            }
+          // TODO make max ranges configurable
+          val ranges = if (d.getType.getBinding == classOf[Point]) {
+            Z2Encoder.ranges(Seq((env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)), Some(8))
           } else {
-            XZ2Encoder.sfc.ranges((env.getMinX, env.getMinY, env.getMaxX, env.getMaxY), Some(8)).map { range =>
-              ColumnBound(XZ2Encoder.encode(range.lower), XZ2Encoder.encode(range.upper))
-            }
+            XZ2Encoder.ranges(Seq((env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)), Some(8))
           }
+          ranges.map { case (lower, upper) => ColumnBound(lower, upper) }
         }
         if (ors.isEmpty) { None } else { Some(ColumnOr(i, ors)) }
       } else {

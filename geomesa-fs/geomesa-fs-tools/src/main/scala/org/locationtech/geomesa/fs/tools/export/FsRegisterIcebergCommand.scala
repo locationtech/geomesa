@@ -13,7 +13,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg._
 import org.apache.iceberg.catalog.{Catalog, Namespace, TableIdentifier}
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.core.schemes.{SpatialScheme, XZ2Scheme, Z2Scheme}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.parquet.iceberg.IcebergMapper
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
@@ -101,11 +100,6 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand with LazyLogging {
       }
       // file format v3 lets us use native geometries - but it's not yet supported in spark or trino
       // icebergProps.put(TableProperties.FORMAT_VERSION, "3")
-      storage.metadata.schemes.foreach {
-        case s: Z2Scheme  => icebergProps.put(s"geomesa.partition.${s.attribute}.bits", Integer.toString(s.bits))
-        case s: XZ2Scheme => icebergProps.put(s"geomesa.partition.${s.attribute}.bits", Integer.toString(s.bits))
-        case _ => // no-op
-      }
       catalog.createTable(tableId, iceberg.schema, iceberg.spec, warehouse, icebergProps)
     }
     logger.debug(s"Iceberg table: $table")
