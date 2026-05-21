@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage
 
 import com.google.gson._
 import com.typesafe.config.ConfigFactory
-import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.ConvertToBoolean
@@ -311,12 +311,8 @@ package object core {
       if (obs == null || obs.isEmpty) { Seq.empty } else { obs.split(",") }
     }
 
-    def spatialBounds(): Seq[Int] = sft.getAttributeDescriptors.asScala.toSeq.collect {
-      case g: GeometryDescriptor if g == sft.getGeometryDescriptor || g.fsBounds() => sft.indexOf(g.getLocalName)
-    }
-
-    def nonSpatialBounds(): Seq[Int] = sft.getAttributeDescriptors.asScala.toSeq.collect {
-      case d if sft.getUserData.get(DefaultDtgField) == d.getLocalName || (d.fsBounds() && !d.isInstanceOf[GeometryDescriptor]) =>
+    def columnBounds(): Seq[Int] = sft.getAttributeDescriptors.asScala.toSeq.collect {
+      case d if d == sft.getGeometryDescriptor || sft.getUserData.get(DefaultDtgField) == d.getLocalName || d.fsBounds() =>
         sft.indexOf(d.getLocalName)
     }
 

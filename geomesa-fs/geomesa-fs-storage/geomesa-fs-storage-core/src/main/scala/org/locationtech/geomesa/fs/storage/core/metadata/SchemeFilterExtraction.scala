@@ -14,10 +14,9 @@ import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.core.PartitionScheme
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{AttributeBounds, SpatialBounds}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, XZ2Encoder, Z2Encoder}
 import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction._
-import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
-import org.locationtech.jts.geom.Envelope
+import org.locationtech.jts.geom.{Geometry, Point}
 
 /**
  * Mixin trait for matching partitions against a CQL filter
@@ -32,17 +31,16 @@ trait SchemeFilterExtraction extends AnyLogging {
     val filters = start match {
       case None =>
         // filter did not constrain partitions at all
-        Seq(SchemeFilter(filter, Seq.empty, extractGeometries(filter), extractAttributes(filter)))
+        Seq(SchemeFilter(filter, Seq.empty, extractAttributes(filter)))
 
       case Some(ranges) =>
         // set up the initial scheme filters, without any spatial/attribute bounds
         val initialRanges = ranges.map(r => Seq(r))
         // add in the remaining partitions
         val permutations = iter.foldLeft(initialRanges) { case (ranges, scheme) => addPartition(scheme, ranges, filter) }
-        // add in the spatial/attribute bounds based on the remaining filter for each scheme filter
-        val spatialBounds = extractGeometries(filter)
+        // add in the attribute bounds based on the remaining filter for each scheme filter
         val attributeBounds = extractAttributes(filter)
-        permutations.map(ranges => SchemeFilter(filter, ranges, spatialBounds, attributeBounds))
+        permutations.map(ranges => SchemeFilter(filter, ranges, attributeBounds))
     }
 
     logger.debug(s"Extracted filters from ${ECQL.toCQL(filter)}:\n  ${filters.mkString("\n  ")}")
@@ -64,24 +62,32 @@ trait SchemeFilterExtraction extends AnyLogging {
     result.result()
   }
 
-  private def extractGeometries(filter: Filter): Seq[SpatialOr] = {
-    sft.spatialBounds().flatMap { i =>
-      val ors = FilterHelper.extractGeometries(filter, sft.getDescriptor(i).getLocalName).values.flatMap { g =>
-        SpatialBound(g.getEnvelopeInternal)
-      }
-      if (ors.isEmpty) { None } else { Some(SpatialOr(i, ors)) }
-    }
-  }
-
-  private def extractAttributes(filter: Filter): Seq[AttributeOr] = {
-    sft.nonSpatialBounds().flatMap { i =>
+  private def extractAttributes(filter: Filter): Seq[ColumnOr] = {
+    sft.columnBounds().flatMap { i =>
       val d = sft.getDescriptor(i)
-      val ors = FilterHelper.extractAttributeBounds(filter, d.getLocalName, d.getType.getBinding).values.map { b =>
-        val lower = b.lower.value.map(AttributeIndexKey.typeEncode).getOrElse("")
-        val upper = b.upper.value.map(AttributeIndexKey.typeEncode).getOrElse("zzz")
-        AttributeBound(lower, upper)
+      if (classOf[Geometry].isAssignableFrom(d.getType.getBinding)) {
+        val ors = FilterHelper.extractGeometries(filter, sft.getDescriptor(i).getLocalName).values.flatMap { g =>
+          val env = g.getEnvelopeInternal
+          if (d.getType.getBinding == classOf[Point]) {
+            // TODO make max ranges configurable
+            Z2Encoder.sfc.ranges(Seq((env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)), maxRanges = Some(8)).map { range =>
+              ColumnBound(Z2Encoder.encode(range.lower), Z2Encoder.encode(range.upper))
+            }
+          } else {
+            XZ2Encoder.sfc.ranges((env.getMinX, env.getMinY, env.getMaxX, env.getMaxY), Some(8)).map { range =>
+              ColumnBound(XZ2Encoder.encode(range.lower), XZ2Encoder.encode(range.upper))
+            }
+          }
+        }
+        if (ors.isEmpty) { None } else { Some(ColumnOr(i, ors)) }
+      } else {
+        val ors = FilterHelper.extractAttributeBounds(filter, d.getLocalName, d.getType.getBinding).values.map { b =>
+          val lower = b.lower.value.map(StorageMetadata.TypeRegistry.encode).getOrElse("")
+          val upper = b.upper.value.map(StorageMetadata.TypeRegistry.encode).getOrElse("zzz")
+          ColumnBound(lower, upper)
+        }
+        if (ors.isEmpty) { None } else { Some(ColumnOr(i, ors)) }
       }
-      if (ors.isEmpty) { None } else { Some(AttributeOr(i, ors)) }
     }
   }
 }
@@ -93,37 +99,17 @@ object SchemeFilterExtraction {
    *
    * @param filter remaining ECQL filter that isn't accounted for with the other bounds
    * @param partitions list of partition bound predicates (implicit AND between each element in the seq)
-   * @param spatialBounds list of spatial bound predicates (implicit AND between each element in the seq)
-   * @param attributeBounds list of attribute bound predicates (implicit AND between each element in the seq)
+   * @param columnBounds list of column bound predicates (implicit AND between each element in the seq)
    */
   case class SchemeFilter(
     filter: Filter,
     partitions: Seq[PartitionRange],
-    spatialBounds: Seq[SpatialOr],
-    attributeBounds: Seq[AttributeOr]
+    columnBounds: Seq[ColumnOr]
   )
 
-  case class SpatialOr(attribute: Int, bounds: Seq[SpatialBound])
-  case class AttributeOr(attribute: Int, bounds: Seq[AttributeBound])
+  case class ColumnOr(attribute: Int, bounds: Seq[ColumnBound])
 
-  case class SpatialBound(xmin: Double, ymin: Double, xmax: Double, ymax: Double) {
-    def intersects(other: SpatialBounds): Boolean =
-      other.xmin <= xmax && other.xmax >= xmin && other.ymin <= ymax && other.ymax >= ymin
-  }
-
-  object SpatialBound {
-
-    /**
-     * Converts an envelope to a bounds, handling 'null' (empty) envelopes
-     *
-     * @param env envelope
-     * @return
-     */
-    def apply(env: Envelope): Option[SpatialBound] =
-      if (env.isNull) { None } else { Some(SpatialBound(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)) }
-  }
-
-  case class AttributeBound(lower: String, upper: String) {
-    def intersects(other: AttributeBounds): Boolean = other.lower <= upper && other.upper >= lower
+  case class ColumnBound(lower: String, upper: String) {
+    def intersects(other: ColumnBounds): Boolean = other.lower <= upper && other.upper >= lower
   }
 }

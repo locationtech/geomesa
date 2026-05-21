@@ -14,7 +14,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
-import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction.{AttributeBound, AttributeOr, SchemeFilter, SpatialBound, SpatialOr}
+import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction.{ColumnBound, ColumnOr, SchemeFilter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
 
@@ -30,8 +30,7 @@ class SchemeFilterExtractionTest extends SpecificationWithJUnit {
       val filters = metadata.getSchemeFilters(ecql)
       filters must haveLength(1)
       filters.head.partitions mustEqual Seq(PartitionRange("hours:attribute=dtg", "80063b40", "80063b58"))
-      filters.head.spatialBounds must beEmpty
-      filters.head.attributeBounds mustEqual Seq(AttributeOr(0, Seq(AttributeBound("800001564db32000", "8000015652d97c00"))))
+      filters.head.columnBounds mustEqual Seq(ColumnOr(0, Seq(ColumnBound("800001564db32000", "8000015652d97c00"))))
     }
 
     "extract spatio-temporal filters" in {
@@ -41,8 +40,8 @@ class SchemeFilterExtractionTest extends SpecificationWithJUnit {
       filters must haveLength(1)
       filters.head.partitions must
         containTheSameElementsAs(Seq(PartitionRange("hours:attribute=dtg", "80066ba0", "80066bb8"), PartitionRange("z2:attribute=geom:bits=2", "3", "4")))
-      filters.head.spatialBounds mustEqual Seq(SpatialOr(1, Seq(SpatialBound(0, 0, 180, 90))))
-      filters.head.attributeBounds mustEqual Seq(AttributeOr(0, Seq(AttributeBound("80000160af049000", "80000160b42aec00"))))
+      filters.head.columnBounds mustEqual
+        Seq(ColumnOr(0, Seq(ColumnBound("80000160af049000", "80000160b42aec00"))), ColumnOr(1, Seq(ColumnBound("b000000000000000", "bfffffffffffffff"))))
     }
   }
 

@@ -39,7 +39,9 @@ class AvroReadSupport extends ReadSupport[GenericRecord] {
 
   override def init(context: InitContext): ReadContext = {
     schema = SimpleFeatureParquetSchema.read(context)
-    new ReadContext(context.getFileSchema, schema.map(_.metadata).getOrElse(Collections.emptyMap()))
+    val readSchema = schema.fold(context.getFileSchema)(_.schema)
+    val metadata = schema.fold(Collections.emptyMap[String, String]())(_.metadata)
+    new ReadContext(readSchema, metadata)
   }
 
   override def prepareForRead(
@@ -47,14 +49,14 @@ class AvroReadSupport extends ReadSupport[GenericRecord] {
       keyValueMetaData: java.util.Map[String, String],
       fileSchema: MessageType,
       readContext: ReadContext): RecordMaterializer[GenericRecord] =
-    new AvroRecordMaterializer(fileSchema, schema)
+    new AvroRecordMaterializer(readContext.getRequestedSchema, schema)
 
   override def prepareForRead(
-    configuration: ParquetConfiguration,
-    keyValueMetaData: java.util.Map[String, String],
-    fileSchema: MessageType,
-    readContext: ReadContext): RecordMaterializer[GenericRecord] =
-    new AvroRecordMaterializer(fileSchema, schema)
+      configuration: ParquetConfiguration,
+      keyValueMetaData: java.util.Map[String, String],
+      fileSchema: MessageType,
+      readContext: ReadContext): RecordMaterializer[GenericRecord] =
+    new AvroRecordMaterializer(readContext.getRequestedSchema, schema)
 }
 
 object AvroReadSupport {

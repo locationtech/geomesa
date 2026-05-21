@@ -117,10 +117,10 @@ object SimpleFeatureReadSupport {
         val materializer = attribute(ObjectType.selectType(descriptor))
         builder += materializer
         attributes(i) = materializer
-        // note: we read bounding boxes since they're present, but we don't do anything with the result
-        // note: zValues are excluded from our read schema, they are only used for partitioning
-        if (schema.bboxes.get(descriptor.getLocalName).isDefined) {
-          builder += new BoundingBoxConverter()
+        // note: bboxes are excluded from our read schema, they're only present to conform with geoparquet
+        // note: zValues have to be present for filtering, but we don't do anything with them on read
+        if (schema.zValues.get(descriptor.getLocalName).isDefined) {
+          builder += new LongConverter()
         }
         i += 1
       }

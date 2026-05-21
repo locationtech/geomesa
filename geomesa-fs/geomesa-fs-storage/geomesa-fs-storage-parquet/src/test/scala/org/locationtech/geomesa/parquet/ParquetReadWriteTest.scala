@@ -6,9 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-
 package org.locationtech.geomesa.parquet
-
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}

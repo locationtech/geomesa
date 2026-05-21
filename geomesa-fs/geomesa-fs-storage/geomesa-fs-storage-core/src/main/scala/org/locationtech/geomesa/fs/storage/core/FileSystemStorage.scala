@@ -18,18 +18,16 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType.FileType
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage._
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFileAction.StorageFileAction
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{AttributeBounds, SpatialBounds, StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeEstimator
 import org.locationtech.geomesa.fs.storage.core.utils.{FileSize, FileSystemThreadedReader}
-import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQuietly, WithClose}
-import org.locationtech.jts.geom.{Envelope, Geometry}
 
 import java.io.{Closeable, Flushable}
 import java.net.URI
@@ -363,6 +361,7 @@ object FileSystemStorage {
    * @param writers iterator of files to write
    * @param estimator target file size estimator
    */
+  // noinspection ScalaWeakerAccess
   class ChunkedFileSystemWriter(writers: Iterator[FileSystemWriter], estimator: UpdatingFileSizeEstimator)
       extends FileSystemWriter {
 
@@ -497,12 +496,11 @@ object FileSystemStorage {
 
     private var count: Long = 0L
 
-    private val spatialBounds = sft.spatialBounds().map(_ -> new Envelope())
-
-    private val nonSpatialBounds = sft.nonSpatialBounds().flatMap { i =>
+    private val columnBounds = sft.columnBounds().flatMap { i =>
       val binding = sft.getDescriptor(i).getType.getBinding
-      AttributeIndexKey.TypeRegistry.getAllEncoders.asScala.find(_.resolves().isAssignableFrom(binding)) match {
-        case Some(encoder) => Some(AttributeBoundsBuilder(i, encoder.asInstanceOf[TypeEncoder[AnyRef, String]]))
+      val encoders = StorageMetadata.TypeRegistry.getAllEncoders.asScala
+      encoders.find(_.resolves() == binding).orElse(encoders.find(_.resolves().isAssignableFrom(binding))) match {
+        case Some(encoder) => Some(ColumnBoundsBuilder(i, encoder.asInstanceOf[TypeEncoder[AnyRef, String]]))
         case None =>
           logger.warn(
             s"Can't find an encoder for attribute ${sft.getDescriptor(i).getLocalName} of type ${binding.getSimpleName} - " +
@@ -529,21 +527,14 @@ object FileSystemStorage {
      * @return
      */
     def file(path: String, partition: Partition, action: StorageFileAction): StorageFile = {
-      val spatial = spatialBounds.flatMap { case (i, env) => SpatialBounds(i, env) }
-      val nonSpatial = nonSpatialBounds.flatMap(_.build())
+      val bounds = columnBounds.flatMap(_.build())
       val sort = sorted.map(_._1)
-      StorageFile(path, partition, count, action, spatial, nonSpatial, sort)
+      StorageFile(path, partition, count, action, bounds, sort)
     }
 
     override def apply(feature: SimpleFeature): Unit = {
       count += 1L
-      spatialBounds.foreach { case (i, env) =>
-        val geom = feature.getAttribute(i).asInstanceOf[Geometry]
-        if (geom != null) {
-          env.expandToInclude(geom.getEnvelopeInternal)
-        }
-      }
-      nonSpatialBounds.foreach(_.apply(feature))
+      columnBounds.foreach(_.apply(feature))
       if (sorted.nonEmpty) {
         sorted = sorted.flatMap { case (i, ordering, last) =>
           val next = feature.getAttribute(i)
@@ -584,7 +575,7 @@ object FileSystemStorage {
    * @param i attribute index
    * @param lexicoder lexicoder for the attribute type
    */
-  private case class AttributeBoundsBuilder(i: Int, lexicoder: TypeEncoder[AnyRef, String]) {
+  private case class ColumnBoundsBuilder(i: Int, lexicoder: TypeEncoder[AnyRef, String]) {
 
     private var lower: String = _
     private var upper: String = _
@@ -604,7 +595,7 @@ object FileSystemStorage {
       }
     }
 
-    def build(): Option[AttributeBounds] = if (lower == null) { None } else { Some(AttributeBounds(i, lower, upper)) }
+    def build(): Option[ColumnBounds] = if (lower == null) { None } else { Some(ColumnBounds(i, lower, upper)) }
   }
 
   /**

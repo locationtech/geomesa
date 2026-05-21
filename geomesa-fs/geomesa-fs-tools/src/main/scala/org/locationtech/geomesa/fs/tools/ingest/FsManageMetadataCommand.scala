@@ -20,7 +20,6 @@ import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, MetadataTypeValidator}
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.CheckConsistencyCommand.ConsistencyChecker
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.{ConfigureCommand, MigrateCommand}
-import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
@@ -29,6 +28,7 @@ import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.DateParsing
+import org.locationtech.jts.geom.Geometry
 
 import java.io._
 import java.net.URI
@@ -81,23 +81,20 @@ object FsManageMetadataCommand extends LazyLogging {
 
       def outputResult(file: StorageFile): Unit = {
         Command.user.info(s"Registered file ${storage.context.root.resolve(file.file)} containing ${file.count} known features")
-        val bounds =
-          file.spatialBounds.map(b => s"${metadata.sft.getDescriptor(b.attribute).getLocalName} [${b.xmin},${b.ymin},${b.xmax},${b.ymax}]") ++
-            file.attributeBounds.map { b =>
-              val descriptor = metadata.sft.getDescriptor(b.attribute)
-              val alias = AttributeIndexKey.alias(descriptor.getType.getBinding)
-              val lower = AttributeIndexKey.decode(alias, b.lower) match {
-                case null => ""
-                case d: Date => DateParsing.formatDate(d)
-                case v => v.toString
-              }
-              val upper = AttributeIndexKey.decode(alias, b.upper) match {
-                case null => ""
-                case d: Date => DateParsing.formatDate(d)
-                case v => v.toString
-              }
-              s"${descriptor.getLocalName} [$lower,$upper]"
-            }
+        val bounds = file.bounds.map { b =>
+          val (lower, upper) = b.decode(metadata.sft) match {
+            case (lower: Geometry, upper: Geometry) =>
+              val env = lower.getEnvelopeInternal
+              env.expandToInclude(upper.getEnvelopeInternal)
+              (f"${env.getMinX}%.02f,${env.getMinY}%.02f", f"${env.getMaxX}%.02f,${env.getMaxY}%.02f")
+
+            case (lower: Date, upper: Date) =>
+              (DateParsing.formatDate(lower), DateParsing.formatDate(upper))
+
+            case other => other
+          }
+          s"${metadata.sft.getDescriptor(b.attribute).getLocalName} [$lower,$upper]"
+        }
         Command.user.info(s"File bounds:\n  ${bounds.mkString("\n  ")}")
       }
 

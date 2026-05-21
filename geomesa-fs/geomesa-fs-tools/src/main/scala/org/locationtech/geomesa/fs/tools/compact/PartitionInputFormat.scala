@@ -117,7 +117,7 @@ object PartitionInputFormat {
       this.name = in.readUTF()
       this.length = in.readLong()
       this.files = Seq.fill(in.readInt) {
-        StorageFile(in.readUTF(), Partition(in.readUTF()), in.readLong, StorageFileAction.withName(in.readUTF()), Seq.empty, Seq.empty, Seq.empty, in.readLong())
+        StorageFile(in.readUTF(), Partition(in.readUTF()), in.readLong, StorageFileAction.withName(in.readUTF()), Seq.empty, Seq.empty, in.readLong())
       }
     }
   }

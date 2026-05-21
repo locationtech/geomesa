@@ -225,7 +225,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       bboxes: BoundingBoxes,
       zValues: ZValues,
       visibilities: Boolean): MessageType = {
-    schema(sft, encodings, bboxes, zValues, visibilities).toMessageType(readSft.getOrElse(sft), excludeZValues = true)
+    schema(sft, encodings, bboxes, zValues, visibilities).toMessageType(readSft.getOrElse(sft), excludeBBoxes = true)
   }
 
   /**
@@ -416,13 +416,20 @@ object SimpleFeatureParquetSchema extends LazyLogging {
   }
 
   private case class SchemaFields(fid: Type, vis: Option[Type], attributes: Map[String, Seq[Type]]) {
-    def toMessageType(sft: SimpleFeatureType, excludeZValues: Boolean = false): MessageType = {
+    def toMessageType(sft: SimpleFeatureType, excludeBBoxes: Boolean = false, excludeZValues: Boolean = false): MessageType = {
       // note: id field goes at the front of the record, then vis, then attributes and bounding boxes
       val fields = Seq(fid) ++ vis ++ {
         val all = sft.getAttributeDescriptors.asScala.flatMap { d =>
           attributes(alphaNumericSafeString(d.getLocalName))
         }
-        if (!excludeZValues) { all } else { all.filter(f => ZValueField.fromFieldName(f.getName).isEmpty) }
+        if (!excludeBBoxes && !excludeZValues) {
+          all
+        } else {
+          all.filterNot { f =>
+            (excludeBBoxes && BoundingBoxField.fromFieldName(f.getName).isDefined) ||
+              (excludeZValues && ZValueField.fromFieldName(f.getName).isDefined)
+          }
+        }
       }
       val name = alphaNumericSafeString(sft.getTypeName)
       new MessageType(name, fields.asJava)

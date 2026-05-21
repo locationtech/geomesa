@@ -8,15 +8,16 @@
 
 package org.locationtech.geomesa.fs.storage.parquet
 
-import org.apache.parquet.filter2.predicate.FilterPredicate.Visitor
 import org.apache.parquet.filter2.predicate.Operators._
-import org.apache.parquet.filter2.predicate.{FilterApi, FilterPredicate, UserDefinedPredicate}
+import org.apache.parquet.filter2.predicate.{FilterApi, FilterPredicate}
 import org.apache.parquet.io.api.Binary
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
-import org.locationtech.geomesa.fs.storage.parquet.io.geometry.BoundingBoxes.BoundingBoxField
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{XZ2Encoder, Z2Encoder}
+import org.locationtech.geomesa.fs.storage.parquet.io.geometry.ZValues.ZValueField
+import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
@@ -49,7 +50,7 @@ object FilterConverter {
     val (predicate, remaining): (Option[FilterPredicate], Option[Filter]) = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates
       case ObjectType.GEOMETRY => spatial(sft, name, filter, col, bindings.last)
-      case ObjectType.DATE     => temporal(sft, name, filter, FilterApi.longColumn(col))
+      case ObjectType.DATE     => attribute(sft, name, filter, FilterApi.longColumn(col), toMicros)
       case ObjectType.STRING   => attribute(sft, name, filter, FilterApi.binaryColumn(col), Binary.fromString)
       case ObjectType.INT      => attribute(sft, name, filter, FilterApi.intColumn(col), identity[java.lang.Integer])
       case ObjectType.LONG     => attribute(sft, name, filter, FilterApi.longColumn(col), identity[java.lang.Long])
@@ -69,60 +70,30 @@ object FilterConverter {
       col: String,
       typed: ObjectType): (Option[FilterPredicate], Option[Filter]) = {
     val (spatial, _) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
-    val xyBounds = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
+    val predicate = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
       Some(extracted).filter(e => e.nonEmpty && !e.disjoint).map { e =>
-        e.values.map(GeometryUtils.bounds).reduce { (a, b) =>
-          (math.min(a._1, b._1), math.min(a._2, b._2), math.max(a._3, b._3), math.max(a._4, b._4))
-        }
-      }
-    }
+        // compute our ranges based on the coarse bounds for our query
+        val multiplier = QueryProperties.PolygonDecompMultiplier.toInt.get
+        val bits = QueryProperties.PolygonDecompBits.toInt.get
+        val bounds = e.values.flatMap(GeometryUtils.bounds(_, multiplier, bits))
+        val (field, ranges) =
+          if (typed == ObjectType.POINT) {
+            val field = ZValueField.z2(col, encoded = true).zValue
+            val ranges = Z2Encoder.sfc.ranges(bounds, 64, Some(8)) // TODO make configurable
+            (field, ranges)
+          } else {
+            val field = ZValueField.xz2(col, encoded = true).zValue
+            val ranges = XZ2Encoder.sfc.ranges(bounds, Some(8))
+            (field, ranges)
+          }
 
-    val predicate = xyBounds.map { case (xmin, ymin, xmax, ymax) =>
-      // filter against the bbox field
-      val bboxGroup = BoundingBoxField(col, encoded = true).bbox
-      val bboxXminCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.XMin}")
-      val bbox = {
-        val yminCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.YMin}")
-        val xmaxCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.XMax}")
-        val ymaxCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.YMax}")
-        Seq[FilterPredicate](
-          FilterApi.ltEq(bboxXminCol, Float.box(xmax.toFloat)),
-          FilterApi.gtEq(xmaxCol, Float.box(xmin.toFloat)),
-          FilterApi.ltEq(yminCol, Float.box(ymax.toFloat)),
-          FilterApi.gtEq(ymaxCol, Float.box(ymin.toFloat))
-        ).reduce(FilterApi.and)
-      }
-      if (typed == ObjectType.POINT) {
-        // point types that are natively encoded don't have bbox fields, as we can filter on them directly
-        val xcol = FilterApi.doubleColumn(s"$col.x")
-        val ycol = FilterApi.doubleColumn(s"$col.y")
-        val xy = Seq[FilterPredicate](
-          FilterApi.gtEq(xcol, Double.box(xmin)),
-          FilterApi.gtEq(ycol, Double.box(ymin)),
-          FilterApi.ltEq(xcol, Double.box(xmax)),
-          FilterApi.ltEq(ycol, Double.box(ymax))
-        ).reduce(FilterApi.and)
-        // if x/y don't exist, then the bbox will (in WKB encoding)
-        FilterApi.or(bbox, xy)
-      } else {
-        // add null for back-compatibility with files that don't contain bbox cols
-        FilterApi.or(FilterApi.eq(bboxXminCol, null.asInstanceOf[java.lang.Float]), bbox)
+        val zcol = FilterApi.longColumn(field)
+        val filters = ranges.map(r => FilterApi.and(FilterApi.gtEq(zcol, Long.box(r.lower)), FilterApi.ltEq(zcol, Long.box(r.upper))))
+        filters.reduce(FilterApi.or)
       }
     }
     // since we don't know what the actual file encoding is up front, we always have to evaluate the full predicate post-read
     (predicate, Some(filter))
-  }
-
-  private def temporal(
-      sft: SimpleFeatureType,
-      name: String,
-      filter: Filter,
-      col: LongColumn): (Option[FilterPredicate], Option[Filter]) = {
-    val (predicate, remaining) = attribute[Date, java.lang.Long](sft, name, filter, col, _.getTime)
-    // note: we need to account for both millisecond and microsecond encoded dates
-    // since the reasonable overlap of the two is pretty non-existent, we just use an OR of both potential ranges
-    val millisOrMicros = predicate.map(p => FilterApi.or(p, p.accept(MillisToMicrosVisitor)))
-    (millisOrMicros, remaining)
   }
 
   private def attribute[T : ClassTag, U <: Comparable[U]](
@@ -179,6 +150,8 @@ object FilterConverter {
     (predicate, remaining)
   }
 
+  private def toMicros(date: Date): java.lang.Long = Long.box(date.getTime * 1000L)
+
   /**
     * Merge OR'd filters
     *
@@ -206,41 +179,5 @@ object FilterConverter {
     } else {
       filters.reduce(FilterApi.or)
     }
-  }
-
-  /**
-   * Visitor that replaces all millisecond-encoded date values with microsecond-encoded ones. Note that it is not
-   * robust, in that it only works if all values are Longs
-   */
-  private object MillisToMicrosVisitor extends Visitor[FilterPredicate] {
-
-    import scala.collection.JavaConverters._
-
-    private def millisToMicros[T <: Comparable[T]](value: T): T =
-      Long.box(value.asInstanceOf[java.lang.Long] * 1000L).asInstanceOf[T]
-
-    override def visit[T <: Comparable[T]](eq: Eq[T]): FilterPredicate =
-      FilterApi.eq(eq.getColumn.asInstanceOf[Column[T] with SupportsEqNotEq], millisToMicros(eq.getValue))
-    override def visit[T <: Comparable[T]](notEq: NotEq[T]): FilterPredicate =
-      FilterApi.notEq(notEq.getColumn.asInstanceOf[Column[T] with SupportsEqNotEq], millisToMicros(notEq.getValue))
-    override def visit[T <: Comparable[T]](lt: Lt[T]): FilterPredicate =
-      FilterApi.lt(lt.getColumn.asInstanceOf[Column[T] with SupportsLtGt], millisToMicros(lt.getValue))
-    override def visit[T <: Comparable[T]](ltEq: LtEq[T]): FilterPredicate =
-      FilterApi.ltEq(ltEq.getColumn.asInstanceOf[Column[T] with SupportsLtGt], millisToMicros(ltEq.getValue))
-    override def visit[T <: Comparable[T]](gt: Gt[T]): FilterPredicate =
-      FilterApi.gt(gt.getColumn.asInstanceOf[Column[T] with SupportsLtGt], millisToMicros(gt.getValue))
-    override def visit[T <: Comparable[T]](gtEq: GtEq[T]): FilterPredicate =
-      FilterApi.gtEq(gtEq.getColumn.asInstanceOf[Column[T] with SupportsLtGt], millisToMicros(gtEq.getValue))
-    override def visit(and: And): FilterPredicate = FilterApi.and(and.getLeft.accept(this), and.getRight.accept(this))
-    override def visit(or: Or): FilterPredicate = FilterApi.or(or.getLeft.accept(this), or.getRight.accept(this))
-    override def visit(not: Not): FilterPredicate = FilterApi.not(not.getPredicate.accept(this))
-    override def visit[T <: Comparable[T]](in: In[T]): FilterPredicate =
-      FilterApi.in(in.getColumn.asInstanceOf[Column[T] with SupportsEqNotEq], in.getValues.asScala.map(millisToMicros).asJava)
-    override def visit[T <: Comparable[T]](notIn: NotIn[T]): FilterPredicate =
-      FilterApi.notIn(notIn.getColumn.asInstanceOf[Column[T] with SupportsEqNotEq], notIn.getValues.asScala.map(millisToMicros).asJava)
-    override def visit[T <: Comparable[T]](contains: Contains[T]): FilterPredicate =
-      throw new UnsupportedOperationException("visit Contains is not supported")
-    override def visit[T <: Comparable[T], U <: UserDefinedPredicate[T]](udp: UserDefined[T, U]): FilterPredicate = udp
-    override def visit[T <: Comparable[T], U <: UserDefinedPredicate[T]](udp: LogicalNotUserDefined[T, U]): FilterPredicate = udp
   }
 }

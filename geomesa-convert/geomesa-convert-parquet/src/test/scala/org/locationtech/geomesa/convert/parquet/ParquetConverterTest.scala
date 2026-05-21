@@ -10,7 +10,6 @@ package org.locationtech.geomesa.convert.parquet
 
 import com.typesafe.config.ConfigFactory
 import org.geotools.api.feature.simple.SimpleFeature
-import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
