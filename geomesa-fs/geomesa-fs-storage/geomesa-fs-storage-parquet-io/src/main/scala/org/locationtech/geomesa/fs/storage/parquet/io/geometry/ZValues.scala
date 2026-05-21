@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.fs.storage.parquet.io.geometry
 
-import org.apache.iceberg.types.Types.{LongType, NestedField}
+import org.apache.iceberg.types.Types.{LongType, NestedField, StringType}
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
-import org.apache.parquet.schema.{PrimitiveType, Types}
+import org.apache.parquet.schema.{LogicalTypeAnnotation, PrimitiveType, Types}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.parquet.io.geometry.ZValues.ZValueField
 import org.locationtech.geomesa.utils.text.StringSerialization.alphaNumericSafeString
@@ -104,7 +104,7 @@ object ZValues {
      * @return
      */
     def schema(zValue: String, fieldIds: AtomicInteger): PrimitiveType =
-      Types.optional(PrimitiveTypeName.INT64).id(fieldIds.getAndIncrement()).named(zValue)
+      Types.optional(PrimitiveTypeName.BINARY).id(fieldIds.getAndIncrement()).as(LogicalTypeAnnotation.stringType()).named(zValue)
 
     /**
      * The iceberg schema for a z-value field
@@ -113,6 +113,6 @@ object ZValues {
      * @return
      */
     def icebergSchema(zValue: String, fieldIds: AtomicInteger): NestedField =
-      NestedField.optional(zValue).withId(fieldIds.getAndIncrement()).ofType(LongType.get()).build()
+      NestedField.optional(zValue).withId(fieldIds.getAndIncrement()).ofType(StringType.get()).build()
   }
 }

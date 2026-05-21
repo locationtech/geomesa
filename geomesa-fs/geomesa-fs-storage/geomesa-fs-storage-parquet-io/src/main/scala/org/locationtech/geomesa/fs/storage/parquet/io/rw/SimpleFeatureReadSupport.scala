@@ -120,7 +120,7 @@ object SimpleFeatureReadSupport {
         // note: bboxes are excluded from our read schema, they're only present to conform with geoparquet
         // note: zValues have to be present for filtering, but we don't do anything with them on read
         if (schema.zValues.get(descriptor.getLocalName).isDefined) {
-          builder += new LongConverter()
+          builder += new StringConverter()
         }
         i += 1
       }

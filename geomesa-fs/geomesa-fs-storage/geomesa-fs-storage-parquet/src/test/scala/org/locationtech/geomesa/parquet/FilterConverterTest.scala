@@ -52,166 +52,104 @@ class FilterConverterTest extends SpecificationWithJUnit {
   }
 
   "FilterConverter" should {
-    "convert point geo filter to min/max x/y" >> {
+    "convert point geo filter to z range lt/gt" in {
       val (pFilter, gFilter) = convert("bbox(geom, -24.0, -25.0, -18.0, -19.0)")
       gFilter must beSome(beAnInstanceOf[BBOX])
       pFilter must beSome(beAnInstanceOf[Operators.Or])
 
-      // bbox OR x/y
+      // z ranges OR
       val orClauses = flatten(pFilter.get.asInstanceOf[Operators.Or])
-      orClauses must haveLength(2)
+      orClauses must not(beEmpty)
 
       val andClauses = orClauses.collect { case and: Operators.And => flatten(and) }
-      andClauses must haveLength(2)
+      andClauses must haveLength(orClauses.length)
 
-      val bbox = andClauses.find(_.exists(_.toString.contains("__"))).orNull
-      bbox must not(beNull)
-      bbox must haveLength(4)
+      foreach(andClauses) { clause =>
+        clause must haveLength(2)
+        val lt = clause.collectFirst {
+          case c: Operators.LtEq[Binary] if c.getColumn.getColumnPath.toDotString == "__geom_z2__" => c.getValue
+        }
+        val gt = clause.collectFirst {
+          case c: Operators.GtEq[Binary] if c.getColumn.getColumnPath.toDotString == "__geom_z2__" => c.getValue
+        }
+        foreach(Seq(lt, gt))(_ must beSome)
+      }
+    }
 
-      bbox.collectFirst {
-        case c: Operators.LtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__geom_bbox__.xmin" => c.getValue.floatValue()
-      } must beSome(-18.0f)
-      bbox.collectFirst {
-        case c: Operators.LtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__geom_bbox__.ymin" => c.getValue.floatValue()
-      } must beSome(-19.0f)
-      bbox.collectFirst {
-        case c: Operators.GtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__geom_bbox__.xmax" => c.getValue.floatValue()
-      } must beSome(-24.0f)
-      bbox.collectFirst {
-        case c: Operators.GtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__geom_bbox__.ymax" => c.getValue.floatValue()
-      } must beSome(-25.0f)
-
-      val xy = andClauses.find(_ != bbox).orNull
-      xy must not(beNull)
-
-      xy must haveLength(4)
-
-      xy.collectFirst {
-        case c: Operators.GtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.x" => c.getValue.doubleValue()
-      } must beSome(-24.0)
-      xy.collectFirst {
-        case c: Operators.GtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.y" => c.getValue.doubleValue()
-      } must beSome(-25.0)
-      xy.collectFirst {
-        case c: Operators.LtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.x" => c.getValue.doubleValue()
-      } must beSome(-18.0)
-      xy.collectFirst {
-        case c: Operators.LtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.y" => c.getValue.doubleValue()
-      } must beSome(-19.0)
-    }.pendingUntilFixed
-
-    "convert non-point geo filter to bbox x/y" >> {
+    "convert non-point geo filter to z range lt/gt" in {
       val (pFilter, gFilter) = convert("bbox(line, -24.0, -25.0, -18.0, -19.0)")
       gFilter must beSome(beAnInstanceOf[BBOX])
       pFilter must beSome(beAnInstanceOf[Operators.Or])
 
+      // z ranges OR
       val orClauses = flatten(pFilter.get.asInstanceOf[Operators.Or])
-      orClauses must haveLength(2)
+      orClauses must not(beEmpty)
 
-      val nullCheck = orClauses.collectFirst { case c: Operators.Eq[java.lang.Float] => c }
-      nullCheck must beSome
-      nullCheck.get.getValue must beNull
-      nullCheck.get.getColumn.getColumnPath.toList.size() mustEqual 2
-      nullCheck.get.getColumn.getColumnPath.toList.get(0) mustEqual "__line_bbox__"
+      val andClauses = orClauses.collect { case and: Operators.And => flatten(and) }
+      andClauses must haveLength(orClauses.length)
 
-      val bbox = orClauses.collectFirst { case a: Operators.And => a }
-      bbox must beSome
-
-      val clauses = flatten(bbox.get)
-      clauses must haveLength(4)
-
-      val xmin = clauses.collectFirst {
-        case c: Operators.LtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__line_bbox__.xmin" => c
+      foreach(andClauses) { clause =>
+        clause must haveLength(2)
+        val lt = clause.collectFirst {
+          case c: Operators.LtEq[Binary] if c.getColumn.getColumnPath.toDotString == "__line_xz2__" => c.getValue
+        }
+        val gt = clause.collectFirst {
+          case c: Operators.GtEq[Binary] if c.getColumn.getColumnPath.toDotString == "__line_xz2__" => c.getValue
+        }
+        foreach(Seq(lt, gt))(_ must beSome)
       }
-      val ymin = clauses.collectFirst {
-        case c: Operators.LtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__line_bbox__.ymin" => c
-      }
-      val xmax = clauses.collectFirst {
-        case c: Operators.GtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__line_bbox__.xmax" => c
-      }
-      val ymax = clauses.collectFirst {
-        case c: Operators.GtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__line_bbox__.ymax" => c
-      }
+    }
 
-      xmin.map(_.getValue.floatValue()) must beSome(-18.0f)
-      ymin.map(_.getValue.floatValue()) must beSome(-19.0f)
-      xmax.map(_.getValue.floatValue()) must beSome(-24.0f)
-      ymax.map(_.getValue.floatValue()) must beSome(-25.0f)
-    }.pendingUntilFixed
-
-    "convert dtg ranges to long ranges" >> {
+    "convert dtg ranges to long ranges" in {
       val (pFilter, gFilter) = convert("dtg BETWEEN '2017-01-01T00:00:00.000Z' AND '2017-01-05T00:00:00.000Z'")
       gFilter must beNone
-      pFilter must beSome(beAnInstanceOf[Operators.Or])
+      pFilter must beSome(beAnInstanceOf[Operators.And])
 
-      val orClauses = flatten(pFilter.get.asInstanceOf[Operators.Or])
-      orClauses must haveLength(2)
+      val clauses = flatten(pFilter.get.asInstanceOf[Operators.And])
+      clauses must haveLength(2)
 
-      val longs = orClauses.map { orClause =>
-        orClause must beAnInstanceOf[Operators.And]
-
-        val clauses = flatten(orClause.asInstanceOf[Operators.And])
-        clauses must haveLength(2)
-
-        val lt = clauses.collectFirst {
-          case c: Operators.LtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
-        }
-        val gt = clauses.collectFirst {
-          case c: Operators.GtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
-        }
-
-        (lt.map(_.getValue.longValue()).getOrElse(-1), gt.map(_.getValue.longValue()).getOrElse(-1))
+      val lt = clauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
+      }
+      val gt = clauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
       }
 
-      val ltMillis = Converters.convert("2017-01-05T00:00:00.000Z", classOf[Date]).getTime
-      val gtMillis = Converters.convert("2017-01-01T00:00:00.000Z", classOf[Date]).getTime
+      val ltMicros = Converters.convert("2017-01-05T00:00:00.000Z", classOf[Date]).getTime * 1000L
+      val gtMicros = Converters.convert("2017-01-01T00:00:00.000Z", classOf[Date]).getTime * 1000L
 
-      // millis OR micros
-      longs must containTheSameElementsAs(Seq((ltMillis, gtMillis), (ltMillis * 1000L, gtMillis * 1000L)))
-    }.pendingUntilFixed
+      lt.map(_.getValue) must beSome(Long.box(ltMicros))
+      gt.map(_.getValue) must beSome(Long.box(gtMicros))
+    }
 
-    "augment property equals column" >> {
+    "augment property equals column" in {
       val (pFilter, gFilter) =
         convert("name = 'foo' AND dtg BETWEEN '2017-01-01T00:00:00.000Z' AND '2017-01-05T00:00:00.000Z'")
       gFilter must beNone
       pFilter must beSome(beAnInstanceOf[Operators.And])
       val clauses = flatten(pFilter.get.asInstanceOf[Operators.And])
-      clauses must haveLength(2)
+      clauses must haveLength(3)
 
       val eq = clauses.collectFirst {
         case c: Operators.Eq[Binary] if c.getColumn.getColumnPath.toDotString == "name" => c
       }
-      val longs = clauses.collectFirst {
-        case c: Operators.Or =>
-          val orClauses = flatten(c)
-          orClauses must haveLength(2)
-          orClauses.map { orClause =>
-            orClause must beAnInstanceOf[Operators.And]
-
-            val clauses = flatten(orClause.asInstanceOf[Operators.And])
-            clauses must haveLength(2)
-
-            val lt = clauses.collectFirst {
-              case c: Operators.LtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
-            }
-            val gt = clauses.collectFirst {
-              case c: Operators.GtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
-            }
-
-            (lt.map(_.getValue.longValue()).getOrElse(-1), gt.map(_.getValue.longValue()).getOrElse(-1))
-          }
+      val lt = clauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
+      }
+      val gt = clauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
       }
 
       eq.map(_.getValue) must beSome(Binary.fromString("foo"))
 
-      val ltMillis = Converters.convert("2017-01-05T00:00:00.000Z", classOf[Date]).getTime
-      val gtMillis = Converters.convert("2017-01-01T00:00:00.000Z", classOf[Date]).getTime
+      val ltMicros = Converters.convert("2017-01-05T00:00:00.000Z", classOf[Date]).getTime * 1000L
+      val gtMicros = Converters.convert("2017-01-01T00:00:00.000Z", classOf[Date]).getTime * 1000L
 
-      // millis OR micros
-      longs.getOrElse(Seq.empty) must containTheSameElementsAs(Seq((ltMillis, gtMillis), (ltMillis * 1000L, gtMillis * 1000L)))
-    }.pendingUntilFixed
+      lt.map(_.getValue) must beSome(Long.box(ltMicros))
+      gt.map(_.getValue) must beSome(Long.box(gtMicros))
+    }
 
-    "query with an int" >> {
+    "query with an int" in {
       val (pFilter, gFilter) = convert("age = 20")
       gFilter must beNone
       pFilter must beSome(beAnInstanceOf[Operators.Eq[java.lang.Integer]])

@@ -79,7 +79,8 @@ class XZ2SFC(val g: Short, val xBounds: (Double, Double), val yBounds: (Double, 
   /**
    * Invert a curve value back to a bounding box.
    *
-   * Note: this may not be accurate
+   * Note: this method may not return an accurate result. We currently only use it for quickly estimating bounds, where
+   * an accurate result is not entirely necessary.
    *
    * @param z indexed curve value
    * @return

@@ -15,7 +15,7 @@ import org.apache.parquet.hadoop.api.WriteSupport.{FinalizedWriteContext, WriteC
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.curve.{XZ2SFC, XZSFC, Z2SFC}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{XZ2Encoder, Z2Encoder}
 import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata.GeoParquetObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.parquet.io.geometry.BoundingBoxes.BoundingBoxField
@@ -80,8 +80,6 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
 object SimpleFeatureWriteSupport {
 
   import StringSerialization.alphaNumericSafeString
-
-  private val xz = XZ2SFC(XZSFC.DefaultPrecision)
 
   private class SimpleFeatureWriter(schema: SimpleFeatureParquetSchema) {
 
@@ -295,7 +293,7 @@ object SimpleFeatureWriteSupport {
   private abstract class GeometryWriter[T <: Geometry](name: String, index: Int, bbox: Option[String], zValue: Option[String])
       extends AttributeWriter[T](name, index, 1 + bbox.size + zValue.size) {
 
-    protected def z(geom: T): Long
+    protected def z(geom: T): String
 
     /**
      * Writes a value to the current record
@@ -329,7 +327,7 @@ object SimpleFeatureWriteSupport {
         }
         zValue.foreach { name =>
           consumer.startField(name, index + 1 + bbox.size)
-          consumer.addLong(z(value))
+          consumer.addBinary(Binary.fromString(z(value)))
           consumer.endField(name, index + 1 + bbox.size)
         }
       }
@@ -338,15 +336,12 @@ object SimpleFeatureWriteSupport {
 
   private abstract class GeometryZWriter(name: String, index: Int, bbox: Option[String], zValue: Option[String])
       extends GeometryWriter[Point](name, index, bbox, zValue) {
-    override protected def z(geom: Point): Long = Z2SFC.index(geom.getX, geom.getY)
+    override protected def z(geom: Point): String = Z2Encoder.encode(geom)
   }
 
   private abstract class GeometryXZWriter[T <: Geometry](name: String, index: Int, bbox: Option[String], zValue: Option[String])
-    extends GeometryWriter[T](name, index, bbox, zValue) {
-    override protected def z(geom: T): Long = {
-      val env = geom.getEnvelopeInternal
-      xz.index(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
-    }
+      extends GeometryWriter[T](name, index, bbox, zValue) {
+    override protected def z(geom: T): String = XZ2Encoder.encode(geom)
   }
 
   private class PointWriter(name: String, index: Int, bbox: Option[String], zValue: Option[String])

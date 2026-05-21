@@ -9,17 +9,18 @@
 package org.locationtech.geomesa.fs.storage.parquet.iceberg
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.iceberg.parquet.ParquetUtil
 import org.apache.iceberg._
+import org.apache.iceberg.parquet.ParquetUtil
 import org.apache.parquet.ParquetReadOptions
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.hadoop.metadata.ParquetMetadata
 import org.calrissian.mango.types.{LexiTypeEncoders, TypeEncoder}
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.schemes.AttributeScheme.{IntegralBucketing, WidthBucketing}
-import org.locationtech.geomesa.fs.storage.core.schemes.{AttributeScheme, DateTimeScheme, HashScheme}
+import org.locationtech.geomesa.fs.storage.core.schemes._
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition, PartitionScheme}
 import org.locationtech.geomesa.fs.storage.parquet.iceberg.IcebergMapper.SchemeMapper
+import org.locationtech.geomesa.fs.storage.parquet.io.geometry.ZValues.ZValueField
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.io.WithClose
 
@@ -144,6 +145,10 @@ object IcebergMapper {
       case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.DAYS => Some(DayMapper(s))
       case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.MONTHS => Some(MonthMapper(s))
       case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.YEARS => Some(YearMapper(s))
+
+      case s: Z2Scheme if s.bits % 4 == 0 => Some(Z2Mapper(s))
+      case s: XZ2Scheme if s.bits % 4 == 0 => Some(XZ2Mapper(s))
+
       case s: HashScheme[_] => Some(HashMapper(s))
 
       case s: AttributeScheme[_] if classOf[String].isAssignableFrom(binding) =>
@@ -186,6 +191,18 @@ object IcebergMapper {
   private case class YearMapper(scheme: DateTimeScheme) extends SchemeMapper {
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.year(scheme.attribute)
     override def toIceberg(key: String): String = LexiTypeEncoders.integerEncoder().decode(key).toString
+  }
+
+  private case class Z2Mapper(scheme: Z2Scheme) extends SchemeMapper {
+    override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
+      b.truncate(ZValueField.z2(scheme.attribute).zValue, scheme.bits / 4)
+    override def toIceberg(partitionValue: String): String = partitionValue
+  }
+
+  private case class XZ2Mapper(scheme: XZ2Scheme) extends SchemeMapper {
+    override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
+      b.truncate(ZValueField.xz2(scheme.attribute).zValue, scheme.bits / 4)
+    override def toIceberg(partitionValue: String): String = partitionValue
   }
 
   private case class HashMapper(scheme: HashScheme[_]) extends SchemeMapper {

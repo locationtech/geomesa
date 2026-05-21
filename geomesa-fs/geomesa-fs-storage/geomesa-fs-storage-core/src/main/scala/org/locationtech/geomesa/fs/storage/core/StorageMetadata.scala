@@ -171,8 +171,7 @@ object StorageMetadata {
    */
   object Z2Encoder extends TypeEncoder[Point, String] {
 
-    val sfc: Z2SFC = Z2SFC
-
+    private val sfc = Z2SFC
     private val longEncoder = new LongEncoder()
     private val factory = new GeometryFactory()
 
@@ -187,12 +186,19 @@ object StorageMetadata {
       longEncoder.encode(sfc.index(value.getX, value.getY))
     }
 
-    def encode(z: Long): String = longEncoder.encode(z)
-
     override def decode(value: String): Point = {
       val (x, y) = sfc.invert(longEncoder.decode(value))
       factory.createPoint(new Coordinate(x, y))
     }
+
+    /**
+     * Calculate encoded ranges
+     *
+     * @param queries a sequence of OR'd windows to cover. Each window is in the form (xmin, ymin, xmax, ymax)
+     * @param maxRanges rough upper bound on the number of ranges to return
+     */
+    def ranges(queries: Seq[(Double, Double, Double, Double)], maxRanges: Option[Int] = None): Seq[(String, String)] =
+      sfc.ranges(queries, maxRanges = maxRanges).map(r => longEncoder.encode(r.lower) -> longEncoder.encode(r.upper))
   }
 
   /**
@@ -200,8 +206,7 @@ object StorageMetadata {
    */
   object XZ2Encoder extends TypeEncoder[Geometry, String] {
 
-    val sfc: XZ2SFC = XZ2SFC
-
+    private val sfc = XZ2SFC
     private val longEncoder = new LongEncoder()
     private val factory = new GeometryFactory()
 
@@ -220,8 +225,6 @@ object StorageMetadata {
       longEncoder.encode(sfc.index(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY))
     }
 
-    def encode(z: Long): String = longEncoder.encode(z)
-
     override def decode(value: String): Geometry = {
       val (xmin, ymin, xmax, ymax) = sfc.invert(longEncoder.decode(value))
       val ring = Array(
@@ -233,5 +236,14 @@ object StorageMetadata {
       )
       factory.createPolygon(ring)
     }
+
+    /**
+     * Calculate encoded ranges
+     *
+     * @param queries a sequence of OR'd windows to cover. Each window is in the form (xmin, ymin, xmax, ymax)
+     * @param maxRanges a rough upper limit on the number of ranges to generate
+     */
+    def ranges(queries: Seq[(Double, Double, Double, Double)], maxRanges: Option[Int] = None): Seq[(String, String)] =
+      sfc.ranges(queries, maxRanges).map(r => longEncoder.encode(r.lower) -> longEncoder.encode(r.upper))
   }
 }

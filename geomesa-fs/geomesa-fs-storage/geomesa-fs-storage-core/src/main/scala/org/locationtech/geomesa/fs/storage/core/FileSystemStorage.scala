@@ -498,8 +498,8 @@ object FileSystemStorage {
 
     private val columnBounds = sft.columnBounds().flatMap { i =>
       val binding = sft.getDescriptor(i).getType.getBinding
-      val encoders = StorageMetadata.TypeRegistry.getAllEncoders.asScala
-      encoders.find(_.resolves() == binding).orElse(encoders.find(_.resolves().isAssignableFrom(binding))) match {
+      val alias = StorageMetadata.typeAlias(binding)
+      StorageMetadata.TypeRegistry.getAllEncoders.asScala.find(_.getAlias == alias) match {
         case Some(encoder) => Some(ColumnBoundsBuilder(i, encoder.asInstanceOf[TypeEncoder[AnyRef, String]]))
         case None =>
           logger.warn(

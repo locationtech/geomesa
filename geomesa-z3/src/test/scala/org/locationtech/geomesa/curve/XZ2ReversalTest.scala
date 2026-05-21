@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.curve
 
+import com.typesafe.scalalogging.LazyLogging
 import org.specs2.mutable.SpecificationWithJUnit
 
-class XZ2ReversalTest extends SpecificationWithJUnit {
-
-  sequential
+class XZ2ReversalTest extends SpecificationWithJUnit with LazyLogging {
 
   "XZ2Reversal" should {
 
@@ -30,10 +29,9 @@ class XZ2ReversalTest extends SpecificationWithJUnit {
 
       foreach(testCases) { case (xmin, ymin, xmax, ymax) =>
         val code = sfc.index(xmin, ymin, xmax, ymax)
-println()
-println(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
         val (rxmin, rymin, rxmax, rymax) = sfc.invert(code)
-println()
+        logger.debug(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
+        logger.debug(f"output: $rxmin%.2f, $rymin%.2f, $rxmax%.2f, $rymax%.2f")
         // The reversed box should be a valid box within bounds
         rxmin must beGreaterThanOrEqualTo(sfc.xBounds._1)
         rymin must beGreaterThanOrEqualTo(sfc.yBounds._1)
@@ -67,11 +65,11 @@ println()
 
         // Index it
         val code = sfc.index(xmin, ymin, xmax, ymax)
-println()
-println(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
         // Try to reverse it
         val (rxmin, rymin, rxmax, rymax) = sfc.invert(code)
-println()
+        logger.debug(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
+        logger.debug(f"output: $rxmin%.2f, $rymin%.2f, $rxmax%.2f, $rymax%.2f")
+
         // Verify the reversed box is valid
         if (rxmin >= sfc.xBounds._1 && rymin >= sfc.yBounds._1 &&
             rxmax <= sfc.xBounds._2 && rymax <= sfc.yBounds._2 &&
@@ -92,10 +90,9 @@ println()
       foreach(Seq[Short](8, 10, 12, 15)) { g =>
         val sfc = new XZ2SFC(g, xBounds, yBounds)
         val code = sfc.index(xmin, ymin, xmax, ymax)
-println()
-println(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
         val (rxmin, rymin, rxmax, rymax) = sfc.invert(code)
-println()
+        logger.debug(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
+        logger.debug(f"output: $rxmin%.2f, $rymin%.2f, $rxmax%.2f, $rymax%.2f")
 
         // Should be a valid box within bounds
         rxmin must beGreaterThanOrEqualTo(xBounds._1)
@@ -121,10 +118,9 @@ println()
 
       foreach(edgeCases) { case (xmin, ymin, xmax, ymax) =>
         val code = sfc.index(xmin, ymin, xmax, ymax)
-println()
-println(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
         val (rxmin, rymin, rxmax, rymax) = sfc.invert(code)
-println()
+        logger.debug(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
+        logger.debug(f"output: $rxmin%.2f, $rymin%.2f, $rxmax%.2f, $rymax%.2f")
 
         // Should be a valid box within bounds
         rxmin must beGreaterThanOrEqualTo(sfc.xBounds._1)
@@ -144,11 +140,10 @@ println()
 
       foreach(sizes) { size =>
         val (xmin, ymin, xmax, ymax) = (0.0, 0.0, size, math.min(size, 90.0))
-println()
-println(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
         val code = sfc.index(xmin, ymin, xmax, ymax)
         val (rxmin, rymin, rxmax, rymax) = sfc.invert(code)
-println()
+        logger.debug(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
+        logger.debug(f"output: $rxmin%.2f, $rymin%.2f, $rxmax%.2f, $rymax%.2f")
         // Should be a valid box within bounds
         rxmin must beGreaterThanOrEqualTo(sfc.xBounds._1)
         rymin must beGreaterThanOrEqualTo(sfc.yBounds._1)
@@ -165,11 +160,11 @@ println()
       // Index a bounding box
       val (xmin, ymin, xmax, ymax) = (10.5, 20.3, 11.2, 21.1)
       val code = sfc.index(xmin, ymin, xmax, ymax)
-      println()
-println(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
       // Reverse the index to get back a bounding box
       // The reversed box represents the grid cell that was encoded
       val (rxmin, rymin, rxmax, rymax) = sfc.invert(code)
+      logger.debug(f"input:  $xmin%.2f, $ymin%.2f, $xmax%.2f, $ymax%.2f")
+      logger.debug(f"output: $rxmin%.2f, $rymin%.2f, $rxmax%.2f, $rymax%.2f")
 
       // Verify it's a valid box
       rxmin must beGreaterThanOrEqualTo(sfc.xBounds._1)
