@@ -13,9 +13,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, StorageFile}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, StorageFile, Z2Encoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.text.{DateParsing, WKTUtils}
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 
 import java.net.URI
@@ -33,20 +35,35 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
 
   // note: ensure that partitions and bounds line up
   val partition1 = partitions("2026-03-05T00:00:00.000Z", "POINT (10 10)") // dtg 8000019cbb4b4c00/8000019cbb823a80
-  val columnBounds1 = Seq(ColumnBounds(0, "name5", "name6"), ColumnBounds(1, "8000019cbb4b4c00", "8000019cbb823a80"),
-    ColumnBounds(2, "b00239e50239e502"/*POINT(1 2)*/, "b085d4c185d4c185"/*POINT(11 12)*/))
+  val columnBounds1 = Seq(
+    ColumnBounds(0, "name5", "name6"),
+    ColumnBounds(1, dateBounds("2026-03-05T00:00"), dateBounds("2026-03-05T01:00")),
+    ColumnBounds(2, z2Bounds("POINT(1 2)"), z2Bounds("POINT(11 12)"))
+  )
 
   val partition2 = partitions("2026-03-04T00:00:00.000Z", "POINT (-10 10)") // dtg 8000019cb624f000/8000019cb65bde80
-  val columnBounds2a = Seq(ColumnBounds(0, "name0", "name4"), ColumnBounds(1, "8000019cb624f000", "8000019cb6406740")/* first 30 minutes */,
-    ColumnBounds(2, "a55229b45229b452"/*POINT(-11 2)*/, "a5d5c490d5c490d5"/*POINT(-1 12)*/))
-  val columnBounds2b = Seq(ColumnBounds(0, "name0", "name4"), ColumnBounds(1, "8000019cb624f000", "8000019cb6406740")/* first 30 minutes */,
-    ColumnBounds(2, "a5c0d485c0d485c0"/*POINT(-20 12)*/, "a5ed4fc5ed4fc5ed"/*POINT(-12 20)*/))
+  val columnBounds2a = Seq(
+    ColumnBounds(0, "name0", "name4"),
+    ColumnBounds(1, dateBounds("2026-03-04T00:00"), dateBounds("2026-03-04T00:30"))/* first 30 minutes */,
+    ColumnBounds(2, z2Bounds("POINT(-11 2)"), z2Bounds("POINT(-1 12)"))
+  )
+  val columnBounds2b = Seq(
+    ColumnBounds(0, "name0", "name4"),
+    ColumnBounds(1, dateBounds("2026-03-04T00:00"), dateBounds("2026-03-04T00:30"))/* first 30 minutes */,
+    ColumnBounds(2, z2Bounds("POINT(-20 12)"), z2Bounds("POINT(-12 20)"))
+  )
 
   val partition3 = partitions("2026-03-03T00:00:00.000Z", "POINT (10 -10)") // dtg 8000019cb0fe9400/8000019cb1358280
-  val columnBounds3a = Seq(ColumnBounds(0, "name7", "name9"), ColumnBounds(1, "8000019cb0fe9400", "8000019cb11a0b40")/* first 30 minutes */,
-    ColumnBounds(2, "9a2a3b6f2a3b6f2a"/*POINT(1 -12)*/, "9aadd64badd64bad"/*POINT(11 -2)*/))
-  val columnBounds3b = Seq(ColumnBounds(0, "name7", "name9"), ColumnBounds(1, "8000019cb11a0b40", "8000019cb1358280")/* last 30 minutes */,
-    ColumnBounds(2, "9a2a3b6f2a3b6f2a"/*POINT(1 -12)*/, "9aadd64badd64bad"/*POINT(11 -2)*/))
+  val columnBounds3a = Seq(
+    ColumnBounds(0, "name7", "name9"),
+    ColumnBounds(1, dateBounds("2026-03-03T00:00"), dateBounds("2026-03-03T00:30"))/* first 30 minutes */,
+    ColumnBounds(2, z2Bounds("POINT(1 -12)"), z2Bounds("POINT(11 -2)"))
+  )
+  val columnBounds3b = Seq(
+    ColumnBounds(0, "name7", "name9"),
+    ColumnBounds(1, dateBounds("2026-03-03T00:30"), dateBounds("2026-03-03T01:00"))/* last 30 minutes */,
+    ColumnBounds(2, z2Bounds("POINT(1 -12)"), z2Bounds("POINT(11 -2)"))
+  )
 
   val f1 = StorageFile("file1", partition1, 0L, bounds = columnBounds1, timestamp = System.currentTimeMillis() - 100)
   val f2a = StorageFile("file2a", partition2, 1L, bounds = columnBounds2a, timestamp = f1.timestamp + 10)
@@ -55,6 +72,9 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
   val f3b = StorageFile("file3b", partition3, 2L,  bounds = columnBounds3b, timestamp = f3a.timestamp + 10)
 
   val files = Seq(f1, f2a, f2b, f3a, f3b)
+
+  private def dateBounds(dtg: String): String = StorageMetadata.TypeRegistry.encode(DateParsing.parseDate(dtg + ":00.000Z"))
+  private def z2Bounds(pt: String): String = Z2Encoder.encode(WKTUtils.read(pt).asInstanceOf[Point])
 
   private def partitions(dtg: String, geom: String): Partition = {
     val sf = ScalaSimpleFeature.create(sft, "", "", dtg, geom)

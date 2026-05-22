@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.core
 
-import org.calrissian.mango.types.encoders.lexi.LongEncoder
 import org.calrissian.mango.types.{TypeEncoder, TypeRegistry}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
@@ -18,6 +17,7 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.jts.geom._
 
 import java.io.Closeable
+import java.util.HexFormat
 
 /**
   * Metadata interface for managing storage partitions
@@ -172,8 +172,8 @@ object StorageMetadata {
   object Z2Encoder extends TypeEncoder[Point, String] {
 
     private val sfc = Z2SFC
-    private val longEncoder = new LongEncoder()
     private val factory = new GeometryFactory()
+    private val hexFormat = HexFormat.of()
 
     override val getAlias: String = "z2"
 
@@ -183,11 +183,11 @@ object StorageMetadata {
       if (value == null) {
         throw new NullPointerException("Null values are not allowed")
       }
-      longEncoder.encode(sfc.index(value.getX, value.getY))
+      toHex(sfc.index(value.getX, value.getY))
     }
 
     override def decode(value: String): Point = {
-      val (x, y) = sfc.invert(longEncoder.decode(value))
+      val (x, y) = sfc.invert(fromHex(value))
       factory.createPoint(new Coordinate(x, y))
     }
 
@@ -198,7 +198,11 @@ object StorageMetadata {
      * @param maxRanges rough upper bound on the number of ranges to return
      */
     def ranges(queries: Seq[(Double, Double, Double, Double)], maxRanges: Option[Int] = None): Seq[(String, String)] =
-      sfc.ranges(queries, maxRanges = maxRanges).map(r => longEncoder.encode(r.lower) -> longEncoder.encode(r.upper))
+      sfc.ranges(queries, maxRanges = maxRanges).map(r => toHex(r.lower) -> toHex(r.upper))
+
+    // since the first two bits are not used in our z values, drop them so that truncating the hex value aligns with our curve
+    private def toHex(z: Long): String = hexFormat.toHexDigits(z << 2)
+    private def fromHex(hex: String): Long = HexFormat.fromHexDigitsToLong(hex) >>> 2
   }
 
   /**
@@ -207,8 +211,8 @@ object StorageMetadata {
   object XZ2Encoder extends TypeEncoder[Geometry, String] {
 
     private val sfc = XZ2SFC
-    private val longEncoder = new LongEncoder()
     private val factory = new GeometryFactory()
+    private val hexFormat = HexFormat.of()
 
     override val getAlias: String = "xz2"
 
@@ -222,11 +226,11 @@ object StorageMetadata {
       if (env.isNull) {
         throw new NullPointerException("Geometry has a null envelope")
       }
-      longEncoder.encode(sfc.index(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY))
+      hexFormat.toHexDigits(sfc.index(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY))
     }
 
     override def decode(value: String): Geometry = {
-      val (xmin, ymin, xmax, ymax) = sfc.invert(longEncoder.decode(value))
+      val (xmin, ymin, xmax, ymax) = sfc.invert(HexFormat.fromHexDigitsToLong(value))
       val ring = Array(
         new Coordinate(xmin, ymin),
         new Coordinate(xmin, ymax),
@@ -244,6 +248,6 @@ object StorageMetadata {
      * @param maxRanges a rough upper limit on the number of ranges to generate
      */
     def ranges(queries: Seq[(Double, Double, Double, Double)], maxRanges: Option[Int] = None): Seq[(String, String)] =
-      sfc.ranges(queries, maxRanges).map(r => longEncoder.encode(r.lower) -> longEncoder.encode(r.upper))
+      sfc.ranges(queries, maxRanges).map(r => hexFormat.toHexDigits(r.lower) -> hexFormat.toHexDigits(r.upper))
   }
 }
