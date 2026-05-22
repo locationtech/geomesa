@@ -94,7 +94,7 @@ object FsManageMetadataCommand extends LazyLogging {
 
             case other => other
           }
-          s"${metadata.sft.getDescriptor(b.attribute).getLocalName.padTo(padding, " ")} [ $lower,$upper ]"
+          s"${metadata.sft.getDescriptor(b.attribute).getLocalName.padTo(padding, ' ')} [ $lower,$upper ]"
         }
         Command.user.info(s"File bounds:\n  ${bounds.mkString("\n  ")}")
       }
