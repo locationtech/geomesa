@@ -41,7 +41,7 @@ class SchemeFilterExtractionTest extends SpecificationWithJUnit {
       filters.head.partitions must
         containTheSameElementsAs(Seq(PartitionRange("hours:attribute=dtg", "80066ba0", "80066bb8"), PartitionRange("z2:attribute=geom:bits=2", "3", "4")))
       filters.head.columnBounds mustEqual
-        Seq(ColumnOr(0, Seq(ColumnBound("80000160af049000", "80000160b42aec00"))), ColumnOr(1, Seq(ColumnBound("b000000000000000", "bfffffffffffffff"))))
+        Seq(ColumnOr(0, Seq(ColumnBound("80000160af049000", "80000160b42aec00"))), ColumnOr(1, Seq(ColumnBound("c000000000000000", "fffffffffffffffc"))))
     }
   }
 
