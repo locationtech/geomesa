@@ -29,7 +29,7 @@ import org.locationtech.jts.geom.Geometry
 import java.io.Closeable
 import java.util.Map.Entry
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
-import java.util.concurrent.{ConcurrentHashMap, Executors, RejectedExecutionException, TimeUnit}
+import java.util.concurrent.{ConcurrentHashMap, Executors, RejectedExecutionException, ScheduledFuture, TimeUnit}
 import java.util.function.BiFunction
 import scala.util.control.NonFatal
 
@@ -214,14 +214,16 @@ object FileSystemFeatureStore {
       }
       if (!closed) {
         try {
-          ex.schedule(expire, nextRun + 1000, TimeUnit.MILLISECONDS)
+          ex.synchronized {
+            future = ex.schedule(expire, nextRun + 1000, TimeUnit.MILLISECONDS)
+          }
         } catch {
           case _: RejectedExecutionException => // executor was shutdown due to close
         }
       }
     }
-    // schedule the first expiry check
-    ex.schedule(expire, writerTimeoutMillis + 1000, TimeUnit.MILLISECONDS)
+
+    private var future: ScheduledFuture[_] = ex.schedule(expire, writerTimeoutMillis + 1000, TimeUnit.MILLISECONDS)
 
     private val featureIds = new AtomicLong(0)
     private var feature: ScalaSimpleFeature = _
@@ -257,7 +259,10 @@ object FileSystemFeatureStore {
     override def close(): Unit = {
       try {
         closed = true
-        ex.shutdown()
+        ex.synchronized {
+          future.cancel(false)
+          ex.shutdown()
+        }
         // ensure all writers are closed before returning from this method
         ex.awaitTermination(Long.MaxValue, TimeUnit.MILLISECONDS)
       } finally {
