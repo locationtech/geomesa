@@ -77,12 +77,14 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
       // remove any existing file with the same path and add the new one
       (files.filterNot(_.file == file.file) :+ file).sortBy(_.timestamp)(Ordering.Long.reverse)
     }
+    logger.debug(s"Added file $file")
   }
 
   override def removeFile(file: StorageFile): Unit = {
     modifyFiles { files =>
       files.filterNot(_.file == file.file)
     }
+    logger.debug(s"Removed file $file")
   }
 
   override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit = {
@@ -90,6 +92,7 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
     modifyFiles { files =>
       files.filterNot(f => existingFiles.contains(f.file)) ++ replacements
     }
+    logger.debug(s"Replaced ${existing.size} files with ${replacements.size} new ones")
   }
 
   override def close(): Unit = try { super.close() } finally { fs.close() }
@@ -123,6 +126,7 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
     val maxAttempts = MaxLockRetries.toInt.get
 
     while (!lockAcquired && retries < maxAttempts) {
+      logger.debug(s"Attempting to acquire lock at $lockFilePath with ${maxAttempts - retries} tries left")
       try {
         // try to create lock file with overwrite=false for atomicity
         try {
@@ -141,16 +145,20 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
         }
 
         if (!lockAcquired) {
-          // lock file exists, check if it's stale
           retries += 1
-          fs.modified(lockFilePath).foreach { modified =>
-            val age = System.currentTimeMillis() - modified
-            if (age > LockTimeout.toMillis.get) {
-              fs.delete(lockFilePath)
+          if (retries < maxAttempts) {
+            // check if lockfile is stale
+            fs.modified(lockFilePath).foreach { modified =>
+              val age = System.currentTimeMillis() - modified
+              if (age > LockTimeout.toMillis.get) {
+                logger.debug(s"Deleting expired lock file (age ${age}ms at $lockFilePath")
+                fs.delete(lockFilePath)
+              }
             }
+            // wait and retry
+            logger.debug(s"Could not acquire lock - waiting for ${LockRetryDelay.toMillis.get}ms before next attempt")
+            Thread.sleep(LockRetryDelay.toMillis.get)
           }
-          // wait and retry
-          Thread.sleep(LockRetryDelay.toMillis.get)
         }
       } catch {
         case NonFatal(e) => throw new RuntimeException(s"Failed to acquire lock at $lockFilePath", e)
@@ -160,6 +168,7 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
     if (!lockAcquired) {
       throw new RuntimeException(s"Failed to acquire lock after $MaxLockRetries retries")
     }
+    logger.debug(s"Acquired lock file at $lockFilePath")
 
     try {
       // reload from disk to get latest state
@@ -179,6 +188,7 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
       // release lock by deleting lock file
       try {
         fs.delete(lockFilePath)
+        logger.debug(s"Released lock file at $lockFilePath")
       } catch {
         case NonFatal(e) => logger.warn(s"Failed to release lock at $lockFilePath", e)
       }
