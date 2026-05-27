@@ -101,17 +101,11 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
    * Load files from the JSON file
    */
   override protected def buildFileList(): Seq[StorageFile] = {
-    try {
-      WithClose(fs.read(filesFilePath)) { opt =>
-        opt.fold(Seq.empty[StorageFile]) { is =>
-          val listType = new TypeToken[java.util.List[StorageFile]]() {}.getType
-          gson.fromJson[java.util.List[StorageFile]](new InputStreamReader(is, StandardCharsets.UTF_8), listType).asScala.toSeq
-        }
+    WithClose(fs.read(filesFilePath)) { opt =>
+      opt.fold(Seq.empty[StorageFile]) { is =>
+        val listType = new TypeToken[java.util.List[StorageFile]]() {}.getType
+        gson.fromJson[java.util.List[StorageFile]](new InputStreamReader(is, StandardCharsets.UTF_8), listType).asScala.toSeq
       }
-    } catch {
-      case NonFatal(e) =>
-        logger.warn(s"Error loading files from $filesFilePath", e)
-        Seq.empty
     }
   }
 
@@ -126,7 +120,7 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
     val maxAttempts = MaxLockRetries.toInt.get
 
     while (!lockAcquired && retries < maxAttempts) {
-      logger.debug(s"Attempting to acquire lock at $lockFilePath with ${maxAttempts - retries} tries left")
+      logger.trace(s"Attempting to acquire lock at $lockFilePath with ${maxAttempts - retries} tries left")
       try {
         // try to create lock file with overwrite=false for atomicity
         try {
