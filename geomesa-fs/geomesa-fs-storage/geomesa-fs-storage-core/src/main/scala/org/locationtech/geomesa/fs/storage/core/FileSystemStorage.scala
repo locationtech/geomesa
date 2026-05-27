@@ -568,7 +568,7 @@ object FileSystemStorage {
     override def flush(): Unit = {}
     override def close(): Unit = {
       val file = delegate.file(path, partition, action)
-      logger.debug(s"Adding new metadata file: ${}")
+      logger.debug(s"Adding new metadata file: $file")
       metadata.addFile(file)
     }
   }
