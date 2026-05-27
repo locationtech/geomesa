@@ -73,7 +73,7 @@ class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: Sto
   }
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource =
-    new FileSystemFeatureStore(storage(entry.getTypeName), entry, Query.ALL, config.readThreads, config.writeTimeout, config.queryTimeout)
+    new FileSystemFeatureStore(storage(entry.getTypeName), entry, Query.ALL, config)
 
   /**
    * Get a handle on the underlying storage instance for a given simple feature type
@@ -106,12 +106,14 @@ object FileSystemDataStore {
    *
    * @param context handle to the file system
    * @param readThreads number of threads per read
+   * @param writeMaxOpenPartitions max partitions to hold open at once
    * @param writeTimeout write timeout
    * @param queryTimeout read timeout
    */
   case class FileSystemDataStoreConfig(
     context: FileSystemContext,
     readThreads: Int,
+    writeMaxOpenPartitions: Int,
     writeTimeout: Duration,
     queryTimeout: Option[Duration],
   )
