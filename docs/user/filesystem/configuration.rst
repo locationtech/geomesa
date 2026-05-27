@@ -44,6 +44,17 @@ mitigate this, idle partitions can be closed after a configurable timeout.
 
 The timeout is defined as a duration, e.g. ``60 seconds`` or ``100 millis``.
 
+Note that the data store parameter ``fs.writer.partition.timeout`` will supersede this property.
+
+geomesa.fs.writer.partitions.max.open
++++++++++++++++++++++++++++++++++++++
+
+When writing to multiple partitions, each partition writer is kept open until the overall feature writer is closed.
+When writing to many partitions at once, this may cause memory problems due to the large number of writers. To
+mitigate this, a limit may be set on the number of open partition writers.
+
+Note that the data store parameter ``fs.writer.partitions.max.open`` will supersede this property.
+
 Storage Configuration Properties
 --------------------------------
 

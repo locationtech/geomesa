@@ -13,6 +13,7 @@ import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorageFactory, Partition}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
+import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.FsIngestParams
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator, KeyValueConverter}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
@@ -54,6 +55,11 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
     }
     if (params.encoding != null) {
       builder += (FileSystemDataStoreParams.EncodingParam.key -> params.encoding)
+    }
+    val maxOpenPartitions =
+      Option(params).collect { case p: FsIngestParams if p.maxOpenPartitions != null => p.maxOpenPartitions.toString }.orNull
+    if (maxOpenPartitions != null) {
+      builder += (FileSystemDataStoreParams.WritersMaxOpenPartitionsParam.key -> maxOpenPartitions)
     }
     builder.result()
   }

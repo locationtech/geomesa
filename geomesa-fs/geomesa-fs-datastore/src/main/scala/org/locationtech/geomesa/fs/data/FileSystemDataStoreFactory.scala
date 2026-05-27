@@ -104,6 +104,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     // can be very useful. Seems possibly numcores/2 might is a good setting (which is a standard idea)
 
     val readThreads = QueryThreadsParam.lookup(params)
+    val maxOpenPartitions = WritersMaxOpenPartitionsParam.lookup(params)
     val writeTimeout = WriteTimeoutParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite)
 
@@ -117,7 +118,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     }
 
     val context = FileSystemContext.create(path, conf, namespace)
-    val config = FileSystemDataStoreConfig(context, readThreads, writeTimeout, queryTimeout)
+    val config = FileSystemDataStoreConfig(context, readThreads, maxOpenPartitions, writeTimeout, queryTimeout)
     val metadata = StorageMetadataCatalog(context)
 
     new FileSystemDataStore(storageFactory, metadata, config)

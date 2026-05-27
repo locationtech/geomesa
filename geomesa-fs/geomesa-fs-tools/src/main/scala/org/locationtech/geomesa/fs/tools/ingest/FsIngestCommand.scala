@@ -104,5 +104,11 @@ object FsIngestCommand {
       description = "Num reducers (required for distributed ingest)",
       required = false)
     var reducers: java.lang.Integer = _
+
+    @Parameter(
+      names = Array("--max-open-partitions"),
+      description = "Sets the maximum number of partition files to keep open at once",
+      required = false)
+    var maxOpenPartitions: java.lang.Integer = _
   }
 }
