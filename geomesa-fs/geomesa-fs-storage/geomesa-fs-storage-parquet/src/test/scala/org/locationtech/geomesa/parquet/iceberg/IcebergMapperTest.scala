@@ -13,16 +13,20 @@ import org.apache.iceberg.transforms.Transform
 import org.apache.iceberg.types.Types
 import org.calrissian.mango.types.LexiTypeEncoders
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.Z2Encoder
 import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Partition}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.fs.storage.parquet.iceberg.IcebergMapper
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.SpecificationWithJUnit
 
 import java.io.File
 import java.nio.file.Files
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Date
 
 class IcebergMapperTest extends SpecificationWithJUnit {
@@ -30,7 +34,7 @@ class IcebergMapperTest extends SpecificationWithJUnit {
   import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-  val sf = ScalaSimpleFeature.create(sft, "", "goodbye", "11", "2026-05-06T11:12:13", "POINT (0 0)")
+  val sf = ScalaSimpleFeature.create(sft, "", "goodbye", "11", "2026-05-06T11:12:13", "POINT (10 10)")
   val dtg = sf.getAttribute("dtg").asInstanceOf[Date].getTime * 1000 // in microseconds
 
   "IcebergMapper" should {
@@ -107,7 +111,7 @@ class IcebergMapperTest extends SpecificationWithJUnit {
         fields must haveLength(1)
         fields.head.name() mustEqual "dtg_day"
         fields.head.transform().asInstanceOf[Transform[Long, Int]].bind(Types.TimestampType.withoutZone()).apply(dtg) mustEqual expected
-        mapper.partitionValues(Partition(Set(partition))) mustEqual Seq(expected.toString)
+        mapper.partitionValues(Partition(Set(partition))) mustEqual Seq(DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDate.EPOCH.plusDays(expected.toLong)))
       }
     }
     "map month scheme" in {
@@ -132,6 +136,19 @@ class IcebergMapperTest extends SpecificationWithJUnit {
         fields.head.name() mustEqual "dtg_year"
         fields.head.transform().asInstanceOf[Transform[Long, Int]].bind(Types.TimestampType.withoutZone()).apply(dtg) mustEqual expected
         mapper.partitionValues(Partition(Set(partition))) mustEqual Seq(expected.toString)
+      }
+    }
+    "map z2 4/8-bit scheme" in {
+      val fullZValue = Z2Encoder.encode(sf.getDefaultGeometry.asInstanceOf[Point])
+      foreach(Seq(4, 8)) { bits =>
+        withStorage(Seq(s"z2:bits=$bits")) { storage =>
+          val partition = storage.metadata.schemes.head.getPartition(sf)
+          val mapper = new IcebergMapper(storage)
+          val fields = mapper.spec.fields().asScala
+          fields must haveLength(1)
+          fields.head.name() mustEqual "__geom_z2___trunc"
+          mapper.partitionValues(Partition(Set(partition))) mustEqual Seq(fullZValue.take(bits / 4))
+        }
       }
     }
     "not map unsupported schemas" in {

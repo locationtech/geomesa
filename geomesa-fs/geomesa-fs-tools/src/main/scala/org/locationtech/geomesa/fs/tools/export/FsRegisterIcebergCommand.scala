@@ -94,13 +94,9 @@ class FsRegisterIcebergCommand extends FsDataStoreCommand with LazyLogging {
       // TODO compare with existing schema and partitioning
     } else {
       Command.user.info("Creating new iceberg table")
-      val warehouse = icebergProps.get("warehouse")
-      if (warehouse == null) {
-        throw new IllegalArgumentException("Iceberg properties must specify a 'warehouse' location")
-      }
       // file format v3 lets us use native geometries - but it's not yet supported in spark or trino
       // icebergProps.put(TableProperties.FORMAT_VERSION, "3")
-      catalog.createTable(tableId, iceberg.schema, iceberg.spec, warehouse, icebergProps)
+      catalog.createTable(tableId, iceberg.schema, iceberg.spec, null, icebergProps)
     }
     logger.debug(s"Iceberg table: $table")
 

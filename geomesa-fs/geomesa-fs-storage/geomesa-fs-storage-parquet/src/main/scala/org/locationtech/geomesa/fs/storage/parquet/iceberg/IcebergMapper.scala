@@ -25,7 +25,10 @@ import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, 
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.net.URI
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.HexFormat
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -73,13 +76,14 @@ class IcebergMapper(storage: FileSystemStorage) extends LazyLogging {
     }
     val inputFile = table.io().newInputFile(uri)
     val metrics = ParquetUtil.fileMetrics(inputFile, metricsConfigs.computeIfAbsent(table.name(), _ => MetricsConfig.forTable(table)), null)
+    val partitions = partitionValues(file.partition).asJava
     // TODO withSort(f.sort)
     DataFiles.builder(table.spec())
       .withPath(inputFile.location())
       .withFormat(FileFormat.PARQUET)
       .withFileSizeInBytes(inputFile.getLength)
       .withMetrics(metrics)
-      .withPartitionValues(partitionValues(file.partition).asJava)
+      .withPartitionValues(partitions)
       .withRecordCount(file.count)
       .build()
   }
@@ -180,7 +184,11 @@ object IcebergMapper {
 
   private case class DayMapper(scheme: DateTimeScheme) extends SchemeMapper {
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.day(scheme.attribute)
-    override def toIceberg(key: String): String = LexiTypeEncoders.integerEncoder().decode(key).toString
+    // note: days are handled differently from other types, and expect an ISO_LOCAL_DATE formatted string
+    override def toIceberg(key: String): String = {
+      val days = LexiTypeEncoders.integerEncoder().decode(key)
+      DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDate.EPOCH.plusDays(days.longValue()))
+    }
   }
 
   private case class MonthMapper(scheme: DateTimeScheme) extends SchemeMapper {
@@ -194,15 +202,19 @@ object IcebergMapper {
   }
 
   private case class Z2Mapper(scheme: Z2Scheme) extends SchemeMapper {
+    private val hexFormat = HexFormat.of()
+    private val width = scheme.bits / 4
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
-      b.truncate(ZValueField.z2(scheme.attribute).zValue, scheme.bits / 4)
-    override def toIceberg(partitionValue: String): String = partitionValue
+      b.truncate(ZValueField.z2(scheme.attribute).zValue, width)
+    override def toIceberg(partitionValue: String): String = hexFormat.toHexDigits(partitionValue.toLong, width)
   }
 
   private case class XZ2Mapper(scheme: XZ2Scheme) extends SchemeMapper {
+    private val hexFormat = HexFormat.of()
+    private val width = scheme.bits / 4
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
-      b.truncate(ZValueField.xz2(scheme.attribute).zValue, scheme.bits / 4)
-    override def toIceberg(partitionValue: String): String = partitionValue
+      b.truncate(ZValueField.xz2(scheme.attribute).zValue, width)
+    override def toIceberg(partitionValue: String): String = hexFormat.toHexDigits(partitionValue.toLong, width)
   }
 
   private case class HashMapper(scheme: HashScheme[_]) extends SchemeMapper {

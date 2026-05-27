@@ -560,13 +560,17 @@ object FileSystemStorage {
    * @param action file action
    */
   private class MetadataObserver(metadata: StorageMetadata, path: String, partition: Partition, action: StorageFileAction)
-      extends FileSystemObserver {
+      extends FileSystemObserver with LazyLogging {
 
     private val delegate = new StorageFileObserver(metadata.sft)
 
     override def apply(feature: SimpleFeature): Unit = delegate.apply(feature)
     override def flush(): Unit = {}
-    override def close(): Unit = metadata.addFile(delegate.file(path, partition, action))
+    override def close(): Unit = {
+      val file = delegate.file(path, partition, action)
+      logger.debug(s"Adding new metadata file: ${}")
+      metadata.addFile(file)
+    }
   }
 
   /**
