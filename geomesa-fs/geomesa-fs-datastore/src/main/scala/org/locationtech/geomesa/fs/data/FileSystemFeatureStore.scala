@@ -31,6 +31,7 @@ import java.util.Map.Entry
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import java.util.concurrent.{ConcurrentHashMap, Executors, RejectedExecutionException, TimeUnit}
 import java.util.function.BiFunction
+import scala.util.control.NonFatal
 
 class FileSystemFeatureStore(
     val storage: FileSystemStorage,
@@ -109,8 +110,6 @@ class FileSystemFeatureStore(
 
 object FileSystemFeatureStore {
 
-  import scala.collection.JavaConverters._
-
   private val capabilities: QueryCapabilities = new QueryCapabilities() {
     override def isReliableFIDSupported: Boolean = true
     override def isUseProvidedFIDSupported: Boolean = true
@@ -169,10 +168,16 @@ object FileSystemFeatureStore {
       writerTimeoutMillis: Long
     ) extends FastSettableFeatureWriter with LazyLogging {
 
+    @volatile
+    private var closed = false
+
     private val writers = new ConcurrentHashMap[Partition, WriterHolder]()
 
     private val computeForWrite: BiFunction[Partition, WriterHolder, WriterHolder] = (p, current) => {
-      if (current == null) { new WriterHolder(storage.getWriter(p)) } else {
+      if (current == null) {
+        logger.debug(s"Opening writer for partition $p")
+        new WriterHolder(storage.getWriter(p))
+      } else {
         current.updateAccessTime() // update access time before returning so it's not expired
         current
       }
@@ -196,14 +201,18 @@ object FileSystemFeatureStore {
     private val expire: Runnable = () => {
       var nextRun = writerTimeoutMillis
       writers.entrySet().forEach { entry =>
-        val delta = writerTimeoutMillis - entry.getValue.age
-        if (delta < 1) {
-          writers.computeIfPresent(entry.getKey, computeForExpire)
-        } else {
-          nextRun = math.min(delta, nextRun)
+        if (!closed) {
+          val delta = writerTimeoutMillis - entry.getValue.age
+          if (delta < 1) {
+            try { writers.computeIfPresent(entry.getKey, computeForExpire) } catch {
+              case NonFatal(e) => logger.warn(s"Error expiring feature writer for partition ${entry.getKey}:", e)
+            }
+          } else {
+            nextRun = math.min(delta, nextRun)
+          }
         }
       }
-      if (!ex.isShutdown) {
+      if (!closed) {
         try {
           ex.schedule(expire, nextRun + 1000, TimeUnit.MILLISECONDS)
         } catch {
@@ -232,14 +241,13 @@ object FileSystemFeatureStore {
       writers.compute(partition, computeForWrite).write(sf)
       feature = null
       if (writers.size() > maxOpenPartitions) {
-        val key = writers.reduceEntries(maxOpenPartitions / 2, WriterHolder.Oldest).getKey
-        val expired = writers.remove(key)
-        // may be null if it was expired asynchronously due to inactivity
-        if (expired != null) {
+        val oldest = writers.reduceEntries(maxOpenPartitions / 2, WriterHolder.Oldest)
+        // may have been expired asynchronously due to inactivity
+        if (writers.remove(oldest.getKey, oldest.getValue)) {
           logger.debug(
-            s"Closing writer for partition $key (last accessed ${expired.age}ms ago) due to hitting max writer " +
-              s"threshold $maxOpenPartitions")
-          CloseWithLogging(expired)
+            s"Closing writer for partition ${oldest.getKey} (last accessed ${oldest.getValue.age}ms ago) due to hitting max " +
+              s"writer threshold $maxOpenPartitions")
+          CloseWithLogging(oldest.getValue)
         }
       }
     }
@@ -248,11 +256,19 @@ object FileSystemFeatureStore {
 
     override def close(): Unit = {
       try {
-        ex.shutdownNow()
+        closed = true
+        ex.shutdown()
         // ensure all writers are closed before returning from this method
         ex.awaitTermination(Long.MaxValue, TimeUnit.MILLISECONDS)
       } finally {
-        CloseQuietly(writers.values().asScala.toSeq).foreach(e => throw e)
+        var ex: Throwable = null
+        writers.forEach { (p, writer) =>
+          logger.debug(s"Closing writer for partition $p")
+          CloseQuietly(writer).foreach(e => if (ex == null) { ex = e } else { ex.addSuppressed(e) })
+        }
+        if (ex != null) {
+          throw ex
+        }
       }
     }
   }
