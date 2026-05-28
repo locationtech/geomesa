@@ -15,7 +15,7 @@ import org.apache.parquet.ParquetReadOptions
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.hadoop.metadata.ParquetMetadata
 import org.calrissian.mango.types.{LexiTypeEncoders, TypeEncoder}
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, XZ2Encoder, Z2Encoder}
 import org.locationtech.geomesa.fs.storage.core.schemes.AttributeScheme.{IntegralBucketing, WidthBucketing}
 import org.locationtech.geomesa.fs.storage.core.schemes._
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition, PartitionScheme}
@@ -28,7 +28,6 @@ import java.net.URI
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.HexFormat
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -202,19 +201,15 @@ object IcebergMapper {
   }
 
   private case class Z2Mapper(scheme: Z2Scheme) extends SchemeMapper {
-    private val hexFormat = HexFormat.of()
-    private val width = scheme.bits / 4
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
-      b.truncate(ZValueField.z2(scheme.attribute).zValue, width)
-    override def toIceberg(partitionValue: String): String = hexFormat.toHexDigits(partitionValue.toLong, width)
+      b.truncate(ZValueField.z2(scheme.attribute).zValue, scheme.bits / 4)
+    override def toIceberg(partitionValue: String): String = Z2Encoder.encodePartition(partitionValue, scheme.bits)
   }
 
   private case class XZ2Mapper(scheme: XZ2Scheme) extends SchemeMapper {
-    private val hexFormat = HexFormat.of()
-    private val width = scheme.bits / 4
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
-      b.truncate(ZValueField.xz2(scheme.attribute).zValue, width)
-    override def toIceberg(partitionValue: String): String = hexFormat.toHexDigits(partitionValue.toLong, width)
+      b.truncate(ZValueField.xz2(scheme.attribute).zValue, scheme.bits / 4)
+    override def toIceberg(partitionValue: String): String = partitionValue
   }
 
   private case class HashMapper(scheme: HashScheme[_]) extends SchemeMapper {
