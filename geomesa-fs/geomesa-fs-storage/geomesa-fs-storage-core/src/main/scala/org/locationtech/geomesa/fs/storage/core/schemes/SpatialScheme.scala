@@ -10,61 +10,11 @@ package org.locationtech.geomesa.fs.storage.core
 package schemes
 
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.locationtech.jts.geom.Geometry
 
 import java.util.regex.Pattern
 import scala.reflect.ClassTag
-
-abstract class SpatialScheme(id: String, attribute: String, bits: Int) extends PartitionScheme {
-
-  require(bits % 2 == 0, "Resolution must be an even number")
-
-  protected val format = s"%0${digits(bits)}d"
-
-  override val name: String = s"$id:attribute=$attribute:bits=$bits"
-
-  protected def digits(bits: Int): Int
-
-  protected def generateRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[IndexRange]
-
-  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = {
-    getGeoms(filter).map { ranges =>
-      val builder = new RangeBuilder()
-      ranges.foreach { range =>
-        val lower = format.format(range.lower)
-        val upper = format.format(range.upper + 1)
-        builder += PartitionRange(name, lower, upper)
-      }
-      builder.result()
-    }
-  }
-
-  override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = {
-    getGeoms(filter).orElse(Some(generateRanges(Seq((-180, -90, 180, 90))))).map { ranges =>
-      ranges.flatMap { range =>
-        val lower = range.lower
-        val steps = 1 + (range.upper - lower).toInt
-        Seq.tabulate(steps)(i => PartitionKey(name, format.format(lower + i)))
-      }
-    }
-  }
-
-  private def getGeoms(filter: Filter): Option[Seq[IndexRange]] = {
-    val geometries = FilterHelper.extractGeometries(filter, attribute, intersect = true)
-    if (geometries.isEmpty) {
-      None
-    } else if (geometries.disjoint) {
-      Some(Seq.empty)
-    } else {
-      Some(generateRanges(geometries.values.map(GeometryUtils.bounds)))
-    }
-  }
-}
 
 object SpatialScheme {
 
@@ -97,6 +47,6 @@ object SpatialScheme {
       }
     }
 
-    def buildPartitionScheme(bits: Int, geom: String, geomIndex: Int): SpatialScheme
+    def buildPartitionScheme(bits: Int, geom: String, geomIndex: Int): PartitionScheme
   }
 }

@@ -192,6 +192,15 @@ object StorageMetadata {
     }
 
     /**
+     * Creates a z2 prefix based on a partition key
+     *
+     * @param value z2 partition value
+     * @param bits number of bits used in the z2 partition scheme
+     * @return
+     */
+    def encodePartition(value: String, bits: Int): String = hexFormat.toHexDigits(value.toLong, bits / 4)
+
+    /**
      * Calculate encoded ranges
      *
      * @param queries a sequence of OR'd windows to cover. Each window is in the form (xmin, ymin, xmax, ymax)
@@ -226,11 +235,11 @@ object StorageMetadata {
       if (env.isNull) {
         throw new NullPointerException("Geometry has a null envelope")
       }
-      hexFormat.toHexDigits(sfc.index(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY))
+      toHex(sfc.index(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY))
     }
 
     override def decode(value: String): Geometry = {
-      val (xmin, ymin, xmax, ymax) = sfc.invert(HexFormat.fromHexDigitsToLong(value))
+      val (xmin, ymin, xmax, ymax) = sfc.invert(fromHex(value))
       val ring = Array(
         new Coordinate(xmin, ymin),
         new Coordinate(xmin, ymax),
@@ -248,6 +257,11 @@ object StorageMetadata {
      * @param maxRanges a rough upper limit on the number of ranges to generate
      */
     def ranges(queries: Seq[(Double, Double, Double, Double)], maxRanges: Option[Int] = None): Seq[(String, String)] =
-      sfc.ranges(queries, maxRanges).map(r => hexFormat.toHexDigits(r.lower) -> hexFormat.toHexDigits(r.upper))
+      sfc.ranges(queries, maxRanges).map(r => toHex(r.lower) -> toHex(r.upper))
+
+    // our z values use 25 bits, so we only need 7 digits to hex encode the full value
+    // we bit-shift by 3 to move dead bits to the end for better prefix matching
+    private def toHex(z: Long): String = hexFormat.toHexDigits(z << 3, 7)
+    private def fromHex(hex: String): Long = HexFormat.fromHexDigitsToLong(hex) >>> 3
   }
 }
