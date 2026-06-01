@@ -11,6 +11,7 @@ package org.locationtech.geomesa.curve
 import org.locationtech.geomesa.curve.XZ2SFC.{QueryWindow, XElement}
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 
+import java.util.HexFormat
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -25,6 +26,8 @@ class XZ2SFC(val g: Short, val xBounds: (Double, Double), val yBounds: (Double, 
 
   // TODO see what the max value of g can be where we can use Ints instead of Longs and possibly refactor to use Ints
 
+  private val hexFormat = HexFormat.of()
+
   private val xLo = xBounds._1
   private val xHi = xBounds._2
   private val yLo = yBounds._1
@@ -32,6 +35,31 @@ class XZ2SFC(val g: Short, val xBounds: (Double, Double), val yBounds: (Double, 
 
   private val xSize = xHi - xLo
   private val ySize = yHi - yLo
+
+  // upper bound on the z values produces by this curve (for g values <= 30)
+  val maxZValue: Long = (math.pow(4, g + 1).toLong - 1) / 3
+
+  // number of bits we bit-shift hex values, in order to move the significant digits to the left and allow prefix matching
+  private val hexBitOffset = java.lang.Long.numberOfLeadingZeros(maxZValue) % 4
+
+  // number of digits used in hex encoding function
+  val hexDigits: Int = ((64 - java.lang.Long.numberOfLeadingZeros(maxZValue)) / 4) + (if (hexBitOffset == 0) { 0 } else { 1 })
+
+  /**
+   * Encodes a z value into hex, bit-shifting left as necessary so that prefix matching works
+   *
+   * @param z z value
+   * @return hex-encoded string
+   */
+  def hexEncode(z: Long): String = hexFormat.toHexDigits(z << hexBitOffset, hexDigits)
+
+  /**
+   * Decodes a previously encoded z value from hex
+   *
+   * @param hex hex string from `hexEncode`
+   * @return original z value
+   */
+  def hexDecode(hex: String): Long = HexFormat.fromHexDigitsToLong(hex) >>> hexBitOffset
 
   /**
     * Index a polygon by its bounding box

@@ -221,7 +221,6 @@ object StorageMetadata {
 
     private val sfc = XZ2SFC
     private val factory = new GeometryFactory()
-    private val hexFormat = HexFormat.of()
 
     override val getAlias: String = "xz2"
 
@@ -235,11 +234,11 @@ object StorageMetadata {
       if (env.isNull) {
         throw new NullPointerException("Geometry has a null envelope")
       }
-      toHex(sfc.index(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY))
+      sfc.hexEncode(sfc.index(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY))
     }
 
     override def decode(value: String): Geometry = {
-      val (xmin, ymin, xmax, ymax) = sfc.invert(fromHex(value))
+      val (xmin, ymin, xmax, ymax) = sfc.invert(sfc.hexDecode(value))
       val ring = Array(
         new Coordinate(xmin, ymin),
         new Coordinate(xmin, ymax),
@@ -257,11 +256,6 @@ object StorageMetadata {
      * @param maxRanges a rough upper limit on the number of ranges to generate
      */
     def ranges(queries: Seq[(Double, Double, Double, Double)], maxRanges: Option[Int] = None): Seq[(String, String)] =
-      sfc.ranges(queries, maxRanges).map(r => toHex(r.lower) -> toHex(r.upper))
-
-    // our z values use 25 bits, so we only need 7 digits to hex encode the full value
-    // we bit-shift by 3 to move dead bits to the end for better prefix matching
-    private def toHex(z: Long): String = hexFormat.toHexDigits(z << 3, 7)
-    private def fromHex(hex: String): Long = HexFormat.fromHexDigitsToLong(hex) >>> 3
+      sfc.ranges(queries, maxRanges).map(r => sfc.hexEncode(r.lower) -> sfc.hexEncode(r.upper))
   }
 }

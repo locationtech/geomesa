@@ -5,3 +5,4 @@ org.locationtech.geomesa.filter.function.DateToLong
 org.locationtech.geomesa.filter.function.FastProperty
 org.locationtech.geomesa.filter.function.MurmurHashFunction
 org.locationtech.geomesa.filter.function.ProxyIdFunction
+org.locationtech.geomesa.filter.function.XZ2Function

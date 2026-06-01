@@ -11,19 +11,14 @@ package schemes
 
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
-import org.geotools.api.filter.expression.{Expression, ExpressionVisitor}
-import org.geotools.filter.FunctionExpressionImpl
-import org.geotools.filter.capability.FunctionNameImpl
-import org.geotools.filter.capability.FunctionNameImpl.parameter
 import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.XZ2Encoder
+import org.locationtech.geomesa.filter.function.XZ2Function
 import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.geomesa.fs.storage.core.schemes.XZ2Scheme.incrementHex
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.jts.geom.Geometry
 
-import java.util.HexFormat
 import scala.annotation.tailrec
 
 /**
@@ -42,18 +37,16 @@ import scala.annotation.tailrec
 case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends PartitionScheme {
 
   import FilterHelper.ff
-  import XZ2Scheme.FullHexDigits
 
   require(bits % 4 == 0, s"Bit precision must be a multiple of 4, but received $bits")
 
   private val xz2 = XZ2SFC
-  private val hexFormat = HexFormat.of()
 
   // partition level derived from bits parameter
   // each level adds 2 bits (4 quadrants)
   private val partitionLevel = (bits / 2).toShort
   // number of hex digits used to represent our z value - bits = (xz2.g - partitionLevel) * 2, then divide by 4 to get hex
-  private val digits = FullHexDigits - ((xz2.g - partitionLevel) / 2)
+  private val digits = xz2.hexDigits - ((xz2.g - partitionLevel) / 2)
 
   lazy private val wholeWorldRanges = Some(generateRanges(Seq((-180, -90, 180, 90))))
 
@@ -68,9 +61,9 @@ case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends Partition
   override def getCoveringFilter(partition: PartitionKey): Filter = {
     // TODO maybe we can improve this with *some* kind of bbox?
     val zPrefix = partition.value
-    val lower = zPrefix.padTo(FullHexDigits, '0')
-    val upper = zPrefix.padTo(FullHexDigits, 'f')
-    ff.between(ff.function(XZ2Scheme.FunctionName.getName), ff.literal(lower), ff.literal(upper))
+    val lower = zPrefix.padTo(xz2.hexDigits, '0')
+    val upper = zPrefix.padTo(xz2.hexDigits, 'f')
+    ff.between(ff.function(XZ2Function.FunctionName.getName), ff.literal(lower), ff.literal(upper))
   }
 
   override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = {
@@ -104,15 +97,10 @@ case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends Partition
   }
 
   // truncates a full-resolution index to a partition group ID
-  private def truncateToPartition(fullIndex: Long): String = hexFormat.toHexDigits(fullIndex << 3, FullHexDigits).take(digits)
+  private def truncateToPartition(fullIndex: Long): String = xz2.hexEncode(fullIndex).take(digits)
 }
 
 object XZ2Scheme extends SpatialPartitionSchemeFactory[Geometry]("xz2") {
-
-  // number of digits required to index a "full" (g == 12) xz value, which is 25 bits
-  private val FullHexDigits = 7
-
-  val FunctionName = new FunctionNameImpl("xz2", classOf[String], parameter("geom", classOf[String], 0, 1))
 
   override def buildPartitionScheme(bits: Int, geom: String, geomIndex: Int): PartitionScheme =
     XZ2Scheme(geom, geomIndex, bits)
@@ -129,45 +117,5 @@ object XZ2Scheme extends SpatialPartitionSchemeFactory[Geometry]("xz2") {
     } else {
       incrementHex(hex.substring(0, pos) + '0' + hex.substring(pos + 1), pos - 1)
     }
-  }
-
-  /**
-   * Function to calculate an XZ2 hex-encoded value
-   */
-  class XZ2Function extends FunctionExpressionImpl(FunctionName) {
-
-    private var expression: Expression = _
-
-    override def setParameters(params: java.util.List[Expression]): Unit = {
-      super.setParameters(params)
-      if (params.isEmpty) {
-        expression = GetDefaultGeometry
-      } else {
-        expression = getExpression(0)
-      }
-    }
-
-    override def evaluate(o: AnyRef): AnyRef = {
-      if (o == null) {
-        return null
-      }
-      val value = expression.evaluate(o, classOf[Geometry])
-      if (value == null) {
-        return null
-      }
-      XZ2Encoder.encode(value)
-    }
-  }
-
-  private object GetDefaultGeometry extends Expression {
-
-    override def evaluate(obj: Any): Geometry = obj match {
-      case sf: SimpleFeature => sf.getDefaultGeometry.asInstanceOf[Geometry]
-      case _ => null
-    }
-
-    override def evaluate[T](obj: Any, context: Class[T]): T = evaluate(obj).asInstanceOf[T] // only called by our code, above
-
-    override def accept(visitor: ExpressionVisitor, extraData: Any): AnyRef = throw new UnsupportedOperationException()
   }
 }
