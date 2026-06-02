@@ -13,7 +13,7 @@ import com.google.gson._
 import com.google.gson.reflect.TypeToken
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -21,7 +21,6 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.StringSerialization
 
 import java.io.{InputStreamReader, OutputStreamWriter}
-import java.lang.reflect.Type
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
@@ -204,44 +203,8 @@ object FileBasedMetadata {
     new GsonBuilder()
       .registerTypeAdapter(classOf[PartitionKey], PartitionKey.PartitionKeySerializer)
       .registerTypeAdapter(classOf[Partition], Partition.PartitionSerializer)
-      .registerTypeAdapter(classOf[StorageFile], StorageFileSerializer)
+      .registerTypeAdapter(classOf[StorageFile], StorageFile.StorageFileSerializer)
       .disableHtmlEscaping()
       .create()
 
-  /**
-   * Json serializer for StorageFileAction
-   */
-  private object StorageFileSerializer extends JsonSerializer[StorageFile] with JsonDeserializer[StorageFile] {
-
-    import scala.collection.JavaConverters._
-
-    override def serialize(src: StorageFile, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
-      val obj = new JsonObject()
-      obj.addProperty("file", src.file)
-      obj.add("partition", context.serialize(src.partition))
-      obj.addProperty("count", src.count)
-      obj.addProperty("action", src.action.toString)
-      val bounds = new JsonArray(src.bounds.size)
-      src.bounds.foreach(b => bounds.add(context.serialize(b)))
-      obj.add("bounds", bounds)
-      val sort = new JsonArray(src.sort.size)
-      src.sort.foreach(sort.add(_))
-      obj.add("sort", sort)
-      obj.addProperty("timestamp", src.timestamp)
-      obj
-    }
-
-    override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): StorageFile = {
-      val obj = json.getAsJsonObject
-      StorageFile(
-        obj.getAsJsonPrimitive("file").getAsString,
-        context.deserialize(obj.get("partition"), classOf[Partition]),
-        obj.getAsJsonPrimitive("count").getAsLong,
-        StorageFileAction.withName(obj.getAsJsonPrimitive("action").getAsString),
-        obj.getAsJsonArray("bounds").asList().asScala.map(context.deserialize[ColumnBounds](_, classOf[ColumnBounds])).toSeq,
-        obj.getAsJsonArray("sort").asList().asScala.map(_.getAsInt).toSeq,
-        obj.getAsJsonPrimitive("timestamp").getAsLong,
-      )
-    }
-  }
 }
