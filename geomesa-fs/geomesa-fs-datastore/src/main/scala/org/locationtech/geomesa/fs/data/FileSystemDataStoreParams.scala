@@ -76,7 +76,7 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
     new GeoMesaParam[Integer](
       GeoMesaDataStoreFactory.QueryThreadsParam.key,
       GeoMesaDataStoreFactory.QueryThreadsParam.description.toString,
-      default = Int.box(4),
+      default = GeoMesaDataStoreFactory.QueryThreadsParam.default,
       deprecatedKeys = Seq("fs.read-threads"),
       systemProperty = GeoMesaDataStoreFactory.QueryThreadsParam.systemProperty,
       supportsNiFiExpressions = GeoMesaDataStoreFactory.QueryThreadsParam.supportsNiFiExpressions,

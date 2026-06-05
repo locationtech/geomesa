@@ -225,7 +225,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       bboxes: BoundingBoxes,
       zValues: ZValues,
       visibilities: Boolean): MessageType = {
-    schema(sft, encodings, bboxes, zValues, visibilities).toMessageType(readSft.getOrElse(sft), excludeBBoxes = true)
+    schema(sft, encodings, bboxes, zValues, visibilities).toMessageType(readSft.getOrElse(sft), excludeZValues = true)
   }
 
   /**

@@ -78,7 +78,6 @@
                                 </goals>
                                 <configuration>
                                     <outputDirectory>${project.build.directory}</outputDirectory>
-                                    <overwrite>true</overwrite>
                                     <resources>
                                         <resource>
                                             <directory>${basedir}</directory>
