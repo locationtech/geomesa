@@ -13,9 +13,8 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.{GroupType, Types}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.parquet.io.geometry.BoundingBoxes.BoundingBoxField
-import org.locationtech.geomesa.fs.storage.parquet.io.geometry.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.utils.text.StringSerialization.alphaNumericSafeString
-import org.locationtech.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.Geometry
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -36,18 +35,15 @@ object BoundingBoxes {
   import scala.collection.JavaConverters._
 
   /**
-   * Gets the fields of this schema that have per-row bounding-boxes. We only add bounding boxes when
-   * they help with predicate push-down, e.g. when a geometry is a non-point or WKB encoded
+   * Gets the fields of this schema that have per-row bounding-boxes
    *
    * @param sft simple feature type
-   * @param encoding geometry encoding
    * @return
    */
-  def apply(sft: SimpleFeatureType, encoding: GeometryEncoding): BoundingBoxes = {
+  def apply(sft: SimpleFeatureType): BoundingBoxes = {
     val bboxes = sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
       val binding = d.getType.getBinding
-      if (classOf[Geometry].isAssignableFrom(binding) &&
-        (encoding == GeometryEncoding.GeoParquetWkb || binding != classOf[Point])) {
+      if (classOf[Geometry].isAssignableFrom(binding)) {
         Some(BoundingBoxField(d.getLocalName))
       } else {
         None

@@ -21,7 +21,7 @@ class FsExportCommand extends ExportCommand[FileSystemDataStore] with FsDistribu
   override val params = new FsExportParams
 
   override def connection: Map[String, String] =
-    super.connection + (FileSystemDataStoreParams.QueryThreadsParam.getName -> params.threads.toString)
+    super.connection ++ Option(params.threads).map(t => FileSystemDataStoreParams.QueryThreadsParam.key -> t.toString)
 }
 
 object FsExportCommand {
@@ -30,7 +30,7 @@ object FsExportCommand {
   class FsExportParams extends ExportParams with FsParams with RequiredTypeNameParam with OptionalQueryThreads
 
   trait OptionalQueryThreads {
-    @Parameter(names = Array("--query-threads"), description = "threads (start with 1)", required = false)
-    var threads: java.lang.Integer = 1
+    @Parameter(names = Array("--query-threads"), description = "Query threads", required = false)
+    var threads: java.lang.Integer = _
   }
 }

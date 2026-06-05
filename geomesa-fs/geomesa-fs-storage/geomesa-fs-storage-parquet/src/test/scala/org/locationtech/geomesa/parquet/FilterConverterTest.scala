@@ -52,52 +52,58 @@ class FilterConverterTest extends SpecificationWithJUnit {
   }
 
   "FilterConverter" should {
-    "convert point geo filter to z range lt/gt" in {
+    "convert point geo filter to bbox lt/gt" in {
       val (pFilter, gFilter) = convert("bbox(geom, -24.0, -25.0, -18.0, -19.0)")
       gFilter must beSome(beAnInstanceOf[BBOX])
-      pFilter must beSome(beAnInstanceOf[Operators.Or])
+      pFilter must beSome(beAnInstanceOf[Operators.And])
 
-      // z ranges OR
-      val orClauses = flatten(pFilter.get.asInstanceOf[Operators.Or])
-      orClauses must not(beEmpty)
+      val andClauses = flatten(pFilter.get.asInstanceOf[Operators.And])
+      andClauses must haveLength(4)
 
-      val andClauses = orClauses.collect { case and: Operators.And => flatten(and) }
-      andClauses must haveLength(orClauses.length)
-
-      foreach(andClauses) { clause =>
-        clause must haveLength(2)
-        val lt = clause.collectFirst {
-          case c: Operators.LtEq[Binary] if c.getColumn.getColumnPath.toDotString == "__geom_z2__" => c.getValue
-        }
-        val gt = clause.collectFirst {
-          case c: Operators.GtEq[Binary] if c.getColumn.getColumnPath.toDotString == "__geom_z2__" => c.getValue
-        }
-        foreach(Seq(lt, gt))(_ must beSome)
+      val xmin = andClauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__geom_bbox__.xmin" => c
       }
+      val ymin = andClauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__geom_bbox__.ymin" => c
+      }
+      val xmax = andClauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__geom_bbox__.xmax" => c
+      }
+      val ymax = andClauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__geom_bbox__.ymax" => c
+      }
+
+      xmin.map(_.getValue.floatValue()) must beSome(-18.0f)
+      ymin.map(_.getValue.floatValue()) must beSome(-19.0f)
+      xmax.map(_.getValue.floatValue()) must beSome(-24.0f)
+      ymax.map(_.getValue.floatValue()) must beSome(-25.0f)
     }
 
-    "convert non-point geo filter to z range lt/gt" in {
+    "convert non-point geo filter to bbox lt/gt" in {
       val (pFilter, gFilter) = convert("bbox(line, -24.0, -25.0, -18.0, -19.0)")
       gFilter must beSome(beAnInstanceOf[BBOX])
-      pFilter must beSome(beAnInstanceOf[Operators.Or])
+      pFilter must beSome(beAnInstanceOf[Operators.And])
 
-      // z ranges OR
-      val orClauses = flatten(pFilter.get.asInstanceOf[Operators.Or])
-      orClauses must not(beEmpty)
+      val andClauses = flatten(pFilter.get.asInstanceOf[Operators.And])
+      andClauses must haveLength(4)
 
-      val andClauses = orClauses.collect { case and: Operators.And => flatten(and) }
-      andClauses must haveLength(orClauses.length)
-
-      foreach(andClauses) { clause =>
-        clause must haveLength(2)
-        val lt = clause.collectFirst {
-          case c: Operators.LtEq[Binary] if c.getColumn.getColumnPath.toDotString == "__line_xz2__" => c.getValue
-        }
-        val gt = clause.collectFirst {
-          case c: Operators.GtEq[Binary] if c.getColumn.getColumnPath.toDotString == "__line_xz2__" => c.getValue
-        }
-        foreach(Seq(lt, gt))(_ must beSome)
+      val xmin = andClauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__line_bbox__.xmin" => c
       }
+      val ymin = andClauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__line_bbox__.ymin" => c
+      }
+      val xmax = andClauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__line_bbox__.xmax" => c
+      }
+      val ymax = andClauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__line_bbox__.ymax" => c
+      }
+
+      xmin.map(_.getValue.floatValue()) must beSome(-18.0f)
+      ymin.map(_.getValue.floatValue()) must beSome(-19.0f)
+      xmax.map(_.getValue.floatValue()) must beSome(-24.0f)
+      ymax.map(_.getValue.floatValue()) must beSome(-25.0f)
     }
 
     "convert dtg ranges to long ranges" in {

@@ -3158,7 +3158,6 @@
                         <inherited>false</inherited>
                         <configuration>
                             <outputDirectory>${project.basedir}</outputDirectory>
-                            <overwrite>true</overwrite>
                             <resources>
                                 <resource>
                                     <directory>build/templates</directory>
@@ -3179,7 +3178,6 @@
                         <inherited>false</inherited>
                         <configuration>
                             <outputDirectory>${project.basedir}/.github</outputDirectory>
-                            <overwrite>true</overwrite>
                             <resources>
                                 <resource>
                                     <directory>build/templates</directory>

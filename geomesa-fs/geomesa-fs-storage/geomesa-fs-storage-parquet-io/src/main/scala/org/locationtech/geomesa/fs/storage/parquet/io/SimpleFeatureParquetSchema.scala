@@ -150,9 +150,8 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     } yield {
       val sft = SimpleFeatureTypes.createType(name, spec)
       val geometries = Option(conf.get(GeometryEncodingKey)).map(GeometryEncoding.apply).getOrElse(GeometryEncoding.GeoParquetWkb)
-      // only include bboxes if they help with push-down filters
       val bboxes =
-        if (Option(conf.get(BBoxEncodingKey)).forall(_.toBoolean)) { BoundingBoxes(sft, geometries) } else { BoundingBoxes(Seq.empty) }
+        if (Option(conf.get(BBoxEncodingKey)).forall(_.toBoolean)) { BoundingBoxes(sft) } else { BoundingBoxes(Seq.empty) }
       val zCols = if (Option(conf.get(ZValueColumKey)).forall(_.toBoolean)) { ZValues(sft) } else { ZValues(Seq.empty) }
       val visibilities =
         Option(sft.getUserData.get(VisibilityEncodingKey)).orElse(Option(conf.get(VisibilityEncodingKey))).forall(_.toString.toBoolean)
@@ -225,7 +224,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       bboxes: BoundingBoxes,
       zValues: ZValues,
       visibilities: Boolean): MessageType = {
-    schema(sft, encodings, bboxes, zValues, visibilities).toMessageType(readSft.getOrElse(sft), excludeBBoxes = true)
+    schema(sft, encodings, bboxes, zValues, visibilities).toMessageType(readSft.getOrElse(sft), excludeZValues = true)
   }
 
   /**

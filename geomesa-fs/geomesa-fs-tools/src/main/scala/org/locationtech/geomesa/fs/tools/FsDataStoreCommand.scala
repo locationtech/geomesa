@@ -48,7 +48,7 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
       builder += (FileSystemDataStoreParams.ConfigParam.key -> out.toString)
     }
     if (params.configFile != null) {
-      builder += (FileSystemDataStoreParams.ConfigFileParam.key -> params.configFile)
+      builder += (FileSystemDataStoreParams.ConfigFileParam.key -> params.configFile.getAbsolutePath)
     }
     if (params.auths != null) {
       builder += (FileSystemDataStoreParams.AuthsParam.key -> params.auths)
@@ -97,7 +97,7 @@ object FsDataStoreCommand {
     @Parameter(
       names = Array("--config-file"),
       description = "Name of a configuration file, in Java properties format")
-    var configFile: String = _
+    var configFile: File = _
 
     @Parameter(
       names = Array("--config"),

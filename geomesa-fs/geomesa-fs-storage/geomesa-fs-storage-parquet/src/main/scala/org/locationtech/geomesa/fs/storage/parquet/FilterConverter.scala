@@ -15,9 +15,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{XZ2Encoder, Z2Encoder}
-import org.locationtech.geomesa.fs.storage.parquet.io.geometry.ZValues.ZValueField
-import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.fs.storage.parquet.io.geometry.BoundingBoxes.BoundingBoxField
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
@@ -70,29 +68,27 @@ object FilterConverter {
       col: String,
       typed: ObjectType): (Option[FilterPredicate], Option[Filter]) = {
     val (spatial, _) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
-    val predicate = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
+    val xyBounds = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
       Some(extracted).filter(e => e.nonEmpty && !e.disjoint).map { e =>
-        // compute our ranges based on the coarse bounds for our query
-        val multiplier = QueryProperties.PolygonDecompMultiplier.toInt.get
-        val bits = QueryProperties.PolygonDecompBits.toInt.get
-        val bounds = e.values.flatMap(GeometryUtils.bounds(_, multiplier, bits))
-        val (field, ranges) =
-          if (typed == ObjectType.POINT) {
-            val field = ZValueField.z2(col, encoded = true).zValue
-            // TODO make max ranges configurable
-            val ranges = Z2Encoder.ranges(bounds, Some(8))
-            (field, ranges)
-          } else {
-            val field = ZValueField.xz2(col, encoded = true).zValue
-            val ranges = XZ2Encoder.ranges(bounds, Some(8))
-            (field, ranges)
-          }
-        val zcol = FilterApi.binaryColumn(field)
-        val filters = ranges.map { case (lower, upper) =>
-          FilterApi.and(FilterApi.gtEq(zcol, Binary.fromString(lower)), FilterApi.ltEq(zcol, Binary.fromString(upper)))
+        e.values.map(GeometryUtils.bounds).reduce { (a, b) =>
+          (math.min(a._1, b._1), math.min(a._2, b._2), math.max(a._3, b._3), math.max(a._4, b._4))
         }
-        filters.reduce(FilterApi.or)
       }
+    }
+
+    val predicate = xyBounds.map { case (xmin, ymin, xmax, ymax) =>
+      // filter against the bbox field
+      val bboxGroup = BoundingBoxField(col, encoded = true).bbox
+      val xminCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.XMin}")
+      val yminCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.YMin}")
+      val xmaxCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.XMax}")
+      val ymaxCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.YMax}")
+      Seq[FilterPredicate](
+        FilterApi.ltEq(xminCol, Float.box(xmax.toFloat)),
+        FilterApi.gtEq(xmaxCol, Float.box(xmin.toFloat)),
+        FilterApi.ltEq(yminCol, Float.box(ymax.toFloat)),
+        FilterApi.gtEq(ymaxCol, Float.box(ymin.toFloat))
+      ).reduce(FilterApi.and)
     }
     // since we don't know what the actual file encoding is up front, we always have to evaluate the full predicate post-read
     (predicate, Some(filter))
