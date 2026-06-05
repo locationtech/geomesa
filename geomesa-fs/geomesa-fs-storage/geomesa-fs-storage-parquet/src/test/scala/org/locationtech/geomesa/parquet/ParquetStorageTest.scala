@@ -148,13 +148,9 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
                 col.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq("Point")
                 // first partition contains first 5 features
                 col.getJSONArray("bbox").asScala.map(_.asInstanceOf[Number].doubleValue()) mustEqual Seq(40d, 50d, 44d, 54d)
-                if (encoding == GeometryEncoding.GeoParquetWkb) {
-                  val covering = col.getJSONObject("covering").getJSONObject("bbox")
-                  foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
-                    covering.getJSONArray(corner).toString mustEqual s"""["__geom_bbox__","$corner"]"""
-                  }
-                } else {
-                  col.has("covering") must beFalse
+                val covering = col.getJSONObject("covering").getJSONObject("bbox")
+                foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
+                  covering.getJSONArray(corner).toString mustEqual s"""["__geom_bbox__","$corner"]"""
                 }
               }
             }
@@ -285,13 +281,9 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
                 } else {
                   col.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq(binding.getSimpleName)
                 }
-                if (encoding == GeometryEncoding.GeoParquetNative && binding == classOf[Point]) {
-                  col.has("covering") must beFalse
-                } else {
-                  val covering = col.getJSONObject("covering").getJSONObject("bbox")
-                  foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
-                    covering.getJSONArray(corner).toString mustEqual s"""["__${geom}_bbox__","$corner"]"""
-                  }
+                val covering = col.getJSONObject("covering").getJSONObject("bbox")
+                foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
+                  covering.getJSONArray(corner).toString mustEqual s"""["__${geom}_bbox__","$corner"]"""
                 }
                 val bbox = col.getJSONArray("bbox").asScala.toSeq
                 bbox must haveLength(4)

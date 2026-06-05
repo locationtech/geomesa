@@ -78,7 +78,6 @@ object FilterConverter {
 
     val predicate = xyBounds.map { case (xmin, ymin, xmax, ymax) =>
       // filter against the bbox field
-      // TODO point types that are natively encoded don't have bbox fields, so we need to filter on them directly
       val bboxGroup = BoundingBoxField(col, encoded = true).bbox
       val xminCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.XMin}")
       val yminCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.YMin}")
