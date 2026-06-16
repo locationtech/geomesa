@@ -15,16 +15,15 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
+import org.locationtech.geomesa.fs.storage.parquet.io.ColumnName
 import org.locationtech.geomesa.fs.storage.parquet.io.geometry.BoundingBoxes.BoundingBoxField
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
-import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
-import org.locationtech.geomesa.utils.text.StringSerialization
 
 import java.util.Date
 import scala.reflect.ClassTag
 
-object FilterConverter {
+object ParquetFilterConverter {
 
   def convert(sft: SimpleFeatureType, filter: Filter): (Option[FilterPredicate], Option[Filter]) = {
     if (filter == Filter.INCLUDE) { (None, None) } else {
@@ -43,11 +42,11 @@ object FilterConverter {
     }
 
     val bindings = ObjectType.selectType(sft.getDescriptor(name))
-    val col = StringSerialization.alphaNumericSafeString(name)
+    val col = ColumnName(name)
 
     val (predicate, remaining): (Option[FilterPredicate], Option[Filter]) = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates
-      case ObjectType.GEOMETRY => spatial(sft, name, filter, col, bindings.last)
+      case ObjectType.GEOMETRY => spatial(sft, name, filter, col)
       case ObjectType.DATE     => attribute(sft, name, filter, FilterApi.longColumn(col), toMicros)
       case ObjectType.STRING   => attribute(sft, name, filter, FilterApi.binaryColumn(col), Binary.fromString)
       case ObjectType.INT      => attribute(sft, name, filter, FilterApi.intColumn(col), identity[java.lang.Integer])
@@ -65,8 +64,7 @@ object FilterConverter {
       sft: SimpleFeatureType,
       name: String,
       filter: Filter,
-      col: String,
-      typed: ObjectType): (Option[FilterPredicate], Option[Filter]) = {
+      col: String): (Option[FilterPredicate], Option[Filter]) = {
     val (spatial, _) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
     val xyBounds = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
       Some(extracted).filter(e => e.nonEmpty && !e.disjoint).map { e =>

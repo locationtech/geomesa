@@ -6,7 +6,8 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.parquet.io.rw
+package org.locationtech.geomesa.fs.storage.parquet.io
+package rw
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.parquet.conf.{HadoopParquetConfiguration, ParquetConfiguration}
@@ -23,7 +24,7 @@ import org.locationtech.geomesa.fs.storage.parquet.io.geometry.GeometrySchema.{G
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.text.{StringSerialization, WKBUtils}
+import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 
 import java.nio.ByteBuffer
@@ -79,8 +80,6 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
 
 object SimpleFeatureWriteSupport {
 
-  import StringSerialization.alphaNumericSafeString
-
   private class SimpleFeatureWriter(schema: SimpleFeatureParquetSchema) {
 
     private val fids = new FidWriter(0) // ID is the 1st field
@@ -113,7 +112,7 @@ object SimpleFeatureWriteSupport {
       attribute(descriptor.getLocalName, index, ObjectType.selectType(descriptor))
 
     private def attribute(name: String, index: Int, bindings: Seq[ObjectType]): AttributeWriter[_] = {
-      lazy val safeName = alphaNumericSafeString(name)
+      lazy val safeName = ColumnName(name)
       bindings.head match {
         case ObjectType.GEOMETRY => geometry(name, index, bindings.last)
         case ObjectType.DATE     => new DateMicrosWriter(safeName, index)
@@ -135,7 +134,7 @@ object SimpleFeatureWriteSupport {
     private def geometry(name: String, index: Int, binding: ObjectType): AttributeWriter[_] = {
       val bbox = schema.bboxes.get(name)
       val zValue = schema.zValues.get(name)
-      val safeName = alphaNumericSafeString(name)
+      val safeName = ColumnName(name)
       if (schema.encodings.geometry == GeometryEncoding.GeoParquetWkb) {
         if (binding == ObjectType.POINT) {
           new WkbPointWriter(safeName, index, bbox, zValue)

@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.fs.data
 
-import org.locationtech.geomesa.fs.storage.core.metadata.{ConverterMetadata, FileBasedMetadata, JdbcMetadata}
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorageFactory, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
@@ -51,7 +50,7 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
       StorageMetadataCatalog.MetadataTypeConfig,
       "Type of metadata to use",
       default = "", // needed to prevent geoserver from selecting something
-      enumerations = Seq(FileBasedMetadata.MetadataType, JdbcMetadata.MetadataType, ConverterMetadata.MetadataType),
+      enumerations = StorageMetadataCatalog.types,
       supportsNiFiExpressions = true,
       readWrite = ReadWriteFlag.ReadWrite,
     )

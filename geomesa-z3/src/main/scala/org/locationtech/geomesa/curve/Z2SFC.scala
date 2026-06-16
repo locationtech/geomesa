@@ -11,6 +11,8 @@ package org.locationtech.geomesa.curve
 import org.locationtech.geomesa.curve.NormalizedDimension.{NormalizedLat, NormalizedLon}
 import org.locationtech.geomesa.zorder.sfcurve.{IndexRange, Z2, ZRange}
 
+import java.util.HexFormat
+
 object Z2SFC extends Z2SFC(31)
 
 /**
@@ -19,6 +21,8 @@ object Z2SFC extends Z2SFC(31)
   * @param precision number of bits used per dimension - note sum must be less than 64
   */
 class Z2SFC(precision: Int) extends SpaceFillingCurve {
+
+  private val hexFormat = HexFormat.of()
 
   val lon: NormalizedDimension = NormalizedLon(precision)
   val lat: NormalizedDimension = NormalizedLat(precision)
@@ -50,4 +54,20 @@ class Z2SFC(precision: Int) extends SpaceFillingCurve {
     val zbounds = xy.map { case (xmin, ymin, xmax, ymax) => ZRange(index(xmin, ymin), index(xmax, ymax)) }
     Z2.zranges(zbounds.toArray, precision, maxRanges)
   }
+
+  /**
+   * Encodes a z value into hex, bit-shifting left as necessary (2 unused leading bits) so that prefix matching works
+   *
+   * @param z z value
+   * @return hex-encoded string
+   */
+  def hexEncode(z: Long): String = hexFormat.toHexDigits(z << 2)
+
+  /**
+   * Decodes a previously encoded z value from hex
+   *
+   * @param hex hex string from `hexEncode`
+   * @return original z value
+   */
+  def hexDecode(hex: String): Long = HexFormat.fromHexDigitsToLong(hex) >>> 2
 }

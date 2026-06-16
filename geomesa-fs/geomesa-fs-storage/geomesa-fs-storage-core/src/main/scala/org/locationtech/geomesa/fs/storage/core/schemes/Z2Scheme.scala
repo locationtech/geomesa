@@ -19,48 +19,26 @@ import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.locationtech.jts.geom.Point
 
-case class Z2Scheme(attribute: String, index: Int, bits: Int) extends PartitionScheme {
+case class Z2Scheme(attribute: String, index: Int, bits: Int) extends SpatialScheme {
 
   import org.locationtech.geomesa.filter.{andFilters, ff}
   import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 
-  require(bits % 2 == 0, s"Bit precision must be an even number, but received $bits")
+  require(bits % 4 == 0, s"Bit precision must be a multiple of 4, but received $bits")
 
-  private val xyBits = bits / 2
-  private val z2 = new Z2SFC(xyBits)
-  private val xRadius = (360d / math.pow(2, xyBits)) / 2
-  private val yRadius = (180d / math.pow(2, xyBits)) / 2
-  private val format = s"%0${digits(bits)}d"
+  private val z2 = Z2SFC
+  private val xRadius = (360d / math.pow(2, bits / 2)) / 2
+  private val yRadius = (180d / math.pow(2, bits / 2)) / 2
 
-  lazy private val wholeWorldRanges = Some(z2.ranges(Seq((-180, -90, 180, 90))))
+  // number of hex digits used to represent our z value - bits = (xz2.g - partitionLevel) * 2, then divide by 4 to get hex
+  private val digits = bits / 4
 
   override val name: String = s"${Z2Scheme.name}:attribute=$attribute:bits=$bits"
 
   override def getPartition(feature: SimpleFeature): PartitionKey = {
     val pt = feature.getAttribute(index).asInstanceOf[Point]
-    PartitionKey(name, format.format(z2.index(pt.getX, pt.getY)))
-  }
-
-  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = {
-    getIndexRanges(filter).map { ranges =>
-      val builder = new RangeBuilder()
-      ranges.foreach { range =>
-        val lower = format.format(range.lower)
-        val upper = format.format(range.upper + 1)
-        builder += PartitionRange(name, lower, upper)
-      }
-      builder.result()
-    }
-  }
-
-  override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = {
-    getIndexRanges(filter).orElse(wholeWorldRanges).map { ranges =>
-      ranges.flatMap { range =>
-        val lower = range.lower
-        val steps = 1 + (range.upper - lower).toInt
-        Seq.tabulate(steps)(i => PartitionKey(name, format.format(lower + i)))
-      }
-    }
+    val zValue = z2.index(pt.getX, pt.getY)
+    PartitionKey(name, truncateToPartition(zValue))
   }
 
   override def getCoveringFilter(partition: PartitionKey): Filter = {
@@ -78,19 +56,8 @@ case class Z2Scheme(attribute: String, index: Int, bits: Int) extends PartitionS
     andFilters(Seq(bbox) ++ xExclusive ++ yExclusive)
   }
 
-  private def getIndexRanges(filter: Filter): Option[Seq[IndexRange]] = {
-    val geometries = FilterHelper.extractGeometries(filter, attribute, intersect = true)
-    if (geometries.isEmpty) {
-      None
-    } else if (geometries.disjoint) {
-      Some(Seq.empty)
-    } else {
-      Some(z2.ranges(geometries.values.map(GeometryUtils.bounds)))
-    }
-  }
-
-  // number of digits required to print our partition values
-  private def digits(bits: Int): Int = math.ceil(bits * math.log10(2)).toInt
+  override protected def zRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[IndexRange] = z2.ranges(xy)
+  override protected def truncateToPartition(z: Long): String = z2.hexEncode(z).take(digits)
 }
 
 object Z2Scheme extends SpatialPartitionSchemeFactory[Point]("z2") {

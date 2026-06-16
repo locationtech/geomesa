@@ -6,14 +6,14 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.parquet.io.geometry
+package org.locationtech.geomesa.fs.storage.parquet.io
+package geometry
 
-import org.apache.iceberg.types.Types.{LongType, NestedField, StringType}
+import org.apache.iceberg.types.Types.{NestedField, StringType}
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.{LogicalTypeAnnotation, PrimitiveType, Types}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.parquet.io.geometry.ZValues.ZValueField
-import org.locationtech.geomesa.utils.text.StringSerialization.alphaNumericSafeString
 import org.locationtech.jts.geom.{Geometry, Point}
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -69,13 +69,13 @@ object ZValues {
     val XZ2ValueFieldSuffix = "_xz2__"
 
     def z2(geometry: String, encoded: Boolean = false): ZValueField = {
-      val geom = if (encoded) { geometry } else { alphaNumericSafeString(geometry) }
+      val geom = if (encoded) { geometry } else { ColumnName(geometry) }
       val zValue = s"$ZValueFieldPrefix$geom$Z2ValueFieldSuffix"
       ZValueField(geom, zValue)
     }
 
     def xz2(geometry: String, encoded: Boolean = false): ZValueField = {
-      val geom = if (encoded) { geometry } else { alphaNumericSafeString(geometry) }
+      val geom = if (encoded) { geometry } else { ColumnName(geometry) }
       val zValue = s"$ZValueFieldPrefix$geom$XZ2ValueFieldSuffix"
       ZValueField(geom, zValue)
     }

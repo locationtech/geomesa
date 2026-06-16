@@ -6,13 +6,13 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core
-package metadata
+package org.locationtech.geomesa.fs.storage.converter.metadata
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.PartitionSchemeFactory
+import org.locationtech.geomesa.fs.storage.core.StorageMetadataCatalog.CatalogSpi
 import org.locationtech.geomesa.fs.storage.core.schemes.{HierarchicalDateTimeScheme, ReceiptTimeScheme}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, PartitionSchemeFactory, StorageMetadata, StorageMetadataCatalog}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 
 /**
@@ -80,4 +80,12 @@ class ConverterMetadataCatalog(context: FileSystemContext) extends StorageMetada
 
   override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long]): StorageMetadata =
     throw new UnsupportedOperationException("Converter storage is read only")
+}
+
+object ConverterMetadataCatalog {
+
+  class ConverterCatalogSpi extends CatalogSpi {
+    override def `type`: String = ConverterMetadata.MetadataType
+    override def apply(context:  FileSystemContext): StorageMetadataCatalog = new ConverterMetadataCatalog(context)
+  }
 }

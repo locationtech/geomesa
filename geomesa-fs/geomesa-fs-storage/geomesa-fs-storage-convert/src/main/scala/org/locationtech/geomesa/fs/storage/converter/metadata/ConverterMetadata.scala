@@ -6,15 +6,15 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core
-package metadata
+package org.locationtech.geomesa.fs.storage.converter.metadata
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.PartitionScheme
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
+import org.locationtech.geomesa.fs.storage.core.metadata.CachedMetadata
 import org.locationtech.geomesa.fs.storage.core.schemes.HierarchicalDateTimeScheme
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Partition, PartitionKey, PartitionScheme, StorageMetadata}
 
 import java.net.URI
 import scala.runtime.BoxedUnit

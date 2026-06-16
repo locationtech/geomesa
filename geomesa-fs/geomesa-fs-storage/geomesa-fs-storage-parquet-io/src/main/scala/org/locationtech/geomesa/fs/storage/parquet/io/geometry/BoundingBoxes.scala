@@ -6,14 +6,14 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.parquet.io.geometry
+package org.locationtech.geomesa.fs.storage.parquet.io
+package geometry
 
 import org.apache.iceberg.types.Types.{FloatType, NestedField, StructType}
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.{GroupType, Types}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.parquet.io.geometry.BoundingBoxes.BoundingBoxField
-import org.locationtech.geomesa.utils.text.StringSerialization.alphaNumericSafeString
 import org.locationtech.jts.geom.Geometry
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -71,7 +71,7 @@ object BoundingBoxes {
     val YMax = "ymax"
 
     def apply(geometry: String, encoded: Boolean = false): BoundingBoxField = {
-      val geom = if (encoded) { geometry } else { alphaNumericSafeString(geometry) }
+      val geom = if (encoded) { geometry } else { ColumnName(geometry) }
       val bbox = s"$BoundingBoxFieldPrefix$geom$BoundingBoxFieldSuffix"
       BoundingBoxField(geom, bbox)
     }

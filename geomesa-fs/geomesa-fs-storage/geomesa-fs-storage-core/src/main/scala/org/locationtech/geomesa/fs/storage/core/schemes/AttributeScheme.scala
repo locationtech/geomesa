@@ -30,7 +30,7 @@ abstract class AttributeScheme[T: ClassTag](
     val bucketing: Option[Bucketing[T]],
     lexicoder: TypeEncoder[T, String],
   ) extends PartitionScheme {
-
+// TODO don't lower case
   override val name: String = {
     val opts = new StringBuilder(s"${AttributeScheme.Name}:attribute=$attribute")
     bucketing.foreach(b => opts.append(':').append(b.encoded))

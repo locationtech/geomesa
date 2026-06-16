@@ -10,6 +10,7 @@ package org.locationtech.geomesa.fs.storage.core
 
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.metadata._
+import org.locationtech.geomesa.utils.classpath.ServiceLoader
 
 import java.util.Locale
 
@@ -45,6 +46,15 @@ object StorageMetadataCatalog {
 
   val MetadataTypeConfig = "fs.metadata.type"
 
+  private lazy val loaders = ServiceLoader.load[CatalogSpi]()
+
+  /**
+   * Available metadata types
+   *
+   * @return
+   */
+  def types: Seq[String] = Seq(FileBasedMetadata.MetadataType, JdbcMetadata.MetadataType) ++ loaders.map(_.`type`)
+
   /**
    * Create a new catalog instance
    *
@@ -58,8 +68,14 @@ object StorageMetadataCatalog {
     metadataType.toLowerCase(Locale.US) match {
       case FileBasedMetadata.MetadataType => new FileBasedMetadataCatalog(context)
       case JdbcMetadata.MetadataType      => new JdbcMetadataCatalog(context)
-      case ConverterMetadata.MetadataType => new ConverterMetadataCatalog(context)
-      case t => throw new UnsupportedOperationException(s"Metadata implementation not found for type: $t")
+      case t =>
+        val catalog = loaders.collectFirst { case loader if loader.`type`.equalsIgnoreCase(t) => loader(context) }
+        catalog.getOrElse(throw new UnsupportedOperationException(s"Metadata implementation not found for type: $t"))
     }
+  }
+
+  trait CatalogSpi {
+    def `type`: String
+    def apply(context: FileSystemContext): StorageMetadataCatalog
   }
 }

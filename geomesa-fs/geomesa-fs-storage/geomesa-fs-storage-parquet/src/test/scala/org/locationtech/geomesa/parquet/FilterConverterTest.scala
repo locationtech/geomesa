@@ -14,7 +14,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.api.filter.spatial.BBOX
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
-import org.locationtech.geomesa.fs.storage.parquet.FilterConverter
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFilterConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
 
@@ -25,7 +25,7 @@ class FilterConverterTest extends SpecificationWithJUnit {
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326,line:LineString:srid=4326")
 
   def convert(filter: String): (Option[FilterPredicate], Option[Filter]) =
-    FilterConverter.convert(sft, ECQL.toFilter(filter))
+    ParquetFilterConverter.convert(sft, ECQL.toFilter(filter))
 
   def flatten(and: Operators.And): Seq[FilterPredicate] = {
     val remaining = scala.collection.mutable.Queue[FilterPredicate](and)

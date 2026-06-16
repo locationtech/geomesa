@@ -16,7 +16,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
-import org.locationtech.geomesa.fs.storage.parquet.FilterConverter
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFilterConverter
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.FileValidationObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -70,7 +70,7 @@ class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
   }
 
   def readFile(geoFilter: org.geotools.api.filter.Filter, tsft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val pFilter = FilterConverter.convert(tsft, geoFilter)._1.map(FilterCompat.get).getOrElse {
+    val pFilter = ParquetFilterConverter.convert(tsft, geoFilter)._1.map(FilterCompat.get).getOrElse {
       ko(s"Couldn't extract a filter from ${ECQL.toCQL(geoFilter)}")
       FilterCompat.NOOP
     }

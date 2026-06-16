@@ -10,22 +10,22 @@ package org.locationtech.geomesa.fs.storage.parquet.iceberg
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg._
+import org.apache.iceberg.expressions.{Expression, Expressions}
 import org.apache.iceberg.parquet.ParquetUtil
-import org.apache.parquet.ParquetReadOptions
-import org.apache.parquet.hadoop.ParquetFileReader
-import org.apache.parquet.hadoop.metadata.ParquetMetadata
-import org.calrissian.mango.types.{LexiTypeEncoders, TypeEncoder}
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, XZ2Encoder, Z2Encoder}
+import org.calrissian.mango.types.LexiTypeEncoders
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.core.schemes.AttributeScheme.{IntegralBucketing, WidthBucketing}
+import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.ZValueField
 import org.locationtech.geomesa.fs.storage.core.schemes._
-import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition, PartitionScheme}
-import org.locationtech.geomesa.fs.storage.parquet.iceberg.IcebergMapper.SchemeMapper
-import org.locationtech.geomesa.fs.storage.parquet.io.geometry.ZValues.ZValueField
-import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, SimpleFeatureParquetSchema}
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Partition, PartitionKey, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.parquet.iceberg.IcebergMapper.PartitionMapper
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.net.URI
-import java.time.LocalDate
+import java.time.{LocalDate, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
@@ -33,24 +33,21 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Maps geomesa storage to iceberg
  */
-class IcebergMapper(storage: FileSystemStorage) extends LazyLogging {
+case class IcebergMapper(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], context: FileSystemContext) extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
   private val metricsConfigs = new ConcurrentHashMap[String, MetricsConfig]()
 
-  // need to be in attribute order
-  private val mappers = storage.metadata.sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
-    storage.metadata.schemes.find(_.attribute == d.getLocalName).flatMap { scheme =>
-      val mapper = SchemeMapper(scheme, d.getType.getBinding)
-      if (mapper.isEmpty) {
-        logger.warn(s"Partition scheme '${scheme.name}' is not supported by iceberg and will not be available for query filtering")
-      }
-      mapper
+  private val mappers = schemes.map { scheme =>
+    PartitionMapper(scheme, sft.getDescriptor(scheme.attribute).getType.getBinding) match {
+      case Right(m) => m
+        // TODO list supported schemes? link to iceberg docs?
+      case Left(m) => throw new UnsupportedOperationException(m)
     }
   }
 
-  val schema: Schema = SimpleFeatureParquetSchema(storage.metadata.sft, storage.context.conf).iceberg
+  val schema: Schema = SimpleFeatureParquetSchema(sft, context.conf).iceberg
 
   /**
    * The partition scheme being mapped
@@ -67,41 +64,58 @@ class IcebergMapper(storage: FileSystemStorage) extends LazyLogging {
    * @return
    */
   def toDataFile(table: Table, file: StorageFile): DataFile = {
-    val uri = storage.context.root.resolve(file.file).toString
-    logger.whenDebugEnabled {
-      val inputFile = ParquetFileSystemReader.inputFile(storage.fs, new URI(uri))
-      val footer = WithClose(inputFile.newStream())(ParquetFileReader.readFooter(inputFile, ParquetReadOptions.builder().build(), _))
-      logger.debug(s"Parquet schema for ${file.file}: ${ParquetMetadata.toJSON(footer)}")
-    }
+    val uri = context.root.resolve(file.file).toString
+//    logger.whenDebugEnabled {
+//      val inputFile = ParquetFileSystemReader.inputFile(storage.fs, new URI(uri))
+//      val footer = WithClose(inputFile.newStream())(ParquetFileReader.readFooter(inputFile, ParquetReadOptions.builder().build(), _))
+//      logger.debug(s"Parquet schema for ${file.file}: ${ParquetMetadata.toJSON(footer)}")
+//    }
+    // TODO this is reading the file again? but we have some metrics already...
     val inputFile = table.io().newInputFile(uri)
     val metrics = ParquetUtil.fileMetrics(inputFile, metricsConfigs.computeIfAbsent(table.name(), _ => MetricsConfig.forTable(table)), null)
-    val partitions = partitionValues(file.partition).asJava
+    val partitionValues = mappers.map { m =>
+      val key = file.partition.values.find(_.name == m.scheme.name).getOrElse {
+        throw new IllegalArgumentException(
+          s"Could not find associated partition: ${m.scheme.name} out of ${file.partition.values.mkString(", ")}")
+      }
+      m.toIceberg(key.value)
+    }
     // TODO withSort(f.sort)
     DataFiles.builder(table.spec())
       .withPath(inputFile.location())
       .withFormat(FileFormat.PARQUET)
       .withFileSizeInBytes(inputFile.getLength)
       .withMetrics(metrics)
-      .withPartitionValues(partitions)
+      .withPartitionValues(partitionValues.asJava)
       .withRecordCount(file.count)
       .build()
   }
 
-  /**
-   * Gets the iceberg partition values that correspond to a given partition
-   *
-   * @param partition partition
-   * @return
-   */
-  def partitionValues(partition: Partition): Seq[String] = {
-    mappers.map { m =>
-      val key = partition.values.find(_.name == m.scheme.name).getOrElse {
-        throw new IllegalArgumentException(
-          s"Could not find associated partition: ${m.scheme.name} out of ${partition.values.mkString(", ")}")
-      }
-      m.toIceberg(key.value)
-    }
+  def fromDataFile(file: DataFile): StorageFile = {
+    val partitions = mappers.zipWithIndex.map { case (m, i) => PartitionKey(m.scheme.name, m.fromIceberg(file.partition(), i)) }
+    StorageFile(
+      context.root.relativize(URI.create(file.location())).toString,
+      Partition(partitions.toSet),
+      file.recordCount(),
+      StorageFileAction.Append, // TODO???
+//    bounds: Seq[ColumnBounds] = Seq.empty, // TODO
+//    sort: Seq[Int] = Seq.empty, // TODO
+//    timestamp: Long = System.currentTimeMillis(), // TODO
+    )
   }
+
+  def expression(partition: Partition): Expression = {
+    val clauses = partition.values.toSeq.map { key =>
+      val mapper = mappers.find(_.scheme.name == key.name).getOrElse {
+        throw new IllegalArgumentException(
+          s"Could not find associated partition: ${key.name} out of ${partition.values.mkString(", ")}")
+      }
+      mapper.expression(key.value)
+    }
+    clauses.reduce(Expressions.and)
+  }
+
+  def expression(filter: Filter): Expression = IcebergFilterConverter(sft, filter)
 }
 
 object IcebergMapper {
@@ -109,7 +123,7 @@ object IcebergMapper {
   /**
    * Maps a partition scheme to iceberg
    */
-  private trait SchemeMapper {
+  private trait PartitionMapper {
 
     /**
      * The partition scheme being mapped
@@ -129,13 +143,24 @@ object IcebergMapper {
     /**
      * Gets the iceberg partition value for a given geomesa partition value
      *
-     * @param partitionValue geomesa partition value
+     * @param key geomesa partition value
      * @return iceberg partition value
      */
-    def toIceberg(partitionValue: String): String
+    def toIceberg(key: String): String
+
+    /**
+     * Gets the geomesa partition value for a given iceberg partition value
+     *
+     * @param partition iceberg partition struct
+     * @param i offest into the partition struct
+     * @return geomesa partition value
+     */
+    def fromIceberg(partition: StructLike, i: Int): String
+
+    def expression(key: String): Expression
   }
 
-  private object SchemeMapper {
+  private object PartitionMapper {
 
     /**
      * Maps a partition scheme to iceberg
@@ -143,87 +168,160 @@ object IcebergMapper {
      * @param scheme the scheme to map
      * @return a mapping, if the scheme is supported by iceberg
      */
-    def apply(scheme: PartitionScheme, binding: Class[_]): Option[SchemeMapper] = scheme match {
-      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.HOURS => Some(HourMapper(s))
-      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.DAYS => Some(DayMapper(s))
-      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.MONTHS => Some(MonthMapper(s))
-      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.YEARS => Some(YearMapper(s))
+    def apply(scheme: PartitionScheme, binding: Class[_]): Either[String, PartitionMapper] = scheme match {
+      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.HOURS => Right(HourMapper(s))
+      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.DAYS => Right(DayMapper(s))
+      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.MONTHS => Right(MonthMapper(s))
+      case s: DateTimeScheme if s.step == 1 && s.unit == ChronoUnit.YEARS => Right(YearMapper(s))
 
-      case s: Z2Scheme if s.bits % 4 == 0 => Some(Z2Mapper(s))
-      case s: XZ2Scheme if s.bits % 4 == 0 => Some(XZ2Mapper(s))
+      case s: DateTimeScheme if s.unit == ChronoUnit.WEEKS => Left(s"Iceberg does not support week-based partitioning: ${s.name}")
+      case s: DateTimeScheme if s.step != 1                => Left(s"Iceberg does not support date partitioning step-units other than 1: ${s.name}")
 
-      case s: HashScheme[_] => Some(HashMapper(s))
+      case s: Z2Scheme if s.bits % 4 == 0  => Right(Z2Mapper(s))
+      case s: XZ2Scheme if s.bits % 4 == 0 => Right(XZ2Mapper(s))
+
+      case s: Z2Scheme  => Left(s"Iceberg spatial bit partitioning must be a multiple of 4: ${s.name}")
+      case s: XZ2Scheme => Left(s"Iceberg spatial bit partitioning must be a multiple of 4: ${s.name}")
+
+      case s: HashScheme[_] => Right(HashMapper(s))
 
       case s: AttributeScheme[_] if classOf[String].isAssignableFrom(binding) =>
         s.bucketing match {
-          case None => Some(IdentityMapper(s, LexiTypeEncoders.stringEncoder()))
-          case Some(w: WidthBucketing) => Some(TruncateMapper(s, LexiTypeEncoders.stringEncoder(), w.max))
+          case None => Right(IdentityStringMapper(s))
+          case Some(w: WidthBucketing) => Right(TruncateStringMapper(s, w.max))
         }
 
       case s: AttributeScheme[_] if classOf[Integer].isAssignableFrom(binding) =>
         s.bucketing match {
-          case None => Some(IdentityMapper(s, LexiTypeEncoders.integerEncoder()))
-          case Some(i: IntegralBucketing[Int]) => Some(TruncateMapper(s, LexiTypeEncoders.integerEncoder(), i.divisor))
+          case None => Right(IdentityIntMapper(s))
+          case Some(i: IntegralBucketing[Int]) => Right(TruncateIntMapper(s, i.divisor))
         }
 
       case s: AttributeScheme[_] if classOf[java.lang.Long].isAssignableFrom(binding) =>
         s.bucketing match {
-          case None => Some(IdentityMapper(s, LexiTypeEncoders.longEncoder()))
-          case Some(i: IntegralBucketing[Long]) => Some(TruncateMapper(s, LexiTypeEncoders.longEncoder(), i.divisor.toInt))
+          case None => Right(IdentityLongMapper(s))
+          case Some(i: IntegralBucketing[Long]) => Right(TruncateLongMapper(s, i.divisor.toInt))
         }
 
-      case _ => None
+      case s: AttributeScheme[_] =>
+        Left(s"Iceberg does not support partitioning for attributes of type ${binding.getName}: ${s.name}")
+
+      case s => Left(s"Iceberg mapping not implemented for scheme: ${s.name}")
     }
   }
 
-  private case class HourMapper(scheme: DateTimeScheme) extends SchemeMapper {
+  private case class HourMapper(scheme: DateTimeScheme) extends PartitionMapper {
+    private val lexicoder = LexiTypeEncoders.integerEncoder()
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.hour(scheme.attribute)
-    override def toIceberg(key: String): String = LexiTypeEncoders.integerEncoder().decode(key).toString
+    override def toIceberg(key: String): String = lexicoder.decode(key).toString
+    override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[Integer]))
+    override def expression(key: String): Expression = Expressions.equal(Expressions.hour[Integer](scheme.attribute), lexicoder.decode(key))
   }
 
-  private case class DayMapper(scheme: DateTimeScheme) extends SchemeMapper {
+  private case class DayMapper(scheme: DateTimeScheme) extends PartitionMapper {
+    private val lexicoder = LexiTypeEncoders.integerEncoder()
+    private val dateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.day(scheme.attribute)
     // note: days are handled differently from other types, and expect an ISO_LOCAL_DATE formatted string
-    override def toIceberg(key: String): String = {
-      val days = LexiTypeEncoders.integerEncoder().decode(key)
-      DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDate.EPOCH.plusDays(days.longValue()))
+    override def toIceberg(key: String): String =
+      dateTimeFormatter.format(LocalDate.EPOCH.plusDays(lexicoder.decode(key).longValue()))
+    override def fromIceberg(partition: StructLike, i: Int): String = {
+      val date = DateParsing.parse(partition.get(i, classOf[String]), dateTimeFormatter)
+      lexicoder.encode(ChronoUnit.DAYS.between(DateTimeScheme.Epoch, date).toInt)
     }
+    override def expression(key: String): Expression =
+      Expressions.equal(Expressions.day[Integer](scheme.attribute), lexicoder.decode(key))
   }
 
-  private case class MonthMapper(scheme: DateTimeScheme) extends SchemeMapper {
+  private case class MonthMapper(scheme: DateTimeScheme) extends PartitionMapper {
+    private val lexicoder = LexiTypeEncoders.integerEncoder()
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.month(scheme.attribute)
-    override def toIceberg(key: String): String = LexiTypeEncoders.integerEncoder().decode(key).toString
+    override def toIceberg(key: String): String = lexicoder.decode(key).toString
+    override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[Integer]))
+    override def expression(key: String): Expression =
+      Expressions.equal(Expressions.month[Integer](scheme.attribute), lexicoder.decode(key))
   }
 
-  private case class YearMapper(scheme: DateTimeScheme) extends SchemeMapper {
+  private case class YearMapper(scheme: DateTimeScheme) extends PartitionMapper {
+    private val lexicoder = LexiTypeEncoders.integerEncoder()
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.year(scheme.attribute)
-    override def toIceberg(key: String): String = LexiTypeEncoders.integerEncoder().decode(key).toString
+    override def toIceberg(key: String): String = lexicoder.decode(key).toString
+    override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[Integer]))
+    override def expression(key: String): Expression =
+      Expressions.equal(Expressions.year[Integer](scheme.attribute), lexicoder.decode(key))
   }
 
-  private case class Z2Mapper(scheme: Z2Scheme) extends SchemeMapper {
+  private case class Z2Mapper(scheme: Z2Scheme) extends PartitionMapper {
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
       b.truncate(ZValueField.z2(scheme.attribute).zValue, scheme.bits / 4)
-    override def toIceberg(partitionValue: String): String = Z2Encoder.encodePartition(partitionValue, scheme.bits)
+    override def toIceberg(key: String): String = key
+    override def fromIceberg(partition: StructLike, i: Int): String = partition.get(i, classOf[String])
+    override def expression(key: String): Expression = Expressions.equal[String](scheme.attribute, key)
   }
 
-  private case class XZ2Mapper(scheme: XZ2Scheme) extends SchemeMapper {
+  private case class XZ2Mapper(scheme: XZ2Scheme) extends PartitionMapper {
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
       b.truncate(ZValueField.xz2(scheme.attribute).zValue, scheme.bits / 4)
-    override def toIceberg(partitionValue: String): String = partitionValue
+    override def toIceberg(key: String): String = key
+    override def fromIceberg(partition: StructLike, i: Int): String = partition.get(i, classOf[String])
+    override def expression(key: String): Expression = Expressions.equal[String](scheme.attribute, key)
   }
 
-  private case class HashMapper(scheme: HashScheme[_]) extends SchemeMapper {
+  private case class HashMapper(scheme: HashScheme[_]) extends PartitionMapper {
+    private val format = s"%0${(scheme.buckets - 1).toString.length}d"
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.bucket(scheme.attribute, scheme.buckets)
     override def toIceberg(key: String): String = key
+    override def fromIceberg(partition: StructLike, i: Int): String = format.format(partition.get(i, classOf[Integer]))
+    override def expression(key: String): Expression =
+      Expressions.equal(Expressions.bucket[Integer](scheme.attribute, scheme.buckets), Integer.valueOf(key))
   }
 
-  private case class IdentityMapper(scheme: PartitionScheme, lexicoder: TypeEncoder[_, String]) extends SchemeMapper {
+  private case class IdentityStringMapper(scheme: PartitionScheme) extends PartitionMapper {
+    override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.identity(scheme.attribute)
+    override def toIceberg(key: String): String = key
+    override def fromIceberg(partition: StructLike, i: Int): String = partition.get(i, classOf[String])
+    override def expression(key: String): Expression = Expressions.equal[String](scheme.attribute, key)
+  }
+
+  private case class IdentityIntMapper(scheme: PartitionScheme) extends PartitionMapper {
+    private val lexicoder = LexiTypeEncoders.integerEncoder()
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.identity(scheme.attribute)
     override def toIceberg(key: String): String = lexicoder.decode(key).toString
+    override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[Integer]))
+    override def expression(key: String): Expression = Expressions.equal[Integer](scheme.attribute, Integer.valueOf(key))
   }
 
-  private case class TruncateMapper(scheme: PartitionScheme, lexicoder: TypeEncoder[_, String], width: Int) extends SchemeMapper {
-    override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.truncate(scheme.attribute, width)
+  private case class IdentityLongMapper(scheme: PartitionScheme) extends PartitionMapper {
+    private val lexicoder = LexiTypeEncoders.longEncoder()
+    override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.identity(scheme.attribute)
     override def toIceberg(key: String): String = lexicoder.decode(key).toString
+    override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[java.lang.Long]))
+    override def expression(key: String): Expression = Expressions.equal[java.lang.Long](scheme.attribute, java.lang.Long.valueOf(key))
+  }
+
+  private case class TruncateStringMapper(scheme: PartitionScheme, width: Int) extends PartitionMapper {
+    override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.truncate(scheme.attribute, width)
+    override def toIceberg(key: String): String = key
+    override def fromIceberg(partition: StructLike, i: Int): String = partition.get(i, classOf[String])
+    override def expression(key: String): Expression =
+      Expressions.equal(Expressions.truncate[String](scheme.attribute, width), key)
+  }
+
+  private case class TruncateIntMapper(scheme: PartitionScheme, divisor: Int) extends PartitionMapper {
+    private val lexicoder = LexiTypeEncoders.integerEncoder()
+    override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.truncate(scheme.attribute, divisor)
+    override def toIceberg(key: String): String = lexicoder.decode(key).toString
+    override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[Integer]))
+    override def expression(key: String): Expression =
+      Expressions.equal(Expressions.truncate[Integer](scheme.attribute, divisor), Integer.valueOf(key))
+  }
+
+  private case class TruncateLongMapper(scheme: PartitionScheme, divisor: Int) extends PartitionMapper {
+    private val lexicoder = LexiTypeEncoders.longEncoder()
+    override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.truncate(scheme.attribute, divisor)
+    override def toIceberg(key: String): String = lexicoder.decode(key).toString
+    override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[java.lang.Long]))
+    override def expression(key: String): Expression =
+      Expressions.equal(Expressions.truncate[java.lang.Long](scheme.attribute, divisor), java.lang.Long.valueOf(key))
   }
 }

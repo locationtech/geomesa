@@ -26,7 +26,6 @@ import org.locationtech.geomesa.fs.storage.parquet.io.geometry.ZValues.ZValueFie
 import org.locationtech.geomesa.fs.storage.parquet.io.geometry.{BoundingBoxes, GeometrySchema, ZValues}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.text.StringSerialization
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -62,8 +61,6 @@ case class SimpleFeatureParquetSchema(
 }
 
 object SimpleFeatureParquetSchema extends LazyLogging {
-
-  import StringSerialization.alphaNumericSafeString
 
   import scala.collection.JavaConverters._
 
@@ -263,7 +260,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       val builder = Map.newBuilder[String, Seq[Type]]
       val nestedFieldIds = new AtomicInteger(fieldIds.get() + sft.getAttributeCount + bboxes.fields.size + zValues.fields.size)
       sft.getAttributeDescriptors.asScala.foreach { d =>
-        val name = alphaNumericSafeString(d.getLocalName)
+        val name = ColumnName(d.getLocalName)
         val types =
           Seq(buildType(name, ObjectType.selectType(d), encodings, fieldIds, nestedFieldIds)) ++
             bboxes.get(d.getLocalName).map(bbox => BoundingBoxField.schema(bbox, fieldIds, nestedFieldIds)) ++
@@ -293,7 +290,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     val nestedFieldIds =
       new AtomicInteger(fieldIds.get() + schema.sft.getAttributeCount + schema.bboxes.fields.size + schema.zValues.fields.size)
     schema.sft.getAttributeDescriptors.asScala.foreach { d =>
-      val name = alphaNumericSafeString(d.getLocalName)
+      val name = ColumnName(d.getLocalName)
       aliases.put(name, fieldIds.get())
       fields.add(buildIcebergType(name, ObjectType.selectType(d), schema.encodings, fieldIds, nestedFieldIds))
       schema.bboxes.get(d.getLocalName).foreach { bbox =>
@@ -419,7 +416,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       // note: id field goes at the front of the record, then vis, then attributes and bounding boxes
       val fields = Seq(fid) ++ vis ++ {
         val all = sft.getAttributeDescriptors.asScala.flatMap { d =>
-          attributes(alphaNumericSafeString(d.getLocalName))
+          attributes(ColumnName(d.getLocalName))
         }
         if (!excludeBBoxes && !excludeZValues) {
           all
@@ -430,7 +427,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
           }
         }
       }
-      val name = alphaNumericSafeString(sft.getTypeName)
+      val name = ColumnName(sft.getTypeName)
       new MessageType(name, fields.asJava)
     }
   }

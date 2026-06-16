@@ -93,7 +93,7 @@ package object parquet {
     def apply(sft: SimpleFeatureType, filter: Option[Filter]): ReadFilter = {
       val (parquet, residual) = filter match {
         case None | Some(Filter.INCLUDE) => (None, None)
-        case Some(f) => FilterConverter.convert(sft, f)
+        case Some(f) => ParquetFilterConverter.convert(sft, f)
       }
       ReadFilter(parquet, residual)
     }

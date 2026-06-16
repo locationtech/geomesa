@@ -16,7 +16,6 @@ import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata.ColumnM
 import org.locationtech.geomesa.fs.storage.parquet.io.geometry.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
-import org.locationtech.geomesa.utils.text.StringSerialization
 import org.locationtech.jts.geom.{Envelope, Geometry, GeometryCollection, Point}
 
 import java.util.{Collections, Locale}
@@ -35,8 +34,6 @@ case class GeoParquetMetadata(primaryGeometry: String, geometries: Seq[ColumnMet
  * Class for generating geoparquet metadata
  */
 object GeoParquetMetadata {
-
-  import StringSerialization.{alphaNumericSafeString, decodeAlphaNumericSafeString}
 
   import scala.collection.JavaConverters._
 
@@ -189,7 +186,10 @@ object GeoParquetMetadata {
 
     private val columns =
       schema.sft.getAttributeDescriptors.asScala.collect { case d: GeometryDescriptor if isGeoParquet(d) => createColumnMetadata(d) }
-    private val boundsWithIndex = columns.map(c => c.bounds -> schema.sft.indexOf(decodeAlphaNumericSafeString(c.name)))
+    private val boundsWithIndex = columns.map { c =>
+      val ColumnName(original) = c.name
+      c.bounds -> schema.sft.indexOf(original)
+    }
 
     /**
      * Gets the file metadata for geoparquet
@@ -200,7 +200,7 @@ object GeoParquetMetadata {
       if (columns.isEmpty) { Collections.emptyMap() } else {
         val primary = {
           // there's a chance that the primary geom wasn't encoded in the file, but other geoms were
-          val expected = alphaNumericSafeString(schema.sft.getGeometryDescriptor.getLocalName)
+          val expected = ColumnName(schema.sft.getGeometryDescriptor.getLocalName)
           columns.find(_.name == expected).getOrElse(columns.head).name
         }
         Collections.singletonMap(GeoParquetMetadataKey, GeoParquetMetadata(primary, columns.toSeq).toJson())
@@ -236,7 +236,7 @@ object GeoParquetMetadata {
      * @return
      */
     private def createColumnMetadata(descriptor: GeometryDescriptor): ColumnMetadata = {
-      val name = alphaNumericSafeString(descriptor.getLocalName)
+      val name = ColumnName(descriptor.getLocalName)
       val binding = descriptor.getType.getBinding
       val encoding = {
         // for non-wkb encoding schemes, we still use WKB for mixed-type geometries

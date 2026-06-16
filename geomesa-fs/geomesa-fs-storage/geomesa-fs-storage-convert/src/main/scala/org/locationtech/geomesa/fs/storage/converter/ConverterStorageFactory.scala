@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorageFactory._
+import org.locationtech.geomesa.fs.storage.converter.metadata.ConverterMetadata.ConverterPathParam
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.{NamedOptions, PathFiltering, PathFilteringFactory}
-import org.locationtech.geomesa.fs.storage.core.metadata.ConverterMetadata.ConverterPathParam
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, FileSystemStorageFactory, StorageMetadata}
 
 class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging {
