@@ -26,7 +26,7 @@ class SchemeFilterExtractionTest extends SpecificationWithJUnit {
 
     "extract temporal filters" in {
       val ecql = ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'")
-      val metadata = new TestMetadata(sft, Set("hourly","z2:bits=2"))
+      val metadata = new TestMetadata(sft, Set("hourly","z2:bits=4"))
       val filters = metadata.getSchemeFilters(ecql)
       filters must haveLength(1)
       filters.head.partitions mustEqual Seq(PartitionRange("hours:attribute=dtg", "80063b40", "80063b58"))
@@ -35,11 +35,11 @@ class SchemeFilterExtractionTest extends SpecificationWithJUnit {
 
     "extract spatio-temporal filters" in {
       val ecql = ECQL.toFilter("bbox(geom,0,0,180,90) AND dtg >= '2018-01-01T00:00:00.000Z' AND dtg < '2018-01-02T00:00:00.000Z'")
-      val metadata = new TestMetadata(sft, Set("hourly","z2:bits=2"))
+      val metadata = new TestMetadata(sft, Set("hourly","z2:bits=4"))
       val filters = metadata.getSchemeFilters(ecql)
       filters must haveLength(1)
       filters.head.partitions must
-        containTheSameElementsAs(Seq(PartitionRange("hours:attribute=dtg", "80066ba0", "80066bb8"), PartitionRange("z2:attribute=geom:bits=2", "3", "4")))
+        containTheSameElementsAs(Seq(PartitionRange("hours:attribute=dtg", "80066ba0", "80066bb8"), PartitionRange("z2:attribute=geom:bits=4", "c", "fz")))
       filters.head.columnBounds mustEqual
         Seq(ColumnOr(0, Seq(ColumnBound("80000160af049000", "80000160b42aec00"))), ColumnOr(1, Seq(ColumnBound("c000000000000000", "fffffffffffffffc"))))
     }

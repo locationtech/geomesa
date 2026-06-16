@@ -110,49 +110,49 @@ class IcebergCompatibilityTest extends SpecificationWithJUnit with BeforeAfterAl
             time match {
               case "year" =>
                 partitions.map(_.values.map(_.value)) mustEqual Set(
-                  Set("8000002f", "02"),
-                  Set("8000002f", "03"),
-                  Set("8000002f", "09"),
-                  Set("8000002f", "10"),
-                  Set("8000002f", "11"),
-                  Set("8000002f", "12"),
-                  Set("8000002f", "14"),
+                  Set("8000002f", "2"),
+                  Set("8000002f", "3"),
+                  Set("8000002f", "9"),
+                  Set("8000002f", "a"),
+                  Set("8000002f", "b"),
+                  Set("8000002f", "c"),
+                  Set("8000002f", "e"),
                 )
               case "month" =>
                 partitions.map(_.values.map(_.value)) mustEqual Set(
-                  Set("80000239", "02"),
-                  Set("80000239", "03"),
-                  Set("80000239", "09"),
-                  Set("80000239", "10"),
-                  Set("80000239", "11"),
-                  Set("80000239", "12"),
-                  Set("80000239", "14"),
+                  Set("80000239", "2"),
+                  Set("80000239", "3"),
+                  Set("80000239", "9"),
+                  Set("80000239", "a"),
+                  Set("80000239", "b"),
+                  Set("80000239", "c"),
+                  Set("80000239", "e"),
                 )
               case "day" =>
                 partitions.map(_.values.map(_.value)) mustEqual Set(
-                  Set("800043ac", "02"),
-                  Set("800043aa", "03"),
-                  Set("800043ac", "09"),
-                  Set("800043aa", "10"),
-                  Set("800043ab", "10"),
-                  Set("800043ac", "11"),
-                  Set("800043ab", "12"),
-                  Set("800043aa", "14"),
+                  Set("800043ac", "2"),
+                  Set("800043aa", "3"),
+                  Set("800043ac", "9"),
+                  Set("800043aa", "a"),
+                  Set("800043ab", "a"),
+                  Set("800043ac", "b"),
+                  Set("800043ab", "c"),
+                  Set("800043aa", "e"),
                 )
               case "hour" =>
                 partitions.map(_.values.map(_.value)) mustEqual Set(
-                  Set("80065824", "02"),
-                  Set("800657f4", "03"),
-                  Set("80065824", "09"),
-                  Set("800657f4", "10"),
-                  Set("8006580c", "10"),
-                  Set("80065824", "11"),
-                  Set("8006580c", "12"),
-                  Set("800657f4", "14"),
+                  Set("80065824", "2"),
+                  Set("800657f4", "3"),
+                  Set("80065824", "9"),
+                  Set("800657f4", "a"),
+                  Set("8006580c", "a"),
+                  Set("80065824", "b"),
+                  Set("8006580c", "c"),
+                  Set("800657f4", "e"),
                 )
             }
 
-            val mapper = new IcebergMapper(ds.storage(time))
+            val mapper = IcebergMapper(ds.storage(time).metadata.sft, ds.storage(time).metadata.schemes.toSeq.sortBy(_.name), ds.storage(time).context)
             mapper.spec.fields().asScala must haveLength(2)
 
             val table =
@@ -173,7 +173,7 @@ class IcebergCompatibilityTest extends SpecificationWithJUnit with BeforeAfterAl
               icebergFile.partition().get(0, classOf[java.lang.Integer]) mustEqual
                 file.partition.values.collectFirst { case k if k.name.startsWith(time) => StorageMetadata.TypeRegistry.decode("integer", k.value) }.orNull
               icebergFile.partition().get(1, classOf[String]) mustEqual
-                file.partition.values.collectFirst { case k if k.name.startsWith("z2") => hexFormat.toHexDigits(k.value.toLong, 1) }.orNull
+                file.partition.values.collectFirst { case k if k.name.startsWith("z2") => k.value }.orNull
             }
           }
         }

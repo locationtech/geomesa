@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools
 
-import org.locationtech.geomesa.fs.tools.`export`.FsRegisterIcebergCommand
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.export.{FsExportCommand, FsPlaybackCommand}
@@ -35,7 +34,6 @@ object FsRunner extends Runner {
       new FsGetPartitionsCommand,
       new FsGetFilesCommand,
       new FsGeneratePartitionFiltersCommand,
-      new FsRegisterIcebergCommand,
       new FsStatsBoundsCommand,
       new FsStatsCountCommand,
       new FsStatsHistogramCommand,

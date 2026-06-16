@@ -52,6 +52,7 @@ class IcebergMetadata(table: Table, mapper: IcebergMapper) extends StorageMetada
   override def getFiles(partition: Partition): Seq[StorageFile] = fileScan(mapper.expression(partition))
   override def getFiles(filter: Filter): Seq[StorageFile] = fileScan(mapper.expression(filter))
 
+  // TODO use datafiles everywhere - they contain the exact offsets to scan?? can potentially speed up file reads
   private def fileScan(expression: Expression): Seq[StorageFile] = {
     WithClose(table.newScan().filter(expression).planFiles()) { tasks =>
       tasks.asScala.map(task => mapper.fromDataFile(task.file())).toList

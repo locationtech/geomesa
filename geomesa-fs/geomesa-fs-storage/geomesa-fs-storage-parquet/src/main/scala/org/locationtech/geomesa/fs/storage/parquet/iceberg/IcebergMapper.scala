@@ -25,7 +25,7 @@ import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.net.URI
-import java.time.{LocalDate, ZonedDateTime}
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
@@ -157,6 +157,12 @@ object IcebergMapper {
      */
     def fromIceberg(partition: StructLike, i: Int): String
 
+    /**
+     * Get an iceberg filter that covers a given partition
+     *
+     * @param key partition value
+     * @return
+     */
     def expression(key: String): Expression
   }
 
@@ -256,7 +262,7 @@ object IcebergMapper {
       b.truncate(ZValueField.z2(scheme.attribute).zValue, scheme.bits / 4)
     override def toIceberg(key: String): String = key
     override def fromIceberg(partition: StructLike, i: Int): String = partition.get(i, classOf[String])
-    override def expression(key: String): Expression = Expressions.equal[String](scheme.attribute, key)
+    override def expression(key: String): Expression = Expressions.equal[String](ZValueField.z2(scheme.attribute).zValue, key)
   }
 
   private case class XZ2Mapper(scheme: XZ2Scheme) extends PartitionMapper {
@@ -264,7 +270,7 @@ object IcebergMapper {
       b.truncate(ZValueField.xz2(scheme.attribute).zValue, scheme.bits / 4)
     override def toIceberg(key: String): String = key
     override def fromIceberg(partition: StructLike, i: Int): String = partition.get(i, classOf[String])
-    override def expression(key: String): Expression = Expressions.equal[String](scheme.attribute, key)
+    override def expression(key: String): Expression = Expressions.equal[String](ZValueField.xz2(scheme.attribute).zValue, key)
   }
 
   private case class HashMapper(scheme: HashScheme[_]) extends PartitionMapper {
@@ -288,7 +294,7 @@ object IcebergMapper {
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.identity(scheme.attribute)
     override def toIceberg(key: String): String = lexicoder.decode(key).toString
     override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[Integer]))
-    override def expression(key: String): Expression = Expressions.equal[Integer](scheme.attribute, Integer.valueOf(key))
+    override def expression(key: String): Expression = Expressions.equal[Integer](scheme.attribute, lexicoder.decode(key))
   }
 
   private case class IdentityLongMapper(scheme: PartitionScheme) extends PartitionMapper {
@@ -296,7 +302,7 @@ object IcebergMapper {
     override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.identity(scheme.attribute)
     override def toIceberg(key: String): String = lexicoder.decode(key).toString
     override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[java.lang.Long]))
-    override def expression(key: String): Expression = Expressions.equal[java.lang.Long](scheme.attribute, java.lang.Long.valueOf(key))
+    override def expression(key: String): Expression = Expressions.equal[java.lang.Long](scheme.attribute, lexicoder.decode(key))
   }
 
   private case class TruncateStringMapper(scheme: PartitionScheme, width: Int) extends PartitionMapper {
@@ -313,7 +319,7 @@ object IcebergMapper {
     override def toIceberg(key: String): String = lexicoder.decode(key).toString
     override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[Integer]))
     override def expression(key: String): Expression =
-      Expressions.equal(Expressions.truncate[Integer](scheme.attribute, divisor), Integer.valueOf(key))
+      Expressions.equal(Expressions.truncate[Integer](scheme.attribute, divisor), lexicoder.decode(key))
   }
 
   private case class TruncateLongMapper(scheme: PartitionScheme, divisor: Int) extends PartitionMapper {
@@ -322,6 +328,6 @@ object IcebergMapper {
     override def toIceberg(key: String): String = lexicoder.decode(key).toString
     override def fromIceberg(partition: StructLike, i: Int): String = lexicoder.encode(partition.get(i, classOf[java.lang.Long]))
     override def expression(key: String): Expression =
-      Expressions.equal(Expressions.truncate[java.lang.Long](scheme.attribute, divisor), java.lang.Long.valueOf(key))
+      Expressions.equal(Expressions.truncate[java.lang.Long](scheme.attribute, divisor), lexicoder.decode(key))
   }
 }

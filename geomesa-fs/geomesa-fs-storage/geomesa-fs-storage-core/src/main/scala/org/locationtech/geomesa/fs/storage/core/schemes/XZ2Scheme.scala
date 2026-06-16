@@ -55,9 +55,9 @@ case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends SpatialSc
 
   override def getCoveringFilter(partition: PartitionKey): Filter = {
     // TODO maybe we can improve this with *some* kind of bbox?
-    val zPrefix = partition.value
-    val lower = zPrefix.padTo(xz2.hexDigits, '0')
-    val upper = zPrefix.padTo(xz2.hexDigits, 'f')
+    val hexPrefix = partition.value
+    val lower = hexPrefix.padTo(xz2.hexDigits, '0')
+    val upper = hexPrefix.padTo(xz2.hexDigits, 'f')
     ff.between(ff.function(XZ2Function.FunctionName.getName), ff.literal(lower), ff.literal(upper))
   }
 

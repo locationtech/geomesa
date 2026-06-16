@@ -19,7 +19,7 @@ class ColumnNameTest extends SpecificationWithJUnit {
     "foo_bar_baz" -> "foo_bar_baz",
     "foo__bar" -> "foo__5f__5fbar", // double underscores
     "foo___bar" -> "foo__5f__5f__5fbar", // triple underscores
-    "__foo" -> "__5f__5ffoo", // leading double underscores
+    "__foo" -> "__foo", // leading double underscores get ignored
     "foo__" -> "foo__5f__5f", // trailing double underscores
     "foo-bar" -> "foo__2dbar", // dash
     "foo bar" -> "foo__20bar", // spaces

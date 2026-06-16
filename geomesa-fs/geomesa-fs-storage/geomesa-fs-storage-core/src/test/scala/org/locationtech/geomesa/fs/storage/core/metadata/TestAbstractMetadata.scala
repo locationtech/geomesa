@@ -30,7 +30,7 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
   val sft = SimpleFeatureTypes.createType("metadata",
     "name:String:fs.bounds=true,dtg:Date,*geom:Point:srid=4326;geomesa.user-data.prefix=desc,desc.name=姓名,desc.dtg=ひづけ,desc.geom=좌표")
   val encoding = "parquet"
-  val schemeOptions = Seq("hour", "z2:bits=2")
+  val schemeOptions = Seq("hour", "z2:bits=4")
   val schemes = schemeOptions.map(PartitionSchemeFactory.load(sft, _)).toSet
 
   // note: ensure that partitions and bounds line up

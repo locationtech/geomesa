@@ -15,8 +15,6 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point
 import org.specs2.mutable.SpecificationWithJUnit
 
-import java.util.HexFormat
-
 class StorageMetadataTest extends SpecificationWithJUnit {
 
   private val sft = SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326")
@@ -27,9 +25,9 @@ class StorageMetadataTest extends SpecificationWithJUnit {
       foreach(Seq(-67.5, -22.5, 22.5, 67.5)) { lat =>
         foreach(Seq(-135, -45, 45, 135)) { lon =>
           val pt = WKTUtils.read(s"POINT($lon $lat)").asInstanceOf[Point]
-          val partition = ps.getPartition(ScalaSimpleFeature.create(sft, "", pt)).value.toInt
+          val partition = ps.getPartition(ScalaSimpleFeature.create(sft, "", pt)).value
           val z2 = Z2Encoder.encode(pt)
-          partition mustEqual HexFormat.fromHexDigit(z2.head)
+          z2 must startWith(partition)
         }
       }
     }

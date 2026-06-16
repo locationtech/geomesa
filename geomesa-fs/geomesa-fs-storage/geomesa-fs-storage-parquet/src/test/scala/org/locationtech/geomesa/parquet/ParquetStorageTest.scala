@@ -131,8 +131,8 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
               // verify we can load an existing storage
               WithClose(new ParquetFileSystemStorageFactory().apply(context, catalog.load(sft.getTypeName)))(testQuery(_, sft)("INCLUDE", null, features))
 
-              // verify GeoParquet metadata - look for partition 225 so we can verify the expected bounds
-              val firstPartitionFile = storage.metadata.getFiles().find(_.partition.values.map(_.value).contains("225")).orNull
+              // verify GeoParquet metadata - look for partition e1 so we can verify the expected bounds
+              val firstPartitionFile = storage.metadata.getFiles().find(_.partition.values.map(_.value).contains("e1")).orNull
               firstPartitionFile must not(beNull)
               WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(new Path(dir.resolve(firstPartitionFile.file)), new Configuration()))) { reader =>
                 val meta = reader.getFileMetaData.getKeyValueMetaData
@@ -237,7 +237,7 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
               doTest("age > 5", transforms, features.drop(6))
             }
 
-            val firstPartitionFile = storage.metadata.getFiles().find(_.partition.values.map(_.value).contains("225")).orNull
+            val firstPartitionFile = storage.metadata.getFiles().find(_.partition.values.map(_.value).contains("e1")).orNull
             firstPartitionFile must not(beNull)
 
             val firstPartitionPath = dir.resolve(firstPartitionFile.file)

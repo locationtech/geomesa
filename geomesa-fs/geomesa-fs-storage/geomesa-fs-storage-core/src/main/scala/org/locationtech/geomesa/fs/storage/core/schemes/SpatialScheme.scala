@@ -80,7 +80,7 @@ trait SpatialScheme extends PartitionScheme {
 
   /**
    * Increment a hex value, used for upper-level exclusive ranges. Note that in terminal cases (e.g. `ffff`),
-   * an extra zero will be added, which works for our use case because it sorts after the original value
+   * an extra 'z' will be added, which works for our use case because it sorts after the original value
    *
    * @param hex hex value to increment
    * @return
@@ -91,9 +91,10 @@ trait SpatialScheme extends PartitionScheme {
   private def incrementHex(hex: String, pos: Int): String = {
     val c = hex.charAt(pos)
     if (c != 'f') {
-      hex.substring(0, pos) + (c + 1).toChar + hex.substring(pos + 1)
+      val bump = if (c == '9') { 'a' } else { (c + 1).toChar }
+      hex.substring(0, pos) + bump + hex.substring(pos + 1)
     } else if (pos == 0) {
-      hex + '0' // note: this isn't actually incrementing the value but should sort after all the valid hex values
+      hex + 'z' // note: this isn't actually incrementing the value but should sort after all the valid hex values
     } else {
       incrementHex(hex.substring(0, pos) + '0' + hex.substring(pos + 1), pos - 1)
     }

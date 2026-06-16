@@ -20,7 +20,7 @@ object Z2SFC extends Z2SFC(31)
   *
   * @param precision number of bits used per dimension - note sum must be less than 64
   */
-class Z2SFC(precision: Int) extends SpaceFillingCurve {
+class Z2SFC(val precision: Int) extends SpaceFillingCurve {
 
   private val hexFormat = HexFormat.of()
 
