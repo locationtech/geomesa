@@ -29,7 +29,7 @@ class IcebergMetadataCatalog(context: FileSystemContext) extends StorageMetadata
 
   import scala.collection.JavaConverters._
 
-  private val props = new IcebergProps(context.conf)
+  private val props = new IcebergProps(context)
 
   private val namespace = props.namespace
   private val catalog = props.catalog
@@ -72,7 +72,7 @@ object IcebergMetadataCatalog {
 
   private val KeyPrefix = "iceberg."
 
-  private class IcebergProps(val conf: Map[String, String]) extends AnyVal {
+  private class IcebergProps(val context: FileSystemContext) extends AnyVal {
 
     import scala.collection.JavaConverters._
 
@@ -83,13 +83,25 @@ object IcebergMetadataCatalog {
       val catalog = try { Class.forName(impl).getConstructor().newInstance().asInstanceOf[Catalog] } catch {
         case e: Throwable => throw new RuntimeException(s"Could not instantiate catalog class '$impl':", e)
       }
-      val props = conf.collect { case (k, v) if k.startsWith(KeyPrefix) => k.substring(KeyPrefix.length) -> v }
+      // map our normal s3 config keys to iceberg ones, so they don't have to be configured 2x
+      val s3Configs = context.conf.collect {
+        case ("fs.s3.force-path-style", v) => "s3.path-style-access" -> v
+        case ("fs.s3.region", v) => "client.region" -> v
+        case (k, v) if k.startsWith("fs.s3") => k.substring(3) -> v
+      }
+      // add some defaults, to reduce boilerplate
+      val defaults = Map("io-impl" -> "org.apache.iceberg.aws.s3.S3FileIO",
+        "file-format" -> "PARQUET",
+        "warehouse" -> context.root.resolve("metadata/").toString
+      )
+      val props =
+        defaults ++ s3Configs ++ context.conf.collect { case (k, v) if k.startsWith(KeyPrefix) => k.substring(KeyPrefix.length) -> v }
       catalog.initialize("geomesa", props.asJava)
       catalog
     }
 
     private def required(k: String): String =
-      conf.getOrElse(k, throw new IllegalArgumentException(s"Iceberg catalog requires configuration `$k` to be specified"))
+      context.conf.getOrElse(k, throw new IllegalArgumentException(s"Iceberg catalog requires configuration `$k` to be specified"))
   }
 
 

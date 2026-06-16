@@ -18,25 +18,21 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.fs.data.container.FsContainerTest
 import org.locationtech.geomesa.fs.storage.core.StorageKeys
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
-import org.slf4j.LoggerFactory
 import org.specs2.matcher.{MatchResult, Matcher}
 import org.specs2.mutable.SpecificationWithJUnit
-import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.output.Slf4jLogConsumer
-import org.testcontainers.postgresql.PostgreSQLContainer
-import org.testcontainers.utility.DockerImageName
 
 import java.io.{File, IOException}
 import java.nio.file.Files
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.DurationInt
 
-class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
+class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTest with LazyLogging {
 
   sequential
 
@@ -71,8 +67,6 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
 
   private val (sft, features) = createFormat()
 
-  private var dir: File = _
-
   private val filters = Seq(
     "INCLUDE",
     s"name IN ${(0 until 10).mkString("('test", "','test", "')")}",
@@ -82,66 +76,33 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
     "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-07T04:04:00.0000Z and bbox(geom, 5, 5, 15, 15)"
   ).map(ECQL.toFilter)
 
-  private val container =
-    new PostgreSQLContainer(DockerImageName.parse("postgres").withTag(sys.props("postgres.docker.tag")).asCompatibleSubstituteFor("postgres"))
-      .withDatabaseName("postgres") // if we don't set the default db/name to postgres, the startup check fails as it restarts 3 times instead of the expected 2
-      .withUsername("postgres")
-
-  private lazy val jdbcConfig =
-    s"""fs.metadata.type=jdbc
-       |fs.metadata.jdbc.url=${container.getJdbcUrl}
-       |fs.metadata.jdbc.user=${container.getUsername}
-       |fs.metadata.jdbc.password=${container.getPassword}
-       |""".stripMargin
-
-  private lazy val dsParams = Seq(
-    Map(
-      "fs.path" -> s"${dir.getPath}/file",
-      "fs.metadata.type" -> "file",
-      "geomesa.security.auths" -> "user",
-    ),
-    Map(
-      "fs.path" -> s"${dir.getPath}/jdbc",
-      "fs.config.properties" -> jdbcConfig,
-      "geomesa.security.auths" -> "user",
-    ),
-  )
-
-  override def beforeAll(): Unit = {
-    dir = Files.createTempDirectory("fsds-test").toFile
-    if (logger.underlying.isDebugEnabled()) {
-      container.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("postgres")))
-      container.setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all")
-    }
-    container.start()
-  }
-
-  override def afterAll(): Unit = {
-    if (dir != null) {
-      FileUtils.deleteDirectory(dir)
-    }
-    container.stop()
-  }
+  private lazy val dsParams = Seq(fileParams, jdbcParams, icebergParams)
 
   "FileSystemDataStore" should {
     "load deprecated hadoop configs" in {
-      val params = Map(
-        "fs.path" -> s"${dir.getPath}/tmp",
-        "fs.metadata.type" -> "file",
-        "fs.config.xml" -> "<configuration><property><name>config.xml</name><value>test</value></property></configuration>",
-        "fs.config.paths" -> new File(getClass.getClassLoader.getResource("test-site.xml").toURI).getAbsolutePath,
-      )
-      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
-        ds.createSchema(sft)
-        ds.storage(sft.getTypeName).context.conf must containAllOf(
-          Map(
-            "config.xml" -> "test", // from direct data store param
-            "test-site" -> "bar", // from test-site.xml
-            "geomesa.test" -> "foo", // auto-loaded from core-site.xml on classpath
-          ).toSeq
+      val dir = Files.createTempDirectory("fsds-test").toFile
+      try {
+        val params = Map(
+          "fs.path" -> s"${dir.getPath}/tmp",
+          "fs.metadata.type" -> "file",
+          "fs.config.xml" -> "<configuration><property><name>config.xml</name><value>test</value></property></configuration>",
+          "fs.config.paths" -> new File(getClass.getClassLoader.getResource("test-site.xml").toURI).getAbsolutePath,
         )
+        WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+          ds.createSchema(sft)
+          ds.storage(sft.getTypeName).context.conf must containAllOf(
+            Map(
+              "config.xml" -> "test", // from direct data store param
+              "test-site" -> "bar", // from test-site.xml
+              "geomesa.test" -> "foo", // auto-loaded from core-site.xml on classpath
+            ).toSeq
+          )
+        }
+      } finally {
+        FileUtils.deleteDirectory(dir)
       }
     }
+
     "create a DS" in {
       foreach(dsParams) { params =>
         WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
@@ -389,37 +350,32 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll
       }
 
       foreach(all) { case (sft, features, params) =>
-        val dir = Files.createTempDirectory("fsds-test").toFile
-        try {
-          WithClose(DataStoreFinder.getDataStore((params ++ Map("fs.path" -> dir.getPath)).asJava)) { ds =>
-            ds must not(beNull)
-            ds.createSchema(sft)
-            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-              features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
-            }
-
-            ds.getTypeNames must have size 1
-            val fs = ds.getFeatureSource(sft.getTypeName)
-            fs must not(beNull)
-
-            // verify metadata - count and bounds
-            fs.getCount(Query.ALL) mustEqual 10
-            val env = new ReferencedEnvelope(CRS_EPSG_4326)
-            features.foreach(f => env.expandToInclude(f.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal))
-            compareBounds(fs.getBounds, env, 10) // xz2 inversion is not very precise...
-
-            foreach(Seq("INCLUDE", s"bbox(geom,${env.getMinX},${env.getMinY},${env.getMaxX},${env.getMaxY})")) { filter =>
-              val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-              CloseableIterator(fs.getFeatures(query).features()).toList must containTheSameElementsAs(features)
-              val transform = new Query(sft.getTypeName, ECQL.toFilter(filter), "dtg", "geom")
-              val transformSft = SimpleFeatureTypes.createType(sft.getTypeName,
-                s"dtg:Date,*geom:${sft.getGeometryDescriptor.getType.getBinding.getSimpleName}")
-              CloseableIterator(fs.getFeatures(transform).features()).toList must
-                  containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(transformSft, _)))
-            }
+        WithClose(DataStoreFinder.getDataStore((params ++ Map("fs.path" -> dir.getPath)).asJava)) { ds =>
+          ds must not(beNull)
+          ds.createSchema(sft)
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
-        } finally {
-          FileUtils.deleteDirectory(dir)
+
+          ds.getTypeNames must have size 1
+          val fs = ds.getFeatureSource(sft.getTypeName)
+          fs must not(beNull)
+
+          // verify metadata - count and bounds
+          fs.getCount(Query.ALL) mustEqual 10
+          val env = new ReferencedEnvelope(CRS_EPSG_4326)
+          features.foreach(f => env.expandToInclude(f.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal))
+          compareBounds(fs.getBounds, env, 10) // xz2 inversion is not very precise...
+
+          foreach(Seq("INCLUDE", s"bbox(geom,${env.getMinX},${env.getMinY},${env.getMaxX},${env.getMaxY})")) { filter =>
+            val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+            CloseableIterator(fs.getFeatures(query).features()).toList must containTheSameElementsAs(features)
+            val transform = new Query(sft.getTypeName, ECQL.toFilter(filter), "dtg", "geom")
+            val transformSft = SimpleFeatureTypes.createType(sft.getTypeName,
+              s"dtg:Date,*geom:${sft.getGeometryDescriptor.getType.getBinding.getSimpleName}")
+            CloseableIterator(fs.getFeatures(transform).features()).toList must
+                containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(transformSft, _)))
+          }
         }
       }
     }
