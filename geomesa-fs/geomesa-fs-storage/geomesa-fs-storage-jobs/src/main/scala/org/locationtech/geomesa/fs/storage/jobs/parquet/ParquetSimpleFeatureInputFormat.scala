@@ -17,10 +17,10 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.TransformSimpleFeature
+import org.locationtech.geomesa.fs.storage.core.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.fs.storage.core.parquet.{ReadFilter, ReadSchema}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetSimpleFeatureInputFormat.{ParquetSimpleFeatureInputFormatBase, ParquetSimpleFeatureRecordReaderBase, ParquetSimpleFeatureTransformRecordReaderBase}
-import org.locationtech.geomesa.fs.storage.parquet.io.rw.SimpleFeatureReadSupport
-import org.locationtech.geomesa.fs.storage.parquet.{ReadFilter, ReadSchema}
 import org.locationtech.geomesa.index.planning.QueryRunner
 
 /**

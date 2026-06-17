@@ -120,8 +120,6 @@ class JdbcMetadata(
     }
   }
 
-  override def addFile(file: StorageFile): Unit = addFiles(Seq(file))
-
   override def addFiles(files: Seq[StorageFile]): Unit = {
     WithClose(pool.getConnection()) { cx =>
       cx.setAutoCommit(false)

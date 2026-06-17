@@ -53,7 +53,8 @@ object StorageMetadataCatalog {
    *
    * @return
    */
-  def types: Seq[String] = Seq(FileBasedMetadata.MetadataType, JdbcMetadata.MetadataType) ++ loaders.map(_.`type`)
+  def types: Seq[String] =
+    Seq(FileBasedMetadata.MetadataType, JdbcMetadata.MetadataType, IcebergMetadata.MetadataType) ++ loaders.map(_.`type`)
 
   /**
    * Create a new catalog instance
@@ -68,6 +69,7 @@ object StorageMetadataCatalog {
     metadataType.toLowerCase(Locale.US) match {
       case FileBasedMetadata.MetadataType => new FileBasedMetadataCatalog(context)
       case JdbcMetadata.MetadataType      => new JdbcMetadataCatalog(context)
+      case IcebergMetadata.MetadataType   => new IcebergMetadataCatalog(context)
       case t =>
         val catalog = loaders.collectFirst { case loader if loader.`type`.equalsIgnoreCase(t) => loader(context) }
         catalog.getOrElse(throw new UnsupportedOperationException(s"Metadata implementation not found for type: $t"))

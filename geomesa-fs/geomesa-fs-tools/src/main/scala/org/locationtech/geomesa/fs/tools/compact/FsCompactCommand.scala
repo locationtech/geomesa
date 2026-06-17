@@ -12,6 +12,7 @@ import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
+import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.ParquetCompactionJob
@@ -34,8 +35,6 @@ class FsCompactCommand extends CompactCommand with FsDistributedCommand
 
 object FsCompactCommand {
 
-  import scala.collection.JavaConverters._
-
   trait CompactCommand extends FsDataStoreCommand with DistributedCommand with LazyLogging {
 
     override val name: String = "compact"
@@ -48,7 +47,12 @@ object FsCompactCommand {
     def compact(ds: FileSystemDataStore): Unit = {
       Command.user.info("Beginning compaction process...")
 
-      val storage = ds.storage(params.featureName)
+      val storage = ds.storage(params.featureName) match {
+        case s: ParquetFileSystemStorage => s
+        case s =>
+          throw new UnsupportedOperationException(
+            s"Compact is only implemented for ParquetFileSystemStorage: ${s.getClass.getName}")
+      }
 
       val toCompact = if (params.loadedPartitions.isEmpty) { storage.metadata.getFiles().map(_.partition).distinct } else {
         val filtered = params.loadedPartitions.filter(storage.metadata.getFiles(_).nonEmpty)

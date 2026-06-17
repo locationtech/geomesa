@@ -53,7 +53,6 @@ class SchemeFilterExtractionTest extends SpecificationWithJUnit {
     def getSchemeFilters(filter: Filter): Seq[SchemeFilter] = getFilters(filter)
 
     override def `type`: String = "test"
-    override def addFile(file: StorageMetadata.StorageFile): Unit = throw new UnsupportedOperationException()
     override def addFiles(files: Seq[StorageMetadata.StorageFile]): Unit = throw new UnsupportedOperationException()
     override def removeFile(file: StorageMetadata.StorageFile): Unit = throw new UnsupportedOperationException()
     override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit = throw new UnsupportedOperationException()

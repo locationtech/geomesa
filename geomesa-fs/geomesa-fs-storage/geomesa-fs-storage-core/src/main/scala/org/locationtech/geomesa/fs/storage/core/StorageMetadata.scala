@@ -52,7 +52,7 @@ trait StorageMetadata extends Closeable {
    *
    * @param file file
    */
-  def addFile(file: StorageFile): Unit
+  def addFile(file: StorageFile): Unit = addFiles(Seq(file))
 
   /**
    * Add files in an atomic operation

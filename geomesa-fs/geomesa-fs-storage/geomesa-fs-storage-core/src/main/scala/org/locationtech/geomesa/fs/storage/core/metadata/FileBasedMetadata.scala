@@ -71,8 +71,6 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
     }
   }
 
-  override def addFile(file: StorageFile): Unit = addFiles(Seq(file))
-
   override def addFiles(files: Seq[StorageFile]): Unit = {
     modifyFiles { existing =>
       (existing ++ files).sortBy(_.timestamp)(Ordering.Long.reverse)

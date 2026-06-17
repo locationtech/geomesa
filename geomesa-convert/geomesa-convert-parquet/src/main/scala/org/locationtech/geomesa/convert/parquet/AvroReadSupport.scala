@@ -21,9 +21,9 @@ import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema._
 import org.locationtech.geomesa.convert.parquet.AvroReadSupport.AvroRecordMaterializer
 import org.locationtech.geomesa.curve.BinnedTime
-import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
-import org.locationtech.geomesa.fs.storage.parquet.io.rw.SimpleFeatureReadSupport
-import org.locationtech.geomesa.fs.storage.parquet.io.rw.SimpleFeatureReadSupport._
+import org.locationtech.geomesa.fs.storage.core.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.fs.storage.core.parquet.io.SimpleFeatureReadSupport.{DateMicrosConverter, ListConverter, MapConverter, StringConverter, UuidConverter, ValueMaterializer}
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 
 import java.util.{Collections, Date}
 

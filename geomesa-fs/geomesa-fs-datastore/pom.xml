@@ -29,10 +29,6 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-storage-parquet_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage-convert_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>

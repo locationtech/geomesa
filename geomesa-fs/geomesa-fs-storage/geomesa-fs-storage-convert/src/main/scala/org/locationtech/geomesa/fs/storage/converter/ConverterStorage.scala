@@ -12,19 +12,16 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.PathFiltering
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
-import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemPathReader, FileSystemUpdateWriter, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Partition, StorageMetadata}
-
-import java.net.URI
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 class ConverterStorage(
-    context: FileSystemContext,
-    metadata: StorageMetadata,
+    val context: FileSystemContext,
+    val metadata: StorageMetadata,
     converter: SimpleFeatureConverter,
     pathFiltering: Option[PathFiltering]
-  ) extends FileSystemStorage(context, metadata, "") {
+  ) extends FileSystemStorage {
 
   override val encoding: String = ConverterStorage.Encoding
 
@@ -35,20 +32,19 @@ class ConverterStorage(
   // actually need to be closed, and since they will only open a single connection per converter, the
   // impact should be low
 
-  override protected def createWriter(file: URI, partition: Partition, observer: FileSystemObserver): FileSystemWriter =
-    throw new UnsupportedOperationException()
-
   override protected def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader = {
     new ConverterFileSystemReader(fs, context.root, converter, filter, transform, pathFiltering)
   }
 
-  override def compact(partition: Partition, threads: Int): Unit =
-    throw new UnsupportedOperationException("Converter storage does not support compactions")
+  override def getWriter(partition: Partition): FileSystemWriter =
+    throw new UnsupportedOperationException("Converter storage is read-only")
 
-  override def register(file: URI): StorageFile =
-    throw new UnsupportedOperationException("Converter storage does not support file registration")
+  override def getWriter(filter: Filter, threads: Int): FileSystemUpdateWriter =
+    throw new UnsupportedOperationException("Converter storage is read-only")
+
+  override def close(): Unit = CloseWithLogging(metadata, fs)
 }
 
 object ConverterStorage {

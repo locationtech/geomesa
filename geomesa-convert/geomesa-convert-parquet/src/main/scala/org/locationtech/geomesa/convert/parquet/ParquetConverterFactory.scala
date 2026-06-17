@@ -26,9 +26,9 @@ import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicConfigCo
 import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, InferredType, Namer}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
-import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata.{ColumnMetadata, GeoParquetColumnEncoding, GeoParquetColumnType}
-import org.locationtech.geomesa.fs.storage.parquet.io.geometry.GeometrySchema.GeometryEncoding.GeoParquetNative
-import org.locationtech.geomesa.fs.storage.parquet.io.{GeoParquetMetadata, SimpleFeatureParquetSchema}
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeoParquetMetadata.{ColumnMetadata, GeoParquetColumnEncoding, GeoParquetColumnType}
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetNative
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.{GeoParquetMetadata, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.PathUtils

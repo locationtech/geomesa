@@ -60,7 +60,7 @@ class ParquetFunctionFactory extends TransformerFunctionFactory {
   abstract class ParquetGeometryFn[T <: Geometry, U](name: String, path: Option[AvroPath])
       extends NamedTransformerFunction(Seq(name), pure = true) {
 
-    import org.locationtech.geomesa.fs.storage.parquet.io.geometry.GeometrySchema.{GeometryColumnX, GeometryColumnY}
+    import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.{GeometryColumnX, GeometryColumnY}
 
     override def apply(args: Array[AnyRef]): AnyRef = {
       val attribute = path match {

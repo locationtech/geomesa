@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.fs.data
 
+import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorageFactory, StorageMetadataCatalog}
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.security.SecurityParams

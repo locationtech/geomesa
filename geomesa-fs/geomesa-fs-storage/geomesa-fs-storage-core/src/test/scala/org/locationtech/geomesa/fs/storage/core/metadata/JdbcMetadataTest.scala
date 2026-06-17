@@ -30,8 +30,8 @@ class JdbcMetadataTest extends TestAbstractMetadata with BeforeAfterAll {
   override protected val metadataType = JdbcMetadata.MetadataType
 
   override protected def getConfig(root: URI): Map[String, String] = {
-    // the tmp dir is all numbers - change it to chars to make a valid, unique db name for each test
-    val db = new String(root.toString.replace("geomesa", "").toCharArray.map(c => 'a' + c.toInt).map(_.toChar))
+    // make a valid, unique db name for each test
+    val db = new String(root.toString.replaceAll("[^a-f0-9]", ""))
     WithClose(container.createConnection("")) { connection =>
       WithClose(connection.createStatement()) { statement =>
         statement.execute(s"create database $db")
@@ -45,6 +45,7 @@ class JdbcMetadataTest extends TestAbstractMetadata with BeforeAfterAll {
   }
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     if (logger.underlying.isDebugEnabled()) {
       container.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("postgres")))
       container.setCommand("postgres", "-c", "fsync=off", "-c", "log_statement=all")
@@ -52,5 +53,8 @@ class JdbcMetadataTest extends TestAbstractMetadata with BeforeAfterAll {
     container.start()
   }
 
-  override def afterAll(): Unit = container.stop()
+  override def afterAll(): Unit = {
+    container.stop()
+    super.afterAll()
+  }
 }

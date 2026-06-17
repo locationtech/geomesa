@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.fs.storage.core.fs.{LocalObjectStore, ObjectStore, S3ObjectStore}
-import org.locationtech.geomesa.fs.storage.parquet.io.ParquetFileSystemWriter
+import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
 
 /**

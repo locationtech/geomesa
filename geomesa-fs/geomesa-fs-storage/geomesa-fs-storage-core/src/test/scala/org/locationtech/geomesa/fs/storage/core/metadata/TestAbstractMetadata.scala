@@ -14,16 +14,21 @@ import org.apache.commons.io.FileUtils
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, StorageFile, Z2Encoder}
+import org.locationtech.geomesa.fs.storage.core.metadata.IcebergMetadataTest.IcebergRestContainer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.{DateParsing, WKTUtils}
 import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
+import org.specs2.specification.BeforeAfterAll
+import org.testcontainers.containers.{MinIOContainer, Network}
+import org.testcontainers.utility.DockerImageName
 
 import java.net.URI
 import java.nio.file.Files
+import java.util.UUID
 
-abstract class TestAbstractMetadata extends Specification with LazyLogging {
+abstract class TestAbstractMetadata extends Specification with BeforeAfterAll with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -85,8 +90,33 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
 
   protected def getConfig(root: URI): Map[String, String]
 
+  protected val network = Network.newNetwork()
+
+  protected val minio =
+    new MinIOContainer(DockerImageName.parse("minio/minio").withTag(sys.props("minio.docker.tag")))
+      .withNetwork(network)
+      .withNetworkAliases("minio")
+
+  override def beforeAll(): Unit = {
+    minio.start()
+    minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName, minio.getPassword)
+    minio.execInContainer("mc", "mb", "localhost/geomesa")
+  }
+
+  override def afterAll(): Unit = {
+    minio.stop()
+    network.close()
+  }
+
   def newCatalog(root: URI): StorageMetadataCatalog = {
-    val conf = getConfig(root) ++ Map(StorageMetadataCatalog.MetadataTypeConfig -> metadataType)
+    val s3Conf = Map(
+      "fs.s3.region" -> "us-east-1",
+      "fs.s3.endpoint" -> minio.getS3URL,
+      "fs.s3.access-key-id" -> minio.getUserName,
+      "fs.s3.secret-access-key" -> minio.getPassword,
+      "fs.s3.force-path-style" -> "true",
+    )
+    val conf = s3Conf ++ getConfig(root) ++ Map(StorageMetadataCatalog.MetadataTypeConfig -> metadataType)
     StorageMetadataCatalog(FileSystemContext.create(root, conf))
   }
 
@@ -207,10 +237,6 @@ abstract class TestAbstractMetadata extends Specification with LazyLogging {
     }
   }
 
-  def withPath[R](code: StorageMetadataCatalog => R): R = {
-    val file = Files.createTempDirectory("geomesa").toFile
-    try { code(newCatalog(file.toURI)) } finally {
-      FileUtils.deleteDirectory(file)
-    }
-  }
+  def withPath[R](code: StorageMetadataCatalog => R): R =
+    code(newCatalog(URI.create(s"s3://geomesa/${UUID.randomUUID().toString.replaceAll("[^a-f0-9]", "")}/")))
 }

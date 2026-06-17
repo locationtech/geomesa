@@ -16,8 +16,8 @@ import org.apache.hadoop.mapreduce.{JobContext, OutputCommitter, TaskAttemptCont
 import org.apache.parquet.hadoop.util.ContextUtil
 import org.apache.parquet.hadoop.{ParquetOutputCommitter, ParquetOutputFormat}
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetSimpleFeatureOutputFormat.ParquetMultiFileOutputCommitter
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 
 import java.io.IOException
 import scala.collection.mutable

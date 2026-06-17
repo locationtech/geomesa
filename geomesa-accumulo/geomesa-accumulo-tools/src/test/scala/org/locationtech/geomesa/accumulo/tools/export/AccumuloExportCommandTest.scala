@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.tools.`export`
 
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
-import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
@@ -29,7 +28,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
-import org.locationtech.geomesa.fs.storage.parquet.io.ParquetFileSystemReader
+import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemReader
 import org.locationtech.geomesa.tools.`export`.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator

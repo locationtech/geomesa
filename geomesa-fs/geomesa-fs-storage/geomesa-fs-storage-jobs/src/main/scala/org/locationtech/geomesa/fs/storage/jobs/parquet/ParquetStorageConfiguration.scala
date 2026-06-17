@@ -13,8 +13,8 @@ import org.apache.hadoop.mapreduce.Job
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.{ParquetInputFormat, ParquetOutputFormat}
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.fs.storage.core.parquet.io.{SimpleFeatureReadSupport, SimpleFeatureWriteSupport}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.parquet.io.rw.{SimpleFeatureReadSupport, SimpleFeatureWriteSupport}
 
 trait ParquetStorageConfiguration extends StorageConfiguration with LazyLogging {
   override def configureOutput(sft: SimpleFeatureType, job: Job): Unit = {

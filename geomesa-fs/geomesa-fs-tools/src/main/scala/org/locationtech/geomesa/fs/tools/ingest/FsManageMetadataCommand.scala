@@ -15,6 +15,7 @@ import org.geotools.api.data.DataStoreFinder
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
+import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition, StorageKeys}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, MetadataTypeValidator}
@@ -58,7 +59,12 @@ object FsManageMetadataCommand extends LazyLogging {
     override val params = new RegisterParams()
 
     override def execute(): Unit = withDataStore { ds =>
-      val storage = ds.storage(params.featureName)
+      val storage = ds.storage(params.featureName) match {
+        case s: ParquetFileSystemStorage => s
+        case s =>
+          throw new UnsupportedOperationException(
+            s"Register is only implemented for ParquetFileSystemStorage: ${s.getClass.getName}")
+      }
       val metadata = storage.metadata
 
       val paths = params.files.asScala.map { file =>

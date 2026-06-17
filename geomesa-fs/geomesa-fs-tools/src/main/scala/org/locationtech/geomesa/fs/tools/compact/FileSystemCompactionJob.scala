@@ -16,10 +16,11 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
+import org.locationtech.geomesa.fs.storage.core.Partition
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
-import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
+import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetStorageConfiguration
+import org.locationtech.geomesa.fs.storage.jobs.parquet.{ParquetPartitionInputFormat, ParquetStorageConfiguration}
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.CompactionMapper
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
@@ -37,7 +38,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
   import FileSystemCompactionJob.{FailedCounter, MappedCounter}
 
   def run(
-      storage: FileSystemStorage,
+      storage: ParquetFileSystemStorage,
       partitions: Seq[Partition],
       tempPath: Option[Path],
       libjarsFiles: Seq[String],
@@ -55,7 +56,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     job.setJarByClass(this.getClass)
 
     // InputFormat and Mappers
-    job.setInputFormatClass(classOf[PartitionInputFormat])
+    job.setInputFormatClass(classOf[ParquetPartitionInputFormat])
     job.setMapperClass(classOf[CompactionMapper])
 
     // No reducers - Mapper will read/write its own things
