@@ -71,12 +71,13 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
     }
   }
 
-  override def addFile(file: StorageFile): Unit = {
-    modifyFiles { files =>
-      // remove any existing file with the same path and add the new one
-      (files.filterNot(_.file == file.file) :+ file).sortBy(_.timestamp)(Ordering.Long.reverse)
+  override def addFile(file: StorageFile): Unit = addFiles(Seq(file))
+
+  override def addFiles(files: Seq[StorageFile]): Unit = {
+    modifyFiles { existing =>
+      (existing ++ files).sortBy(_.timestamp)(Ordering.Long.reverse)
     }
-    logger.debug(s"Added file $file")
+    logger.debug(s"Added file(s) ${files.mkString(", ")}")
   }
 
   override def removeFile(file: StorageFile): Unit = {
@@ -89,7 +90,7 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
   override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit = {
     val existingFiles = existing.map(_.file)
     modifyFiles { files =>
-      files.filterNot(f => existingFiles.contains(f.file)) ++ replacements
+      (files.filterNot(f => existingFiles.contains(f.file)) ++ replacements).sortBy(_.timestamp)(Ordering.Long.reverse)
     }
     logger.debug(s"Replaced ${existing.size} files with ${replacements.size} new ones")
   }
