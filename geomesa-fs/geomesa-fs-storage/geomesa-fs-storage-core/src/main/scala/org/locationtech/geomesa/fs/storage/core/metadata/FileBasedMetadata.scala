@@ -15,6 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
+import org.locationtech.geomesa.fs.storage.core.metadata.json.MetadataSerialization
 import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.WithClose

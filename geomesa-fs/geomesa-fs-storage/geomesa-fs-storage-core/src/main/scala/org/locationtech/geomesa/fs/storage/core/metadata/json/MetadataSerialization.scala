@@ -6,12 +6,11 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core
-package metadata
+package org.locationtech.geomesa.fs.storage.core.metadata.json
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions, ConfigRenderOptions}
 import org.locationtech.geomesa.fs.storage.core.Metadata
-import org.locationtech.geomesa.fs.storage.core.metadata.MetadataSerialization.Persistence.StoragePersistence
+import org.locationtech.geomesa.fs.storage.core.metadata.json.MetadataSerialization.Persistence.StoragePersistence
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.metrics.DebugLogProfiling
 import pureconfig.{ConfigConvert, ConfigSource, ConfigWriter}

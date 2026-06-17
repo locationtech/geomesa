@@ -12,6 +12,7 @@ package metadata
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
+import org.locationtech.geomesa.fs.storage.core.metadata.json.MetadataSerialization
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.geomesa.utils.text.StringSerialization
