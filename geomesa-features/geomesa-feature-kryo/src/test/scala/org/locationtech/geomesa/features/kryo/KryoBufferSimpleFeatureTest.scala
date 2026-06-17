@@ -293,6 +293,32 @@ class KryoBufferSimpleFeatureTest extends Specification with LazyLogging {
       laz.getAttribute("geom") mustEqual sf.getAttribute("geom")
     }
 
+    "not shrink maxCapacity when expanding buffer for large features" in {
+      // Regression test for Kryo Buffer overflow caused by setBuffer locking maxCapacity
+      // Uses data:Bytes schema to force writeBytes() path that triggers the buffer expansion
+      import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+      val spec = "data:Bytes,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("maxCapacityTest", spec)
+      val serializer = KryoFeatureSerializer(sft, SerializationOptions.none)
+
+      // sf1: precisely trigger the if (buffer.length < end + shift) branch
+      // Buffer grows to 131072 (2^17), end + shift = 131076
+      // 131072 < 131076 -> enters setBuffer path
+      val sf1 = new ScalaSimpleFeature(sft, "id1")
+      sf1.setAttribute("data", Array.fill[Byte](131032)(1.toByte))
+      sf1.setAttribute("geom", "POINT(45.0 49.0)")
+      val serialized1 = serializer.serialize(sf1)
+      serializer.deserialize(serialized1).getAttribute("data").asInstanceOf[Array[Byte]].length mustEqual 131032
+
+      // sf2: larger feature, would fail with Buffer overflow before fix
+      // because maxCapacity was locked to ~131076 by sf1
+      val sf2 = new ScalaSimpleFeature(sft, "id2")
+      sf2.setAttribute("data", Array.fill[Byte](140000)(1.toByte))
+      sf2.setAttribute("geom", "POINT(45.0 49.0)")
+      val serialized2 = serializer.serialize(sf2)
+      serializer.deserialize(serialized2).getAttribute("data").asInstanceOf[Array[Byte]].length mustEqual 140000
+    }
+
     "be faster than full deserialization" in {
       skipped("integration")
       val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"

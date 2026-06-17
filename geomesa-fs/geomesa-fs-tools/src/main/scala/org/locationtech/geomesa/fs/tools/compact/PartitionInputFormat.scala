@@ -185,6 +185,7 @@ object PartitionInputFormat {
       files
     }
     override def addFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
+    override def addFiles(files: Seq[StorageFile]): Unit = throw new UnsupportedOperationException()
     override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
     override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit =
       throw new UnsupportedOperationException()

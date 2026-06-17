@@ -83,7 +83,7 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
         val expanded = Array.ofDim[Byte](end + shift)
         System.arraycopy(output.getBuffer, 0, expanded, 0, offset)
         System.arraycopy(output.getBuffer, offset, expanded, offset + shift, end - offset)
-        output.setBuffer(expanded)
+        output.setBuffer(expanded, -1)
       } else {
         val buffer = output.getBuffer
         // end is the position of the next byte to write, so we want to copy from the previous byte

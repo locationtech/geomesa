@@ -175,7 +175,7 @@ object FsManageMetadataCommand extends LazyLogging {
         val sft = SimpleFeatureTypes.copy(ds.getSchema(params.featureName))
         sft.getUserData.put(StorageKeys.SchemeKey, scheme)
         newDs.createSchema(sft)
-        newDs.storage(params.featureName).metadata.replaceFiles(Seq.empty, files.reverse)
+        newDs.storage(params.featureName).metadata.addFiles(files.reverse)
       }
       Command.output.info(s"Migration complete for ${files.length} files")
     }
