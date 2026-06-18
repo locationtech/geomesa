@@ -12,16 +12,19 @@ package metadata
 import com.google.gson._
 import com.google.gson.reflect.TypeToken
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.iceberg.{DataFile, DataFiles, FileFormat, PartitionSpec, Table}
+import org.apache.iceberg.catalog.{Catalog, Namespace, TableIdentifier}
+import org.apache.iceberg.inmemory.InMemoryCatalog
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
-import org.locationtech.geomesa.fs.storage.core.metadata.json.MetadataSerialization
-import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
+import org.locationtech.geomesa.fs.storage.core.metadata.json.{DataFileSerialization, MetadataSerialization}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.StringSerialization
 
-import java.io.{InputStreamReader, OutputStreamWriter}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStreamReader, OutputStreamWriter}
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
@@ -33,10 +36,11 @@ import scala.util.control.NonFatal
  * Uses HDFS lock files for cross-JVM write locking and synchronization for intra-JVM locking.
  *
  * @param fs file system
- * @param directory metadata root path
  * @param meta basic metadata config
+ * @param directory metadata root path
+ * @param context file system context
  */
-class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
+class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI, context: FileSystemContext)
     extends StorageMetadata with CachedMetadata with LazyLogging {
 
   import FileBasedMetadata._
@@ -56,7 +60,23 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
   override val sft: SimpleFeatureType = meta.sft
   override val schemes: Set[PartitionScheme] = meta.partitions.map(PartitionSchemeFactory.load(sft, _)).toSet
 
+  // Create IcebergMapper and in-memory table for DataFile creation
+  private val mapper = IcebergMapper(sft, schemes.toSeq, context)
+  private val catalog: Catalog = new InMemoryCatalog()
+  private lazy val table: Table = {
+    val tableId = TableIdentifier.of(Namespace.of("geomesa"), sft.getTypeName)
+    catalog.createTable(tableId, mapper.schema, mapper.spec)
+  }
+
   filesCache.refresh(BoxedUnit.UNIT) // kick off the initial load asynchronously
+
+  override def createDataFile(filePath: String, partition: Partition): DataFile = {
+    mapper.createDataFile(table, filePath, partition)
+  }
+
+  override protected def extractPartition(file: DataFile): Partition = {
+    mapper.partition(file)
+  }
 
   override def get(key: String): Option[String] = Option(kvs.get(key))
 
@@ -72,24 +92,24 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
     }
   }
 
-  override def addFiles(files: Seq[StorageFile]): Unit = {
+  override def addFiles(files: Seq[DataFile]): Unit = {
     modifyFiles { existing =>
-      (existing ++ files).sortBy(_.timestamp)(Ordering.Long.reverse)
+      existing ++ files
     }
-    logger.debug(s"Added file(s) ${files.mkString(", ")}")
+    logger.debug(s"Added ${files.size} file(s)")
   }
 
-  override def removeFile(file: StorageFile): Unit = {
+  override def removeFile(file: DataFile): Unit = {
     modifyFiles { files =>
-      files.filterNot(_.file == file.file)
+      files.filterNot(_.location() == file.location())
     }
-    logger.debug(s"Removed file $file")
+    logger.debug(s"Removed file ${file.location()}")
   }
 
-  override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit = {
-    val existingFiles = existing.map(_.file)
+  override def replaceFiles(existing: Seq[DataFile], replacements: Seq[DataFile]): Unit = {
+    val existingLocations = existing.map(_.location()).toSet
     modifyFiles { files =>
-      (files.filterNot(f => existingFiles.contains(f.file)) ++ replacements).sortBy(_.timestamp)(Ordering.Long.reverse)
+      files.filterNot(f => existingLocations.contains(f.location())) ++ replacements
     }
     logger.debug(s"Replaced ${existing.size} files with ${replacements.size} new ones")
   }
@@ -99,11 +119,15 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
   /**
    * Load files from the JSON file
    */
-  override protected def buildFileList(): Seq[StorageFile] = {
+  override protected def buildFileList(): Seq[DataFile] = {
     WithClose(fs.read(filesFilePath)) { opt =>
-      opt.fold(Seq.empty[StorageFile]) { is =>
-        val listType = new TypeToken[java.util.List[StorageFile]]() {}.getType
-        gson.fromJson[java.util.List[StorageFile]](new InputStreamReader(is, StandardCharsets.UTF_8), listType).asScala.toSeq
+      opt.fold(Seq.empty[DataFile]) { is =>
+        // Read array of DataFile JSON objects
+        val reader = new InputStreamReader(is, StandardCharsets.UTF_8)
+        val jsonArray = new JsonParser().parse(reader).getAsJsonArray
+        jsonArray.asScala.map { elem =>
+          DataFileSerialization.deserialize(new ByteArrayInputStream(elem.toString.getBytes(StandardCharsets.UTF_8)), mapper.spec)
+        }.toSeq
       }
     }
   }
@@ -111,7 +135,7 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
   /**
    * Modify files with proper locking using HDFS lock files
    */
-  private def modifyFiles(fn: Seq[StorageFile] => Seq[StorageFile]): Unit = FileBasedMetadata.synchronized {
+  private def modifyFiles(fn: Seq[DataFile] => Seq[DataFile]): Unit = FileBasedMetadata.synchronized {
     // acquire lock by creating a lock file atomically
     var lockAcquired = false
     var retries = 0
@@ -170,9 +194,16 @@ class FileBasedMetadata(fs: ObjectStore, meta: Metadata, directory: URI)
       // apply the modification
       val updatedFiles = fn(currentFiles)
 
-      // write back to disk
-      WithClose(new OutputStreamWriter(fs.overwrite(filesFilePath), StandardCharsets.UTF_8)) { writer =>
-        gson.toJson(updatedFiles.asJava, writer)
+      // write back to disk as JSON array of DataFile objects
+      WithClose(fs.overwrite(filesFilePath)) { out =>
+        val jsonArray = new JsonArray()
+        updatedFiles.foreach { dataFile =>
+          val baos = new ByteArrayOutputStream()
+          DataFileSerialization.serialize(baos, dataFile, mapper.spec)
+          val jsonObj = new JsonParser().parse(new String(baos.toByteArray, StandardCharsets.UTF_8))
+          jsonArray.add(jsonObj)
+        }
+        out.write(jsonArray.toString.getBytes(StandardCharsets.UTF_8))
       }
 
       // update cache
@@ -197,14 +228,4 @@ object FileBasedMetadata {
   val MaxLockRetries = SystemProperty("geomesa.fs.metadata.file.lock.retries", "60") // maximum number of lock acquisition retries
   val LockRetryDelay = SystemProperty("geomesa.fs.metadata.file.lock.delay", "1 second") // delay between retries
   val LockTimeout = SystemProperty("geomesa.fs.metadata.file.lock.timeout", "1 minute") // lock timeout
-
-  // gson instance with custom serializers for StorageFile
-  private val gson: Gson =
-    new GsonBuilder()
-      .registerTypeAdapter(classOf[PartitionKey], PartitionKey.PartitionKeySerializer)
-      .registerTypeAdapter(classOf[Partition], Partition.PartitionSerializer)
-      .registerTypeAdapter(classOf[StorageFile], StorageFile.StorageFileSerializer)
-      .disableHtmlEscaping()
-      .create()
-
 }

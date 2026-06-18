@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.{Parameter, Parameters}
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.status.FsGetPartitionsCommand.FsGetPartitionsParams
@@ -24,8 +25,10 @@ class FsGetPartitionsCommand extends FsDataStoreCommand {
     if (!params.noHeader) {
       Command.output.info("partition\tfile_count\tfeature_count")
     }
-    ds.storage(params.featureName).metadata.getFiles().groupBy(_.partition.toString).toSeq.sortBy(_._1).foreach { case (p, files) =>
-      Command.output.info(s"$p\t${files.size}\t${files.map(_.count).sum}")
+    val storage = ds.storage(params.featureName)
+    val mapper = IcebergMapper(storage.metadata.sft, storage.metadata.schemes.toSeq, storage.context)
+    storage.metadata.getFiles().groupBy(f => mapper.partition(f).toString).toSeq.sortBy(_._1).foreach { case (p, files) =>
+      Command.output.info(s"$p\t${files.size}\t${files.map(_.recordCount()).sum}")
     }
   }
 }

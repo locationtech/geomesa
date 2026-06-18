@@ -12,6 +12,7 @@ package parquet
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
+import org.apache.iceberg.DataFile
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.filter2.compat.FilterCompat.FilterPredicateCompat
 import org.apache.parquet.hadoop.ParquetReader
@@ -23,8 +24,7 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType.FileType
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemPathReader, FileSystemUpdateWriter, FileSystemWriter, FileType}
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFileAction.StorageFileAction
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.ColumnBounds
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
@@ -88,7 +88,7 @@ class ParquetFileSystemStorage(val context: FileSystemContext, val metadata: Sto
 // TODO  ParquetFileSystemStorage.FileExtension
 
   override def getWriter(partition: Partition): FileSystemWriter =
-    createWriter(partition, StorageFileAction.Append, FileType.Written, metadata)
+    createWriter(partition, FileType.Written, metadata)
 
   override def getWriter(filter: Filter, threads: Int): FileSystemStorage.FileSystemUpdateWriter =
     new ParquetUpdateWriter(filter, threads)
@@ -99,31 +99,30 @@ class ParquetFileSystemStorage(val context: FileSystemContext, val metadata: Sto
    * @param file file to register
    * @return registered file
    */
-  def register(file: URI): StorageFile = {
+  def register(file: URI): DataFile = {
     val reader = createReader(None, None)
     val partitions = new java.util.HashSet[Partition]()
-    val storageFile = WithClose(new StorageFileObserver(metadata.sft)) { observer =>
-      WithClose(reader.read(file)) { iter =>
-        if (!iter.hasNext) {
-          throw new RuntimeException("Could not read any features from input file")
-        }
-        iter.foreach { sf =>
-          partitions.add(Partition(metadata.schemes.map(_.getPartition(sf))))
-          observer(sf)
-        }
+    val filePath = WithClose(reader.read(file)) { iter =>
+      if (!iter.hasNext) {
+        throw new RuntimeException("Could not read any features from input file")
       }
-      val filePath = FileSystemStorage.newFilePath(metadata.sft.getTypeName, FileType.Written, encoding)
-      observer.file(filePath, partitions.iterator().next(), StorageFileAction.Append)
+      iter.foreach { sf =>
+        partitions.add(Partition(metadata.schemes.map(_.getPartition(sf))))
+      }
+      FileSystemStorage.newFilePath(metadata.sft.getTypeName, FileType.Written, encoding)
     }
     if (partitions.size() != 1) {
       throw new IllegalArgumentException(s"File corresponds to multiple partitions: ${partitions.asScala.mkString(" AND ")}")
     }
 
-    val destination = context.root.resolve(storageFile.file)
+    val partition = partitions.iterator().next()
+    val destination = context.root.resolve(filePath)
     logger.debug(s"Copying $file to $destination")
     fs.copy(file, destination)
-    metadata.addFile(storageFile)
-    storageFile
+
+    val dataFile = metadata.createDataFile(filePath, partition)
+    metadata.addFile(dataFile)
+    dataFile
   }
 
   /**
@@ -141,8 +140,9 @@ class ParquetFileSystemStorage(val context: FileSystemContext, val metadata: Sto
       case None => files
       case Some(t) =>
         files.filter { f =>
-          if (this.sizer.fileIsSized(context.root.resolve(f.file), t)) {
-            logger.debug(s"Skipping compaction for file [${f.file}] (already target size)")
+          val filePath = f.location() // DataFile.location() returns full URI
+          if (this.sizer.fileIsSized(java.net.URI.create(filePath), t)) {
+            logger.debug(s"Skipping compaction for file [$filePath] (already target size)")
             false
           } else {
             true
@@ -153,15 +153,15 @@ class ParquetFileSystemStorage(val context: FileSystemContext, val metadata: Sto
     if (toCompact.isEmpty) {
       logger.debug("Skipping compaction - no files to compact")
     } else {
-      logger.debug(s"Compacting data files: [${toCompact.map(_.file).mkString(", ")}]")
+      logger.debug(s"Compacting data files: [${toCompact.map(_.location()).mkString(", ")}]")
 
       var written = 0L
 
       val reader = createReader(None, None)
       // tracks newly added files so we can register them atomically
-      val fileTracker = new FileTracker(metadata.sft, metadata.schemes)
+      val fileTracker = new FileTracker(metadata)
 
-      WithClose(createWriter(partition, StorageFileAction.Append, FileType.Compacted, fileTracker)) { writer =>
+      WithClose(createWriter(partition, FileType.Compacted, fileTracker)) { writer =>
         WithClose(FileSystemThreadedReader(reader, toCompact, threads)) { reader =>
           while (reader.hasNext) {
             val feature = reader.next()
@@ -171,15 +171,15 @@ class ParquetFileSystemStorage(val context: FileSystemContext, val metadata: Sto
         }
       }
 
-      logger.debug(s"Updating metadata with new files: [${fileTracker.getFiles().map(_.file).mkString(", ")}]")
+      logger.debug(s"Updating metadata with new files: [${fileTracker.getFiles().map(_.location()).mkString(", ")}]")
       metadata.replaceFiles(toCompact, fileTracker.getFiles())
 
       logger.debug(s"Deleting old files [${toCompact.mkString(", ")}]")
       val failures = ArrayBuffer.empty[String]
       toCompact.foreach { file =>
-        val path = context.root.resolve(file.file)
+        val path = new URI(file.location())
         if (Try(fs.delete(path)).isFailure) {
-          failures.append(file.file)
+          failures.append(file.location())
         }
       }
 
@@ -235,21 +235,19 @@ class ParquetFileSystemStorage(val context: FileSystemContext, val metadata: Sto
    * Create a new writer
    *
    * @param partition partition being written to
-   * @param action write type
    * @param fileType file type
    * @param metadata metadata to track added files
    * @return
    */
   private def createWriter(
     partition: Partition,
-    action: StorageFileAction,
     fileType: FileType,
     metadata: StorageMetadata): FileSystemWriter = {
 
     def newWriter(): FileSystemWriter = {
       val file = FileSystemStorage.newFilePath(metadata.sft.getTypeName, fileType, encoding)
       val path = context.root.resolve(file)
-      val updateObserver = new MetadataObserver(metadata, file, partition, action)
+      val updateObserver = new MetadataObserver(metadata, file, partition)
       val observer = if (observers.isEmpty) { updateObserver } else {
         new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))
       }
@@ -276,19 +274,19 @@ class ParquetFileSystemStorage(val context: FileSystemContext, val metadata: Sto
     private val appenders = Caffeine.newBuilder().build(
       new CacheLoader[Set[PartitionKey], FileSystemWriter]() {
         override def load(key: Set[PartitionKey]): FileSystemWriter =
-          createWriter(Partition(key), StorageFileAction.Append, FileType.Written, metadata)
+          createWriter(Partition(key), FileType.Written, metadata)
       }
     )
     private val modifiers = Caffeine.newBuilder().build(
       new CacheLoader[Set[PartitionKey], FileSystemWriter]() {
         override def load(key: Set[PartitionKey]): FileSystemWriter =
-          createWriter(Partition(key), StorageFileAction.Modify, FileType.Modified, metadata)
+          createWriter(Partition(key), FileType.Modified, metadata)
       }
     )
     private val deleters = Caffeine.newBuilder().build(
       new CacheLoader[Set[PartitionKey], FileSystemWriter]() {
         override def load(key: Set[PartitionKey]): FileSystemWriter =
-          createWriter(Partition(key), StorageFileAction.Delete, FileType.Deleted, metadata)
+          createWriter(Partition(key), FileType.Deleted, metadata)
       }
     )
 
@@ -396,69 +394,6 @@ object ParquetFileSystemStorage extends LazyLogging {
     }
   }
 
-  /**
-   * Gathers partition metadata for a file
-   */
-  class StorageFileObserver(sft: SimpleFeatureType) extends FileSystemObserver with LazyLogging {
-
-    import scala.collection.JavaConverters._
-
-    private var count: Long = 0L
-
-    private val columnBounds = sft.columnBounds().flatMap { i =>
-      val binding = sft.getDescriptor(i).getType.getBinding
-      val alias = StorageMetadata.typeAlias(binding)
-      StorageMetadata.TypeRegistry.getAllEncoders.asScala.find(_.getAlias == alias) match {
-        case Some(encoder) => Some(ColumnBoundsBuilder(i, encoder.asInstanceOf[TypeEncoder[AnyRef, String]]))
-        case None =>
-          logger.warn(
-            s"Can't find an encoder for attribute ${sft.getDescriptor(i).getLocalName} of type ${binding.getSimpleName} - " +
-              "will not track bounds")
-          None
-      }
-    }
-
-    private var sorted: Seq[(Int, Ordering[AnyRef], AnyRef)] = Range(0, sft.getAttributeCount).flatMap { i =>
-      val binding = sft.getDescriptor(i).getType.getBinding
-      if (classOf[Comparable[_]].isAssignableFrom(binding)) {
-        Some((i, Ordering.ordered[AnyRef](_.asInstanceOf[Comparable[AnyRef]]), null))
-      } else {
-        None
-      }
-    }
-
-    /**
-     * Get the file metadata that has been gathered so far
-     *
-     * @param path file path
-     * @param partition file partition
-     * @param action file action
-     * @return
-     */
-    def file(path: String, partition: Partition, action: StorageFileAction): StorageFile = {
-      val bounds = columnBounds.flatMap(_.build())
-      val sort = sorted.map(_._1)
-      StorageFile(path, partition, count, action, bounds, sort)
-    }
-
-    override def apply(feature: SimpleFeature): Unit = {
-      count += 1L
-      columnBounds.foreach(_.apply(feature))
-      if (sorted.nonEmpty) {
-        sorted = sorted.flatMap { case (i, ordering, last) =>
-          val next = feature.getAttribute(i)
-          if (last == null || (next != null && ordering.compare(next, last) < 0)) {
-            Some((i, ordering, next))
-          } else {
-            None
-          }
-        }
-      }
-    }
-
-    override def flush(): Unit = {}
-    override def close(): Unit = {}
-  }
 
   /**
    * Observer to add a file to the metadata upon closing
@@ -466,19 +401,17 @@ object ParquetFileSystemStorage extends LazyLogging {
    * @param metadata metadata
    * @param path file path
    * @param partition file partition
-   * @param action file action
    */
-  private class MetadataObserver(metadata: StorageMetadata, path: String, partition: Partition, action: StorageFileAction)
+  private class MetadataObserver(metadata: StorageMetadata, path: String, partition: Partition)
     extends FileSystemObserver with LazyLogging {
 
-    private val delegate = new StorageFileObserver(metadata.sft)
-
-    override def apply(feature: SimpleFeature): Unit = delegate.apply(feature)
+    override def apply(feature: SimpleFeature): Unit = {}
     override def flush(): Unit = {}
     override def close(): Unit = {
-      val file = delegate.file(path, partition, action)
-      logger.debug(s"Adding new metadata file: $file")
-      metadata.addFile(file)
+      // Create DataFile by reading the file footer (fast operation)
+      val dataFile = metadata.createDataFile(path, partition)
+      logger.debug(s"Adding new metadata file: $path")
+      metadata.addFile(dataFile)
     }
   }
 
@@ -512,25 +445,28 @@ object ParquetFileSystemStorage extends LazyLogging {
   }
 
   /**
-   * Can be used with a MetadataObserver to return storage files instead of writing them directly to the metadata
+   * Can be used with a MetadataObserver to return data files instead of writing them directly to the metadata
    *
-   * @param sft simple feature type
-   * @param schemes partition schemes
+   * @param parent parent metadata to delegate createDataFile to
    */
-  private class FileTracker(val sft: SimpleFeatureType, val schemes: Set[PartitionScheme]) extends StorageMetadata {
+  private class FileTracker(parent: StorageMetadata) extends StorageMetadata {
 
     import scala.collection.JavaConverters._
 
-    private val files = new CopyOnWriteArrayList[StorageFile]()
+    private val files = new CopyOnWriteArrayList[DataFile]()
 
+    override def sft: SimpleFeatureType = parent.sft
+    override def schemes: Set[PartitionScheme] = parent.schemes
     override def `type`: String = "memory"
-    override def addFiles(files: Seq[StorageFile]): Unit = this.files.addAll(files.asJava)
-    override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
-    override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit =
+
+    override def createDataFile(filePath: String, partition: Partition): DataFile = parent.createDataFile(filePath, partition)
+    override def addFiles(files: Seq[DataFile]): Unit = this.files.addAll(files.asJava)
+    override def removeFile(file: DataFile): Unit = throw new UnsupportedOperationException()
+    override def replaceFiles(existing: Seq[DataFile], replacements: Seq[DataFile]): Unit =
       throw new UnsupportedOperationException()
-    override def getFiles(): Seq[StorageFile] = files.asScala.toSeq
-    override def getFiles(partition: Partition): Seq[StorageFile] = throw new UnsupportedOperationException()
-    override def getFiles(filter: Filter): Seq[StorageFile] = throw new UnsupportedOperationException()
+    override def getFiles(): Seq[DataFile] = files.asScala.toSeq
+    override def getFiles(partition: Partition): Seq[DataFile] = throw new UnsupportedOperationException()
+    override def getFiles(filter: Filter): Seq[DataFile] = throw new UnsupportedOperationException()
     override def close(): Unit = {}
   }
 

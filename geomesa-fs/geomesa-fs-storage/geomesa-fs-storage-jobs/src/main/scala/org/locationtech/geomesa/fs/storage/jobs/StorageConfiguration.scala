@@ -14,14 +14,13 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce.Job
+import org.apache.iceberg.DataFile
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType.FileType
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFileAction.StorageFileAction
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.core.{Partition, PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
@@ -120,14 +119,25 @@ object StorageConfiguration {
     }
   }
 
-  def setPathActions(conf: Configuration, root: Path, paths: Seq[StorageFile]): Unit = {
+  def setPathActions(conf: Configuration, root: Path, paths: Seq[DataFile]): Unit = {
     paths.foreach { file =>
-      conf.set(s"$PathActionKey.${new Path(root, file.file)}", s"${file.timestamp}:${file.action}")
+      val location = file.location()
+      // Extract action from filename prefix
+      val filename = location.substring(location.lastIndexOf('/') + 1)
+      val action = filename.take(2) match {
+        case "w_" => FileType.Written
+        case "c_" => FileType.Compacted
+        case "m_" => FileType.Modified
+        case "d_" => FileType.Deleted
+        case _ => FileType.Written
+      }
+      // Note: DataFile doesn't have timestamp, using 0 as placeholder
+      conf.set(s"$PathActionKey.${new Path(root, location)}", s"0:${action}")
     }
   }
-  def getPathAction(conf: Configuration, path: Path): (Long, StorageFileAction) = {
+  def getPathAction(conf: Configuration, path: Path): (Long, FileType) = {
     val Array(ts, action) = conf.get(s"$PathActionKey.$path").split(":")
-    (ts.toLong, StorageFileAction.withName(action))
+    (ts.toLong, FileType.withName(action))
   }
 
   /**
@@ -140,9 +150,9 @@ object StorageConfiguration {
 
     private var _id: String = _
     private var _timestamp: Long = _
-    private var _action: StorageFileAction = _
+    private var _action: FileType = _
 
-    def this(id: String, timestamp: Long, action: StorageFileAction) = {
+    def this(id: String, timestamp: Long, action: FileType) = {
       this()
       this._id = id
       this._timestamp = timestamp
@@ -151,7 +161,7 @@ object StorageConfiguration {
 
     def id: String = _id
     def timestamp: Long = _timestamp
-    def action: StorageFileAction = _action
+    def action: FileType = _action
 
     override def compareTo(o: SimpleFeatureAction): Int = {
       var res = _id.compareTo(o.id)
@@ -173,7 +183,7 @@ object StorageConfiguration {
     override def readFields(in: DataInput): Unit = {
       _id = in.readUTF()
       _timestamp = in.readLong()
-      _action = StorageFileAction.withName(in.readUTF())
+      _action = FileType.withName(in.readUTF())
     }
 
     override def write(kryo: Kryo, output: Output): Unit = {
@@ -185,7 +195,7 @@ object StorageConfiguration {
     override def read(kryo: Kryo, input: Input): Unit = {
       _id = input.readString()
       _timestamp = input.readLong()
-      _action = StorageFileAction.withName(input.readString())
+      _action = FileType.withName(input.readString())
     }
   }
 }

@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.fs.storage.core.utils
 
 import com.typesafe.scalalogging.StrictLogging
+import org.apache.iceberg.DataFile
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemPathReader, FileType}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.PhaserUtils
 import org.locationtech.geomesa.utils.io.WithClose
@@ -79,11 +79,27 @@ class FileSystemThreadedReader private (es: ExecutorService, phaser: Phaser, que
 
 object FileSystemThreadedReader extends StrictLogging {
 
-  def apply(reader: FileSystemPathReader, files: Seq[StorageFile], threads: Int): CloseableIterator[SimpleFeature] = {
+  /**
+   * Extract file action from DataFile location
+   */
+  private def fileAction(file: DataFile): FileType.FileType = {
+    val location = file.location()
+    val filename = location.substring(location.lastIndexOf('/') + 1)
+    filename.take(2) match {
+      case "w_" => FileType.Written
+      case "c_" => FileType.Compacted
+      case "m_" => FileType.Modified
+      case "d_" => FileType.Deleted
+      case _ => FileType.Written // default
+    }
+  }
+
+  def apply(reader: FileSystemPathReader, files: Seq[DataFile], threads: Int): CloseableIterator[SimpleFeature] = {
     if (threads < 2) {
       val mods = new java.util.HashSet[String]()
       // ensure files are sorted in reverse chronological order so mods are handled correctly
-      CloseableIterator.wrap(files.sorted).flatMap(f => read(reader, f, mods))
+      // DataFile doesn't have timestamp, but Iceberg maintains order by sequence number
+      CloseableIterator.wrap(files).flatMap(f => read(reader, f, mods))
     } else {
       val queue = new LinkedBlockingQueue[SimpleFeature](2000000)
       val es = Executors.newFixedThreadPool(threads)
@@ -97,7 +113,7 @@ object FileSystemThreadedReader extends StrictLogging {
       }
 
       try {
-        def submitParallelRead(toRead: Seq[StorageFile]): Unit = {
+        def submitParallelRead(toRead: Seq[DataFile]): Unit = {
           // ensure that we don't register too many parties on this phaser
           toRead.grouped(PhaserUtils.MaxParties - 1).foreach { group =>
             val child = new Phaser(phaser)
@@ -107,23 +123,26 @@ object FileSystemThreadedReader extends StrictLogging {
         }
 
         // if a partitions has modifications, it must be read separately to ensure they're handled correctly
-        val partitionsWithMods = files.collect { case f if f.action != StorageFileAction.Append => f.partition }.distinct
+        val partitionsWithMods = files.collect {
+          case f if fileAction(f) != FileType.Written && fileAction(f) != FileType.Compacted =>
+            f.partition() // Iceberg DataFile has partition() method
+        }.distinct
         if (partitionsWithMods.isEmpty) {
          submitParallelRead(files)
         } else {
-          files.groupBy(_.partition).foreach { case (partition, group) =>
+          files.groupBy(_.partition()).foreach { case (partition, group) =>
             if (!partitionsWithMods.contains(partition)) {
               submitParallelRead(group)
             } else {
-              val chain = Seq.newBuilder[Seq[StorageFile]]
-              var remaining = group.sorted
-              var i = remaining.indexWhere(_.action != StorageFileAction.Append)
+              val chain = Seq.newBuilder[Seq[DataFile]]
+              var remaining = group // already in sequence order from Iceberg
+              var i = remaining.indexWhere(f => fileAction(f) != FileType.Written && fileAction(f) != FileType.Compacted)
               while (i != -1) {
                 i = math.min(i, PhaserUtils.MaxParties - 1) // ensure that we don't register too many parties on this phaser
                 val (first, rest) = remaining.splitAt(i + 1)
                 chain += first
                 remaining = rest
-                i = remaining.indexWhere(_.action != StorageFileAction.Append)
+                i = remaining.indexWhere(f => fileAction(f) != FileType.Written && fileAction(f) != FileType.Compacted)
               }
               if (remaining.nonEmpty) {
                 chain += remaining
@@ -153,12 +172,12 @@ object FileSystemThreadedReader extends StrictLogging {
     * @param mods collection to track modifications
     * @return
     */
-  private def read(reader: FileSystemPathReader, file: StorageFile, mods: java.util.Set[String]): CloseableIterator[SimpleFeature] = {
-    file.action match {
-      case StorageFileAction.Append => new AppendingReaderIterator(reader, reader.root.resolve(file.file), mods)
-      case StorageFileAction.Modify => new ModifyingReaderIterator(reader, reader.root.resolve(file.file), mods)
-      case StorageFileAction.Delete => new DeletingReaderIterator(reader, reader.root.resolve(file.file), mods)
-      case _ => throw new UnsupportedOperationException(s"Unexpected storage action: ${file.action}")
+  private def read(reader: FileSystemPathReader, file: DataFile, mods: java.util.Set[String]): CloseableIterator[SimpleFeature] = {
+    val uri = new URI(file.location())
+    fileAction(file) match {
+      case FileType.Written | FileType.Compacted => new AppendingReaderIterator(reader, uri, mods)
+      case FileType.Modified => new ModifyingReaderIterator(reader, uri, mods)
+      case FileType.Deleted => new DeletingReaderIterator(reader, uri, mods)
     }
   }
 
@@ -178,8 +197,8 @@ object FileSystemThreadedReader extends StrictLogging {
       es: ExecutorService,
       phaser: Phaser,
       reader: FileSystemPathReader,
-      group: Seq[StorageFile],
-      chain: Seq[Seq[StorageFile]],
+      group: Seq[DataFile],
+      chain: Seq[Seq[DataFile]],
       queue: BlockingQueue[SimpleFeature],
       mods: java.util.Set[String] = new java.util.HashSet[String]()
     ) extends Runnable {
@@ -202,7 +221,7 @@ object FileSystemThreadedReader extends StrictLogging {
       try {
         group.foreach { file =>
           child.register() // register new task
-          es.submit(new ReaderTask(child, queue, file.file, read(reader, file, mods)))
+          es.submit(new ReaderTask(child, queue, file.location(), read(reader, file, mods)))
         }
       } finally {
         child.arriveAndDeregister()

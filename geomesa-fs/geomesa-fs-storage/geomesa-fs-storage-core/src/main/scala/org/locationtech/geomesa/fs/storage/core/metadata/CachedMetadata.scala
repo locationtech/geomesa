@@ -10,8 +10,8 @@ package org.locationtech.geomesa.fs.storage.core
 package metadata
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
+import org.apache.iceberg.DataFile
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction.{ColumnOr, SchemeFilter}
 
 import java.util.concurrent.TimeUnit
@@ -23,32 +23,37 @@ import scala.runtime.BoxedUnit
  */
 trait CachedMetadata extends StorageMetadata with SchemeFilterExtraction {
 
-  protected val filesCache: LoadingCache[BoxedUnit, Seq[StorageFile]] =
+  protected val filesCache: LoadingCache[BoxedUnit, Seq[DataFile]] =
     Caffeine.newBuilder().refreshAfterWrite(CacheDurationProperty.toDuration.get.toMillis, TimeUnit.MILLISECONDS).build(
-      new CacheLoader[BoxedUnit, Seq[StorageFile]]() {
-        override def load(key: BoxedUnit): Seq[StorageFile] = buildFileList()
+      new CacheLoader[BoxedUnit, Seq[DataFile]]() {
+        override def load(key: BoxedUnit): Seq[DataFile] = buildFileList()
       }
     )
 
-  private def cachedFiles: Seq[StorageFile] = filesCache.get(BoxedUnit.UNIT)
+  private def cachedFiles: Seq[DataFile] = filesCache.get(BoxedUnit.UNIT)
 
-  protected def buildFileList(): Seq[StorageFile]
+  protected def buildFileList(): Seq[DataFile]
 
-  override def getFiles(): Seq[StorageFile] = cachedFiles
+  /**
+   * Extract Partition from a DataFile. Implementations should override this to use their IcebergMapper.
+   */
+  protected def extractPartition(file: DataFile): Partition
 
-  override def getFiles(partition: Partition): Seq[StorageFile] =
-    cachedFiles.filter(_.partition == partition)
+  override def getFiles(): Seq[DataFile] = cachedFiles
 
-  override def getFiles(filter: Filter): Seq[StorageFile] = {
+  override def getFiles(partition: Partition): Seq[DataFile] =
+    cachedFiles.filter(f => extractPartition(f) == partition)
+
+  override def getFiles(filter: Filter): Seq[DataFile] = {
     if (filter == Filter.INCLUDE) {
       getFiles()
     } else {
-      val added = scala.collection.mutable.HashSet.empty[StorageFile]
+      val added = scala.collection.mutable.HashSet.empty[DataFile]
       val files = getFilters(filter).flatMap { f =>
         cachedFiles.collect { case file if matches(file, f) && added.add(file) => file }
       }
       logger.debug(s"Matched files:${files.mkString("\n  ", "\n  ", "")}")
-      logger.trace(s"Skipped files:${cachedFiles.filterNot(files.map(_.file).contains).mkString("\n  ", "\n  ", "")}")
+      logger.trace(s"Skipped files:${cachedFiles.filterNot(files.map(_.location()).contains).mkString("\n  ", "\n  ", "")}")
       files
     }
   }
@@ -60,14 +65,17 @@ trait CachedMetadata extends StorageMetadata with SchemeFilterExtraction {
     }
   }
 
-  private def matches(file: StorageFile, f: SchemeFilter): Boolean =
-    matches(file, f.partitions) && matches(file, f.columnBounds)
+  private def matches(file: DataFile, f: SchemeFilter): Boolean = {
+    val partition = extractPartition(file)
+    matches(partition, f.partitions) && matches(file, f.columnBounds)
+  }
 
-  private def matches(file: StorageFile, partitions: Seq[PartitionRange]): Boolean =
-    partitions.forall(p => file.partition.values.exists(v => p.name == v.name && p.contains(v.value)))
+  private def matches(partition: Partition, partitions: Seq[PartitionRange]): Boolean =
+    partitions.forall(p => partition.values.exists(v => p.name == v.name && p.contains(v.value)))
 
-  private def matches(file: StorageFile, columnBounds: Seq[ColumnOr])(implicit d0: DummyImplicit): Boolean =
-    columnBounds.forall { or =>
-      file.bounds.find(b => b.attribute == or.attribute).forall(b => or.bounds.exists(_.intersects(b)))
-    }
+  private def matches(file: DataFile, columnBounds: Seq[ColumnOr])(implicit d0: DummyImplicit): Boolean = {
+    // TODO: implement bounds checking using DataFile.lowerBounds() / upperBounds()
+    // For now, include all files (conservative - may read extra files but won't miss any)
+    true
+  }
 }

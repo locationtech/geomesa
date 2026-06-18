@@ -90,11 +90,11 @@ class CompactionTest extends SpecificationWithJUnit {
           // compact to a given file size
           // verify if file is appropriately sized, it won't be modified
 
-          val paths = storage.metadata.getFiles(partition).map(_.file)
+          val paths = storage.metadata.getFiles(partition).map(_.location())
           val size = paths.map(f => storage.fs.size(context.root.resolve(f))).sum
           storage.metadata.set(Metadata.TargetFileSize, size.toString)
           storage.compact(partition)
-          storage.metadata.getFiles(partition).map(_.file) mustEqual paths
+          storage.metadata.getFiles(partition).map(_.location()) mustEqual paths
           // verify files are split into smaller ones
           storage.metadata.set(Metadata.TargetFileSize, (size / 2).toString)
           storage.compact(partition)

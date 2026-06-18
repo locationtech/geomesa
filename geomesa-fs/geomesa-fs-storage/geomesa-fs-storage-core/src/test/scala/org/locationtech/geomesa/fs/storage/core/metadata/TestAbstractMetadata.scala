@@ -11,9 +11,13 @@ package metadata
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
+import org.apache.iceberg.{DataFile, DataFiles, FileFormat, PartitionSpec}
+import org.apache.iceberg.data.GenericRecord
+import org.apache.iceberg.types.Conversions
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, StorageFile, Z2Encoder}
+import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{ColumnBounds, Z2Encoder}
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
 import org.locationtech.geomesa.fs.storage.core.metadata.IcebergMetadataTest.IcebergRestContainer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -27,6 +31,7 @@ import org.testcontainers.utility.DockerImageName
 import java.net.URI
 import java.nio.file.Files
 import java.util.UUID
+import scala.collection.JavaConverters._
 
 abstract class TestAbstractMetadata extends Specification with BeforeAfterAll with LazyLogging {
 
@@ -70,11 +75,35 @@ abstract class TestAbstractMetadata extends Specification with BeforeAfterAll wi
     ColumnBounds(2, z2Bounds("POINT(1 -12)"), z2Bounds("POINT(11 -2)"))
   )
 
-  val f1 = StorageFile("file1", partition1, 0L, bounds = columnBounds1, timestamp = System.currentTimeMillis() - 100)
-  val f2a = StorageFile("file2a", partition2, 1L, bounds = columnBounds2a, timestamp = f1.timestamp + 10)
-  val f2b = StorageFile("file2b", partition2, 1L, bounds = columnBounds2b, timestamp = f2a.timestamp + 10)
-  val f3a = StorageFile("file3a", partition3, 2L, bounds = columnBounds3a, timestamp = f2b.timestamp + 20)
-  val f3b = StorageFile("file3b", partition3, 2L,  bounds = columnBounds3b, timestamp = f3a.timestamp + 10)
+  private lazy val testMapper = {
+    val context = FileSystemContext.create(URI.create("s3://test/"), Map.empty)
+    IcebergMapper(sft, schemes.toSeq, context)
+  }
+
+  private def createTestDataFile(path: String, partition: Partition, recordCount: Long, columnBounds: Seq[ColumnBounds]): DataFile = {
+    // Build partition data from the partition
+    val partitionData = GenericRecord.create(testMapper.spec.partitionType())
+    partition.values.foreach { pv =>
+      partitionData.setField(pv.name, pv.value)
+    }
+
+    // Create DataFile - note that column bounds checking is not yet implemented in CachedMetadata
+    // so we don't need to set them
+    DataFiles.builder(testMapper.spec)
+      .withPath(path)
+      .withFormat(FileFormat.PARQUET)
+      .withFileSizeInBytes(1024)
+      .withRecordCount(recordCount)
+      .withPartition(partitionData)
+      .build()
+  }
+
+  private val timestamp1 = System.currentTimeMillis() - 100
+  val f1 = createTestDataFile("w_file1", partition1, 0L, columnBounds1)
+  val f2a = createTestDataFile("w_file2a", partition2, 1L, columnBounds2a)
+  val f2b = createTestDataFile("w_file2b", partition2, 1L, columnBounds2b)
+  val f3a = createTestDataFile("w_file3a", partition3, 2L, columnBounds3a)
+  val f3b = createTestDataFile("w_file3b", partition3, 2L, columnBounds3b)
 
   val files = Seq(f1, f2a, f2b, f3a, f3b)
 

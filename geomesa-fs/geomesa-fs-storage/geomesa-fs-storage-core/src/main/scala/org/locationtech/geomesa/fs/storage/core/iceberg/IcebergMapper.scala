@@ -15,7 +15,6 @@ import org.apache.iceberg.parquet.ParquetUtil
 import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper.PartitionMapper
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.schemes.AttributeScheme.{IntegralBucketing, WidthBucketing}
@@ -57,51 +56,52 @@ case class IcebergMapper(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], 
   val spec: PartitionSpec = mappers.foldLeft(PartitionSpec.builderFor(schema))((b, m) => m.spec(b)).build()
 
   /**
-   * Convert geomesa file metadata to iceberg file metadata
+   * Create a DataFile from a file path and partition
    *
    * @param table iceberg table
-   * @param file file
+   * @param filePath file path relative to root
+   * @param partition partition
    * @return
    */
-  def toDataFile(table: Table, file: StorageFile): DataFile = {
-    val uri = context.root.resolve(file.file).toString
-//    logger.whenDebugEnabled {
-//      val inputFile = ParquetFileSystemReader.inputFile(storage.fs, new URI(uri))
-//      val footer = WithClose(inputFile.newStream())(ParquetFileReader.readFooter(inputFile, ParquetReadOptions.builder().build(), _))
-//      logger.debug(s"Parquet schema for ${file.file}: ${ParquetMetadata.toJSON(footer)}")
-//    }
-    // TODO this is reading the file again? but we have some metrics already...
+  def createDataFile(table: Table, filePath: String, partition: Partition): DataFile = {
+    val uri = context.root.resolve(filePath).toString
     val inputFile = table.io().newInputFile(uri)
     val metrics = ParquetUtil.fileMetrics(inputFile, metricsConfigs.computeIfAbsent(table.name(), _ => MetricsConfig.forTable(table)), null)
     val partitionValues = mappers.map { m =>
-      val key = file.partition.values.find(_.name == m.scheme.name).getOrElse {
+      val key = partition.values.find(_.name == m.scheme.name).getOrElse {
         throw new IllegalArgumentException(
-          s"Could not find associated partition: ${m.scheme.name} out of ${file.partition.values.mkString(", ")}")
+          s"Could not find associated partition: ${m.scheme.name} out of ${partition.values.mkString(", ")}")
       }
       m.toIceberg(key.value)
     }
-    // TODO withSort(f.sort)
     DataFiles.builder(table.spec())
       .withPath(inputFile.location())
       .withFormat(FileFormat.PARQUET)
       .withFileSizeInBytes(inputFile.getLength)
       .withMetrics(metrics)
       .withPartitionValues(partitionValues.asJava)
-      .withRecordCount(file.count)
       .build()
   }
 
-  def fromDataFile(file: DataFile): StorageFile = {
+  /**
+   * Extract partition information from a DataFile
+   *
+   * @param file data file
+   * @return
+   */
+  def partition(file: DataFile): Partition = {
     val partitions = mappers.zipWithIndex.map { case (m, i) => PartitionKey(m.scheme.name, m.fromIceberg(file.partition(), i)) }
-    StorageFile(
-      context.root.relativize(URI.create(file.location())).toString,
-      Partition(partitions.toSet),
-      file.recordCount(),
-      StorageFileAction.Append, // TODO???
-//    bounds: Seq[ColumnBounds] = Seq.empty, // TODO
-//    sort: Seq[Int] = Seq.empty, // TODO
-//    timestamp: Long = System.currentTimeMillis(), // TODO
-    )
+    Partition(partitions.toSet)
+  }
+
+  /**
+   * Get the relative file path from a DataFile
+   *
+   * @param file data file
+   * @return
+   */
+  def filePath(file: DataFile): String = {
+    context.root.relativize(URI.create(file.location())).toString
   }
 
   def expression(partition: Partition): Expression = {

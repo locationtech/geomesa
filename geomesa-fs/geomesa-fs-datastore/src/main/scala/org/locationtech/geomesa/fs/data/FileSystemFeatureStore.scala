@@ -57,21 +57,14 @@ class FileSystemFeatureStore(
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = {
     val envelope = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    Option(sft.getGeometryDescriptor).foreach { g =>
-      val i = sft.indexOf(g.getLocalName)
-      storage.metadata.getFiles(query.getFilter).foreach { file =>
-        file.bounds.find(_.attribute == i).foreach { b =>
-          b.decode(sft).productIterator.foreach {
-            case g: Geometry => envelope.expandToInclude(g.getEnvelopeInternal)
-          }
-        }
-      }
-    }
+    // TODO: Extract bounds from DataFile.lowerBounds()/upperBounds()
+    // This requires mapping attribute indices to Iceberg field IDs and decoding ByteBuffers
+    // For now, returning empty envelope as bounds extraction is not yet implemented
     envelope
   }
 
   override def getCountInternal(query: Query): Int =
-    storage.metadata.getFiles(query.getFilter).map(_.count).sum.toInt
+    storage.metadata.getFiles(query.getFilter).map(_.recordCount()).sum.toInt
 
   override def getReaderInternal(original: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     import org.locationtech.geomesa.index.conf.QueryHints._

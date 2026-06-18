@@ -54,7 +54,10 @@ object FsCompactCommand {
             s"Compact is only implemented for ParquetFileSystemStorage: ${s.getClass.getName}")
       }
 
-      val toCompact = if (params.loadedPartitions.isEmpty) { storage.metadata.getFiles().map(_.partition).distinct } else {
+      import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
+      val mapper = IcebergMapper(storage.metadata.sft, storage.metadata.schemes.toSeq, storage.context)
+
+      val toCompact = if (params.loadedPartitions.isEmpty) { storage.metadata.getFiles().map(f => mapper.partition(f)).distinct } else {
         val filtered = params.loadedPartitions.filter(storage.metadata.getFiles(_).nonEmpty)
         if (filtered.isEmpty) {
           throw new ParameterException(s"Partition(s) did not match any files: ${params.loadedPartitions.mkString(", ")}")

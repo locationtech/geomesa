@@ -13,10 +13,9 @@ import org.apache.iceberg.catalog.TableIdentifier
 import org.apache.iceberg.rest.RESTCatalog
 import org.geotools.api.data.{DataStoreFinder, Transaction}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.data.IcebergCompatibilityTest.IcebergRestContainer
 import org.locationtech.geomesa.fs.data.container.FsContainerTest
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata
-import org.locationtech.geomesa.fs.storage.parquet.iceberg.IcebergMapper
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.SpecificationWithJUnit
@@ -30,6 +29,24 @@ import scala.util.Random
 class IcebergCompatibilityTest extends SpecificationWithJUnit with FsContainerTest with LazyLogging {
 
   private val sft = SimpleFeatureTypes.createType("test", "name:String:fs.bounds=true,age:Int,dtg:Date,*geom:Point:srid=4326")
+
+  private lazy val icebergConfig = {
+    // Extract iceberg catalog config from icebergParams
+    val props = icebergParams("fs.config.properties").split("\n").map(_.trim).filter(_.nonEmpty).map { line =>
+      val Array(key, value) = line.split("=", 2)
+      key -> value
+    }.toMap
+
+    Map(
+      "uri" -> props("iceberg.uri"),
+      "warehouse" -> "s3://warehouse/iceberg",
+      "io-impl" -> "org.apache.iceberg.aws.s3.S3FileIO",
+      "s3.endpoint" -> props("fs.s3.endpoint"),
+      "s3.path-style-access" -> "true",
+      "s3.access-key-id" -> props("fs.s3.access-key-id"),
+      "s3.secret-access-key" -> props("fs.s3.secret-access-key")
+    )
+  }
 
   private val features = {
     val r = new Random(10)
@@ -51,7 +68,9 @@ class IcebergCompatibilityTest extends SpecificationWithJUnit with FsContainerTe
             WithClose(ds.getFeatureWriterAppend(time, Transaction.AUTO_COMMIT)) { writer =>
               features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
             }
-            val partitions = ds.storage(time).metadata.getFiles().map(_.partition).toSet
+            val storage = ds.storage(time)
+            val fileMapper = IcebergMapper(storage.metadata.sft, storage.metadata.schemes.toSeq.sortBy(_.name), storage.context)
+            val partitions = storage.metadata.getFiles().map(f => fileMapper.partition(f)).toSet
             time match {
               case "year" =>
                 partitions.map(_.values.map(_.value)) mustEqual Set(
@@ -105,7 +124,7 @@ class IcebergCompatibilityTest extends SpecificationWithJUnit with FsContainerTe
 
             val files = ds.storage(time).metadata.getFiles()
             val append = table.newAppend()
-            files.map(mapper.toDataFile(table, _)).foreach(append.appendFile)
+            files.foreach(append.appendFile)
             append.commit()
 
             val icebergFiles = WithClose(table.newScan().planFiles())(_.asScala.map(_.file()).toList)
@@ -113,12 +132,13 @@ class IcebergCompatibilityTest extends SpecificationWithJUnit with FsContainerTe
             icebergFiles.length mustEqual files.length
 
             foreach(icebergFiles) { icebergFile =>
-              val file = files.find(f => ds.storage(time).context.root.resolve(f.file).toString == icebergFile.location()).orNull
+              val file = files.find(f => ds.storage(time).context.root.resolve(f.location()).toString == icebergFile.location()).orNull
               file must not(beNull)
+              val filePartition = mapper.partition(file)
               icebergFile.partition().get(0, classOf[java.lang.Integer]) mustEqual
-                file.partition.values.collectFirst { case k if k.name.startsWith(time) => StorageMetadata.TypeRegistry.decode("integer", k.value) }.orNull
+                filePartition.values.collectFirst { case k if k.name.startsWith(time) => StorageMetadata.TypeRegistry.decode("integer", k.value) }.orNull
               icebergFile.partition().get(1, classOf[String]) mustEqual
-                file.partition.values.collectFirst { case k if k.name.startsWith("z2") => k.value }.orNull
+                filePartition.values.collectFirst { case k if k.name.startsWith("z2") => k.value }.orNull
             }
           }
         }

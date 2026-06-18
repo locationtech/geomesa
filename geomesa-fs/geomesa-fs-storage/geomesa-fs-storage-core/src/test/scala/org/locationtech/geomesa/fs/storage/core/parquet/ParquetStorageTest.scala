@@ -52,6 +52,16 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
   // 8 bits resolution creates 3 partitions with our test data
   val schemes = Seq("z2:bits=8")
 
+  // Helper to extract Partition from DataFile partition data
+  private def extractPartition(file: org.apache.iceberg.DataFile, schemes: Set[org.locationtech.geomesa.fs.storage.core.PartitionScheme]): Partition = {
+    val partitionData = file.partition()
+    val values = schemes.toSeq.zipWithIndex.map { case (scheme, idx) =>
+      val value = partitionData.get(idx, classOf[AnyRef]).toString
+      org.locationtech.geomesa.fs.storage.core.PartitionKey(scheme.name, value)
+    }
+    Partition(values.toSet)
+  }
+
   lazy val geoParquetSchema = WithClose(getClass.getClassLoader.getResourceAsStream("geoparquet-1.1.0-schema.json")) { is =>
     SchemaLoader.load(new JSONObject(new JSONTokener(is)))
   }
@@ -132,9 +142,9 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
               WithClose(new ParquetFileSystemStorageFactory().apply(context, catalog.load(sft.getTypeName)))(testQuery(_, sft)("INCLUDE", null, features))
 
               // verify GeoParquet metadata - look for partition e1 so we can verify the expected bounds
-              val firstPartitionFile = storage.metadata.getFiles().find(_.partition.values.map(_.value).contains("e1")).orNull
+              val firstPartitionFile = storage.metadata.getFiles().find(f => extractPartition(f, storage.metadata.schemes).values.map(_.value).contains("e1")).orNull
               firstPartitionFile must not(beNull)
-              WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(new Path(dir.resolve(firstPartitionFile.file)), new Configuration()))) { reader =>
+              WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(new Path(dir.resolve(firstPartitionFile.location())), new Configuration()))) { reader =>
                 val meta = reader.getFileMetaData.getKeyValueMetaData
                 val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
                 geo must not(beNull)
@@ -237,10 +247,10 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
               doTest("age > 5", transforms, features.drop(6))
             }
 
-            val firstPartitionFile = storage.metadata.getFiles().find(_.partition.values.map(_.value).contains("e1")).orNull
+            val firstPartitionFile = storage.metadata.getFiles().find(f => extractPartition(f, storage.metadata.schemes).values.map(_.value).contains("e1")).orNull
             firstPartitionFile must not(beNull)
 
-            val firstPartitionPath = dir.resolve(firstPartitionFile.file)
+            val firstPartitionPath = dir.resolve(firstPartitionFile.location())
             // verify 3rd party integration by reading with DuckDB
             if (encoding == GeometryEncoding.GeoParquetWkb) {
               val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
@@ -517,12 +527,12 @@ class ParquetStorageTest extends SpecificationWithJUnit with BeforeAfterAll with
 
           logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-          val partitions = storage.metadata.getFiles().map(_.partition).distinct
+          val partitions = storage.metadata.getFiles().map(f => extractPartition(f, storage.metadata.schemes)).distinct
           partitions must haveLength(writers.size)
           foreach(partitions) { partition =>
             val paths = storage.metadata.getFiles(partition)
             paths.size must beGreaterThan(1)
-            foreach(paths)(p => storage.fs.size(context.root.resolve(p.file)) must beCloseTo(targetSize, targetSize / 10))
+            foreach(paths)(p => storage.fs.size(context.root.resolve(p.location())) must beCloseTo(targetSize, targetSize / 10))
           }
         }
       }

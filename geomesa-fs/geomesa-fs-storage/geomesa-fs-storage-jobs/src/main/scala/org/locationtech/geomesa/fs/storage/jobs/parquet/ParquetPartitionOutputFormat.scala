@@ -14,9 +14,8 @@ import org.apache.hadoop.mapred.InvalidJobConfException
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
 import org.apache.hadoop.mapreduce.security.TokenCache
+import org.apache.iceberg.DataFile
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorage.StorageFileObserver
 import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Partition, PartitionKey, StorageMetadataCatalog}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
@@ -106,23 +105,23 @@ class ParquetPartitionOutputFormat extends OutputFormat[Void, SimpleFeature] {
 
       import scala.collection.JavaConverters._
 
-      private val files = new CopyOnWriteArrayList[StorageFile]()
+      private val files = new CopyOnWriteArrayList[DataFile]()
       private val counter = context.getCounter(Group, StorageConfiguration.Counters.partition(partition.toString))
 
-      private var observer: StorageFileObserver = _
       private var currentFile: String = _
+      private var featureCount: Long = 0
 
       // noinspection AccessorLikeMethodIsEmptyParen
-      def getFiles(): Seq[StorageFile] = files.asScala.toSeq
+      def getFiles(): Seq[DataFile] = files.asScala.toSeq
 
-      def write(key: Void, value: SimpleFeature): Unit = observer.apply(value)
+      def write(key: Void, value: SimpleFeature): Unit = featureCount += 1
 
       def close(context: TaskAttemptContext): Unit = closeCurrentFile()
 
       protected def newWriter(): (Path, RecordWriter[Void, SimpleFeature]) = {
         closeCurrentFile()
         currentFile = FileSystemStorage.newFilePath(storage.metadata.sft.getTypeName, fileType, "parquet")
-        observer = new StorageFileObserver(storage.metadata.sft)
+        featureCount = 0
         val path = new Path(workPath, currentFile)
         logger.debug(s"Creating record writer at path $path")
         // noinspection LanguageFeature
@@ -130,12 +129,12 @@ class ParquetPartitionOutputFormat extends OutputFormat[Void, SimpleFeature] {
       }
 
       private def closeCurrentFile(): Unit = {
-        if (observer != null) {
-          observer.close()
-          val file = observer.file(currentFile, partition, StorageFileAction.Append)
-          files.add(file)
-          observer = null
-          counter.increment(file.count)
+        if (currentFile != null) {
+          val dataFile = storage.metadata.createDataFile(currentFile, partition)
+          files.add(dataFile)
+          counter.increment(featureCount)
+          currentFile = null
+          featureCount = 0
         }
       }
     }

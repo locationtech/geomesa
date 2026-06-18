@@ -74,7 +74,7 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
       metadata must not(beNull)
       WithClose(FileSystemStorageFactory("converter").apply(context, metadata)) { storage =>
         val query = new Query(metadata.sft.getTypeName, ECQL.toFilter("dtg during 2023-01-17T00:00:00.000Z/2023-01-19T00:00:00.000Z"))
-        val iter = CloseableIterator(storage.getReader(query))
+        val iter = CloseableIterator(storage.getReader(query, threads = 1))
         // note: need to copy features in iterator as same object is re-used
         val features = iter.map(ScalaSimpleFeature.copy).toList
         features must haveLength(6)
@@ -112,7 +112,7 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
           "dtg DURING 2024-12-11T10:00:00Z/2024-12-11T23:55:00Z " +
             "OR dtg = 2024-12-11T10:00:00Z OR dtg = 2024-12-11T23:55:00Z"
         val query = new Query(metadata.sft.getTypeName, ECQL.toFilter(filterText))
-        val iter = CloseableIterator(storage.getReader(query))
+        val iter = CloseableIterator(storage.getReader(query, threads = 1))
         // note: need to copy features in iterator as same object is re-used
         val features = iter.map(ScalaSimpleFeature.copy).toList
         // id 1 is excluded because of the path dtg filter even though dtg is within filter bounds

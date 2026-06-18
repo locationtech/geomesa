@@ -11,12 +11,9 @@ package org.locationtech.geomesa.fs.data.stats
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.ColumnBounds
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.impl.MinMax
-import org.locationtech.geomesa.index.stats.impl.MinMax.MinMaxDefaults
 
 /**
  * Optimized stats using per-file bounds for non-exact cases
@@ -33,7 +30,7 @@ class FileSystemStats(ds: FileSystemDataStore) extends UnoptimizedRunnableStats(
       exact: Boolean,
       queryHints: Hints): Option[Long] = {
     if (!exact || filter == Filter.INCLUDE) {
-      Some(ds.storage(sft.getTypeName).metadata.getFiles(filter).map(_.count).sum)
+      Some(ds.storage(sft.getTypeName).metadata.getFiles(filter).map(_.recordCount()).sum)
     } else {
       super.getCount(sft, filter, exact, queryHints)
     }
@@ -44,31 +41,9 @@ class FileSystemStats(ds: FileSystemDataStore) extends UnoptimizedRunnableStats(
       attribute: String,
       filter: Filter,
       exact: Boolean): Option[MinMax[T]] = {
-    val i = sft.indexOf(attribute)
-    if ((!exact || filter == Filter.INCLUDE) && sft.columnBounds().contains(i)) {
-      var min: String = null
-      var max: String = null
-      ds.storage(sft.getTypeName).metadata.getFiles(filter).foreach { file =>
-        file.bounds.filter(_.attribute == i).foreach { bounds =>
-          if (max == null || max < bounds.upper) {
-            max = bounds.upper
-          }
-          if (min == null || min > bounds.lower) {
-            min = bounds.lower
-          }
-        }
-      }
-      val minMax = new MinMax[T](sft, sft.getDescriptor(i).getLocalName)(MinMaxDefaults(sft.getDescriptor(i).getType.getBinding))
-      if (min != null) {
-        val sf = new ScalaSimpleFeature(sft, "")
-        ColumnBounds(i, min, max).decode(sft).productIterator.foreach { value =>
-          sf.setAttribute(i, value.asInstanceOf[AnyRef])
-          minMax.observe(sf)
-        }
-      }
-      Some(minMax)
-    } else {
-      super.getMinMax(sft, attribute, filter, exact)
-    }
+    // TODO: Extract min/max from DataFile.lowerBounds()/upperBounds()
+    // This requires mapping attribute indices to Iceberg field IDs and decoding ByteBuffers
+    // For now, falling back to the base implementation which will scan features
+    super.getMinMax(sft, attribute, filter, exact)
   }
 }

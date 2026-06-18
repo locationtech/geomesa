@@ -52,7 +52,7 @@ class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetada
           throw new IllegalArgumentException(s"Type '$typeName' does not exit")
         }
         val meta = MetadataSerialization.deserialize(is)
-        new FileBasedMetadata(fs, meta.copy(sft = namespaced(meta.sft, context.namespace)), directory)
+        new FileBasedMetadata(fs, meta.copy(sft = namespaced(meta.sft, context.namespace)), directory, context)
       }
     } catch {
       case NonFatal(e) => CloseWithLogging(fs); throw e
@@ -70,7 +70,7 @@ class FileBasedMetadataCatalog(context: FileSystemContext) extends StorageMetada
         case Some(out) => MetadataSerialization.serialize(out, meta)
         case None => logger.warn(s"Trying to create schema but it already exists: ${sft.getTypeName}")
       }
-      new FileBasedMetadata(fs, meta.copy(sft = namespaced(meta.sft, context.namespace)), directory)
+      new FileBasedMetadata(fs, meta.copy(sft = namespaced(meta.sft, context.namespace)), directory, context)
     } catch {
       case NonFatal(e) => CloseWithLogging(fs); throw e
     }

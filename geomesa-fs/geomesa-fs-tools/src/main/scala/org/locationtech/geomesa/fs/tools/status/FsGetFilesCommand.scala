@@ -9,8 +9,9 @@
 package org.locationtech.geomesa.fs.tools.status
 
 import com.beust.jcommander.Parameters
+import org.apache.iceberg.DataFile
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.status.FsGetFilesCommand.FSGetFilesParams
@@ -30,6 +31,9 @@ class FsGetFilesCommand extends FsDataStoreCommand {
   override def execute(): Unit = withDataStore { ds =>
     val storage = ds.storage(params.featureName)
     val metadata = storage.metadata
+
+    // Create mapper to extract partitions from DataFiles
+    val mapper = IcebergMapper(metadata.sft, metadata.schemes.toSeq, storage.context)
 
     lazy val fromFilter = {
       Command.user.info(s"Listing files for filter: ${ECQL.toCQL(params.cqlFilter)}")
@@ -52,12 +56,23 @@ class FsGetFilesCommand extends FsDataStoreCommand {
         (fromFilter ++ fromPartitions).distinct
       }
 
-    files.groupBy(_.partition).toSeq.sortBy(_._1.toString).foreach { case (p, files) =>
+    def extractAction(file: DataFile): String = {
+      val location = file.location()
+      val filename = location.substring(location.lastIndexOf('/') + 1)
+      filename.take(2) match {
+        case "w_" => "WRITTEN"
+        case "c_" => "COMPACTED"
+        case "m_" => "MODIFIED"
+        case "d_" => "DELETED"
+        case _ => "UNKNOWN"
+      }
+    }
+
+    files.groupBy(f => mapper.partition(f)).toSeq.sortBy(_._1.toString).foreach { case (p, files) =>
       Command.output.info(s"$p:")
-      // sort by chronological order
-      files.sorted(StorageMetadata.StorageFileOrdering.reverse).foreach { f =>
-        Command.output.info(s"  ${f.file} ${f.action.toString.toUpperCase(Locale.US)} " +
-          s"${GeoToolsDateFormat.format(Instant.ofEpochMilli(f.timestamp))} ${f.count} features")
+      // sort by record count descending
+      files.sortBy(_.recordCount())(Ordering[Long].reverse).foreach { f =>
+        Command.output.info(s"  ${f.location()} ${extractAction(f)} ${f.recordCount()} features")
       }
     }
   }

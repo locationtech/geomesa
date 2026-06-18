@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.fs.storage.converter.metadata
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.iceberg.DataFile
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.metadata.CachedMetadata
 import org.locationtech.geomesa.fs.storage.core.schemes.HierarchicalDateTimeScheme
@@ -46,20 +46,34 @@ class ConverterMetadata(
 
   private val fs = ObjectStore(context)
 
+  private val mapper = {
+    import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
+    IcebergMapper(sft, orderedSchemes, context)
+  }
+
   filesCache.refresh(BoxedUnit.UNIT) // kick off the initial load asynchronously
 
-  override def addFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
-  override def addFiles(files: Seq[StorageFile]): Unit = throw new UnsupportedOperationException()
-  override def removeFile(file: StorageFile): Unit = throw new UnsupportedOperationException()
-  override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit =
+  override def createDataFile(filePath: String, partition: Partition): DataFile =
+    throw new UnsupportedOperationException()
+
+  override def addFile(file: DataFile): Unit = throw new UnsupportedOperationException()
+  override def addFiles(files: Seq[DataFile]): Unit = throw new UnsupportedOperationException()
+  override def removeFile(file: DataFile): Unit = throw new UnsupportedOperationException()
+  override def replaceFiles(existing: Seq[DataFile], replacements: Seq[DataFile]): Unit =
     throw new UnsupportedOperationException()
 
   override def close(): Unit = try { super.close() } finally { fs.close() }
 
-  override protected def buildFileList(): Seq[StorageFile] = {
+  override protected def extractPartition(file: DataFile): Partition = mapper.partition(file)
+
+  override protected def buildFileList(): Seq[DataFile] = {
     logger.debug("Building file list")
     val start = System.currentTimeMillis()
-    val result = Seq.newBuilder[StorageFile]
+    val result = Seq.newBuilder[DataFile]
+
+    import org.apache.iceberg.{DataFiles, FileFormat}
+    import org.apache.iceberg.data.GenericRecord
+
     try {
       val toCheck = new java.util.LinkedList[URI]()
       fs.list(context.root).foreach(toCheck.add)
@@ -91,7 +105,23 @@ class ConverterMetadata(
               i += 1
               key
           }
-          result += StorageFile(relativePath, Partition(partitions.toSet), -1L)
+          val partition = Partition(partitions.toSet)
+
+          // Create DataFile using the mapper - record count is unknown (-1)
+          val partitionData = GenericRecord.create(mapper.spec.partitionType())
+          partition.values.foreach { pv =>
+            partitionData.setField(pv.name, pv.value)
+          }
+
+          val dataFile = DataFiles.builder(mapper.spec)
+            .withPath(relativePath)
+            .withFormat(FileFormat.PARQUET)
+            .withFileSizeInBytes(0) // unknown
+            .withRecordCount(0) // unknown - converter will populate this
+            .withPartition(partitionData)
+            .build()
+
+          result += dataFile
         }
       }
     } catch {
@@ -99,7 +129,7 @@ class ConverterMetadata(
     }
     val list = result.result()
     logger.debug(s"Found ${list.size} files in ${System.currentTimeMillis() - start}ms")
-    logger.whenTraceEnabled(list.foreach(f => logger.trace(f.toString)))
+    logger.whenTraceEnabled(list.foreach(f => logger.trace(f.location())))
     list
   }
 }

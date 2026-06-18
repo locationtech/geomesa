@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.fs.storage.core.metadata
 
-import org.apache.iceberg.Table
+import org.apache.iceberg.{DataFile, Table}
 import org.apache.iceberg.expressions.{Expression, Expressions}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
 import org.locationtech.geomesa.fs.storage.core.metadata.IcebergMetadata.PropertyPrefix
 import org.locationtech.geomesa.fs.storage.core.{Partition, PartitionScheme, StorageMetadata}
@@ -28,36 +27,38 @@ class IcebergMetadata(table: Table, mapper: IcebergMapper) extends StorageMetada
 
   override val schemes: Set[PartitionScheme] = mapper.schemes.toSet
 
-  override def addFiles(files: Seq[StorageFile]): Unit = {
+  override def createDataFile(filePath: String, partition: Partition): DataFile = {
+    mapper.createDataFile(table, filePath, partition)
+  }
+
+  override def addFiles(files: Seq[DataFile]): Unit = {
     val append = table.newAppend()
-    files.foreach(f => append.appendFile(mapper.toDataFile(table, f)))
+    files.foreach(f => append.appendFile(f))
     append.commit()
   }
 
-  override def removeFile(file: StorageFile): Unit = {
-    val df = mapper.toDataFile(table, file)
-    table.newDelete().deleteFile(df).commit()
+  override def removeFile(file: DataFile): Unit = {
+    table.newDelete().deleteFile(file).commit()
   }
 
-  override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit = {
+  override def replaceFiles(existing: Seq[DataFile], replacements: Seq[DataFile]): Unit = {
     val tx = table.newTransaction()
     val delete = tx.newDelete()
-    existing.foreach(f => delete.deleteFile(mapper.toDataFile(table, f)))
+    existing.foreach(f => delete.deleteFile(f))
     delete.commit()
     val append = tx.newAppend()
-    replacements.foreach(f => append.appendFile(mapper.toDataFile(table, f)))
+    replacements.foreach(f => append.appendFile(f))
     append.commit()
     tx.commitTransaction()
   }
 
-  override def getFiles(): Seq[StorageFile] = fileScan(Expressions.alwaysTrue())
-  override def getFiles(partition: Partition): Seq[StorageFile] = fileScan(mapper.expression(partition))
-  override def getFiles(filter: Filter): Seq[StorageFile] = fileScan(mapper.expression(filter))
+  override def getFiles(): Seq[DataFile] = fileScan(Expressions.alwaysTrue())
+  override def getFiles(partition: Partition): Seq[DataFile] = fileScan(mapper.expression(partition))
+  override def getFiles(filter: Filter): Seq[DataFile] = fileScan(mapper.expression(filter))
 
-  // TODO use datafiles everywhere - they contain the exact offsets to scan?? can potentially speed up file reads
-  private def fileScan(expression: Expression): Seq[StorageFile] = {
+  private def fileScan(expression: Expression): Seq[DataFile] = {
     WithClose(table.newScan().filter(expression).planFiles()) { tasks =>
-      tasks.asScala.map(task => mapper.fromDataFile(task.file())).toList
+      tasks.asScala.map(task => task.file()).toList
     }
   }
 

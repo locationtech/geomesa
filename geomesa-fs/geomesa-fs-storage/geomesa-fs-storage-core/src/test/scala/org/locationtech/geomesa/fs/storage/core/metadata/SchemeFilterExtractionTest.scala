@@ -10,10 +10,10 @@ package org.locationtech.geomesa.fs.storage.core
 package metadata
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.iceberg.DataFile
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.metadata.SchemeFilterExtraction.{ColumnBound, ColumnOr, SchemeFilter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
@@ -53,12 +53,13 @@ class SchemeFilterExtractionTest extends SpecificationWithJUnit {
     def getSchemeFilters(filter: Filter): Seq[SchemeFilter] = getFilters(filter)
 
     override def `type`: String = "test"
-    override def addFiles(files: Seq[StorageMetadata.StorageFile]): Unit = throw new UnsupportedOperationException()
-    override def removeFile(file: StorageMetadata.StorageFile): Unit = throw new UnsupportedOperationException()
-    override def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit = throw new UnsupportedOperationException()
-    override def getFiles(): Seq[StorageFile] = throw new UnsupportedOperationException()
-    override def getFiles(partition: Partition): Seq[StorageFile] = throw new UnsupportedOperationException()
-    override def getFiles(filter: Filter): Seq[StorageFile] = throw new UnsupportedOperationException()
+    override def createDataFile(filePath: String, partition: Partition): DataFile = throw new UnsupportedOperationException()
+    override def addFiles(files: Seq[DataFile]): Unit = throw new UnsupportedOperationException()
+    override def removeFile(file: DataFile): Unit = throw new UnsupportedOperationException()
+    override def replaceFiles(existing: Seq[DataFile], replacements: Seq[DataFile]): Unit = throw new UnsupportedOperationException()
+    override def getFiles(): Seq[DataFile] = throw new UnsupportedOperationException()
+    override def getFiles(partition: Partition): Seq[DataFile] = throw new UnsupportedOperationException()
+    override def getFiles(filter: Filter): Seq[DataFile] = throw new UnsupportedOperationException()
     override def close(): Unit = {}
   }
 }

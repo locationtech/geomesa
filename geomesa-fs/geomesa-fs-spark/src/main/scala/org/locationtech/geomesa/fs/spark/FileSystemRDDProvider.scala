@@ -19,9 +19,11 @@ import org.geotools.api.data.{Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
+import org.apache.iceberg.DataFile
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreFactory}
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{StorageFile, StorageFileAction}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration.SimpleFeatureAction
 import org.locationtech.geomesa.fs.storage.jobs.parquet.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
@@ -32,6 +34,18 @@ import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 import scala.collection.mutable.ArrayBuffer
 
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
+
+  private def extractFileType(file: DataFile): FileType.FileType = {
+    val location = file.location()
+    val filename = location.substring(location.lastIndexOf('/') + 1)
+    filename.take(2) match {
+      case "w_" => FileType.Written
+      case "c_" => FileType.Compacted
+      case "m_" => FileType.Modified
+      case "d_" => FileType.Deleted
+      case _ => FileType.Written // default
+    }
+  }
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =
     FileSystemDataStoreFactory.canProcess(params)
@@ -48,26 +62,26 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
       // set s3a configs first, may be needed to set input paths
       S3ObjectStore.s3aConfigs(storage.context.conf).foreach { case (k, v) => conf.set(k, v) }
 
-      def configureQuery(filter: Filter, paths: Seq[StorageFile]): Unit = {
+      def configureQuery(filter: Filter, paths: Seq[DataFile]): Unit = {
         logger.debug(s"Reading ${paths.length} files with filter: ${ECQL.toCQL(filter)}")
         // note: file input format requires a job object, but conf gets copied in job object creation,
         // so we have to copy the file paths back out
         val job = Job.getInstance(conf)
 
         // note: we have to copy all the conf twice?
-        FileInputFormat.setInputPaths(job, paths.map(p => new Path(S3ObjectStore.s3aUri(storage.context.root.resolve(p.file)))): _*)
+        FileInputFormat.setInputPaths(job, paths.map(p => new Path(S3ObjectStore.s3aUri(storage.context.root.resolve(p.location())))): _*)
         conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
         val newQuery = new Query(query)
         newQuery.setFilter(filter)
         ParquetSimpleFeatureInputFormat.configure(conf, sft, newQuery)
       }
 
-      def runAppendQuery(filter: Filter, paths: Seq[StorageFile]): RDD[SimpleFeature] = {
+      def runAppendQuery(filter: Filter, paths: Seq[DataFile]): RDD[SimpleFeature] = {
         configureQuery(filter, paths)
         sc.newAPIHadoopRDD(conf, classOf[ParquetSimpleFeatureInputFormat], classOf[Void], classOf[SimpleFeature]).map(_._2)
       }
 
-      def runModsQuery(filter: Filter, paths: Seq[StorageFile]): RDD[(SimpleFeatureAction, SimpleFeature)] = {
+      def runModsQuery(filter: Filter, paths: Seq[DataFile]): RDD[(SimpleFeatureAction, SimpleFeature)] = {
         configureQuery(filter, paths)
         StorageConfiguration.setPathActions(conf, new Path(storage.context.root), paths)
         sc.newAPIHadoopRDD(conf, classOf[ParquetSimpleFeatureActionInputFormat], classOf[SimpleFeatureAction], classOf[SimpleFeature])
@@ -75,16 +89,17 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
       // split up the job by the partitions that require sequential reads
       // if a partition has modifications, it must be read separately to ensure they are handled correctly
-      val noMods = ArrayBuffer.empty[StorageFile]
-      val withMods = scala.collection.mutable.Map.empty[String, ArrayBuffer[StorageFile]]
+      val mapper = IcebergMapper(storage.metadata.sft, storage.metadata.schemes.toSeq.sortBy(_.name), storage.context)
+      val noMods = ArrayBuffer.empty[DataFile]
+      val withMods = scala.collection.mutable.Map.empty[String, ArrayBuffer[DataFile]]
 
-      storage.metadata.getFiles(query.getFilter).groupBy(_.partition).foreach { case (partition, sffs) =>
+      storage.metadata.getFiles(query.getFilter).groupBy(f => mapper.partition(f)).foreach { case (partition, sffs) =>
         val buf =
-          if (sffs.forall(_.action == StorageFileAction.Append)) {
+          if (sffs.forall(f => extractFileType(f) == FileType.Written || extractFileType(f) == FileType.Compacted)) {
             noMods
           } else {
             logger.warn(s"Found modifications for partition '$partition': compact the partition to improve read performance")
-            withMods.getOrElseUpdate(partition.toString, ArrayBuffer.empty[StorageFile])
+            withMods.getOrElseUpdate(partition.toString, ArrayBuffer.empty[DataFile])
           }
         buf ++= sffs
       }
@@ -99,7 +114,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
           // group updates by feature ID, then take the most recent
           rdd.groupBy(_._1.id).flatMap { case (_, group) =>
             val (action, sf) = group.minBy(_._1)
-            if (action.action == StorageFileAction.Delete) { None } else { Some(sf) }
+            if (action.action == FileType.Deleted) { None } else { Some(sf) }
           }
         }
 

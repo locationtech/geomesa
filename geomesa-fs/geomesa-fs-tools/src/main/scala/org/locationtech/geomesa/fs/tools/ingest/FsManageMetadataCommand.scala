@@ -11,9 +11,9 @@ package org.locationtech.geomesa.fs.tools.ingest
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.iceberg.DataFile
 import org.geotools.api.data.DataStoreFinder
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
 import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition, StorageKeys}
@@ -85,24 +85,9 @@ object FsManageMetadataCommand extends LazyLogging {
         path
       }
 
-      def outputResult(file: StorageFile): Unit = {
-        Command.user.info(s"Registered file ${storage.context.root.resolve(file.file)} containing ${file.count} known features")
-        lazy val padding = file.bounds.map(b => metadata.sft.getDescriptor(b.attribute).getLocalName.length).max
-        val bounds = file.bounds.map { b =>
-          val (lower, upper) = b.decode(metadata.sft) match {
-            case (lower: Geometry, upper: Geometry) =>
-              val env = lower.getEnvelopeInternal
-              env.expandToInclude(upper.getEnvelopeInternal)
-              (f"${env.getMinX}%.02f,${env.getMinY}%.02f", f"${env.getMaxX}%.02f,${env.getMaxY}%.02f")
-
-            case (lower: Date, upper: Date) =>
-              (DateParsing.formatDate(lower), DateParsing.formatDate(upper))
-
-            case other => other
-          }
-          s"${metadata.sft.getDescriptor(b.attribute).getLocalName.padTo(padding, ' ')} [ $lower,$upper ]"
-        }
-        Command.user.info(s"File bounds:\n  ${bounds.mkString("\n  ")}")
+      def outputResult(file: DataFile): Unit = {
+        Command.user.info(s"Registered file ${storage.context.root.resolve(file.location())} containing ${file.recordCount()} known features")
+        // TODO: extract and display bounds from DataFile.lowerBounds()/upperBounds()
       }
 
       try {
@@ -126,9 +111,9 @@ object FsManageMetadataCommand extends LazyLogging {
     override def execute(): Unit = withDataStore { ds =>
       val storage = ds.storage(params.featureName)
       val metadata = storage.metadata
-      val file = StorageFile(params.file, Partition.None, 0L)
+      val file = metadata.createDataFile(params.file, Partition.None)
       metadata.removeFile(file)
-      Command.user.info(s"Unregistered file ${storage.context.root.resolve(file.file)}")
+      Command.user.info(s"Unregistered file ${storage.context.root.resolve(file.location())}")
     }
   }
 
@@ -219,13 +204,14 @@ object FsManageMetadataCommand extends LazyLogging {
 
         // compare the files known to the metadata to the ones on disk
         storage.metadata.getFiles().foreach { file =>
-          if (onDisk.remove(storage.context.root.resolve(file.file))) {
+          val location = file.location()
+          if (onDisk.remove(storage.context.root.resolve(location))) {
             // metadata and file are consistent
-            checked.add(file.file)
+            checked.add(location)
           } else {
             // file is missing from metadata vs file is in metadata more than once
-            val duplicate = !checked.add(file.file)
-            inconsistencies += Inconsistency(file, duplicate)
+            val duplicate = !checked.add(location)
+            inconsistencies += Inconsistency(location, duplicate)
           }
         }
 
@@ -234,7 +220,7 @@ object FsManageMetadataCommand extends LazyLogging {
         } else {
           if (inconsistencies.nonEmpty) {
             lazy val strings = inconsistencies.map { i =>
-              s"${i.file.file} (${if (i.duplicate) { "duplicate" } else { "missing" }})"
+              s"${i.location} (${if (i.duplicate) { "duplicate" } else { "missing" }})"
             }
             val msg = if (inconsistencies.size == 1) { "1 metadata entry that does" } else { s"${inconsistencies.size} metadata entries that do"}
             Command.user.warn(s"Found $msg not correspond to a data file:")
@@ -244,7 +230,7 @@ object FsManageMetadataCommand extends LazyLogging {
             // filter out files from other feature types in the same root
             otherTypes.foreach { s =>
               s.metadata.getFiles().foreach { f =>
-                onDisk.remove(s.context.root.resolve(f.file))
+                onDisk.remove(s.context.root.resolve(f.location()))
               }
             }
             if (!onDisk.isEmpty) {
@@ -331,7 +317,7 @@ object FsManageMetadataCommand extends LazyLogging {
       }
     }
 
-    private case class Inconsistency(file: StorageFile, duplicate: Boolean)
+    private case class Inconsistency(location: String, duplicate: Boolean)
   }
 
   @Parameters(commandDescription = "Manage the metadata for a storage instance")

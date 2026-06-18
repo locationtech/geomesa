@@ -8,17 +8,15 @@
 
 package org.locationtech.geomesa.fs.storage.core
 
-import com.google.gson.{JsonArray, JsonDeserializationContext, JsonDeserializer, JsonElement, JsonObject, JsonSerializationContext, JsonSerializer}
+import org.apache.iceberg.DataFile
 import org.calrissian.mango.types.{TypeEncoder, TypeRegistry}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.StorageFile
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.jts.geom._
 
 import java.io.Closeable
-import java.lang.reflect.Type
 import java.util.HexFormat
 
 /**
@@ -48,25 +46,34 @@ trait StorageMetadata extends Closeable {
   def schemes: Set[PartitionScheme]
 
   /**
+   * Create a DataFile for a written file. This reads the file to extract metrics.
+   *
+   * @param filePath file path relative to root
+   * @param partition partition
+   * @return
+   */
+  def createDataFile(filePath: String, partition: Partition): DataFile
+
+  /**
    * Add a file
    *
    * @param file file
    */
-  def addFile(file: StorageFile): Unit = addFiles(Seq(file))
+  def addFile(file: DataFile): Unit = addFiles(Seq(file))
 
   /**
    * Add files in an atomic operation
    *
    * @param files files
    */
-  def addFiles(files: Seq[StorageFile]): Unit
+  def addFiles(files: Seq[DataFile]): Unit
 
   /**
    * Delete a file
    *
    * @param file file
    */
-  def removeFile(file: StorageFile): Unit
+  def removeFile(file: DataFile): Unit
 
   /**
    * Replace existing files with new ones in an atomic operation
@@ -74,7 +81,7 @@ trait StorageMetadata extends Closeable {
    * @param existing existing files
    * @param replacements replacement files
    */
-  def replaceFiles(existing: Seq[StorageFile], replacements: Seq[StorageFile]): Unit
+  def replaceFiles(existing: Seq[DataFile], replacements: Seq[DataFile]): Unit
 
   /**
    * Get all files
@@ -82,7 +89,7 @@ trait StorageMetadata extends Closeable {
    * @return all files
    */
   // noinspection AccessorLikeMethodIsEmptyParen
-  def getFiles(): Seq[StorageFile]
+  def getFiles(): Seq[DataFile]
 
   /**
    * Get files for a given partition by name
@@ -90,14 +97,14 @@ trait StorageMetadata extends Closeable {
    * @param partition partition
    * @return files for the given partition
    */
-  def getFiles(partition: Partition): Seq[StorageFile]
+  def getFiles(partition: Partition): Seq[DataFile]
 
   /**
    * Get files matching a given filter
    *
    * @param filter filter
    */
-  def getFiles(filter: Filter): Seq[StorageFile]
+  def getFiles(filter: Filter): Seq[DataFile]
 
   /**
    * Get a previously set key-value pair
@@ -118,8 +125,6 @@ trait StorageMetadata extends Closeable {
 
 object StorageMetadata {
 
-  implicit val StorageFileOrdering: Ordering[StorageFile] = Ordering.by[StorageFile, Long](_.timestamp).reverse
-
   val TypeRegistry: TypeRegistry[String] = new TypeRegistry[String](AttributeIndexKey.TypeRegistry, Z2Encoder, XZ2Encoder)
 
   def typeAlias(binding: Class[_]): String = {
@@ -130,75 +135,6 @@ object StorageMetadata {
     } else {
       TypeRegistry.getClassAlias(binding)
     }
-  }
-
-  /**
-   * Holds a storage file
-   *
-   * @param file file name (relative to the root path)
-   * @param partition list of partitions that the file belongs to
-   * @param count number of entries in the file
-   * @param action type of file (append, modify, delete)
-   * @param bounds known column bounds, if any, keyed by feature type attribute number
-   * @param sort sort fields for the file, if any, as feature type attribute number
-   * @param timestamp timestamp for the file
-   */
-  case class StorageFile(
-      file: String,
-      partition: Partition,
-      count: Long,
-      action: StorageFileAction.StorageFileAction = StorageFileAction.Append,
-      bounds: Seq[ColumnBounds] = Seq.empty,
-      sort: Seq[Int] = Seq.empty,
-      timestamp: Long = System.currentTimeMillis(),
-    )
-
-  object StorageFile {
-
-    /**
-     * Json serializer for StorageFileAction
-     */
-    object StorageFileSerializer extends JsonSerializer[StorageFile] with JsonDeserializer[StorageFile] {
-
-      import scala.collection.JavaConverters._
-
-      override def serialize(src: StorageFile, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
-        val obj = new JsonObject()
-        obj.addProperty("file", src.file)
-        obj.add("partition", context.serialize(src.partition))
-        obj.addProperty("count", src.count)
-        obj.addProperty("action", src.action.toString)
-        val bounds = new JsonArray(src.bounds.size)
-        src.bounds.foreach(b => bounds.add(context.serialize(b)))
-        obj.add("bounds", bounds)
-        val sort = new JsonArray(src.sort.size)
-        src.sort.foreach(sort.add(_))
-        obj.add("sort", sort)
-        obj.addProperty("timestamp", src.timestamp)
-        obj
-      }
-
-      override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): StorageFile = {
-        val obj = json.getAsJsonObject
-        StorageFile(
-          obj.getAsJsonPrimitive("file").getAsString,
-          context.deserialize(obj.get("partition"), classOf[Partition]),
-          obj.getAsJsonPrimitive("count").getAsLong,
-          StorageFileAction.withName(obj.getAsJsonPrimitive("action").getAsString),
-          obj.getAsJsonArray("bounds").asList().asScala.map(context.deserialize[ColumnBounds](_, classOf[ColumnBounds])).toSeq,
-          obj.getAsJsonArray("sort").asList().asScala.map(_.getAsInt).toSeq,
-          obj.getAsJsonPrimitive("timestamp").getAsLong,
-        )
-      }
-    }
-  }
-
-  /**
-    * Action related to a storage file
-    */
-  object StorageFileAction extends Enumeration {
-    type StorageFileAction = Value
-    val Append, Modify, Delete = Value
   }
 
   /**
