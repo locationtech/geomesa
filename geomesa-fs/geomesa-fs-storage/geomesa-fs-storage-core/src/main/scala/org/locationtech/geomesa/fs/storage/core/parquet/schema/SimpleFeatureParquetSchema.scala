@@ -380,7 +380,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       case ObjectType.BOOLEAN => builder.ofType(BooleanType.get())
       case ObjectType.BYTES   => builder.ofType(BinaryType.get())
       case ObjectType.STRING  => builder.ofType(StringType.get())
-      case ObjectType.DATE    => builder.ofType(TimestampType.withoutZone())
+      case ObjectType.DATE    => builder.ofType(TimestampType.withZone())
       case ObjectType.UUID    => builder.ofType(UUIDType.get())
 
       case ObjectType.LIST =>

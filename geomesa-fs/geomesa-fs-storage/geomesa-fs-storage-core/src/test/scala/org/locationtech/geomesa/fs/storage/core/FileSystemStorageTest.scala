@@ -137,15 +137,15 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
 
           foreach(transformsList) { transforms =>
             doTest("INCLUDE", transforms, features)
-//            doTest("IN('0', '2')", transforms, Seq(features.head, features(2)))
-//            doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-//            doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
-//            doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
-//            doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-//            doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
-//            doTest("name < 'name5'", transforms, features.take(5))
-//            doTest("name = 'name5'", transforms, features.slice(5, 6))
-//            doTest("age < 5", transforms, features.take(5))
+            doTest("IN('0', '2')", transforms, Seq(features.head, features(2)))
+            doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
+            doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
+            doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
+            doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
+            doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
+            doTest("name < 'name5'", transforms, features.take(5))
+            doTest("name = 'name5'", transforms, features.slice(5, 6))
+            doTest("age < 5", transforms, features.take(5))
           }
 
           // verify we can load an existing storage

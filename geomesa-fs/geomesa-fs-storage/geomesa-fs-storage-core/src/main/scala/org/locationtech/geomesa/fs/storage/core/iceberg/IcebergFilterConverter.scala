@@ -19,6 +19,7 @@ import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
 
+import java.util.Date
 import scala.reflect.ClassTag
 
 object IcebergFilterConverter {
@@ -51,13 +52,13 @@ object IcebergFilterConverter {
     val (predicate, remaining): (Expression, Option[Filter]) = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates
       case ObjectType.GEOMETRY => spatial(sft, name, filter)
-      case ObjectType.DATE     => attribute(sft, name, filter)
-      case ObjectType.STRING   => attribute(sft, name, filter)
-      case ObjectType.INT      => attribute(sft, name, filter)
-      case ObjectType.LONG     => attribute(sft, name, filter)
-      case ObjectType.FLOAT    => attribute(sft, name, filter)
-      case ObjectType.DOUBLE   => attribute(sft, name, filter)
-      case ObjectType.BOOLEAN  => attribute(sft, name, filter)
+      case ObjectType.DATE     => attribute[Date](sft, name, filter, Some(dateToMicros))
+      case ObjectType.STRING   => attribute[String](sft, name, filter)
+      case ObjectType.INT      => attribute[Integer](sft, name, filter)
+      case ObjectType.LONG     => attribute[java.lang.Long](sft, name, filter)
+      case ObjectType.FLOAT    => attribute[java.lang.Float](sft, name, filter)
+      case ObjectType.DOUBLE   => attribute[java.lang.Double](sft, name, filter)
+      case ObjectType.BOOLEAN  => attribute[java.lang.Boolean](sft, name, filter)
       case _ => (Expressions.alwaysTrue(), geotools)
     }
     (Expressions.and(predicate, iceberg), remaining)
@@ -90,14 +91,25 @@ object IcebergFilterConverter {
     (predicate.reduce(Expressions.or), remaining)
   }
 
-  private def attribute[T : ClassTag](sft: SimpleFeatureType, name: String, filter: Filter): (Expression, Option[Filter]) = {
+  private def attribute[T : ClassTag](
+      sft: SimpleFeatureType,
+      name: String,
+      filter: Filter,
+      transform: Option[T => Any] = None): (Expression, Option[Filter]) = {
     val (attribute, nonAttribute) = FilterExtractingVisitor(filter, name, sft)
     val binding = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
     val bounds = attribute.map(FilterHelper.extractAttributeBounds(_, name, binding))
     val predicate = bounds.flatMap { extracted =>
       Some(extracted).filter(e => e.nonEmpty && !e.disjoint && e.values.forall(_.isBounded)).map { e =>
         val col = ColumnName(name)
-        val filters = e.values.map { bounds =>
+        val values = transform match {
+          case None => e.values
+          case Some(t) =>
+            e.values.map { bounds =>
+              bounds.copy(bounds.lower.copy(bounds.lower.value.map(t.apply)), bounds.upper.copy(bounds.upper.value.map(t.apply)))
+            }
+        }
+        val filters = values.map { bounds =>
           if (bounds.isEquals) {
             Expressions.equal(col, bounds.lower.value.get)
           } else {
@@ -146,4 +158,6 @@ object IcebergFilterConverter {
       filters.reduce(Expressions.or)
     }
   }
+
+  private def dateToMicros(date: Date): Long = date.getTime * 1000
 }
