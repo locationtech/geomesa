@@ -16,7 +16,7 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorageFactory
-import org.locationtech.geomesa.fs.storage.core.{CloseableFeatureIterator, FileSystemContext, FileSystemStorage, FileSystemStorageFactory, Partition, PartitionScheme, StorageMetadata, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.{CloseableFeatureIterator, FileSystemContext, FileSystemStorage, FileSystemStorageFactory, Partition, PartitionScheme, StorageMetadata, StorageCatalog}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetPartitionInputFormat.{PartitionInputSplit, PartitionRecordReader}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
@@ -44,7 +44,7 @@ class ParquetPartitionInputFormat extends InputFormat[Void, SimpleFeature] {
     val typeName = StorageConfiguration.getSftName(hadoopConf)
 
     val fsc = FileSystemContext.create(root, conf)
-    val catalog = StorageMetadataCatalog(fsc)
+    val catalog = StorageCatalog(fsc)
     val factory = new ParquetFileSystemStorageFactory()
     WithClose(factory.apply(fsc, catalog.load(typeName))) { storage =>
       val sizeCheck = fileSize.orElse(storage.sizer.targetSize).map(t => (p: URI) => storage.sizer.fileIsSized(p, t))
@@ -159,7 +159,7 @@ object ParquetPartitionInputFormat {
         case Left(dataFiles) => dataFiles
         case Right(locations) =>
           // Load metadata to reconstruct DataFiles
-          val catalog = StorageMetadataCatalog(fsc)
+          val catalog = StorageCatalog(fsc)
           WithClose(catalog.load(sft.getTypeName)) { metadata =>
             locations.map { case (location, _) =>
               // Create DataFile with location - partition will be extracted from file name or metadata
@@ -202,7 +202,11 @@ object ParquetPartitionInputFormat {
 
   private class StaticMetadata(val sft: SimpleFeatureType, files: Seq[DataFile]) extends StorageMetadata with LazyLogging {
     override def `type`: String = "static"
-    override def createDataFile(filePath: String, partition: Partition): DataFile = throw new UnsupportedOperationException()
+    override def createDataFile(
+        filePath: String,
+        partition: Partition,
+        content: org.apache.iceberg.FileContent = org.apache.iceberg.FileContent.DATA): DataFile =
+      throw new UnsupportedOperationException()
     override def getFiles(): Seq[DataFile] = files
     override def getFiles(partition: Partition): Seq[DataFile] = {
       // We don't have partition information easily accessible from DataFile without IcebergMapper

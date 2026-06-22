@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.core.utils
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.iceberg.DataFile
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemPathReader, FileType}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.PhaserUtils
 import org.locationtech.geomesa.utils.io.WithClose
@@ -82,15 +82,40 @@ object FileSystemThreadedReader extends StrictLogging {
   /**
    * Extract file action from DataFile location
    */
-  private def fileAction(file: DataFile): FileType.FileType = {
-    val location = file.location()
-    val filename = location.substring(location.lastIndexOf('/') + 1)
-    filename.take(2) match {
-      case "w_" => FileType.Written
-      case "c_" => FileType.Compacted
-      case "m_" => FileType.Modified
-      case "d_" => FileType.Deleted
-      case _ => FileType.Written // default
+  private def fileContent(file: DataFile): org.apache.iceberg.FileContent = {
+    // Use Iceberg's native content type instead of filename conventions
+    val content = file.content()
+    if (content == null) {
+      // For backward compatibility with files created before Iceberg migration,
+      // check filename prefix
+      val location = file.location()
+      val filename = location.substring(location.lastIndexOf('/') + 1)
+      filename.take(2) match {
+        case "w_" | "c_" => org.apache.iceberg.FileContent.DATA
+        case "m_" => org.apache.iceberg.FileContent.DATA // modifications are still data files
+        case "d_" => org.apache.iceberg.FileContent.EQUALITY_DELETES
+        case _ if filename.startsWith("data_") => org.apache.iceberg.FileContent.DATA
+        case _ if filename.startsWith("eq-del_") => org.apache.iceberg.FileContent.EQUALITY_DELETES
+        case _ if filename.startsWith("pos-del_") => org.apache.iceberg.FileContent.POSITION_DELETES
+        case _ => org.apache.iceberg.FileContent.DATA // default to data
+      }
+    } else {
+      content
+    }
+  }
+
+  /**
+   * Determines if a file needs sequential processing (i.e., it contains modifications/deletes)
+   */
+  private def isModifyingFile(file: DataFile): Boolean = {
+    val content = fileContent(file)
+    content == org.apache.iceberg.FileContent.EQUALITY_DELETES ||
+    content == org.apache.iceberg.FileContent.POSITION_DELETES ||
+    {
+      // For backward compatibility: check if this is a modification file (old m_ prefix)
+      val location = file.location()
+      val filename = location.substring(location.lastIndexOf('/') + 1)
+      filename.startsWith("m_")
     }
   }
 
@@ -124,7 +149,7 @@ object FileSystemThreadedReader extends StrictLogging {
 
         // if a partitions has modifications, it must be read separately to ensure they're handled correctly
         val partitionsWithMods = files.collect {
-          case f if fileAction(f) != FileType.Written && fileAction(f) != FileType.Compacted =>
+          case f if isModifyingFile(f) =>
             f.partition() // Iceberg DataFile has partition() method
         }.distinct
         if (partitionsWithMods.isEmpty) {
@@ -136,13 +161,13 @@ object FileSystemThreadedReader extends StrictLogging {
             } else {
               val chain = Seq.newBuilder[Seq[DataFile]]
               var remaining = group // already in sequence order from Iceberg
-              var i = remaining.indexWhere(f => fileAction(f) != FileType.Written && fileAction(f) != FileType.Compacted)
+              var i = remaining.indexWhere(f => isModifyingFile(f))
               while (i != -1) {
                 i = math.min(i, PhaserUtils.MaxParties - 1) // ensure that we don't register too many parties on this phaser
                 val (first, rest) = remaining.splitAt(i + 1)
                 chain += first
                 remaining = rest
-                i = remaining.indexWhere(f => fileAction(f) != FileType.Written && fileAction(f) != FileType.Compacted)
+                i = remaining.indexWhere(f => isModifyingFile(f))
               }
               if (remaining.nonEmpty) {
                 chain += remaining
@@ -174,10 +199,23 @@ object FileSystemThreadedReader extends StrictLogging {
     */
   private def read(reader: FileSystemPathReader, file: DataFile, mods: java.util.Set[String]): CloseableIterator[SimpleFeature] = {
     val uri = new URI(file.location())
-    fileAction(file) match {
-      case FileType.Written | FileType.Compacted => new AppendingReaderIterator(reader, uri, mods)
-      case FileType.Modified => new ModifyingReaderIterator(reader, uri, mods)
-      case FileType.Deleted => new DeletingReaderIterator(reader, uri, mods)
+    val content = fileContent(file)
+
+    // Check for legacy modification files (m_ prefix) - these are data files that need special handling
+    val location = file.location()
+    val filename = location.substring(location.lastIndexOf('/') + 1)
+    val isLegacyModification = filename.startsWith("m_")
+
+    if (content == org.apache.iceberg.FileContent.EQUALITY_DELETES ||
+        content == org.apache.iceberg.FileContent.POSITION_DELETES) {
+      // True delete file - read IDs and add to mods set
+      new DeletingReaderIterator(reader, uri, mods)
+    } else if (isLegacyModification) {
+      // Legacy modification file - read features and add IDs to mods set
+      new ModifyingReaderIterator(reader, uri, mods)
+    } else {
+      // Regular data file - read features, skipping any in mods set
+      new AppendingReaderIterator(reader, uri, mods)
     }
   }
 

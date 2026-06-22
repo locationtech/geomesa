@@ -14,7 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.converter.metadata.ConverterMetadata
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorageFactory, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorageFactory, StorageCatalog}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -65,10 +65,10 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
 
       conf += (ConverterMetadata.ConverterPathParam -> "example-convert-test-1")
       conf += (ConverterStorageFactory.ConverterConfigParam -> converterConfig)
-      conf += StorageMetadataCatalog.MetadataTypeConfig -> "converter"
+      conf += StorageCatalog.MetadataTypeConfig -> "converter"
 
       val context = FileSystemContext.create(dir, conf.result())
-      val catalog = StorageMetadataCatalog(context)
+      val catalog = StorageCatalog(context)
       catalog.getTypeNames mustEqual Seq("example")
       val metadata = catalog.load("example")
       metadata must not(beNull)
@@ -99,10 +99,10 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
       conf += (ConverterStorageFactory.PathFilterOptsPrefix + "pattern" -> "^data-(.*)\\.csv$")
       conf += (ConverterStorageFactory.PathFilterOptsPrefix + "format" -> "yyyyMMddHHmm")
       conf += (ConverterStorageFactory.PathFilterOptsPrefix + "buffer" -> "2 hours")
-      conf += StorageMetadataCatalog.MetadataTypeConfig -> "converter"
+      conf += StorageCatalog.MetadataTypeConfig -> "converter"
 
       val context = FileSystemContext.create(dir, conf.result())
-      val catalog = StorageMetadataCatalog(context)
+      val catalog = StorageCatalog(context)
       catalog.getTypeNames mustEqual Seq("example")
       val metadata = catalog.load("example")
       metadata must not(beNull)

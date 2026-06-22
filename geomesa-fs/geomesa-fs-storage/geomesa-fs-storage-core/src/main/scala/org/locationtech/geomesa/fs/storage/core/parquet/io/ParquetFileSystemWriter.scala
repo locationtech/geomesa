@@ -31,15 +31,16 @@ import java.nio.file.Path
 /**
  * Parquet writer
  *
+ * @param sft simple feature type
+ * @param conf configuration
  * @param file file to write
- * @param conf configuration, must include the feature type encoded according to `SimpleFeatureParquetSchema`
  * @param observer any observers
  */
 class ParquetFileSystemWriter(
-    fs: ObjectStore,
-    conf: Map[String, String],
     sft: SimpleFeatureType,
-    file: URI,
+    conf: Map[String, String],
+    file: OutputFile,
+    closedSize: => Long,
     observer: FileSystemObserver = NoOpObserver
   ) extends FileSystemWriter {
 
@@ -48,11 +49,12 @@ class ParquetFileSystemWriter(
   private val parquetConf = new PlainParquetConfiguration(conf.asJava)
   SimpleFeatureParquetSchema.setSft(parquetConf, sft)
 
-  private val writer = ParquetFileSystemWriter.builder(fs, file, parquetConf).build()
+  private val writer = ParquetFileSystemWriter.builder(file, parquetConf).build()
+
   @volatile
   private var closed = false
 
-  override def size: Long = if (closed) { fs.size(file) }  else { writer.getDataSize }
+  override def size: Long = if (closed) { closedSize }  else { writer.getDataSize }
 
   override def write(f: SimpleFeature): Unit = {
     writer.write(f)
@@ -77,11 +79,9 @@ object ParquetFileSystemWriter extends LazyLogging {
    * @param conf write configuration
    * @return
    */
-  def builder(fs: ObjectStore, path: URI, conf: ParquetConfiguration): Builder = {
+  def builder(file: OutputFile, conf: ParquetConfiguration): Builder = {
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "ZSTD"))
     logger.debug(s"Using Parquet Compression codec ${codec.name()}")
-
-    val file = outputFile(fs, path)
     new Builder(file)
       .withConf(conf)
       .withCompressionCodec(codec)

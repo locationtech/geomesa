@@ -15,8 +15,8 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
+import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Partition}
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.tools.`export`.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -77,7 +77,7 @@ class ExportToFsTest extends Specification with BeforeAfterAll {
         val dataFile = storage.metadata.createDataFile(file.getName, partition)
         storage.metadata.addFile(dataFile)
 
-        val read = WithClose(storage.getReader(new Query(sft.getTypeName)))(_.toList)
+        val read = WithClose(storage.getReader(new Query(sft.getTypeName), 1))(_.toList)
         read mustEqual features
       }
     }

@@ -14,8 +14,7 @@ import org.apache.iceberg.expressions.{Expression, Expressions}
 import org.apache.iceberg.parquet.ParquetUtil
 import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper.PartitionMapper
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergSchemaMapper.PartitionMapper
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.schemes.AttributeScheme.{IntegralBucketing, WidthBucketing}
 import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.ZValueField
@@ -32,7 +31,8 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Maps geomesa storage to iceberg
  */
-case class IcebergMapper(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], context: FileSystemContext) extends LazyLogging {
+case class IcebergSchemaMapper(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], context: FileSystemContext)
+    extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -46,7 +46,9 @@ case class IcebergMapper(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], 
     }
   }
 
-  val schema: Schema = SimpleFeatureParquetSchema(sft, context.conf).iceberg
+  val parquetSchema: SimpleFeatureParquetSchema = SimpleFeatureParquetSchema(sft, context.conf)
+
+  val schema: Schema = parquetSchema.iceberg
 
   /**
    * The partition scheme being mapped
@@ -55,15 +57,31 @@ case class IcebergMapper(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], 
    */
   val spec: PartitionSpec = mappers.foldLeft(PartitionSpec.builderFor(schema))((b, m) => m.spec(b)).build()
 
+  // TODO create a partition struct directly?
+  def partitionValues(partition: Partition): Seq[String] = {
+    mappers.map { m =>
+      val key = partition.values.find(_.name == m.scheme.name).getOrElse {
+        throw new IllegalArgumentException(
+          s"Could not find associated partition: ${m.scheme.name} out of ${partition.values.mkString(", ")}")
+      }
+      m.toIceberg(key.value)
+    }
+  }
+
   /**
    * Create a DataFile from a file path and partition
    *
    * @param table iceberg table
    * @param filePath file path relative to root
    * @param partition partition
+   * @param content file content type (DATA, EQUALITY_DELETES, POSITION_DELETES)
    * @return
    */
-  def createDataFile(table: Table, filePath: String, partition: Partition): DataFile = {
+  def createDataFile(
+      table: Table,
+      filePath: String,
+      partition: Partition,
+      content: org.apache.iceberg.FileContent = org.apache.iceberg.FileContent.DATA): DataFile = {
     val uri = context.root.resolve(filePath).toString
     val inputFile = table.io().newInputFile(uri)
     val metrics = ParquetUtil.fileMetrics(inputFile, metricsConfigs.computeIfAbsent(table.name(), _ => MetricsConfig.forTable(table)), null)
@@ -74,12 +92,17 @@ case class IcebergMapper(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], 
       }
       m.toIceberg(key.value)
     }
+    // TODO withSort(f.sort)
+    // Note: Iceberg determines content type by builder - DataFiles for DATA, DeleteFiles for deletes
+    // For now, we create DATA files and rely on filename/metadata for delete semantics
+    // TODO: Refactor to use DeleteFiles.builder() for true EQUALITY_DELETES
     DataFiles.builder(table.spec())
       .withPath(inputFile.location())
       .withFormat(FileFormat.PARQUET)
       .withFileSizeInBytes(inputFile.getLength)
       .withMetrics(metrics)
       .withPartitionValues(partitionValues.asJava)
+      //TODO ?.withRecordCount(file.count)
       .build()
   }
 
@@ -114,11 +137,9 @@ case class IcebergMapper(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], 
     }
     clauses.reduce(Expressions.and)
   }
-
-  def expression(filter: Filter): Expression = IcebergFilterConverter(sft, filter)
 }
 
-object IcebergMapper {
+object IcebergSchemaMapper {
 
   /**
    * Maps a partition scheme to iceberg
@@ -262,7 +283,8 @@ object IcebergMapper {
       b.truncate(ZValueField.z2(scheme.attribute).zValue, scheme.bits / 4)
     override def toIceberg(key: String): String = key
     override def fromIceberg(partition: StructLike, i: Int): String = partition.get(i, classOf[String])
-    override def expression(key: String): Expression = Expressions.equal[String](ZValueField.z2(scheme.attribute).zValue, key)
+    override def expression(key: String): Expression =
+      Expressions.equal[String](Expressions.truncate[String](ZValueField.z2(scheme.attribute).zValue, scheme.digits), key)
   }
 
   private case class XZ2Mapper(scheme: XZ2Scheme) extends PartitionMapper {
@@ -270,7 +292,8 @@ object IcebergMapper {
       b.truncate(ZValueField.xz2(scheme.attribute).zValue, scheme.bits / 4)
     override def toIceberg(key: String): String = key
     override def fromIceberg(partition: StructLike, i: Int): String = partition.get(i, classOf[String])
-    override def expression(key: String): Expression = Expressions.equal[String](ZValueField.xz2(scheme.attribute).zValue, key)
+    override def expression(key: String): Expression =
+      Expressions.equal[String](Expressions.truncate[String](ZValueField.xz2(scheme.attribute).zValue, scheme.digits), key)
   }
 
   private case class HashMapper(scheme: HashScheme[_]) extends PartitionMapper {

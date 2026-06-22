@@ -27,7 +27,7 @@ case class Z2Scheme(attribute: String, index: Int, bits: Int) extends SpatialSch
   private val z2 = Z2SFC
 
   // number of hex digits used to represent our z value
-  private val digits = bits / 4
+  val digits: Int = bits / 4
 
   // in getCoveringFilter, expand the bbox by half a cell to account for round-trip errors
   // invert returns the center of the cell, so we need to expand to the edges

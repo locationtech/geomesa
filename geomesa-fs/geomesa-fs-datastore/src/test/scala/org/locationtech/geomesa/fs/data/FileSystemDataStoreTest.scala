@@ -20,7 +20,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.data.container.FsContainerTest
 import org.locationtech.geomesa.fs.storage.core.StorageKeys
-import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergSchemaMapper
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -115,7 +115,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
 
           val expected = Set(Set("800043aa"), Set("800043ab"), Set("800043ac")) // these correspond to 2017/06/05, 2017/06/06, 2017/06/07
           val storage = ds.storage(sft.getTypeName)
-          val mapper = IcebergMapper(storage.metadata.sft, storage.metadata.schemes.toSeq, storage.context)
+          val mapper = IcebergSchemaMapper(storage.metadata.sft, storage.metadata.schemes.toSeq, storage.context)
           val partitions = storage.metadata.getFiles().map(f => mapper.partition(f)).toSet
           partitions must haveLength(3)
           partitions.map(_.values.map(_.value)) mustEqual expected
@@ -340,22 +340,20 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
     }
 
     "support different geometry types" in {
-      val dir = Files.createTempDirectory("fsds-test-geom-types").toFile
-      try {
-        val types = Seq(
-          ("LineString", createLine _),
-          ("Polygon",    createPolygon _),
-          ("Geometry",   (i: Int) => if (i % 2 == 0) { createLine(i) } else { createPoint(i) })
-        )
+      val types = Seq(
+        ("LineString", createLine _),
+        ("Polygon",    createPolygon _),
+        ("Geometry",   (i: Int) => if (i % 2 == 0) { createLine(i) } else { createPoint(i) })
+      )
 
-        val all = types.flatMap { case (geom, createGeom) =>
-          val (sft, format) = createFormat(geom, createGeom)
-          sft.getUserData.put("geomesa.mixed.geometries", "true")
-          dsParams.map(p => (sft, format, p))
-        }
+      val all = types.flatMap { case (geom, createGeom) =>
+        val (sft, format) = createFormat(geom, createGeom)
+        sft.getUserData.put("geomesa.mixed.geometries", "true")
+        dsParams.map(p => (sft, format, p))
+      }
 
-        foreach(all) { case (sft, features, params) =>
-          WithClose(DataStoreFinder.getDataStore((params ++ Map("fs.path" -> dir.getPath)).asJava)) { ds =>
+      foreach(all) { case (sft, features, params) =>
+        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
           ds must not(beNull)
           ds.createSchema(sft)
           WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
@@ -382,9 +380,6 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
                 containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(transformSft, _)))
           }
         }
-      }
-      } finally {
-        FileUtils.deleteDirectory(dir)
       }
     }
   }

@@ -11,15 +11,13 @@ package org.locationtech.geomesa.fs.tools.ingest
 import org.apache.log4j.spi.LoggingEvent
 import org.apache.log4j.{AppenderSkeleton, Level, Logger}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.FsRunner
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
-import org.specs2.mutable.{Specification, SpecificationWithJUnit}
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 
 import java.nio.file.Files
@@ -59,7 +57,7 @@ class FsManageMetadataCommandTest extends SpecificationWithJUnit with BeforeAfte
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
         val storage = ds.storage(sft.getTypeName)
-        val files = storage.metadata.getFiles().map(_.file)
+        val files = storage.metadata.getFiles().map(_.location())
         files must haveLength(3)
         storage.fs.copy(storage.context.root.resolve(files.head), storage.context.root.resolve(files.head + ".bak"))
         storage.fs.delete(storage.context.root.resolve(files.head))

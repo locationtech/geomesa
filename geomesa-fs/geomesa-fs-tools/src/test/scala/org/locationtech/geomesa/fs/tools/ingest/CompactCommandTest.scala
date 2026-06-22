@@ -164,7 +164,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
         val storage = ds.storage(sft.getTypeName)
         foreach(storage.metadata.getFiles().groupBy(_.partition).values) { partition =>
           partition.size must beGreaterThan(1)
-          val sizes = partition.map(f => storage.context.root.resolve(f.file)).map(p => storage.fs.size(p))
+          val sizes = partition.map(f => storage.context.root.resolve(f.location())).map(p => storage.fs.size(p))
           // hard to get very close with small files...
           foreach(sizes)(_ must beCloseTo(targetFileSize, 2200))
         }

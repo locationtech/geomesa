@@ -10,10 +10,12 @@ package org.locationtech.geomesa.fs.storage
 
 import com.google.gson._
 import com.typesafe.config.ConfigFactory
+import org.apache.iceberg.Table
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.ConvertToBoolean
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
 import pureconfig.generic.semiauto.deriveConvert
 import pureconfig.{ConfigConvert, ConfigSource}
@@ -37,6 +39,16 @@ package object core {
       .registerTypeAdapter(classOf[Partition], Partition.PartitionSerializer)
       .disableHtmlEscaping()
       .create()
+
+  /**
+   * Creates a new simple feature type with the namespace in the simple feature type name
+   *
+   * @param sft simple feature type
+   * @param namespace optional namespace
+   * @return
+   */
+  def namespaced(sft: SimpleFeatureType, namespace: Option[String]): SimpleFeatureType =
+    namespace.map(ns => SimpleFeatureTypes.renameSft(sft, s"$ns:${sft.getTypeName}")).getOrElse(sft)
 
   /**
    * Holder for file system configuration
@@ -93,6 +105,9 @@ package object core {
   }
 
   object Metadata {
+
+    def get(table: Table)(key: String): Option[String] = Option(table.properties().get(s"geomesa.$key"))
+    def set(table: Table)(key: String, value: String): Option[String] = Option(table.properties().put(s"geomesa.$key", value))
 
     val TargetFileSize = "target-file-size"
 

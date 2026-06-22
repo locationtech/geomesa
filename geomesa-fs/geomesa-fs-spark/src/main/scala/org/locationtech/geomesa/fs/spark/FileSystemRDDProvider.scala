@@ -23,7 +23,7 @@ import org.apache.iceberg.DataFile
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreFactory}
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
-import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergSchemaMapper
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration.SimpleFeatureAction
 import org.locationtech.geomesa.fs.storage.jobs.parquet.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
@@ -35,15 +35,19 @@ import scala.collection.mutable.ArrayBuffer
 
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
-  private def extractFileType(file: DataFile): FileType.FileType = {
-    val location = file.location()
-    val filename = location.substring(location.lastIndexOf('/') + 1)
-    filename.take(2) match {
-      case "w_" => FileType.Written
-      case "c_" => FileType.Compacted
-      case "m_" => FileType.Modified
-      case "d_" => FileType.Deleted
-      case _ => FileType.Written // default
+  /**
+   * Determines if a file contains modifications or deletes that require sequential processing
+   */
+  private def isModifyingFile(file: DataFile): Boolean = {
+    val content = file.content()
+    if (content != null) {
+      content == org.apache.iceberg.FileContent.EQUALITY_DELETES ||
+      content == org.apache.iceberg.FileContent.POSITION_DELETES
+    } else {
+      // Backward compatibility: check filename prefix for legacy files
+      val location = file.location()
+      val filename = location.substring(location.lastIndexOf('/') + 1)
+      filename.startsWith("m_") || filename.startsWith("d_") || filename.startsWith("eq-del_") || filename.startsWith("pos-del_")
     }
   }
 
@@ -89,13 +93,13 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
       // split up the job by the partitions that require sequential reads
       // if a partition has modifications, it must be read separately to ensure they are handled correctly
-      val mapper = IcebergMapper(storage.metadata.sft, storage.metadata.schemes.toSeq.sortBy(_.name), storage.context)
+      val mapper = IcebergSchemaMapper(storage.metadata.sft, storage.metadata.schemes.toSeq.sortBy(_.name), storage.context)
       val noMods = ArrayBuffer.empty[DataFile]
       val withMods = scala.collection.mutable.Map.empty[String, ArrayBuffer[DataFile]]
 
       storage.metadata.getFiles(query.getFilter).groupBy(f => mapper.partition(f)).foreach { case (partition, sffs) =>
         val buf =
-          if (sffs.forall(f => extractFileType(f) == FileType.Written || extractFileType(f) == FileType.Compacted)) {
+          if (sffs.forall(f => !isModifyingFile(f))) {
             noMods
           } else {
             logger.warn(s"Found modifications for partition '$partition': compact the partition to improve read performance")

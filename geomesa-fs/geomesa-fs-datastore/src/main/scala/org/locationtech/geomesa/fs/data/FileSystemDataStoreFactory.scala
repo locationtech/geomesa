@@ -16,7 +16,7 @@ import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorageFactory
 import org.locationtech.geomesa.fs.storage.converter.metadata.ConverterMetadata
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorageFactory, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorageFactory, StorageCatalog}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.hadoop.HadoopUtils
@@ -81,17 +81,17 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       AuthProviderParam.lookupOpt(params).foreach(p => builder += (AuthsParam.key -> p.getClass.getName))
       AuthsParam.lookupOpt(params).foreach(auths => builder += (AuthsParam.key -> auths))
       MetadataTypeParam.lookupOpt(params).filterNot(_.isBlank) match {
-        case Some(t) => builder += StorageMetadataCatalog.MetadataTypeConfig -> t
+        case Some(t) => builder += StorageCatalog.MetadataTypeConfig -> t
         case None =>
           if (ConverterStorageFactory.Encoding.equalsIgnoreCase(encoding)) {
             // for back compatibility, don't require metadata type if using converter storage
-            builder += StorageMetadataCatalog.MetadataTypeConfig -> ConverterMetadata.MetadataType
+            builder += StorageCatalog.MetadataTypeConfig -> ConverterMetadata.MetadataType
           }
       }
       builder.result()
     }
 
-    if (!conf.contains(StorageMetadataCatalog.MetadataTypeConfig)) {
+    if (!conf.contains(StorageCatalog.MetadataTypeConfig)) {
       throw new IOException(s"Parameter ${MetadataTypeParam.key} must be specified directly or in ${ConfigParam.key}")
     }
 
@@ -119,7 +119,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     val context = FileSystemContext.create(path, conf, namespace)
     val config = FileSystemDataStoreConfig(context, readThreads, maxOpenPartitions, writeTimeout, queryTimeout)
-    val metadata = StorageMetadataCatalog(context)
+    val metadata = StorageCatalog(context)
 
     new FileSystemDataStore(storageFactory, metadata, config)
   }

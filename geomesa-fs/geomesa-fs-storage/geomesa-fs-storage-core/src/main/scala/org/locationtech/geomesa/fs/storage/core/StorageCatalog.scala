@@ -6,90 +6,111 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core.metadata
+package org.locationtech.geomesa.fs.storage.core
 
-import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, TableIdentifier}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.StorageMetadataCatalog.CatalogSpi
-import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Metadata, PartitionSchemeFactory, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.StorageCatalog.IcebergProps
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergSchemaMapper
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 
+import java.io.Closeable
 import java.util.Locale
 
-/**
- * Catalog for iceberg-based metadata
- *
- * @param context file system
- */
-class IcebergMetadataCatalog(context: FileSystemContext) extends StorageMetadataCatalog with LazyLogging {
-
-  import IcebergMetadataCatalog.IcebergProps
+class StorageCatalog(val context: FileSystemContext) extends Closeable {
 
   import scala.collection.JavaConverters._
 
   private val props = new IcebergProps(context)
 
   private val namespace = props.namespace
-  private val catalog = props.catalog // TODO check for closeable and close
-
-  override def getTypeNames: Seq[String] = {
-    // TODO verify namespace exists
+  private val catalog = props.catalog
+  private val nsSupport = Option(catalog).collect { case sn: SupportsNamespaces => sn }
+  // TODO
+//  if (context.conf.get(ParquetCompressionOpt) == null) {
+//    Option(System.getProperty(ParquetCompressionOpt)).foreach(c => conf += ParquetCompressionOpt -> c)
+//  }
+//  conf += "parquet.filter.dictionary.enabled" -> "true"
+//
+  /**
+   * Get the feature types known by this factory
+   *
+   * @return
+   */
+  def getTypeNames: Seq[String] = {
     // TODO filter based on some gm-specific keys?
-    if (Option(catalog).collect { case ns: SupportsNamespaces => ns }.forall(_.namespaceExists(namespace))) {
+    if (nsSupport.forall(_.namespaceExists(namespace))) {
       catalog.listTables(namespace).asScala.map(_.name()).toSeq
     } else {
       Seq.empty
     }
   }
 
-  override def load(typeName: String): IcebergMetadata = {
+  /**
+   * Load an existing metadata instance by name
+   *
+   * @param typeName feature type name
+   * @return
+   */
+  def load(typeName: String): FileSystemStorage = {
     val table = catalog.loadTable(tableId(typeName))
     val sft = SimpleFeatureTypes.createType(table.properties().get("geomesa.sft.name"), table.properties().get("geomesa.sft.spec"))
     val schemes = table.properties().get("geomesa.partition.spec").split(",").map(PartitionSchemeFactory.load(sft, _))
-    val mapper = new IcebergMapper(namespaced(sft, context.namespace), schemes, context)
-    new IcebergMetadata(table, mapper)
+    val mapper = new IcebergSchemaMapper(namespaced(sft, context.namespace), schemes, context)
+    new FileSystemStorage(table, mapper)
   }
 
-  override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long]): IcebergMetadata = {
+  /**
+   * Create a metadata instance using the provided options
+   *
+   * @param sft simple feature type
+   * @param partitions storage partitions
+   * @param targetFileSize target file size, in bytes
+   * @return
+   */
+  def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long] = None): FileSystemStorage = {
     // load the partition scheme first in case it fails
-    val schemes = partitions.map(PartitionSchemeFactory.load(sft, _))
-    val mapper = new IcebergMapper(namespaced(sft, context.namespace), schemes, context)
+    // keep in sorted order as iceberg expects them to be consistent, but we store them as a set
+    val schemes = partitions.map(PartitionSchemeFactory.load(sft, _)).sortBy(_.name)
+    val mapper = new IcebergSchemaMapper(namespaced(sft, context.namespace), schemes, context)
     val tableProps = Map(
       "geomesa.sft.name" -> sft.getTypeName,
       "geomesa.sft.spec" -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
       "geomesa.partition.spec" -> schemes.map(_.name).mkString(","),
       // file format v3 lets us use native geometries - but it's not yet supported in spark or trino
       // TableProperties.FORMAT_VERSION -> "3"
-    ) ++ targetFileSize.map(s => s"${IcebergMetadata.PropertyPrefix}${Metadata.TargetFileSize}" -> s.toString).toMap
+    ) ++ targetFileSize.map(s => s"${StorageCatalog.PropertyPrefix}${Metadata.TargetFileSize}" -> s.toString).toMap
 
-    Option(catalog).collect { case ns: SupportsNamespaces => ns }.foreach { ns =>
+    nsSupport.foreach { ns =>
       if (!ns.namespaceExists(namespace)) {
         ns.createNamespace(namespace)
       }
     }
     val table = catalog.createTable(tableId(sft.getTypeName), mapper.schema, mapper.spec, null, tableProps.asJava)
-    new IcebergMetadata(table, mapper)
+    new FileSystemStorage(table, mapper)
   }
+
+  override def close(): Unit = CloseWithLogging(Option(catalog).collect { case c: Closeable => c })
 
   // TODO valid identifiers vary based on the catalog... this is for glue and not comprehensive
   private def tableId(typeName: String): TableIdentifier =
     TableIdentifier.of(namespace, typeName.toLowerCase(Locale.US).replaceAll("[^a-z0-9]+", "_"))
 }
 
-object IcebergMetadataCatalog {
+object StorageCatalog {
 
-  private val KeyPrefix = "iceberg."
+  private val IcebergPrefix = "iceberg."
+  private val PropertyPrefix = "geomesa.props."
 
   private class IcebergProps(val context: FileSystemContext) extends AnyVal {
 
     import scala.collection.JavaConverters._
 
-    def namespace: Namespace = Namespace.of(required(s"${KeyPrefix}namespace"))
+    def namespace: Namespace = Namespace.of(required(s"${IcebergPrefix}namespace"))
 
     def catalog: Catalog = {
-      val impl = required(s"${KeyPrefix}catalog-impl")
+      val impl = required(s"${IcebergPrefix}catalog-impl")
       val catalog = try { Class.forName(impl).getConstructor().newInstance().asInstanceOf[Catalog] } catch {
         case e: Throwable => throw new RuntimeException(s"Could not instantiate catalog class '$impl':", e)
       }
@@ -105,18 +126,12 @@ object IcebergMetadataCatalog {
         "warehouse" -> context.root.resolve("metadata/").toString
       )
       val props =
-        defaults ++ s3Configs ++ context.conf.collect { case (k, v) if k.startsWith(KeyPrefix) => k.substring(KeyPrefix.length) -> v }
+        defaults ++ s3Configs ++ context.conf.collect { case (k, v) if k.startsWith(IcebergPrefix) => k.substring(IcebergPrefix.length) -> v }
       catalog.initialize("geomesa", props.asJava)
       catalog
     }
 
     private def required(k: String): String =
       context.conf.getOrElse(k, throw new IllegalArgumentException(s"Iceberg catalog requires configuration `$k` to be specified"))
-  }
-
-
-  class IcebergCatalogSpi extends CatalogSpi {
-    override def `type`: String = IcebergMetadata.MetadataType
-    override def apply(context:  FileSystemContext): StorageMetadataCatalog = new IcebergMetadataCatalog(context)
   }
 }

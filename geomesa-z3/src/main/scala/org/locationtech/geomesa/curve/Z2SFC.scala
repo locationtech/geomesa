@@ -58,6 +58,15 @@ class Z2SFC(val precision: Int) extends SpaceFillingCurve {
   /**
    * Encodes a z value into hex, bit-shifting left as necessary (2 unused leading bits) so that prefix matching works
    *
+   * @param x x value
+   * @param y y value
+   * @return hex-encoded string
+   */
+  def hexEncode(x: Double, y: Double): String = hexEncode(index(x, y))
+
+  /**
+   * Encodes a z value into hex, bit-shifting left as necessary (2 unused leading bits) so that prefix matching works
+   *
    * @param z z value
    * @return hex-encoded string
    */

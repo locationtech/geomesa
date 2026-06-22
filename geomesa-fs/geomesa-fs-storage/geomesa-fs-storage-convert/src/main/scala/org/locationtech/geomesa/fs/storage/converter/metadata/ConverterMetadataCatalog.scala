@@ -10,9 +10,9 @@ package org.locationtech.geomesa.fs.storage.converter.metadata
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.StorageMetadataCatalog.CatalogSpi
+import org.locationtech.geomesa.fs.storage.core.StorageCatalog.CatalogSpi
 import org.locationtech.geomesa.fs.storage.core.schemes.{HierarchicalDateTimeScheme, ReceiptTimeScheme}
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, PartitionSchemeFactory, StorageMetadata, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, PartitionSchemeFactory, StorageMetadata, StorageCatalog}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 
 /**
@@ -20,7 +20,7 @@ import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
  *
  * @param context file system context
  */
-class ConverterMetadataCatalog(context: FileSystemContext) extends StorageMetadataCatalog with LazyLogging {
+class ConverterMetadataCatalog(context: FileSystemContext) extends StorageCatalog with LazyLogging {
 
   import ConverterMetadata._
 
@@ -86,6 +86,6 @@ object ConverterMetadataCatalog {
 
   class ConverterCatalogSpi extends CatalogSpi {
     override def `type`: String = ConverterMetadata.MetadataType
-    override def apply(context:  FileSystemContext): StorageMetadataCatalog = new ConverterMetadataCatalog(context)
+    override def apply(context:  FileSystemContext): StorageCatalog = new ConverterMetadataCatalog(context)
   }
 }

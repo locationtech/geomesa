@@ -10,6 +10,7 @@ package org.locationtech.geomesa.fs.storage.core
 package observer
 package s3
 
+import org.apache.iceberg.aws.s3.S3FileIO
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 
 import java.net.URI
@@ -19,12 +20,12 @@ import java.net.URI
  */
 class S3VisibilityObserverFactory extends FileSystemObserverFactory {
 
-  private var fs: S3ObjectStore = _
+  private var fs: S3FileIO = _
   private var tag: String = _
 
   override def init(storage: FileSystemStorage): Unit = {
     try {
-      fs = storage.fs.asInstanceOf[S3ObjectStore]
+      fs = storage.table.io().asInstanceOf[S3FileIO]
       tag = storage.context.conf.getOrElse(S3VisibilityObserverFactory.TagNameConfig, S3VisibilityObserverFactory.DefaultTag)
     } catch {
       case e: Exception => throw new RuntimeException("Unable to get s3 client", e)

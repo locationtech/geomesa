@@ -17,7 +17,7 @@ import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSo
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.stats.FileSystemStats
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, FileSystemStorageFactory, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, FileSystemStorageFactory, StorageCatalog}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
@@ -32,7 +32,7 @@ import scala.concurrent.duration.Duration
  * @param catalog metadata catalog
  * @param config config
  */
-class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: StorageMetadataCatalog, config: FileSystemDataStoreConfig)
+class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: StorageCatalog, config: FileSystemDataStoreConfig)
     extends ContentDataStore with HasGeoMesaStats with LazyLogging {
 
   import scala.collection.JavaConverters._

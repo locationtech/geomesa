@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.fs.storage.core
 
+import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{XZ2Encoder, Z2Encoder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point
@@ -26,7 +26,7 @@ class StorageMetadataTest extends SpecificationWithJUnit {
         foreach(Seq(-135, -45, 45, 135)) { lon =>
           val pt = WKTUtils.read(s"POINT($lon $lat)").asInstanceOf[Point]
           val partition = ps.getPartition(ScalaSimpleFeature.create(sft, "", pt)).value
-          val z2 = Z2Encoder.encode(pt)
+          val z2 = Z2SFC.hexEncode(pt.getX, pt.getY)
           z2 must startWith(partition)
         }
       }
@@ -37,7 +37,7 @@ class StorageMetadataTest extends SpecificationWithJUnit {
         foreach(Seq(-135, -45, 45, 135)) { lon =>
           val pt = WKTUtils.read(s"POINT($lon $lat)").asInstanceOf[Point]
           val partition = ps.getPartition(ScalaSimpleFeature.create(sft, "", pt)).value
-          val xz2 = XZ2Encoder.encode(pt)
+          val xz2 = XZ2SFC.hexEncode(pt.getX, pt.getY, pt.getX, pt.getY)
           xz2 must startWith(partition)
         }
       }

@@ -15,7 +15,7 @@ import org.apache.parquet.hadoop.api.WriteSupport.{FinalizedWriteContext, WriteC
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.core.StorageMetadata.{XZ2Encoder, Z2Encoder}
+import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.BoundingBoxes.BoundingBoxField
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeoParquetMetadata.GeoParquetObserver
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.{GeometryColumnX, GeometryColumnY, GeometryEncoding}
@@ -334,12 +334,15 @@ object SimpleFeatureWriteSupport {
 
   private abstract class GeometryZWriter(name: String, index: Int, bbox: Option[String], zValue: Option[String])
       extends GeometryWriter[Point](name, index, bbox, zValue) {
-    override protected def z(geom: Point): String = Z2Encoder.encode(geom)
+    override protected def z(geom: Point): String = Z2SFC.hexEncode(geom.getX, geom.getY)
   }
 
   private abstract class GeometryXZWriter[T <: Geometry](name: String, index: Int, bbox: Option[String], zValue: Option[String])
       extends GeometryWriter[T](name, index, bbox, zValue) {
-    override protected def z(geom: T): String = XZ2Encoder.encode(geom)
+    override protected def z(geom: T): String = {
+      val env = geom.getEnvelopeInternal
+      XZ2SFC.hexEncode(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
+    }
   }
 
   private class PointWriter(name: String, index: Int, bbox: Option[String], zValue: Option[String])

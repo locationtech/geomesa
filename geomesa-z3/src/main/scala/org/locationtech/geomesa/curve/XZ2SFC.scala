@@ -48,6 +48,17 @@ class XZ2SFC(val g: Short, val xBounds: (Double, Double), val yBounds: (Double, 
   /**
    * Encodes a z value into hex, bit-shifting left as necessary so that prefix matching works
    *
+   * @param xmin min x value in xBounds
+   * @param ymin min y value in yBounds
+   * @param xmax max x value in xBounds, must be >= xmin
+   * @param ymax max y value in yBounds, must be >= ymin
+   * @return hex-encoded string
+   */
+  def hexEncode(xmin: Double, ymin: Double, xmax: Double, ymax: Double): String = hexEncode(index(xmin, ymin, xmax, ymax))
+
+  /**
+   * Encodes a z value into hex, bit-shifting left as necessary so that prefix matching works
+   *
    * @param z z value
    * @return hex-encoded string
    */

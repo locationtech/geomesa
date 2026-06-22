@@ -17,7 +17,7 @@ import org.apache.hadoop.mapreduce.security.TokenCache
 import org.apache.iceberg.DataFile
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorageFactory
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Partition, PartitionKey, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Partition, PartitionKey, StorageCatalog}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FileSizeEstimator}
 
@@ -65,7 +65,7 @@ class ParquetPartitionOutputFormat extends OutputFormat[Void, SimpleFeature] {
 
     private val storage = {
       val hadoopConf = context.getConfiguration
-      val catalog = StorageMetadataCatalog(fsc)
+      val catalog = StorageCatalog(fsc)
       new ParquetFileSystemStorageFactory().apply(fsc, catalog.load(StorageConfiguration.getSftName(hadoopConf)))
     }
 
@@ -120,7 +120,7 @@ class ParquetPartitionOutputFormat extends OutputFormat[Void, SimpleFeature] {
 
       protected def newWriter(): (Path, RecordWriter[Void, SimpleFeature]) = {
         closeCurrentFile()
-        currentFile = FileSystemStorage.newFilePath(storage.metadata.sft.getTypeName, fileType, "parquet")
+        currentFile = FileSystemStorage.newFilePath(storage.metadata.sft.getTypeName, FileSystemStorage.FileType.toFileContent(fileType), "parquet")
         featureCount = 0
         val path = new Path(workPath, currentFile)
         logger.debug(s"Creating record writer at path $path")

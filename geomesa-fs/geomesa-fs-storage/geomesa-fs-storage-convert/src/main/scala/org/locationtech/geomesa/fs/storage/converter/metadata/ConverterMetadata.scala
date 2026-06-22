@@ -47,13 +47,16 @@ class ConverterMetadata(
   private val fs = ObjectStore(context)
 
   private val mapper = {
-    import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
-    IcebergMapper(sft, orderedSchemes, context)
+    import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergSchemaMapper
+    IcebergSchemaMapper(sft, orderedSchemes, context)
   }
 
   filesCache.refresh(BoxedUnit.UNIT) // kick off the initial load asynchronously
 
-  override def createDataFile(filePath: String, partition: Partition): DataFile =
+  override def createDataFile(
+      filePath: String,
+      partition: Partition,
+      content: org.apache.iceberg.FileContent = org.apache.iceberg.FileContent.DATA): DataFile =
     throw new UnsupportedOperationException()
 
   override def addFile(file: DataFile): Unit = throw new UnsupportedOperationException()

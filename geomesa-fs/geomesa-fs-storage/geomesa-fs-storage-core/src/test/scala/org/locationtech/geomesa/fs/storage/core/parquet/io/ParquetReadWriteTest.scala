@@ -11,12 +11,13 @@ package org.locationtech.geomesa.fs.storage.core.parquet.io
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.filter2.compat.FilterCompat
+import org.apache.parquet.io.LocalOutputFile
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileValidationObserver
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
-import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorage.FileValidationObserver
 import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFilterConverter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -39,6 +40,7 @@ class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
     c
   }
 
+  // TODO don't use a single file here...
   lazy val f = Files.createTempFile("geomesa", ".parquet")
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*position:Point:srid=4326")
@@ -80,7 +82,7 @@ class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
   "SimpleFeatureParquetWriter" should {
 
     "fail if a corrupt parquet file is written" >> {
-      WithClose(ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf).build()) { writer =>
+      WithClose(ParquetFileSystemWriter.builder(new LocalOutputFile(f), sftConf).build()) { writer =>
         features.foreach(writer.write)
       }
 
@@ -99,7 +101,7 @@ class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
     }
 
     "write parquet files" >> {
-      WithClose(ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf).build()) { writer =>
+      WithClose(ParquetFileSystemWriter.builder(new LocalOutputFile(f), sftConf).build()) { writer =>
         features.foreach(writer.write)
       }
       Files.size(f) must beGreaterThan(0L)

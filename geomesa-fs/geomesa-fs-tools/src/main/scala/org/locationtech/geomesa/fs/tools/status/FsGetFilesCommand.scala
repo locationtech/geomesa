@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.tools.status
 import com.beust.jcommander.Parameters
 import org.apache.iceberg.DataFile
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergSchemaMapper
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.status.FsGetFilesCommand.FSGetFilesParams
@@ -33,7 +33,7 @@ class FsGetFilesCommand extends FsDataStoreCommand {
     val metadata = storage.metadata
 
     // Create mapper to extract partitions from DataFiles
-    val mapper = IcebergMapper(metadata.sft, metadata.schemes.toSeq, storage.context)
+    val mapper = IcebergSchemaMapper(metadata.sft, metadata.schemes.toSeq, storage.context)
 
     lazy val fromFilter = {
       Command.user.info(s"Listing files for filter: ${ECQL.toCQL(params.cqlFilter)}")

@@ -45,7 +45,7 @@ class XZ2Function extends FunctionExpressionImpl(XZ2Function.FunctionName) {
     if (env.isNull) {
       return null
     }
-    XZ2SFC.hexEncode(XZ2SFC.index(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY))
+    XZ2SFC.hexEncode(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
   }
 }
 

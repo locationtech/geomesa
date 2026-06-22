@@ -11,9 +11,11 @@ package observer
 package s3
 
 import org.apache.accumulo.access.AccessExpression
+import org.apache.iceberg.aws.s3.S3FileIO
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import org.locationtech.geomesa.security.SecurityUtils
+import software.amazon.awssdk.services.s3.model.{PutObjectTaggingRequest, Tag}
 
 import java.io.IOException
 import java.net.URI
@@ -27,7 +29,7 @@ import java.util.Base64
  * @param fs s3 client
  * @param tag tag name to use
  */
-class S3VisibilityObserver(path: URI, fs: S3ObjectStore, tag: String) extends FileSystemObserver {
+class S3VisibilityObserver(path: URI, fs: S3FileIO, tag: String) extends FileSystemObserver {
 
   private val visibilities = scala.collection.mutable.Set.empty[String]
 
@@ -54,7 +56,13 @@ class S3VisibilityObserver(path: URI, fs: S3ObjectStore, tag: String) extends Fi
       // this call simplifies and de-duplicates the expression
       val expression = AccessExpression.of(vis, /*normalize = */true).getExpression
       val visibility = Base64.getEncoder.encodeToString(expression.getBytes(StandardCharsets.UTF_8))
-      fs.putObjectTagging(bucket, key, Seq(tag -> visibility))
+      val request =
+        PutObjectTaggingRequest.builder()
+          .bucket(bucket)
+          .key(key)
+          .tagging(t => t.tagSet(Tag.builder().key(tag).value(visibility).build()))
+          .build()
+      fs.asyncClient().putObjectTagging(request)
     }
   }
 }

@@ -41,7 +41,7 @@ class Z2Function extends FunctionExpressionImpl(Z2Function.FunctionName) {
     if (value == null) {
       return null
     }
-    Z2SFC.hexEncode(Z2SFC.index(value.getX, value.getY))
+    Z2SFC.hexEncode(value.getX, value.getY)
   }
 }
 

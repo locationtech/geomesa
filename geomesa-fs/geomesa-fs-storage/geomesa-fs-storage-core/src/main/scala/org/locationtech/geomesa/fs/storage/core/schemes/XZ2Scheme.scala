@@ -43,7 +43,7 @@ case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends SpatialSc
   // each level adds 2 bits (4 quadrants)
   private val partitionLevel = (bits / 2).toShort
   // number of hex digits used to represent our z value - bits = (xz2.g - partitionLevel) * 2, then divide by 4 to get hex
-  private val digits = xz2.hexDigits - ((xz2.g - partitionLevel) / 2)
+  val digits: Int = xz2.hexDigits - ((xz2.g - partitionLevel) / 2)
 
   override val name: String = s"${XZ2Scheme.name}:attribute=$attribute:bits=$bits"
 

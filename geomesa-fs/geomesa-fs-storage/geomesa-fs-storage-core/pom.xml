@@ -72,6 +72,10 @@
         </dependency>
         <dependency>
             <groupId>org.apache.iceberg</groupId>
+            <artifactId>iceberg-data</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.iceberg</groupId>
             <artifactId>iceberg-parquet</artifactId>
         </dependency>
         <dependency>

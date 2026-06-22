@@ -15,7 +15,7 @@ import org.geotools.api.data.{DataStoreFinder, Transaction}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.container.FsContainerTest
 import org.locationtech.geomesa.fs.storage.core.StorageMetadata
-import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergMapper
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergSchemaMapper
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.SpecificationWithJUnit
@@ -69,7 +69,7 @@ class IcebergCompatibilityTest extends SpecificationWithJUnit with FsContainerTe
               features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
             }
             val storage = ds.storage(time)
-            val fileMapper = IcebergMapper(storage.metadata.sft, storage.metadata.schemes.toSeq.sortBy(_.name), storage.context)
+            val fileMapper = IcebergSchemaMapper(storage.metadata.sft, storage.metadata.schemes.toSeq.sortBy(_.name), storage.context)
             val partitions = storage.metadata.getFiles().map(f => fileMapper.partition(f)).toSet
             time match {
               case "year" =>
@@ -116,7 +116,7 @@ class IcebergCompatibilityTest extends SpecificationWithJUnit with FsContainerTe
                 )
             }
 
-            val mapper = IcebergMapper(ds.storage(time).metadata.sft, ds.storage(time).metadata.schemes.toSeq.sortBy(_.name), ds.storage(time).context)
+            val mapper = IcebergSchemaMapper(ds.storage(time).metadata.sft, ds.storage(time).metadata.schemes.toSeq.sortBy(_.name), ds.storage(time).context)
             mapper.spec.fields().asScala must haveLength(2)
 
             val table =

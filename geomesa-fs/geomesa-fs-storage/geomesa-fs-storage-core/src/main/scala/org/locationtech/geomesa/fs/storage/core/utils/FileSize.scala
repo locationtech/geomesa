@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.fs.storage.core
 package utils
 
+import org.apache.iceberg.Table
 import org.locationtech.geomesa.fs.storage.core.Metadata
-import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeEstimator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.FileSizeEstimator
@@ -21,16 +21,16 @@ import java.net.URI
 /**
  * Utility for tracking target file sizes
  *
- * @param fs filesystem - note, not cleaned up, must be closed externally
- * @param metadata metadata
+ * @param table table, not cleaned up, must be closed externally
  */
-class FileSize(fs: ObjectStore, metadata: StorageMetadata) {
+class FileSize(table: Table) {
 
   private val fileSizeError = FileSize.FileSizeErrorThreshold.toFloat.get
 
-  private var averageBytesPerFeature = metadata.get(FileSize.BytesPerFeature) match {
+  private var averageBytesPerFeature = Metadata.get(table)(FileSize.BytesPerFeature) match {
     case Some(b) => b.toFloat
-    case None    => (metadata.sft.getAttributeCount + 1) * 1.6f // 1.6 taken from some sample data estimates...
+    // TODO ensure idToName is populated correctly?
+    case None    => (table.schema().idToName().size() + 1) * 1.6f // 1.6 taken from some sample data estimates...
   }
 
   /**
@@ -38,17 +38,19 @@ class FileSize(fs: ObjectStore, metadata: StorageMetadata) {
    *
    * @return
    */
-  def targetSize: Option[Long] = metadata.get(Metadata.TargetFileSize).map(_.toLong)
+  def targetSize: Option[Long] = Metadata.get(table)(Metadata.TargetFileSize).map(_.toLong)
 
   /**
    * Check if a file is already the desired size
+   *
+   * TODO maybe pass InputFile or DataFile instead?
    *
    * @param path file path
    * @param target target file size
    * @return true if the file is appropriately sized
    */
   def fileIsSized(path: URI, target: Long): Boolean = {
-    val size = fs.size(path)
+    val size = table.io().newInputFile(path.toString).getLength
     math.abs((size.toDouble / target) - 1d) <= fileSizeError
   }
 
@@ -64,11 +66,11 @@ class FileSize(fs: ObjectStore, metadata: StorageMetadata) {
     }
 
   private def updateFileSize(bytesPerFeature: Float): Unit = {
-    if (metadata.get(FileSize.UseDynamicSizing).forall(_.toBoolean)) {
+    if (Metadata.get(table)(FileSize.UseDynamicSizing).forall(_.toBoolean)) {
       synchronized {
         if (math.abs((bytesPerFeature / averageBytesPerFeature) - 1f) > fileSizeError) {
           averageBytesPerFeature = bytesPerFeature
-          metadata.set(FileSize.BytesPerFeature, java.lang.Float.toString(bytesPerFeature))
+          Metadata.set(table)(FileSize.BytesPerFeature, java.lang.Float.toString(bytesPerFeature))
         }
       }
     }
@@ -76,7 +78,7 @@ class FileSize(fs: ObjectStore, metadata: StorageMetadata) {
 }
 
 object FileSize {
-
+ // TODO when to require the prefix
   val BytesPerFeature  = "bytes-per-feature"
   val UseDynamicSizing = "use-dynamic-sizing"
 

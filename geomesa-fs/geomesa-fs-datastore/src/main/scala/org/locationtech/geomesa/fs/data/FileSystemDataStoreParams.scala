@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.data
 
 import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorage
-import org.locationtech.geomesa.fs.storage.core.{FileSystemStorageFactory, StorageMetadataCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorageFactory, StorageCatalog}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.security.SecurityParams
@@ -47,10 +47,10 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
 
   val MetadataTypeParam =
     new GeoMesaParam[String](
-      StorageMetadataCatalog.MetadataTypeConfig,
+      StorageCatalog.MetadataTypeConfig,
       "Type of metadata to use",
       default = "", // needed to prevent geoserver from selecting something
-      enumerations = StorageMetadataCatalog.types,
+      enumerations = StorageCatalog.types,
       supportsNiFiExpressions = true,
       readWrite = ReadWriteFlag.ReadWrite,
     )

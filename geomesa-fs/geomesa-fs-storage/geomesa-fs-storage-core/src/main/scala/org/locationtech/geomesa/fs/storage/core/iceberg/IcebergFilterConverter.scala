@@ -23,20 +23,32 @@ import scala.reflect.ClassTag
 
 object IcebergFilterConverter {
 
-  def apply(sft: SimpleFeatureType, filter: Filter): Expression = {
+  /**
+   * Returns an iceberg expression and a residual GeoTools filter that isn't captured by the expression (if any)
+   *
+   * @param sft simple feature type
+   * @param filter geotools filter
+   * @return
+   */
+  def apply(sft: SimpleFeatureType, filter: Filter): (Expression, Option[Filter]) = {
     if (filter == Filter.INCLUDE) {
-      Expressions.alwaysTrue()
+      (Expressions.alwaysTrue(), None)
     } else if (filter == Filter.EXCLUDE) {
-      Expressions.alwaysFalse()
+      (Expressions.alwaysFalse(), None)
     } else {
       val names = FilterHelper.propertyNames(filter)
-      names.foldLeft[Expression](Expressions.alwaysTrue()) { case (e, name) => Expressions.and(e, convert(sft, filter, name)) }
+      names.foldLeft[(Expression, Option[Filter])](Expressions.alwaysTrue(), Some(filter))(reduce(sft))
     }
   }
 
-  private def convert(sft: SimpleFeatureType, filter: Filter, name: String): Expression = {
+  private def reduce(sft: SimpleFeatureType)(result: (Expression, Option[Filter]), name: String): (Expression, Option[Filter]) = {
+    val (iceberg, geotools) = result
+    val filter = geotools.orNull
+    if (filter == null) {
+      return result // no more filter to evaluate
+    }
     val bindings = ObjectType.selectType(sft.getDescriptor(name))
-    bindings.head match {
+    val (predicate, remaining): (Expression, Option[Filter]) = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates
       case ObjectType.GEOMETRY => spatial(sft, name, filter)
       case ObjectType.DATE     => attribute(sft, name, filter)
@@ -46,13 +58,15 @@ object IcebergFilterConverter {
       case ObjectType.FLOAT    => attribute(sft, name, filter)
       case ObjectType.DOUBLE   => attribute(sft, name, filter)
       case ObjectType.BOOLEAN  => attribute(sft, name, filter)
-      case _ => Expressions.alwaysTrue()
+      case _ => (Expressions.alwaysTrue(), geotools)
     }
+    (Expressions.and(predicate, iceberg), remaining)
   }
 
-  private def spatial(sft: SimpleFeatureType, name: String, filter: Filter): Expression = {
-    val (spatial, _) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
-    val xyBounds = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
+  private def spatial(sft: SimpleFeatureType, name: String, filter: Filter): (Expression, Option[Filter]) = {
+    val (spatial, nonSpatial) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
+    val bounds = spatial.map(FilterHelper.extractGeometries(_, name))
+    val xyBounds = bounds.flatMap { extracted =>
       Some(extracted).filter(e => e.nonEmpty && !e.disjoint).map { e =>
         e.values.map(GeometryUtils.bounds).reduce { (a, b) =>
           (math.min(a._1, b._1), math.min(a._2, b._2), math.max(a._3, b._3), math.max(a._4, b._4))
@@ -63,18 +77,21 @@ object IcebergFilterConverter {
     // filter against the bbox field
     val bboxGroup = BoundingBoxField(name).bbox
     val predicate = xyBounds.map { case (xmin, ymin, xmax, ymax) =>
-      Seq(
+      val exps = Seq(
         Expressions.lessThanOrEqual(s"$bboxGroup.${BoundingBoxField.XMin}", Float.box(xmax.toFloat)),
         Expressions.greaterThanOrEqual(s"$bboxGroup.${BoundingBoxField.XMax}", Float.box(xmin.toFloat)),
         Expressions.lessThanOrEqual(s"$bboxGroup.${BoundingBoxField.YMin}", Float.box(ymax.toFloat)),
         Expressions.greaterThanOrEqual(s"$bboxGroup.${BoundingBoxField.YMax}", Float.box(ymin.toFloat))
-      ).reduce(Expressions.and)
+      )
+      exps.reduce(Expressions.and)
     }
-    predicate.reduce(Expressions.or)
+
+    val remaining = if (bounds.exists(_.precise)) { nonSpatial } else { Some(filter) }
+    (predicate.reduce(Expressions.or), remaining)
   }
 
-  private def attribute[T : ClassTag](sft: SimpleFeatureType, name: String, filter: Filter): Expression = {
-    val (attribute, _) = FilterExtractingVisitor(filter, name, sft)
+  private def attribute[T : ClassTag](sft: SimpleFeatureType, name: String, filter: Filter): (Expression, Option[Filter]) = {
+    val (attribute, nonAttribute) = FilterExtractingVisitor(filter, name, sft)
     val binding = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
     val bounds = attribute.map(FilterHelper.extractAttributeBounds(_, name, binding))
     val predicate = bounds.flatMap { extracted =>
@@ -101,7 +118,8 @@ object IcebergFilterConverter {
         merge(filters)
       }
     }
-    predicate.getOrElse(Expressions.alwaysTrue())
+    val remaining = if (bounds.exists(_.precise)) { nonAttribute } else { Some(filter) }
+    (predicate.getOrElse(Expressions.alwaysTrue()), remaining)
   }
 
   /**
