@@ -13,7 +13,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractMutableSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.iceberg.RecordSimpleFeature.RecordConverter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.{GeoParquetNative, GeoParquetWkb}
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.{ColumnName, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
@@ -42,22 +42,42 @@ class RecordSimpleFeature(sft: SimpleFeatureType, fields: Array[RecordConverter]
 
 object RecordSimpleFeature {
 
-  type RecordFeatureFactory = Record => SimpleFeature
-
   def apply(schema: SimpleFeatureParquetSchema): RecordFeatureFactory = {
-    val vis = if (schema.hasVisibilities) { 1 } else { -1 }
-    var offset = if (schema.hasVisibilities) { 1 } else { 0 }
-    val converters = Array.tabulate(schema.sft.getAttributeCount) { i =>
-      offset += 1
-      schema.sft.getDescriptor(i).getType.getBinding match {
-        case b if classOf[Geometry].isAssignableFrom(b) && schema.geometries == GeoParquetWkb => new GeometryWkbConvert(offset)
-        case b if classOf[Geometry].isAssignableFrom(b) && schema.geometries == GeoParquetNative => ???
-        case b if classOf[Date].isAssignableFrom(b) => new DateConvert(offset)
-        case _ => new DirectConverter(offset)
+    var i = 0
+    var vis = 1
+    var offset = 2 // 0 is fid, 1 is vis
+    if (!schema.hasVisibilities) {
+      vis = -1
+      offset = 1
+    }
+    val converters = Array.ofDim[RecordConverter](schema.sft.getAttributeCount)
+    while (i < converters.length) {
+      val descriptor = schema.sft.getDescriptor(i)
+      descriptor.getType.getBinding match {
+        case b if classOf[Geometry].isAssignableFrom(b) =>
+          schema.geometries match {
+            case GeoParquetWkb => converters(i) = new GeometryWkbConvert(offset)
+            case GeoParquetNative => ??? // TODO
+            case _ => throw new UnsupportedOperationException("An implementation is missing")
+          }
+          val col = ColumnName(descriptor.getLocalName)
+          if (schema.bboxes.fields.exists(_.geometry == col)) {
+            offset += 1
+          }
+
+        case b if classOf[Date].isAssignableFrom(b) => converters(i) = new DateConvert(offset)
+        case _ => converters(i) = new DirectConverter(offset)
       }
+      offset += 1
+      i += 1
     }
 
-    record => new RecordSimpleFeature(schema.sft, converters, vis, record)
+    new RecordFeatureFactory(schema.sft, converters, vis)
+  }
+
+  class RecordFeatureFactory(sft: SimpleFeatureType, converters: Array[RecordConverter], vis: Int)
+      extends (Record => SimpleFeature) {
+    override def apply(record: Record): SimpleFeature = new RecordSimpleFeature(sft, converters, vis, record)
   }
 
   private sealed trait RecordConverter extends (Record => AnyRef) with ((Record, AnyRef) => Unit)

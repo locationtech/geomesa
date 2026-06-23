@@ -16,7 +16,8 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.function.XZ2Function
-import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.{SpatialPartitionSchemeFactory, ZValueField}
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.ZValues.ZValueField
+import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.jts.geom.Geometry
 
 /**

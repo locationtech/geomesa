@@ -20,10 +20,15 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema.{LogicalTypeAnnotation, MessageType, Type, Types}
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergFilterConverter.ReadFilter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.BoundingBoxes.BoundingBoxField
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema.{FeatureIdField, VisibilitiesField}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.ZValues.ZValueField
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.Transform.{ExpressionTransform, PropertyTransform, RenameTransform, Transforms}
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -48,7 +53,53 @@ case class SimpleFeatureParquetSchema(
     metadata: java.util.Map[String, String],
     schema: MessageType) {
 
+  import scala.collection.JavaConverters._
+
   val iceberg: Schema = SimpleFeatureParquetSchema.icebergSchema(this)
+
+  /**
+   * Gets the schema needed for reading a file
+   *
+   * @param transform query transform definition
+   * @param filtered columns that have filters against them
+   * @return
+   */
+  def read(transform: Option[String], filtered: Set[String]): SimpleFeatureParquetSchema = {
+    val readCols = {
+      val projection = transform match {
+        case None => sft.getAttributeDescriptors.asScala.map(_.getLocalName)
+        case Some(defs) =>
+          Transforms(sft, defs).flatMap {
+            case t: PropertyTransform => Seq(sft.getDescriptor(t.i).getLocalName)
+            case t: RenameTransform => Seq(sft.getDescriptor(t.i).getLocalName)
+            case t: ExpressionTransform => FilterHelper.propertyNames(t.expression, sft)
+            case t => throw new UnsupportedOperationException(s"An implementation is missing: ${t.getClass}")
+          }
+      }
+      (projection.map(ColumnName.apply) ++ filtered).distinct
+    }
+    // note: columns from iceberg scans are returned in the original order
+    val readSft = if (transform.isEmpty) { sft } else {
+      val builder = new SimpleFeatureTypeBuilder()
+      sft.getAttributeDescriptors.asScala.foreach { descriptor =>
+        if (readCols.contains(ColumnName(descriptor.getLocalName))) {
+          builder.add(descriptor)
+        }
+      }
+      builder.setName(sft.getName)
+      val readSft = builder.buildFeatureType()
+      readSft.getUserData.putAll(sft.getUserData)
+      readSft
+    }
+    val readBboxes = BoundingBoxes(bboxes.fields.filter(b => filtered.contains(b.bbox)))
+    val readSchema = {
+      val fieldNames = (Seq(FeatureIdField) ++ Option(VisibilitiesField).filter(_ => hasVisibilities) ++ readCols).toSet
+      val fields = schema.getFields.asScala.filter(f => fieldNames.contains(f.getName))
+      new MessageType(schema.getName, fields.asJava)
+    }
+    // note: we don't read z cols, they're just used for partitioning
+    SimpleFeatureParquetSchema(readSft, geometries, hasVisibilities, readBboxes, ZValues(Seq.empty), metadata, readSchema)
+  }
 
   /**
     * Gets the name of the parquet field for the given simple feature type attribute

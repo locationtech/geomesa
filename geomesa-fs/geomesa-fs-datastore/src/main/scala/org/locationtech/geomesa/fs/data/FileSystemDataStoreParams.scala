@@ -27,6 +27,7 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
   val WriterFileTimeout: SystemProperty = SystemProperty("geomesa.fs.writer.partition.timeout")
   val WritersMaxOpenPartitions: SystemProperty = SystemProperty("geomesa.fs.writer.partitions.max.open")
 
+  // TODO expose iceberg.catalog-impl, etc as direct parameters
   val PathParam =
     new GeoMesaParam[String](
       "fs.path",

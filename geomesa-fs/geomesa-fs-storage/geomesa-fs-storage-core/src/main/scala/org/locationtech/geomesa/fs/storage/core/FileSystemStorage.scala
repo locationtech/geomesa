@@ -20,12 +20,13 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, IcebergParquetScan, RecordSimpleFeature}
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.core.parquet.io.{IcebergOutputFile, ParquetFileSystemWriter}
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.{ColumnName, SimpleFeatureParquetSchema}
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeEstimator
@@ -33,6 +34,7 @@ import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.Transform.{PropertyTransform, Transforms}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, WithClose}
 
 import java.io.{Closeable, Flushable}
@@ -99,46 +101,53 @@ case class FileSystemStorage(
   def getReader(query: Query, threads: Int): CloseableFeatureIterator = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    // TODO our query transforms don't account for fields needed for filtering
     val configured = QueryRunner.configureQuery(sft, query)
     val filter = Option(configured.getFilter).getOrElse(Filter.INCLUDE)
-    val (icebergFilter, clientSideFilter) = IcebergFilterConverter(sft, filter)
+    val icebergFilter = IcebergFilterConverter(sft, filter)
     val visFilter = VisibilityUtils.visible(authProvider)
     val transform = configured.getHints.getTransform
     val sort = configured.getHints.getSortFields
     val max = configured.getHints.getMaxFeatures
-    val readSft = transform.fold(sft)(_._2)
+    // note: readSchema keeps the columns in the original order, not the transform order
+    val readSchema = schema.read(transform.map(_._1), icebergFilter.columns)
+    val sfFactory = RecordSimpleFeature(readSchema)
 
     logger.debug(s"Running query '${query.getTypeName}' ${ECQL.toCQL(filter)}")
     logger.debug(s"  Original filter: ${ECQL.toCQL(query.getFilter)}")
     logger.debug(s"  Push-down filter: $icebergFilter")
-    logger.debug(s"  Client-side filter: ${clientSideFilter.fold("non")(ECQL.toCQL)}")
+    logger.debug(s"  Client-side filter: ${icebergFilter.remainder.fold("non")(ECQL.toCQL)}")
     logger.debug(s"  Transforms: ${transform.fold("none") { case (t, _) => if (t.isEmpty) { "empty" } else { t }}}")
     logger.debug(s"  Sort: ${sort.fold("none") { fields => fields.map { case (f, rev) => s"$f ${if (rev) "descending" else ""}"}.mkString(", ")}}")
     logger.debug(s"  Max features: ${max.getOrElse("none")}")
 
-    val tableScan = table.newScan().filter(icebergFilter)
-
-    // TODO this will work for simple projections but not for complex transforms involving functions and such
-    // TODO this also won't work if a field is being filtered but not returned
-    // TODO bbox cols? not sure if we need to return them if we're filtering on them or not
-    transform.foreach { case (_, tsft) =>
-      val cols = Seq.newBuilder[String]
-      cols += SimpleFeatureParquetSchema.FeatureIdField
-      // TODO consolidate schema classes, this is a little round-about
-      if (schema.hasVisibilities) {
-        cols += SimpleFeatureParquetSchema.VisibilitiesField
-      }
-      tsft.getAttributeDescriptors.asScala.foreach(d => cols += ColumnName(d.getLocalName))
-      tableScan.select(cols.result().asJava)
-    }
-    val sfFactory = RecordSimpleFeature(schema) // TODO this doesn't include transforms
+    val tableScan =
+      table.newScan()
+        .filter(icebergFilter.expression)
+        .select(readSchema.iceberg.columns().asScala.map(_.name()).asJava) // exclude z2 cols even if there's no transform
 
     val scan = new IcebergParquetScan(tableScan, threads)
     try {
       val iter = scan.map(sfFactory.apply).filter(visFilter.apply)
-      val filtered = clientSideFilter.map(FastFilterFactory.optimize(readSft, _)).fold(iter)(f => iter.filter(f.evaluate))
-      val sorted = sort.fold(filtered)(s => new SortingSimpleFeatureIterator(filtered, s))
+      // apply any client side filter
+      val filtered =
+        icebergFilter.remainder.map(FastFilterFactory.optimize(readSchema.sft, _)).fold(iter)(f => iter.filter(f.evaluate))
+      // transform again as necessary to remove any cols needed for filtering, and/or to evaluate complex expressions
+      val transformed = transform.fold(filtered) { case (tdefs, tsft) =>
+        val transforms = Transforms(readSchema.sft, tdefs)
+        if (tsft == readSchema.sft && transforms.forall(_.isInstanceOf[PropertyTransform])) {
+          // simple case where transform is handled by the iceberg scan
+          filtered
+        } else {
+          // need to re-order cols, remove filtering-only cols, evaluate transform expressions, etc
+          val transformFeature = TransformSimpleFeature(tsft, transforms)
+          filtered.map { sf =>
+            transformFeature.setFeature(sf)
+            transformFeature
+          }
+        }
+      }
+      // sort and limit
+      val sorted = sort.fold(transformed)(s => new SortingSimpleFeatureIterator(transformed, s))
       val limited = max.fold(sorted)(m => sorted.take(m))
       limited
     } catch {
@@ -169,104 +178,6 @@ case class FileSystemStorage(
     throw new UnsupportedOperationException() // TODO
 //    new FileSystemUpdateWriter(filter, threads)
   }
-
-//  /**
-//   * Register a new file with this storage instance. The file must already be in a compatible format.
-//   *
-//   * @param file file to register
-//   * @return registered file
-//   */
-//  def register(file: URI): DataFile = {
-//    val reader = createReader(None, None)
-//    val partitions = new java.util.HashSet[Partition]()
-//    val filePath = WithClose(reader.read(file)) { iter =>
-//      if (!iter.hasNext) {
-//        throw new RuntimeException("Could not read any features from input file")
-//      }
-//      iter.foreach { sf =>
-//        partitions.add(Partition(metadata.schemes.map(_.getPartition(sf))))
-//      }
-//      FileSystemStorage.newFilePath(metadata.sft.getTypeName, FileContent.DATA, "parquet")
-//    }
-//    if (partitions.size() != 1) {
-//      throw new IllegalArgumentException(s"File corresponds to multiple partitions: ${partitions.asScala.mkString(" AND ")}")
-//    }
-//
-//    val partition = partitions.iterator().next()
-//    val destination = context.root.resolve(filePath)
-//    logger.debug(s"Copying $file to $destination")
-//    fs.copy(file, destination)
-//
-//    val dataFile = metadata.createDataFile(filePath, partition)
-//    metadata.addFile(dataFile)
-//    dataFile
-//  }
-
-  /**
-   * Compact a partition - merge multiple data files into a single file.
-   *
-   * Care should be taken with this method. Currently, there is no guarantee for correct behavior if
-   * multiple threads or storage instances attempt to compact the same partition simultaneously.
-   *
-   * @param partition partition to compact, or all partitions
-   * @param threads suggested threads to use for file system operations
-   */
-//  def compact(partition: Partition, threads: Int = 1): Unit = {
-//    val files = metadata.getFiles(partition)
-//    val toCompact = sizer.targetSize match {
-//      case None => files
-//      case Some(t) =>
-//        files.filter { f =>
-//          val filePath = f.location() // DataFile.location() returns full URI
-//          if (this.sizer.fileIsSized(java.net.URI.create(filePath), t)) {
-//            logger.debug(s"Skipping compaction for file [$filePath] (already target size)")
-//            false
-//          } else {
-//            true
-//          }
-//        }
-//    }
-//
-//    if (toCompact.isEmpty) {
-//      logger.debug("Skipping compaction - no files to compact")
-//    } else {
-//      logger.debug(s"Compacting data files: [${toCompact.map(_.location()).mkString(", ")}]")
-//
-//      var written = 0L
-//
-//      val reader = createReader(None, None)
-//      // tracks newly added files so we can register them atomically
-//      val fileTracker = new FileTracker(metadata)
-//
-//      WithClose(createWriter(partition, org.apache.iceberg.FileContent.DATA, fileTracker)) { writer =>
-//        WithClose(FileSystemThreadedReader(reader, toCompact, threads)) { reader =>
-//          while (reader.hasNext) {
-//            val feature = reader.next()
-//            writer.write(feature)
-//            written += 1
-//          }
-//        }
-//      }
-//
-//      logger.debug(s"Updating metadata with new files: [${fileTracker.getFiles().map(_.location()).mkString(", ")}]")
-//      metadata.replaceFiles(toCompact, fileTracker.getFiles())
-//
-//      logger.debug(s"Deleting old files [${toCompact.mkString(", ")}]")
-//      val failures = ArrayBuffer.empty[String]
-//      toCompact.foreach { file =>
-//        val path = new URI(file.location())
-//        if (Try(fs.delete(path)).isFailure) {
-//          failures.append(file.location())
-//        }
-//      }
-//
-//      if (failures.nonEmpty) {
-//        logger.error(s"Failed to delete some files: [${failures.mkString(", ")}]")
-//      }
-//
-//      logger.debug(s"Compacted $written records")
-//    }
-//  }
 
   override def close(): Unit = CloseWithLogging(Option(table).collect { case c: Closeable => c })
 
@@ -321,86 +232,6 @@ case class FileSystemStorage(
     }
   }
 
-//  /**
-//   * Update writer implementation
-//   *
-//   * @param filter update filter
-//   * @param threads query threads
-//   */
-//  class FileSystemUpdateWriter(filter: Filter, threads: Int) extends Iterator[SimpleFeature] with Closeable with Flushable  {
-//
-//    private val reader = getReader(new Query(metadata.sft.getTypeName, filter), threads)
-//
-//    // TODO limit number of open writers
-//    private val appenders = Caffeine.newBuilder().build(
-//      new CacheLoader[Set[PartitionKey], FileSystemWriter]() {
-//        override def load(key: Set[PartitionKey]): FileSystemWriter =
-//          createWriter(Partition(key), org.apache.iceberg.FileContent.DATA, metadata)
-//      }
-//    )
-//    // Legacy modification support - still uses DATA files with m_ prefix for backward compatibility
-//    // TODO: Consider refactoring to use proper Iceberg update semantics (delete + rewrite)
-//    private val modifiers = Caffeine.newBuilder().build(
-//      new CacheLoader[Set[PartitionKey], FileSystemWriter]() {
-//        override def load(key: Set[PartitionKey]): FileSystemWriter =
-//          createWriter(Partition(key), org.apache.iceberg.FileContent.DATA, metadata)
-//      }
-//    )
-//    // Delete files use Iceberg EQUALITY_DELETES content type
-//    private val deleters = Caffeine.newBuilder().build(
-//      new CacheLoader[Set[PartitionKey], FileSystemWriter]() {
-//        override def load(key: Set[PartitionKey]): FileSystemWriter =
-//          createWriter(Partition(key), org.apache.iceberg.FileContent.EQUALITY_DELETES, metadata)
-//      }
-//    )
-//
-//    private var feature: SimpleFeature = _
-//    private var partition: Set[PartitionKey] = _
-//
-//    /**
-//     * Writes a modification to the last feature returned by `next`
-//     */
-//    def write(): Unit = {
-//      if (feature == null) {
-//        throw new IllegalArgumentException("Must call 'next' before calling 'write'")
-//      }
-//      val update = metadata.schemes.map(_.getPartition(feature))
-//      if (update == partition) {
-//        modifiers.get(update).write(feature)
-//      } else {
-//        // add a delete marker in the old partition, and an append in the new one, since we only track updates per-partition
-//        deleters.get(partition).write(feature)
-//        appenders.get(update).write(feature)
-//      }
-//      feature = null
-//    }
-//
-//    /**
-//     * Deletes the last feature returned by `next`
-//     */
-//    def remove(): Unit = {
-//      if (feature == null) {
-//        throw new IllegalArgumentException("Must call 'next' before calling 'remove'")
-//      }
-//      deleters.get(partition).write(feature)
-//      feature = null
-//    }
-//
-//    override def hasNext: Boolean = reader.hasNext
-//
-//    override def next(): SimpleFeature = {
-//      feature = reader.next() // note: our reader returns a mutable copy of the feature
-//      partition = metadata.schemes.map(_.getPartition(feature))
-//      feature
-//    }
-//
-//    override def flush(): Unit =
-//      FlushQuietly.raise(appenders.asMap().values().asScala.toSeq ++ modifiers.asMap().values().asScala ++ deleters.asMap().values().asScala)
-//
-//    override def close(): Unit =
-//      CloseQuietly.raise(Seq(reader) ++ appenders.asMap().values().asScala ++ modifiers.asMap().values().asScala ++ deleters.asMap().values().asScala)
-//  }
-
   /**
    * Helper for accessing metadata on files and partitions
    */
@@ -414,8 +245,8 @@ case class FileSystemStorage(
     def files(): Seq[DataFile] = WithClose(table.newScan().planFiles())(_.asScala.map(_.file()).toSeq)
 
     def files(partition: Partition): Seq[DataFile] = {
-      val filter = schemes.zip(partition.values).map(sp => sp._1.getCoveringExpression(sp._2)).reduce(Expressions.and)
-      WithClose(table.newScan().filter(filter).planFiles())(_.asScala.map(_.file()).toSeq)
+      val filters = schemes.zip(partition.values).map { case (s, p) => s.getCoveringExpression(p) }
+      WithClose(table.newScan().filter(filters.reduce(Expressions.and)).planFiles())(_.asScala.map(_.file()).toSeq)
     }
 
     private def partition(f: DataFile): Partition =
@@ -674,4 +505,184 @@ object FileSystemStorage extends LazyLogging {
      */
     def read(file: URI): Iterator[SimpleFeature] with Closeable
   }
+
+
+  //  /**
+  //   * Update writer implementation
+  //   *
+  //   * @param filter update filter
+  //   * @param threads query threads
+  //   */
+  //  class FileSystemUpdateWriter(filter: Filter, threads: Int) extends Iterator[SimpleFeature] with Closeable with Flushable  {
+  //
+  //    private val reader = getReader(new Query(metadata.sft.getTypeName, filter), threads)
+  //
+  //    // TODO limit number of open writers
+  //    private val appenders = Caffeine.newBuilder().build(
+  //      new CacheLoader[Set[PartitionKey], FileSystemWriter]() {
+  //        override def load(key: Set[PartitionKey]): FileSystemWriter =
+  //          createWriter(Partition(key), org.apache.iceberg.FileContent.DATA, metadata)
+  //      }
+  //    )
+  //    // Legacy modification support - still uses DATA files with m_ prefix for backward compatibility
+  //    // TODO: Consider refactoring to use proper Iceberg update semantics (delete + rewrite)
+  //    private val modifiers = Caffeine.newBuilder().build(
+  //      new CacheLoader[Set[PartitionKey], FileSystemWriter]() {
+  //        override def load(key: Set[PartitionKey]): FileSystemWriter =
+  //          createWriter(Partition(key), org.apache.iceberg.FileContent.DATA, metadata)
+  //      }
+  //    )
+  //    // Delete files use Iceberg EQUALITY_DELETES content type
+  //    private val deleters = Caffeine.newBuilder().build(
+  //      new CacheLoader[Set[PartitionKey], FileSystemWriter]() {
+  //        override def load(key: Set[PartitionKey]): FileSystemWriter =
+  //          createWriter(Partition(key), org.apache.iceberg.FileContent.EQUALITY_DELETES, metadata)
+  //      }
+  //    )
+  //
+  //    private var feature: SimpleFeature = _
+  //    private var partition: Set[PartitionKey] = _
+  //
+  //    /**
+  //     * Writes a modification to the last feature returned by `next`
+  //     */
+  //    def write(): Unit = {
+  //      if (feature == null) {
+  //        throw new IllegalArgumentException("Must call 'next' before calling 'write'")
+  //      }
+  //      val update = metadata.schemes.map(_.getPartition(feature))
+  //      if (update == partition) {
+  //        modifiers.get(update).write(feature)
+  //      } else {
+  //        // add a delete marker in the old partition, and an append in the new one, since we only track updates per-partition
+  //        deleters.get(partition).write(feature)
+  //        appenders.get(update).write(feature)
+  //      }
+  //      feature = null
+  //    }
+  //
+  //    /**
+  //     * Deletes the last feature returned by `next`
+  //     */
+  //    def remove(): Unit = {
+  //      if (feature == null) {
+  //        throw new IllegalArgumentException("Must call 'next' before calling 'remove'")
+  //      }
+  //      deleters.get(partition).write(feature)
+  //      feature = null
+  //    }
+  //
+  //    override def hasNext: Boolean = reader.hasNext
+  //
+  //    override def next(): SimpleFeature = {
+  //      feature = reader.next() // note: our reader returns a mutable copy of the feature
+  //      partition = metadata.schemes.map(_.getPartition(feature))
+  //      feature
+  //    }
+  //
+  //    override def flush(): Unit =
+  //      FlushQuietly.raise(appenders.asMap().values().asScala.toSeq ++ modifiers.asMap().values().asScala ++ deleters.asMap().values().asScala)
+  //
+  //    override def close(): Unit =
+  //      CloseQuietly.raise(Seq(reader) ++ appenders.asMap().values().asScala ++ modifiers.asMap().values().asScala ++ deleters.asMap().values().asScala)
+  //  }
+
+  //  /**
+  //   * Register a new file with this storage instance. The file must already be in a compatible format.
+  //   *
+  //   * @param file file to register
+  //   * @return registered file
+  //   */
+  //  def register(file: URI): DataFile = {
+  //    val reader = createReader(None, None)
+  //    val partitions = new java.util.HashSet[Partition]()
+  //    val filePath = WithClose(reader.read(file)) { iter =>
+  //      if (!iter.hasNext) {
+  //        throw new RuntimeException("Could not read any features from input file")
+  //      }
+  //      iter.foreach { sf =>
+  //        partitions.add(Partition(metadata.schemes.map(_.getPartition(sf))))
+  //      }
+  //      FileSystemStorage.newFilePath(metadata.sft.getTypeName, FileContent.DATA, "parquet")
+  //    }
+  //    if (partitions.size() != 1) {
+  //      throw new IllegalArgumentException(s"File corresponds to multiple partitions: ${partitions.asScala.mkString(" AND ")}")
+  //    }
+  //
+  //    val partition = partitions.iterator().next()
+  //    val destination = context.root.resolve(filePath)
+  //    logger.debug(s"Copying $file to $destination")
+  //    fs.copy(file, destination)
+  //
+  //    val dataFile = metadata.createDataFile(filePath, partition)
+  //    metadata.addFile(dataFile)
+  //    dataFile
+  //  }
+
+  //  /**
+  //   * Compact a partition - merge multiple data files into a single file.
+  //   *
+  //   * Care should be taken with this method. Currently, there is no guarantee for correct behavior if
+  //   * multiple threads or storage instances attempt to compact the same partition simultaneously.
+  //   *
+  //   * @param partition partition to compact, or all partitions
+  //   * @param threads suggested threads to use for file system operations
+  //   */
+  //  def compact(partition: Partition, threads: Int = 1): Unit = {
+  //    val files = metadata.getFiles(partition)
+  //    val toCompact = sizer.targetSize match {
+  //      case None => files
+  //      case Some(t) =>
+  //        files.filter { f =>
+  //          val filePath = f.location() // DataFile.location() returns full URI
+  //          if (this.sizer.fileIsSized(java.net.URI.create(filePath), t)) {
+  //            logger.debug(s"Skipping compaction for file [$filePath] (already target size)")
+  //            false
+  //          } else {
+  //            true
+  //          }
+  //        }
+  //    }
+  //
+  //    if (toCompact.isEmpty) {
+  //      logger.debug("Skipping compaction - no files to compact")
+  //    } else {
+  //      logger.debug(s"Compacting data files: [${toCompact.map(_.location()).mkString(", ")}]")
+  //
+  //      var written = 0L
+  //
+  //      val reader = createReader(None, None)
+  //      // tracks newly added files so we can register them atomically
+  //      val fileTracker = new FileTracker(metadata)
+  //
+  //      WithClose(createWriter(partition, org.apache.iceberg.FileContent.DATA, fileTracker)) { writer =>
+  //        WithClose(FileSystemThreadedReader(reader, toCompact, threads)) { reader =>
+  //          while (reader.hasNext) {
+  //            val feature = reader.next()
+  //            writer.write(feature)
+  //            written += 1
+  //          }
+  //        }
+  //      }
+  //
+  //      logger.debug(s"Updating metadata with new files: [${fileTracker.getFiles().map(_.location()).mkString(", ")}]")
+  //      metadata.replaceFiles(toCompact, fileTracker.getFiles())
+  //
+  //      logger.debug(s"Deleting old files [${toCompact.mkString(", ")}]")
+  //      val failures = ArrayBuffer.empty[String]
+  //      toCompact.foreach { file =>
+  //        val path = new URI(file.location())
+  //        if (Try(fs.delete(path)).isFailure) {
+  //          failures.append(file.location())
+  //        }
+  //      }
+  //
+  //      if (failures.nonEmpty) {
+  //        logger.error(s"Failed to delete some files: [${failures.mkString(", ")}]")
+  //      }
+  //
+  //      logger.debug(s"Compacted $written records")
+  //    }
+  //  }
+
 }

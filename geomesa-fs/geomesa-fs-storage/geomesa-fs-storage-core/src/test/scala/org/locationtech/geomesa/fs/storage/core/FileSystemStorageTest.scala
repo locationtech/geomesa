@@ -97,15 +97,15 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
 
   "FileSystemStorage" should {
     "read and write features" in {
-      val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
 
       val features = Seq.tabulate(10) { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, s"$i")
-        sf.setAttribute(3, s"POINT(4$i 5$i)")
-        sf.setAttribute(2, f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute(2, s"POINT(4$i 5$i)")
+        sf.setAttribute(3, f"2014-01-${i + 1}%02dT00:00:01.000Z")
         sf
       }
 
@@ -130,22 +130,21 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
 
           storage.files.partitions() must haveLength(writers.size)
 
-          // TODO
-          val transformsList = Seq(null/*, Array("name", "dtg", "geom")*//*, Array("geom"), Array("geom", "dtg"), Array("geom", "name")*/)
+          val transformsList = Seq(null, Array("name", "dtg", "geom"), Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
 
           val doTest = testQuery(storage, sft) _
 
           foreach(transformsList) { transforms =>
             doTest("INCLUDE", transforms, features)
-//            doTest("IN('0', '2')", transforms, Seq(features.head, features(2)))
-//            doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-//            doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
-//            doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
-//            doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-//            doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
-//            doTest("name < 'name5'", transforms, features.take(5))
-//            doTest("name = 'name5'", transforms, features.slice(5, 6))
-//            doTest("age < 5", transforms, features.take(5))
+            doTest("IN('0', '2')", transforms, Seq(features.head, features(2)))
+            doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
+            doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
+            doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
+            doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
+            doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
+            doTest("name < 'name5'", transforms, features.take(5))
+            doTest("name = 'name5'", transforms, features.slice(5, 6))
+            doTest("age < 5", transforms, features.take(5))
           }
 
           // verify we can load an existing storage

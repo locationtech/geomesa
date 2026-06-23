@@ -10,7 +10,6 @@ package org.locationtech.geomesa.fs.storage.core
 package schemes
 
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.utils.text.StringSerialization
 import org.locationtech.jts.geom.Geometry
 
 import java.util.regex.Pattern
@@ -50,50 +49,5 @@ object SpatialScheme {
     }
 
     def buildPartitionScheme(bits: Int, geom: String, geomIndex: Int): PartitionScheme
-  }
-
-
-  /**
-   * Holder for a z-value field, along with a reference back to the original geometry field
-   *
-   * @param geometry name of the original geometry field being covered
-   * @param zValue name of the z-value field
-   */
-  case class ZValueField(geometry: String, zValue: String)
-
-  object ZValueField {
-
-    val ZValueFieldPrefix = "__"
-    val Z2ValueFieldSuffix = "_z2__"
-    val XZ2ValueFieldSuffix = "_xz2__"
-
-    def z2(geometry: String, encoded: Boolean = false): ZValueField = {
-      val geom = if (encoded) { geometry } else { StringSerialization.alphaNumericSafeString(geometry) }
-      val zValue = s"$ZValueFieldPrefix$geom$Z2ValueFieldSuffix"
-      ZValueField(geom, zValue)
-    }
-
-    def xz2(geometry: String, encoded: Boolean = false): ZValueField = {
-      val geom = if (encoded) { geometry } else { StringSerialization.alphaNumericSafeString(geometry) }
-      val zValue = s"$ZValueFieldPrefix$geom$XZ2ValueFieldSuffix"
-      ZValueField(geom, zValue)
-    }
-
-    /**
-     * Creates a field name based on a z-value field
-     *
-     * @param field name of a potential z-value field
-     * @return
-     */
-    def fromFieldName(field: String): Option[ZValueField] = {
-      if (field.startsWith(ZValueFieldPrefix)) {
-        Seq(Z2ValueFieldSuffix, XZ2ValueFieldSuffix).collectFirst {
-          case suffix if field.endsWith(suffix) =>
-            ZValueField(field.substring(ZValueFieldPrefix.length, field.length - suffix.length), field)
-        }
-      } else {
-        None
-      }
-    }
   }
 }

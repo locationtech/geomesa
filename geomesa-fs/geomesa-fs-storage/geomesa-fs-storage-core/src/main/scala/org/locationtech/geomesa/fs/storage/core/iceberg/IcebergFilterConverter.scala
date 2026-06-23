@@ -31,25 +31,24 @@ object IcebergFilterConverter {
    * @param filter geotools filter
    * @return
    */
-  def apply(sft: SimpleFeatureType, filter: Filter): (Expression, Option[Filter]) = {
+  def apply(sft: SimpleFeatureType, filter: Filter): ReadFilter = {
     if (filter == Filter.INCLUDE) {
-      (Expressions.alwaysTrue(), None)
+      ReadFilter(Expressions.alwaysTrue(), None, Set.empty)
     } else if (filter == Filter.EXCLUDE) {
-      (Expressions.alwaysFalse(), None)
+      ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
     } else {
       val names = FilterHelper.propertyNames(filter)
-      names.foldLeft[(Expression, Option[Filter])](Expressions.alwaysTrue(), Some(filter))(reduce(sft))
+      names.foldLeft(ReadFilter(Expressions.alwaysTrue(), Some(filter), names.toSet))(reduce(sft))
     }
   }
 
-  private def reduce(sft: SimpleFeatureType)(result: (Expression, Option[Filter]), name: String): (Expression, Option[Filter]) = {
-    val (iceberg, geotools) = result
-    val filter = geotools.orNull
+  private def reduce(sft: SimpleFeatureType)(result: ReadFilter, name: String): ReadFilter = {
+    val filter = result.remainder.orNull
     if (filter == null) {
       return result // no more filter to evaluate
     }
     val bindings = ObjectType.selectType(sft.getDescriptor(name))
-    val (predicate, remaining): (Expression, Option[Filter]) = bindings.head match {
+    val predicate = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates
       case ObjectType.GEOMETRY => spatial(sft, name, filter)
       case ObjectType.DATE     => attribute[Date](sft, name, filter, Some(dateToMicros))
@@ -59,19 +58,17 @@ object IcebergFilterConverter {
       case ObjectType.FLOAT    => attribute[java.lang.Float](sft, name, filter)
       case ObjectType.DOUBLE   => attribute[java.lang.Double](sft, name, filter)
       case ObjectType.BOOLEAN  => attribute[java.lang.Boolean](sft, name, filter)
-      case _ => (Expressions.alwaysTrue(), geotools)
+      case _ => ReadFilter(Expressions.alwaysTrue(), result.remainder, Set.empty)
     }
-    (Expressions.and(predicate, iceberg), remaining)
+    ReadFilter(Expressions.and(predicate.expression, result.expression), predicate.remainder, predicate.columns ++ result.columns)
   }
 
-  private def spatial(sft: SimpleFeatureType, name: String, filter: Filter): (Expression, Option[Filter]) = {
+  private def spatial(sft: SimpleFeatureType, name: String, filter: Filter): ReadFilter = {
     val (spatial, nonSpatial) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
     val bounds = spatial.map(FilterHelper.extractGeometries(_, name))
-    val xyBounds = bounds.flatMap { extracted =>
-      Some(extracted).filter(e => e.nonEmpty && !e.disjoint).map { e =>
-        e.values.map(GeometryUtils.bounds).reduce { (a, b) =>
-          (math.min(a._1, b._1), math.min(a._2, b._2), math.max(a._3, b._3), math.max(a._4, b._4))
-        }
+    val xyBounds = bounds.toSeq.flatMap { extracted =>
+      Seq(extracted).filter(e => e.nonEmpty && !e.disjoint).flatMap { e =>
+        e.values.map(GeometryUtils.bounds)
       }
     }
 
@@ -88,20 +85,22 @@ object IcebergFilterConverter {
     }
 
     val remaining = if (bounds.exists(_.precise)) { nonSpatial } else { Some(filter) }
-    (predicate.reduce(Expressions.or), remaining)
+    val geomCol = if (bounds.exists(b => !b.precise)) { Some(ColumnName(name)) } else { None }
+    val bboxCol = if (predicate.nonEmpty) { Some(bboxGroup) } else { None }
+    ReadFilter(predicate.reduce(Expressions.or), remaining, (geomCol ++ bboxCol).toSet)
   }
 
   private def attribute[T : ClassTag](
       sft: SimpleFeatureType,
       name: String,
       filter: Filter,
-      transform: Option[T => Any] = None): (Expression, Option[Filter]) = {
+      transform: Option[T => Any] = None): ReadFilter = {
     val (attribute, nonAttribute) = FilterExtractingVisitor(filter, name, sft)
     val binding = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
     val bounds = attribute.map(FilterHelper.extractAttributeBounds(_, name, binding))
+    val col = ColumnName(name)
     val predicate = bounds.flatMap { extracted =>
       Some(extracted).filter(e => e.nonEmpty && !e.disjoint && e.values.forall(_.isBounded)).map { e =>
-        val col = ColumnName(name)
         val values = transform match {
           case None => e.values
           case Some(t) =>
@@ -131,7 +130,8 @@ object IcebergFilterConverter {
       }
     }
     val remaining = if (bounds.exists(_.precise)) { nonAttribute } else { Some(filter) }
-    (predicate.getOrElse(Expressions.alwaysTrue()), remaining)
+    val cols = if (predicate.isDefined || bounds.exists(b => !b.precise)) { Set(col) } else { Set.empty[String] }
+    ReadFilter(predicate.getOrElse(Expressions.alwaysTrue()), remaining, cols)
   }
 
   /**
@@ -160,4 +160,13 @@ object IcebergFilterConverter {
   }
 
   private def dateToMicros(date: Date): Long = date.getTime * 1000
+
+  /**
+   * Parts of a filter
+   *
+   * @param expression expression to apply to the scan
+   * @param remainder remaining cql filter that isn't captured by the expression
+   * @param columns column names (encoded) needed for evaluating both the expression and filter
+   */
+  case class ReadFilter(expression: Expression, remainder: Option[Filter], columns: Set[String])
 }

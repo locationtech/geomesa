@@ -15,7 +15,8 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.curve.Z2SFC
-import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.{SpatialPartitionSchemeFactory, ZValueField}
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.ZValues.ZValueField
+import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.jts.geom.Point
 
 case class Z2Scheme(attribute: String, index: Int, bits: Int) extends SpatialScheme {
