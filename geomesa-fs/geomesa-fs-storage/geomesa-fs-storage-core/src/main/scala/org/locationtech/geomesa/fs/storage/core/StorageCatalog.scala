@@ -8,10 +8,12 @@
 
 package org.locationtech.geomesa.fs.storage.core
 
+import org.apache.iceberg.PartitionSpec
 import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, TableIdentifier}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.StorageCatalog.IcebergProps
-import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergSchemaMapper
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -57,8 +59,8 @@ class StorageCatalog(val context: FileSystemContext) extends Closeable {
     val table = catalog.loadTable(tableId(typeName))
     val sft = SimpleFeatureTypes.createType(table.properties().get("geomesa.sft.name"), table.properties().get("geomesa.sft.spec"))
     val schemes = table.properties().get("geomesa.partition.spec").split(",").map(PartitionSchemeFactory.load(sft, _))
-    val mapper = new IcebergSchemaMapper(namespaced(sft, context.namespace), schemes, context)
-    new FileSystemStorage(table, mapper)
+    val schema = SimpleFeatureParquetSchema(sft, context.conf)
+    FileSystemStorage(context, table, schema, schemes)
   }
 
   /**
@@ -70,10 +72,9 @@ class StorageCatalog(val context: FileSystemContext) extends Closeable {
    * @return
    */
   def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long] = None): FileSystemStorage = {
+    val schema = SimpleFeatureParquetSchema(sft, context.conf)
     // load the partition scheme first in case it fails
-    // keep in sorted order as iceberg expects them to be consistent, but we store them as a set
     val schemes = partitions.map(PartitionSchemeFactory.load(sft, _)).sortBy(_.name)
-    val mapper = new IcebergSchemaMapper(namespaced(sft, context.namespace), schemes, context)
     val tableProps = Map(
       "geomesa.sft.name" -> sft.getTypeName,
       "geomesa.sft.spec" -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
@@ -87,8 +88,9 @@ class StorageCatalog(val context: FileSystemContext) extends Closeable {
         ns.createNamespace(namespace)
       }
     }
-    val table = catalog.createTable(tableId(sft.getTypeName), mapper.schema, mapper.spec, null, tableProps.asJava)
-    new FileSystemStorage(table, mapper)
+    val spec = schemes.foldLeft(PartitionSpec.builderFor(schema.iceberg))((b, m) => m.spec(b)).build()
+    val table = catalog.createTable(tableId(sft.getTypeName), schema.iceberg, spec, null, tableProps.asJava)
+    FileSystemStorage(context, table, schema, schemes)
   }
 
   override def close(): Unit = CloseWithLogging(Option(catalog).collect { case c: Closeable => c })

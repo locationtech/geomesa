@@ -98,55 +98,5 @@ class HashSchemeTest extends SpecificationWithJUnit {
       // the filter should match the feature
       filter.evaluate(sf1) must beTrue
     }
-
-    // getIntersectingPartitions tests
-
-    "calculate intersecting partitions for equality filters" in {
-      val ps = PartitionSchemeFactory.load(sft, "hash:buckets=8:attribute=name")
-      val filter = ECQL.toFilter("name = 'TestValue'")
-
-      val partitions = ps.getRangesForFilter(filter)
-      partitions must beSome
-      partitions.get must haveLength(1)
-      partitions.get.head.lower mustEqual "4"
-      partitions.get.head.upper mustEqual "4" + ZeroChar
-    }
-
-    "calculate intersecting partitions for string IN filters" in {
-      val ps = PartitionSchemeFactory.load(sft, "hash:buckets=8:attribute=name")
-      val filter = ECQL.toFilter("name IN ('test', 'another')")
-
-      val partitions = ps.getRangesForFilter(filter)
-      partitions must beSome
-      partitions.get must haveLength(2)
-
-      partitions.get must contain(PartitionRange(ps.name, "0", "0" + ZeroChar))
-      partitions.get must contain(PartitionRange(ps.name, "3", "3" + ZeroChar))
-    }
-
-    "not calculate intersecting partitions for range filter" in {
-      val ps = PartitionSchemeFactory.load(sft, "hash:buckets=8:attribute=name")
-      val filter = ECQL.toFilter("name >= 'a' AND name < 'z'")
-
-      val partitions = ps.getRangesForFilter(filter)
-      partitions must beNone
-    }
-
-    "return None for filters on unrelated attributes" in {
-      val ps = PartitionSchemeFactory.load(sft, "hash:buckets=8:attribute=name")
-      val filter = ECQL.toFilter("age = 10")
-
-      val partitions = ps.getRangesForFilter(filter)
-      partitions must beNone
-    }
-
-    "return empty partitions for disjoint filters" in {
-      val ps = PartitionSchemeFactory.load(sft, "hash:buckets=8:attribute=name")
-      val filter = ECQL.toFilter("name = 'test' AND name = 'other'")
-
-      val partitions = ps.getRangesForFilter(filter)
-      partitions must beSome
-      partitions.get must beEmpty
-    }
   }
 }

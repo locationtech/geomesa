@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.fs.storage.core
 package schemes
 
-import org.geotools.api.filter.{Filter, PropertyIsLessThan}
-import org.geotools.filter.text.ecql.ECQL
+import org.geotools.api.filter.PropertyIsLessThan
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.expression.AttributeExpression.FunctionLiteral
 import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
@@ -45,60 +44,6 @@ class Z2SchemeTest extends SpecificationWithJUnit {
 
       ps.getPartition(ScalaSimpleFeature.create(sft, "1", "POINT (10 10)")).value mustEqual "c0bd0"
       ps.getPartition(ScalaSimpleFeature.create(sft, "1", "POINT (-75 38)")).value mustEqual "9a6c4"
-    }
-
-    "get intersecting partitions with a 4 bit curve" in {
-      val ps = PartitionSchemeFactory.load(sft, "z2:bits=4")
-
-      val wholeWorld = ps.getRangesForFilter(ECQL.toFilter("bbox(geom, -180, -90, 180, 90)"))
-      wholeWorld must beSome
-      wholeWorld.get must haveSize(1)
-      wholeWorld.get.head mustEqual PartitionRange(ps.name, "0", "fz")
-
-      val nullIsland = ps.getRangesForFilter(ECQL.toFilter("bbox(geom, -1, -1, 1, 1)"))
-      nullIsland must beSome
-      nullIsland.get must haveSize(4)
-      nullIsland.get must contain(PartitionRange(ps.name, "3", "4"))
-      nullIsland.get must contain(PartitionRange(ps.name, "6", "7"))
-      nullIsland.get must contain(PartitionRange(ps.name, "9", "a"))
-      nullIsland.get must contain(PartitionRange(ps.name, "c", "d"))
-
-      val narrowNorth = ps.getRangesForFilter(ECQL.toFilter("bbox(geom, -10, 5, 10, 6)"))
-      narrowNorth must beSome
-      narrowNorth.get must haveSize(2)
-      narrowNorth.get must contain(PartitionRange(ps.name, "9", "a"))
-      narrowNorth.get must contain(PartitionRange(ps.name, "c", "d"))
-
-      val wideNorth = ps.getRangesForFilter(ECQL.toFilter("bbox(geom, -90, 5, 90, 6)"))
-      wideNorth must beSome
-      wideNorth.get must haveSize(2)
-      wideNorth.get must contain(PartitionRange(ps.name, "9", "a"))
-      wideNorth.get must contain(PartitionRange(ps.name, "c", "e"))
-
-      val edgeNorth = ps.getRangesForFilter(ECQL.toFilter("bbox(geom, -90.000000001, 5, 90, 6)"))
-      edgeNorth must beSome
-      edgeNorth.get must haveSize(2)
-      edgeNorth.get must contain(PartitionRange(ps.name, "8", "a"))
-      edgeNorth.get must contain(PartitionRange(ps.name, "c", "e"))
-
-      val edgeNorthWide = ps.getRangesForFilter(ECQL.toFilter("bbox(geom, -90.000000001, 5, 180, 6)"))
-      edgeNorthWide must beSome
-      edgeNorthWide.get must haveSize(2)
-      edgeNorthWide.get must contain(PartitionRange(ps.name, "8", "a"))
-      edgeNorthWide.get must contain(PartitionRange(ps.name, "c", "e"))
-    }
-
-    "enumerate partitions with a 4 bit curve" in {
-      val ps = PartitionSchemeFactory.load(sft, "z2:bits=4")
-      ps must beAnInstanceOf[Z2Scheme]
-      ps.asInstanceOf[Z2Scheme].bits mustEqual 4
-
-      val partitions = ps.getPartitionsForFilter(Filter.INCLUDE).orNull
-      partitions must not(beNull)
-      partitions must haveLength(16)
-      foreach(hex) { digit =>
-        partitions must contain(PartitionKey(ps.name, digit))
-      }
     }
 
     "calculate covering filters" in {

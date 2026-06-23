@@ -48,6 +48,8 @@ case class SimpleFeatureParquetSchema(
     metadata: java.util.Map[String, String],
     schema: MessageType) {
 
+  val iceberg: Schema = SimpleFeatureParquetSchema.icebergSchema(this)
+
   /**
     * Gets the name of the parquet field for the given simple feature type attribute
     *
@@ -55,8 +57,6 @@ case class SimpleFeatureParquetSchema(
     * @return
     */
   def field(i: Int): String = schema.getFields.get(i).getName
-
-  def iceberg: Schema = SimpleFeatureParquetSchema.icebergSchema(this)
 }
 
 object SimpleFeatureParquetSchema extends LazyLogging {

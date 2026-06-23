@@ -6,10 +6,13 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core
+package org.locationtech.geomesa.fs.storage.core.schemes
 
+import org.apache.iceberg.expressions.Expression
+import org.apache.iceberg.{PartitionSpec, StructLike}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.fs.storage.core.PartitionKey
 
 /**
  * Scheme for partitioning features into various named partitions (e.g. buckets) on disk, for
@@ -45,28 +48,13 @@ trait PartitionScheme {
   def getPartition(feature: SimpleFeature): PartitionKey
 
   /**
-   * Get partitions that intersect the given filter
+   * Gets the geomesa partition value for a given iceberg partition value
    *
-   * If the filter does not constrain partitions at all, then an empty option will be returned. If
-   * the filter excludes all potential partitions, then an empty list will be returned
-   *
-   * @param filter filter
-   * @return list of intersecting filters
+   * @param partition iceberg partition struct
+   * @param i offest into the partition struct
+   * @return geomesa partition value
    */
-  def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]]
-
-  /**
-   * Enumerate all the partitions that intersect with the given filter
-   *
-   * If the filter does not constrain partitions at all, then an empty option will be returned. If
-   * the filter excludes all potential partitions, then an empty list will be returned
-   *
-   * Note that this may return a large number of partitions if the filter is not very selective
-   *
-   * @param filter filter
-   * @return
-   */
-  def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]]
+  def getPartition(partition: StructLike, i: Int): PartitionKey
 
   /**
    * Get a filter that will cover a partitions, i.e. the filter will return all features
@@ -76,4 +64,21 @@ trait PartitionScheme {
    * @return filter
    */
   def getCoveringFilter(partition: PartitionKey): Filter
+
+  /**
+   * Get a filter that will cover a partitions, i.e. the filter will return all features
+   * in the given partition and none from other partitions
+   *
+   * @param partition partition to cover
+   * @return filter
+   */
+  def getCoveringExpression(partition: PartitionKey): Expression
+
+  /**
+   * Creates the iceberg partition spec
+   *
+   * @param b spec builder
+   * @return
+   */
+  def spec(b: PartitionSpec.Builder): PartitionSpec.Builder
 }

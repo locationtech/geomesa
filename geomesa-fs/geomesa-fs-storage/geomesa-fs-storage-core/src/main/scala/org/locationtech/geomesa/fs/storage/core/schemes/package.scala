@@ -12,7 +12,6 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.nio.charset.StandardCharsets
 import java.util.Locale
-import scala.collection.mutable.ArrayBuffer
 
 package object schemes {
 
@@ -49,44 +48,5 @@ package object schemes {
       val multiOpts = opts.collect { case (k, v) if v.lengthCompare(1) > 0 => k -> v.map(_._2).toSeq }
       SchemeOpts(name, singleOpts, multiOpts)
     }
-  }
-
-  /**
-   * Class to merge overlapping ranges.
-   *
-   * Our bounds extraction does not produce any overlapping ranges, but once converted to partitions there
-   * may be some overlap.
-   */
-  class RangeBuilder {
-
-    private val ranges = ArrayBuffer.empty[PartitionRange]
-
-    def +=(range: PartitionRange): Unit = ranges += range
-
-    def result(): Seq[PartitionRange] = {
-      val all = ranges.sorted(RangeBuilder.BoundsOrdering)
-      if (all.lengthCompare(1) <= 0) {
-        all.toSeq
-      } else {
-        // merge any overlapping ranges that resulted
-        val result = Seq.newBuilder[PartitionRange]
-        var current = all.head
-        all.tail.foreach { range =>
-          current.merge(range) match {
-            case None =>
-              result += current
-              current = range
-            case Some(merged) =>
-              current = merged
-          }
-        }
-        result += current
-        result.result()
-      }
-    }
-  }
-
-  object RangeBuilder {
-    private val BoundsOrdering = Ordering.by[PartitionRange, String](_.lower)
   }
 }

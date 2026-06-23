@@ -67,7 +67,7 @@ object RecordSimpleFeature {
     override def apply(record: Record, value: AnyRef): Unit = record.set(i, value)
   }
 
-  private case class DateConvert(i: Int) extends RecordConverter {
+  private class DateConvert(i: Int) extends RecordConverter {
     override def apply(record: Record): AnyRef = Date.from(record.get(i).asInstanceOf[OffsetDateTime].toInstant)
     override def apply(record: Record, value: AnyRef): Unit =
       record.set(i, OffsetDateTime.ofInstant(value.asInstanceOf[Date].toInstant, ZoneOffset.UTC))

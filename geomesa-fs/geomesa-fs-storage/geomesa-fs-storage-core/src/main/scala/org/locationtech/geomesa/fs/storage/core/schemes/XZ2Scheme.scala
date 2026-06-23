@@ -9,13 +9,14 @@
 package org.locationtech.geomesa.fs.storage.core
 package schemes
 
+import org.apache.iceberg.expressions.{Expression, Expressions}
+import org.apache.iceberg.{PartitionSpec, StructLike}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.function.XZ2Function
-import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.SpatialPartitionSchemeFactory
-import org.locationtech.geomesa.zorder.sfcurve.IndexRange
+import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.{SpatialPartitionSchemeFactory, ZValueField}
 import org.locationtech.jts.geom.Geometry
 
 /**
@@ -43,14 +44,13 @@ case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends SpatialSc
   // each level adds 2 bits (4 quadrants)
   private val partitionLevel = (bits / 2).toShort
   // number of hex digits used to represent our z value - bits = (xz2.g - partitionLevel) * 2, then divide by 4 to get hex
-  val digits: Int = xz2.hexDigits - ((xz2.g - partitionLevel) / 2)
+  private val digits = xz2.hexDigits - ((xz2.g - partitionLevel) / 2)
 
   override val name: String = s"${XZ2Scheme.name}:attribute=$attribute:bits=$bits"
 
   override def getPartition(feature: SimpleFeature): PartitionKey = {
     val envelope = feature.getAttribute(index).asInstanceOf[Geometry].getEnvelopeInternal
-    val zValue = xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
-    PartitionKey(name, truncateToPartition(zValue))
+    PartitionKey(name, xz2.hexEncode(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY).take(digits))
   }
 
   override def getCoveringFilter(partition: PartitionKey): Filter = {
@@ -61,9 +61,13 @@ case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends SpatialSc
     ff.between(ff.function(XZ2Function.FunctionName.getName), ff.literal(lower), ff.literal(upper))
   }
 
+  override def getCoveringExpression(partition: PartitionKey): Expression =
+    Expressions.equal[String](Expressions.truncate[String](ZValueField.xz2(attribute).zValue, digits), partition.value)
 
-  override protected def zRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[IndexRange] = xz2.ranges(xy)
-  override protected def truncateToPartition(z: Long): String = xz2.hexEncode(z).take(digits)
+  override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
+    b.truncate(ZValueField.xz2(attribute).zValue, digits)
+
+  override def getPartition(partition: StructLike, i: Int): PartitionKey = PartitionKey(name, partition.get(i, classOf[String]))
 }
 
 object XZ2Scheme extends SpatialPartitionSchemeFactory[Geometry]("xz2") {

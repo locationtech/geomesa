@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.fs.storage.core
 package schemes
 
+import org.apache.iceberg.expressions.{Expression, Expressions}
+import org.apache.iceberg.{PartitionSpec, StructLike}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.function.{BucketHashFunction, MurmurHashFunction}
-import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
-import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
 
 /**
  * Hash (bucket) scheme
@@ -38,49 +40,22 @@ case class HashScheme[T](attribute: String, index: Int, buckets: Int, hasher: Mu
     if (value == null) {
       default
     } else {
-      PartitionKey(name, toPartition(value.asInstanceOf[T]))
+      PartitionKey(name, format.format((hasher(value.asInstanceOf[T]) & Int.MaxValue) % buckets))
     }
   }
-
-  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = {
-    getBounds(filter).map { bounds =>
-      val builder = new RangeBuilder()
-      bounds.foreach { bound =>
-        // note: these are all equality values, as determined in getBounds
-        val lower = toPartition(bound.lower.value.get)
-        val upper = lower + ZeroChar
-        builder += PartitionRange(name, lower, upper)
-      }
-      builder.result()
-    }
-  }
-
-  override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = {
-    getBounds(filter).map { bounds =>
-      bounds.map { bound =>
-        // note: these are all equality values, as determined in getBounds
-        PartitionKey(name, toPartition(bound.lower.value.get))
-      }
-    }
-  }
-
-  private def getBounds(filter: Filter): Option[Seq[Bounds[T]]] = {
-    val bounds = FilterHelper.extractAttributeBounds(filter, attribute, hasher.binding)
-    if (bounds.isEmpty || bounds.exists(_.isRange)) {
-      None
-    } else if (bounds.disjoint) {
-      Some(Seq.empty)
-    } else {
-      Some(bounds.values)
-    }
-  }
-
-  private def toPartition(value: T): String = format.format((hasher(value) & Int.MaxValue) % buckets)
 
   override def getCoveringFilter(partition: PartitionKey): Filter = {
     val fn = BucketHashFunction.Name.getFunctionName
     ff.equals(ff.function(fn, ff.property(attribute), ff.literal(buckets)), ff.literal(partition.value.toInt))
   }
+
+  override def getCoveringExpression(partition: PartitionKey): Expression =
+    Expressions.equal(Expressions.bucket[Integer](ColumnName(attribute), buckets), Integer.valueOf(partition.value))
+
+  override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.bucket(ColumnName(attribute), buckets)
+
+  override def getPartition(partition: StructLike, i: Int): PartitionKey =
+    PartitionKey(name, format.format(partition.get(i, classOf[Integer])))
 }
 
 object HashScheme extends PartitionSchemeFactory {

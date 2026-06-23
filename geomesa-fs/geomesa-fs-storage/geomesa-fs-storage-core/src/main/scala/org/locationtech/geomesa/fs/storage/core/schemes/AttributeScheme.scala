@@ -9,39 +9,27 @@
 package org.locationtech.geomesa.fs.storage.core
 package schemes
 
-import org.calrissian.mango.types.{LexiTypeEncoders, TypeEncoder}
+import org.apache.iceberg.expressions.{Expression, Expressions}
+import org.apache.iceberg.{PartitionSpec, StructLike}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.AttributeScheme.Bucketing
-import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 
-import java.util.Locale
 import scala.reflect.ClassTag
 
-abstract class AttributeScheme[T: ClassTag](
-    val attribute: String,
-    index: Int,
-    defaultValue: Option[T],
-    allowedValues: Seq[T],
-    nullValue: T,
-    val bucketing: Option[Bucketing[T]],
-    lexicoder: TypeEncoder[T, String],
-  ) extends PartitionScheme {
-// TODO don't lower case
+abstract class AttributeScheme[T: ClassTag](val attribute: String, index: Int, nullValue: T, val bucketing: Option[Bucketing[T]])
+    extends PartitionScheme {
+
   override val name: String = {
     val opts = new StringBuilder(s"${AttributeScheme.Name}:attribute=$attribute")
     bucketing.foreach(b => opts.append(':').append(b.encoded))
-    defaultValue.filter(_ != nullValue).foreach(v => opts.append(':').append(s"default=$v"))
-    allowedValues.foreach(v => opts.append(':').append(s"allow=$v"))
     opts.toString()
   }
 
-  private val clas = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
-  private val default = PartitionKey(name, toPartition(defaultValue.getOrElse(nullValue)))
-  private val allowed = if (allowedValues.isEmpty) { Seq.empty } else { (allowedValues.map(toPartition) :+ default.value).distinct }
+  private val default = PartitionKey(name, toPartition(nullValue))
 
   override def getPartition(feature: SimpleFeature): PartitionKey = {
     val value = feature.getAttribute(index)
@@ -49,67 +37,22 @@ abstract class AttributeScheme[T: ClassTag](
       return default
     }
     val partition = toPartition(value.asInstanceOf[T])
-    if (allowed.isEmpty || allowed.contains(partition)) {
-      PartitionKey(name, partition)
-    } else {
-      default
-    }
+    PartitionKey(name, partition)
   }
 
-  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = {
-    getBounds(filter).map { bounds =>
-      val builder = new RangeBuilder()
-      bounds.foreach { bound =>
-        val lower = bound.lower.value.fold("")(toPartition)
-        val upper = exclusiveUpperBound(bound).getOrElse(AttributeScheme.UnboundedUpper)
-        builder += PartitionRange(name, lower, upper)
-      }
-      val all = builder.result()
-      if (allowed.isEmpty || all.isEmpty) { all } else {
-        allowed.collect { case v if all.exists(_.contains(v)) => PartitionRange(name, v, v + ZeroChar) }
-      }
-    }
+  override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = bucketing match {
+    case None => b.identity(ColumnName(attribute))
+    case Some(bucket) => b.truncate(ColumnName(attribute), bucket.width)
+    case _ => throw new UnsupportedOperationException("An implementation is missing")
   }
 
-  override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = {
-    getBounds(filter).map { bounds =>
-      bounds.flatMap { bound =>
-        if (!bound.isBoundedBothSides) {
-          throw new IllegalArgumentException(s"Filter does not constrain partitions for scheme $name: ${ECQL.toCQL(filter)} ")
-        }
-        enumerate(bound)
-      }
-    }
-  }
+  override def getPartition(partition: StructLike, i: Int): PartitionKey =
+    PartitionKey(name, partition.get(i, implicitly[ClassTag[T]].runtimeClass).toString)
 
-  protected def enumerate(bounds: Bounds[T]): Seq[PartitionKey]
-
-  protected def getBounds(filter: Filter): Option[Seq[Bounds[T]]] = {
-    val bounds = FilterHelper.extractAttributeBounds(filter, attribute, clas)
-    if (bounds.isEmpty) {
-      None
-    } else if (bounds.disjoint) {
-      Some(Seq.empty)
-    } else {
-      Some(bounds.values)
-    }
-  }
-
-  protected def toPartition(value: T): String = {
+  private def toPartition(value: T): String = {
     bucketing match {
-      case None => lexicoder.encode(value)
-      case Some(b) => lexicoder.encode(b(value))
-    }
-  }
-
-  protected def exclusiveUpperBound(bounds: Bounds[T]): Option[String] = {
-    bounds.upper.value.map { v =>
-      val encoded = toPartition(v)
-      if (bounds.upper.exclusive && bucketing.isEmpty) {
-        encoded
-      } else {
-        encoded + ZeroChar
-      }
+      case None => value.toString
+      case Some(b) => b(value).toString
     }
   }
 }
@@ -119,20 +62,6 @@ object AttributeScheme extends PartitionSchemeFactory {
   import FilterHelper.ff
 
   val Name = "attribute"
-
-  private val UnboundedUpper = Seq.fill(3)(Character.toString(Character.MAX_CODE_POINT)).mkString("")
-
-  private val IntEncoder = LexiTypeEncoders.integerEncoder().asInstanceOf[TypeEncoder[Int, String]]
-  private val LongEncoder = LexiTypeEncoders.longEncoder().asInstanceOf[TypeEncoder[Long, String]]
-  private val FloatEncoder = LexiTypeEncoders.floatEncoder().asInstanceOf[TypeEncoder[Float, String]]
-  private val DoubleEncoder = LexiTypeEncoders.doubleEncoder().asInstanceOf[TypeEncoder[Double, String]]
-
-  private object StringEncoder extends TypeEncoder[String, String]() {
-    override def getAlias: String = "string"
-    override def resolves(): Class[String] = classOf[String]
-    override def encode(value: String): String = value.toLowerCase(Locale.US)
-    override def decode(value: String): String = value
-  }
 
   override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
     val opts = SchemeOpts(scheme)
@@ -162,25 +91,20 @@ object AttributeScheme extends PartitionSchemeFactory {
           s"'scale' option is only supported for Float and Double-type attributes, not ${binding.getSimpleName}")
       }
 
-      val allowedValues = opts.getMulti("allow")
-      val defaultValue = opts.getSingle("default")
-      require(allowedValues.isEmpty || defaultValue.forall(allowedValues.contains),
-        "Default partition must be one of the allowed values")
-
       if (isString) {
-        Some(new StringScheme(attribute, index, width, defaultValue, allowedValues))
+        Some(new StringScheme(attribute, index, width))
       } else if (binding == classOf[Integer]) {
         val bucketing = divisor.map(IntegralBucketing.apply[Int])
-        Some(new IntScheme(attribute, index, bucketing, defaultValue.map(_.toInt), allowedValues.map(_.toInt)))
+        Some(new IntScheme(attribute, index, bucketing))
       } else if (binding == classOf[java.lang.Long]) {
         val bucketing = divisor.map(d => IntegralBucketing(d.toLong))
-        Some(new LongScheme(attribute, index, bucketing, defaultValue.map(_.toLong), allowedValues.map(_.toLong)))
+        Some(new LongScheme(attribute, index, bucketing))
       } else if (binding == classOf[java.lang.Float]) {
         val bucketing = scale.map(FractionalBucketing.apply[Float])
-        Some(new FloatScheme(attribute, index, bucketing, defaultValue.map(_.toFloat), allowedValues.map(_.toFloat)))
+        Some(new FloatScheme(attribute, index, bucketing))
       } else if (binding == classOf[java.lang.Double]) {
         val bucketing = scale.map(FractionalBucketing.apply[Double])
-        Some(new DoubleScheme(attribute, index, bucketing, defaultValue.map(_.toDouble), allowedValues.map(_.toDouble)))
+        Some(new DoubleScheme(attribute, index, bucketing))
       } else {
         throw new IllegalArgumentException(
           s"Attribute scheme is not supported for type ${binding.getSimpleName} - " +
@@ -202,17 +126,26 @@ object AttributeScheme extends PartitionSchemeFactory {
      * @return
      */
     def encoded: String
+
+    /**
+     * Truncation width
+     *
+     * @return
+     */
+    def width: Int
   }
 
-  case class WidthBucketing(max: Int) extends Bucketing[String] {
-    override def apply(value: String): String = value.slice(0, max)
-    override def encoded: String = s"width=$max"
+  case class WidthBucketing(width: Int) extends Bucketing[String] {
+    override def apply(value: String): String = value.slice(0, width)
+    override def encoded: String = s"width=$width"
   }
 
   case class IntegralBucketing[T: Integral](divisor: T) extends Bucketing[T] {
     import Integral.Implicits.infixIntegralOps
     override def apply(value: T): T = value - (((value % divisor) + divisor) % divisor)
     override def encoded: String = s"divisor=$divisor"
+    // TODO longs not supported by the java api
+    override def width: Int = implicitly[Integral[T]].toInt(divisor)
   }
 
   // scale here refers to the number of digits to the right of the decimal place that are kept
@@ -222,6 +155,8 @@ object AttributeScheme extends PartitionSchemeFactory {
     val scaleT: T = fractional.fromInt(math.pow(10, scale).toInt)
     override def apply(value: T): T = fractional.fromInt(Math.floor((value * scaleT).toDouble).toInt) / scaleT
     override def encoded: String = s"scale=$scale"
+    // TODO only decimal types support truncate but not double/float
+    override def width: Int = scale
   }
 
   /**
@@ -230,16 +165,9 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param attribute attribute name
    * @param index attribute index in the sft
    * @param maxWidth max width for partition values
-   * @param defaultValue default value
-   * @param allowedValues list of allowedValues to partition
    */
-  private class StringScheme(
-      attribute: String,
-      index: Int,
-      maxWidth: Option[WidthBucketing],
-      defaultValue: Option[String],
-      allowedValues: Seq[String],
-    ) extends AttributeScheme[String](attribute, index, defaultValue, allowedValues, "", maxWidth, StringEncoder) {
+  private class StringScheme(attribute: String, index: Int, maxWidth: Option[WidthBucketing])
+      extends AttributeScheme[String](attribute, index, "", maxWidth) {
 
     override def getCoveringFilter(partition: PartitionKey): Filter = {
       val escaped =
@@ -248,8 +176,10 @@ object AttributeScheme extends PartitionSchemeFactory {
       ff.like(ff.property(attribute), regex, "%", "_", "\\", false)
     }
 
-    override protected def enumerate(bounds: Bounds[String]): Seq[PartitionKey] =
-      throw new UnsupportedOperationException("Can't enumerate string attribute scheme")
+    override def getCoveringExpression(partition: PartitionKey): Expression = maxWidth match {
+      case None => Expressions.equal[String](ColumnName(attribute), partition.value)
+      case Some(w) => Expressions.equal[String](Expressions.truncate[String](ColumnName(attribute), w.width), partition.value)
+    }
   }
 
   /**
@@ -258,24 +188,20 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param attribute attribute name
    * @param index attribute index in the sft
    * @param divisor divisor for bucketing values
-   * @param defaultValue default value
-   * @param allowedValues list of allowedValues to partition
    */
   private abstract class IntegralScheme[T: Integral: ClassTag](
       attribute: String,
       index: Int,
       divisor: Option[IntegralBucketing[T]],
-      defaultValue: Option[T],
-      allowedValues: Seq[T],
-      lexicoder: TypeEncoder[T, String],
-    ) extends AttributeScheme[T](attribute, index, defaultValue, allowedValues, implicitly[Integral[T]].zero, divisor, lexicoder) {
+      decoder: String => T
+    ) extends AttributeScheme[T](attribute, index, implicitly[Integral[T]].zero, divisor) {
 
     import Integral.Implicits.infixIntegralOps
 
     private val integral = implicitly[Integral[T]]
 
     override def getCoveringFilter(partition: PartitionKey): Filter = {
-      val value = lexicoder.decode(partition.value)
+      val value = decoder(partition.value)
       val attr = ff.property(attribute)
       divisor match {
         case None => ff.equals(attr, ff.literal(value))
@@ -286,13 +212,9 @@ object AttributeScheme extends PartitionSchemeFactory {
       }
     }
 
-    protected def enumerate(bounds: Bounds[T]): Seq[PartitionKey] = {
-      val lower = bounds.lower.value.get
-      val delta = bounds.upper.value.get - lower
-      divisor.map(_.divisor) match {
-        case None => Seq.tabulate(delta.toInt)(i => PartitionKey(name, lexicoder.encode(lower + integral.fromInt(i))))
-        case Some(d) => Seq.tabulate((delta / d).toInt)(i => PartitionKey(name, lexicoder.encode(lower + (d * integral.fromInt(i)))))
-      }
+    override def getCoveringExpression(partition: PartitionKey): Expression = divisor match {
+      case None => Expressions.equal[T](ColumnName(attribute), decoder(partition.value))
+      case Some(d) => Expressions.equal[T](Expressions.truncate[T](ColumnName(attribute), integral.toInt(d.divisor)), decoder(partition.value))
     }
   }
 
@@ -302,16 +224,9 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param attribute attribute name
    * @param index attribute index in the sft
    * @param divisor divisor for bucketing values
-   * @param defaultValue default value
-   * @param allowedValues list of allowedValues to partition
    */
-  private class IntScheme(
-      attribute: String,
-      index: Int,
-      divisor: Option[IntegralBucketing[Int]],
-      defaultValue: Option[Int],
-      allowedValues: Seq[Int],
-    ) extends IntegralScheme[Int](attribute, index, divisor, defaultValue, allowedValues, IntEncoder)
+  private class IntScheme(attribute: String, index: Int, divisor: Option[IntegralBucketing[Int]])
+      extends IntegralScheme[Int](attribute, index, divisor, _.toInt)
 
   /**
    * Lexicoded integer attribute partitioning
@@ -319,16 +234,9 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param attribute attribute name
    * @param index attribute index in the sft
    * @param divisor divisor for bucketing values
-   * @param defaultValue default value
-   * @param allowedValues list of allowedValues to partition
    */
-  private class LongScheme(
-      attribute: String,
-      index: Int,
-      divisor: Option[IntegralBucketing[Long]],
-      defaultValue: Option[Long],
-      allowedValues: Seq[Long],
-    ) extends IntegralScheme[Long](attribute, index, divisor, defaultValue, allowedValues, LongEncoder)
+  private class LongScheme(attribute: String, index: Int, divisor: Option[IntegralBucketing[Long]])
+      extends IntegralScheme[Long](attribute, index, divisor, _.toLong)
 
   /**
    * Lexicoded decimal number attribute partitioning
@@ -336,17 +244,13 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param attribute attribute name
    * @param index attribute index in the sft
    * @param scale scale for bucketing values
-   * @param defaultValue default value
-   * @param allowedValues list of allowedValues to partition
    */
   private abstract class FractionalScheme[T: Fractional: ClassTag](
       attribute: String,
       index: Int,
       scale: Option[FractionalBucketing[T]],
-      defaultValue: Option[T],
-      allowedValues: Seq[T],
-      lexicoder: TypeEncoder[T, String],
-    ) extends AttributeScheme[T](attribute, index, defaultValue, allowedValues, implicitly[Fractional[T]].zero, scale, lexicoder) {
+      decoder: String => T,
+    ) extends AttributeScheme[T](attribute, index, implicitly[Fractional[T]].zero, scale) {
 
     import FilterHelper.ff
 
@@ -356,7 +260,7 @@ object AttributeScheme extends PartitionSchemeFactory {
     private val oneBucket: Option[T] = scale.map(s => fractional.one / s.scaleT)
 
     override def getCoveringFilter(partition: PartitionKey): Filter = {
-      val value = lexicoder.decode(partition.value)
+      val value = decoder(partition.value)
       val attr = ff.property(attribute)
       oneBucket match {
         case None => ff.equals(attr, ff.literal(value))
@@ -367,30 +271,9 @@ object AttributeScheme extends PartitionSchemeFactory {
       }
     }
 
-    protected def enumerate(bounds: Bounds[T]): Seq[PartitionKey] = {
-      scale match {
-        case None =>
-          val lower = toPartition(bounds.lower.value.get)
-          val upper = exclusiveUpperBound(bounds).get
-          // since lexicoding is lossy, we can't increment the fractional numbers directly, instead we increment the hex string
-          (Iterator.single(lower) ++ Iterator.iterate(lower)(incrementHex).takeWhile(_ < upper)).map(PartitionKey(name, _)).toSeq
-        case Some(s) =>
-          // here we assume the scale will be enough to increment the encoded string
-          val lower = s(bounds.lower.value.get)
-          val increment = fractional.one / s.scaleT
-          val upper = exclusiveUpperBound(bounds).get
-          val tail = Iterator.iterate(lower)(_ + increment).map(toPartition).takeWhile(v => v < upper)
-          (Iterator.single(toPartition(lower)) ++ tail).map(PartitionKey(name, _)).toSeq
-      }
-    }
-
-    // note that this is tailored to the specific hex encoding used by mango
-    // also note this will fail if we get to the max hex value
-    private def incrementHex(hex: String): String = {
-      (hex.last + 1).toChar match {
-        case d   => hex.dropRight(1) + d
-        case 'g' => incrementHex(hex.dropRight(1)) + "0"
-      }
+    override def getCoveringExpression(partition: PartitionKey): Expression = scale match {
+      case None => Expressions.equal[T](ColumnName(attribute), decoder(partition.value))
+      case Some(s) => Expressions.equal[T](Expressions.truncate[T](ColumnName(attribute), s.scale), decoder(partition.value))
     }
   }
 
@@ -400,16 +283,9 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param attribute attribute name
    * @param index attribute index in the sft
    * @param scale scale for bucketing values
-   * @param defaultValue default value
-   * @param allowedValues list of allowedValues to partition
    */
-  private class FloatScheme(
-      attribute: String,
-      index: Int,
-      scale: Option[FractionalBucketing[Float]],
-      defaultValue: Option[Float],
-      allowedValues: Seq[Float],
-    ) extends FractionalScheme[Float](attribute, index, scale, defaultValue, allowedValues, FloatEncoder)
+  private class FloatScheme(attribute: String, index: Int, scale: Option[FractionalBucketing[Float]])
+      extends FractionalScheme[Float](attribute, index, scale, _.toFloat)
 
   /**
    * Lexicoded double attribute partitioning
@@ -417,14 +293,7 @@ object AttributeScheme extends PartitionSchemeFactory {
    * @param attribute attribute name
    * @param index attribute index in the sft
    * @param scale scale for bucketing values
-   * @param defaultValue default value
-   * @param allowedValues list of allowedValues to partition
    */
-  private class DoubleScheme(
-      attribute: String,
-      index: Int,
-      scale: Option[FractionalBucketing[Double]],
-      defaultValue: Option[Double],
-      allowedValues: Seq[Double],
-    ) extends FractionalScheme[Double](attribute, index, scale, defaultValue, allowedValues, DoubleEncoder)
+  private class DoubleScheme(attribute: String, index: Int, scale: Option[FractionalBucketing[Double]])
+      extends FractionalScheme[Double](attribute, index, scale, _.toDouble)
 }

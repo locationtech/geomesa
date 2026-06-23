@@ -6,11 +6,9 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core
+package org.locationtech.geomesa.fs.storage.core.schemes
 
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.schemes._
-import org.locationtech.geomesa.utils.classpath.ServiceLoader
 
 /**
   * Factory for loading partition schemes
@@ -30,8 +28,7 @@ trait PartitionSchemeFactory {
 object PartitionSchemeFactory {
 
   lazy private val factories =
-    Seq(AttributeScheme, DateTimeScheme, FlatScheme, HashScheme, XZ2Scheme, Z2Scheme) ++
-      ServiceLoader.load[PartitionSchemeFactory]()
+    Seq(AttributeScheme, DateTimeScheme, HashScheme, XZ2Scheme, Z2Scheme)
 
 
   /**

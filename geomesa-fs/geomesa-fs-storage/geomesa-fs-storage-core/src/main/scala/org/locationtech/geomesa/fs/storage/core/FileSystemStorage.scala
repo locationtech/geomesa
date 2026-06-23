@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.commons.codec.digest.MurmurHash3
 import org.apache.hadoop.fs.Path
 import org.apache.iceberg._
+import org.apache.iceberg.expressions.Expressions
 import org.apache.iceberg.parquet.ParquetUtil
 import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.hadoop.example.GroupReadSupport
@@ -20,11 +21,12 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, IcebergParquetScan, IcebergSchemaMapper, RecordSimpleFeature}
+import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, IcebergParquetScan, RecordSimpleFeature}
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.core.parquet.io.{IcebergOutputFile, ParquetFileSystemWriter}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.{ColumnName, SimpleFeatureParquetSchema}
+import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeEstimator
 import org.locationtech.geomesa.index.planning.QueryRunner
@@ -43,22 +45,25 @@ import scala.util.control.NonFatal
  * Persists simple features to a file system and provides query access. Storage implementations are fairly
  * lightweight, in that all state is captured in the metadata instance
  */
-class FileSystemStorage(val table: Table, val mapper: IcebergSchemaMapper) extends Closeable with StrictLogging {
+case class FileSystemStorage(
+    context: FileSystemContext,
+    table: Table,
+    schema: SimpleFeatureParquetSchema,
+    schemes: Seq[PartitionScheme],
+  ) extends Closeable with StrictLogging {
 
   import org.locationtech.geomesa.fs.storage.core.FileSystemStorage._
 
   import scala.collection.JavaConverters._
 
-  val sft: SimpleFeatureType = SimpleFeatureTypes.immutable(mapper.sft)
-  val partitions: Seq[PartitionScheme] = mapper.schemes
-  val context: FileSystemContext = mapper.context
+  val sft: SimpleFeatureType = SimpleFeatureTypes.immutable(namespaced(schema.sft, context.namespace))
   val sizer: FileSize = new FileSize(table)
   val files: Files = new Files()
 
   private val authProvider: AuthorizationsProvider =
     AuthUtils.getProvider(
-      mapper.context.conf.get(AuthProviderParam.key).map(p => AuthProviderParam.key -> p).toMap.asJava,
-      mapper.context.conf.getOrElse(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
+      context.conf.get(AuthProviderParam.key).map(p => AuthProviderParam.key -> p).toMap.asJava,
+      context.conf.getOrElse(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
     )
 
   // don't require observers if we never write any data
@@ -82,7 +87,7 @@ class FileSystemStorage(val table: Table, val mapper: IcebergSchemaMapper) exten
     builder.result
   }
 
-  private lazy val metricsConfig = MetricsConfig.forTable(table)
+  private lazy val metricsConfig: MetricsConfig = MetricsConfig.forTable(table)
 
   /**
    * Get a reader for all relevant partitions
@@ -94,6 +99,7 @@ class FileSystemStorage(val table: Table, val mapper: IcebergSchemaMapper) exten
   def getReader(query: Query, threads: Int): CloseableFeatureIterator = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
+    // TODO our query transforms don't account for fields needed for filtering
     val configured = QueryRunner.configureQuery(sft, query)
     val filter = Option(configured.getFilter).getOrElse(Filter.INCLUDE)
     val (icebergFilter, clientSideFilter) = IcebergFilterConverter(sft, filter)
@@ -120,13 +126,13 @@ class FileSystemStorage(val table: Table, val mapper: IcebergSchemaMapper) exten
       val cols = Seq.newBuilder[String]
       cols += SimpleFeatureParquetSchema.FeatureIdField
       // TODO consolidate schema classes, this is a little round-about
-      if (mapper.parquetSchema.hasVisibilities) {
+      if (schema.hasVisibilities) {
         cols += SimpleFeatureParquetSchema.VisibilitiesField
       }
       tsft.getAttributeDescriptors.asScala.foreach(d => cols += ColumnName(d.getLocalName))
       tableScan.select(cols.result().asJava)
     }
-    val sfFactory = RecordSimpleFeature(mapper.parquetSchema) // TODO this doesn't include transforms
+    val sfFactory = RecordSimpleFeature(schema) // TODO this doesn't include transforms
 
     val scan = new IcebergParquetScan(tableScan, threads)
     try {
@@ -295,9 +301,16 @@ class FileSystemStorage(val table: Table, val mapper: IcebergSchemaMapper) exten
     def newWriter(): FileSystemWriter = {
       val file = FileSystemStorage.newFilePath(sft.getTypeName, content)
       val path = context.root.resolve(file)
-      val updateObserver = new MetadataObserver(path, partition, content)
-      val observer = if (observers.isEmpty) { updateObserver } else {
-        new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))
+      val tableObserver = content match {
+        case FileContent.DATA =>
+          new AddDataFileObserver(path, partition)
+        // TODO
+        // case FileContent.POSITION_DELETES =>
+        // case FileContent.EQUALITY_DELETES =>
+        case _ => throw new UnsupportedOperationException(s"Unsupported file content: $content")
+      }
+      val observer = if (observers.isEmpty) { tableObserver } else {
+        new CompositeObserver(observers.map(_.apply(path)).+:(tableObserver))
       }
       createWriter(path, partition, observer)
     }
@@ -388,15 +401,25 @@ class FileSystemStorage(val table: Table, val mapper: IcebergSchemaMapper) exten
 //      CloseQuietly.raise(Seq(reader) ++ appenders.asMap().values().asScala ++ modifiers.asMap().values().asScala ++ deleters.asMap().values().asScala)
 //  }
 
+  /**
+   * Helper for accessing metadata on files and partitions
+   */
   class Files {
 
+    private val schemesWithIndex = schemes.zipWithIndex
+
     def partitions(): Seq[Partition] =
-      WithClose(table.newScan().planFiles())(_.asScala.map(f => mapper.partition(f.file())).toSeq.distinct)
+      WithClose(table.newScan().planFiles())(_.asScala.map(f => partition(f.file())).toSeq.distinct)
 
     def files(): Seq[DataFile] = WithClose(table.newScan().planFiles())(_.asScala.map(_.file()).toSeq)
 
-    def files(partition: Partition): Seq[DataFile] =
-      WithClose(table.newScan().filter(mapper.expression(partition)).planFiles())(_.asScala.map(_.file()).toSeq)
+    def files(partition: Partition): Seq[DataFile] = {
+      val filter = schemes.zip(partition.values).map(sp => sp._1.getCoveringExpression(sp._2)).reduce(Expressions.and)
+      WithClose(table.newScan().filter(filter).planFiles())(_.asScala.map(_.file()).toSeq)
+    }
+
+    private def partition(f: DataFile): Partition =
+      Partition(schemesWithIndex.map { case (s, i) => s.getPartition(f.partition(), i) })
   }
 
   /**
@@ -404,40 +427,19 @@ class FileSystemStorage(val table: Table, val mapper: IcebergSchemaMapper) exten
    *
    * @param path file path
    * @param partition file partition
-   * @param content file content type (DATA, EQUALITY_DELETES, POSITION_DELETES)
    */
-  private class MetadataObserver(path: URI, partition: Partition, content: FileContent)
-      extends FileSystemObserver {
+  private class AddDataFileObserver(path: URI, partition: Partition) extends FileSystemObserver {
 
-    private val partitionValues = mapper.partitionValues(partition)
+    private val fileObserver = new DataFileObserver(table, metricsConfig, path, partition)
 
-    override def apply(feature: SimpleFeature): Unit = {}
-    override def flush(): Unit = {}
+    override def apply(feature: SimpleFeature): Unit = {}// TODO fileObserver.apply(feature)
+    override def flush(): Unit = fileObserver.flush()
     override def close(): Unit = {
-      content match {
-        case org.apache.iceberg.FileContent.DATA =>
-          logger.debug(s"Adding new data file: $path")
-          val inputFile = table.io().newInputFile(path.toString)
-          // TODO this is reading the file footer again, could we track this during write intead?
-          val metrics = ParquetUtil.fileMetrics(inputFile, metricsConfig, null)
-          val file =
-            DataFiles.builder(table.spec())
-              .withFormat(FileFormat.PARQUET)
-              .withPath(inputFile.location())
-              .withFileSizeInBytes(inputFile.getLength)
-              .withPartitionValues(partitionValues.asJava)
-              .withMetrics(metrics)
-              // TODO withSort(f.sort)
-              .build()
-          val append = table.newAppend()
-          append.appendFile(file)
-          append.commit()
-
-          // TODO
-          //        case org.apache.iceberg.FileContent.POSITION_DELETES =>
-          //        case org.apache.iceberg.FileContent.EQUALITY_DELETES =>
-        case _ => throw new UnsupportedOperationException(s"Unsupported file content: $content")
-      }
+      fileObserver.close()
+      logger.debug(s"Adding new data file: $path")
+      val append = table.newAppend()
+      append.appendFile(fileObserver.file)
+      append.commit()
     }
   }
 }
@@ -497,35 +499,43 @@ object FileSystemStorage extends LazyLogging {
     }
   }
 
-//  /**
-//   * Builds up attribute-level bounds
-//   *
-//   * @param i attribute index
-//   * @param lexicoder lexicoder for the attribute type
-//   */
-//  private case class ColumnBoundsBuilder(i: Int, lexicoder: TypeEncoder[AnyRef, String]) {
-//
-//    private var lower: String = _
-//    private var upper: String = _
-//
-//    def apply(feature: SimpleFeature): Unit = {
-//      val value = feature.getAttribute(i)
-//      if (value != null) {
-//        val encoded = lexicoder.encode(value)
-//        if (lower == null) {
-//          lower = encoded
-//          upper = encoded
-//        } else if (lower > encoded) {
-//          lower = encoded
-//        } else if (upper < encoded) {
-//          upper = encoded
-//        }
-//      }
-//    }
-//
-//    def build(): Option[ColumnBounds] = if (lower == null) { None } else { Some(ColumnBounds(i, lower, upper)) }
-//  }
-//
+  /**
+   * Observer to build a data file record
+   *
+   * @param table table
+   * @param metricsConfig metrics config
+   * @param path file path
+   * @param partition file partition
+   */
+  class DataFileObserver(table: Table, metricsConfig: MetricsConfig, path: URI, partition: Partition)
+      extends FileSystemObserver {
+
+    import scala.collection.JavaConverters._
+
+    def this(table: Table, path: URI, partition: Partition) =
+      this(table, MetricsConfig.forTable(table), path, partition)
+
+    private var _file: DataFile = _
+
+    def file: DataFile = _file
+
+    override def apply(feature: SimpleFeature): Unit = {}
+    override def flush(): Unit = {}
+    override def close(): Unit = {
+      val inputFile = table.io().newInputFile(path.toString)
+      // TODO this is reading the file footer again, could we track this during write instead?
+      val metrics = ParquetUtil.fileMetrics(inputFile, metricsConfig, null)
+      _file =
+        DataFiles.builder(table.spec())
+          .withFormat(FileFormat.PARQUET)
+          .withPath(inputFile.location())
+          .withFileSizeInBytes(inputFile.getLength)
+          .withPartitionValues(partition.values.map(_.value).asJava)
+          .withMetrics(metrics)
+          // TODO withSort(f.sort)
+          .build()
+    }
+  }
 //  /**
 //   * Can be used with a MetadataObserver to return data files instead of writing them directly to the metadata
 //   *

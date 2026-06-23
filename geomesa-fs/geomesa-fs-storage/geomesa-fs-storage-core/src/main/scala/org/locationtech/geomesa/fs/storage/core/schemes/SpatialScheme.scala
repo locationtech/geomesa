@@ -10,96 +10,13 @@ package org.locationtech.geomesa.fs.storage.core
 package schemes
 
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.core.{PartitionScheme, PartitionSchemeFactory}
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.locationtech.jts.geom.Geometry
 
 import java.util.regex.Pattern
-import scala.annotation.tailrec
 import scala.reflect.ClassTag
 
-trait SpatialScheme extends PartitionScheme {
-
-  lazy private val wholeWorldRanges = Some(generateRanges(Seq((-180, -90, 180, 90))))
-
-  override def getPartitionsForFilter(filter: Filter): Option[Seq[PartitionKey]] = {
-    getRangesForFilter(filter).orElse(wholeWorldRanges).map { ranges =>
-      ranges.flatMap { range =>
-        Iterator.iterate(range.lower)(incrementHex).takeWhile(_ < range.upper).map(PartitionKey(name, _))
-      }
-    }
-  }
-
-  override def getRangesForFilter(filter: Filter): Option[Seq[PartitionRange]] = {
-    val geometries = FilterHelper.extractGeometries(filter, attribute, intersect = true)
-    if (geometries.isEmpty) {
-      None
-    } else if (geometries.disjoint) {
-      Some(Seq.empty)
-    } else {
-      Some(generateRanges(geometries.values.map(GeometryUtils.bounds)))
-    }
-  }
-
-  /**
-   * Get z ranges from the underlying curve
-   *
-   * @param xy bbox queries
-   * @return
-   */
-  protected def zRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[IndexRange]
-
-  /**
-   * Truncates a full-resolution index to a partition group ID
-   *
-   * @param z z value
-   * @return
-   */
-  protected def truncateToPartition(z: Long): String
-
-  /**
-   * Generate ranges for a query
-   *
-   * @param xy query bboxes
-   * @return
-   */
-  private def generateRanges(xy: Seq[(Double, Double, Double, Double)]): Seq[PartitionRange] = {
-    val builder = new RangeBuilder()
-    zRanges(xy).foreach { range =>
-      val lower = truncateToPartition(range.lower)
-      // index ranges are inclusive, but partition ranges are exclusive
-      val upper = incrementHex(truncateToPartition(range.upper))
-      builder += PartitionRange(name, lower, upper)
-    }
-    builder.result()
-  }
-
-  /**
-   * Increment a hex value, used for upper-level exclusive ranges. Note that in terminal cases (e.g. `ffff`),
-   * an extra 'z' will be added, which works for our use case because it sorts after the original value
-   *
-   * @param hex hex value to increment
-   * @return
-   */
-  private def incrementHex(hex: String): String = incrementHex(hex, hex.length - 1)
-
-  @tailrec
-  private def incrementHex(hex: String, pos: Int): String = {
-    val c = hex.charAt(pos)
-    if (c != 'f') {
-      val bump = if (c == '9') { 'a' } else { (c + 1).toChar }
-      hex.substring(0, pos) + bump + hex.substring(pos + 1)
-    } else if (pos == 0) {
-      hex + 'z' // note: this isn't actually incrementing the value but should sort after all the valid hex values
-    } else {
-      incrementHex(hex.substring(0, pos) + '0' + hex.substring(pos + 1), pos - 1)
-    }
-  }
-}
+trait SpatialScheme extends PartitionScheme
 
 object SpatialScheme {
 

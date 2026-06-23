@@ -122,13 +122,13 @@ package object core {
    *
    * @param values set of dimensions that make up the partition
    */
-  case class Partition(values: Set[PartitionKey]) {
+  case class Partition(values: Seq[PartitionKey]) {
     override lazy val toString: String = gson.toJson(this)
   }
 
   object Partition {
 
-    val None: Partition = Partition(Set.empty[PartitionKey])
+    val None: Partition = Partition(Seq.empty[PartitionKey])
 
     /**
      * Create a partition from a json-encoded string
@@ -149,7 +149,7 @@ package object core {
 
       override def serialize(src: Partition, typeOfSrc: Type, context: JsonSerializationContext): JsonElement = {
         val array = new JsonArray(src.values.size)
-        src.values.toSeq.sortBy(k => (k.name, k.value)).foreach { value =>
+        src.values.foreach { value =>
           array.add(context.serialize(value))
         }
         array
@@ -157,7 +157,7 @@ package object core {
 
       override def deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Partition = {
         val array = json.getAsJsonArray
-        val values = Set.newBuilder[PartitionKey]
+        val values = Seq.newBuilder[PartitionKey]
         var i = 0
         while (i < array.size()) {
           values += context.deserialize(array.get(i), classOf[PartitionKey])
@@ -209,49 +209,6 @@ package object core {
         val name = obj.getAsJsonPrimitive("name").getAsString
         val value = obj.getAsJsonPrimitive("value").getAsString
         PartitionKey(name, value)
-      }
-    }
-  }
-
-  /**
-   * Ranged bounds, used for filtering on partitions
-   *
-   * @param name partition that this bound applies to
-   * @param lower lower bound, inclusive
-   * @param upper upper bound, exclusive
-   */
-  case class PartitionRange(name: String, lower: String, upper: String) {
-
-    /**
-     * Is the value contained in this bounds
-     *
-     * @param value partition value
-     * @return
-     */
-    def contains(value: String): Boolean = value >= lower && value < upper
-
-    /**
-     * Attempt to merge two bounds. Only overlapping bounds will result in a successful merge. Trying to merge
-     * bounds from a different partition scheme is a logical error.
-     *
-     * @param other bounds to merge
-     * @return
-     */
-    def merge(other: PartitionRange): Option[PartitionRange] = {
-      if (lower <= other.lower) {
-        if (upper >= other.upper) {
-          Some(this)
-        } else if (upper >= other.lower) {
-          Some(PartitionRange(name, lower, other.upper))
-        } else {
-          None
-        }
-      } else if (lower > other.upper) {
-        None
-      } else if (upper >= other.upper) {
-        Some(PartitionRange(name, other.lower, upper))
-      } else {
-        Some(other)
       }
     }
   }
