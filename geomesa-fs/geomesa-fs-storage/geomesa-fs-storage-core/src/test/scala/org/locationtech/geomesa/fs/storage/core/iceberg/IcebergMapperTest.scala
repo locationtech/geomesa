@@ -12,17 +12,19 @@ import org.apache.iceberg.PartitionSpec
 import org.apache.iceberg.expressions.Expressions
 import org.apache.iceberg.transforms.Transform
 import org.apache.iceberg.types.Types
-import org.calrissian.mango.types.LexiTypeEncoders
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
-import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
+import org.locationtech.geomesa.fs.storage.core.schemes.{DateTimeScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.DateParsing
 import org.locationtech.jts.geom.Point
 import org.specs2.mutable.SpecificationWithJUnit
 
 import java.net.URI
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Date
 
 class IcebergMapperTest extends SpecificationWithJUnit {
@@ -64,7 +66,7 @@ class IcebergMapperTest extends SpecificationWithJUnit {
     "map int attributes" in {
       val scheme = PartitionSchemeFactory.load(sft, "attribute:attribute=age")
       val partition = scheme.getPartition(sf)
-      partition.value mustEqual LexiTypeEncoders.integerEncoder().encode(11)
+      partition.value mustEqual "11"
       val fields = scheme.spec(PartitionSpec.builderFor(schema)).build().fields().asScala
       fields must haveLength(1)
       fields.head.name() mustEqual "age"
@@ -75,7 +77,7 @@ class IcebergMapperTest extends SpecificationWithJUnit {
     "map int attributes with divisor" in {
       val scheme = PartitionSchemeFactory.load(sft, "attribute:attribute=age:divisor=10")
       val partition = scheme.getPartition(sf)
-      partition.value mustEqual LexiTypeEncoders.integerEncoder().encode(10)
+      partition.value mustEqual "10"
       val fields = scheme.spec(PartitionSpec.builderFor(schema)).build().fields().asScala
       fields must haveLength(1)
       fields.head.name() must startWith("age")
@@ -87,46 +89,48 @@ class IcebergMapperTest extends SpecificationWithJUnit {
     "map hour scheme" in {
       val scheme = PartitionSchemeFactory.load(sft, "hours")
       val partition = scheme.getPartition(sf)
-      val expected = LexiTypeEncoders.integerEncoder().decode(partition.value)
       val fields = scheme.spec(PartitionSpec.builderFor(schema)).build().fields().asScala
       fields must haveLength(1)
       fields.head.name() mustEqual "dtg_hour"
-      fields.head.transform().asInstanceOf[Transform[Long, Int]].bind(Types.TimestampType.withoutZone()).apply(dtg) mustEqual expected
+      fields.head.transform().asInstanceOf[Transform[Long, Int]].bind(Types.TimestampType.withoutZone()).apply(dtg) mustEqual
+        partition.value.toInt
       scheme.getCoveringExpression(partition).toString mustEqual
-        Expressions.equal(Expressions.hour[Integer]("dtg"), expected).toString
+        Expressions.equal(Expressions.hour[Integer]("dtg"), Integer.valueOf(partition.value)).toString
     }
     "map day scheme" in {
       val scheme = PartitionSchemeFactory.load(sft, "days")
       val partition = scheme.getPartition(sf)
-      val expected = LexiTypeEncoders.integerEncoder().decode(partition.value)
+      // day scheme is handled differently than others, where the value is a formatted date string instead of an int
+      val expected =
+        ChronoUnit.DAYS.between(DateTimeScheme.Epoch, DateParsing.parse(partition.value, DateTimeFormatter.ISO_LOCAL_DATE)).toInt
       val fields = scheme.spec(PartitionSpec.builderFor(schema)).build().fields().asScala
       fields must haveLength(1)
       fields.head.name() mustEqual "dtg_day"
       fields.head.transform().asInstanceOf[Transform[Long, Int]].bind(Types.TimestampType.withoutZone()).apply(dtg) mustEqual expected
       scheme.getCoveringExpression(partition).toString mustEqual
-        Expressions.equal(Expressions.day[Integer]("dtg"), expected).toString
+        Expressions.equal(Expressions.day[Integer]("dtg"), Int.box(expected)).toString
     }
     "map month scheme" in {
       val scheme = PartitionSchemeFactory.load(sft, "months")
       val partition = scheme.getPartition(sf)
-      val expected = LexiTypeEncoders.integerEncoder().decode(partition.value)
       val fields = scheme.spec(PartitionSpec.builderFor(schema)).build().fields().asScala
       fields must haveLength(1)
       fields.head.name() mustEqual "dtg_month"
-      fields.head.transform().asInstanceOf[Transform[Long, Int]].bind(Types.TimestampType.withoutZone()).apply(dtg) mustEqual expected
+      fields.head.transform().asInstanceOf[Transform[Long, Int]].bind(Types.TimestampType.withoutZone()).apply(dtg) mustEqual
+        partition.value.toInt
       scheme.getCoveringExpression(partition).toString mustEqual
-        Expressions.equal(Expressions.month[Integer]("dtg"), expected).toString
+        Expressions.equal(Expressions.month[Integer]("dtg"), Integer.valueOf(partition.value)).toString
     }
     "map year scheme" in {
       val scheme = PartitionSchemeFactory.load(sft, "years")
       val partition = scheme.getPartition(sf)
-      val expected = LexiTypeEncoders.integerEncoder().decode(partition.value)
       val fields = scheme.spec(PartitionSpec.builderFor(schema)).build().fields().asScala
       fields must haveLength(1)
       fields.head.name() mustEqual "dtg_year"
-      fields.head.transform().asInstanceOf[Transform[Long, Int]].bind(Types.TimestampType.withoutZone()).apply(dtg) mustEqual expected
+      fields.head.transform().asInstanceOf[Transform[Long, Int]].bind(Types.TimestampType.withoutZone()).apply(dtg) mustEqual
+        partition.value.toInt
       scheme.getCoveringExpression(partition).toString mustEqual
-        Expressions.equal(Expressions.year[Integer]("dtg"), expected).toString
+        Expressions.equal(Expressions.year[Integer]("dtg"), Integer.valueOf(partition.value)).toString
     }
     "map z2 4/8-bit scheme" in {
       val fullZValue = Z2SFC.hexEncode(sf.getDefaultGeometry.asInstanceOf[Point].getX, sf.getDefaultGeometry.asInstanceOf[Point].getY)
@@ -137,12 +141,12 @@ class IcebergMapperTest extends SpecificationWithJUnit {
         fields must haveLength(1)
         fields.head.name() mustEqual "__geom_z2___trunc"
         scheme.getCoveringExpression(partition).toString mustEqual
-          Expressions.equal("__geom_z2__", fullZValue.take(bits / 4)).toString
+          Expressions.equal(Expressions.truncate[String]("__geom_z2__", bits / 4) , fullZValue.take(bits / 4)).toString
       }
     }
     "not map unsupported schemas" in {
       foreach(Seq("hours:step=2", "weekly")) { unsupported =>
-        PartitionSchemeFactory.load(sft, unsupported) must throwAn[UnsupportedOperationException]
+        PartitionSchemeFactory.load(sft, unsupported) must throwAn[IllegalArgumentException]
       }
     }
   }

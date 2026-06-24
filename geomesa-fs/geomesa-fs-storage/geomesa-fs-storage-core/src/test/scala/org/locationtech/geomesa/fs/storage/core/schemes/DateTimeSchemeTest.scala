@@ -10,20 +10,17 @@ package org.locationtech.geomesa.fs.storage.core
 package schemes
 
 import org.geotools.filter.text.ecql.ECQL
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.DateParsing
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
-@RunWith(classOf[JUnitRunner])
-class DateTimeSchemeTest extends Specification {
+class DateTimeSchemeTest extends SpecificationWithJUnit {
 
   import org.locationtech.geomesa.filter.decomposeAnd
 
@@ -38,17 +35,16 @@ class DateTimeSchemeTest extends Specification {
     "partition based on hours" >> {
       val ps = DateTimeScheme("dtg", 0, ChronoUnit.HOURS)
       val partition = ps.getPartition(sf)
-      partition.value mustEqual "80064c8a"
-      val hours = AttributeIndexKey.decode("integer", partition.value).asInstanceOf[Int]
+      partition.value mustEqual "412810"
+      val hours = partition.value.toInt
       ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusHours(hours) mustEqual truncate(date, ChronoUnit.HOURS)
     }
 
     "partition based on days" >> {
       val ps = DateTimeScheme("dtg", 0, ChronoUnit.DAYS)
       val partition = ps.getPartition(sf)
-      partition.value mustEqual "80004330"
-      val days = AttributeIndexKey.decode("integer", partition.value).asInstanceOf[Int]
-      ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC).plusDays(days) mustEqual truncate(date, ChronoUnit.DAYS)
+      partition.value mustEqual "2017-02-03"
+      DateParsing.parse(partition.value, DateTimeFormatter.ISO_LOCAL_DATE) mustEqual truncate(date, ChronoUnit.DAYS)
     }
 
     "calculate covering filters for partitions" >> {

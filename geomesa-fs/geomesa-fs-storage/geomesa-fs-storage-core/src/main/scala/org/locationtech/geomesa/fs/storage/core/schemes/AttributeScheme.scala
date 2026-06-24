@@ -91,6 +91,12 @@ object AttributeScheme extends PartitionSchemeFactory {
           s"'scale' option is only supported for Float and Double-type attributes, not ${binding.getSimpleName}")
       }
 
+      if (opts.getMulti("allow").nonEmpty) {
+        throw new IllegalArgumentException("`allow` option is no longer supported for attribute schemes")
+      } else if (opts.getSingle("default").isDefined) {
+        throw new IllegalArgumentException("`default` option is no longer supported for attribute schemes")
+      }
+
       if (isString) {
         Some(new StringScheme(attribute, index, width))
       } else if (binding == classOf[Integer]) {
@@ -170,10 +176,14 @@ object AttributeScheme extends PartitionSchemeFactory {
       extends AttributeScheme[String](attribute, index, "", maxWidth) {
 
     override def getCoveringFilter(partition: PartitionKey): Filter = {
-      val escaped =
-        partition.value.replaceAllLiterally("""\""", """\\""").replaceAllLiterally("""%""", """\%""").replaceAllLiterally("""_""", """\_""")
-      val regex = if (maxWidth.isDefined) { escaped + "%" } else { escaped }
-      ff.like(ff.property(attribute), regex, "%", "_", "\\", false)
+      if (maxWidth.isDefined) {
+        val escapes = Seq("""\""" -> """\\""", """%""" -> """\%""", """_""" -> """\_""")
+        val escaped =
+          escapes.foldLeft(partition.value) { case (s, (literal, replacement)) => s.replaceAllLiterally(literal, replacement) }
+        ff.like(ff.property(attribute), escaped + "%", "%", "_", "\\", false)
+      } else {
+        ff.equals(ff.property(attribute), ff.literal(partition.value))
+      }
     }
 
     override def getCoveringExpression(partition: PartitionKey): Expression = maxWidth match {

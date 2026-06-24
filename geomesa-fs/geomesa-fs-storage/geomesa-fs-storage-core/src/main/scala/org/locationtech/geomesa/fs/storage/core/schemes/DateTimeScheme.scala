@@ -84,6 +84,9 @@ object DateTimeScheme extends PartitionSchemeFactory {
       val dtg = opts.getSingle("attribute").orElse(sft.getDtgField).orNull
       require(dtg != null, s"Date scheme requires an attribute to be specified with 'attribute=<attribute>'")
       val index = attributeIndex(sft, dtg, Some(classOf[Date]))
+      if (opts.getSingle("step").exists(_ != "1")) {
+        throw new IllegalArgumentException("`step` argument is no longer supported in date-time schemes")
+      }
       DateTimeScheme(dtg, index, u)
     }
   }
