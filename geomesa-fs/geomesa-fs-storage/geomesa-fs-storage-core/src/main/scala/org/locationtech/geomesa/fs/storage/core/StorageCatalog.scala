@@ -12,6 +12,7 @@ import org.apache.iceberg.PartitionSpec
 import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, TableIdentifier}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.StorageCatalog.IcebergProps
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -73,6 +74,10 @@ class StorageCatalog(val context: FileSystemContext) extends Closeable {
    */
   def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long] = None): FileSystemStorage = {
     val schema = SimpleFeatureParquetSchema(sft, context.conf)
+    if (schema.geometries != GeoParquetWkb) {
+      // TODO supports native geometry encoding
+      throw new UnsupportedOperationException(s"Only WKB geometry encoding is supported: ${schema.geometries}")
+    }
     // load the partition scheme first in case it fails
     val schemes = partitions.map(PartitionSchemeFactory.load(sft, _)).sortBy(_.name)
     val tableProps = Map(

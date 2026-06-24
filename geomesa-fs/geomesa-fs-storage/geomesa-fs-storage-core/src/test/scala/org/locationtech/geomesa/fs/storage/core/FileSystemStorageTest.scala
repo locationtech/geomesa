@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.fs.storage.core
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.iceberg.rest.RESTCatalog
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.hadoop.util.HadoopInputFile
+import org.apache.parquet.io.LocalInputFile
 import org.everit.json.schema.loader.SchemaLoader
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -31,13 +33,18 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.{GenericContainer, MinIOContainer, Network}
 import org.testcontainers.utility.DockerImageName
 
+import java.io.FileOutputStream
 import java.net.URI
+import java.nio.file.Files
+import java.sql.DriverManager
+import java.util.{Locale, UUID}
 import java.util.concurrent.atomic.AtomicInteger
 
 class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
@@ -109,10 +116,8 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         sf
       }
 
-      // TODO test GeometryEncoding.GeoParquetNative
       val encoding = GeometryEncoding.GeoParquetWkb
-      val context = newPath()
-      WithClose(new StorageCatalog(context)) { catalog =>
+      WithClose(new StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
           storage must not(beNull)
 
@@ -178,143 +183,154 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         }
       }
     }
-//
-//    "read and write complex features" in {
-//      val sft = SimpleFeatureTypes.createType("parquet-test-complex",
-//        "name:String,age:Int,time:Long,height:Float,weight:Double,bool:Boolean," +
-//            "uuid:UUID,bytes:Bytes,list:List[Int],map:Map[String,Long]," +
-//            "line:LineString,mpt:MultiPoint,poly:Polygon,mline:MultiLineString,mpoly:MultiPolygon,g:Geometry," +
-//            "dtg:Date,*geom:Point:srid=4326")
-//
-//      val features = (0 until 10).map { i =>
-//        val sf = new ScalaSimpleFeature(sft, i.toString)
-//        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-//        sf.setAttribute("name", s"name$i")
-//        sf.setAttribute("age", s"$i")
-//        sf.setAttribute("time", s"$i")
-//        sf.setAttribute("height", s"$i")
-//        sf.setAttribute("weight", s"$i")
-//        sf.setAttribute("bool", Boolean.box(i < 5))
-//        sf.setAttribute("uuid", UUID.fromString(s"00000000-0000-0000-0000-00000000000$i"))
-//        sf.setAttribute("bytes", Array.tabulate[Byte](i)(i => i.toByte))
-//        sf.setAttribute("list", Seq.tabulate[Integer](i)(i => Int.box(i)))
-//        sf.setAttribute("map", (0 until i).map(i => i.toString -> Long.box(i)).toMap)
-//        sf.setAttribute("line", s"LINESTRING(0 $i, 2 $i, 8 ${10 - i})")
-//        sf.setAttribute("mpt", s"MULTIPOINT(0 $i, 2 3)")
-//        sf.setAttribute("poly",
-//          if (i == 5) {
-//            // polygon example with holes from wikipedia
-//            "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10),(20 30, 35 35, 30 20, 20 30))"
-//          } else {
-//            s"POLYGON((40 3$i, 42 3$i, 42 2$i, 40 2$i, 40 3$i))"
-//          }
-//        )
-//        sf.setAttribute("mline", s"MULTILINESTRING((0 2, 2 $i, 8 6),(0 $i, 2 $i, 8 ${10 - i}))")
-//        sf.setAttribute("mpoly", s"MULTIPOLYGON(((-1 0, 0 $i, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6), (-1 5, 2 5, 2 2, -1 2, -1 5)))")
-//        sf.setAttribute("g", sf.getAttribute(Seq("line", "mpt", "poly", "mline", "mpoly").drop(i % 5).head))
-//        sf.setAttribute("dtg", f"2014-01-${i + 1}%02dT00:00:01.000Z")
-//        sf.setAttribute("geom", s"POINT(4$i 5$i)")
-//        sf
-//      }
-//
-//      foreach(Seq(GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb)) { encoding =>
-//        withTestDir { dir =>
-//          val context = FileSystemContext.create(dir, Map(SimpleFeatureParquetSchema.GeometryEncodingKey -> encoding.toString))
-//          val metadata = new FileBasedMetadataCatalog(context).create(sft, schemes)
-//          WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
-//            storage must not(beNull)
-//
-//            val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
-//
-//            features.foreach { f =>
-//              val partition = Partition(storage.metadata.schemes.map(_.getPartition(f)))
-//              val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
-//              writer.write(f)
-//            }
-//
-//            writers.foreach(_._2.close())
-//
-//            logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
-//
-//            val partitions = storage.metadata.getFiles().map(_.partition).distinct
-//            partitions must haveLength(writers.size)
-//
-//            val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
-//
-//            val doTest = testQuery(storage, sft) _
-//
-//            foreach(transformsList) { transforms =>
-//              doTest("INCLUDE", transforms, features)
-//              doTest("IN('0', '2')", transforms, Seq(features(0), features(2)))
-//              doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-//              doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
-//              doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
-//              doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-//              doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
-//              doTest("name < 'name5'", transforms, features.take(5))
-//              doTest("name = 'name5'", transforms, features.slice(5, 6))
-//              doTest("age < 5", transforms, features.take(5))
-//              doTest("age > 5", transforms, features.drop(6))
-//            }
-//
-//            val firstPartitionFile = storage.metadata.getFiles().find(f => extractPartition(f, storage.metadata.schemes).values.map(_.value).contains("e1")).orNull
-//            firstPartitionFile must not(beNull)
-//
-//            val firstPartitionPath = dir.resolve(firstPartitionFile.location())
-//            // verify 3rd party integration by reading with DuckDB
-//            if (encoding == GeometryEncoding.GeoParquetWkb) {
-//              val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
-//              WithClose(DriverManager.getConnection("jdbc:duckdb:")) { conn =>
-//                WithClose(conn.createStatement())(_.execute("INSTALL spatial;LOAD spatial;"))
-//                WithClose(conn.prepareStatement(s"SELECT ${geoms.map(g => s"ST_AsText($g)").mkString(", ")} FROM '$firstPartitionPath';")) { ps =>
-//                  WithClose(ps.executeQuery()) { rs =>
-//                    rs.next() must beTrue
-//                    val data = Seq.tabulate(geoms.length)(i => rs.getObject(i + 1))
-//                    // jts adds parens around multipoints, duckdb does not... apparently both are valid
-//                    data mustEqual geoms.map(g => features.head.getAttribute(g).toString.replace("MULTIPOINT ((0 0), (2 3))", "MULTIPOINT (0 0, 2 3)"))
-//                  }
-//                }
-//              }
-//            } else if (encoding == GeometryEncoding.GeoParquetNative) {
-//              // TODO find a 3rd party java library we can verify native encoding with
-//              // geopandas seems to be the only thing that currently reads GeoParquet native encoding
-//            }
-//            // verify GeoParquet metadata
-//            WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(new Path(firstPartitionPath), new Configuration()))) { reader =>
-//              val meta = reader.getFileMetaData.getKeyValueMetaData
-//              val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
-//              geo must not(beNull)
-//              geoParquetSchema.validate(geo) must not(throwAn[Exception])
-//              val cols = geo.getJSONObject("columns")
-//              cols.length() mustEqual 7
-//              val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
-//              foreach(geoms) { geom =>
-//                val binding = sft.getDescriptor(geom).getType.getBinding
-//                val col = cols.getJSONObject(geom)
-//                if (encoding == GeometryEncoding.GeoParquetWkb || binding == classOf[Geometry]) {
-//                  col.getString("encoding") mustEqual "WKB"
-//                } else {
-//                  col.getString("encoding") mustEqual binding.getSimpleName.toLowerCase(Locale.US)
-//                }
-//                if (binding == classOf[Geometry]) {
-//                  col.getJSONArray("geometry_types").asScala.toSeq must beEmpty
-//                } else {
-//                  col.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq(binding.getSimpleName)
-//                }
-//                val covering = col.getJSONObject("covering").getJSONObject("bbox")
-//                foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
-//                  covering.getJSONArray(corner).toString mustEqual s"""["__${geom}_bbox__","$corner"]"""
-//                }
-//                val bbox = col.getJSONArray("bbox").asScala.toSeq
-//                bbox must haveLength(4)
-//                foreach(bbox)(_ must beAnInstanceOf[Number])
-//              }
-//            }
-//          }
-//        }
-//      }
-//    }
-//
+
+    "read and write complex features" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test-complex",
+        "name:String,age:Int,time:Long,height:Float,weight:Double,bool:Boolean," +
+            "uuid:UUID,bytes:Bytes,list:List[Int],map:Map[String,Long]," +
+            "line:LineString,mpt:MultiPoint,poly:Polygon,mline:MultiLineString,mpoly:MultiPolygon,g:Geometry," +
+            "dtg:Date,*geom:Point:srid=4326")
+
+      val features = (0 until 10).map { i =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute("name", s"name$i")
+        sf.setAttribute("age", s"$i")
+        sf.setAttribute("time", s"$i")
+        sf.setAttribute("height", s"$i")
+        sf.setAttribute("weight", s"$i")
+        sf.setAttribute("bool", Boolean.box(i < 5))
+        sf.setAttribute("uuid", UUID.fromString(s"00000000-0000-0000-0000-00000000000$i"))
+        sf.setAttribute("bytes", Array.tabulate[Byte](i)(i => i.toByte))
+        sf.setAttribute("list", Seq.tabulate[Integer](i)(i => Int.box(i * 2)))
+        sf.setAttribute("map", (0 until i).map(i => i.toString -> Long.box(i)).toMap)
+        sf.setAttribute("line", s"LINESTRING(0 $i, 2 $i, 8 ${10 - i})")
+        sf.setAttribute("mpt", s"MULTIPOINT(0 $i, 2 3)")
+        sf.setAttribute("poly",
+          if (i == 5) {
+            // polygon example with holes from wikipedia
+            "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10),(20 30, 35 35, 30 20, 20 30))"
+          } else {
+            s"POLYGON((40 3$i, 42 3$i, 42 2$i, 40 2$i, 40 3$i))"
+          }
+        )
+        sf.setAttribute("mline", s"MULTILINESTRING((0 2, 2 $i, 8 6),(0 $i, 2 $i, 8 ${10 - i}))")
+        sf.setAttribute("mpoly", s"MULTIPOLYGON(((-1 0, 0 $i, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6), (-1 5, 2 5, 2 2, -1 2, -1 5)))")
+        sf.setAttribute("g", sf.getAttribute(Seq("line", "mpt", "poly", "mline", "mpoly").drop(i % 5).head))
+        sf.setAttribute("dtg", f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute("geom", s"POINT(4$i 5$i)")
+        sf
+      }
+
+      val encoding = GeometryEncoding.GeoParquetWkb
+      WithClose(new StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, schemes)) { storage =>
+          storage must not(beNull)
+
+          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
+
+          features.foreach { f =>
+            val partition = Partition(storage.schemes.map(_.getPartition(f)))
+            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+            writer.write(f)
+          }
+
+          writers.foreach(_._2.close())
+
+          logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+          storage.files.partitions() must haveLength(writers.size)
+
+          val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
+
+          val doTest = testQuery(storage, sft) _
+
+          transformsList.foreach { transforms =>
+            doTest("INCLUDE", transforms, features)
+            doTest("IN('0', '2')", transforms, Seq(features(0), features(2)))
+            doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
+            doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
+            doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
+            doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
+            doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
+            doTest("name < 'name5'", transforms, features.take(5))
+            doTest("name = 'name5'", transforms, features.slice(5, 6))
+            doTest("age < 5", transforms, features.take(5))
+            doTest("age > 5", transforms, features.drop(6))
+          }
+
+          val firstPartitionFile =
+            storage.files.files(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).headOption.orNull
+          firstPartitionFile must not(beNull)
+          // copy to a local file
+          val tmpFile = Files.createTempFile("fs", ".parquet")
+          try {
+            WithClose(S3ObjectStore(s3Conf)) { fs =>
+              WithClose(new FileOutputStream(tmpFile.toFile)) { os =>
+                WithClose(fs.read(URI.create(firstPartitionFile.location())).orNull) { is =>
+                  IOUtils.copy(is, os)
+                }
+              }
+            }
+
+            // verify 3rd party integration by reading with DuckDB
+            if (encoding == GeometryEncoding.GeoParquetWkb) {
+              val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
+              WithClose(DriverManager.getConnection("jdbc:duckdb:")) { conn =>
+                WithClose(conn.createStatement())(_.execute("INSTALL spatial;LOAD spatial;"))
+                WithClose(conn.prepareStatement(s"SELECT ${geoms.map(g => s"ST_AsText($g)").mkString(", ")} FROM '${tmpFile.toFile.getAbsolutePath}';")) { ps =>
+                  WithClose(ps.executeQuery()) { rs =>
+                    rs.next() must beTrue
+                    val data = Seq.tabulate(geoms.length)(i => rs.getObject(i + 1))
+                    // jts adds parens around multipoints, duckdb does not... apparently both are valid
+                    data mustEqual geoms.map(g => features.head.getAttribute(g).toString.replace("MULTIPOINT ((0 0), (2 3))", "MULTIPOINT (0 0, 2 3)"))
+                  }
+                }
+              }
+            } else if (encoding == GeometryEncoding.GeoParquetNative) {
+              // TODO find a 3rd party java library we can verify native encoding with
+              // geopandas seems to be the only thing that currently reads GeoParquet native encoding
+            }
+
+
+            // verify GeoParquet metadata
+            WithClose(ParquetFileReader.open(new LocalInputFile(tmpFile))) { reader =>
+              val meta = reader.getFileMetaData.getKeyValueMetaData
+              val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
+              geo must not(beNull)
+              geoParquetSchema.validate(geo) must not(throwAn[Exception])
+              val cols = geo.getJSONObject("columns")
+              cols.length() mustEqual 7
+              val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
+              foreach(geoms) { geom =>
+                val binding = sft.getDescriptor(geom).getType.getBinding
+                val col = cols.getJSONObject(geom)
+                if (encoding == GeometryEncoding.GeoParquetWkb || binding == classOf[Geometry]) {
+                  col.getString("encoding") mustEqual "WKB"
+                } else {
+                  col.getString("encoding") mustEqual binding.getSimpleName.toLowerCase(Locale.US)
+                }
+                if (binding == classOf[Geometry]) {
+                  col.getJSONArray("geometry_types").asScala.toSeq must beEmpty
+                } else {
+                  col.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq(binding.getSimpleName)
+                }
+                val covering = col.getJSONObject("covering").getJSONObject("bbox")
+                foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
+                  covering.getJSONArray(corner).toString mustEqual s"""["__${geom}_bbox__","$corner"]"""
+                }
+                val bbox = col.getJSONArray("bbox").asScala.toSeq
+                bbox must haveLength(4)
+                foreach(bbox)(_ must beAnInstanceOf[Number])
+              }
+            }
+          } finally {
+            Files.delete(tmpFile)
+          }
+        }
+      }
+    }
+
 //    "read and write features with visibilities" in {
 //      val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
 //
@@ -759,9 +775,6 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       feature.getAttributes must haveLength(attributes.length)
       forall(attributes.zipWithIndex) { case (attribute, i) =>
         feature.getAttribute(attribute) mustEqual feature.getAttribute(i)
-        if (feature.getAttribute(attribute) != results.find(_.getID == feature.getID).get.getAttribute(attribute)) {
-          println(feature.getAttribute(attribute).getClass + " " + results.find(_.getID == feature.getID).get.getAttribute(attribute).getClass)
-        }
         feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
       }
       SecurityUtils.getVisibility(feature) mustEqual SecurityUtils.getVisibility(results.find(_.getID == feature.getID).get)
