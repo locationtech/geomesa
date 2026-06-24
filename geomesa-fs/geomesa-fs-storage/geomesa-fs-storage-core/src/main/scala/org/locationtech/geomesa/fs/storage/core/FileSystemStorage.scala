@@ -25,7 +25,7 @@ import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, IcebergParquetScan, RecordSimpleFeature}
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
-import org.locationtech.geomesa.fs.storage.core.parquet.io.{IcebergOutputFile, ParquetFileSystemWriter}
+import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize
@@ -198,8 +198,7 @@ case class FileSystemStorage(
       } else {
         observer
       }
-    val out = new IcebergOutputFile(table.io().newOutputFile(file.toString))
-    new ParquetFileSystemWriter(sft, conf, out, out.original.toInputFile.getLength, observers)
+    new ParquetFileSystemWriter(sft, conf, table.io(), file, observers)
   }
 
   /**

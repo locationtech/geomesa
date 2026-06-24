@@ -10,6 +10,7 @@ package org.locationtech.geomesa.fs.storage.core.parquet.io
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
+import org.apache.iceberg.io.FileIO
 import org.apache.parquet.column.ParquetProperties
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.hadoop.api.WriteSupport
@@ -21,6 +22,7 @@ import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWrit
 import org.locationtech.geomesa.fs.storage.core.fs.{LocalObjectStore, ObjectStore, S3ObjectStore}
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.NoOpObserver
+import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter.{FileOutput, IcebergOutput, ObjectStoreOutput}
 import org.locationtech.geomesa.fs.storage.core.parquet.s3.S3OutputFile
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.utils.io.CloseQuietly
@@ -33,28 +35,39 @@ import java.nio.file.Path
  *
  * @param sft simple feature type
  * @param conf configuration
- * @param file file to write
+ * @param output file to write
  * @param observer any observers
  */
 class ParquetFileSystemWriter(
     sft: SimpleFeatureType,
     conf: Map[String, String],
-    file: OutputFile,
-    closedSize: => Long,
-    observer: FileSystemObserver = NoOpObserver
+    output: FileOutput,
+    observer: FileSystemObserver
   ) extends FileSystemWriter {
 
   import scala.collection.JavaConverters._
 
+  def this(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: URI, observer: FileSystemObserver) =
+    this(sft, conf, ObjectStoreOutput(fs, file), observer)
+
+  def this(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: URI) =
+    this(sft, conf, fs, file, NoOpObserver)
+
+  def this(sft: SimpleFeatureType, conf: Map[String, String], io: FileIO, file: URI, observer: FileSystemObserver) =
+    this(sft, conf, IcebergOutput(io, file), observer)
+
+  def this(sft: SimpleFeatureType, conf: Map[String, String], io: FileIO, file: URI) =
+    this(sft, conf, io, file, NoOpObserver)
+
   private val parquetConf = new PlainParquetConfiguration(conf.asJava)
   SimpleFeatureParquetSchema.setSft(parquetConf, sft)
 
-  private val writer = ParquetFileSystemWriter.builder(file, parquetConf).build()
+  private val writer = ParquetFileSystemWriter.builder(output.file, parquetConf).build()
 
   @volatile
   private var closed = false
 
-  override def size: Long = if (closed) { closedSize }  else { writer.getDataSize }
+  override def size: Long = if (closed) { output.size }  else { writer.getDataSize }
 
   override def write(f: SimpleFeature): Unit = {
     writer.write(f)
@@ -74,8 +87,7 @@ object ParquetFileSystemWriter extends LazyLogging {
   /**
    * Create a new configurable writer
    *
-   * @param fs object store
-   * @param path file path
+   * @param file file to write
    * @param conf write configuration
    * @return
    */
@@ -95,17 +107,37 @@ object ParquetFileSystemWriter extends LazyLogging {
       .withRowGroupSize(8L*1024*1024)
   }
 
-  /**
-   * Get an output file compatible with the parquet api
-   *
-   * @param fs object store
-   * @param path file path
-   * @return
-   */
-  def outputFile(fs: ObjectStore, path: URI): OutputFile = fs match {
-    case _: LocalObjectStore => new LocalOutputFileWithParent(Path.of(path))
-    case s3: S3ObjectStore => new S3OutputFile(s3, path)
-    case _ => throw new UnsupportedOperationException(s"No file implementation for scheme ${fs.scheme}")
+  private sealed trait FileOutput {
+
+    /**
+     * The output file
+     *
+     * @return
+     */
+    def file: OutputFile
+
+    /**
+     * Gets the size of the file
+     *
+     * @return
+     */
+    def size: Long
+  }
+
+  private case class ObjectStoreOutput(fs: ObjectStore, path: URI) extends FileOutput {
+
+    override val file: OutputFile = fs match {
+      case _: LocalObjectStore => new LocalOutputFileWithParent(Path.of(path))
+      case s3: S3ObjectStore => new S3OutputFile(s3, path)
+      case _ => throw new UnsupportedOperationException(s"No file implementation for scheme ${fs.scheme}")
+    }
+
+    override def size: Long = fs.size(path)
+  }
+
+  private case class IcebergOutput(io: FileIO, path: URI) extends FileOutput {
+    override val file: IcebergOutputFile = new IcebergOutputFile(io.newOutputFile(path.toString))
+    override def size: Long = file.original.toInputFile.getLength
   }
 
   class Builder(file: OutputFile) extends ParquetWriter.Builder[SimpleFeature, Builder](file) {
