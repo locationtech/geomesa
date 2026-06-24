@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core.metadata.json
+package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonFactoryBuilder}
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -14,7 +14,7 @@ import org.apache.iceberg.{ContentFileParser, DataFile, PartitionSpec}
 
 import java.io.{InputStream, OutputStream};
 
-object DataFileSerialization {
+object DataFileJson {
 
   private val factory =
     new JsonFactoryBuilder()

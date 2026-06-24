@@ -93,27 +93,21 @@ package object core {
     }
   }
 
-  /**
-    * Holder for the metadata defining a storage instance
-    *
-    * @param sft simple feature type
-    * @param partitions partition scheme configuration
-    * @param config key-value configurations
-    */
-  case class Metadata(sft: SimpleFeatureType, partitions: Seq[String], config: Map[String, String]) {
-    def targetFileSize: Option[Long] = config.get(Metadata.TargetFileSize).map(_.toLong)
-  }
-
   object Metadata {
 
-    def get(table: Table)(key: String): Option[String] = Option(table.properties().get(s"geomesa.$key"))
-    def set(table: Table)(key: String, value: String): Option[String] = Option(table.properties().put(s"geomesa.$key", value))
+    val PropertyPrefix = "geomesa.props."
 
     val TargetFileSize = "target-file-size"
 
-    def apply(sft: SimpleFeatureType, scheme: Seq[String], fileSize: Option[Long] = None): Metadata = {
-      val config: Map[String, String] = fileSize.map(f => TargetFileSize -> java.lang.Long.toString(f)).toMap
-      Metadata(sft, scheme, config)
+    def get(table: Table, key: String): Option[String] = Option(table.properties().get(s"$PropertyPrefix$key"))
+    def set(table: Table, key: String, value: String): Unit = {
+      val update = table.updateProperties()
+      if (value == null) {
+        update.remove(s"$PropertyPrefix$key")
+      } else {
+        update.set(s"$PropertyPrefix$key", value)
+      }
+      update.commit()
     }
   }
 

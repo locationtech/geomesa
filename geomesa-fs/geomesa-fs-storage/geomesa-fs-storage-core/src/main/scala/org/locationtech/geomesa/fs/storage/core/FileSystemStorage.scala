@@ -190,7 +190,8 @@ case class FileSystemStorage(
    * @return
    */
   private def createWriter(file: URI, partition: Partition, observer: FileSystemObserver): FileSystemWriter = {
-    val conf = context.conf ++ Map(SimpleFeatureParquetSchema.PartitionKey -> partition.toString)
+    val compression = Option(System.getProperty(ParquetCompressionOpt)).map(ParquetCompressionOpt -> _).toMap
+    val conf = compression ++ context.conf ++ Map(SimpleFeatureParquetSchema.PartitionKey -> partition.toString)
     val observers =
       if (FileValidationEnabled.toBoolean.get) {
         CompositeObserver(Seq(observer, FileValidationObserver(file)))
@@ -277,9 +278,9 @@ case class FileSystemStorage(
 
 object FileSystemStorage extends LazyLogging {
 
-  val ParquetCompressionOpt = "parquet.compression"
-
   private final val SafeNameRegex = "[^a-zA-Z0-9_-]+".r
+
+  val ParquetCompressionOpt = "parquet.compression"
 
   /**
    * Writes files up to a given size, then starts a new file

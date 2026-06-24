@@ -27,7 +27,7 @@ class FileSize(table: Table) {
 
   private val fileSizeError = FileSize.FileSizeErrorThreshold.toFloat.get
 
-  private var averageBytesPerFeature = Metadata.get(table)(FileSize.BytesPerFeature) match {
+  private var averageBytesPerFeature = Metadata.get(table, FileSize.BytesPerFeature) match {
     case Some(b) => b.toFloat
     // TODO ensure idToName is populated correctly?
     case None    => (table.schema().idToName().size() + 1) * 1.6f // 1.6 taken from some sample data estimates...
@@ -38,7 +38,7 @@ class FileSize(table: Table) {
    *
    * @return
    */
-  def targetSize: Option[Long] = Metadata.get(table)(Metadata.TargetFileSize).map(_.toLong)
+  def targetSize: Option[Long] = Metadata.get(table, Metadata.TargetFileSize).map(_.toLong)
 
   /**
    * Check if a file is already the desired size
@@ -66,11 +66,11 @@ class FileSize(table: Table) {
     }
 
   private def updateFileSize(bytesPerFeature: Float): Unit = {
-    if (Metadata.get(table)(FileSize.UseDynamicSizing).forall(_.toBoolean)) {
+    if (Metadata.get(table, FileSize.UseDynamicSizing).forall(_.toBoolean)) {
       synchronized {
         if (math.abs((bytesPerFeature / averageBytesPerFeature) - 1f) > fileSizeError) {
           averageBytesPerFeature = bytesPerFeature
-          Metadata.set(table)(FileSize.BytesPerFeature, java.lang.Float.toString(bytesPerFeature))
+          Metadata.set(table, FileSize.BytesPerFeature, java.lang.Float.toString(bytesPerFeature))
         }
       }
     }
@@ -78,7 +78,7 @@ class FileSize(table: Table) {
 }
 
 object FileSize {
- // TODO when to require the prefix
+
   val BytesPerFeature  = "bytes-per-feature"
   val UseDynamicSizing = "use-dynamic-sizing"
 

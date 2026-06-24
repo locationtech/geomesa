@@ -30,21 +30,22 @@ class StorageCatalog(val context: FileSystemContext) extends Closeable {
   private val namespace = props.namespace
   private val catalog = props.catalog
   private val nsSupport = Option(catalog).collect { case sn: SupportsNamespaces => sn }
-  // TODO
-//  if (context.conf.get(ParquetCompressionOpt) == null) {
-//    Option(System.getProperty(ParquetCompressionOpt)).foreach(c => conf += ParquetCompressionOpt -> c)
-//  }
-//  conf += "parquet.filter.dictionary.enabled" -> "true"
-//
+
   /**
    * Get the feature types known by this factory
    *
    * @return
    */
   def getTypeNames: Seq[String] = {
-    // TODO filter based on some gm-specific keys?
     if (nsSupport.forall(_.namespaceExists(namespace))) {
-      catalog.listTables(namespace).asScala.map(_.name()).toSeq
+      catalog.listTables(namespace).asScala.toSeq.flatMap { id =>
+        val table = catalog.loadTable(id)
+        try {
+          if (table.properties().containsKey("geomesa.sft.name")) { Some(id.name) } else { None }
+        } finally {
+          CloseWithLogging(Option(table).collect { case c: Closeable => c })
+        }
+      }
     } else {
       Seq.empty
     }
@@ -86,7 +87,7 @@ class StorageCatalog(val context: FileSystemContext) extends Closeable {
       "geomesa.partition.spec" -> schemes.map(_.name).mkString(","),
       // file format v3 lets us use native geometries - but it's not yet supported in spark or trino
       // TableProperties.FORMAT_VERSION -> "3"
-    ) ++ targetFileSize.map(s => s"${StorageCatalog.PropertyPrefix}${Metadata.TargetFileSize}" -> s.toString).toMap
+    ) ++ targetFileSize.map(s => s"${Metadata.PropertyPrefix}${Metadata.TargetFileSize}" -> s.toString).toMap
 
     nsSupport.foreach { ns =>
       if (!ns.namespaceExists(namespace)) {
@@ -108,7 +109,6 @@ class StorageCatalog(val context: FileSystemContext) extends Closeable {
 object StorageCatalog {
 
   private val IcebergPrefix = "iceberg."
-  private val PropertyPrefix = "geomesa.props."
 
   private class IcebergProps(val context: FileSystemContext) extends AnyVal {
 
@@ -132,6 +132,7 @@ object StorageCatalog {
         "file-format" -> "PARQUET",
         "warehouse" -> context.root.resolve("metadata/").toString
       )
+      // TODO Map("parquet.filter.dictionary.enabled" -> "true")
       val props =
         defaults ++ s3Configs ++ context.conf.collect { case (k, v) if k.startsWith(IcebergPrefix) => k.substring(IcebergPrefix.length) -> v }
       catalog.initialize("geomesa", props.asJava)

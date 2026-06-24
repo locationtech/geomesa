@@ -16,7 +16,6 @@ import org.apache.parquet.io.LocalInputFile
 import org.everit.json.schema.loader.SchemaLoader
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.json.{JSONObject, JSONTokener}
@@ -516,246 +515,50 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
     }
 
-//    "write files with a target size" in {
-//      val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-//
-//      val features = Seq.tabulate(10000) { i =>
-//        val sf = new ScalaSimpleFeature(sft, i.toString)
-//        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-//        sf.setAttribute(0, s"name${i % 10}")
-//        sf.setAttribute(1, s"${i % 10}")
-//        sf.setAttribute(2, f"2014-01-${i % 10 + 1}%02dT00:00:01.000Z")
-//        sf.setAttribute(3, s"POINT(4${i % 10} 5${i % 10})")
-//        sf
-//      }
-//
-//      // note: this is somewhat of a magic number, in that it works the first time through with no remainder
-//      val targetSize = 4000L
-//
-//      WithClose(new StorageCatalog(newPath())) { catalog =>
-//        WithClose(catalog.create(sft, schemes, Some(targetSize))) { storage =>
-//          storage must not(beNull)
-//
-//          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
-//
-//          features.foreach { f =>
-//            val partition = Partition(storage.schemes.map(_.getPartition(f)))
-//            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
-//            writer.write(f)
-//          }
-//
-//          writers.foreach(_._2.close())
-//
-//          logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
-//
-//          val partitions = storage.files.partitions()
-//          partitions must haveLength(writers.size)
-//          foreach(partitions) { partition =>
-//            val paths = storage.files.files(partition)
-//            paths.size must beGreaterThan(1)
-//            foreach(paths) { p =>
-//              storage.table.io().newInputFile(p.location()).getLength must beCloseTo(targetSize, targetSize / 10)
-//            }
-//          }
-//        }
-//      }
-//    }
-    // TODO these may be redundant?
-    //
-    //  "read and write lists" in {
-    //      val gf = JTSFactoryFinder.getGeometryFactory
-    //      val sft = SimpleFeatureTypes.createType("test", "foobar:List[String],dtg:Date,*geom:Point:srid=4326")
-    //
-    //      val sftConf = {
-    //        val c = new PlainParquetConfiguration()
-    //        SimpleFeatureParquetSchema.setSft(c, sft)
-    //        c
-    //      }
-    //
-    //      val f = Files.createTempFile("geomesa", ".parquet")
-    //      try {
-    //        val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
-    //        val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))
-    //        val d3 = java.util.Date.from(Instant.parse("2017-01-03T00:00:00Z"))
-    //
-    //        val sf = new ScalaSimpleFeature(sft, "1", Array(List("a", "b", "c").asJava, d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
-    //        val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
-    //        val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[String].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
-    //
-    //        val writeBuilder =
-    //          ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf)
-    //            .withCompressionCodec(CompressionCodecName.ZSTD)
-    //
-    //        WithClose(writeBuilder.build()) { writer =>
-    //          writer.write(sf)
-    //          writer.write(sf2)
-    //          writer.write(sf3)
-    //        }
-    //        Files.size(f) must be greaterThan 0
-    //
-    //        val readBuilder = ParquetFileSystemReader.builder(LocalObjectStore, f.toUri).withFilter(FilterCompat.NOOP).withConf(sftConf)
-    //        WithClose(readBuilder.build()) { reader =>
-    //          val sf = reader.read()
-    //          sf.getAttributeCount mustEqual 3
-    //          sf.getID must be equalTo "1"
-    //          sf.getAttribute("foobar").asInstanceOf[java.util.List[String]].asScala must containTheSameElementsAs(List("a", "b", "c"))
-    //          sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
-    //          sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
-    //
-    //          val sf2 = reader.read()
-    //          sf2.getAttributeCount mustEqual 3
-    //          sf2.getID must be equalTo "2"
-    //          sf2.getAttribute("foobar").asInstanceOf[java.util.List[String]] must beNull
-    //          sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
-    //          sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
-    //
-    //          val sf3 = reader.read()
-    //          sf3.getAttributeCount mustEqual 3
-    //          sf3.getID must be equalTo "3"
-    //          sf3.getAttribute("foobar").asInstanceOf[java.util.List[String]].asScala must beEmpty
-    //          sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
-    //          sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
-    //        }
-    //      } finally {
-    //        Files.deleteIfExists(f)
-    //      }
-    //    }
-    //
-    //    "read and write maps" in {
-    //      val gf = JTSFactoryFinder.getGeometryFactory
-    //      val sft = SimpleFeatureTypes.createType("test", "foobar:Map[String,String],dtg:Date,*geom:Point:srid=4326")
-    //
-    //      val sftConf = {
-    //        val c = new PlainParquetConfiguration()
-    //        SimpleFeatureParquetSchema.setSft(c, sft)
-    //        c
-    //      }
-    //
-    //      val f = Files.createTempFile("geomesa", ".parquet")
-    //      try {
-    //        val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
-    //        val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))
-    //        val d3 = java.util.Date.from(Instant.parse("2017-01-03T00:00:00Z"))
-    //
-    //        val sf = new ScalaSimpleFeature(sft, "1", Array(Map("a" -> "1", "b" -> "2", "c" -> "3").asJava, d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
-    //        val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
-    //        val sf3 = new ScalaSimpleFeature(sft, "3", Array(Map.empty[String, String].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
-    //
-    //        val writeBuilder =
-    //          ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf)
-    //            .withCompressionCodec(CompressionCodecName.ZSTD)
-    //
-    //        WithClose(writeBuilder.build()) { writer =>
-    //          writer.write(sf)
-    //          writer.write(sf2)
-    //          writer.write(sf3)
-    //        }
-    //
-    //        Files.size(f) must be greaterThan 0
-    //
-    //        val readBuilder =
-    //          ParquetFileSystemReader.builder(LocalObjectStore, f.toUri)
-    //            .withFilter(FilterCompat.NOOP).withConf(sftConf)
-    //        WithClose(readBuilder.build()) { reader =>
-    //          val sf = reader.read()
-    //          sf.getAttributeCount mustEqual 3
-    //          sf.getID must be equalTo "1"
-    //          val m = sf.getAttribute("foobar").asInstanceOf[java.util.Map[String, String]].asScala
-    //          m must containTheSameElementsAs(Seq("a" -> "1", "b" -> "2", "c" -> "3"))
-    //          sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
-    //          sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
-    //
-    //          val sf2 = reader.read()
-    //          sf2.getAttributeCount mustEqual 3
-    //          sf2.getID must be equalTo "2"
-    //          sf2.getAttribute("foobar").asInstanceOf[java.util.Map[String, String]] must beNull
-    //          sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
-    //          sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
-    //
-    //          val sf3 = reader.read()
-    //          sf3.getAttributeCount mustEqual 3
-    //          sf3.getID must be equalTo "3"
-    //          sf3.getAttribute("foobar").asInstanceOf[java.util.Map[String, String]].asScala must beEmpty
-    //          sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
-    //          sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
-    //        }
-    //      } finally {
-    //        Files.deleteIfExists(f)
-    //      }
-    //    }
-    //
-    //    "read and write non-string lists and maps" >> {
-    //
-    //      val gf = JTSFactoryFinder.getGeometryFactory
-    //      val sft = SimpleFeatureTypes.createType("test", "foo:List[UUID],bar:Map[Int,Double],dtg:Date,*geom:Point:srid=4326")
-    //
-    //      val sftConf = {
-    //        val c = new PlainParquetConfiguration()
-    //        SimpleFeatureParquetSchema.setSft(c, sft)
-    //        c
-    //      }
-    //
-    //      val f = Files.createTempFile("geomesa", ".parquet")
-    //      try {
-    //
-    //        val d1 = java.util.Date.from(Instant.parse("2017-01-01T00:00:00Z"))
-    //        val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))
-    //        val d3 = java.util.Date.from(Instant.parse("2017-01-03T00:00:00Z"))
-    //        val u1 = UUID.fromString("00000000-0000-1111-0000-000000000000")
-    //        val u2 = UUID.fromString("00000000-0000-2222-0000-000000000000")
-    //        val u3 = UUID.fromString("00000000-0000-3333-0000-000000000000")
-    //
-    //        val sf = new ScalaSimpleFeature(sft, "1", Array(List(u1, u2).asJava, Map[Int, Double](1 -> 2.0, 3 -> 6.0).asJava, d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
-    //        val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
-    //        val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[UUID].asJava, Map.empty[Int, Double].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
-    //
-    //        val writeBuilder =
-    //          ParquetFileSystemWriter.builder(LocalObjectStore, f.toUri, sftConf)
-    //            .withCompressionCodec(CompressionCodecName.ZSTD)
-    //        WithClose(writeBuilder.build()) { writer =>
-    //          writer.write(sf)
-    //          writer.write(sf2)
-    //          writer.write(sf3)
-    //        }
-    //        Files.size(f) must be greaterThan 0
-    //
-    //        val readBuilder =
-    //          ParquetFileSystemReader.builder(LocalObjectStore, f.toUri).withFilter(FilterCompat.NOOP).withConf(sftConf)
-    //
-    //        WithClose(readBuilder.build()) { reader =>
-    //          val u1 = "00000000-0000-1111-0000-000000000000"
-    //          val u2 = "00000000-0000-2222-0000-000000000000"
-    //
-    //          val sf = reader.read()
-    //          sf.getAttributeCount mustEqual 4
-    //          sf.getID must be equalTo "1"
-    //          val u = sf.getAttribute("foo").asInstanceOf[java.util.List[UUID]].asScala.map(_.toString)
-    //          u must containTheSameElementsAs(Seq[String](u2, u1))
-    //          val m = sf.getAttribute("bar").asInstanceOf[java.util.Map[Int, Double]].asScala
-    //          m must containTheSameElementsAs(Seq(1 -> 2.0, 3 -> 6.0))
-    //          sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
-    //          sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
-    //
-    //          val sf2 = reader.read()
-    //          sf2.getAttributeCount mustEqual 4
-    //          sf2.getID must be equalTo "2"
-    //          sf2.getAttribute("foo") must beNull
-    //          sf2.getAttribute("bar") must beNull
-    //          sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
-    //          sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
-    //
-    //          val sf3 = reader.read()
-    //          sf3.getAttributeCount mustEqual 4
-    //          sf3.getID must be equalTo "3"
-    //          sf3.getAttribute("foo").asInstanceOf[java.util.List[_]].asScala must beEmpty
-    //          sf3.getAttribute("bar").asInstanceOf[java.util.Map[_, _]].asScala must beEmpty
-    //          sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
-    //          sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
-    //        }
-    //      } finally {
-    //        Files.deleteIfExists(f)
-    //      }
-    //    }
+    "write files with a target size" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+
+      val features = Seq.tabulate(10000) { i =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute(0, s"name${i % 10}")
+        sf.setAttribute(1, s"${i % 10}")
+        sf.setAttribute(2, f"2014-01-${i % 10 + 1}%02dT00:00:01.000Z")
+        sf.setAttribute(3, s"POINT(4${i % 10} 5${i % 10})")
+        sf
+      }
+
+      // note: this is somewhat of a magic number, in that it works the first time through with no remainder
+      val targetSize = 4000L
+
+      WithClose(new StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, schemes, Some(targetSize))) { storage =>
+          storage must not(beNull)
+
+          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
+
+          features.foreach { f =>
+            val partition = Partition(storage.schemes.map(_.getPartition(f)))
+            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+            writer.write(f)
+          }
+
+          writers.foreach(_._2.close())
+
+          logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+          val partitions = storage.files.partitions()
+          partitions must haveLength(writers.size)
+          foreach(partitions) { partition =>
+            val paths = storage.files.files(partition)
+            paths.size must beGreaterThan(1)
+            foreach(paths) { p =>
+              storage.table.io().newInputFile(p.location()).getLength must beCloseTo(targetSize, targetSize / 10)
+            }
+          }
+        }
+      }
+    }
   }
 
   def testQuery(storage: FileSystemStorage, sft: SimpleFeatureType)
