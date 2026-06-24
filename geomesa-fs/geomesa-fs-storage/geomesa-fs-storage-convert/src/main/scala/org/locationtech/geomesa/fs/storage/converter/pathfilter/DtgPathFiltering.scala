@@ -13,6 +13,7 @@ import org.apache.hadoop.fs.PathFilter
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
+import org.locationtech.geomesa.fs.storage.converter.schemes.NamedOptions
 
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneOffset, ZonedDateTime}

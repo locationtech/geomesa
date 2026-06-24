@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.converter.pathfilter
+package org.locationtech.geomesa.fs.storage.converter.schemes
 
 /**
  * Identifier plus configuration

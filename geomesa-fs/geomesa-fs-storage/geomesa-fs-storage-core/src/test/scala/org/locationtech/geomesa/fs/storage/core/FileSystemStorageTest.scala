@@ -97,7 +97,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       "iceberg.uri" -> s"http://${iceberg.getHost}:${iceberg.getFirstMappedPort}/",
       "iceberg.namespace" -> path,
     )
-    FileSystemContext(root, conf, None)
+    FileSystemContext.create(root, conf, None)
   }
 
   "FileSystemStorage" should {
@@ -115,7 +115,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
 
       val encoding = GeometryEncoding.GeoParquetWkb
-      WithClose(new StorageCatalog(newPath())) { catalog =>
+      WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
           storage must not(beNull)
 
@@ -221,7 +221,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
 
       val encoding = GeometryEncoding.GeoParquetWkb
-      WithClose(new StorageCatalog(newPath())) { catalog =>
+      WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
           storage must not(beNull)
 
@@ -359,7 +359,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
 
       val context = newPath()
-      WithClose(new StorageCatalog(context.copy(conf = context.conf ++ Map(AuthsParam.key -> "user,admin")))) { catalog =>
+      WithClose(StorageCatalog(context.copy(conf = context.conf ++ Map(AuthsParam.key -> "user,admin")))) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
           storage must not(beNull)
 
@@ -382,7 +382,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
       // verify we can load an existing storage, without specifying vis
       foreach(Seq("user", "")) { auths =>
-        WithClose(new StorageCatalog(context.copy(conf = context.conf ++ Map(AuthsParam.key -> auths)))) { catalog =>
+        WithClose(StorageCatalog(context.copy(conf = context.conf ++ Map(AuthsParam.key -> auths)))) { catalog =>
           WithClose(catalog.load(sft.getTypeName)) { storage =>
             foreach(testCases) { case (filter, transforms, expected) =>
               val isVisible = VisibilityUtils.visible(new DefaultAuthorizationsProvider(auths.split(",").filter(_.nonEmpty)))
@@ -467,7 +467,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         sf
       }
 
-      WithClose(new StorageCatalog(newPath())) { catalog =>
+      WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
           storage must not(beNull)
 
@@ -531,7 +531,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       // note: this is somewhat of a magic number, in that it works the first time through with no remainder
       val targetSize = 4000L
 
-      WithClose(new StorageCatalog(newPath())) { catalog =>
+      WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes, Some(targetSize))) { storage =>
           storage must not(beNull)
 

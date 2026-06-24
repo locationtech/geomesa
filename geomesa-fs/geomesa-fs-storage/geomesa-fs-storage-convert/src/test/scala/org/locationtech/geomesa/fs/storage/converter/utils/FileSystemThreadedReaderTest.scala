@@ -6,42 +6,22 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core.utils
+package org.locationtech.geomesa.fs.storage.converter.utils
 
-import org.apache.iceberg.{DataFiles, FileFormat, PartitionSpec, Schema}
-import org.apache.iceberg.types.Types
 import org.geotools.api.feature.simple.SimpleFeature
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.core.Partition
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 
-import java.io.Closeable
 import java.net.URI
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
-@RunWith(classOf[JUnitRunner])
-class FileSystemThreadedReaderTest extends Specification {
-
-  private def createTestDataFile(path: String, count: Long): org.apache.iceberg.DataFile = {
-    // Create a minimal schema and spec for testing
-    val schema = new Schema(Types.NestedField.required(1, "name", Types.StringType.get()))
-    val spec = PartitionSpec.unpartitioned()
-
-    DataFiles.builder(spec)
-      .withPath(s"file:///$path")
-      .withFormat(FileFormat.PARQUET)
-      .withFileSizeInBytes(1024)
-      .withRecordCount(count)
-      .build()
-  }
+class FileSystemThreadedReaderTest extends SpecificationWithJUnit {
 
   "FileSystemThreadedReader" should {
     "not hang when interrupted" in {
@@ -50,13 +30,13 @@ class FileSystemThreadedReaderTest extends Specification {
       val featureGate = new LinkedBlockingQueue[Boolean](1)
       val reader = new FileSystemPathReader() {
         override def root: URI = new URI("/")
-        override def read(file: URI): Iterator[SimpleFeature] with Closeable = {
+        override def read(file: URI): CloseableIterator[SimpleFeature] = {
           featureGate.take()
           CloseableIterator.single(feature)
         }
       }
       // ensure we have more files than threads so that we register phasers that don't complete right away
-      val files = Seq.tabulate(10)(i => createTestDataFile(s"w_$i", i))
+      val files = Seq.tabulate(10)(i => URI.create(s"file:///w_$i"))
       WithClose(FileSystemThreadedReader(reader , files, 2)) { reader =>
         featureGate.put(false)
         reader.hasNext must beTrue

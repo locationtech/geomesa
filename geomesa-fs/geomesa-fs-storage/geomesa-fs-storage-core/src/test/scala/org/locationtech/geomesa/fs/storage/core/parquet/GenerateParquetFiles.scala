@@ -9,16 +9,16 @@
 package org.locationtech.geomesa.fs.storage.core.parquet
 
 import com.typesafe.scalalogging.StrictLogging
-import org.apache.parquet.io.{LocalInputFile, LocalOutputFile}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 
-import java.nio.file.Path
+import java.net.URI
 import java.util.{Locale, UUID}
 
 /**
@@ -70,7 +70,7 @@ object GenerateParquetFiles extends StrictLogging {
       val conf = Map(SimpleFeatureParquetSchema.GeometryEncodingKey -> encoding.toString)
       val file =
         s"${sys.props("java.io.tmpdir")}/${encoding.toString.replace("GeoParquet", "geoparquet-").toLowerCase(Locale.US)}-test.parquet"
-      WithClose(new ParquetFileSystemWriter(sft, conf, new LocalOutputFile(Path.of(file)), new LocalInputFile(Path.of(file)).getLength)) { writer =>
+      WithClose(new ParquetFileSystemWriter(sft, conf, LocalObjectStore, URI.create(file))) { writer =>
         features.foreach(writer.write)
       }
       logger.info(s"Wrote ${features.length} features to $file")

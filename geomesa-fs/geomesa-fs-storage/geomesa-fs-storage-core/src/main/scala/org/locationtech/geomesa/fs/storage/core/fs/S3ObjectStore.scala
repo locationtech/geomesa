@@ -456,13 +456,12 @@ object S3ObjectStore {
   }
 
   /**
-   * Converts geomesa s3-related configuration values to hadoop s3a ones
+   * Consolidates various s3-related configs to work across geomesa, hadoop s3a, and iceberg FileIO
    *
    * @param conf geomesa configuration
    * @return
    */
-  def s3aConfigs(conf: Map[String, String]): Map[String, String] =
-    conf.flatMap { case (k, v) => S3ObjectStoreConfig.s3aReverseConfigMappings.get(k).map(_ -> v )}
+  def s3Configs(conf: Map[String, String]): Map[String, String] = S3aConfigs(conf) ++ IcebergConfigs(conf) ++ conf
 
   /**
    * If the URI has an 's3://' scheme, converts it to 's3a://' for use with hadoop
@@ -588,27 +587,10 @@ object S3ObjectStore {
       }
     }
 
-    private val s3aConfigMappings = Map(
-      "fs.s3a.access.key"         -> S3Config.AccessKeyId,
-      "fs.s3a.secret.key"         -> S3Config.SecretAccessKey,
-      "fs.s3a.endpoint"           -> S3Config.Endpoint,
-      "fs.s3a.endpoint.region"    -> S3Config.Region,
-      "fs.s3a.path.style.access"  -> S3Config.ForcePathStyle,
-      "fs.s3a.attempts.maximum"   -> S3Config.NumRetries,
-      "fs.s3a.connection.maximum" -> S3Config.MaxConcurrency, // TODO think max-concurrency is per-request
-      "fs.s3a.connection.timeout" -> S3Config.ConnectionTimeout,
-      "fs.s3a.multipart.size"     -> S3Config.WriteBufferInBytes,
-      "fs.s3a.buffer.dir"         -> S3Config.WriteBufferDir,
-    )
-
-    val s3aReverseConfigMappings: Map[String, String] = s3aConfigMappings.map { case (k, v) => v -> k }
-
     def apply(conf: Map[String, String]): S3ObjectStoreConfig = {
-      val s3 = conf.flatMap { case (k, v) => s3aConfigMappings.get(k).map(_ -> v) }.asJava
       val configSource =
         ConfigValueFactory.fromMap(conf.asJava).toConfig
           .withFallback(ConfigFactory.load())
-          .withFallback(ConfigValueFactory.fromMap(s3))
           .withFallback(ConfigFactory.load("s3-defaults"))
           .resolve()
       val config = ConfigSource.fromConfig(configSource).loadOrThrow[S3ObjectStoreConfig]
@@ -635,6 +617,43 @@ object S3ObjectStore {
            |  writeBufferInBytes=${config.writeBufferInBytes}""".stripMargin
       )
       config
+    }
+  }
+
+  private object S3aConfigs {
+
+    private val mappings = Map(
+      "fs.s3a.access.key"         -> S3Config.AccessKeyId,
+      "fs.s3a.secret.key"         -> S3Config.SecretAccessKey,
+      "fs.s3a.endpoint"           -> S3Config.Endpoint,
+      "fs.s3a.endpoint.region"    -> S3Config.Region,
+      "fs.s3a.path.style.access"  -> S3Config.ForcePathStyle,
+      "fs.s3a.attempts.maximum"   -> S3Config.NumRetries,
+      "fs.s3a.connection.maximum" -> S3Config.MaxConcurrency, // TODO think max-concurrency is per-request
+      "fs.s3a.connection.timeout" -> S3Config.ConnectionTimeout,
+      "fs.s3a.multipart.size"     -> S3Config.WriteBufferInBytes,
+      "fs.s3a.buffer.dir"         -> S3Config.WriteBufferDir,
+    )
+
+    private val reverseMappings = mappings.map { case (k, v) => v -> k }
+
+    def apply(conf: Map[String, String]): Map[String, String] = {
+      conf.flatMap { case (k, v) => mappings.get(k).map(_ -> v) } ++
+        conf.flatMap { case (k, v) => reverseMappings.get(k).map(_ -> v) }
+    }
+  }
+
+  private object IcebergConfigs {
+    def apply(conf: Map[String, String]): Map[String, String] = {
+      conf.collect {
+        case ("client.region", v) => S3Config.Region -> v
+        case ("s3.path-style-access", v) => S3Config.ForcePathStyle -> v
+        case (k, v) if k.startsWith("s3.") => s"fs.$k" -> v
+      } ++ conf.collect {
+        case (S3Config.Region, v) => "client.region" -> v
+        case (S3Config.ForcePathStyle, v) => "s3.path-style-access" -> v
+        case (k, v) if k.startsWith("fs.s3.") => k.substring(3) -> v
+      }
     }
   }
 }

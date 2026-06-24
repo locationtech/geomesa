@@ -85,7 +85,7 @@ class IcebergParquetScan(scan: TableScan, threads: Int) extends CloseableIterato
               .project(projection)
               .split(file.start(), file.length())
               .caseSensitive(caseSensitive)
-              .reuseContainers() // TODO consider this
+              .reuseContainers()
               .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(projection, fileSchema))
               .build[Record]()
 
