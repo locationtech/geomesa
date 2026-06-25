@@ -11,19 +11,20 @@ package org.locationtech.geomesa.fs.data
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
+import org.apache.iceberg.CatalogUtil
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
-import org.locationtech.geomesa.fs.storage.converter.ConverterStorageFactory
-import org.locationtech.geomesa.fs.storage.converter.metadata.ConverterMetadata
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorageFactory, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.converter.ConverterCatalog
+import org.locationtech.geomesa.fs.storage.core.FileSystemContext
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergCatalog
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.hadoop.HadoopUtils
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.awt.RenderingHints
-import java.io.{ByteArrayInputStream, IOException}
+import java.io.ByteArrayInputStream
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.Collections
@@ -35,66 +36,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  // noinspection ScalaDeprecation
   override def createDataStore(params: java.util.Map[String, _]): DataStore = {
-    val path = new URI(PathParam.lookup(params))
-    val encoding = EncodingParam.lookup(params)
-    val conf = {
-      val builder = Map.newBuilder[String, String]
-      // pick up any hadoop props, to e.g. make it a bit easier to configure s3 access based on s3a settings
-      // only do this if hadoop file exist on the classpath, to avoid a hard runtime dependency on hadoop
-      if (Seq("core-site.xml", "hdfs-site.xml").exists(getClass.getClassLoader.getResource(_) != null)) {
-        FileSystemDataStoreFactory.configuration.forEach { e =>
-          val key = e.getKey
-          if (key.startsWith("geomesa.") || key.startsWith("fs.") || key.startsWith("parquet.")) {
-            builder += e.getKey -> FileSystemDataStoreFactory.configuration.get(e.getKey) // use .get to resolve envs
-          }
-        }
-      }
-      ConfigXmlParam.lookupOpt(params).foreach { xml =>
-        logger.warn(s"Parameter '${ConfigXmlParam.key}' is deprecated, please use '${ConfigParam.key}' instead")
-        val conf = new Configuration(false)
-        conf.addResource(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))
-        // note: need to call iterator() to force loading of the resource
-        conf.iterator().forEachRemaining { e => builder += e.getKey -> conf.get(e.getKey) } // use .get to resolve envs
-      }
-      ConfigPathsParam.lookupOpt(params).map(_.split(',').map(_.trim).filterNot(_.isEmpty)).filterNot(_.isEmpty).foreach { resources =>
-        logger.warn(s"Parameter '${ConfigPathsParam.key}' is deprecated, please use '${ConfigFileParam.key}' instead")
-        val conf = new Configuration(false)
-        resources.foreach(HadoopUtils.addResource(conf, _))
-        // note: need to call iterator() to force loading of the resource
-        conf.iterator().forEachRemaining { e => builder += e.getKey -> conf.get(e.getKey) }  // use .get to resolve envs
-      }
-      ConfigFileParam.lookupOpt(params).foreach { f =>
-        var uri = new URI(f)
-        if (uri.getScheme == null) {
-          uri = new URI("file", uri.getHost, uri.getPath, uri.getFragment)
-        }
-        val asString = try { WithClose(uri.toURL.openStream())(IOUtils.toString(_, StandardCharsets.UTF_8)) } catch {
-          case NonFatal(e) =>
-            throw new IllegalArgumentException(s"Invalid parameter ${ConfigFileParam.key} - could not open file: $f", e)
-        }
-        // use our properties parameter parsing to evaluate env vars
-        ConfigParam.lookup(java.util.Map.of(ConfigParam.key, asString)).asScala.foreach { case (k, v) => builder += k -> v }
-      }
-      ConfigParam.lookupOpt(params).foreach(_.asScala.foreach { case (k, v) => builder += k -> v })
-      AuthProviderParam.lookupOpt(params).foreach(p => builder += (AuthsParam.key -> p.getClass.getName))
-      AuthsParam.lookupOpt(params).foreach(auths => builder += (AuthsParam.key -> auths))
-      MetadataTypeParam.lookupOpt(params).filterNot(_.isBlank) match {
-        case Some(t) => builder += StorageCatalog.MetadataTypeConfig -> t
-        case None =>
-          if (ConverterStorageFactory.Encoding.equalsIgnoreCase(encoding)) {
-            // for back compatibility, don't require metadata type if using converter storage
-            builder += StorageCatalog.MetadataTypeConfig -> ConverterMetadata.MetadataType
-          }
-      }
-      builder.result()
-    }
-
-    if (!conf.contains(StorageCatalog.MetadataTypeConfig)) {
-      throw new IOException(s"Parameter ${MetadataTypeParam.key} must be specified directly or in ${ConfigParam.key}")
-    }
-
     // Need to do more tuning here. On a local system 1 thread (so basic producer/consumer) was best
     // because Parquet is also threading the reads underneath I think. using prod/cons pattern was
     // about 30% faster but increasing beyond 1 thread slowed things down. This could be due to the
@@ -110,18 +52,27 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     val namespace = NamespaceParam.lookupOpt(params)
 
-    val storageFactory = FileSystemStorageFactory.factories.find(_.encoding == encoding).getOrElse {
-      // this shouldn't happen since encoding param lookup should fail if it doesn't match a factory
-      throw new RuntimeException(
-        s"Invalid encoding parameter, does not match a storage factory instance: $encoding\n" +
-          s"  Available factories: ${FileSystemStorageFactory.factories.map(_.encoding).mkString(", ")}")
-    }
-
-    val context = FileSystemContext.create(path, conf, namespace)
+    val path = new URI(PathParam.lookup(params))
+    val context = FileSystemContext.create(path, buildConf(params), namespace)
     val config = FileSystemDataStoreConfig(context, readThreads, maxOpenPartitions, writeTimeout, queryTimeout)
-    val metadata = StorageCatalog(context)
 
-    new FileSystemDataStore(storageFactory, metadata, config)
+    lazy val encodingType =
+      if (params.get("fs.encoding") == "converter") {
+        logger.warn(s"Using deprecated parameter 'fs.encoding' - please switch to '${CatalogTypeParam.key}' instead")
+        true
+      } else {
+        false
+      }
+
+    val catalogType = context.conf.getOrElse(CatalogUtil.ICEBERG_CATALOG_TYPE, null)
+    val catalog =
+      if (catalogType == ConverterCatalog.CatalogType || (catalogType == null && encodingType)) {
+        new ConverterCatalog(context)
+      } else {
+        new IcebergCatalog(context)
+      }
+
+    new FileSystemDataStore(catalog, config)
   }
 
   override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
@@ -137,6 +88,52 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   override def getParametersInfo: Array[Param] = Array(FileSystemDataStoreFactory.ParameterInfo :+ NamespaceParam: _*)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = Collections.emptyMap()
+
+  // noinspection ScalaDeprecation
+  private def buildConf(params: java.util.Map[String, _]): Map[String, String] = {
+    val builder = Map.newBuilder[String, String]
+    // pick up any hadoop props, to e.g. make it a bit easier to configure s3 access based on s3a settings
+    // only do this if hadoop file exist on the classpath, to avoid a hard runtime dependency on hadoop
+    if (Seq("core-site.xml", "hdfs-site.xml").exists(getClass.getClassLoader.getResource(_) != null)) {
+      FileSystemDataStoreFactory.configuration.forEach { e =>
+        val key = e.getKey
+        if (key.startsWith("geomesa.") || key.startsWith("fs.") || key.startsWith("parquet.")) {
+          builder += e.getKey -> FileSystemDataStoreFactory.configuration.get(e.getKey) // use .get to resolve envs
+        }
+      }
+    }
+    ConfigXmlParam.lookupOpt(params).foreach { xml =>
+      logger.warn(s"Parameter '${ConfigXmlParam.key}' is deprecated, please use '${ConfigParam.key}' instead")
+      val conf = new Configuration(false)
+      conf.addResource(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))
+      // note: need to call iterator() to force loading of the resource
+      conf.iterator().forEachRemaining { e => builder += e.getKey -> conf.get(e.getKey) } // use .get to resolve envs
+    }
+    ConfigPathsParam.lookupOpt(params).map(_.split(',').map(_.trim).filterNot(_.isEmpty)).filterNot(_.isEmpty).foreach { resources =>
+      logger.warn(s"Parameter '${ConfigPathsParam.key}' is deprecated, please use '${ConfigFileParam.key}' instead")
+      val conf = new Configuration(false)
+      resources.foreach(HadoopUtils.addResource(conf, _))
+      // note: need to call iterator() to force loading of the resource
+      conf.iterator().forEachRemaining { e => builder += e.getKey -> conf.get(e.getKey) }  // use .get to resolve envs
+    }
+    ConfigFileParam.lookupOpt(params).foreach { f =>
+      var uri = new URI(f)
+      if (uri.getScheme == null) {
+        uri = new URI("file", uri.getHost, uri.getPath, uri.getFragment)
+      }
+      val asString = try { WithClose(uri.toURL.openStream())(IOUtils.toString(_, StandardCharsets.UTF_8)) } catch {
+        case NonFatal(e) =>
+          throw new IllegalArgumentException(s"Invalid parameter ${ConfigFileParam.key} - could not open file: $f", e)
+      }
+      // use our properties parameter parsing to evaluate env vars
+      ConfigParam.lookup(java.util.Map.of(ConfigParam.key, asString)).asScala.foreach { case (k, v) => builder += k -> v }
+    }
+    ConfigParam.lookupOpt(params).foreach(_.asScala.foreach { case (k, v) => builder += k -> v })
+    AuthProviderParam.lookupOpt(params).foreach(p => builder += (AuthsParam.key -> p.getClass.getName))
+    AuthsParam.lookupOpt(params).foreach(auths => builder += (AuthsParam.key -> auths))
+    CatalogTypeParam.lookupOpt(params).foreach(t => builder += (CatalogUtil.ICEBERG_CATALOG_TYPE -> t))
+    builder.result()
+  }
 }
 
 object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
@@ -147,8 +144,7 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.PathParam,
-      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.EncodingParam,
-      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.MetadataTypeParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.CatalogTypeParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigFileParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.WriteTimeoutParam,

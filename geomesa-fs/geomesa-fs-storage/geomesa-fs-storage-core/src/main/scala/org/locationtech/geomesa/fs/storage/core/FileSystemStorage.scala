@@ -254,6 +254,13 @@ case class FileSystemStorage(
       WithClose(table.newScan().planFiles())(_.asScala.map(f => partition(f.file())).toSeq.distinct)
 
     /**
+     * Gets all partitions in this storage instance
+     *
+     * @return
+     */
+    def partitions(filter: Filter): Seq[Partition] = files(filter).map(partition).distinct
+
+    /**
      * Gets all files in this storage instance
      *
      * @return
@@ -269,6 +276,17 @@ case class FileSystemStorage(
     def files(partition: Partition): Seq[DataFile] = {
       val filters = schemes.zip(partition.values).map { case (s, p) => s.getCoveringExpression(p) }
       WithClose(table.newScan().filter(filters.reduce(Expressions.and)).planFiles())(_.asScala.map(_.file()).toSeq)
+    }
+
+    /**
+     * Gets all files that (potentially) match a given filter
+     *
+     * @param filter filter
+     * @return
+     */
+    def files(filter: Filter): Seq[DataFile] = {
+      val icebergFilter = IcebergFilterConverter(sft, filter)
+      WithClose(table.newScan().filter(icebergFilter.expression).planFiles())(_.asScala.map(_.file()).toSeq)
     }
 
     /**

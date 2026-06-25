@@ -10,7 +10,6 @@ package org.locationtech.geomesa.fs.storage.core
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.apache.iceberg.rest.RESTCatalog
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.io.LocalInputFile
 import org.everit.json.schema.loader.SchemaLoader
@@ -93,8 +92,8 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
     val path = f"${paths.getAndIncrement()}%03d"
     val root = URI.create(s"s3://geomesa/$path/")
     val conf = s3Conf ++ Map(
-      "iceberg.catalog-impl" -> classOf[RESTCatalog].getName,
-      "iceberg.uri" -> s"http://${iceberg.getHost}:${iceberg.getFirstMappedPort}/",
+      "catalog-type" -> "rest",
+      "uri" -> s"http://${iceberg.getHost}:${iceberg.getFirstMappedPort}/",
       "iceberg.namespace" -> path,
     )
     FileSystemContext.create(root, conf, None)

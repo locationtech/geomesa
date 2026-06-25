@@ -85,7 +85,7 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
     "work with one datastore" in {
       val ds = DataStoreFinder.getDataStore(Map(
         "fs.path"              -> this.getClass.getClassLoader.getResource("example").getFile,
-        "fs.encoding"          -> "converter",
+        "fs.catalog.type"      -> "converter",
         "fs.config.properties" -> fsConfig(sftByName("fs-test"), "datastore1")
       ).asJava)
       ds must not(beNull)

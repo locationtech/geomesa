@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
-import org.apache.iceberg.PartitionSpec
 import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, TableIdentifier}
+import org.apache.iceberg.{CatalogUtil, PartitionSpec}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
@@ -20,15 +20,14 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.Closeable
 import java.util.Locale
-import scala.util.control.NonFatal
 
 class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
 
-  import IcebergCatalog.{IcebergPrefix, RichCatalog, RichConf}
+  import IcebergCatalog.{RichCatalog, RichConf}
 
   import scala.collection.JavaConverters._
 
-  private val namespace = Namespace.of(context.conf.required(s"${IcebergPrefix}namespace"))
+  private val namespace = Namespace.of(context.conf.required("iceberg.namespace"))
   private val catalog = IcebergCatalog.createCatalog(context)
 
   override def getTypeNames: Seq[String] = {
@@ -86,8 +85,6 @@ class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
 
 object IcebergCatalog {
 
-  private val IcebergPrefix = "iceberg."
-
   import scala.collection.JavaConverters._
 
   private implicit class RichConf(val conf: Map[String, String]) extends AnyVal {
@@ -104,6 +101,7 @@ object IcebergCatalog {
         }
       }
     }
+
     def namespaceExists(namespace: Namespace): Boolean = sn.forall(_.namespaceExists(namespace))
 
     def close(): Unit = CloseWithLogging(Option(catalog).collect { case c: Closeable => c })
@@ -112,24 +110,14 @@ object IcebergCatalog {
   }
 
   private def createCatalog(context: FileSystemContext): Catalog = {
-    val impl = context.conf.required(s"${IcebergPrefix}catalog-impl")
-    val props = {
-      // add some defaults, to reduce boilerplate
-      val defaults = Map(
-        "io-impl" -> "org.apache.iceberg.aws.s3.S3FileIO",
-        "file-format" -> "PARQUET",
-        "warehouse" -> context.root.resolve("metadata/").toString
-      )
-      // TODO Map("parquet.filter.dictionary.enabled" -> "true")
-      val icebergProps = context.conf.collect { case (k, v) if k.startsWith(IcebergPrefix) => k.substring(IcebergPrefix.length) -> v }
-      defaults ++ icebergProps ++ context.conf
-    }
-    val catalog = try { Class.forName(impl).getConstructor().newInstance().asInstanceOf[Catalog] } catch {
-      case e: Throwable => throw new RuntimeException(s"Could not instantiate catalog class '$impl':", e)
-    }
-    try { catalog.initialize("geomesa", props.asJava) } catch {
-      case NonFatal(e) => catalog.close(); throw new RuntimeException("Could not initialize catalog:", e)
-    }
-    catalog
+    // add some defaults, to reduce boilerplate
+    val defaults = Map(
+      "io-impl" -> "org.apache.iceberg.aws.s3.S3FileIO",
+      "file-format" -> "PARQUET",
+      "warehouse" -> context.root.resolve("metadata/").toString
+    )
+    // TODO Map("parquet.filter.dictionary.enabled" -> "true")
+    val props = defaults ++ context.conf
+    CatalogUtil.buildIcebergCatalog("geomesa", props.asJava, null)
   }
 }

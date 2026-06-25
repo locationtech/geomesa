@@ -102,7 +102,7 @@ class ConverterCatalog(val context: FileSystemContext) extends StorageCatalog wi
 
 object ConverterCatalog {
 
-  val Encoding = "converter"
+  val CatalogType = "converter"
 
   val SftNameParam         = "fs.options.sft.name"
   val SftConfigParam       = "fs.options.sft.conf"

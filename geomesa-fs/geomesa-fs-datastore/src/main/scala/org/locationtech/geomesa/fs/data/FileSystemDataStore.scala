@@ -17,7 +17,7 @@ import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSo
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.stats.FileSystemStats
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, FileSystemStorageFactory, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
@@ -28,18 +28,17 @@ import scala.concurrent.duration.Duration
 /**
  * File system data store
  *
- * @param storageFactory storage factory
- * @param catalog metadata catalog
+ * @param catalog storage catalog
  * @param config config
  */
-class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: StorageCatalog, config: FileSystemDataStoreConfig)
+class FileSystemDataStore(catalog: StorageCatalog, config: FileSystemDataStoreConfig)
     extends ContentDataStore with HasGeoMesaStats with LazyLogging {
 
   import scala.collection.JavaConverters._
 
   private val cache = Caffeine.newBuilder().build(
     new CacheLoader[String, FileSystemStorage]() {
-      override def load(k: String): FileSystemStorage = storageFactory.apply(config.context, catalog.load(k))
+      override def load(k: String): FileSystemStorage = catalog.load(k)
     }
   )
 
@@ -57,7 +56,7 @@ class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: Sto
     import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
     if (catalog.getTypeNames.contains(original.getTypeName)) {
       logger.warn(
-        s"Schema already exists: ${SimpleFeatureTypes.encodeType(cache.get(original.getTypeName).metadata.sft, includeUserData = true)}")
+        s"Schema already exists: ${SimpleFeatureTypes.encodeType(cache.get(original.getTypeName).sft, includeUserData = true)}")
     } else {
       // copy the feature type so that we don't affect it when removing user data, below
       val sft = SimpleFeatureTypes.copy(original)
@@ -68,7 +67,7 @@ class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: Sto
         throw new IllegalArgumentException("Partition scheme must be specified in the SimpleFeatureType user data")
       }
       val fileSize = sft.removeTargetFileSize()
-      cache.put(sft.getTypeName, storageFactory.apply(config.context, catalog.create(sft, scheme, fileSize)))
+      cache.put(sft.getTypeName, catalog.create(sft, scheme, fileSize))
     }
   }
 
@@ -92,6 +91,7 @@ class FileSystemDataStore(storageFactory: FileSystemStorageFactory, catalog: Sto
   override def dispose(): Unit = {
     try {
       CloseWithLogging(cache.asMap().asScala.values)
+      CloseWithLogging(catalog)
       cache.invalidateAll()
     } finally {
       super.dispose()
