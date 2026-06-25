@@ -23,8 +23,8 @@ class FsDescribeSchemaCommand extends DescribeSchemaCommand[FileSystemDataStore]
 
   override protected def describe(ds: FileSystemDataStore, sft: SimpleFeatureType, logger: Logger): Unit = {
     super.describe(ds, sft, logger)
-    val metadata = ds.storage(sft.getTypeName).metadata
-    logger.info(s"\nPartition scheme:\n  ${metadata.schemes.map(_.name).toSeq.sorted.mkString(", ")}")
+    val schemes = ds.storage(sft.getTypeName).schemes
+    logger.info(s"\nPartition scheme:\n  ${schemes.map(_.name).mkString(", ")}")
   }
 }
 

@@ -58,7 +58,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
         }
         val storage = ds.storage(sft.getTypeName)
         val tmpPath = Option(params.tempPath).map(new URI(_))
-        val targetFileSize = storage.metadata.get(Metadata.TargetFileSize).map(_.toLong)
+        val targetFileSize = Metadata.get(storage.table, Metadata.TargetFileSize).map(_.toLong)
 
         tmpPath.foreach { tp =>
           WithClose(ObjectStore(FileSystemContext.create(tp, storage.context.conf))) { fs =>
@@ -80,7 +80,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
 
         new ParquetConverterJob(
           connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths, reducers,
-          storage.context.root, storage.metadata.schemes, tmpPath.map(new Path(_)), targetFileSize) {
+          storage.context.root, storage.schemes, tmpPath.map(new Path(_)), targetFileSize) {
           override def configureJob(job: Job): Unit = {
             super.configureJob(job)
             if (params.combineInputs) {

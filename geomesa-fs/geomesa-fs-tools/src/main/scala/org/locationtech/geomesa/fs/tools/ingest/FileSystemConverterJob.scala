@@ -18,9 +18,9 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileType
+import org.locationtech.geomesa.fs.storage.core.Partition
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
-import org.locationtech.geomesa.fs.storage.core.{Partition, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetStorageConfiguration
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{DummyReducer, FsIngestMapper}
@@ -45,7 +45,7 @@ abstract class FileSystemConverterJob(
     libjarsPaths: Iterator[() => Seq[File]],
     reducers: Int,
     root: URI,
-    schemes: Set[PartitionScheme],
+    schemes: Seq[PartitionScheme],
     tmpPath: Option[Path],
     targetFileSize: Option[Long]
   ) extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths)
@@ -70,7 +70,6 @@ abstract class FileSystemConverterJob(
 
     StorageConfiguration.setRootPath(job.getConfiguration, root)
     StorageConfiguration.setPartitionScheme(job.getConfiguration, schemes)
-    StorageConfiguration.setFileType(job.getConfiguration, FileType.Written)
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
     FileOutputFormat.setOutputPath(job, tmpPath.getOrElse(new Path(S3ObjectStore.s3aUri(root))))
@@ -105,7 +104,7 @@ object FileSystemConverterJob {
       libjarsPaths: Iterator[() => Seq[File]],
       reducers: Int,
       root: URI,
-      schemes: Set[PartitionScheme],
+      schemes: Seq[PartitionScheme],
       tmpPath: Option[Path],
       targetFileSize: Option[Long]
     ) extends FileSystemConverterJob(
@@ -117,7 +116,7 @@ object FileSystemConverterJob {
     type Context = Mapper[LongWritable, SimpleFeature, Text, BytesWritable]#Context
 
     private var serializer: KryoFeatureSerializer = _
-    private var scheme: Set[PartitionScheme] = _
+    private var scheme: Seq[PartitionScheme] = _
 
     var mapped: Counter = _
     var written: Counter = _

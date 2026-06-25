@@ -121,7 +121,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
       val command = new FsCompactCommand()
       command.params.featureName = sft.getTypeName
       command.params.path = path
-      command.params.metadataType = "file"
+      command.params.catalogType = "file"
       command.params.runMode = RunModes.Distributed.toString
       command.params.configuration = configFlags.toList.asJava
       command.execute() must not(throwAn[Exception])
@@ -153,7 +153,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
       val command = new FsCompactCommand()
       command.params.featureName = sft.getTypeName
       command.params.path = path
-      command.params.metadataType = "file"
+      command.params.catalogType = "file"
       command.params.runMode = RunModes.Distributed.toString
       command.params.configuration = configFlags.toList.asJava
       command.execute() must not(throwAn[Exception])

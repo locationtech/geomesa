@@ -8,11 +8,15 @@
 
 package org.locationtech.geomesa.fs.data.stats
 
+import org.apache.iceberg.types.Conversions
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
+import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.stats.impl.MinMax
 
 /**
@@ -22,15 +26,13 @@ import org.locationtech.geomesa.index.stats.impl.MinMax
  */
 class FileSystemStats(ds: FileSystemDataStore) extends UnoptimizedRunnableStats(ds) {
 
-  import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
-
   override def getCount(
       sft: SimpleFeatureType,
       filter: Filter,
       exact: Boolean,
       queryHints: Hints): Option[Long] = {
     if (!exact || filter == Filter.INCLUDE) {
-      Some(ds.storage(sft.getTypeName).metadata.getFiles(filter).map(_.recordCount()).sum)
+      Some(ds.storage(sft.getTypeName).metadata.files(filter).map(_.recordCount()).sum)
     } else {
       super.getCount(sft, filter, exact, queryHints)
     }
@@ -41,9 +43,25 @@ class FileSystemStats(ds: FileSystemDataStore) extends UnoptimizedRunnableStats(
       attribute: String,
       filter: Filter,
       exact: Boolean): Option[MinMax[T]] = {
-    // TODO: Extract min/max from DataFile.lowerBounds()/upperBounds()
-    // This requires mapping attribute indices to Iceberg field IDs and decoding ByteBuffers
-    // For now, falling back to the base implementation which will scan features
-    super.getMinMax(sft, attribute, filter, exact)
+    if (!exact || filter == Filter.INCLUDE) {
+      val minMax = Stat(sft, Stat.MinMax(attribute)).asInstanceOf[MinMax[T]]
+      val storage = ds.storage(sft.getTypeName)
+      val sf = new ScalaSimpleFeature(sft, "")
+      val i = sft.indexOf(attribute)
+      val field = storage.schema.iceberg.findField(ColumnName(attribute))
+      val fieldId = field.fieldId()
+      val fieldType = field.`type`()
+      ds.storage(sft.getTypeName).metadata.files(filter).foreach { f =>
+        Seq(f.lowerBounds().get(fieldId), f.upperBounds().get(fieldId)).foreach { buffer =>
+          if (buffer != null) {
+            sf.setAttribute(i, Conversions.fromByteBuffer[AnyRef](fieldType, buffer))
+            minMax.observe(sf)
+          }
+        }
+      }
+      Some(minMax)
+    } else {
+      super.getMinMax(sft, attribute, filter, exact)
+    }
   }
 }

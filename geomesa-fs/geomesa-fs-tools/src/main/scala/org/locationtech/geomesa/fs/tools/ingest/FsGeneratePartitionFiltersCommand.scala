@@ -11,51 +11,52 @@ package org.locationtech.geomesa.fs.tools.ingest
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.storage.core.Partition
+import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme.{EnumeratedScheme, TemporalScheme}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.ingest.FsGeneratePartitionFiltersCommand.FsGeneratePartitionFiltersParams
-import org.locationtech.geomesa.tools.{Command, OptionalCqlFilterParam, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
+
+import java.time.ZonedDateTime
 
 class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
 
   import org.locationtech.geomesa.filter.andFilters
-
-  import scala.collection.JavaConverters._
 
   override val params = new FsGeneratePartitionFiltersParams()
 
   override val name: String = "generate-partition-filters"
 
   override def execute(): Unit = withDataStore { ds =>
-    if (params.cqlFilter == null && params.loadedPartitions.isEmpty) {
-      throw new ParameterException("At least one of --partition, --partition-file, or --cql must be specified")
+    if (params.date == null && params.loadedPartitions.isEmpty) {
+      throw new ParameterException("At least one of --partition, --partition-file, or --date must be specified")
     }
 
-    val metadata = ds.storage(params.featureName).metadata
+    val storage = ds.storage(params.featureName)
 
-    val fromFilter = Option(params.cqlFilter).toSeq.flatMap { f =>
-      val keys = metadata.schemes.map { s =>
-        s.getPartitionsForFilter(f).getOrElse {
-          throw new ParameterException(s"The filter ${ECQL.toCQL(f)} does not select any partitions from the partition scheme ${s.name}")
-        }
+    val fromDate = Option(params.date).toSeq.flatMap { date =>
+      val keys = storage.schemes.map {
+        case s: TemporalScheme => Seq(s.partition(date).partition)
+        case s: EnumeratedScheme => s.partitions
+        case s => throw new UnsupportedOperationException(s"The partition scheme '${s.name}' does not support enumerating partitions")
       }
       keys.foldLeft(Seq(Partition.None)) { case (partitions, keys) =>
         for { partition <- partitions; key <- keys } yield {
-          Partition(partition.values + key)
+          Partition(partition.values :+ key)
         }
       }
     }
 
-    val partitions = if (params.loadedPartitions.isEmpty) { fromFilter} else { (params.loadedPartitions ++ fromFilter).distinct }
+    val partitions = if (params.loadedPartitions.isEmpty) { fromDate } else { (params.loadedPartitions ++ fromDate).distinct }
 
     Command.user.info(s"Generating filters for ${partitions.size} partitions")
     if (!params.noHeader) {
       Command.output.info("Partition\tFilter")
     }
 
-    partitions.toSeq.sortBy(_.toString).foreach { partition =>
-      val filters = partition.values.flatMap(v => metadata.schemes.find(_.name == v.name).map(_.getCoveringFilter(v)))
-      val filter = ECQL.toCQL(andFilters(filters.toSeq))
+    partitions.sortBy(_.toString).foreach { partition =>
+      val filters = partition.values.flatMap(v => storage.schemes.find(_.name == v.name).map(_.getCoveringFilter(v)))
+      val filter = ECQL.toCQL(andFilters(filters))
       Command.output.info(s"$partition\t$filter")
     }
   }
@@ -63,8 +64,11 @@ class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
 
 object FsGeneratePartitionFiltersCommand {
   @Parameters(commandDescription = "Generate filters corresponding to partitions")
-  class FsGeneratePartitionFiltersParams extends FsParams
-      with RequiredTypeNameParam with PartitionParam with OptionalCqlFilterParam {
+  class FsGeneratePartitionFiltersParams extends FsParams with RequiredTypeNameParam with PartitionParam {
+
+    @Parameter(names = Array("--date"), description = "Date to get partitions for")
+    var date: ZonedDateTime = _
+
     @Parameter(names = Array("--no-header"), description = "Suppress output header")
     var noHeader: Boolean = false
   }

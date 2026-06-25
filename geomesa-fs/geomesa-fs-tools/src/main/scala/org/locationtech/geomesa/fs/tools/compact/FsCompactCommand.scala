@@ -12,7 +12,6 @@ import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.ParquetCompactionJob
@@ -47,18 +46,10 @@ object FsCompactCommand {
     def compact(ds: FileSystemDataStore): Unit = {
       Command.user.info("Beginning compaction process...")
 
-      val storage = ds.storage(params.featureName) match {
-        case s: ParquetFileSystemStorage => s
-        case s =>
-          throw new UnsupportedOperationException(
-            s"Compact is only implemented for ParquetFileSystemStorage: ${s.getClass.getName}")
-      }
+      val storage = ds.storage(params.featureName)
 
-      import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergSchemaMapper
-      val mapper = IcebergSchemaMapper(storage.metadata.sft, storage.metadata.schemes.toSeq, storage.context)
-
-      val toCompact = if (params.loadedPartitions.isEmpty) { storage.metadata.getFiles().map(f => mapper.partition(f)).distinct } else {
-        val filtered = params.loadedPartitions.filter(storage.metadata.getFiles(_).nonEmpty)
+      val toCompact = if (params.loadedPartitions.isEmpty) { storage.metadata.partitions() } else {
+        val filtered = params.loadedPartitions.filter(storage.metadata.files(_).nonEmpty)
         if (filtered.isEmpty) {
           throw new ParameterException(s"Partition(s) did not match any files: ${params.loadedPartitions.mkString(", ")}")
         } else if (filtered.size != params.loadedPartitions.size) {
@@ -90,7 +81,7 @@ object FsCompactCommand {
                   override def run(): Unit = {
                     try {
                       logger.info(s"Compacting $p")
-                      storage.compact(p)
+                      storage.metadata.compact(p)
                     } catch {
                       case NonFatal(e) => logger.error(s"Error processing partition '$p':", e)
                     } finally {

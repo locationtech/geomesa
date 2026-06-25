@@ -45,9 +45,9 @@ jobs:
           - name: features
             list: geomesa-features/geomesa-feature-all,geomesa-features/geomesa-feature-avro,geomesa-features/geomesa-feature-common,geomesa-features/geomesa-feature-exporters,geomesa-features/geomesa-feature-kryo
           - name: fs
-            list: geomesa-fs/geomesa-fs-datastore,geomesa-fs/geomesa-fs-dist,geomesa-fs/geomesa-fs-gs-plugin,geomesa-fs/geomesa-fs-spark,geomesa-fs/geomesa-fs-tools
+            list: geomesa-fs/geomesa-fs-datastore,geomesa-fs/geomesa-fs-dist,geomesa-fs/geomesa-fs-gs-plugin,geomesa-fs/geomesa-fs-tools
           - name: fs-storage
-            list: geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-core,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-convert,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-jobs
+            list: geomesa-fs/geomesa-fs-storage,geomesa-fs/geomesa-fs-storage-convert,geomesa-fs/geomesa-fs-jobs,geomesa-fs/geomesa-fs-spark
           - name: gt-pg15
             list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools -Dtest.postgis.docker.tag=15-3.4
           - name: gt-pg16

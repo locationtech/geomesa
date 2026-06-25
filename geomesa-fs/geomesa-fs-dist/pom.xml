@@ -28,7 +28,7 @@
 
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-storage-core_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-fs-storage_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- geoserver plugin - needed as a dependency for reactor ordering, but don't bring in transitive deps -->

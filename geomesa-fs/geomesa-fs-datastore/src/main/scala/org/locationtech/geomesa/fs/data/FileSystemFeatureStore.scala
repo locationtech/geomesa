@@ -66,7 +66,7 @@ class FileSystemFeatureStore(
         Seq(BoundingBoxField.XMin, BoundingBoxField.YMin, BoundingBoxField.XMax, BoundingBoxField.YMax)
           .map(f => storage.schema.iceberg.findField(s"$bboxField.$f").fieldId())
           .splitAt(2)
-      storage.files.files(query.getFilter).foreach { f =>
+      storage.metadata.files(query.getFilter).foreach { f =>
         val minBuffers = minFieldIds.map(f.lowerBounds().get)
         val maxBuffers = maxFieldIds.map(f.upperBounds().get)
         if (!minBuffers.contains(null) && !maxBuffers.contains(null)) {
@@ -81,7 +81,7 @@ class FileSystemFeatureStore(
   }
 
   override def getCountInternal(query: Query): Int = {
-    val count = storage.files.files(query.getFilter).map(_.recordCount()).sum
+    val count = storage.metadata.files(query.getFilter).map(_.recordCount()).sum
     if (count.isValidInt) { count.toInt } else { Int.MaxValue }
   }
 

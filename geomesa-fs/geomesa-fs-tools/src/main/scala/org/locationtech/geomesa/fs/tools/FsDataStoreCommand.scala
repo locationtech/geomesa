@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.tools
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreParams}
-import org.locationtech.geomesa.fs.storage.core.{FileSystemStorageFactory, Partition}
+import org.locationtech.geomesa.fs.storage.core.Partition
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.FsIngestParams
 import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
@@ -37,8 +37,8 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
   override def connection: Map[String, String] = {
     val builder = Map.newBuilder[String, String]
     builder += (FileSystemDataStoreParams.PathParam.key -> params.path)
-    if (params.metadataType != null) {
-      builder += (FileSystemDataStoreParams.MetadataTypeParam.key -> params.metadataType)
+    if (params.catalogType != null) {
+      builder += (FileSystemDataStoreParams.CatalogTypeParam.key -> params.catalogType)
     }
     if (!params.configuration.isEmpty) {
       val props = new Properties()
@@ -52,9 +52,6 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
     }
     if (params.auths != null) {
       builder += (FileSystemDataStoreParams.AuthsParam.key -> params.auths)
-    }
-    if (params.encoding != null) {
-      builder += (FileSystemDataStoreParams.EncodingParam.key -> params.encoding)
     }
     val maxOpenPartitions =
       Option(params).collect { case p: FsIngestParams if p.maxOpenPartitions != null => p.maxOpenPartitions.toString }.orNull
@@ -83,16 +80,10 @@ object FsDataStoreCommand {
     var path: String = _
 
     @Parameter(
-      names = Array("--encoding", "-e"),
-      description = "File encoding to use",
-      validateValueWith = Array(classOf[EncodingValidator]))
-    var encoding: String = _
-
-    @Parameter(
-      names = Array("--metadata-type"),
-      description = "Metadata type to use",
-      validateValueWith = Array(classOf[MetadataTypeValidator]))
-    var metadataType: String = _
+      names = Array("--catalog-type"),
+      description = "Metadata catalog type to use",
+      validateValueWith = Array(classOf[CatalogTypeValidator]))
+    var catalogType: String = _
 
     @Parameter(
       names = Array("--config-file"),
@@ -164,19 +155,9 @@ object FsDataStoreCommand {
     }
   }
 
-  private class EncodingValidator extends IValueValidator[String] {
+  class CatalogTypeValidator extends IValueValidator[String] {
     override def validate(name: String, value: String): Unit = {
-      val encodings = FileSystemStorageFactory.factories.map(_.encoding).toList
-      if (!encodings.exists(_.equalsIgnoreCase(value))) {
-        throw new ParameterException(s"$value is not a valid encoding for parameter $name." +
-            s"Available encodings are: ${encodings.mkString(", ")}")
-      }
-    }
-  }
-
-  class MetadataTypeValidator extends IValueValidator[String] {
-    override def validate(name: String, value: String): Unit = {
-      val valid = FileSystemDataStoreParams.MetadataTypeParam.enumerations
+      val valid = FileSystemDataStoreParams.CatalogTypeParam.enumerations
       if (!valid.contains(value)) {
         throw new ParameterException(s"$value is not a valid type for parameter $name." +
           s"Available metadata types are: ${valid.mkString(", ")}")

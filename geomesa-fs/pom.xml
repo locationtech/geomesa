@@ -20,8 +20,10 @@
         <module>geomesa-fs-datastore</module>
         <module>geomesa-fs-tools</module>
         <module>geomesa-fs-gs-plugin</module>
+        <module>geomesa-fs-jobs</module>
         <module>geomesa-fs-spark</module>
         <module>geomesa-fs-storage</module>
+        <module>geomesa-fs-storage-convert</module>
         <module>geomesa-fs-dist</module>
     </modules>
 
