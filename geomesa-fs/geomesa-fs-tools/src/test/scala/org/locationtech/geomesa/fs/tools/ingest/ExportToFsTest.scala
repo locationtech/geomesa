@@ -69,7 +69,7 @@ class ExportToFsTest extends SpecificationWithJUnit with FsContainerTest {
               }
             }
           }
-          storage.metadata.register(register, Partition(storage.schemes.map(_.getPartition(features.head))))
+          storage.metadata.register(Map(Partition(storage.schemes.map(_.getPartition(features.head))) -> Seq(register)))
 
           val read = storage.getReader(new Query(sft.getTypeName), 1).map(ScalaSimpleFeature.copy).toList
           read mustEqual features

@@ -12,7 +12,7 @@ import org.apache.iceberg.expressions.Expression
 import org.apache.iceberg.{PartitionSpec, StructLike}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.fs.storage.core.PartitionKey
+import org.locationtech.geomesa.fs.storage.core.{Partition, PartitionKey}
 
 import java.time.ZonedDateTime
 
@@ -86,6 +86,27 @@ trait PartitionScheme {
 }
 
 object PartitionScheme {
+
+  /**
+   * Enumerate all possible partitions for a given date. Note that not all partition schemes support enumeration
+   *
+   * @param schemes partition schemes
+   * @param date date
+   * @return all possible partitions for the given date
+   * @throws UnsupportedOperationException if the partition scheme can't be enumerated
+   */
+  def enumerate(schemes: Seq[PartitionScheme], date: ZonedDateTime): Seq[Partition] = {
+    val keys = schemes.map {
+      case s: TemporalScheme => Seq(s.partition(date).partition)
+      case s: EnumeratedScheme => s.partitions
+      case s => throw new UnsupportedOperationException(s"The partition scheme '${s.name}' does not support enumerating partitions")
+    }
+    keys.foldLeft(Seq(Partition.None)) { case (partitions, keys) =>
+      for { partition <- partitions; key <- keys } yield {
+        Partition(partition.values :+ key)
+      }
+    }
+  }
 
   /**
    * A scheme with a fixed set of partitions

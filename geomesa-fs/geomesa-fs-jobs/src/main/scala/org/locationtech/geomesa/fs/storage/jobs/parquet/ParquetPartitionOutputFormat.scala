@@ -92,7 +92,7 @@ class ParquetPartitionOutputFormat extends OutputFormat[Void, SimpleFeature] {
       cache.foreach { case (partition, state) =>
         logger.debug(s"Closing writer for $partition")
         state.close(context)
-        state.getFiles().foreach(storage.metadata.register(_, Partition(partition)))
+        storage.metadata.register(Map(Partition(partition) -> state.getFiles()))
       }
       CloseWithLogging(Seq(storage, catalog))
     }

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonFactoryBuilder}
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import org.apache.iceberg.{ContentFileParser, DataFile, PartitionSpec}
 
 import java.io.{InputStream, OutputStream};
@@ -24,11 +24,43 @@ object DataFileJson {
 
   private val mapper = new ObjectMapper(factory)
 
-  def serialize(out: OutputStream, file: DataFile, spec: PartitionSpec): Unit =
+  /**
+   * Serialize a data file to json
+   *
+   * @param file data file
+   * @param spec partition spec
+   * @return
+   */
+  def serialize(file: DataFile, spec: PartitionSpec): String = ContentFileParser.toJson(file, spec)
+
+  /**
+   * Serialize a data file to json
+   *
+   * @param file data file
+   * @param spec partition spec
+   * @param out output to write to
+   */
+  def serialize(file: DataFile, spec: PartitionSpec, out: OutputStream): Unit =
     ContentFileParser.toJson(file, spec, factory.createGenerator(out))
 
-  def deserialize(in: InputStream, spec: PartitionSpec): DataFile = {
-    val jsonNode = mapper.readTree(in)
-    ContentFileParser.fromJson(jsonNode, spec).asInstanceOf[DataFile]
-  }
+  /**
+   * Deserialize a data file from json
+   *
+   * @param spec partition spec
+   * @param json json string
+   * @return
+   */
+  def deserialize(spec: PartitionSpec, json: String): DataFile = deserialize(spec, mapper.readTree(json))
+
+  /**
+   * Deserialize a data file from json
+   *
+   * @param spec partition spec
+   * @param json json input stream
+   * @return
+   */
+  def deserialize(spec: PartitionSpec, json: InputStream): DataFile = deserialize(spec, mapper.readTree(json))
+
+  private def deserialize(spec: PartitionSpec, node: JsonNode): DataFile =
+    ContentFileParser.fromJson(node, spec).asInstanceOf[DataFile]
 }

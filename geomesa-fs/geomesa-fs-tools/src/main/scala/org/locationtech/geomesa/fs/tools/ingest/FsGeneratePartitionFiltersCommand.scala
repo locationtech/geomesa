@@ -10,8 +10,7 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.fs.storage.core.Partition
-import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme.{EnumeratedScheme, TemporalScheme}
+import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.ingest.FsGeneratePartitionFiltersCommand.FsGeneratePartitionFiltersParams
@@ -34,18 +33,7 @@ class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
 
     val storage = ds.storage(params.featureName)
 
-    val fromDate = Option(params.date).toSeq.flatMap { date =>
-      val keys = storage.schemes.map {
-        case s: TemporalScheme => Seq(s.partition(date).partition)
-        case s: EnumeratedScheme => s.partitions
-        case s => throw new UnsupportedOperationException(s"The partition scheme '${s.name}' does not support enumerating partitions")
-      }
-      keys.foldLeft(Seq(Partition.None)) { case (partitions, keys) =>
-        for { partition <- partitions; key <- keys } yield {
-          Partition(partition.values :+ key)
-        }
-      }
-    }
+    val fromDate = Option(params.date).toSeq.flatMap(PartitionScheme.enumerate(storage.schemes, _))
 
     val partitions = if (params.loadedPartitions.isEmpty) { fromDate } else { (params.loadedPartitions ++ fromDate).distinct }
 

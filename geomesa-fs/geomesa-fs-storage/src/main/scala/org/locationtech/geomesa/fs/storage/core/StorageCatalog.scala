@@ -50,8 +50,6 @@ trait StorageCatalog extends Closeable {
 
 object StorageCatalog {
 
-  val CatalogTypeKey = "fs.catalog.type"
-
   /**
    * Create a new storage catalog instance
    *

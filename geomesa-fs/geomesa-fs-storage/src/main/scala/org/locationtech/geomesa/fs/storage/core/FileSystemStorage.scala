@@ -43,6 +43,7 @@ import java.io.{Closeable, Flushable}
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.UUID
+import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 /**
@@ -268,39 +269,59 @@ case class FileSystemStorage(
     def partitions(filter: Filter): Seq[Partition] = files().filter(filter).scan().map(partition).distinct
 
     /**
-     * Register a new file with this storage instance. The file must already be in a compatible format.
+     * Register new files with this storage instance. The files must already be in a compatible format.
      *
-     * @param file file to register
-     * @param partition partition that the file belongs to
-     * @return registered file
+     * @param files files to register
+     * @return registered files
      */
-    def register(file: URI, partition: Partition): DataFile = {
-      val filePath = FileSystemStorage.newFilePath(sft.getTypeName, FileContent.DATA)
-      val destination = context.root.resolve(filePath)
-      logger.debug(s"Copying $file to $destination")
-      WithClose(ObjectStore(context))(_.copy(file, destination))
-      val addFile = new AddDataFileObserver(destination, partition)
-      addFile.close()
-      addFile.fileObserver.file
+    def register(files: Map[Partition, Seq[URI]]): Seq[DataFile] = {
+      val dataFiles = files.toSeq.flatMap { case (partition, paths) =>
+        paths.map { path =>
+          val filePath = FileSystemStorage.newFilePath(sft.getTypeName, FileContent.DATA)
+          val destination = context.root.resolve(filePath)
+          logger.debug(s"Copying $path to $destination")
+          WithClose(ObjectStore(context))(_.copy(path, destination))
+          toDataFile(destination.toString, partition)
+        }
+      }
+
+      val append = table.newAppend()
+      dataFiles.foreach(append.appendFile)
+      append.commit()
+
+      dataFiles
     }
 
     /**
-     * Register a new file with this storage instance. The file must already be in a compatible format.
+     * Register new files with this storage instance. The files must already be in a compatible format.
+     *
+     * @param files files to register
+     * @return registered file
+     */
+    def register(files: Seq[URI]): Seq[DataFile] = {
+      val partitioned = scala.collection.mutable.Map.empty[String, ArrayBuffer[URI]]
+      WithClose(ObjectStore(context)) { fs =>
+        files.foreach { file =>
+          WithClose(ParquetFileReader.open(ParquetFileSystemReader.inputFile(fs, file))) { reader =>
+            val partition = reader.getFileMetaData.getKeyValueMetaData.get(SimpleFeatureParquetSchema.PartitionKey)
+            if (partition == null) {
+              throw new RuntimeException(s"Could not load partition key from Parquet footer for file: $file")
+            }
+            partitioned.getOrElseUpdate(partition, ArrayBuffer.empty) += file
+          }
+        }
+      }
+
+      register(partitioned.map { case (k, v) => Partition(k) -> v.toSeq }.toMap)
+    }
+
+    /**
+     * Register a new file with this storage instance. The file must already be in a compatible format
      *
      * @param file file to register
      * @return registered file
      */
-    def register(file: URI): DataFile = {
-      val partition = WithClose(ObjectStore(context)) { fs =>
-        WithClose(ParquetFileReader.open(ParquetFileSystemReader.inputFile(fs, file))) { reader =>
-          reader.getFileMetaData.getKeyValueMetaData.get(SimpleFeatureParquetSchema.PartitionKey)
-        }
-      }
-      if (partition == null) {
-        throw new RuntimeException(s"Could not load partition key from Parquet footer for file: $file")
-      }
-      register(file, Partition(partition))
-    }
+    def register(file: URI): DataFile = register(Seq(file)).head
 
     /**
      * Compact manifest files to improve query performance
@@ -384,6 +405,19 @@ case class FileSystemStorage(
       Partition(schemesWithIndex.map { case (s, i) => s.getPartition(file.partition(), i) })
   }
 
+  private def toDataFile(path: String, partition: Partition): DataFile = {
+    val inputFile = table.io().newInputFile(path)
+    val metrics = ParquetUtil.fileMetrics(inputFile, metricsConfig, null)
+    DataFiles.builder(table.spec())
+      .withFormat(FileFormat.PARQUET)
+      .withPath(inputFile.location())
+      .withFileSizeInBytes(inputFile.getLength)
+      .withPartitionValues(partition.values.map(_.value).asJava)
+      .withMetrics(metrics)
+      // TODO withSort(f.sort)
+      .build()
+  }
+
   /**
    * Observer to add a file to the metadata upon closing
    *
@@ -391,16 +425,14 @@ case class FileSystemStorage(
    * @param partition file partition
    */
   private class AddDataFileObserver(path: URI, partition: Partition) extends FileSystemObserver {
-
-    val fileObserver = new DataFileObserver(table, metricsConfig, path, partition)
-
-    override def apply(feature: SimpleFeature): Unit = fileObserver.apply(feature)
-    override def flush(): Unit = fileObserver.flush()
+    override def apply(feature: SimpleFeature): Unit = {}
+    override def flush(): Unit = {}
     override def close(): Unit = {
-      fileObserver.close()
+      // TODO this is reading the file footer again, could we track this during write instead?
       logger.debug(s"Adding new data file: $path")
+      val file = toDataFile(path.toString, partition)
       val append = table.newAppend()
-      append.appendFile(fileObserver.file)
+      append.appendFile(file)
       append.commit()
     }
   }
@@ -458,44 +490,6 @@ object FileSystemStorage extends LazyLogging {
         writer.close()
       }
       estimator.close()
-    }
-  }
-
-  /**
-   * Observer to build a data file record
-   *
-   * @param table table
-   * @param metricsConfig metrics config
-   * @param path file path
-   * @param partition file partition
-   */
-  class DataFileObserver(table: Table, metricsConfig: MetricsConfig, path: URI, partition: Partition)
-      extends FileSystemObserver {
-
-    import scala.collection.JavaConverters._
-
-    def this(table: Table, path: URI, partition: Partition) =
-      this(table, MetricsConfig.forTable(table), path, partition)
-
-    private var _file: DataFile = _
-
-    def file: DataFile = _file
-
-    override def apply(feature: SimpleFeature): Unit = {}
-    override def flush(): Unit = {}
-    override def close(): Unit = {
-      val inputFile = table.io().newInputFile(path.toString)
-      // TODO this is reading the file footer again, could we track this during write instead?
-      val metrics = ParquetUtil.fileMetrics(inputFile, metricsConfig, null)
-      _file =
-        DataFiles.builder(table.spec())
-          .withFormat(FileFormat.PARQUET)
-          .withPath(inputFile.location())
-          .withFileSizeInBytes(inputFile.getLength)
-          .withPartitionValues(partition.values.map(_.value).asJava)
-          .withMetrics(metrics)
-          // TODO withSort(f.sort)
-          .build()
     }
   }
 
