@@ -89,7 +89,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 //        buf ++= sffs
 //      }
 
-      noMods ++= storage.metadata.files(query.getFilter)
+      noMods ++= storage.metadata.files().filter(query.getFilter).scan()
 
       val rdd = /*if (noMods.isEmpty && withMods.isEmpty) {
         logger.debug("Reading 0 partitions")

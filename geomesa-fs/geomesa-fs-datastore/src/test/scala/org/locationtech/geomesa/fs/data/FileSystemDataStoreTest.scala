@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.fs.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.FileUtils
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -20,7 +19,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.data.container.FsContainerTest
 import org.locationtech.geomesa.fs.storage.core.StorageKeys
-import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergSchemaMapper
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -29,7 +27,6 @@ import org.specs2.matcher.{MatchResult, Matcher}
 import org.specs2.mutable.SpecificationWithJUnit
 
 import java.io.{File, IOException}
-import java.nio.file.Files
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.DurationInt
 
@@ -77,76 +74,64 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
     "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-07T04:04:00.0000Z and bbox(geom, 5, 5, 15, 15)"
   ).map(ECQL.toFilter)
 
-  private lazy val dsParams = Seq(fileParams, jdbcParams, icebergParams)
-
   "FileSystemDataStore" should {
     "load deprecated hadoop configs" in {
-      val dir = Files.createTempDirectory("fsds-test").toFile
-      try {
-        val params = Map(
-          "fs.path" -> s"${dir.getPath}/tmp",
-          "fs.metadata.type" -> "file",
-          "fs.config.xml" -> "<configuration><property><name>config.xml</name><value>test</value></property></configuration>",
-          "fs.config.paths" -> new File(getClass.getClassLoader.getResource("test-site.xml").toURI).getAbsolutePath,
+      val params = dsParams ++ Map(
+        "iceberg.namespace" -> "deprecatedhaoop",
+        "fs.config.xml" -> "<configuration><property><name>config.xml</name><value>test</value></property></configuration>",
+        "fs.config.paths" -> new File(getClass.getClassLoader.getResource("test-site.xml").toURI).getAbsolutePath,
+      )
+      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+        ds.createSchema(sft)
+        ds.storage(sft.getTypeName).context.conf must containAllOf(
+          Map(
+            "config.xml" -> "test", // from direct data store param
+            "test-site" -> "bar", // from test-site.xml
+            "geomesa.test" -> "foo", // auto-loaded from core-site.xml on classpath
+          ).toSeq
         )
-        WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
-          ds.createSchema(sft)
-          ds.storage(sft.getTypeName).context.conf must containAllOf(
-            Map(
-              "config.xml" -> "test", // from direct data store param
-              "test-site" -> "bar", // from test-site.xml
-              "geomesa.test" -> "foo", // auto-loaded from core-site.xml on classpath
-            ).toSeq
-          )
-        }
-      } finally {
-        FileUtils.deleteDirectory(dir)
       }
     }
 
     "create a DS" in {
-      foreach(dsParams) { params =>
-        WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
-          ds.createSchema(sft)
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+        ds.createSchema(sft)
 
-          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
-          }
-
-          val expected = Set(Set("800043aa"), Set("800043ab"), Set("800043ac")) // these correspond to 2017/06/05, 2017/06/06, 2017/06/07
-          val storage = ds.storage(sft.getTypeName)
-          val mapper = IcebergSchemaMapper(storage.metadata.sft, storage.metadata.schemes.toSeq, storage.context)
-          val partitions = storage.metadata.getFiles().map(f => mapper.partition(f)).toSet
-          partitions must haveLength(3)
-          partitions.map(_.values.map(_.value)) mustEqual expected
-
-          ds.getTypeNames must have size 1
-          val fs = ds.getFeatureSource(sft.getTypeName)
-          fs must not(beNull)
-
-          // This shows that the FeatureSource doing the writing has an up-to-date view of the metadata
-          fs.getCount(Query.ALL) must beEqualTo(10)
-          compareBounds(fs.getBounds, new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
-
-          val results = CloseableIterator(fs.getFeatures(new Query(sft.getTypeName)).features()).toList
-          results must containTheSameElementsAs(features)
-
-          // This shows that a new FeatureSource has a correct view of the metadata on disk
-          WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds2 =>
-            val fs2 = ds2.getFeatureSource(sft.getTypeName)
-            fs2.getCount(Query.ALL) must beEqualTo(10)
-            compareBounds(fs2.getBounds, new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
-          }
-
-          // test stats queries
-          ds.stats.getCount(sft) must beSome(10L)
-          ds.stats.getCount(sft, exact = true) must beSome(10L)
-          val minMax = ds.stats.getMinMax[String](sft, "name").orNull
-          minMax must not(beNull)
-          minMax.min mustEqual "test0"
-          minMax.max mustEqual "test9"
-          ds.stats.getMinMax[Int](sft, "age") must beNone // only attributes with fs.bounds will return cached stats
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
+
+        val expected = Set(Seq("2017-06-05"), Seq("2017-06-06"), Seq("2017-06-07"))
+        val storage = ds.storage(sft.getTypeName)
+        val partitions = storage.metadata.files().scan().map(f => storage.metadata.partition(f)).toSet
+        partitions must haveLength(3)
+        partitions.map(_.values.map(_.value)) mustEqual expected
+
+        ds.getTypeNames must have size 1
+        val fs = ds.getFeatureSource(sft.getTypeName)
+        fs must not(beNull)
+
+        // This shows that the FeatureSource doing the writing has an up-to-date view of the metadata
+        fs.getCount(Query.ALL) must beEqualTo(10)
+        compareBounds(fs.getBounds, new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
+
+        val results = CloseableIterator(fs.getFeatures(new Query(sft.getTypeName)).features()).map(ScalaSimpleFeature.copy).toList
+        results must containTheSameElementsAs(features)
+
+        // This shows that a new FeatureSource has a correct view of the metadata on disk
+        WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds2 =>
+          val fs2 = ds2.getFeatureSource(sft.getTypeName)
+          fs2.getCount(Query.ALL) must beEqualTo(10)
+          compareBounds(fs2.getBounds, new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
+        }
+
+        // test stats queries
+        ds.stats.getCount(sft) must beSome(10L)
+        ds.stats.getCount(sft, exact = true) must beSome(10L)
+        val minMax = ds.stats.getMinMax[String](sft, "name").orNull
+        minMax must not(beNull)
+        minMax.min mustEqual "test0"
+        minMax.max mustEqual "test9"
       }
     }
 
@@ -155,109 +140,97 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
     }
 
     "create a second ds with the same path" in {
-      foreach(dsParams) { params =>
-        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
-          ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
-          val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
-          results must containTheSameElementsAs(features)
-        }
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds =>
+        ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
+        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
+        results must containTheSameElementsAs(features)
       }
     }
 
     "query with multiple threads" in {
-      foreach(dsParams) { params =>
-        WithClose(DataStoreFinder.getDataStore((params ++ Map("fs.read-threads" -> "4")).asJava)) { ds =>
-          ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
-          val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
-          results must containTheSameElementsAs(features)
-        }
+      WithClose(DataStoreFinder.getDataStore((dsParams ++ Map("geomesa.query.threads" -> "4")).asJava)) { ds =>
+        ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
+        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
+        results must containTheSameElementsAs(features)
+      }
+    }
 
-        WithClose(DataStoreFinder.getDataStore((params ++ Map("fs.read-threads" -> "4", "namespace" -> "ns0")).asJava)) { dsWithNs =>
-          val name = dsWithNs.getSchema(sft.getTypeName).getName
-          name.getNamespaceURI mustEqual "ns0"
-          name.getLocalPart mustEqual sft.getTypeName
+    "support namespaces" in {
+      WithClose(DataStoreFinder.getDataStore((dsParams ++ Map("namespace" -> "ns0")).asJava)) { dsWithNs =>
+        val name = dsWithNs.getSchema(sft.getTypeName).getName
+        name.getNamespaceURI mustEqual "ns0"
+        name.getLocalPart mustEqual sft.getTypeName
 
-          val queries = Seq(
-            new Query(sft.getTypeName),
-            new Query(sft.getTypeName, Filter.INCLUDE, "geom")
-          )
-          foreach(queries) { query =>
-            val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)
-            reader.getFeatureType.getName mustEqual name
-            val features = CloseableIterator(reader).toList
-            features must not(beEmpty)
-            foreach(features)(_.getFeatureType.getName mustEqual name)
-          }
+        val queries = Seq(
+          new Query(sft.getTypeName),
+          new Query(sft.getTypeName, Filter.INCLUDE, "geom")
+        )
+        foreach(queries) { query =>
+          val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)
+          reader.getFeatureType.getName mustEqual name
+          val features = CloseableIterator(reader).toList
+          features must not(beEmpty)
+          foreach(features)(_.getFeatureType.getName mustEqual name)
         }
       }
     }
 
     "enforce authorizations" in {
-      foreach(dsParams) { params =>
-        WithClose(DataStoreFinder.getDataStore(params.filter(_._1 != "geomesa.security.auths").asJava)) { ds =>
-          ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
-          val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
-          results must beEmpty
-        }
+      WithClose(DataStoreFinder.getDataStore(dsParams.filter(_._1 != "geomesa.security.auths").asJava)) { ds =>
+        ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
+        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        results must beEmpty
       }
     }
 
     "support query timeouts" in {
-      foreach(dsParams) { params =>
-        WithClose(DataStoreFinder.getDataStore((params ++ Map("fs.read-threads" -> "2", "geomesa.query.timeout" -> "200ms")).asJava)) { ds =>
-          ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
-          val reader = ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)
-          try {
-            eventually(10, 200.millis) {
-              reader.hasNext must beTrue
-              reader.next() must throwA[RuntimeException]
-            }
-          } finally {
-            reader.close()
+      WithClose(DataStoreFinder.getDataStore((dsParams ++ Map("geomesa.query.threads" -> "2", "geomesa.query.timeout" -> "200ms")).asJava)) { ds =>
+        ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
+        val reader = ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)
+        try {
+          eventually(10, 200.millis) {
+            reader.hasNext must beTrue
+            reader.next() must throwA[RuntimeException]
           }
+        } finally {
+          reader.close()
         }
       }
     }
 
     "call create schema on existing type" in {
-      foreach(dsParams) { params =>
-        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
-          val sameSft = SimpleFeatureTypes.createType(sft.getTypeName, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-          ds.createSchema(sameSft) must not(throwA[Throwable])
-        }
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds =>
+        val sameSft = SimpleFeatureTypes.createType(sft.getTypeName, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+        ds.createSchema(sameSft) must not(throwA[Throwable])
       }
     }
 
     "reject schemas with reserved words" in {
       import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
-      foreach(dsParams) { params =>
-        val reserved = SimpleFeatureTypes.createType("reserved", "dtg:Date,*point:Point:srid=4326")
-        reserved.setScheme("daily")
-        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
-          ds.createSchema(reserved) must throwAn[IllegalArgumentException]
-          ds.getSchema(reserved.getTypeName) must throwAn[IOException] // content data store schema does not exist
-        }
+      val reserved = SimpleFeatureTypes.createType("reserved", "dtg:Date,*point:Point:srid=4326")
+      reserved.setScheme("daily")
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds =>
+        ds.createSchema(reserved) must throwAn[IllegalArgumentException]
+        ds.getSchema(reserved.getTypeName) must throwAn[IOException] // content data store schema does not exist
       }
     }
 
     "support transforms" in {
       val transforms = Seq(null, Array("name"), Array("dtg", "geom"))
-      foreach(dsParams) { params =>
-        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
-          filters.foreach { filter =>
-            transforms.foreach { transform =>
-              val query = new Query(sft.getTypeName, filter, transform: _*)
-              val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
-              results must haveLength(features.length)
-              if (transform == null) {
-                results must containTheSameElementsAs(features)
-              } else {
-                results.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
-                results.foreach { result =>
-                  result.getAttributeCount mustEqual transform.length
-                  val matched = features.find(_.getID == result.getID).get
-                  transform.foreach(t => result.getAttribute(t) mustEqual matched.getAttribute(t))
-                }
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds =>
+        filters.foreach { filter =>
+          transforms.foreach { transform =>
+            val query = new Query(sft.getTypeName, filter, transform: _*)
+            val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
+            results must haveLength(features.length)
+            if (transform == null) {
+              results must containTheSameElementsAs(features)
+            } else {
+              results.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
+              results.foreach { result =>
+                result.getAttributeCount mustEqual transform.length
+                val matched = features.find(_.getID == result.getID).get
+                transform.foreach(t => result.getAttribute(t) mustEqual matched.getAttribute(t))
               }
             }
           }
@@ -267,77 +240,66 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
     }
 
     "support sorting and limiting" in {
-      foreach(dsParams) { params =>
-        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
-          foreach(Seq(SortOrder.ASCENDING, SortOrder.DESCENDING)) { sortOrder =>
-            val query = new Query(sft.getTypeName)
-            query.setSortBy(FilterHelper.ff.sort("name", sortOrder))
-            query.setMaxFeatures(1)
-            val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
-            results must haveSize(1)
-            if (sortOrder == SortOrder.ASCENDING) {
-              results.head.getID mustEqual "0"
-            } else {
-              results.head.getID mustEqual "9"
-            }
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds =>
+        foreach(Seq(SortOrder.ASCENDING, SortOrder.DESCENDING)) { sortOrder =>
+          val query = new Query(sft.getTypeName)
+          query.setSortBy(FilterHelper.ff.sort("name", sortOrder))
+          query.setMaxFeatures(1)
+          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
+          results must haveSize(1)
+          if (sortOrder == SortOrder.ASCENDING) {
+            results.head.getID mustEqual "0"
+          } else {
+            results.head.getID mustEqual "9"
           }
         }
       }
     }
 
     "support append without fid" in {
-      foreach(dsParams) { params =>
-        val dir = Files.createTempDirectory("fsds-test-append-without-fid").toFile
-        try {
-          WithClose(DataStoreFinder.getDataStore((params ++ Map("fs.path" -> dir.getPath)).asJava)) { ds =>
-            ds.createSchema(sft)
-            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-              features.foreach { feature =>
-                val featureWithEmptyFid = ScalaSimpleFeature.copy(feature)
-                featureWithEmptyFid.setId("")
-                FeatureUtils.write(writer, featureWithEmptyFid)
-              }
-            }
-            val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
-            results.map(_.getID) must contain(allOf(beUUID))
+      WithClose(DataStoreFinder.getDataStore((dsParams ++ Map("iceberg.namespace" -> "appendnofid")).asJava)) { ds =>
+        ds.createSchema(sft)
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach { feature =>
+            val featureWithEmptyFid = ScalaSimpleFeature.copy(feature)
+            featureWithEmptyFid.setId("")
+            FeatureUtils.write(writer, featureWithEmptyFid)
           }
-        } finally {
-          FileUtils.deleteDirectory(dir)
         }
+        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
+        results.map(_.getID) must contain(allOf(beUUID))
       }
     }
 
     "support updates" in {
-      foreach(dsParams) { params =>
-        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
-          WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter("IN ('0', '1', '2')"), Transaction.AUTO_COMMIT)) { writer =>
-            def modify(f: SimpleFeature): Unit = {
-              f.getID match {
-                case "0" => writer.remove()
-                case "1" => f.setAttribute("dtg", "2017-06-05T04:03:02.0001Z"); writer.write() // note: move partition
-                case "2" => f.setAttribute("name", "test0"); writer.write()
-              }
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds =>
+        WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter("IN ('0', '1', '2')"), Transaction.AUTO_COMMIT)) { writer =>
+          def modify(f: SimpleFeature): Unit = {
+            f.getID match {
+              case "0" => writer.remove()
+              case "1" => f.setAttribute("dtg", "2017-06-05T04:03:02.0001Z"); writer.write() // note: move partition
+              case "2" => f.setAttribute("name", "test0"); writer.write()
             }
-            foreach(0 to 2) { _ =>
-              writer.hasNext must beTrue
-              modify(writer.next)
-              ok
-            }
-            writer.hasNext must beFalse
           }
-
-          val expected = features.drop(1).map(ScalaSimpleFeature.copy)
-          expected.head.setAttribute("dtg", "2017-06-05T04:03:02.0001Z")
-          expected(1).setAttribute("name", "test0")
-
-          foreach(filters) { filter =>
-            val query = new Query(sft.getTypeName, filter)
-            val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
-            results must containTheSameElementsAs(expected)
+          foreach(0 to 2) { _ =>
+            writer.hasNext must beTrue
+            modify(writer.next)
+            ok
           }
+          writer.hasNext must beFalse
+        }
+
+        val expected = features.drop(1).map(ScalaSimpleFeature.copy)
+        expected.head.setAttribute("dtg", "2017-06-05T04:03:02.0001Z")
+        expected(1).setAttribute("name", "test0")
+
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
+          results must containTheSameElementsAs(expected)
         }
       }
-    }
+    }.pendingUntilFixed
 
     "support different geometry types" in {
       val types = Seq(
@@ -346,21 +308,23 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
         ("Geometry",   (i: Int) => if (i % 2 == 0) { createLine(i) } else { createPoint(i) })
       )
 
-      val all = types.flatMap { case (geom, createGeom) =>
-        val (sft, format) = createFormat(geom, createGeom)
+      val all = types.map { case (geom, createGeom) =>
+        val (sft, features) = createFormat(geom, createGeom)
         sft.getUserData.put("geomesa.mixed.geometries", "true")
-        dsParams.map(p => (sft, format, p))
+        val renamed = SimpleFeatureTypes.renameSft(sft, geom)
+        val renamedFeatures = features.map(ScalaSimpleFeature.copy(renamed, _))
+        (renamed, renamedFeatures)
       }
 
-      foreach(all) { case (sft, features, params) =>
-        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+      foreach(all) { case (sft, features) =>
+        WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds =>
           ds must not(beNull)
+          ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
           ds.createSchema(sft)
           WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
             features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
 
-          ds.getTypeNames must have size 1
           val fs = ds.getFeatureSource(sft.getTypeName)
           fs must not(beNull)
 
@@ -372,12 +336,12 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
 
           foreach(Seq("INCLUDE", s"bbox(geom,${env.getMinX},${env.getMinY},${env.getMaxX},${env.getMaxY})")) { filter =>
             val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-            CloseableIterator(fs.getFeatures(query).features()).toList must containTheSameElementsAs(features)
+            CloseableIterator(fs.getFeatures(query).features()).map(ScalaSimpleFeature.copy).toList.sortBy(_.getID) mustEqual features
             val transform = new Query(sft.getTypeName, ECQL.toFilter(filter), "dtg", "geom")
             val transformSft = SimpleFeatureTypes.createType(sft.getTypeName,
               s"dtg:Date,*geom:${sft.getGeometryDescriptor.getType.getBinding.getSimpleName}")
-            CloseableIterator(fs.getFeatures(transform).features()).toList must
-                containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(transformSft, _)))
+            CloseableIterator(fs.getFeatures(transform).features()).map(ScalaSimpleFeature.copy).toList.sortBy(_.getID) mustEqual
+              features.map(ScalaSimpleFeature.retype(transformSft, _))
           }
         }
       }

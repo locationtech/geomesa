@@ -22,7 +22,6 @@ import org.apache.parquet.schema.{LogicalTypeAnnotation, MessageType, Type, Type
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergFilterConverter.ReadFilter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.BoundingBoxes.BoundingBoxField
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema.{FeatureIdField, VisibilitiesField}
@@ -190,7 +189,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       name <- Option(conf.get(SftNameKey))
       spec <- Option(conf.get(SftSpecKey))
     } yield {
-      val sft = SimpleFeatureTypes.createType(name, spec)
+      val sft = SimpleFeatureTypes.createImmutableType(name, spec)
       val geometries = Option(conf.get(GeometryEncodingKey)).map(GeometryEncoding.apply).getOrElse(GeometryEncoding.GeoParquetWkb)
       val bboxes =
         if (Option(conf.get(BBoxEncodingKey)).forall(_.toBoolean)) { BoundingBoxes(sft) } else { BoundingBoxes(Seq.empty) }
@@ -232,8 +231,8 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       name <- metadata.get(SftNameKey)
       spec <- metadata.get(SftSpecKey)
     } yield {
-      val sft = SimpleFeatureTypes.createType(name, spec)
-      val readSft = metadata.get(SftReadSpecKey).map(SimpleFeatureTypes.createType(name, _))
+      val sft = SimpleFeatureTypes.createImmutableType(name, spec)
+      val readSft = metadata.get(SftReadSpecKey).map(SimpleFeatureTypes.createImmutableType(name, _))
       val geometries = metadata.get(GeometryEncodingKey).map(GeometryEncoding.apply).getOrElse {
         throw new UnsupportedOperationException("GeoMesaV0/GeoMesaV1 encoding is no longer supported")
       }

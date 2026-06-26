@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.commons.codec.digest.MurmurHash3
 import org.apache.hadoop.fs.Path
 import org.apache.iceberg._
-import org.apache.iceberg.expressions.Expressions
 import org.apache.iceberg.parquet.ParquetUtil
 import org.apache.parquet.hadoop.example.GroupReadSupport
 import org.apache.parquet.hadoop.{ParquetFileReader, ParquetReader}
@@ -20,7 +19,7 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.features.TransformSimpleFeature
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, IcebergParquetScan, RecordSimpleFeature}
@@ -29,8 +28,9 @@ import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, Fi
 import org.locationtech.geomesa.fs.storage.core.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme
-import org.locationtech.geomesa.fs.storage.core.utils.FileSize
+import org.locationtech.geomesa.fs.storage.core.utils.FileScan.FluentScan
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeEstimator
+import org.locationtech.geomesa.fs.storage.core.utils.{FileScan, FileSize}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
@@ -64,9 +64,9 @@ case class FileSystemStorage(
 
   import scala.collection.JavaConverters._
 
-  val sft: SimpleFeatureType = SimpleFeatureTypes.immutable(namespaced(schema.sft, context.namespace))
+  val sft: SimpleFeatureType = SimpleFeatureTypes.immutable(schema.sft)
   val sizer: FileSize = new FileSize(table)
-  val metadata: Files = new Files()
+  val metadata: DataFiles = new DataFiles()
 
   protected val authProvider: AuthorizationsProvider =
     AuthUtils.getProvider(
@@ -152,8 +152,8 @@ case class FileSystemStorage(
           }
         }
       }
-      // sort and limit
-      val sorted = sort.fold(transformed)(s => new SortingSimpleFeatureIterator(transformed, s))
+      // sort and limit - need to copy the features when sorting as the underlying buffers are re-used
+      val sorted = sort.fold(transformed)(s => new SortingSimpleFeatureIterator(transformed.map(ScalaSimpleFeature.copy), s))
       val limited = max.fold(sorted)(m => sorted.take(m))
       limited
     } catch {
@@ -241,9 +241,16 @@ case class FileSystemStorage(
   /**
    * Helper for accessing metadata on files and partitions
    */
-  class Files {
+  class DataFiles {
 
     private val schemesWithIndex = schemes.zipWithIndex
+
+    /**
+     * Gets files in this storage instance
+     *
+     * @return
+     */
+    def files(): FluentScan = FileScan(table, sft, schemes)
 
     /**
      * Gets all partitions in this storage instance
@@ -258,36 +265,7 @@ case class FileSystemStorage(
      *
      * @return
      */
-    def partitions(filter: Filter): Seq[Partition] = files(filter).map(partition).distinct
-
-    /**
-     * Gets all files in this storage instance
-     *
-     * @return
-     */
-    def files(): Seq[DataFile] = WithClose(table.newScan().planFiles())(_.asScala.map(_.file()).toSeq)
-
-    /**
-     * Gets all files for a given partition
-     *
-     * @param partition partition
-     * @return
-     */
-    def files(partition: Partition): Seq[DataFile] = {
-      val filters = schemes.zip(partition.values).map { case (s, p) => s.getCoveringExpression(p) }
-      WithClose(table.newScan().filter(filters.reduce(Expressions.and)).planFiles())(_.asScala.map(_.file()).toSeq)
-    }
-
-    /**
-     * Gets all files that (potentially) match a given filter
-     *
-     * @param filter filter
-     * @return
-     */
-    def files(filter: Filter): Seq[DataFile] = {
-      val icebergFilter = IcebergFilterConverter(sft, filter)
-      WithClose(table.newScan().filter(icebergFilter.expression).planFiles())(_.asScala.map(_.file()).toSeq)
-    }
+    def partitions(filter: Filter): Seq[Partition] = files().filter(filter).scan().map(partition).distinct
 
     /**
      * Register a new file with this storage instance. The file must already be in a compatible format.

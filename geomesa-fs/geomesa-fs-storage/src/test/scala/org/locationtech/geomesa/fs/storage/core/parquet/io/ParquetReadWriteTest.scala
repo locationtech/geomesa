@@ -43,8 +43,8 @@ class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
   // TODO don't use a single file here...
   lazy val f = Files.createTempFile("geomesa", ".parquet")
 
-  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*position:Point:srid=4326")
-  val nameAndGeom = SimpleFeatureTypes.createType("test", "name:String,*position:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createImmutableType("test", "name:String,age:Int,dtg:Date,*position:Point:srid=4326")
+  val nameAndGeom = SimpleFeatureTypes.createImmutableType("test", "name:String,*position:Point:srid=4326")
 
   val sftConf = {
     val c = new PlainParquetConfiguration()
@@ -113,7 +113,7 @@ class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
     }
 
     "only read transform columns" >> {
-      val tsft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*position:Point:srid=4326")
+      val tsft = SimpleFeatureTypes.createImmutableType("test", "name:String,dtg:Date,*position:Point:srid=4326")
       val result = readFile(FilterCompat.NOOP, transformConf(tsft))
       foreach(result)(_.getFeatureType mustEqual tsft)
       result.map(_.getAttributes.asScala) mustEqual features.map(DataUtilities.reType(tsft, _).getAttributes.asScala)

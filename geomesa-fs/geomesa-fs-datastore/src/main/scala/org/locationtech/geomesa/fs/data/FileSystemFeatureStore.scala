@@ -61,12 +61,13 @@ class FileSystemFeatureStore(
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = {
     val envelope = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    storage.schema.bboxes.get(ColumnName(sft.getGeometryDescriptor.getLocalName)).foreach { bboxField =>
+    storage.schema.bboxes.get(ColumnName(sft.getGeometryDescriptor.getLocalName)).foreach { bboxFieldName =>
+      val bboxField = storage.schema.iceberg.findField(bboxFieldName).`type`().asStructType()
       val (minFieldIds, maxFieldIds) =
         Seq(BoundingBoxField.XMin, BoundingBoxField.YMin, BoundingBoxField.XMax, BoundingBoxField.YMax)
-          .map(f => storage.schema.iceberg.findField(s"$bboxField.$f").fieldId())
+          .map(f => bboxField.field(f).fieldId())
           .splitAt(2)
-      storage.metadata.files(query.getFilter).foreach { f =>
+      storage.metadata.files().withMetadata().filter(query.getFilter).scan().foreach { f =>
         val minBuffers = minFieldIds.map(f.lowerBounds().get)
         val maxBuffers = maxFieldIds.map(f.upperBounds().get)
         if (!minBuffers.contains(null) && !maxBuffers.contains(null)) {
@@ -81,7 +82,7 @@ class FileSystemFeatureStore(
   }
 
   override def getCountInternal(query: Query): Int = {
-    val count = storage.metadata.files(query.getFilter).map(_.recordCount()).sum
+    val count = storage.metadata.files().filter(query.getFilter).scan().map(_.recordCount()).sum
     if (count.isValidInt) { count.toInt } else { Int.MaxValue }
   }
 

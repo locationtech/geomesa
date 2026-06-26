@@ -92,7 +92,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
     val path = f"${paths.getAndIncrement()}%03d"
     val root = URI.create(s"s3://geomesa/$path/")
     val conf = s3Conf ++ Map(
-      "catalog-type" -> "rest",
+      "type" -> "rest",
       "uri" -> s"http://${iceberg.getHost}:${iceberg.getFirstMappedPort}/",
       "iceberg.namespace" -> path,
     )
@@ -154,7 +154,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
 
           // verify GeoParquet metadata - look for partition e1 so we can verify the expected bounds
           val firstPartitionFile =
-            storage.metadata.files(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).headOption.orNull
+            storage.metadata.files().ofPartition(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).scan().headOption.orNull
           firstPartitionFile must not(beNull)
           WithClose(S3ObjectStore(s3Conf)) { fs =>
             WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(firstPartitionFile.location())))) { reader =>
@@ -257,7 +257,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           }
 
           val firstPartitionFile =
-            storage.metadata.files(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).headOption.orNull
+            storage.metadata.files().ofPartition(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).scan().headOption.orNull
           firstPartitionFile must not(beNull)
           // copy to a local file
           val tmpFile = Files.createTempFile("fs", ".parquet")
@@ -549,7 +549,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           val partitions = storage.metadata.partitions()
           partitions must haveLength(writers.size)
           foreach(partitions) { partition =>
-            val paths = storage.metadata.files(partition)
+            val paths = storage.metadata.files().ofPartition(partition).scan()
             paths.size must beGreaterThan(1)
             foreach(paths) { p =>
               storage.table.io().newInputFile(p.location()).getLength must beCloseTo(targetSize, targetSize / 10)

@@ -14,7 +14,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Metadata, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Metadata, StorageCatalog, namespaced}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -34,9 +34,7 @@ class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
     if (catalog.namespaceExists(namespace)) {
       catalog.listTables(namespace).asScala.toSeq.flatMap { id =>
         val table = catalog.loadTable(id)
-        try {
-          if (table.properties().containsKey("geomesa.sft.name")) { Some(id.name) } else { None }
-        } finally {
+        try { Option(table.properties().get("geomesa.sft.name")) } finally {
           CloseWithLogging(Option(table).collect { case c: Closeable => c })
         }
       }
@@ -47,7 +45,10 @@ class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
 
   override def load(typeName: String): FileSystemStorage = {
     val table = catalog.loadTable(tableId(typeName))
-    val sft = SimpleFeatureTypes.createType(table.properties().get("geomesa.sft.name"), table.properties().get("geomesa.sft.spec"))
+    val sft =
+      namespaced(
+        SimpleFeatureTypes.createType(table.properties().get("geomesa.sft.name"), table.properties().get("geomesa.sft.spec")),
+        context.namespace)
     // TODO get this from the table itself to allow for scheme migration
     val schemes = table.properties().get("geomesa.partition.spec").split(",").map(PartitionSchemeFactory.load(sft, _))
     val schema = SimpleFeatureParquetSchema(sft, context.conf)
@@ -55,7 +56,7 @@ class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
   }
 
   override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long] = None): FileSystemStorage = {
-    val schema = SimpleFeatureParquetSchema(sft, context.conf)
+    val schema = SimpleFeatureParquetSchema(namespaced(sft, context.namespace), context.conf)
     if (schema.geometries != GeoParquetWkb) {
       // TODO supports native geometry encoding
       throw new UnsupportedOperationException(s"Only WKB geometry encoding is supported: ${schema.geometries}")

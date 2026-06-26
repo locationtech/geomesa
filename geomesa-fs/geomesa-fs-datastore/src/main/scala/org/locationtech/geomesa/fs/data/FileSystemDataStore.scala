@@ -38,7 +38,7 @@ class FileSystemDataStore(catalog: StorageCatalog, config: FileSystemDataStoreCo
 
   private val cache = Caffeine.newBuilder().build(
     new CacheLoader[String, FileSystemStorage]() {
-      override def load(k: String): FileSystemStorage = catalog.load(k)
+      override def load(typeName: String): FileSystemStorage = catalog.load(typeName)
     }
   )
 

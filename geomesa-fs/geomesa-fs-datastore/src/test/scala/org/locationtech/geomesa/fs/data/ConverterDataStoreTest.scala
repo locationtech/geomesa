@@ -14,45 +14,22 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import org.apache.commons.io.IOUtils
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.fs.data.container.FsContainerTest
 import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.slf4j.LoggerFactory
 import org.specs2.mutable.SpecificationWithJUnit
-import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.MinIOContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
-import org.testcontainers.utility.DockerImageName
 
 import java.io.{BufferedOutputStream, StringReader}
 import java.net.URI
 import java.util.Properties
 
-class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll {
+class ConverterDataStoreTest extends SpecificationWithJUnit with FsContainerTest {
 
   import scala.collection.JavaConverters._
 
   sequential
-
-  var minio: MinIOContainer = _
-  val bucket = "geomesa"
-
-  override def beforeAll(): Unit = {
-    minio =
-      new MinIOContainer(
-        DockerImageName.parse("minio/minio").withTag(sys.props.getOrElse("minio.docker.tag", "RELEASE.2024-10-29T16-01-48Z")))
-    minio.start()
-    minio.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("minio")))
-    minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName, minio.getPassword)
-    minio.execInContainer("mc", "mb", s"localhost/$bucket")
-  }
-
-  override def afterAll(): Unit = {
-    if (minio != null) {
-      minio.close()
-    }
-  }
 
   def fsConfig(converter: String, path: String): String = {
     val props = Seq(
@@ -64,7 +41,7 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
       "fs.partition-scheme.opts.dtg-attribute=dtg",
       "fs.options.leaf-storage=true",
     )
-    s"$converter\n${props.mkString("\n")}".stripMargin
+    s"$converter\n${props.mkString("\n")}\n$s3Configs".stripMargin
   }
 
   def sftByName(name: String): String = {
@@ -102,7 +79,7 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
     "work with something else" in {
       val params = Map(
         "fs.path"              -> this.getClass.getClassLoader.getResource("example").getFile,
-        "fs.encoding"          -> "converter",
+        "fs.encoding"          -> "converter", // verify back-compatible fs.encoding config
         "fs.config.properties" -> fsConfig(sftByName("fs-test"), "datastore2")
       )
       WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
@@ -119,20 +96,8 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
     }
 
     "read tar.gz files from s3 storage" in {
-      val bucket = s"s3a://${this.bucket}/"
-      val config = {
-        val props = Seq(
-          sftByName("fs-test"),
-          "fs.s3a.endpoint.region=us-east-1",
-          s"fs.s3a.endpoint=${minio.getS3URL}",
-          s"fs.s3a.access.key=${minio.getUserName}",
-          s"fs.s3a.secret.key=${minio.getPassword}",
-          "fs.s3a.path.style.access=true",
-          "dfs.client.use.datanode.hostname=true",
-          "fs.s3a.connection.maximum=20" // reduce connection pool size to show resource leaks quickly
-        ).mkString("\n")
-        fsConfig(props, "datastore1")
-      }
+      val bucket = "s3://geomesa/"
+      val config = fsConfig(sftByName("fs-test"), "datastore1")
       val props = {
         val properties = new Properties()
         properties.load(new StringReader(config))
@@ -155,9 +120,9 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
       foreach(Seq(("100 millis", true), ("5 minutes", false))) { case (timeout, expectTimeout) =>
         val params = Map(
           "fs.path"               -> bucket,
-          "fs.encoding"           -> "converter",
+          "fs.catalog.type"       -> "converter",
           "fs.config.properties"  -> config,
-          "fs.read-threads"       -> "12",
+          "geomesa.query.threads" -> "12",
           "geomesa.query.timeout" -> timeout,
         )
         WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
@@ -214,7 +179,7 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll 
 
       val params = Map(
         "fs.path"              -> this.getClass.getClassLoader.getResource("example").getFile,
-        "fs.encoding"          -> "converter",
+        "fs.catalog.type"      -> "converter",
         "fs.config.properties" -> fsConfig(sftByConf(conf), "datastore1")
       )
       WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>

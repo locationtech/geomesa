@@ -26,17 +26,17 @@ class FsGetFilesCommand extends FsDataStoreCommand {
 
     lazy val fromFilter = {
       Command.user.info(s"Listing files for filter: ${ECQL.toCQL(params.cqlFilter)}")
-      metadata.files(params.cqlFilter)
+      metadata.files().filter(params.cqlFilter).scan()
     }
     lazy val fromPartitions = {
       Command.user.info(s"Listing files for partition(s): ${params.loadedPartitions.mkString(", ")}")
-      params.loadedPartitions.flatMap(metadata.files)
+      params.loadedPartitions.flatMap(metadata.files().ofPartition(_).scan())
     }
 
     val files =
       if (params.cqlFilter == null && params.loadedPartitions.isEmpty) {
         Command.user.info("Listing files for all partitions")
-        metadata.files()
+        metadata.files().scan()
       } else if (params.loadedPartitions.isEmpty) {
         fromFilter
       } else if (params.cqlFilter == null) {

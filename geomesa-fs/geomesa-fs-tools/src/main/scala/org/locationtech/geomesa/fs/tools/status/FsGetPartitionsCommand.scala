@@ -25,7 +25,7 @@ class FsGetPartitionsCommand extends FsDataStoreCommand {
       Command.output.info("partition\tfile_count\tfeature_count")
     }
     val storage = ds.storage(params.featureName)
-    storage.metadata.files().groupBy(f => storage.metadata.partition(f).toString).toSeq.sortBy(_._1).foreach { case (p, files) =>
+    storage.metadata.files().scan().groupBy(f => storage.metadata.partition(f).toString).toSeq.sortBy(_._1).foreach { case (p, files) =>
       Command.output.info(s"$p\t${files.size}\t${files.map(_.recordCount()).sum}")
     }
   }

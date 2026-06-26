@@ -126,6 +126,6 @@ object DateTimeScheme extends PartitionSchemeFactory {
       val date = DateParsing.parse(value, DateTimeFormatter.ISO_LOCAL_DATE)
       ChronoUnit.DAYS.between(DateTimeScheme.Epoch, date).toInt
     }
-    override def getPartition(partition: StructLike, i: Int): String = partition.get(i, classOf[String])
+    override def getPartition(partition: StructLike, i: Int): String = encode(partition.get(i, classOf[Integer]))
   }
 }

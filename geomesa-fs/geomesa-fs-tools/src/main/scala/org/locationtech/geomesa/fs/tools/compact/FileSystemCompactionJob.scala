@@ -81,7 +81,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     // mimic the filtering done in PartitionInputFormat
     val sizeCheck = storage.sizer.targetSize.map(t => (p: DataFile) => storage.sizer.fileIsSized(p, t))
     val existingDataFiles = partitions.toList.flatMap { p =>
-      val files = storage.metadata.files(p).filterNot(f => sizeCheck.exists(_.apply(f)))
+      val files = storage.metadata.files().ofPartition(p).scan().filterNot(f => sizeCheck.exists(_.apply(f)))
       // TODO get counts right... use m/r counters?
       if (files.isEmpty) { None } else { Some(p -> files) }
     }

@@ -131,7 +131,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     ConfigParam.lookupOpt(params).foreach(_.asScala.foreach { case (k, v) => builder += k -> v })
     AuthProviderParam.lookupOpt(params).foreach(p => builder += (AuthsParam.key -> p.getClass.getName))
     AuthsParam.lookupOpt(params).foreach(auths => builder += (AuthsParam.key -> auths))
-    CatalogTypeParam.lookupOpt(params).foreach(t => builder += (CatalogUtil.ICEBERG_CATALOG_TYPE -> t))
+    CatalogTypeParam.lookupOpt(params).filter(_.nonEmpty).foreach(t => builder += (CatalogUtil.ICEBERG_CATALOG_TYPE -> t))
     builder.result()
   }
 }
