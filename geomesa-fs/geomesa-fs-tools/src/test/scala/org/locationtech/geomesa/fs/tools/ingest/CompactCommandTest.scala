@@ -14,6 +14,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.core.Metadata
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
+import org.locationtech.geomesa.fs.tools.ingest.container.FsContainerTest
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -21,11 +22,8 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.SpecificationWithJUnit
-import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.MinIOContainer
-import org.testcontainers.utility.DockerImageName
 
-class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
+class CompactCommandTest extends SpecificationWithJUnit with FsContainerTest {
 
   import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
 
@@ -47,26 +45,11 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
   sft.setScheme("daily")
 
   val numFeatures = 10000
-  val targetFileSize = 20000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
+  val targetFileSize = 19000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
 
   val bucket = "geomesa"
 
   val path = s"s3://$bucket/${getClass.getSimpleName}/"
-
-  val minio = new MinIOContainer(DockerImageName.parse("minio/minio").withTag(sys.props("minio.docker.tag")))
-
-  lazy val configFlags = Map(
-    "fs.metadata.type" -> "file",
-    "fs.s3.region" -> "us-east-1",
-    "fs.s3.endpoint" -> minio.getS3URL,
-    "fs.s3.access-key-id" -> minio.getUserName,
-    "fs.s3.secret-access-key" -> minio.getPassword,
-    "fs.s3.force-path-style" -> "true",
-  )
-  lazy val params = Map(
-    "fs.path" -> path,
-    "fs.config.properties" -> configFlags.map { case (k, v) => s"$k=$v" }.mkString("\n")
-  )
 
   def features(sft: SimpleFeatureType): Seq[ScalaSimpleFeature] = {
     Seq.tabulate(numFeatures) { i =>
@@ -77,11 +60,8 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
   }
 
   override def beforeAll(): Unit = {
-    minio.start()
-    minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName, minio.getPassword)
-    minio.execInContainer("mc", "mb", s"localhost/$bucket")
-
-    WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+    super.beforeAll()
+    WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds =>
       ds.createSchema(sft)
       // create 2 files per partition
       features(sft).grouped(numFeatures / 2).foreach { feats =>
@@ -92,15 +72,9 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
     }
   }
 
-  override def afterAll(): Unit = {
-    if (minio != null) {
-      minio.close()
-    }
-  }
-
   "Compaction command" should {
     "be multiple files per partition before compacting" in {
-      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         var count = 0
         val fs = ds.getFeatureSource(sft.getTypeName)
         WithClose(fs.getFeatures.features) { iter =>
@@ -113,7 +87,7 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
         }
         count mustEqual numFeatures
         fs.getCount(Query.ALL) mustEqual numFeatures
-        ds.storage(sft.getTypeName).metadata.getFiles() must haveLength(6)
+        ds.storage(sft.getTypeName).metadata.files().scan() must haveLength(6)
       }
     }
 
@@ -121,15 +95,14 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
       val command = new FsCompactCommand()
       command.params.featureName = sft.getTypeName
       command.params.path = path
-      command.params.catalogType = "file"
       command.params.runMode = RunModes.Distributed.toString
-      command.params.configuration = configFlags.toList.asJava
+      command.params.configuration = configs.toList.asJava
       command.execute() must not(throwAn[Exception])
     }
 
     "be one file per partition after compacting" in {
-      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
-        ds.storage(sft.getTypeName).metadata.getFiles() must haveLength(3)
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+        ds.storage(sft.getTypeName).metadata.files().scan() must haveLength(3)
 
         var count = 0
         val fs = ds.getFeatureSource(sft.getTypeName)
@@ -147,24 +120,23 @@ class CompactCommandTest extends SpecificationWithJUnit with BeforeAfterAll {
     }
 
     "run successfully with target file size" in {
-      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
-        ds.storage(sft.getTypeName).metadata.set(Metadata.TargetFileSize, targetFileSize.toString)
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+        Metadata.set(ds.storage(sft.getTypeName).table, Metadata.TargetFileSize, targetFileSize.toString)
       }
       val command = new FsCompactCommand()
       command.params.featureName = sft.getTypeName
       command.params.path = path
-      command.params.catalogType = "file"
       command.params.runMode = RunModes.Distributed.toString
-      command.params.configuration = configFlags.toList.asJava
+      command.params.configuration = configs.toList.asJava
       command.execute() must not(throwAn[Exception])
     }
 
     "be multiple files per partition after compacting with target file size" in {
-      WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         val storage = ds.storage(sft.getTypeName)
-        foreach(storage.metadata.getFiles().groupBy(_.partition).values) { partition =>
+        foreach(storage.metadata.files().scan().groupBy(_.partition).values) { partition =>
           partition.size must beGreaterThan(1)
-          val sizes = partition.map(f => storage.context.root.resolve(f.location())).map(p => storage.fs.size(p))
+          val sizes = partition.map(_.fileSizeInBytes())
           // hard to get very close with small files...
           foreach(sizes)(_ must beCloseTo(targetFileSize, 2200))
         }

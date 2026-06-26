@@ -64,14 +64,15 @@ class IcebergParquetScan(scan: TableScan, threads: Int) extends CloseableIterato
   override def next(): Record = current.next()
 
   override def close(): Unit = {
-    closed.set(true)
-    futures.foreach(_.cancel(true))
-    if (current != null) {
-      CloseWithLogging(current)
+    if (closed.compareAndSet(false, true)) {
+      futures.foreach(_.cancel(true))
+      if (current != null) {
+        CloseWithLogging(current)
+      }
+      CloseWithLogging(tasks)
+      // TODO close futures
+      CloseWithLogging(ex)
     }
-    CloseWithLogging(tasks)
-    // TODO close futures
-    CloseWithLogging(ex)
   }
 
   private class TaskRunnable(task: CombinedScanTask) extends Callable[CloseableIterator[Record]] {

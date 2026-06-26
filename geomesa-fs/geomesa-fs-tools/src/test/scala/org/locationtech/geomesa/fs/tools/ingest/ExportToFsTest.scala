@@ -8,34 +8,26 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
+import org.apache.commons.io.IOUtils
 import org.geotools.api.data.{DataStore, Query, SimpleFeatureStore}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.memory.MemoryDataStore
 import org.geotools.util.factory.Hints
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.metadata.FileBasedMetadataCatalog
-import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFileSystemStorageFactory
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Partition}
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Partition, StorageCatalog}
+import org.locationtech.geomesa.fs.tools.ingest.container.FsContainerTest
 import org.locationtech.geomesa.tools.`export`.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
-import org.specs2.specification.BeforeAfterAll
+import org.locationtech.geomesa.utils.io.WithClose
+import org.specs2.mutable.SpecificationWithJUnit
 
-import java.io._
+import java.io.FileInputStream
+import java.net.URI
 import java.nio.file.Files
 
-@RunWith(classOf[JUnitRunner])
-class ExportToFsTest extends Specification with BeforeAfterAll {
-
-  var out: java.nio.file.Path = _
-
-  override def beforeAll(): Unit = out = Files.createTempDirectory("gm-export-fs-test")
-
-  override def afterAll(): Unit = PathUtils.deleteRecursively(out)
+class ExportToFsTest extends SpecificationWithJUnit with FsContainerTest {
 
   "Export command" should {
     "create files readable by the FSDS" >> {
@@ -53,32 +45,35 @@ class ExportToFsTest extends Specification with BeforeAfterAll {
       ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features: _*))
 
-      def storage() = {
-        val context = FileSystemContext.create(out.toUri, Map.empty)
-        val metadata = new FileBasedMetadataCatalog(context).create(sft, Seq("daily"))
-        new ParquetFileSystemStorageFactory().apply(context, metadata)
-      }
+      val context = FileSystemContext.create(URI.create(dsParams("fs.path")), configs)
+      val file = Files.createTempFile("", "2016_01_01_out.parquet").toFile.getAbsolutePath
 
-      val file = new File(s"$out/2016_01_01_out.parquet")
-
-      WithClose(storage()) { storage =>
-        val command: ExportCommand[DataStore] = new ExportCommand[DataStore]() {
-          override val params: ExportParams = new ExportParams() {
-            override def featureName: String = sft.getTypeName
-          }
-          override def connection: Map[String, String] = Map.empty
-          override def loadDataStore(): DataStore = ds
+      val command: ExportCommand[DataStore] = new ExportCommand[DataStore]() {
+        override val params: ExportParams = new ExportParams() {
+          override def featureName: String = sft.getTypeName
         }
-        command.params.file = file.getAbsolutePath
-        command.execute()
+        override def connection: Map[String, String] = Map.empty
+        override def loadDataStore(): DataStore = ds
+      }
+      command.params.file = file
+      command.params.force = true
+      command.execute()
 
-        val partition = Partition(storage.metadata.schemes.map(_.getPartition(features.head)))
+      WithClose(StorageCatalog(context)) { catalog =>
+        WithClose(catalog.create(sft, Seq("daily"))) { storage =>
+          val register = URI.create("s3://geomesa/2016_01_01_out.parquet")
+          WithClose(ObjectStore(context)) { fs =>
+            WithClose(fs.create(register).get) { os =>
+              WithClose(new FileInputStream(file)) { is =>
+                IOUtils.copy(is, os)
+              }
+            }
+          }
+          storage.metadata.register(register, Partition(storage.schemes.map(_.getPartition(features.head))))
 
-        val dataFile = storage.metadata.createDataFile(file.getName, partition)
-        storage.metadata.addFile(dataFile)
-
-        val read = WithClose(storage.getReader(new Query(sft.getTypeName), 1))(_.toList)
-        read mustEqual features
+          val read = storage.getReader(new Query(sft.getTypeName), 1).map(ScalaSimpleFeature.copy).toList
+          read mustEqual features
+        }
       }
     }
   }

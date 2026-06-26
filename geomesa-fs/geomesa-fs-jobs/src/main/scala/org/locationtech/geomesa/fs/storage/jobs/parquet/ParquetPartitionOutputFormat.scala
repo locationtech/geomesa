@@ -94,7 +94,7 @@ class ParquetPartitionOutputFormat extends OutputFormat[Void, SimpleFeature] {
         state.close(context)
         state.getFiles().foreach(storage.metadata.register(_, Partition(partition)))
       }
-      CloseWithLogging(storage)
+      CloseWithLogging(Seq(storage, catalog))
     }
 
     private sealed abstract class PartitionState(partition: Partition) {

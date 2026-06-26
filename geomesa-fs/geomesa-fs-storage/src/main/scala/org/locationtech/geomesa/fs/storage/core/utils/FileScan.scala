@@ -26,7 +26,9 @@ class FileScan(protected val tableScan: TableScan) {
 
 object FileScan {
 
-  type FluentScan = FileScan with RetrieveMetadata[PartitionScan[FileScan] with FilterScan[FileScan]] with PartitionScan[RetrieveMetadata[FileScan]] with FilterScan[RetrieveMetadata[FileScan]]
+  type FluentScan =
+    FileScan with RetrieveMetadata[PartitionScan[FileScan] with FilterScan[FileScan]]
+      with PartitionScan[RetrieveMetadata[FileScan]] with FilterScan[RetrieveMetadata[FileScan]]
 
   trait RetrieveMetadata[T <: FileScan] extends FileScan {
     protected def tableScan: TableScan
