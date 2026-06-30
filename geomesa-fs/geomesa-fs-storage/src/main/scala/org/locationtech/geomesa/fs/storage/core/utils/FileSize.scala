@@ -29,8 +29,7 @@ class FileSize(table: Table) {
 
   private var averageBytesPerFeature = Metadata.get(table, FileSize.BytesPerFeature) match {
     case Some(b) => b.toFloat
-    // TODO ensure idToName is populated correctly?
-    case None    => (table.schema().idToName().size() + 1) * 1.6f // 1.6 taken from some sample data estimates...
+    case None    => table.schema().columns().size() * 1.6f // 1.6 taken from some sample data estimates...
   }
 
   /**
@@ -58,7 +57,13 @@ class FileSize(table: Table) {
    */
   def fileIsSized(file: DataFile, target: Long): Boolean = isSized(file.fileSizeInBytes(), target)
 
-
+  /**
+   * Compare target with actual size, allowing for some margin of error
+   *
+   * @param size file size
+   * @param target target size
+   * @return
+   */
   private def isSized(size: Long, target: Long): Boolean = math.abs((size.toDouble / target) - 1d) <= fileSizeError
 
   /**

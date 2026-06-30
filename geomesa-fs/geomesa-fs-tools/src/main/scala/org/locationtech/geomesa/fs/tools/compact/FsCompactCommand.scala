@@ -49,7 +49,7 @@ object FsCompactCommand {
       val storage = ds.storage(params.featureName)
 
       val toCompact = if (params.loadedPartitions.isEmpty) { storage.metadata.partitions() } else {
-        val filtered = params.loadedPartitions.filter(storage.metadata.files().ofPartition(_).scan().nonEmpty)
+        val filtered = params.loadedPartitions.filter(storage.metadata.files().forPartition(_).scan().nonEmpty)
         if (filtered.isEmpty) {
           throw new ParameterException(s"Partition(s) did not match any files: ${params.loadedPartitions.mkString(", ")}")
         } else if (filtered.size != params.loadedPartitions.size) {

@@ -27,8 +27,6 @@ import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 
-import scala.collection.mutable.ArrayBuffer
-
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =
@@ -65,49 +63,9 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
         sc.newAPIHadoopRDD(conf, classOf[ParquetSimpleFeatureInputFormat], classOf[Void], classOf[SimpleFeature]).map(_._2)
       }
 
-      // TODO
-//      def runModsQuery(filter: Filter, paths: Seq[DataFile]): RDD[(SimpleFeatureAction, SimpleFeature)] = {
-//        configureQuery(filter, paths)
-//        StorageConfiguration.setPathActions(conf, new Path(storage.context.root), paths)
-//        sc.newAPIHadoopRDD(conf, classOf[ParquetSimpleFeatureActionInputFormat], classOf[SimpleFeatureAction], classOf[SimpleFeature])
-//      }
-//
-//      // split up the job by the partitions that require sequential reads
-//      // if a partition has modifications, it must be read separately to ensure they are handled correctly
-//      val mapper = IcebergSchemaMapper(storage.metadata.sft, storage.metadata.schemes.toSeq.sortBy(_.name), storage.context)
-      val noMods = ArrayBuffer.empty[DataFile]
-//      val withMods = scala.collection.mutable.Map.empty[String, ArrayBuffer[DataFile]]
-//
-//      storage.metadata.getFiles(query.getFilter).groupBy(f => mapper.partition(f)).foreach { case (partition, sffs) =>
-//        val buf =
-//          if (sffs.forall(f => !isModifyingFile(f))) {
-//            noMods
-//          } else {
-//            logger.warn(s"Found modifications for partition '$partition': compact the partition to improve read performance")
-//            withMods.getOrElseUpdate(partition.toString, ArrayBuffer.empty[DataFile])
-//          }
-//        buf ++= sffs
-//      }
-
-      noMods ++= storage.metadata.files().filter(query.getFilter).scan()
-
-      val rdd = /*if (noMods.isEmpty && withMods.isEmpty) {
-        logger.debug("Reading 0 partitions")
-        sc.emptyRDD[SimpleFeature]
-      } else */{
-        val noModsRdd = if (noMods.isEmpty) { sc.emptyRDD[SimpleFeature] } else { runAppendQuery(query.getFilter, noMods.toSeq) }
-//        val withModsRdd = withMods.map { case (_, files) =>
-//          val rdd = runModsQuery(query.getFilter, files.toSeq)
-//          // group updates by feature ID, then take the most recent
-//          rdd.groupBy(_._1.id).flatMap { case (_, group) =>
-//            val (action, sf) = group.minBy(_._1)
-//            if (action.action == FileType.Deleted) { None } else { Some(sf) }
-//          }
-//        }
-//
-//        (Seq(noModsRdd) ++ withModsRdd).reduceLeft(_ union _)
-        noModsRdd
-      }
+      // TODO support modifications
+      val files = storage.metadata.files().forFilter(query.getFilter).scan()
+      val rdd = if (files.isEmpty) { sc.emptyRDD[SimpleFeature] } else { runAppendQuery(query.getFilter, files) }
       SpatialRDD(rdd, sft)
     }
   }

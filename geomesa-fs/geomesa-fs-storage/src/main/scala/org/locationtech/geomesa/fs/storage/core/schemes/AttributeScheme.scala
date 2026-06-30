@@ -20,6 +20,14 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 
 import scala.reflect.ClassTag
 
+/**
+ * Attribute partitioning scheme, supporting optional bucketing
+ *
+ * @param attribute attribute being partitioned
+ * @param index index in the feature type of the attribute
+ * @param nullValue null value placeholder (type dependent)
+ * @param bucketing optional bucketing
+ */
 abstract class AttributeScheme[T: ClassTag](val attribute: String, index: Int, nullValue: T, val bucketing: Option[Bucketing[T]])
     extends PartitionScheme {
 
@@ -43,7 +51,6 @@ abstract class AttributeScheme[T: ClassTag](val attribute: String, index: Int, n
   override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = bucketing match {
     case None => b.identity(ColumnName.encode(attribute))
     case Some(bucket) => b.truncate(ColumnName.encode(attribute), bucket.width)
-    case _ => throw new UnsupportedOperationException("An implementation is missing")
   }
 
   override def getPartition(partition: StructLike, i: Int): PartitionKey =
@@ -169,7 +176,7 @@ object AttributeScheme extends PartitionSchemeFactory {
   }
 
   /**
-   * Attribute partitioning
+   * String attribute partitioning
    *
    * @param attribute attribute name
    * @param index attribute index in the sft
@@ -184,7 +191,7 @@ object AttributeScheme extends PartitionSchemeFactory {
   }
 
   /**
-   * Attribute partitioning
+   * String attribute partitioning
    *
    * @param attribute attribute name
    * @param index attribute index in the sft

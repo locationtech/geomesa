@@ -24,6 +24,15 @@ import org.locationtech.jts.geom.Geometry
 
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Holder for info about a geomesa/iceberg schema
+ *
+ * @param sft simple feature type represented by this schema
+ * @param geometries geometry encoding
+ * @param metadata table metadata
+ * @param schema iceberg schema
+ * @param fields field mappings, allowing for read transforms
+ */
 class SimpleFeatureIcebergSchema private (
     val sft: SimpleFeatureType,
     val geometries: GeometryEncoding,
@@ -79,7 +88,7 @@ object SimpleFeatureIcebergSchema {
   import scala.collection.JavaConverters._
 
   /**
-   * Get a schema for writing. Encoding can be configured through `geomesa.parquet.geometries` and `geomesa.fs.visibilities`
+   * Get a schema based on a simple feature type. Encoding can be configured through `geomesa.parquet.geometries`.
    *
    * @param conf write configuration, including the sft spec
    * @return
@@ -96,7 +105,8 @@ object SimpleFeatureIcebergSchema {
   }
 
   private def schema(sft: SimpleFeatureType, geometries: GeometryEncoding): IcebergFields = {
-    // see note in `schema` (above) about field ids
+    // note: for iceberg compatibility, field ids need to start at one and increment (without gaps) across all top-level fields.
+    // All nested fields (structs, lists) get ids *after* all the top-level fields, once again incrementing without gaps
     val fieldIds = new AtomicInteger(1)
     val nestedFieldIds = {
       val extraGeomCount = 2 * sft.getAttributeDescriptors.asScala.count {

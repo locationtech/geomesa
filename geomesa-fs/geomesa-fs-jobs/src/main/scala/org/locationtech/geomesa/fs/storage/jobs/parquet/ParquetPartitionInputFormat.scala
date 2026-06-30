@@ -11,19 +11,15 @@ package org.locationtech.geomesa.fs.storage.jobs.parquet
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.apache.iceberg.DataFile
-import org.apache.parquet.filter2.compat.FilterCompat
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
-import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemReader
-import org.locationtech.geomesa.fs.storage.core.utils.FileSystemThreadedReader
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergParquetScan, RecordSimpleFeature}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetPartitionInputFormat.{PartitionInputSplit, PartitionRecordReader}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
 import java.io.{DataInput, DataOutput}
-import java.net.URI
 
 /**
   * An Input format that creates splits based on FSDS Partitions. This is used for compaction, when we want a single
@@ -49,7 +45,7 @@ class ParquetPartitionInputFormat extends InputFormat[Void, SimpleFeature] {
         val sizeCheck = fileSize.orElse(storage.sizer.targetSize).map(t => (f: DataFile) => storage.sizer.fileIsSized(f, t))
         val splits = StorageConfiguration.getPartitions(hadoopConf).map { partition =>
           var size = 0L
-          val files = storage.metadata.files().ofPartition(partition).scan().filter { f =>
+          val files = storage.metadata.files().forPartition(partition).scan().filter { f =>
             if (sizeCheck.exists(_.apply(f))) { false } else {
               size += f.fileSizeInBytes()
               true
@@ -114,10 +110,15 @@ object ParquetPartitionInputFormat {
 
   class PartitionRecordReader(files: Seq[String]) extends RecordReader[Void, SimpleFeature] {
 
-    private var fs: ObjectStore = _
+    import scala.collection.JavaConverters._
+
+    private var catalog: StorageCatalog = _
+    private var storage: FileSystemStorage = _
     private var reader: CloseableIterator[SimpleFeature] = _
 
     private var curValue: SimpleFeature = _
+
+    private def filterFiles(location: String): Boolean = files.contains(location)
 
     override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
       val hadoopConf = context.getConfiguration
@@ -127,12 +128,18 @@ object ParquetPartitionInputFormat {
         builder.result()
       }
       val root = StorageConfiguration.getRootPath(hadoopConf)
+      val typeName = StorageConfiguration.getSftName(hadoopConf)
       val fsc = FileSystemContext.create(root, conf)
-      val sft = StorageConfiguration.getSft(hadoopConf)
+      catalog = StorageCatalog(fsc)
+      storage = catalog.load(typeName)
 
-      fs = ObjectStore(fsc)
-      val pathReader = new ParquetFileSystemReader(fs, fsc, sft, FilterCompat.NOOP, None, _ => true, None)
-      reader = FileSystemThreadedReader(pathReader, files.map(URI.create), math.min(8, files.size))
+      val readSchema = storage.schema.read(None, Set.empty)
+      val ff = RecordSimpleFeature(readSchema)
+      val tableScan =
+        storage.table.newScan()
+          .select(readSchema.schema.columns().asScala.map(_.name()).asJava) // exclude z2 cols even if there's no transform
+
+      reader = new IcebergParquetScan(tableScan, math.min(8, files.size), Some(filterFiles)).map(ff.apply)
     }
 
     // TODO look at how the ParquetInputFormat provides progress and utilize something similar
@@ -151,13 +158,6 @@ object ParquetPartitionInputFormat {
     override def getCurrentKey: Void = null
     override def getCurrentValue: SimpleFeature = curValue
 
-    override def close(): Unit = {
-      if (reader != null) {
-        CloseWithLogging(reader)
-      }
-      if (fs != null) {
-        CloseWithLogging(fs)
-      }
-    }
+    override def close(): Unit = CloseWithLogging(Seq(reader, storage, catalog).filter(_ != null))
   }
 }

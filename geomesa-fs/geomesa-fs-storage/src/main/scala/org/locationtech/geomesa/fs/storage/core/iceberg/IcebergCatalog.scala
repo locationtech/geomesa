@@ -20,6 +20,11 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.Closeable
 
+/**
+ * Catalog implementation backed by iceberg
+ *
+ * @param context file system context
+ */
 class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
 
   import IcebergCatalog.{RichCatalog, RichConf}
@@ -114,7 +119,6 @@ object IcebergCatalog {
       "file-format" -> "PARQUET",
       "warehouse" -> context.root.resolve("metadata/").toString
     )
-    // TODO Map("parquet.filter.dictionary.enabled" -> "true")
     val props = defaults ++ context.conf
     CatalogUtil.buildIcebergCatalog("geomesa", props.asJava, null)
   }

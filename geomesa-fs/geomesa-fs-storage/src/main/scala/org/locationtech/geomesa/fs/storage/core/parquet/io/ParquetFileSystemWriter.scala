@@ -47,6 +47,7 @@ class ParquetFileSystemWriter(
 
   import scala.collection.JavaConverters._
 
+  // TODO consolidate this on FileIO instead of ObjectStore
   def this(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: URI, observer: FileSystemObserver) =
     this(sft, conf, ObjectStoreOutput(fs, file), observer)
 

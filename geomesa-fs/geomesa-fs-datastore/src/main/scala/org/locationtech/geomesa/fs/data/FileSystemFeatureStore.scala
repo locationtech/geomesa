@@ -65,7 +65,7 @@ class FileSystemFeatureStore(
       Seq(BoundingBoxField.XMin, BoundingBoxField.YMin, BoundingBoxField.XMax, BoundingBoxField.YMax)
         .map(f => bboxField.field(f).fieldId())
         .splitAt(2)
-    storage.metadata.files().withMetadata().filter(query.getFilter).scan().foreach { f =>
+    storage.metadata.files().includeFileStats().forFilter(query.getFilter).scan().foreach { f =>
       val minBuffers = minFieldIds.map(f.lowerBounds().get)
       val maxBuffers = maxFieldIds.map(f.upperBounds().get)
       if (!minBuffers.contains(null) && !maxBuffers.contains(null)) {
@@ -79,7 +79,7 @@ class FileSystemFeatureStore(
   }
 
   override def getCountInternal(query: Query): Int = {
-    val count = storage.metadata.files().filter(query.getFilter).scan().map(_.recordCount()).sum
+    val count = storage.metadata.files().forFilter(query.getFilter).scan().map(_.recordCount()).sum
     if (count.isValidInt) { count.toInt } else { Int.MaxValue }
   }
 

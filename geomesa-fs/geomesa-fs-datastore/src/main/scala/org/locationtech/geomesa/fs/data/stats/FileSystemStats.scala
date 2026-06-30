@@ -32,7 +32,7 @@ class FileSystemStats(ds: FileSystemDataStore) extends UnoptimizedRunnableStats(
       exact: Boolean,
       queryHints: Hints): Option[Long] = {
     if (!exact || filter == Filter.INCLUDE) {
-      Some(ds.storage(sft.getTypeName).metadata.files().filter(filter).scan().map(_.recordCount()).sum)
+      Some(ds.storage(sft.getTypeName).metadata.files().forFilter(filter).scan().map(_.recordCount()).sum)
     } else {
       super.getCount(sft, filter, exact, queryHints)
     }
@@ -51,7 +51,7 @@ class FileSystemStats(ds: FileSystemDataStore) extends UnoptimizedRunnableStats(
       val field = storage.schema.schema.findField(ColumnName.encode(attribute))
       val fieldId = field.fieldId()
       val fieldType = field.`type`()
-      ds.storage(sft.getTypeName).metadata.files().withMetadata().filter(filter).scan().foreach { f =>
+      ds.storage(sft.getTypeName).metadata.files().includeFileStats().forFilter(filter).scan().foreach { f =>
         Seq(f.lowerBounds().get(fieldId), f.upperBounds().get(fieldId)).foreach { buffer =>
           if (buffer != null) {
             sf.setAttribute(i, Conversions.fromByteBuffer[AnyRef](fieldType, buffer))

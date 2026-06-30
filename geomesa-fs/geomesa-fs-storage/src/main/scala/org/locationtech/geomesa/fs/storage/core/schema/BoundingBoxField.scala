@@ -16,10 +16,12 @@ import org.apache.parquet.schema.{GroupType, Types}
 
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Encoding for a bbox field
+ */
 object BoundingBoxField {
 
-  val BoundingBoxFieldPrefix = "__"
-  val BoundingBoxFieldSuffix = "_bbox__"
+  val BoundingBoxFieldSuffix = s"_bbox${SimpleFeatureSchema.InternalFieldDelimiter}"
 
   val XMin = "xmin"
   val YMin = "ymin"
@@ -32,7 +34,7 @@ object BoundingBoxField {
    * @param geom geometry column name
    * @return
    */
-  def groupName(geom: String): String = s"$BoundingBoxFieldPrefix$geom$BoundingBoxFieldSuffix"
+  def groupName(geom: String): String = s"${SimpleFeatureSchema.InternalFieldDelimiter}$geom$BoundingBoxFieldSuffix"
 
   /**
    * The parquet schema for a bbox field

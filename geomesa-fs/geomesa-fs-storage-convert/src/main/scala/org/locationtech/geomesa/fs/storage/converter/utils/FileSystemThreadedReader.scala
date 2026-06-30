@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core.utils
+package org.locationtech.geomesa.fs.storage.converter.utils
 
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.feature.simple.SimpleFeature

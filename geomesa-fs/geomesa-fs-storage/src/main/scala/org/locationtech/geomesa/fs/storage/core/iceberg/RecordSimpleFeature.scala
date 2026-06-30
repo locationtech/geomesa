@@ -13,7 +13,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractMutableSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.iceberg.RecordSimpleFeature.RecordConverter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.{GeoParquetNative, GeoParquetWkb}
-import org.locationtech.geomesa.fs.storage.core.schema.BoundingBoxField
+import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
@@ -71,7 +71,7 @@ object RecordSimpleFeature {
       val (from, to) = Converter(types, schema)
       converters(i) = new RecordConverter(offset, from, to)
       if (types.head == ObjectType.GEOMETRY && offset + 1 < schema.schema.columns().size() &&
-          schema.schema.columns().get(offset + 1).name().startsWith(BoundingBoxField.BoundingBoxFieldPrefix)) {
+          schema.schema.columns().get(offset + 1).name().startsWith(SimpleFeatureSchema.InternalFieldDelimiter)) {
         offset += 1
       }
       offset += 1

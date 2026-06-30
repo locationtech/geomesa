@@ -17,10 +17,20 @@ import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergFilterConverter
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme
 import org.locationtech.geomesa.utils.io.WithClose
 
+/**
+ * Fluent builder for scanning files from an iceberg table
+ *
+ * @param tableScan underlying scan
+ */
 class FileScan(protected val tableScan: TableScan) {
 
   import scala.collection.JavaConverters._
 
+  /**
+   * Return the selected files
+   *
+   * @return
+   */
   def scan(): Seq[DataFile] = WithClose(tableScan.planFiles())(_.asScala.map(_.file()).toSeq)
 }
 
@@ -30,32 +40,41 @@ object FileScan {
     FileScan with RetrieveMetadata[PartitionScan[FileScan] with FilterScan[FileScan]]
       with PartitionScan[RetrieveMetadata[FileScan]] with FilterScan[RetrieveMetadata[FileScan]]
 
+  /**
+   * A step in the scan builder that allows for selecting metadata (e.g. column-level stats) to be retrieved
+   */
   trait RetrieveMetadata[T <: FileScan] extends FileScan {
     protected def tableScan: TableScan
     protected def metadataStep(scan: TableScan): T
 
-    def withMetadata(): T = metadataStep(tableScan.includeColumnStats())
+    def includeFileStats(): T = metadataStep(tableScan.includeColumnStats())
   }
 
+  /**
+   * A step in the scan builder that allows for filtering the returned files based on partition
+   */
   trait PartitionScan[T <: FileScan] extends FileScan {
 
     protected def tableScan: TableScan
     protected def schemes: Seq[PartitionScheme]
     protected def filterStep(scan: TableScan): T
 
-    def ofPartition(partition: Partition): T = {
+    def forPartition(partition: Partition): T = {
       val filters = schemes.zip(partition.values).map { case (s, p) => s.getCoveringExpression(p) }
       filterStep(tableScan.filter(filters.reduce(Expressions.and)))
     }
   }
 
+  /**
+   * A step in the scan builder that allows for filtering the returned files based on a CQL filter
+   */
   trait FilterScan[T <: FileScan] extends FileScan {
 
     protected def tableScan: TableScan
     protected def sft: SimpleFeatureType
     protected def filterStep(scan: TableScan): T
 
-    def filter(filter: Filter): FileScan = filterStep(tableScan.filter(IcebergFilterConverter(sft, filter).expression))
+    def forFilter(filter: Filter): FileScan = filterStep(tableScan.filter(IcebergFilterConverter(sft, filter).expression))
   }
 
   /**
@@ -68,6 +87,8 @@ object FileScan {
    */
   def apply(table: Table, sft: SimpleFeatureType, schemes: Seq[PartitionScheme]): FluentScan =
     new InitialScan(table.newScan().caseSensitive(false), sft, schemes)
+
+  // fluent class implementations to enforce scan building steps
 
   private class InitialScan(scan: TableScan, protected val sft: SimpleFeatureType, protected val schemes: Seq[PartitionScheme])
       extends FileScan(scan)

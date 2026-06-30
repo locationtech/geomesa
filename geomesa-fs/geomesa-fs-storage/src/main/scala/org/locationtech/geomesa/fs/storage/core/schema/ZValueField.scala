@@ -16,11 +16,13 @@ import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Encoding for a Z-value field
+ */
 object ZValueField {
 
-  val ZValueFieldPrefix = "__"
-  val Z2ValueFieldSuffix = "_z2__"
-  val XZ2ValueFieldSuffix = "_xz2__"
+  val Z2ValueFieldSuffix = s"_z2${SimpleFeatureSchema.InternalFieldDelimiter}"
+  val XZ2ValueFieldSuffix = s"_xz2${SimpleFeatureSchema.InternalFieldDelimiter}"
 
   /**
    * Gets the column name for the bbox group field
@@ -28,7 +30,7 @@ object ZValueField {
    * @param geom geometry column name
    * @return
    */
-  def xz2FieldName(geom: String): String = s"$ZValueFieldPrefix$geom$XZ2ValueFieldSuffix"
+  def xz2FieldName(geom: String): String = s"${SimpleFeatureSchema.InternalFieldDelimiter}$geom$XZ2ValueFieldSuffix"
 
   /**
    * Gets the column name for the bbox group field
@@ -36,7 +38,7 @@ object ZValueField {
    * @param geom geometry column name
    * @return
    */
-  def z2FieldName(geom: String): String = s"$ZValueFieldPrefix$geom$Z2ValueFieldSuffix"
+  def z2FieldName(geom: String): String = s"${SimpleFeatureSchema.InternalFieldDelimiter}$geom$Z2ValueFieldSuffix"
 
   /**
    * The parquet schema for a z-value field

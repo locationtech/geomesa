@@ -13,6 +13,9 @@ import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergCatalog
 
 import java.io.Closeable
 
+/**
+ * A catalog for creating, listing and retrieving storage instances
+ */
 trait StorageCatalog extends Closeable {
 
   /**

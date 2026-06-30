@@ -6,7 +6,6 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-
 package org.locationtech.geomesa.fs.storage.core.parquet.schema
 
 import com.typesafe.scalalogging.LazyLogging
@@ -42,6 +41,12 @@ class SimpleFeatureParquetSchema private (
     val metadata: java.util.Map[String, String],
     val messageType: MessageType,
     fields: ParquetFields) {
+
+  /**
+   * Gets the schema used for reading (excludes some columns only used for partitioning)
+   *
+   * @return
+   */
   def read(): SimpleFeatureParquetSchema = {
     val fieldFilter =
       fields.fields.map(_.getName)
@@ -179,7 +184,6 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     }
     ParquetFields(builder.result())
   }
-
 
   /**
    * Builds the schema type for an attribute

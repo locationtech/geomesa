@@ -62,10 +62,10 @@ case class Z2Scheme(attribute: String, index: Int, bits: Int) extends SpatialSch
   }
 
   override def getCoveringExpression(partition: PartitionKey): Expression =
-    Expressions.equal[String](Expressions.truncate[String](ZValueField.z2FieldName(ColumnName(attribute).column), digits), partition.value)
+    Expressions.equal[String](Expressions.truncate[String](ZValueField.z2FieldName(ColumnName.encode(attribute)), digits), partition.value)
 
   override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
-    b.truncate(ZValueField.z2FieldName(ColumnName(attribute).column), digits)
+    b.truncate(ZValueField.z2FieldName(ColumnName.encode(attribute)), digits)
 
   override def getPartition(partition: StructLike, i: Int): PartitionKey = PartitionKey(name, partition.get(i, classOf[String]))
 }

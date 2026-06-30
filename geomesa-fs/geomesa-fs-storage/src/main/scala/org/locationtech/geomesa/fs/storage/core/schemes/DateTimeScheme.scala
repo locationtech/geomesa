@@ -23,6 +23,13 @@ import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, ZoneOffset, ZonedDateTime}
 import java.util.{Date, Locale}
 
+/**
+ * Date based partitioning
+ *
+ * @param attribute attribute being partitioned
+ * @param index index in the feature type of the attribute
+ * @param unit chrono unit used for partitioning
+ */
 case class DateTimeScheme(attribute: String, index: Int, unit: ChronoUnit) extends PartitionScheme with TemporalScheme {
 
   import FilterHelper.ff

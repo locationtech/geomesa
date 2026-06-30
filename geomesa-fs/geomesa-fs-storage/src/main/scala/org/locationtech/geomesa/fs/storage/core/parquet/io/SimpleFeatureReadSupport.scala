@@ -21,7 +21,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
-import org.locationtech.geomesa.fs.storage.core.schema.BoundingBoxField
+import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
@@ -120,7 +120,7 @@ object SimpleFeatureReadSupport {
         // note: zValues are excluded from our read schema, they're only used for partitioning
         // note: bboxes have to be present for filtering, but we don't do anything with them on read
         if (types.head == ObjectType.GEOMETRY && offset + 1 < schema.messageType.getFieldCount &&
-            schema.messageType.getFields.get(offset + 1).getName.startsWith(BoundingBoxField.BoundingBoxFieldPrefix)) {
+            schema.messageType.getFields.get(offset + 1).getName.startsWith(SimpleFeatureSchema.InternalFieldDelimiter)) {
           builder += new BoundingBoxConverter()
           offset += 1
         }

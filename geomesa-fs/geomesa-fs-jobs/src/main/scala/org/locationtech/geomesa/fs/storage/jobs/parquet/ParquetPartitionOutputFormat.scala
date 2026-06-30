@@ -14,7 +14,6 @@ import org.apache.hadoop.mapred.InvalidJobConfException
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
 import org.apache.hadoop.mapreduce.security.TokenCache
-import org.apache.iceberg.FileContent
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Partition, PartitionKey, StorageCatalog}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
@@ -117,7 +116,7 @@ class ParquetPartitionOutputFormat extends OutputFormat[Void, SimpleFeature] {
       protected def newWriter(): (Path, RecordWriter[Void, SimpleFeature]) = {
         closeCurrentFile()
         // TODO is this in the right fs?
-        currentFile = new Path(workPath, FileSystemStorage.newFilePath(storage.sft.getTypeName, FileContent.DATA))
+        currentFile = new Path(workPath, FileSystemStorage.newFilePath(storage.sft.getTypeName))
         featureCount = 0
         logger.debug(s"Creating record writer at path $currentFile")
         // noinspection LanguageFeature

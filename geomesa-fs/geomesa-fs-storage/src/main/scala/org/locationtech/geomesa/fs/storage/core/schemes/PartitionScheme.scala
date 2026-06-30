@@ -23,7 +23,7 @@ import java.time.ZonedDateTime
  *
  * Note that generally partitioning is implemented to align with iceberg's partitioning logic, so
  * that partitions in iceberg have a 1:1 mapping with partitions in geomesa (the reverse is not true,
- * as geomesa supports more partition schemes than iceberg, e.g. spatial partitions, multi-hour partitions, etc)
+ * as geomesa supports more partition schemes than iceberg, e.g. spatial partitions)
  */
 trait PartitionScheme {
 

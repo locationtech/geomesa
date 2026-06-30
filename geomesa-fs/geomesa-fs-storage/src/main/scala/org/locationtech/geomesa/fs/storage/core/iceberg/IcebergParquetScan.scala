@@ -13,7 +13,6 @@ import org.apache.iceberg._
 import org.apache.iceberg.data.parquet.GenericParquetReaders
 import org.apache.iceberg.data.{InternalRecordWrapper, Record}
 import org.apache.iceberg.expressions.{Evaluator, Expressions}
-import org.apache.iceberg.io.CloseableIterable
 import org.apache.iceberg.parquet.Parquet
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
@@ -23,14 +22,21 @@ import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 
-class IcebergParquetScan(scan: TableScan, threads: Int) extends CloseableIterator[Record] with LazyLogging {
+/**
+ * Reads parquet files based on an iceberg table scan
+ *
+ * @param scan scan
+ * @param threads number of threads used to execute
+ * @param fileFilter optional filter for restricting the files that are scanned
+ */
+class IcebergParquetScan(scan: TableScan, threads: Int, fileFilter: Option[String => Boolean] = None)
+    extends CloseableIterator[Record] with LazyLogging {
 
   import scala.collection.JavaConverters._
 
   private val sharedQueue = new LinkedBlockingQueue[Record](2000000)
   private val localQueue = new java.util.LinkedList[Record]()
 
-//  private val tableSchema = scan.table().schema()
   private val projection = scan.schema()
   private val caseSensitive = scan.isCaseSensitive
 
@@ -99,17 +105,25 @@ class IcebergParquetScan(scan: TableScan, threads: Int) extends CloseableIterato
     }
   }
 
-  private def readFile(task: FileScanTask): CloseableIterable[Record] = {
+  private def readFile(task: FileScanTask): CloseableIterator[Record] = {
     val inputFile = scan.table().io().newInputFile(task.file())
-    logger.debug(s"Reading file ${inputFile.location()} [${task.start()}:${task.length()}]")
-    Parquet.read(inputFile)
-      .project(projection)
-      .split(task.start(), task.length())
-      .caseSensitive(caseSensitive)
-      .filter(task.residual())
-      // TODO implement ParquetValueReader directly instead of using records
-      .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(projection, fileSchema))
-      .build[Record]()
+    if (fileFilter.exists(_.apply(inputFile.location()) == false)) {
+      logger.debug(s"Skipping file ${inputFile.location()} [${task.start()}:${task.length()}] due to file filter")
+      CloseableIterator.empty[Record]
+    } else {
+      logger.debug(s"Reading file ${inputFile.location()} [${task.start()}:${task.length()}]")
+      val reader =
+        Parquet.read(inputFile)
+          .project(projection)
+          .split(task.start(), task.length())
+          .caseSensitive(caseSensitive)
+          .filter(task.residual())
+          // TODO implement ParquetValueReader directly instead of using records
+          .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(projection, fileSchema))
+          .build[Record]()
+      val iter = reader.iterator()
+      CloseableIterator(iter.asScala, CloseWithLogging(Seq(iter, reader)))
+    }
   }
 
   private class TaskRunnable(task: CombinedScanTask) extends Runnable {
@@ -117,16 +131,14 @@ class IcebergParquetScan(scan: TableScan, threads: Int) extends CloseableIterato
       task.files().iterator().asScala.foreach { file =>
         if (!closed.get()) {
           if (file.deletes().isEmpty) {
-            WithClose(readFile(file)) { read =>
-              WithClose(read.iterator()) { iter =>
-                val residual = file.residual()
-                val filtered = if (residual == null || residual == Expressions.alwaysTrue()) { iter.asScala } else {
-                  val wrapper = new InternalRecordWrapper(projection.asStruct())
-                  val filter = new Evaluator(projection.asStruct(), residual, caseSensitive)
-                  iter.asScala.filter(r => filter.eval(wrapper.wrap(r)))
-                }
-                filtered.foreach(sharedQueue.put)
+            WithClose(readFile(file)) { iter =>
+              val residual = file.residual()
+              val filtered = if (residual == null || residual == Expressions.alwaysTrue()) { iter } else {
+                val wrapper = new InternalRecordWrapper(projection.asStruct())
+                val filter = new Evaluator(projection.asStruct(), residual, caseSensitive)
+                iter.filter(r => filter.eval(wrapper.wrap(r)))
               }
+              filtered.foreach(sharedQueue.put)
             }
           } else {
             // TODO implement deletes

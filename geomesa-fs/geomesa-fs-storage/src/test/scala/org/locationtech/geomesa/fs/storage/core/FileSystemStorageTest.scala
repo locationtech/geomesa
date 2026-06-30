@@ -15,6 +15,7 @@ import org.apache.parquet.io.LocalInputFile
 import org.everit.json.schema.loader.SchemaLoader
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.json.{JSONObject, JSONTokener}
@@ -154,7 +155,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
 
           // verify GeoParquet metadata - look for partition e1 so we can verify the expected bounds
           val firstPartitionFile =
-            storage.metadata.files().ofPartition(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).scan().headOption.orNull
+            storage.metadata.files().forPartition(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).scan().headOption.orNull
           firstPartitionFile must not(beNull)
           WithClose(S3ObjectStore(s3Conf)) { fs =>
             WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(firstPartitionFile.location())))) { reader =>
@@ -257,7 +258,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           }
 
           val firstPartitionFile =
-            storage.metadata.files().ofPartition(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).scan().headOption.orNull
+            storage.metadata.files().forPartition(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).scan().headOption.orNull
           firstPartitionFile must not(beNull)
           // copy to a local file
           val tmpFile = Files.createTempFile("fs", ".parquet")
@@ -392,64 +393,61 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
     }
 
-    // TODO updates
-//    "modify and delete features" in {
-//      val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
-//
-//      val features = (0 until 10).map { i =>
-//        val sf = new ScalaSimpleFeature(sft, i.toString)
-//        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-//        sf.setAttribute(1, s"name$i")
-//        sf.setAttribute(2, s"$i")
-//        sf.setAttribute(3, f"2014-01-${i + 1}%02dT00:00:01.000Z")
-//        sf.setAttribute(0, s"POINT(4$i 5$i)")
-//        sf
-//      }
-//
-//      withTestDir { dir =>
-//        val context = FileSystemContext.create(dir, config)
-//        val metadata = new FileBasedMetadataCatalog(context).create(sft, schemes)
-//        WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
-//          storage must not(beNull)
-//
-//          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
-//
-//          features.foreach { f =>
-//            val partition = Partition(storage.metadata.schemes.map(_.getPartition(f)))
-//            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
-//            writer.write(f)
-//          }
-//
-//          writers.foreach(_._2.close())
-//
-//          logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
-//
-//          testQuery(storage, sft)("INCLUDE", null, features)
-//
-//          val updater = storage.getWriter(Filter.INCLUDE, 1)
-//
-//          updater.hasNext must beTrue
-//          while (updater.hasNext) {
-//            val feature = updater.next
-//            if (feature.getID == "0") {
-//              updater.remove()
-//            } else if (feature.getID == "1") {
-//              feature.setAttribute(1, "name-updated")
-//              updater.write()
-//            }
-//          }
-//          updater.close()
-//
-//          val updates = features.drop(2) :+ {
-//            val mod = ScalaSimpleFeature.copy(features.drop(1).head)
-//            mod.setAttribute("name", "name-updated")
-//            mod
-//          }
-//
-//          testQuery(storage, sft)("INCLUDE", null, updates)
-//        }
-//      }
-//    }
+    "modify and delete features" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
+
+      val features = Seq.tabulate(10) { i =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute(1, s"name$i")
+        sf.setAttribute(2, s"$i")
+        sf.setAttribute(3, f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute(0, s"POINT(4$i 5$i)")
+        sf
+      }
+      val context = newPath()
+      WithClose(StorageCatalog(context)) { catalog =>
+        WithClose(catalog.create(sft, schemes)) { storage =>
+          storage must not(beNull)
+
+          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
+
+          features.foreach { f =>
+            val partition = Partition(storage.schemes.map(_.getPartition(f)))
+            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+            writer.write(f)
+          }
+
+          writers.foreach(_._2.close())
+
+          logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+          testQuery(storage, sft)("INCLUDE", null, features)
+
+          val updater = storage.getWriter(Filter.INCLUDE, 1)
+
+          updater.hasNext must beTrue
+          while (updater.hasNext) {
+            val feature = updater.next
+            if (feature.getID == "0") {
+              updater.remove()
+            } else if (feature.getID == "1") {
+              feature.setAttribute(1, "name-updated")
+              updater.write()
+            }
+          }
+          updater.close()
+
+          val updates = features.drop(2) :+ {
+            val mod = ScalaSimpleFeature.copy(features.drop(1).head)
+            mod.setAttribute("name", "name-updated")
+            mod
+          }
+
+          testQuery(storage, sft)("INCLUDE", null, updates)
+        }
+      }
+    }.pendingUntilFixed()
 
     "use custom file observers" in {
       val userData = s"${StorageKeys.ObserversKey}='${classOf[TestObserverFactory].getName}'"
@@ -488,31 +486,30 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           forall(TestObserverFactory.observers)(_.closed must beTrue)
           TestObserverFactory.observers.flatMap(_.features) must containTheSameElementsAs(features)
 
-          // TODO updates
-//          TestObserverFactory.observers.clear()
-//          val updater = storage.getWriter(Filter.INCLUDE, 1)
-//
-//          updater.hasNext must beTrue
-//          while (updater.hasNext) {
-//            val feature = updater.next()
-//            if (feature.getID == "0") {
-//              updater.remove()
-//            } else if (feature.getID == "1") {
-//              feature.setAttribute(1, "name-updated")
-//              updater.write()
-//            }
-//          }
-//
-//          TestObserverFactory.observers must haveSize(2) // 2 partitions were updated
-//          forall(TestObserverFactory.observers)(_.closed must beFalse)
-//
-//          updater.close()
-//
-//          forall(TestObserverFactory.observers)(_.closed must beTrue)
-//          TestObserverFactory.observers.flatMap(_.features) must haveLength(2)
+          TestObserverFactory.observers.clear()
+          val updater = storage.getWriter(Filter.INCLUDE, 1)
+
+          updater.hasNext must beTrue
+          while (updater.hasNext) {
+            val feature = updater.next()
+            if (feature.getID == "0") {
+              updater.remove()
+            } else if (feature.getID == "1") {
+              feature.setAttribute(1, "name-updated")
+              updater.write()
+            }
+          }
+
+          TestObserverFactory.observers must haveSize(2) // 2 partitions were updated
+          forall(TestObserverFactory.observers)(_.closed must beFalse)
+
+          updater.close()
+
+          forall(TestObserverFactory.observers)(_.closed must beTrue)
+          TestObserverFactory.observers.flatMap(_.features) must haveLength(2)
         }
       }
-    }
+    }.pendingUntilFixed()
 
     "write files with a target size" in {
       val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
@@ -549,7 +546,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           val partitions = storage.metadata.partitions()
           partitions must haveLength(writers.size)
           foreach(partitions) { partition =>
-            val paths = storage.metadata.files().ofPartition(partition).scan()
+            val paths = storage.metadata.files().forPartition(partition).scan()
             paths.size must beGreaterThan(1)
             foreach(paths) { p =>
               storage.table.io().newInputFile(p.location()).getLength must beCloseTo(targetSize, targetSize / 10)

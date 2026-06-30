@@ -11,6 +11,11 @@ package org.locationtech.geomesa.fs.storage.core.parquet.io
 import org.apache.parquet.io.{OutputFile, PositionOutputStream}
 import org.locationtech.geomesa.fs.storage.core.parquet.io.IcebergOutputFile.PositionOutputStreamWrapper
 
+/**
+ * Parquet output file that wraps an iceberg output file
+ *
+ * @param original iceberg output file
+ */
 class IcebergOutputFile(val original: org.apache.iceberg.io.OutputFile) extends OutputFile {
 
   override def create(blockSizeHint: Long): PositionOutputStream = new PositionOutputStreamWrapper(original.create())

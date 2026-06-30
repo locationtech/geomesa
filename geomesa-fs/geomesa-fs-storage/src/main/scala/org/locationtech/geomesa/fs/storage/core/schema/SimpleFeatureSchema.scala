@@ -10,8 +10,10 @@ package org.locationtech.geomesa.fs.storage.core.schema
 
 object SimpleFeatureSchema {
 
-  val FeatureIdField    = "__fid__"
-  val VisibilitiesField = "__vis__"
+  val InternalFieldDelimiter = "__"
+
+  val FeatureIdField    = s"${InternalFieldDelimiter}fid$InternalFieldDelimiter"
+  val VisibilitiesField = s"${InternalFieldDelimiter}vis$InternalFieldDelimiter"
 
   val SftNameKey            = "geomesa.fs.sft.name"
   val SftSpecKey            = "geomesa.fs.sft.spec"

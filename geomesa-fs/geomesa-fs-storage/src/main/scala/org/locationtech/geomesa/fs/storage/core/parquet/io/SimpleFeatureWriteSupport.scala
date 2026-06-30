@@ -288,7 +288,6 @@ object SimpleFeatureWriteSupport {
   private abstract class GeometryWriter[T <: Geometry](name: String, index: Int) extends AttributeWriter[T](name, index, 3) {
 
     private val bboxCol = BoundingBoxField.groupName(name)
-//    private val zCol = ZValueField.z2FieldName()
 
     protected def zCol: String
     protected def z(geom: T): String

@@ -21,6 +21,11 @@ import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParq
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 
+/**
+ * Storage catalog for synthetic "converter" storage
+ *
+ * @param context file system context
+ */
 class ConverterCatalog(val context: FileSystemContext) extends StorageCatalog with LazyLogging {
 
   import ConverterCatalog._
