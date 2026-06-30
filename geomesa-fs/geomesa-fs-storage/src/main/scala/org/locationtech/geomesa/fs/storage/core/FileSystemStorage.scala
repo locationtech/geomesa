@@ -129,6 +129,7 @@ case class FileSystemStorage(
     // TODO investigate - this doesn't seem to be pruning row groups effectively
     val tableScan =
       table.newScan()
+        .caseSensitive(false)
         .select(readSchema.schema.columns().asScala.map(_.name()).asJava) // exclude z2 cols even if there's no transform
         .filter(icebergFilter.expression)
 
