@@ -10,32 +10,29 @@ package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg._
+import org.apache.iceberg.data.Record
 import org.apache.iceberg.data.parquet.GenericParquetReaders
-import org.apache.iceberg.data.{InternalRecordWrapper, Record}
-import org.apache.iceberg.expressions.{Evaluator, Expressions}
 import org.apache.iceberg.io.CloseableIterable
 import org.apache.iceberg.parquet.Parquet
-import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
+import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 
-class IcebergParquetScan(scan: TableScan, schema: SimpleFeatureIcebergSchema, threads: Int)
-    extends CloseableIterator[SimpleFeature] with LazyLogging {
+class IcebergParquetScan(scan: TableScan, threads: Int) extends CloseableIterator[Record] with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  private val sharedQueue = new LinkedBlockingQueue[SimpleFeature](2000000)
-  private val localQueue = new java.util.LinkedList[SimpleFeature]()
+  private val sharedQueue = new LinkedBlockingQueue[Record](2000000)
+  private val localQueue = new java.util.LinkedList[Record]()
 
 //  private val tableSchema = scan.table().schema()
   private val projection = scan.schema()
   private val caseSensitive = scan.isCaseSensitive
 
-  private val featureFactory = RecordSimpleFeature(schema)
   private val closed = new AtomicBoolean(false)
 
   private val ex = new CachedThreadPool(threads)
@@ -51,7 +48,7 @@ class IcebergParquetScan(scan: TableScan, schema: SimpleFeatureIcebergSchema, th
   logger.debug(s"Submitted $i tasks, using $threads threads")
   ex.shutdown()
 
-  private var current: SimpleFeature = _
+  private var current: Record = _
 
   override def hasNext: Boolean = {
     if (current != null) {
@@ -80,7 +77,7 @@ class IcebergParquetScan(scan: TableScan, schema: SimpleFeatureIcebergSchema, th
     }
   }
 
-  override def next(): SimpleFeature = {
+  override def next(): Record = {
     if (hasNext) {
       val ret = current
       current = null
@@ -96,7 +93,7 @@ class IcebergParquetScan(scan: TableScan, schema: SimpleFeatureIcebergSchema, th
         ex.shutdownNow()
         ex.awaitTermination(2, TimeUnit.SECONDS)
       } finally {
-        CloseWithLogging(tasks)
+        CloseWithLogging(Seq(tasks) ++ Option(scan).collect { case c: Closeable => c })
       }
     }
   }
@@ -108,6 +105,7 @@ class IcebergParquetScan(scan: TableScan, schema: SimpleFeatureIcebergSchema, th
       .project(projection)
       .split(task.start(), task.length())
       .caseSensitive(caseSensitive)
+      .filter(task.residual())
       // TODO implement ParquetValueReader directly instead of using records
       .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(projection, fileSchema))
       .build[Record]()
@@ -120,37 +118,11 @@ class IcebergParquetScan(scan: TableScan, schema: SimpleFeatureIcebergSchema, th
           if (file.deletes().isEmpty) {
             WithClose(readFile(file)) { read =>
               WithClose(read.iterator()) { iter =>
-                val residual = file.residual()
-                val filtered = if (residual == null || residual == Expressions.alwaysTrue()) { iter.asScala } else {
-                  val wrapper = new InternalRecordWrapper(projection.asStruct())
-                  val filter = new Evaluator(projection.asStruct(), residual, caseSensitive)
-                  iter.asScala.filter(r => filter.eval(wrapper.wrap(r)))
-                }
-                filtered.foreach(r => sharedQueue.put(featureFactory(r)))
+                iter.asScala.foreach(sharedQueue.put)
               }
             }
-  //    Map<Integer, ?> partition =
-  //        PartitionUtil.constantsMap(task, IdentityPartitionConverters::convertConstant);
-  //
-  //    ReadBuilder<Record, ?> builder =
-  //        FormatModelRegistry.readBuilder(task.file().format(), Record.class, input);
-  //    if (reuseContainers) {
-  //      builder = builder.reuseContainers();
-  //    }
-  //
-  //    return builder
-  //        .project(fileProjection)
-  //        .idToConstant(partition)
-  //        .split(task.start(), task.length())
-  //        .caseSensitive(caseSensitive)
-  //        .filter(task.residual())
-  //        .build();
-            // if (residual != null && residual != Expressions.alwaysTrue()) {
-  //      InternalRecordWrapper wrapper = new InternalRecordWrapper(recordSchema.asStruct());
-  //      Evaluator filter = new Evaluator(recordSchema.asStruct(), residual, caseSensitive);
-  //      return CloseableIterable.filter(records, record -> filter.eval(wrapper.wrap(record)));
-  //    }
           } else {
+            // TODO implement deletes
             ???
           }
         }

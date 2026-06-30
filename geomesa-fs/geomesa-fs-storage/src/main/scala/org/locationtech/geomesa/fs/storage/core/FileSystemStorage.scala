@@ -22,7 +22,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
-import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, IcebergParquetScan, SimpleFeatureIcebergSchema}
+import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, IcebergParquetScan, RecordSimpleFeature, SimpleFeatureIcebergSchema}
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.core.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter}
@@ -126,13 +126,16 @@ case class FileSystemStorage(
     logger.debug(s"  Sort: ${sort.fold("none") { fields => fields.map { case (f, rev) => s"$f ${if (rev) "descending" else ""}"}.mkString(", ")}}")
     logger.debug(s"  Max features: ${max.getOrElse("none")}")
 
+    // TODO investigate - this doesn't seem to be pruning row groups effectively
     val tableScan =
       table.newScan()
-        .caseSensitive(false)
         .select(readSchema.schema.columns().asScala.map(_.name()).asJava) // exclude z2 cols even if there's no transform
         .filter(icebergFilter.expression)
 
-    val scan = new IcebergParquetScan(tableScan, readSchema, threads)
+    val scan = {
+      val ff = RecordSimpleFeature(readSchema)
+      new IcebergParquetScan(tableScan, threads).map(ff.apply)
+    }
     try {
       val iter = scan.filter(visFilter.apply)
       // apply any client side filter
