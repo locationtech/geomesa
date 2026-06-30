@@ -17,10 +17,10 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.PathFiltering
 import org.locationtech.geomesa.fs.storage.converter.schemes.PartitionScheme
+import org.locationtech.geomesa.fs.storage.converter.utils.FileSystemThreadedReader
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemUpdateWriter, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
-import org.locationtech.geomesa.fs.storage.core.utils.FileSystemThreadedReader
 import org.locationtech.geomesa.fs.storage.core.{CacheDurationProperty, FileSystemContext, FileSystemStorage, Partition}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
