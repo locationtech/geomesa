@@ -79,13 +79,6 @@ Once the schema has been created, the file size can be configured through the st
 :ref:`fsds_manage_metadata_command` for setting metadata keys, and see :ref:`fsds_size_threshold_prop` for controlling the file
 size error margin.
 
-Configuring Visibility Persistence
-----------------------------------
-
-GeoMesa will by default persist feature visibility flags as a column in the FSDS files. If feature visibilities are not being
-used, this may be disabled by settings ``geomesa.fs.visibilities`` to ``false``, either in the feature type user data
-or in the ``fs.config.properties`` or ``fs.config.file`` data store parameters.
-
 Configuring Custom Observer Callbacks
 -------------------------------------
 

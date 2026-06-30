@@ -25,5 +25,3 @@ directory structures.
     metadata
     modify_features
     converter_fsds
-    example
-    spark_example

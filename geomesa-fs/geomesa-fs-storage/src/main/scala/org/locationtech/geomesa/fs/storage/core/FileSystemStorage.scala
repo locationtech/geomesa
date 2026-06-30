@@ -335,6 +335,7 @@ case class FileSystemStorage(
      * @param partition partition to compact
      */
     def compact(partition: Partition): Unit = {
+      throw new UnsupportedOperationException("Not implemented")
       // TODO
 //      table.newRewrite().
 //      val files = metadata.getFiles(partition)

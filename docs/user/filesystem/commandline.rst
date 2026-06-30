@@ -18,6 +18,11 @@ Once installed, the tools should be available through the command ``geomesa-fs``
 Commands that are common to multiple back ends are described in :doc:`/user/cli/index`. The commands
 here are FileSystem-specific.
 
+.. note::
+
+    You may need to add additional dependencies to the GeoMesa classpath, depending on the Iceberg catalog implementation being
+    used.
+
 General Arguments
 -----------------
 
@@ -61,12 +66,12 @@ Argument                 Description
 ======================== =========================================================
 ``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
-``-q, --cql``            CQL predicate to determine the partitions to operate on
+``--date``               A date literal used to determine the partitions to operate on
 ``--partitions``         Partitions to operate on
 ``--no-header``          Suppress the column headers in the output
 ======================== =========================================================
 
-At least one of ``--cql`` or ``--partitions`` must be specified, to select the partitions being operated on.
+At least one of ``--date`` or ``--partitions`` must be specified, to select the partitions being operated on.
 
 The results will be output in tab-delimited text, containing the partition name and the associated filter.
 
@@ -138,8 +143,6 @@ sub-commands:
 * ``register`` - create a new metadata entry for an existing data file
 * ``unregister`` - remove a metadata entry for an existing data file
 * ``configure`` - set or unset metadata configuration values
-* ``migrate`` - migrate metadata from one type to another
-* ``check-consistency`` - check consistency between the metadata and data files
 
 To invoke the command, use the command name followed by the sub-command, then any arguments. For example::
 
@@ -187,63 +190,3 @@ Argument                 Description
 ======================== =====================================================================================================
 ``--set *``              The configuration to set, in the form ``key=value``. To remove a key, use an empty value
 ======================== =====================================================================================================
-
-``migrate``
-~~~~~~~~~~~~~~
-
-The ``migrate`` sub-command will move the metadata storage from one type (``file`` or ``jdbc``) to another.
-
-============================== ==============================================================================================
-Argument                       Description
-============================== ==============================================================================================
-``--new-metadata-type *``      Metadata type to migrate to
-``--new-metadata-config``      Metadata configuration properties for the type to migrate to, in the form k=v
-``--new-metadata-config-file`` Name of a metadata configuration file for the type to migrate to, in Java properties format
-============================== ==============================================================================================
-
-``check-consistency``
-~~~~~~~~~~~~~~~~~~~~~
-
-The ``check-consistency`` sub-command will check the metadata against the data files. It will
-find data files that are not referenced in the metadata, and metadata entries that do not
-correspond to data files.
-
-======================== ==================================================================
-Argument                 Description
-======================== ==================================================================
-``--partition``          The name of partitions to check (omit to check all partitions)
-``--partition-file``     A file containing partitions to check, one per line (omit to check all partitions)
-``--threads, -t``        Number of threads to use when listing data files
-======================== ==================================================================
-
-register-iceberg-files
-^^^^^^^^^^^^^^^^^^^^^^
-
-This command will register GeoMesa files into an Apache Iceberg table, allowing the data to be queried by any Iceberg-compatible
-query engine such as Apache Spark or Apache Trino.
-
-========================= ====================================================================================================
-Argument                  Description
-========================= ====================================================================================================
-``-p, --path *``          The filesystem root path used to store data
-``-f, --feature-name *``  The name of the schema containing the files to register
-``--partition``           The partitions to register
-``--partition-file``      A file containing partitions to register, one per line
-``--iceberg-config``      Configuration properties for connecting to Iceberg, in the form ``key=value``
-``--iceberg-config-file`` Name of a configuration file for connecting to Iceberg, in Java properties format
-``--iceberg-namespace *`` Iceberg namespace to use for tables
-``--allow-duplicates``    Do not check the table for existing files - if the partition has not been registered before,
-                          checking for duplicates is unnecessary work. However, care should be taken with this option, as
-                          duplicate files will cause duplicate results when querying
-========================= ====================================================================================================
-
-Note: at least one of ``--partition`` or ``--partition-file`` must be specified. At least one of ``--iceberg-config`` or
-``--iceberg-config-file`` must be specified.
-
-See the `Apache Iceberg documentation <https://iceberg.apache.org/docs/latest/configuration/#catalog-properties>`__ for details
-on configuration properties.
-
-.. note::
-
-    You may need to add additional dependencies to the GeoMesa classpath, depending on the Iceberg catalog implementation being
-    used.

@@ -9,7 +9,7 @@ With the latest versions of GeoTools and GeoServer, Java 17 is now the minimum r
 Accumulo Version Support
 ------------------------
 
-GeoMesa no longer supports Accumulo 2.0. Users should upgrade to Accumulo 2.1.4.
+GeoMesa no longer supports Accumulo 2.0. Users should upgrade to the latest Accumulo 2.1.x.
 
 NiFi Version Support
 --------------------
@@ -25,10 +25,8 @@ As Kafka 4+ no longer supports Zookeeper, GeoMesa has deprecated support for usi
 FileSystem Data Store Compatibility
 -----------------------------------
 
-The file system data store has been substantially rewritten to improve performance. As part of this, the Orc file format is no
-longer supported, and the Parquet file format is only supported if created with GeoMesa version ``5.3.0`` or later. For supported
-formats, layers must be migrated by re-creating the schema using the latest GeoMesa version, and then re-registering the existing
-data files using the ``manage-metadata register`` CLI command.
+The file system data store has been substantially rewritten to improve performance. As part of this, any previous data
+is no longer compatible, and schemas will have to be re-created and re-populated.
 
 Default Secondary Attribute Index Changes
 -----------------------------------------
@@ -93,6 +91,8 @@ The following modules have been removed:
 * ``geomesa-fs-storage-common``
 * ``geomesa-fs-storage-orc``
 * ``geomesa-fs-storage-orc-io``
+* ``geomesa-fs-storage-parquet``
+* ``geomesa-fs-storage-parquet-io``
 * ``geomesa-gt-spark-runtime`` (see above)
 * ``geomesa-hbase-spark-runtime-hbase2`` (see above)
 * ``geomesa-metrics-core``
@@ -146,13 +146,6 @@ Relocated Classes
 
 * ``org.locationtech.geomesa.features.exporters.FileSystemExporter.ParquetFileSystemExporter`` ->
   ``org.locationtech.geomesa.features.exporters.GeoParquetExporter``
-* ``org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader`` ->
-  ``org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader``
-* ``org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter`` ->
-  ``org.locationtech.geomesa.fs.storage.parquet.io``
-* ``org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader`` ->
-  ``org.locationtech.geomesa.fs.storage.parquet.io.ParquetFileSystemReader``
-* ``org.locationtech.geomesa.fs.storage.parquet.SimpleFeatureParquetWriter`` -> ``org.locationtech.geomesa.fs.storage.parquet.io``
 * ``org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation`` -> ``org.locationtech.geomesa.index.planning.StrategyDecider.CostEvaluation``
 * ``org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``
 * ``org.locationtech.geomesa.utils.index.BucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``
@@ -239,3 +232,8 @@ Removed Methods
 * ``org.locationtech.geomesa.utils.geotools.FeatureUtils#copyToWriter``
 * ``org.locationtech.geomesa.utils.io.CompressionUtils#compress(InputStream)``
 * ``org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle#write(CreateMode,Boolean)``
+
+File System Storage
+^^^^^^^^^^^^^^^^^^^
+
+Most of the classes under ``org.locationtech.geomesa.fs.storage`` have been modified, moved or removed.

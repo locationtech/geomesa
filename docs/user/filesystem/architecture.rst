@@ -35,9 +35,7 @@ Metadata
 --------
 
 The FSDS stores metadata about partitions and data files, to avoid having to repeatedly interrogate the filesystem.
-For ease of use, metadata information can be stored as a change log in the file system, which does not require any additional
-infrastructure. For improved performance, metadata can instead be stored in a relational database. For more information,
-see :ref:`fsds_metadata`.
+GeoMesa uses `Apache Iceberg <https://iceberg.apache.org/>`__ for storing metadata. For more information, see :ref:`fsds_metadata`.
 
 Storage Formats
 ---------------

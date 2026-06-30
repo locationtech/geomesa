@@ -3,7 +3,7 @@ Converter Mode
 
 The normal use-case for the FileSystem data store is to ingest data into it in the same way as any other database. However,
 the data store also supports reading arbitrary data files that may come from some other process, using :ref:`converters`, as
-long as they meet a few criteria. To use this mode, specify ``fs.encoding`` as ``converter`` when creating a data store.
+long as they meet a few criteria. To use this mode, specify ``fs.catalog.type`` as ``converter`` when creating a data store.
 
 Note that converter mode is read-only.
 
@@ -73,17 +73,14 @@ required for the ``dtg`` path filter, configured through the key ``geomesa.fs.pa
 
 Custom path filters can be loaded via SPI.
 
-Hierarchical Temporal Partitioning
-----------------------------------
+Partition Schemes
+-----------------
 
-The standard temporal partition schemes supported by the FileSystem data store are somewhat opaque, as they correspond
-to a number of days (or weeks/years/etc) since the Unix epoch (1970/01/01). The converter mode supports an additional
-temporal scheme that uses standard date formatting, which may be easier to use with external processes. Note that where
-the names overlap, the hierarchical schemes will take precedence over the standard partition schemes (when using the converter
-store).
+The converter store supports a more flexible set of partition schemes than the standard file system store, in order to match
+typical directory layouts.
 
-Custom Scheme
-^^^^^^^^^^^^^
+Custom Date Scheme
+^^^^^^^^^^^^^^^^^^
 
 **Name:** ``datetime``
 
@@ -153,3 +150,40 @@ Receipt Time
 
 The receipt time scheme partitions data based on when a message is received. Generally this is useful
 only for reading existing data that may have been aggregated and stored by an external process.
+
+Spatial Schemes
+^^^^^^^^^^^^^^^
+
+Spatial schemes lay out data based on a space-filling curve. The following names are supported:
+
+* ``z2`` - A curve suitable for point-type geometries
+* ``xz2`` - A curve suitable for geometries with extents (e.g. non-points such as line strings or polygons)
+
+The following options is required:
+
+* ``bits`` - The number of bits to use for the curve, which defines the area of each partition. For example, 2 bits would
+  create ``2 ^ 2`` (4) regions, while 3 bits would create ``2 ^ 3`` (8) regions.
+
+The following options are supported:
+
+* ``attribute`` - The name of a ``Geometry``\ -type attribute from the SimpleFeatureType to use. If not specified, the
+  default geometry is used.
+
+Attribute Scheme
+^^^^^^^^^^^^^^^^
+
+The attribute scheme partitions data based on a lexicoded attribute value. The name must be:
+
+* ``attribute``
+
+The following option is required:
+
+* ``attribute`` - The name of the attribute used to partition
+
+The following options are supported:
+
+* ``default`` - A default value to use if the attribute is null
+* ``allow`` - An allowed value. ``allow`` may be specified more than once, in order to allow multiple values. If an attribute
+  is not in the allowed values, the the ``default`` value will be used instead
+
+The attribute scheme supports the following attribute types: ``String``, ``Integer``, ``Long``, ``Float`` and ``Double``.

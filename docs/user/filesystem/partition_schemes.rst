@@ -18,7 +18,6 @@ Temporal schemes partition data based on time. The following names are supported
 
 * ``year`` (or ``years`` / ``yearly``)
 * ``month`` (or ``months`` / ``monthly``)
-* ``week`` (or ``weeks`` / ``weekly``)
 * ``day`` (or ``days`` / ``daily``)
 * ``hour`` (or ``hours`` / ``hourly``)
 
@@ -26,7 +25,6 @@ The following options are supported:
 
 * ``attribute`` - The name of a ``Date``\ -type attribute from the SimpleFeatureType to use. If not specified, the default
   date attribute is used.
-* ``step`` - The number of time units (hours, days, etc) to include in each partition. If not specified, the default is ``1``.
 
 Spatial Schemes
 ---------------
@@ -38,8 +36,8 @@ Spatial schemes lay out data based on a space-filling curve. The following names
 
 The following options is required:
 
-* ``bits`` - The number of bits to use for the curve, which defines the area of each partition. For example, 2 bits would
-  create ``2 ^ 2`` (4) regions, while 3 bits would create ``2 ^ 3`` (8) regions.
+* ``bits`` - The number of bits to use for the curve, which defines the area of each partition. The number of bits must
+  be a multiple of 4. For example, 4 bits would create ``4 ^ 2`` (16) regions.
 
 The following options are supported:
 
@@ -57,13 +55,7 @@ The following option is required:
 
 * ``attribute`` - The name of the attribute used to partition
 
-The following options are supported:
-
-* ``default`` - A default value to use if the attribute is null
-* ``allow`` - An allowed value. ``allow`` may be specified more than once, in order to allow multiple values. If an attribute
-  is not in the allowed values, the the ``default`` value will be used instead
-
-The following additional options are supported to bucket the partition values, depending on the type of attribute being used:
+The following options are supported to bucket the partition values, depending on the type of attribute being used:
 
 * ``width`` - For string type attributes, the value will be truncated to ``width`` max length
 * ``divisor`` - For integral type attributes (e.g. ints and longs), the value will be rounded down so that it is divisible by

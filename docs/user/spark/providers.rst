@@ -102,8 +102,6 @@ from an s3 bucket:
     val query = new Query("gdelt")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 
-See :ref:`fsds_sparksql_example` for an example of using SparkSQL with the FileSystem data store.
-
 .. _converter_rdd_provider:
 
 Converter RDD Provider
