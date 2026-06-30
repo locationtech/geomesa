@@ -21,6 +21,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.core.schema.BoundingBoxField
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
@@ -37,7 +38,7 @@ class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
       throw new IllegalArgumentException("Could not extract SimpleFeatureType from read context")
     }
     // ensure that our read schema matches the geomesa parquet version
-    new ReadContext(schema.schema, schema.metadata)
+    new ReadContext(schema.messageType, schema.metadata)
   }
 
   // noinspection ScalaDeprecation
@@ -108,21 +109,23 @@ object SimpleFeatureReadSupport {
     private val converters = {
       val builder = Array.newBuilder[ValueMaterializer[_ <: AnyRef]]
       builder += idConverter
-      if (schema.hasVisibilities) {
-        builder += visConverter
-      }
+      builder += visConverter
       var i = 0
+      var offset = 2 // 0 is fid, 1 is vis
       while (i < schema.sft.getAttributeCount) {
-        val descriptor = schema.sft.getDescriptor(i)
-        val materializer = attribute(ObjectType.selectType(descriptor))
+        val types = ObjectType.selectType(schema.sft.getDescriptor(i))
+        val materializer = attribute(types)
         builder += materializer
         attributes(i) = materializer
         // note: zValues are excluded from our read schema, they're only used for partitioning
         // note: bboxes have to be present for filtering, but we don't do anything with them on read
-        if (schema.bboxes.get(descriptor.getLocalName).isDefined) {
+        if (types.head == ObjectType.GEOMETRY && offset + 1 < schema.messageType.getFieldCount &&
+            schema.messageType.getFields.get(offset + 1).getName.startsWith(BoundingBoxField.BoundingBoxFieldPrefix)) {
           builder += new BoundingBoxConverter()
+          offset += 1
         }
         i += 1
+        offset += 1
       }
       builder.result()
     }

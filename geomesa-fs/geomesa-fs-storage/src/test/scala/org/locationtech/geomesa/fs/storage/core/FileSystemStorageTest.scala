@@ -563,11 +563,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
   def testQuery(storage: FileSystemStorage, sft: SimpleFeatureType)
       (filter: String, transforms: Array[String], results: Seq[SimpleFeature]): MatchResult[Any] = {
     val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms: _*)
-    val features = {
-      val iter = CloseableIterator(storage.getReader(query, 1))
-      // note: need to copy features in iterator as same object is re-used
-      iter.map(ScalaSimpleFeature.copy).toList
-    }
+    val features = CloseableIterator(storage.getReader(query, 1)).toList
     val attributes = Option(transforms).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>

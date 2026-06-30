@@ -131,7 +131,7 @@ object ParquetPartitionInputFormat {
       val sft = StorageConfiguration.getSft(hadoopConf)
 
       fs = ObjectStore(fsc)
-      val pathReader = new ParquetFileSystemReader(fs, fsc, sft, None, FilterCompat.NOOP, None, _ => true, None)
+      val pathReader = new ParquetFileSystemReader(fs, fsc, sft, FilterCompat.NOOP, None, _ => true, None)
       reader = FileSystemThreadedReader(pathReader, files.map(URI.create), math.min(8, files.size))
     }
 

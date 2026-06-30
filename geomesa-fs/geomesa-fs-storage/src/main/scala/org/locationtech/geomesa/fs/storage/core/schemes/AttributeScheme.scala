@@ -14,7 +14,7 @@ import org.apache.iceberg.{PartitionSpec, StructLike}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
+import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.AttributeScheme.Bucketing
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 
@@ -41,8 +41,8 @@ abstract class AttributeScheme[T: ClassTag](val attribute: String, index: Int, n
   }
 
   override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = bucketing match {
-    case None => b.identity(ColumnName(attribute))
-    case Some(bucket) => b.truncate(ColumnName(attribute), bucket.width)
+    case None => b.identity(ColumnName.encode(attribute))
+    case Some(bucket) => b.truncate(ColumnName.encode(attribute), bucket.width)
     case _ => throw new UnsupportedOperationException("An implementation is missing")
   }
 
@@ -180,7 +180,7 @@ object AttributeScheme extends PartitionSchemeFactory {
       ff.equals(ff.property(attribute), ff.literal(partition.value))
 
     override def getCoveringExpression(partition: PartitionKey): Expression =
-      Expressions.equal[String](ColumnName(attribute), partition.value)
+      Expressions.equal[String](ColumnName.encode(attribute), partition.value)
   }
 
   /**
@@ -201,7 +201,7 @@ object AttributeScheme extends PartitionSchemeFactory {
     }
 
     override def getCoveringExpression(partition: PartitionKey): Expression =
-      Expressions.equal[String](Expressions.truncate[String](ColumnName(attribute), maxWidth.width), partition.value)
+      Expressions.equal[String](Expressions.truncate[String](ColumnName.encode(attribute), maxWidth.width), partition.value)
   }
 
   /**
@@ -235,8 +235,8 @@ object AttributeScheme extends PartitionSchemeFactory {
     }
 
     override def getCoveringExpression(partition: PartitionKey): Expression = divisor match {
-      case None => Expressions.equal[T](ColumnName(attribute), decoder(partition.value))
-      case Some(d) => Expressions.equal[T](Expressions.truncate[T](ColumnName(attribute), integral.toInt(d.divisor)), decoder(partition.value))
+      case None => Expressions.equal[T](ColumnName.encode(attribute), decoder(partition.value))
+      case Some(d) => Expressions.equal[T](Expressions.truncate[T](ColumnName.encode(attribute), integral.toInt(d.divisor)), decoder(partition.value))
     }
   }
 
@@ -294,8 +294,8 @@ object AttributeScheme extends PartitionSchemeFactory {
     }
 
     override def getCoveringExpression(partition: PartitionKey): Expression = scale match {
-      case None => Expressions.equal[T](ColumnName(attribute), decoder(partition.value))
-      case Some(s) => Expressions.equal[T](Expressions.truncate[T](ColumnName(attribute), s.scale), decoder(partition.value))
+      case None => Expressions.equal[T](ColumnName.encode(attribute), decoder(partition.value))
+      case Some(s) => Expressions.equal[T](Expressions.truncate[T](ColumnName.encode(attribute), s.scale), decoder(partition.value))
     }
   }
 

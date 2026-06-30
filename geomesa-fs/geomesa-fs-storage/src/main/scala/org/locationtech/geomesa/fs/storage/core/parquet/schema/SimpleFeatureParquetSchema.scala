@@ -10,8 +10,6 @@
 package org.locationtech.geomesa.fs.storage.core.parquet.schema
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.iceberg.Schema
-import org.apache.iceberg.types.Types._
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.hadoop.api.InitContext
 import org.apache.parquet.hadoop.metadata.FileMetaData
@@ -20,15 +18,12 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema.{LogicalTypeAnnotation, MessageType, Type, Types}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.BoundingBoxes.BoundingBoxField
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema.{FeatureIdField, VisibilitiesField}
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.ZValues.ZValueField
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema.ParquetFields
+import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName, SimpleFeatureSchema, ZValueField}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
-import org.locationtech.geomesa.utils.geotools.Transform.{ExpressionTransform, PropertyTransform, RenameTransform, Transforms}
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
+import org.locationtech.jts.geom.Geometry
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -37,93 +32,29 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * @param sft simple feature type
  * @param geometries geometry type encoding
- * @param hasVisibilities whether the schema encodes visibilities, or not
- * @param bboxes fields with bounding boxes
- * @param zValues fields with z-value columns
  * @param metadata file metadata
- * @param schema parquet message schema
+ * @param messageType parquet schema
+ * @param fields parquet message schema
  */
-case class SimpleFeatureParquetSchema(
-    sft: SimpleFeatureType,
-    geometries: GeometryEncoding,
-    hasVisibilities: Boolean,
-    bboxes: BoundingBoxes,
-    zValues: ZValues,
-    metadata: java.util.Map[String, String],
-    schema: MessageType) {
-
-  import scala.collection.JavaConverters._
-
-  val iceberg: Schema = SimpleFeatureParquetSchema.icebergSchema(this)
-
-  /**
-   * Gets the schema needed for reading a file
-   *
-   * @param transform query transform definition
-   * @param filtered columns that have filters against them
-   * @return
-   */
-  def read(transform: Option[String], filtered: Set[String]): SimpleFeatureParquetSchema = {
-    val readCols = {
-      val projection = transform match {
-        case None => sft.getAttributeDescriptors.asScala.map(_.getLocalName)
-        case Some(defs) =>
-          Transforms(sft, defs).flatMap {
-            case t: PropertyTransform => Seq(sft.getDescriptor(t.i).getLocalName)
-            case t: RenameTransform => Seq(sft.getDescriptor(t.i).getLocalName)
-            case t: ExpressionTransform => FilterHelper.propertyNames(t.expression, sft)
-            case t => throw new UnsupportedOperationException(s"An implementation is missing: ${t.getClass}")
-          }
-      }
-      (projection.map(ColumnName.apply) ++ filtered).distinct
-    }
-    // note: columns from iceberg scans are returned in the original order
-    val readSft = if (transform.isEmpty) { sft } else {
-      val builder = new SimpleFeatureTypeBuilder()
-      sft.getAttributeDescriptors.asScala.foreach { descriptor =>
-        if (readCols.contains(ColumnName(descriptor.getLocalName))) {
-          builder.add(descriptor)
-        }
-      }
-      builder.setName(sft.getName)
-      val readSft = builder.buildFeatureType()
-      readSft.getUserData.putAll(sft.getUserData)
-      readSft
-    }
-    val readBboxes = BoundingBoxes(bboxes.fields.filter(b => filtered.contains(b.bbox)))
-    val readSchema = {
-      val fieldNames = (Seq(FeatureIdField) ++ Option(VisibilitiesField).filter(_ => hasVisibilities) ++ readCols).toSet
-      val fields = schema.getFields.asScala.filter(f => fieldNames.contains(f.getName))
-      new MessageType(schema.getName, fields.asJava)
-    }
-    // note: we don't read z cols, they're just used for partitioning
-    SimpleFeatureParquetSchema(readSft, geometries, hasVisibilities, readBboxes, ZValues(Seq.empty), metadata, readSchema)
+class SimpleFeatureParquetSchema private (
+    val sft: SimpleFeatureType,
+    val geometries: GeometryEncoding,
+    val metadata: java.util.Map[String, String],
+    val messageType: MessageType,
+    fields: ParquetFields) {
+  def read(): SimpleFeatureParquetSchema = {
+    val fieldFilter =
+      fields.fields.map(_.getName)
+        .filterNot(n => n.endsWith(ZValueField.Z2ValueFieldSuffix) || n.endsWith(ZValueField.XZ2ValueFieldSuffix))
+    new SimpleFeatureParquetSchema(sft, geometries, metadata, fields.toMessageType(sft.getTypeName, fieldFilter.toSet), fields)
   }
-
-  /**
-    * Gets the name of the parquet field for the given simple feature type attribute
-    *
-    * @param i index of the sft attribute
-    * @return
-    */
-  def field(i: Int): String = schema.getFields.get(i).getName
 }
 
 object SimpleFeatureParquetSchema extends LazyLogging {
 
+  import SimpleFeatureSchema._
+
   import scala.collection.JavaConverters._
-
-  val FeatureIdField    = "__fid__"
-  val VisibilitiesField = "__vis__"
-
-  val SftNameKey            = "geomesa.fs.sft.name"
-  val SftSpecKey            = "geomesa.fs.sft.spec"
-  val SftReadSpecKey        = "geomesa.fs.sft.read.spec"
-  val GeometryEncodingKey   = "geomesa.parquet.geometries"
-  val BBoxEncodingKey       = "geomesa.parquet.bounding-boxes"
-  val ZValueColumKey        = "geomesa.parquet.z-value-column"
-  val VisibilityEncodingKey = "geomesa.fs.visibilities"
-  val PartitionKey          = "geomesa.fs.partition"
 
   /**
    * Encodes the feature type in the conf
@@ -138,15 +69,6 @@ object SimpleFeatureParquetSchema extends LazyLogging {
   }
 
   /**
-   * Encodes the feature type in the conf
-   *
-   * @param conf conf
-   * @param sft feature type
-   */
-  def setReadSft(conf: ParquetConfiguration, sft: SimpleFeatureType): Unit =
-    conf.set(SftReadSpecKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
-
-  /**
     * Extract the simple feature type from a parquet read context. The read context
     * contains both file metadata and the provided read conf
     *
@@ -157,7 +79,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     // copy in the file level metadata
     val kvMeta = context.getKeyValueMetadata.asScala.collect { case (k, v) if !v.isEmpty => k -> v.iterator.next }
     // noinspection ScalaDeprecation
-    val gmMeta = Seq(SftNameKey, SftSpecKey, SftReadSpecKey, GeometryEncodingKey).flatMap { key =>
+    val gmMeta = Seq(SftNameKey, SftSpecKey, GeometryEncodingKey).flatMap { key =>
       val value =
         try { context.getParquetConfiguration.get(key) } catch {
           // noinspection ScalaDeprecation - use the older method for spark compatibility
@@ -166,7 +88,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       Option(value).map(key -> _)
     }
     // note: context meta goes second so that transforms override the file-level keys
-    read(context.getFileSchema, kvMeta.toMap ++ gmMeta.toMap)
+    apply(new PlainParquetConfiguration((kvMeta.toMap ++ gmMeta.toMap).asJava)).map(_.read())
   }
 
   /**
@@ -176,7 +98,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     * @return
     */
   def read(footer: FileMetaData): Option[SimpleFeatureParquetSchema] =
-    read(footer.getSchema, footer.getKeyValueMetaData.asScala.toMap)
+    apply(new PlainParquetConfiguration(footer.getKeyValueMetaData)).map(_.read())
 
   /**
    * Get a schema for writing. Encoding can be configured through `geomesa.parquet.geometries` and `geomesa.fs.visibilities`
@@ -184,25 +106,20 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * @param conf write configuration, including the sft spec
    * @return
    */
-  def write(conf: ParquetConfiguration): Option[SimpleFeatureParquetSchema] = {
+  def apply(conf: ParquetConfiguration): Option[SimpleFeatureParquetSchema] = {
     for {
       name <- Option(conf.get(SftNameKey))
       spec <- Option(conf.get(SftSpecKey))
     } yield {
       val sft = SimpleFeatureTypes.createImmutableType(name, spec)
       val geometries = Option(conf.get(GeometryEncodingKey)).map(GeometryEncoding.apply).getOrElse(GeometryEncoding.GeoParquetWkb)
-      val bboxes =
-        if (Option(conf.get(BBoxEncodingKey)).forall(_.toBoolean)) { BoundingBoxes(sft) } else { BoundingBoxes(Seq.empty) }
-      val zCols = if (Option(conf.get(ZValueColumKey)).forall(_.toBoolean)) { ZValues(sft) } else { ZValues(Seq.empty) }
-      val visibilities =
-        Option(sft.getUserData.get(VisibilityEncodingKey)).orElse(Option(conf.get(VisibilityEncodingKey))).forall(_.toString.toBoolean)
       val metadata = Map(
         SftNameKey -> name,
         SftSpecKey -> spec,
         GeometryEncodingKey -> geometries.toString,
       ) ++ Option(conf.get(PartitionKey)).map(PartitionKey -> _)
-      val messageType = schema(sft, geometries, bboxes, zCols, visibilities).toMessageType(sft)
-      SimpleFeatureParquetSchema(sft, geometries, visibilities, bboxes, zCols, metadata.asJava, messageType)
+      val parquet = schema(sft, geometries)
+      new SimpleFeatureParquetSchema(sft, geometries, metadata.asJava, parquet.toMessageType(sft.getTypeName), parquet)
     }
   }
 
@@ -216,54 +133,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
   def apply(sft: SimpleFeatureType, conf: Map[String, String]): SimpleFeatureParquetSchema = {
     val config = new PlainParquetConfiguration(conf.asJava)
     setSft(config, sft)
-    write(config).get
-  }
-
-  /**
-   * Get the schema for a file being read
-   *
-   * @param fileSchema message type
-   * @param metadata file metadata
-   * @return
-   */
-  private def read(fileSchema: MessageType, metadata: Map[String, String]): Option[SimpleFeatureParquetSchema] = {
-    for {
-      name <- metadata.get(SftNameKey)
-      spec <- metadata.get(SftSpecKey)
-    } yield {
-      val sft = SimpleFeatureTypes.createImmutableType(name, spec)
-      val readSft = metadata.get(SftReadSpecKey).map(SimpleFeatureTypes.createImmutableType(name, _))
-      val geometries = metadata.get(GeometryEncodingKey).map(GeometryEncoding.apply).getOrElse {
-        throw new UnsupportedOperationException("GeoMesaV0/GeoMesaV1 encoding is no longer supported")
-      }
-      val bboxes = BoundingBoxes(fileSchema.getFields.asScala.map(_.getName).flatMap(BoundingBoxField.fromFieldName).toSeq)
-      val zCols = ZValues(fileSchema.getFields.asScala.map(_.getName).flatMap(ZValueField.fromFieldName).toSeq)
-      val visibilities = fileSchema.containsField(VisibilitiesField)
-      val schema = readSchema(fileSchema, sft, readSft, geometries, bboxes, zCols, visibilities)
-      SimpleFeatureParquetSchema(readSft.getOrElse(sft), geometries, visibilities, bboxes, zCols, metadata.asJava, schema)
-    }
-  }
-
-  /**
-   * Gets the projected schema used to read a (possibly transformed) sft
-   *
-   * @param fileSchema schema of the file being read
-   * @param sft feature type corresponding to the file being read
-   * @param readSft transformed feature type being read (may the same as the main sft)
-   * @param geometries geometry type encoding
-   * @param bboxes fields with bounding boxes
-   * @param visibilities whether the schema encodes visibilities, or not
-   * @return
-   */
-  private def readSchema(
-      fileSchema: MessageType,
-      sft: SimpleFeatureType,
-      readSft: Option[SimpleFeatureType],
-      geometries: GeometryEncoding,
-      bboxes: BoundingBoxes,
-      zValues: ZValues,
-      visibilities: Boolean): MessageType = {
-    schema(sft, geometries, bboxes, zValues, visibilities).toMessageType(readSft.getOrElse(sft), excludeZValues = true)
+    apply(config).get
   }
 
   /**
@@ -272,80 +142,44 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    *
    * @param sft simple feature type
    * @param geometries geometry type encoding
-   * @param bboxes include bounding boxes for each row
-   * @param visibilities include visibilities
    * @return
    */
-  private def schema(
-      sft: SimpleFeatureType,
-      geometries: GeometryEncoding,
-      bboxes: BoundingBoxes,
-      zValues: ZValues,
-      visibilities: Boolean): SchemaFields = {
+  private def schema(sft: SimpleFeatureType, geometries: GeometryEncoding): ParquetFields = {
     // note: for iceberg compatibility, field ids need to start at one and increment (without gaps) across all top-level fields.
     // All nested fields (structs, lists) get ids *after* all the top-level fields, once again incrementing without gaps
     val fieldIds = new AtomicInteger(1)
-    val id =
+    val nestedFieldIds = {
+      val extraGeomCount = 2 * sft.getAttributeDescriptors.asScala.count {
+        case d if classOf[Geometry].isAssignableFrom(d.getType.getBinding) => true
+        case _ => false
+      }
+      new AtomicInteger(3 + sft.getAttributeCount + extraGeomCount)
+    }
+
+    val builder = Seq.newBuilder[Type]
+    builder +=
       Types.required(PrimitiveTypeName.BINARY)
         .id(fieldIds.getAndIncrement())
         .as(LogicalTypeAnnotation.stringType())
         .named(FeatureIdField)
-    val vis = if (!visibilities) { None } else {
-      val f =
-        Types.optional(PrimitiveTypeName.BINARY)
-          .id(fieldIds.getAndIncrement())
-          .as(LogicalTypeAnnotation.stringType())
-          .named(VisibilitiesField)
-      Some(f)
-    }
-    val attributes = {
-      val builder = Map.newBuilder[String, Seq[Type]]
-      val nestedFieldIds = new AtomicInteger(fieldIds.get() + sft.getAttributeCount + bboxes.fields.size + zValues.fields.size)
-      sft.getAttributeDescriptors.asScala.foreach { d =>
-        val name = ColumnName(d.getLocalName)
-        val types =
-          Seq(buildType(name, ObjectType.selectType(d), geometries, fieldIds, nestedFieldIds)) ++
-            bboxes.get(d.getLocalName).map(bbox => BoundingBoxField.schema(bbox, fieldIds, nestedFieldIds)) ++
-            zValues.get(d.getLocalName).map(zValue => ZValueField.schema(zValue, fieldIds))
-         builder += name -> types
-      }
-      builder.result()
-    }
-    SchemaFields(id, vis, attributes)
-  }
+    builder +=
+      Types.optional(PrimitiveTypeName.BINARY)
+        .id(fieldIds.getAndIncrement())
+        .as(LogicalTypeAnnotation.stringType())
+        .named(VisibilitiesField)
 
-  private def icebergSchema(schema: SimpleFeatureParquetSchema): Schema = {
-    val fields = new java.util.ArrayList[NestedField](schema.sft.getAttributeCount + 3)
-    val aliases = new java.util.HashMap[String, Integer](schema.sft.getAttributeCount + 3)
-
-    // see note in `schema` (above) about field ids
-    val fieldIds = new AtomicInteger(1)
-
-    aliases.put(FeatureIdField, fieldIds.get())
-    fields.add(NestedField.required(fieldIds.getAndIncrement(), FeatureIdField, StringType.get()))
-
-    if (schema.hasVisibilities) {
-      aliases.put(VisibilitiesField, fieldIds.get())
-      fields.add(NestedField.optional(fieldIds.getAndIncrement(), VisibilitiesField, StringType.get()))
-    }
-
-    val nestedFieldIds =
-      new AtomicInteger(fieldIds.get() + schema.sft.getAttributeCount + schema.bboxes.fields.size + schema.zValues.fields.size)
-    schema.sft.getAttributeDescriptors.asScala.foreach { d =>
+    sft.getAttributeDescriptors.asScala.foreach { d =>
       val name = ColumnName(d.getLocalName)
-      aliases.put(name, fieldIds.get())
-      fields.add(buildIcebergType(name, ObjectType.selectType(d), schema.geometries, fieldIds, nestedFieldIds))
-      schema.bboxes.get(d.getLocalName).foreach { bbox =>
-        aliases.put(bbox, fieldIds.get())
-        fields.add(BoundingBoxField.icebergSchema(bbox, fieldIds, nestedFieldIds))
-      }
-      schema.zValues.get(d.getLocalName).foreach { zValue =>
-        aliases.put(zValue, fieldIds.get())
-        fields.add(ZValueField.icebergSchema(zValue, fieldIds))
+      val objectType = ObjectType.selectType(d)
+      builder += buildType(name.column, objectType, geometries, fieldIds, nestedFieldIds)
+      if (objectType.head == ObjectType.GEOMETRY) {
+        builder += BoundingBoxField.parquetSchema(name.column, fieldIds, nestedFieldIds)
+        builder += ZValueField.parquetSchema(name.column, objectType(1), fieldIds)
       }
     }
-    new Schema(fields, aliases, java.util.Set.of[Integer](1))
+    ParquetFields(builder.result())
   }
+
 
   /**
    * Builds the schema type for an attribute
@@ -407,70 +241,10 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     builder.named(name)
   }
 
-  /**
-   * Builds the schema type for an attribute
-   *
-   * @param name field name
-   * @param bindings object type
-   * @param geometries geometry type encodings
-   * @return
-   */
-  private def buildIcebergType(
-      name: String,
-      bindings: Seq[ObjectType],
-      geometries: GeometryEncoding,
-      fieldIds: AtomicInteger,
-      nestedFieldIds: AtomicInteger): NestedField = {
-    val builder = NestedField.optional(name).withId(fieldIds.getAndIncrement())
-    val typed: NestedField.Builder = bindings.head match {
-      case ObjectType.INT     => builder.ofType(IntegerType.get())
-      case ObjectType.DOUBLE  => builder.ofType(DoubleType.get())
-      case ObjectType.LONG    => builder.ofType(LongType.get())
-      case ObjectType.FLOAT   => builder.ofType(FloatType.get())
-      case ObjectType.BOOLEAN => builder.ofType(BooleanType.get())
-      case ObjectType.BYTES   => builder.ofType(BinaryType.get())
-      case ObjectType.STRING  => builder.ofType(StringType.get())
-      case ObjectType.DATE    => builder.ofType(TimestampType.withZone())
-      case ObjectType.UUID    => builder.ofType(UUIDType.get())
 
-      case ObjectType.LIST =>
-        val subType = buildIcebergType("", bindings.drop(1), geometries, nestedFieldIds, null /* should not be used*/)
-        builder.ofType(ListType.ofRequired(subType.fieldId(), subType.`type`()))
-
-      case ObjectType.MAP =>
-        val keyType = buildIcebergType("", bindings.slice(1, 2), geometries, nestedFieldIds, null /* should not be used*/)
-        val valueType = buildIcebergType("", bindings.slice(2, 3), geometries, nestedFieldIds, null /* should not be used*/)
-        builder.ofType(MapType.ofRequired(keyType.fieldId(), valueType.fieldId(), keyType.`type`(), valueType.`type`()))
-
-      case ObjectType.GEOMETRY =>
-        // not yet supported in spark or trino
-        // builder.ofType(GeometryType.crs84())
-        builder.ofType(BinaryType.get())
-
-      case binding =>
-        throw new UnsupportedOperationException(s"No mapping defined for type: $binding")
-    }
-    typed.build()
-  }
-
-  private case class SchemaFields(fid: Type, vis: Option[Type], attributes: Map[String, Seq[Type]]) {
-    def toMessageType(sft: SimpleFeatureType, excludeBBoxes: Boolean = false, excludeZValues: Boolean = false): MessageType = {
-      // note: id field goes at the front of the record, then vis, then attributes and bounding boxes
-      val fields = Seq(fid) ++ vis ++ {
-        val all = sft.getAttributeDescriptors.asScala.flatMap { d =>
-          attributes(ColumnName(d.getLocalName))
-        }
-        if (!excludeBBoxes && !excludeZValues) {
-          all
-        } else {
-          all.filterNot { f =>
-            (excludeBBoxes && BoundingBoxField.fromFieldName(f.getName).isDefined) ||
-              (excludeZValues && ZValueField.fromFieldName(f.getName).isDefined)
-          }
-        }
-      }
-      val name = ColumnName(sft.getTypeName)
-      new MessageType(name, fields.asJava)
-    }
+  private case class ParquetFields(fields: Seq[Type]) {
+    def toMessageType(typeName: String): MessageType = new MessageType(ColumnName.encode(typeName), fields.asJava)
+    def toMessageType(typeName: String, fieldFilter: Set[String]): MessageType =
+      new MessageType(ColumnName.encode(typeName), fields.filter(f => fieldFilter.contains(f.getName)).asJava)
   }
 }

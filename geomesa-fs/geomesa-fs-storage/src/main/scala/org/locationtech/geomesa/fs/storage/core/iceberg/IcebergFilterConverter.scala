@@ -14,8 +14,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.BoundingBoxes.BoundingBoxField
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
+import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName}
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
 
@@ -37,17 +36,17 @@ object IcebergFilterConverter {
     } else if (filter == Filter.EXCLUDE) {
       ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
     } else {
-      val names = FilterHelper.propertyNames(filter)
-      names.foldLeft(ReadFilter(Expressions.alwaysTrue(), Some(filter), names.toSet))(reduce(sft))
+      val names = FilterHelper.propertyNames(filter).map(ColumnName.apply)
+      names.foldLeft(ReadFilter(Expressions.alwaysTrue(), Some(filter), names.map(_.column).toSet))(reduce(sft))
     }
   }
 
-  private def reduce(sft: SimpleFeatureType)(result: ReadFilter, name: String): ReadFilter = {
+  private def reduce(sft: SimpleFeatureType)(result: ReadFilter, name: ColumnName): ReadFilter = {
     val filter = result.remainder.orNull
     if (filter == null) {
       return result // no more filter to evaluate
     }
-    val bindings = ObjectType.selectType(sft.getDescriptor(name))
+    val bindings = ObjectType.selectType(sft.getDescriptor(name.attribute))
     val predicate = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates
       case ObjectType.GEOMETRY => spatial(sft, name, filter)
@@ -63,9 +62,9 @@ object IcebergFilterConverter {
     ReadFilter(Expressions.and(predicate.expression, result.expression), predicate.remainder, predicate.columns ++ result.columns)
   }
 
-  private def spatial(sft: SimpleFeatureType, name: String, filter: Filter): ReadFilter = {
-    val (spatial, nonSpatial) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
-    val bounds = spatial.map(FilterHelper.extractGeometries(_, name))
+  private def spatial(sft: SimpleFeatureType, name: ColumnName, filter: Filter): ReadFilter = {
+    val (spatial, nonSpatial) = FilterExtractingVisitor(filter, name.attribute, sft, SpatialFilterStrategy.spatialCheck)
+    val bounds = spatial.map(FilterHelper.extractGeometries(_, name.attribute))
     val xyBounds = bounds.toSeq.flatMap { extracted =>
       Seq(extracted).filter(e => e.nonEmpty && !e.disjoint).flatMap { e =>
         e.values.map(GeometryUtils.bounds)
@@ -73,32 +72,24 @@ object IcebergFilterConverter {
     }
 
     // filter against the bbox field
-    val bboxGroup = BoundingBoxField(name).bbox
     val predicate = xyBounds.map { case (xmin, ymin, xmax, ymax) =>
-      val exps = Seq(
-        Expressions.lessThanOrEqual(s"$bboxGroup.${BoundingBoxField.XMin}", Float.box(xmax.toFloat)),
-        Expressions.greaterThanOrEqual(s"$bboxGroup.${BoundingBoxField.XMax}", Float.box(xmin.toFloat)),
-        Expressions.lessThanOrEqual(s"$bboxGroup.${BoundingBoxField.YMin}", Float.box(ymax.toFloat)),
-        Expressions.greaterThanOrEqual(s"$bboxGroup.${BoundingBoxField.YMax}", Float.box(ymin.toFloat))
-      )
-      exps.reduce(Expressions.and)
+      BoundingBoxField.filterIceberg(name.column, xmin, ymin, xmax, ymax)
     }
 
     val remaining = if (bounds.exists(_.precise)) { nonSpatial } else { Some(filter) }
-    val geomCol = if (bounds.exists(b => !b.precise)) { Some(ColumnName(name)) } else { None }
-    val bboxCol = if (predicate.nonEmpty) { Some(bboxGroup) } else { None }
+    val geomCol = if (bounds.exists(b => !b.precise)) { Some(name.column) } else { None }
+    val bboxCol = if (predicate.nonEmpty) { Some(BoundingBoxField.groupName(name.column)) } else { None }
     ReadFilter(predicate.reduce(Expressions.or), remaining, (geomCol ++ bboxCol).toSet)
   }
 
   private def attribute[T : ClassTag](
       sft: SimpleFeatureType,
-      name: String,
+      name: ColumnName,
       filter: Filter,
       transform: Option[T => Any] = None): ReadFilter = {
-    val (attribute, nonAttribute) = FilterExtractingVisitor(filter, name, sft)
+    val (attribute, nonAttribute) = FilterExtractingVisitor(filter, name.attribute, sft)
     val binding = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
-    val bounds = attribute.map(FilterHelper.extractAttributeBounds(_, name, binding))
-    val col = ColumnName(name)
+    val bounds = attribute.map(FilterHelper.extractAttributeBounds(_, name.attribute, binding))
     val predicate = bounds.flatMap { extracted =>
       Some(extracted).filter(e => e.nonEmpty && !e.disjoint && e.values.forall(_.isBounded)).map { e =>
         val values = transform match {
@@ -110,13 +101,13 @@ object IcebergFilterConverter {
         }
         val filters = values.map { bounds =>
           if (bounds.isEquals) {
-            Expressions.equal(col, bounds.lower.value.get)
+            Expressions.equal(name.column, bounds.lower.value.get)
           } else {
             val lower = bounds.lower.value.map { value =>
-              if (bounds.lower.inclusive) { Expressions.greaterThanOrEqual(col, value) } else { Expressions.greaterThan(col, value) }
+              if (bounds.lower.inclusive) { Expressions.greaterThanOrEqual(name.column, value) } else { Expressions.greaterThan(name.column, value) }
             }
             val upper = bounds.upper.value.map { value =>
-              if (bounds.upper.inclusive) { Expressions.lessThanOrEqual(col, value) } else { Expressions.lessThan(col, value) }
+              if (bounds.upper.inclusive) { Expressions.lessThanOrEqual(name.column, value) } else { Expressions.lessThan(name.column, value) }
             }
             (lower, upper) match {
               case (Some(lo), Some(hi)) => Expressions.and(lo, hi)
@@ -130,7 +121,7 @@ object IcebergFilterConverter {
       }
     }
     val remaining = if (bounds.exists(_.precise)) { nonAttribute } else { Some(filter) }
-    val cols = if (predicate.isDefined || bounds.exists(b => !b.precise)) { Set(col) } else { Set.empty[String] }
+    val cols = if (predicate.isDefined || bounds.exists(b => !b.precise)) { Set(name.column) } else { Set.empty[String] }
     ReadFilter(predicate.getOrElse(Expressions.alwaysTrue()), remaining, cols)
   }
 

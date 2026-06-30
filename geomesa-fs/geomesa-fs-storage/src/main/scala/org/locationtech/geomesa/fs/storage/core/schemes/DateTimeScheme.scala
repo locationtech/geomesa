@@ -14,7 +14,7 @@ import org.apache.iceberg.{PartitionSpec, StructLike}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
+import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme.{TemporalPartition, TemporalScheme}
 import org.locationtech.geomesa.utils.text.DateParsing
 
@@ -32,10 +32,10 @@ case class DateTimeScheme(attribute: String, index: Int, unit: ChronoUnit) exten
   private val encoder = DateTimeScheme.encoder(unit)
 
   override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = unit match {
-    case ChronoUnit.HOURS  => b.hour(ColumnName(attribute))
-    case ChronoUnit.DAYS   => b.day(ColumnName(attribute))
-    case ChronoUnit.MONTHS => b.month(ColumnName(attribute))
-    case ChronoUnit.YEARS  => b.year(ColumnName(attribute))
+    case ChronoUnit.HOURS  => b.hour(ColumnName.encode(attribute))
+    case ChronoUnit.DAYS   => b.day(ColumnName.encode(attribute))
+    case ChronoUnit.MONTHS => b.month(ColumnName.encode(attribute))
+    case ChronoUnit.YEARS  => b.year(ColumnName.encode(attribute))
     case _ => throw new UnsupportedOperationException("An implementation is missing")
   }
 
@@ -54,10 +54,10 @@ case class DateTimeScheme(attribute: String, index: Int, unit: ChronoUnit) exten
 
   override def getCoveringExpression(partition: PartitionKey): Expression = {
     val transform = unit match {
-      case ChronoUnit.HOURS  => Expressions.hour[Integer](ColumnName(attribute))
-      case ChronoUnit.DAYS   => Expressions.day[Integer](ColumnName(attribute))
-      case ChronoUnit.MONTHS => Expressions.month[Integer](ColumnName(attribute))
-      case ChronoUnit.YEARS  => Expressions.year[Integer](ColumnName(attribute))
+      case ChronoUnit.HOURS  => Expressions.hour[Integer](ColumnName.encode(attribute))
+      case ChronoUnit.DAYS   => Expressions.day[Integer](ColumnName.encode(attribute))
+      case ChronoUnit.MONTHS => Expressions.month[Integer](ColumnName.encode(attribute))
+      case ChronoUnit.YEARS  => Expressions.year[Integer](ColumnName.encode(attribute))
       case _ => throw new UnsupportedOperationException("An implementation is missing")
     }
     Expressions.equal[Integer](transform, encoder.decode(partition.value))

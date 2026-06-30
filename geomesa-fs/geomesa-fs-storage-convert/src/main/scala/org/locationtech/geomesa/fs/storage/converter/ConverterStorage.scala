@@ -19,7 +19,7 @@ import org.locationtech.geomesa.fs.storage.converter.pathfilter.PathFiltering
 import org.locationtech.geomesa.fs.storage.converter.schemes.PartitionScheme
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemUpdateWriter, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.utils.FileSystemThreadedReader
 import org.locationtech.geomesa.fs.storage.core.{CacheDurationProperty, FileSystemContext, FileSystemStorage, Partition}
 import org.locationtech.geomesa.index.planning.QueryRunner
@@ -36,7 +36,7 @@ import scala.util.control.NonFatal
 class ConverterStorage(
     context: FileSystemContext,
     table: Table,
-    schema: SimpleFeatureParquetSchema,
+    schema: SimpleFeatureIcebergSchema,
     layout: PartitionScheme,
     converter: SimpleFeatureConverter,
     pathFiltering: Option[PathFiltering],

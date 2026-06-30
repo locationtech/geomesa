@@ -15,8 +15,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.BoundingBoxes.BoundingBoxField
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
+import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName}
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
 
@@ -46,27 +45,23 @@ object ParquetFilterConverter {
 
     val (predicate, remaining): (Option[FilterPredicate], Option[Filter]) = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates
-      case ObjectType.GEOMETRY => spatial(sft, name, filter, col)
-      case ObjectType.DATE     => attribute(sft, name, filter, FilterApi.longColumn(col), toMicros)
-      case ObjectType.STRING   => attribute(sft, name, filter, FilterApi.binaryColumn(col), Binary.fromString)
-      case ObjectType.INT      => attribute(sft, name, filter, FilterApi.intColumn(col), identity[java.lang.Integer])
-      case ObjectType.LONG     => attribute(sft, name, filter, FilterApi.longColumn(col), identity[java.lang.Long])
-      case ObjectType.FLOAT    => attribute(sft, name, filter, FilterApi.floatColumn(col), identity[java.lang.Float])
-      case ObjectType.DOUBLE   => attribute(sft, name, filter, FilterApi.doubleColumn(col), identity[java.lang.Double])
-      case ObjectType.BOOLEAN  => boolean(sft, name, filter, FilterApi.booleanColumn(col))
+      case ObjectType.GEOMETRY => spatial(sft, col, filter)
+      case ObjectType.DATE     => attribute(sft, col.attribute, filter, FilterApi.longColumn(col.column), toMicros)
+      case ObjectType.STRING   => attribute(sft, col.attribute, filter, FilterApi.binaryColumn(col.column), Binary.fromString)
+      case ObjectType.INT      => attribute(sft, col.attribute, filter, FilterApi.intColumn(col.column), identity[java.lang.Integer])
+      case ObjectType.LONG     => attribute(sft, col.attribute, filter, FilterApi.longColumn(col.column), identity[java.lang.Long])
+      case ObjectType.FLOAT    => attribute(sft, col.attribute, filter, FilterApi.floatColumn(col.column), identity[java.lang.Float])
+      case ObjectType.DOUBLE   => attribute(sft, col.attribute, filter, FilterApi.doubleColumn(col.column), identity[java.lang.Double])
+      case ObjectType.BOOLEAN  => boolean(sft, col.attribute, filter, FilterApi.booleanColumn(col.column))
       case _ => (None, Some(filter))
     }
 
     ((predicate.toSeq ++ parquet).reduceLeftOption(FilterApi.and), remaining)
   }
 
-  private def spatial(
-      sft: SimpleFeatureType,
-      name: String,
-      filter: Filter,
-      col: String): (Option[FilterPredicate], Option[Filter]) = {
-    val (spatial, _) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
-    val xyBounds = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
+  private def spatial(sft: SimpleFeatureType, name: ColumnName, filter: Filter): (Option[FilterPredicate], Option[Filter]) = {
+    val (spatial, _) = FilterExtractingVisitor(filter, name.attribute, sft, SpatialFilterStrategy.spatialCheck)
+    val xyBounds = spatial.map(FilterHelper.extractGeometries(_, name.attribute)).flatMap { extracted =>
       Some(extracted).filter(e => e.nonEmpty && !e.disjoint).map { e =>
         e.values.map(GeometryUtils.bounds).reduce { (a, b) =>
           (math.min(a._1, b._1), math.min(a._2, b._2), math.max(a._3, b._3), math.max(a._4, b._4))
@@ -75,18 +70,7 @@ object ParquetFilterConverter {
     }
 
     val predicate = xyBounds.map { case (xmin, ymin, xmax, ymax) =>
-      // filter against the bbox field
-      val bboxGroup = BoundingBoxField(col, encoded = true).bbox
-      val xminCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.XMin}")
-      val yminCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.YMin}")
-      val xmaxCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.XMax}")
-      val ymaxCol = FilterApi.floatColumn(s"$bboxGroup.${BoundingBoxField.YMax}")
-      Seq[FilterPredicate](
-        FilterApi.ltEq(xminCol, Float.box(xmax.toFloat)),
-        FilterApi.gtEq(xmaxCol, Float.box(xmin.toFloat)),
-        FilterApi.ltEq(yminCol, Float.box(ymax.toFloat)),
-        FilterApi.gtEq(ymaxCol, Float.box(ymin.toFloat))
-      ).reduce(FilterApi.and)
+      BoundingBoxField.filterParquet(name.column, xmin, ymin, xmax, ymax)
     }
     // since we don't know what the actual file encoding is up front, we always have to evaluate the full predicate post-read
     (predicate, Some(filter))

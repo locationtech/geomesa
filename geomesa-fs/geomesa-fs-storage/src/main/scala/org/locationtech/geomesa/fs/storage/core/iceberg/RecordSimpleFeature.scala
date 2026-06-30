@@ -13,7 +13,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractMutableSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.iceberg.RecordSimpleFeature.RecordConverter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.{GeoParquetNative, GeoParquetWkb}
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.{ColumnName, SimpleFeatureParquetSchema}
+import org.locationtech.geomesa.fs.storage.core.schema.BoundingBoxField
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
@@ -29,59 +29,61 @@ import java.util.Date
  *
  * @param sft simple feature type
  * @param fields converters for the raw record fields
- * @param vis index of the visibility field in the record
  * @param record the underlying record
  */
-class RecordSimpleFeature(sft: SimpleFeatureType, fields: Array[RecordConverter], vis: Int, record: Record)
+class RecordSimpleFeature(sft: SimpleFeatureType, fields: Array[RecordConverter], record: Record)
     extends AbstractMutableSimpleFeature(sft) {
 
   this.id = record.get(0, classOf[String])
 
-  override def setAttributeNoConvert(index: Int, value: AnyRef): Unit = fields(index).apply(record, value)
+  private val values = Array.ofDim[AnyRef](fields.length)
 
-  override def getAttribute(index: Int): AnyRef = fields(index).apply(record)
+  override def setAttributeNoConvert(index: Int, value: AnyRef): Unit = values(index) = value
 
-  override def getUserData: java.util.Map[AnyRef, AnyRef] = {
-    if (vis == -1) { java.util.Map.of() } else {
-      val userData = new java.util.HashMap[AnyRef, AnyRef](1)
-      userData.put(SecurityUtils.FEATURE_VISIBILITY, record.get(vis, classOf[String]))
-      userData
+  override def getAttribute(index: Int): AnyRef = {
+    var cached = values(index)
+    if (cached == null) {
+      cached = fields(index).apply(record)
+      values(index) = cached
+    }
+    cached
+  }
+
+  override lazy val getUserData: java.util.Map[AnyRef, AnyRef] = {
+    val visibility = record.get(1, classOf[String])
+    if (visibility == null) {
+      java.util.Map.of()
+    } else {
+      java.util.Map.of(SecurityUtils.FEATURE_VISIBILITY, visibility)
     }
   }
 }
 
 object RecordSimpleFeature {
 
-  def apply(schema: SimpleFeatureParquetSchema): RecordFeatureFactory = {
+  def apply(schema: SimpleFeatureIcebergSchema): RecordFeatureFactory = {
     var i = 0
-    var vis = 1
     var offset = 2 // 0 is fid, 1 is vis
-    if (!schema.hasVisibilities) {
-      vis = -1
-      offset = 1
-    }
     val converters = Array.ofDim[RecordConverter](schema.sft.getAttributeCount)
     while (i < converters.length) {
       val descriptor = schema.sft.getDescriptor(i)
       val types = ObjectType.selectType(descriptor)
       val (from, to) = Converter(types, schema)
       converters(i) = new RecordConverter(offset, from, to)
-      if (types.head == ObjectType.GEOMETRY) {
-        val col = ColumnName(descriptor.getLocalName)
-        if (schema.bboxes.fields.exists(_.geometry == col)) {
-          offset += 1
-        }
+      if (types.head == ObjectType.GEOMETRY && offset + 1 < schema.schema.columns().size() &&
+          schema.schema.columns().get(offset + 1).name().startsWith(BoundingBoxField.BoundingBoxFieldPrefix)) {
+        offset += 1
       }
       offset += 1
       i += 1
     }
 
-    new RecordFeatureFactory(schema.sft, converters, vis)
+    new RecordFeatureFactory(schema.sft, converters)
   }
 
-  class RecordFeatureFactory(sft: SimpleFeatureType, converters: Array[RecordConverter], vis: Int)
+  class RecordFeatureFactory(sft: SimpleFeatureType, converters: Array[RecordConverter])
       extends (Record => SimpleFeature) {
-    override def apply(record: Record): SimpleFeature = new RecordSimpleFeature(sft, converters, vis, record)
+    override def apply(record: Record): SimpleFeature = new RecordSimpleFeature(sft, converters, record)
   }
 
   private class RecordConverter(i: Int, fromFeature: Converter, toFeature: Converter) {
@@ -101,7 +103,7 @@ object RecordSimpleFeature {
   private sealed trait Converter extends (AnyRef => AnyRef)
 
   private object Converter {
-    def apply(types: Seq[ObjectType], schema: SimpleFeatureParquetSchema): (Converter, Converter) = types.head match {
+    def apply(types: Seq[ObjectType], schema: SimpleFeatureIcebergSchema): (Converter, Converter) = types.head match {
       case ObjectType.GEOMETRY if schema.geometries == GeoParquetWkb => (FromWkbConverter, ToWkbConverter)
       case ObjectType.GEOMETRY if schema.geometries == GeoParquetNative => throw new UnsupportedOperationException()
       case ObjectType.GEOMETRY => throw new UnsupportedOperationException("An implementation is missing")
@@ -127,8 +129,10 @@ object RecordSimpleFeature {
   private object ToBytesConverter extends Converter {
     override def apply(value: AnyRef): AnyRef = {
       val buffer = value.asInstanceOf[ByteBuffer]
+      val pos = buffer.position()
       val buf = Array.ofDim[Byte](buffer.remaining())
       buffer.get(buf, 0, buf.length)
+      buffer.position(pos)
       buf
     }
   }
@@ -137,7 +141,7 @@ object RecordSimpleFeature {
   }
 
   private object ListConverter {
-    def apply(subtype: ObjectType, schema: SimpleFeatureParquetSchema): (Converter, Converter) = {
+    def apply(subtype: ObjectType, schema: SimpleFeatureIcebergSchema): (Converter, Converter) = {
       val (from, to) = Converter(Seq(subtype), schema)
       (new ListConverter(from), new ListConverter(to))
     }
@@ -153,7 +157,7 @@ object RecordSimpleFeature {
   }
 
   private object MapConverter {
-    def apply(keyType: ObjectType, valueType: ObjectType, schema: SimpleFeatureParquetSchema): (Converter, Converter) = {
+    def apply(keyType: ObjectType, valueType: ObjectType, schema: SimpleFeatureIcebergSchema): (Converter, Converter) = {
       val (keyFrom, keyTo) = Converter(Seq(keyType), schema)
       val (valueFrom, valueTo) = Converter(Seq(valueType), schema)
       (new MapConverter(keyFrom, valueFrom), new MapConverter(keyTo, valueTo))
@@ -172,8 +176,10 @@ object RecordSimpleFeature {
   private object ToWkbConverter extends Converter {
     override def apply(value: AnyRef): AnyRef = {
       val buffer = value.asInstanceOf[ByteBuffer]
+      val pos = buffer.position()
       val buf = Array.ofDim[Byte](buffer.remaining())
       buffer.get(buf, 0, buf.length)
+      buffer.position(pos)
       WKBUtils.read(buf)
     }
   }

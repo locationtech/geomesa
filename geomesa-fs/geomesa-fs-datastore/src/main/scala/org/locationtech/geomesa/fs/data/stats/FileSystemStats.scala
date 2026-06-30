@@ -14,7 +14,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
+import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.stats.impl.MinMax
@@ -48,7 +48,7 @@ class FileSystemStats(ds: FileSystemDataStore) extends UnoptimizedRunnableStats(
       val storage = ds.storage(sft.getTypeName)
       val sf = new ScalaSimpleFeature(sft, "")
       val i = sft.indexOf(attribute)
-      val field = storage.schema.iceberg.findField(ColumnName(attribute))
+      val field = storage.schema.schema.findField(ColumnName.encode(attribute))
       val fieldId = field.fieldId()
       val fieldType = field.`type`()
       ds.storage(sft.getTypeName).metadata.files().withMetadata().filter(filter).scan().foreach { f =>

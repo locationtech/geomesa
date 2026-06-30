@@ -12,14 +12,13 @@ import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, Table
 import org.apache.iceberg.{CatalogUtil, PartitionSpec}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Metadata, StorageCatalog, namespaced}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.Closeable
-import java.util.Locale
 
 class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
 
@@ -27,7 +26,7 @@ class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
 
   import scala.collection.JavaConverters._
 
-  private val namespace = Namespace.of(context.conf.required("iceberg.namespace"))
+  private val namespace = Namespace.of(ColumnName.encode(context.conf.required("iceberg.namespace")))
   private val catalog = IcebergCatalog.createCatalog(context)
 
   override def getTypeNames: Seq[String] = {
@@ -51,12 +50,12 @@ class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
         context.namespace)
     // TODO get this from the table itself to allow for scheme migration
     val schemes = table.properties().get("geomesa.partition.spec").split(",").map(PartitionSchemeFactory.load(sft, _))
-    val schema = SimpleFeatureParquetSchema(sft, context.conf)
+    val schema = SimpleFeatureIcebergSchema(sft, context.conf)
     FileSystemStorage(context, table, schemes, schema)
   }
 
   override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long] = None): FileSystemStorage = {
-    val schema = SimpleFeatureParquetSchema(namespaced(sft, context.namespace), context.conf)
+    val schema = SimpleFeatureIcebergSchema(namespaced(sft, context.namespace), context.conf)
     if (schema.geometries != GeoParquetWkb) {
       // TODO supports native geometry encoding
       throw new UnsupportedOperationException(s"Only WKB geometry encoding is supported: ${schema.geometries}")
@@ -71,17 +70,15 @@ class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
       // TableProperties.FORMAT_VERSION -> "3"
     ) ++ targetFileSize.map(s => s"${Metadata.PropertyPrefix}${Metadata.TargetFileSize}" -> s.toString).toMap
 
-    val spec = schemes.foldLeft(PartitionSpec.builderFor(schema.iceberg))((b, m) => m.spec(b)).build()
+    val spec = schemes.foldLeft(PartitionSpec.builderFor(schema.schema))((b, m) => m.spec(b)).build()
     catalog.ensureNamespace(namespace)
-    val table = catalog.createTable(tableId(sft.getTypeName), schema.iceberg, spec, null, tableProps.asJava)
+    val table = catalog.createTable(tableId(sft.getTypeName), schema.schema, spec, null, tableProps.asJava)
     FileSystemStorage(context, table, schemes, schema)
   }
 
   override def close(): Unit = catalog.close()
 
-  // TODO valid identifiers vary based on the catalog... this is for glue and not comprehensive
-  private def tableId(typeName: String): TableIdentifier =
-    TableIdentifier.of(namespace, typeName.toLowerCase(Locale.US).replaceAll("[^a-z0-9]+", "_"))
+  private def tableId(typeName: String): TableIdentifier = TableIdentifier.of(namespace, ColumnName.encode(typeName))
 }
 
 object IcebergCatalog {

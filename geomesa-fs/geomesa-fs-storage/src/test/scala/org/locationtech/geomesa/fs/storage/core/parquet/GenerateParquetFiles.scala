@@ -14,7 +14,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 
@@ -67,7 +67,7 @@ object GenerateParquetFiles extends StrictLogging {
     }
 
     Seq(GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb).foreach { encoding =>
-      val conf = Map(SimpleFeatureParquetSchema.GeometryEncodingKey -> encoding.toString)
+      val conf = Map(SimpleFeatureSchema.GeometryEncodingKey -> encoding.toString)
       val file =
         s"${sys.props("java.io.tmpdir")}/${encoding.toString.replace("GeoParquet", "geoparquet-").toLowerCase(Locale.US)}-test.parquet"
       WithClose(new ParquetFileSystemWriter(sft, conf, LocalObjectStore, URI.create(file))) { writer =>

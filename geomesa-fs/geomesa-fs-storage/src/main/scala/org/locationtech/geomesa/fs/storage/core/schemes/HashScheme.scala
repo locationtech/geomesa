@@ -15,7 +15,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.function.{BucketHashFunction, MurmurHashFunction}
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
+import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme.EnumeratedScheme
 
 /**
@@ -51,9 +51,9 @@ case class HashScheme[T](attribute: String, index: Int, buckets: Int, hasher: Mu
   }
 
   override def getCoveringExpression(partition: PartitionKey): Expression =
-    Expressions.equal(Expressions.bucket[Integer](ColumnName(attribute), buckets), Integer.valueOf(partition.value))
+    Expressions.equal(Expressions.bucket[Integer](ColumnName.encode(attribute), buckets), Integer.valueOf(partition.value))
 
-  override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.bucket(ColumnName(attribute), buckets)
+  override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.bucket(ColumnName.encode(attribute), buckets)
 
   override def getPartition(partition: StructLike, i: Int): PartitionKey =
     PartitionKey(name, format.format(partition.get(i, classOf[Integer])))

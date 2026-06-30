@@ -29,6 +29,7 @@ import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInferenc
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeoParquetMetadata.{ColumnMetadata, GeoParquetColumnEncoding, GeoParquetColumnType}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetNative
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.{GeoParquetMetadata, SimpleFeatureParquetSchema}
+import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.PathUtils
@@ -73,13 +74,9 @@ class ParquetConverterFactory
               // note: parquet converter stores the generic record under index 0
               BasicField(descriptor.getLocalName, Some(Expression(s"avroPath($$0, '/$name')")))
             }
-            val id = Expression(s"avroPath($$0, '/${SimpleFeatureParquetSchema.FeatureIdField}')")
+            val id = Expression(s"avroPath($$0, '/${SimpleFeatureSchema.FeatureIdField}')")
             val userData =
-              if (parquet.hasVisibilities) {
-                Map("geomesa.feature.visibility" -> Expression(s"avroPath($$0, '/${SimpleFeatureParquetSchema.VisibilitiesField}')"))
-              } else {
-                Map.empty[String, Expression]
-              }
+              Map("geomesa.feature.visibility" -> Expression(s"avroPath($$0, '/${SimpleFeatureSchema.VisibilitiesField}')"))
 
             // validate the existing schema, if any
             sft.foreach { schema =>

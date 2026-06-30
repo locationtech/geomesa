@@ -16,7 +16,7 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.function.XZ2Function
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.ZValues.ZValueField
+import org.locationtech.geomesa.fs.storage.core.schema.{ColumnName, ZValueField}
 import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.jts.geom.Geometry
 
@@ -63,10 +63,10 @@ case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends SpatialSc
   }
 
   override def getCoveringExpression(partition: PartitionKey): Expression =
-    Expressions.equal[String](Expressions.truncate[String](ZValueField.xz2(attribute).zValue, digits), partition.value)
+    Expressions.equal[String](Expressions.truncate[String](ZValueField.xz2FieldName(ColumnName(attribute).column), digits), partition.value)
 
   override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
-    b.truncate(ZValueField.xz2(attribute).zValue, digits)
+    b.truncate(ZValueField.xz2FieldName(ColumnName(attribute).column), digits)
 
   override def getPartition(partition: StructLike, i: Int): PartitionKey = PartitionKey(name, partition.get(i, classOf[String]))
 }

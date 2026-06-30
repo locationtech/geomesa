@@ -19,14 +19,14 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
+import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
-import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, IcebergParquetScan, RecordSimpleFeature}
+import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, IcebergParquetScan, SimpleFeatureIcebergSchema}
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.core.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter}
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme
 import org.locationtech.geomesa.fs.storage.core.utils.FileScan.FluentScan
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeEstimator
@@ -58,7 +58,7 @@ case class FileSystemStorage(
     context: FileSystemContext,
     table: Table,
     schemes: Seq[PartitionScheme],
-    schema: SimpleFeatureParquetSchema,
+    schema: SimpleFeatureIcebergSchema,
   ) extends Closeable with StrictLogging {
 
   import org.locationtech.geomesa.fs.storage.core.FileSystemStorage._
@@ -117,44 +117,40 @@ case class FileSystemStorage(
     val max = configured.getHints.getMaxFeatures
     // note: readSchema keeps the columns in the original order, not the transform order
     val readSchema = schema.read(transform.map(_._1), icebergFilter.columns)
-    val sfFactory = RecordSimpleFeature(readSchema)
 
     logger.debug(s"Running query '${query.getTypeName}' ${ECQL.toCQL(filter)}")
     logger.debug(s"  Original filter: ${ECQL.toCQL(query.getFilter)}")
     logger.debug(s"  Push-down filter: $icebergFilter")
-    logger.debug(s"  Client-side filter: ${icebergFilter.remainder.fold("non")(ECQL.toCQL)}")
+    logger.debug(s"  Client-side filter: ${icebergFilter.remainder.fold("none")(ECQL.toCQL)}")
     logger.debug(s"  Transforms: ${transform.fold("none") { case (t, _) => if (t.isEmpty) { "empty" } else { t }}}")
     logger.debug(s"  Sort: ${sort.fold("none") { fields => fields.map { case (f, rev) => s"$f ${if (rev) "descending" else ""}"}.mkString(", ")}}")
     logger.debug(s"  Max features: ${max.getOrElse("none")}")
 
     val tableScan =
       table.newScan()
+        .caseSensitive(false)
+        .select(readSchema.schema.columns().asScala.map(_.name()).asJava) // exclude z2 cols even if there's no transform
         .filter(icebergFilter.expression)
-        .select(readSchema.iceberg.columns().asScala.map(_.name()).asJava) // exclude z2 cols even if there's no transform
 
-    val scan = new IcebergParquetScan(tableScan, threads)
+    val scan = new IcebergParquetScan(tableScan, readSchema, threads)
     try {
-      val iter = scan.map(sfFactory.apply).filter(visFilter.apply)
+      val iter = scan.filter(visFilter.apply)
       // apply any client side filter
       val filtered =
         icebergFilter.remainder.map(FastFilterFactory.optimize(readSchema.sft, _)).fold(iter)(f => iter.filter(f.evaluate))
       // transform again as necessary to remove any cols needed for filtering, and/or to evaluate complex expressions
       val transformed = transform.fold(filtered) { case (tdefs, tsft) =>
-        val transforms = Transforms(readSchema.sft, tdefs)
+        val transforms = Transforms(readSchema.sft, tdefs).toArray
         if (tsft == readSchema.sft && transforms.forall(_.isInstanceOf[PropertyTransform])) {
           // simple case where transform is handled by the iceberg scan
           filtered
         } else {
           // need to re-order cols, remove filtering-only cols, evaluate transform expressions, etc
-          val transformFeature = TransformSimpleFeature(tsft, transforms)
-          filtered.map { sf =>
-            transformFeature.setFeature(sf)
-            transformFeature
-          }
+          filtered.map(sf => new TransformSimpleFeature(tsft, transforms).setFeature(sf))
         }
       }
-      // sort and limit - need to copy the features when sorting as the underlying buffers are re-used
-      val sorted = sort.fold(transformed)(s => new SortingSimpleFeatureIterator(transformed.map(ScalaSimpleFeature.copy), s))
+      // sort and limit
+      val sorted = sort.fold(transformed)(new SortingSimpleFeatureIterator(transformed, _))
       val limited = max.fold(sorted)(m => sorted.take(m))
       limited
     } catch {
@@ -198,7 +194,7 @@ case class FileSystemStorage(
    */
   private def createWriter(file: URI, partition: Partition, observer: FileSystemObserver): FileSystemWriter = {
     val compression = Option(System.getProperty(ParquetCompressionOpt)).map(ParquetCompressionOpt -> _).toMap
-    val conf = compression ++ context.conf ++ Map(SimpleFeatureParquetSchema.PartitionKey -> partition.toString)
+    val conf = compression ++ context.conf ++ Map(SimpleFeatureSchema.PartitionKey -> partition.toString)
     val observers =
       if (FileValidationEnabled.toBoolean.get) {
         CompositeObserver(Seq(observer, FileValidationObserver(file)))
@@ -258,8 +254,7 @@ case class FileSystemStorage(
      *
      * @return
      */
-    def partitions(): Seq[Partition] =
-      WithClose(table.newScan().planFiles())(_.asScala.map(f => partition(f.file())).toSeq.distinct)
+    def partitions(): Seq[Partition] = files().scan().map(partition).distinct
 
     /**
      * Gets all partitions in this storage instance
@@ -303,7 +298,7 @@ case class FileSystemStorage(
       WithClose(ObjectStore(context)) { fs =>
         files.foreach { file =>
           WithClose(ParquetFileReader.open(ParquetFileSystemReader.inputFile(fs, file))) { reader =>
-            val partition = reader.getFileMetaData.getKeyValueMetaData.get(SimpleFeatureParquetSchema.PartitionKey)
+            val partition = reader.getFileMetaData.getKeyValueMetaData.get(SimpleFeatureSchema.PartitionKey)
             if (partition == null) {
               throw new RuntimeException(s"Could not load partition key from Parquet footer for file: $file")
             }

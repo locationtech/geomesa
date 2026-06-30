@@ -14,6 +14,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeoParquetMetadata.ColumnMetadata
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.jts.geom.{Envelope, Geometry, GeometryCollection}
@@ -185,11 +186,23 @@ object GeoParquetMetadata {
     import scala.collection.JavaConverters._
 
     private val columns =
-      schema.sft.getAttributeDescriptors.asScala.collect { case d: GeometryDescriptor => createColumnMetadata(d) }
-    private val boundsWithIndex = columns.map { c =>
-      val ColumnName(original) = c.name
-      c.bounds -> schema.sft.indexOf(original)
-    }
+      schema.sft.getAttributeDescriptors.asScala.toSeq.collect { case d: GeometryDescriptor =>
+        val col = ColumnName(d.getLocalName)
+        val binding = d.getType.getBinding
+        val encoding = {
+          // for non-wkb encoding schemes, we still use WKB for mixed-type geometries
+          if (schema.geometries == GeometryEncoding.GeoParquetWkb ||
+            binding == classOf[Geometry] || binding == classOf[GeometryCollection]) {
+            GeoParquetColumnEncoding.WKB
+          } else {
+            GeoParquetColumnEncoding.withName(binding.getSimpleName.toLowerCase(Locale.US))
+          }
+        }
+        // TODO add z for 3d points
+        val types = if (binding == classOf[Geometry]) { Seq.empty } else { Seq(GeoParquetColumnType.withName(binding.getSimpleName)) }
+        val covering = Some(BoundingBoxField.groupName(col.column)).filter(schema.messageType.containsField)
+        schema.sft.indexOf(col.attribute) -> ColumnMetadata(col.column, encoding, types, covering)
+      }
 
     /**
      * Gets the file metadata for geoparquet
@@ -198,46 +211,23 @@ object GeoParquetMetadata {
      */
     def metadata(): java.util.Map[String, String] = {
       if (columns.isEmpty) { Collections.emptyMap() } else {
+        val cols = columns.map(_._2)
         val primary = {
           // there's a chance that the primary geom wasn't encoded in the file, but other geoms were
-          val expected = ColumnName(schema.sft.getGeometryDescriptor.getLocalName)
-          columns.find(_.name == expected).getOrElse(columns.head).name
+          val expected = ColumnName(schema.sft.getGeometryDescriptor.getLocalName).column
+          if (cols.exists(_.name == expected)) { expected } else { cols.head.name }
         }
-        Collections.singletonMap(GeoParquetMetadataKey, GeoParquetMetadata(primary, columns.toSeq).toJson())
+        Collections.singletonMap(GeoParquetMetadataKey, GeoParquetMetadata(primary, cols).toJson())
       }
     }
 
     override def apply(feature: SimpleFeature): Unit = {
-      boundsWithIndex.foreach { case (bounds, i) =>
+      columns.foreach { case (i, meta) =>
         val geom = feature.getAttribute(i).asInstanceOf[Geometry]
         if (geom != null) {
-          bounds.expandToInclude(geom.getEnvelopeInternal)
+          meta.bounds.expandToInclude(geom.getEnvelopeInternal)
         }
       }
-    }
-
-    /**
-     * Create metadata placeholder for geometry columns
-     *
-     * @param descriptor geometry descriptor
-     * @return
-     */
-    private def createColumnMetadata(descriptor: GeometryDescriptor): ColumnMetadata = {
-      val name = ColumnName(descriptor.getLocalName)
-      val binding = descriptor.getType.getBinding
-      val encoding = {
-        // for non-wkb encoding schemes, we still use WKB for mixed-type geometries
-        if (schema.geometries == GeometryEncoding.GeoParquetWkb ||
-            binding == classOf[Geometry] || binding == classOf[GeometryCollection]) {
-          GeoParquetColumnEncoding.WKB
-        } else {
-          GeoParquetColumnEncoding.withName(binding.getSimpleName.toLowerCase(Locale.US))
-        }
-      }
-      // TODO add z for 3d points
-      val types = if (binding == classOf[Geometry]) { Seq.empty } else { Seq(GeoParquetColumnType.withName(binding.getSimpleName)) }
-      val covering = schema.bboxes.get(name)
-      ColumnMetadata(name, encoding, types, covering)
     }
 
     override def flush(): Unit = {}

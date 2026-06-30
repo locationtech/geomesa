@@ -21,8 +21,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.BoundingBoxes.BoundingBoxField
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.ColumnName
+import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName}
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
@@ -58,24 +57,22 @@ class FileSystemFeatureStore(
 
   override def buildFeatureType(): SimpleFeatureType = sft
 
-
   override def getBoundsInternal(query: Query): ReferencedEnvelope = {
     val envelope = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    storage.schema.bboxes.get(ColumnName(sft.getGeometryDescriptor.getLocalName)).foreach { bboxFieldName =>
-      val bboxField = storage.schema.iceberg.findField(bboxFieldName).`type`().asStructType()
-      val (minFieldIds, maxFieldIds) =
-        Seq(BoundingBoxField.XMin, BoundingBoxField.YMin, BoundingBoxField.XMax, BoundingBoxField.YMax)
-          .map(f => bboxField.field(f).fieldId())
-          .splitAt(2)
-      storage.metadata.files().withMetadata().filter(query.getFilter).scan().foreach { f =>
-        val minBuffers = minFieldIds.map(f.lowerBounds().get)
-        val maxBuffers = maxFieldIds.map(f.upperBounds().get)
-        if (!minBuffers.contains(null) && !maxBuffers.contains(null)) {
-          val Seq(xmin, ymin) = minBuffers.map(Conversions.fromByteBuffer[Float](Types.FloatType.get(), _))
-          val Seq(xmax, ymax) = maxBuffers.map(Conversions.fromByteBuffer[Float](Types.FloatType.get(), _))
-          envelope.expandToInclude(xmin, ymin)
-          envelope.expandToInclude(xmax, ymax)
-        }
+    val bboxFieldName = BoundingBoxField.groupName(ColumnName.encode(sft.getGeometryDescriptor.getLocalName))
+    val bboxField = storage.schema.schema.findField(bboxFieldName).`type`().asStructType()
+    val (minFieldIds, maxFieldIds) =
+      Seq(BoundingBoxField.XMin, BoundingBoxField.YMin, BoundingBoxField.XMax, BoundingBoxField.YMax)
+        .map(f => bboxField.field(f).fieldId())
+        .splitAt(2)
+    storage.metadata.files().withMetadata().filter(query.getFilter).scan().foreach { f =>
+      val minBuffers = minFieldIds.map(f.lowerBounds().get)
+      val maxBuffers = maxFieldIds.map(f.upperBounds().get)
+      if (!minBuffers.contains(null) && !maxBuffers.contains(null)) {
+        val Seq(xmin, ymin) = minBuffers.map(Conversions.fromByteBuffer[Float](Types.FloatType.get(), _))
+        val Seq(xmax, ymax) = maxBuffers.map(Conversions.fromByteBuffer[Float](Types.FloatType.get(), _))
+        envelope.expandToInclude(xmin, ymin)
+        envelope.expandToInclude(xmax, ymax)
       }
     }
     envelope

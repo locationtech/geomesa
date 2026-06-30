@@ -39,7 +39,7 @@ class AvroReadSupport extends ReadSupport[GenericRecord] {
 
   override def init(context: InitContext): ReadContext = {
     schema = SimpleFeatureParquetSchema.read(context)
-    val readSchema = schema.fold(context.getFileSchema)(_.schema)
+    val readSchema = schema.fold(context.getFileSchema)(_.messageType)
     val metadata = schema.fold(Collections.emptyMap[String, String]())(_.metadata)
     new ReadContext(readSchema, metadata)
   }

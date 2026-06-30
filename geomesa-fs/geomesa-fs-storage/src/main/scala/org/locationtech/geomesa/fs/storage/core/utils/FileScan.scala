@@ -67,7 +67,7 @@ object FileScan {
    * @return
    */
   def apply(table: Table, sft: SimpleFeatureType, schemes: Seq[PartitionScheme]): FluentScan =
-    new InitialScan(table.newScan(), sft, schemes)
+    new InitialScan(table.newScan().caseSensitive(false), sft, schemes)
 
   private class InitialScan(scan: TableScan, protected val sft: SimpleFeatureType, protected val schemes: Seq[PartitionScheme])
       extends FileScan(scan)

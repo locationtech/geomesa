@@ -16,6 +16,7 @@ import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.{PathFiltering, PathFilteringFactory}
 import org.locationtech.geomesa.fs.storage.converter.schemes.{NamedOptions, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
@@ -85,8 +86,8 @@ class ConverterCatalog(val context: FileSystemContext) extends StorageCatalog wi
       catalog.initialize("geomesa", java.util.Map.of())
       val ns = Namespace.of("geomesa")
       catalog.createNamespace(ns)
-      val schema = SimpleFeatureParquetSchema(sft, context.conf)
-      val table = catalog.createTable(TableIdentifier.of(ns, "converter"), schema.iceberg)
+      val schema = SimpleFeatureIcebergSchema(sft, context.conf)
+      val table = catalog.createTable(TableIdentifier.of(ns, "converter"), schema.schema)
       val newContext = FileSystemContext.create(converterPath, context.conf, context.namespace)
       new ConverterStorage(newContext, table, schema, schemes, converter, pathFiltering, leafStorage)
     } else {
