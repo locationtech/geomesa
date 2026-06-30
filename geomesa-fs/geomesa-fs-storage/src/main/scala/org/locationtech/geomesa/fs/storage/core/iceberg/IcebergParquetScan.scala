@@ -10,8 +10,9 @@ package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg._
-import org.apache.iceberg.data.Record
 import org.apache.iceberg.data.parquet.GenericParquetReaders
+import org.apache.iceberg.data.{InternalRecordWrapper, Record}
+import org.apache.iceberg.expressions.{Evaluator, Expressions}
 import org.apache.iceberg.io.CloseableIterable
 import org.apache.iceberg.parquet.Parquet
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -118,7 +119,13 @@ class IcebergParquetScan(scan: TableScan, threads: Int) extends CloseableIterato
           if (file.deletes().isEmpty) {
             WithClose(readFile(file)) { read =>
               WithClose(read.iterator()) { iter =>
-                iter.asScala.foreach(sharedQueue.put)
+                val residual = file.residual()
+                val filtered = if (residual == null || residual == Expressions.alwaysTrue()) { iter.asScala } else {
+                  val wrapper = new InternalRecordWrapper(projection.asStruct())
+                  val filter = new Evaluator(projection.asStruct(), residual, caseSensitive)
+                  iter.asScala.filter(r => filter.eval(wrapper.wrap(r)))
+                }
+                filtered.foreach(sharedQueue.put)
               }
             }
           } else {
