@@ -18,7 +18,6 @@
   <modules>
     <module>geomesa-trino-plugin</module>
     <module>geomesa-trino-datastore</module>
-    <module>geomesa-trino-benchmark</module>
   </modules>
 
   <repositories>

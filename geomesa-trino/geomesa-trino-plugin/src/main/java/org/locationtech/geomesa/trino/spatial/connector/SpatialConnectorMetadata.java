@@ -210,8 +210,12 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      * Builds the {@code SortedRangeSet} entries for a spatial-partition column over
      * the query envelope. Z2 emits contiguous closed ranges; XZ2 emits a hybrid of
      * wide ranges (level-0 partition-grid cells) and point-equality singletons
-     * (higher-level cells) — see {@code docs/lessons-learned.md} §10 for why the
-     * singleton must be {@code Range.equal} rather than a zero-width {@code Range.range}.
+     * (higher-level cells). The singleton must be {@code Range.equal} rather than a
+     * zero-width {@code Range.range}: when a zero-width range is AND-combined with
+     * all four bbox sub-field predicates, Iceberg's metadata evaluator over-prunes
+     * files whose per-column stats each pass individually, silently dropping
+     * matching rows (observed on Trino 476 + Iceberg 1.9.1; any 3-of-4 bbox
+     * combination is fine — only the full conjunction triggers it).
      */
     private static List<Range> buildPartitionRanges(SpatialPartitionHandle sp, Envelope env) {
         List<Range> ranges = new ArrayList<>();

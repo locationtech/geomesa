@@ -27,6 +27,7 @@ User Manual
    kafka/index
    redis/index
    filesystem/index
+   trino/index
    lambda/index
    ds_views
    upgrade/index

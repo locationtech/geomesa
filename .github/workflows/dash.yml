@@ -32,8 +32,6 @@ jobs:
         with:
           key: ${{ hashFiles('**/pom.xml') }}-dash
           path: ~/.m2/repository/
-      - name: Configure Maven toolchains (JDK 25 for geomesa-trino)
-        run: ./build/scripts/update-maven-toolchains.sh
       - name: Check for dependency changes
         id: dependency_changes
         run: |

@@ -20,10 +20,12 @@ import org.apache.iceberg.types.Type;
  * wired into any live path: the connector exposes {@code geom} as plain
  * VARBINARY and {@code SpatialConnectorMetadata} delegates {@code
  * getTableMetadata} / {@code getColumnMetadata} unchanged (the earlier
- * VARBINARY → Geometry overlay was removed — see {@code docs/design.md}
- * "Why no type overlay?"). Retained for future use, e.g. a writer-side
- * mapping or an Iceberg-side `GEOMETRY` TypeId migration; see
- * `docs/lessons-learned.md` §7 for the ruled-out approaches.
+ * VARBINARY → Geometry overlay was removed: it needed a wrapping page source
+ * materializing every row plus virtual WKB columns/UDFs to avoid that cost on
+ * filter paths, and benchmarked at parity with an explicit
+ * {@code ST_GeomFromBinary(geom)} wrap — so it cost ~500 LOC and a class of
+ * classloader-bridging failures for a cosmetic gain). Retained for future use,
+ * e.g. a writer-side mapping or an Iceberg-side `GEOMETRY` TypeId migration.
  */
 public class GeometryTypeConverter {
 

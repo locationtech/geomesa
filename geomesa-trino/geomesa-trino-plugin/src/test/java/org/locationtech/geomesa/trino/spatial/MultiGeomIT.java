@@ -17,11 +17,9 @@ import java.sql.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Multi-geometry-column IT. Requires:
- *   1. docker compose up
- *   2. ./build.sh + docker compose restart trino
- *   3. make ingest-multigeom-demo  → spatial.observations_2geom with center
- *      (Z2-partitioned) and ellipse (XZ2-partitioned) geometry columns.
+ * Multi-geometry-column IT. Requires a running Trino at localhost:8080 with the
+ * plugin loaded and the demo table spatial.observations_2geom ingested, with
+ * center (Z2-partitioned) and ellipse (XZ2-partitioned) geometry columns.
  *
  * Skipped by default; run with -DskipITs=false (matching Z2PruningIT).
  */

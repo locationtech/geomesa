@@ -50,8 +50,6 @@ jobs:
           EOF
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.version }}
-      - name: Configure Maven toolchains
-        run: ./build/scripts/update-maven-toolchains.sh
       - name: Build with Maven
         run: mvn clean deploy -Peclipse -DskipTests -Dmaven.deploy.at.end=false $MAVEN_CLI_OPTS
       - name: Remove geomesa artifacts

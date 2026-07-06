@@ -17,17 +17,15 @@ import java.sql.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Integration test: requires docker compose up and the spatial_iceberg catalog loaded.
- * Skipped by default; run with -DskipITs=false.
+ * Integration test: requires a running Trino at localhost:8080 with the plugin
+ * loaded and a spatial_iceberg catalog configured. Skipped by default; run with
+ * -DskipITs=false.
  *
- * Pre-conditions (run from geomesa-trino/):
- *   1. docker compose up
- *   2. ./build.sh + docker compose restart trino
- *   3. Ingest the required spatial.* tables:
- *      - make ingest-demo-data  → spatial.observations (Z2) and spatial.regions (XZ2),
- *                                 required by the regions* tests
- *      - make ingest-tdrive     → spatial.tdrive (Z2), required by every tdrive*
- *                                 / ST_Intersects / miscSpatialFunctionsWork test below
+ * Pre-conditions — the following demo tables must be ingested:
+ *   - spatial.observations (Z2) and spatial.regions (XZ2), required by the
+ *     regions* tests
+ *   - spatial.tdrive (Z2), required by every tdrive* / ST_Intersects /
+ *     miscSpatialFunctionsWork test below
  *
  *   The tests themselves do not ingest — running -DskipITs=false against a Trino
  *   instance that's missing tdrive or regions will surface "Table does not exist"

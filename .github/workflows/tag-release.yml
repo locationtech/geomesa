@@ -40,8 +40,6 @@ jobs:
           java-version: |
             ${{ env.TRINO_JAVA_VERSION }}
             ${{ env.JAVA_VERSION }}
-      - name: Configure Maven toolchains
-        run: ./build/scripts/update-maven-toolchains.sh
       - name: Run release plugin
         run: |
           # use the maven release plugin to prep the pom changes but use dryRun to skip commit and tag

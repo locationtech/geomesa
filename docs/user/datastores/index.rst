@@ -41,6 +41,7 @@ Specific back-end implementations are described in the following chapters:
  * :doc:`/user/kafka/index`
  * :doc:`/user/redis/index`
  * :doc:`/user/filesystem/index`
+ * :doc:`/user/trino/index`
  * :doc:`/user/postgis/index`
  * :doc:`/user/lambda/index`
 

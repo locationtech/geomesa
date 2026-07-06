@@ -76,9 +76,6 @@ jobs:
           path: ~/.m2/repository/
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
-      - name: Configure Maven toolchains (JDK for geomesa-trino)
-        if: matrix.projects.name == 'trino'
-        run: ./build/scripts/update-maven-toolchains.sh
       - name: Compile
         id: compile
         continue-on-error: true

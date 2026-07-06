@@ -31,8 +31,8 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Integration test: requires the local docker stack up and synthetic observations
- * ingested with the visibilities column (make up-trino && make ingest-demo-data).
+ * Integration test: requires a running Trino at localhost:8080 with the plugin
+ * loaded and the demo synthetic observations ingested with the visibilities column.
  *
  * VIS_CYCLE = [None, "U", "U&FOUO"] (a notional U//FOUO clearance
  * ladder) assigned by row index i % 3.  The assertions are expressed as strict

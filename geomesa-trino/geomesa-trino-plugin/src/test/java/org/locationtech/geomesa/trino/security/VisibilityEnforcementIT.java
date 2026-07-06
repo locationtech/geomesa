@@ -26,11 +26,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * direct JDBC/SQL consumers, WITHOUT going through the GeoTools datastore — by
  * the connector's {@link VisibilityAccessControl}.
  *
- * <p>Pre-conditions (run from geomesa-trino/): {@code make up-trino} (deploys the
- * plugin with the access control) and {@code make ingest-demo-data} (observations
- * carries the U//FOUO {@code visibilities} ladder). The demo auth mapping
- * (config/trino/geomesa-auth-mapping.properties) grants {@code alice=U,FOUO},
- * {@code bob=U}; unmapped users get no auths.
+ * <p>Pre-conditions: a running Trino at localhost:8080 with the plugin loaded, the
+ * {@code geomesa.security.auth-resolver} / {@code geomesa.security.auth-mapping-file}
+ * catalog properties configured, and the demo spatial.observations table ingested
+ * (it carries the U//FOUO {@code visibilities} ladder). The demo auth mapping must
+ * grant {@code alice=U,FOUO} and {@code bob=U}; unmapped users get no auths.
  *
  * <p>Local Trino has no authentication, so the JDBC {@code user} property sets the
  * session identity. Assertions are monotonic inequalities (robust to row-count
@@ -77,7 +77,7 @@ class VisibilityEnforcementIT {
 
     @Test
     void nonVisibilityTableIsUnaffected() throws SQLException {
-        // regions (also created by make ingest-demo-data) has no visibilities
+        // regions (part of the same demo dataset) has no visibilities
         // column → no filter emitted, no error, same count for every identity.
         long asNobody  = count(SPATIAL, "nobody",  "regions");
         long asCwdobbi = count(SPATIAL, "cwdobbi", "regions");
