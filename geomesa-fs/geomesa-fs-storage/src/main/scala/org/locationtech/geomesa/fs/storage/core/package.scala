@@ -89,6 +89,11 @@ package object core {
       }
       FileSystemContext(validatedRoot, S3ObjectStore.s3Configs(conf), namespace)
     }
+
+    implicit class RichConf(val conf: Map[String, String]) extends AnyRef {
+      def getWriterMaxOpenPartitions: Int =
+        conf.get(FileSystemStorage.WriterMaxOpenPartitions).fold(FileSystemStorage.WriterMaxOpenPartitionsDefault)(_.toInt)
+    }
   }
 
   object Metadata {
@@ -273,11 +278,6 @@ package object core {
     def getObservers: Seq[String] = {
       val obs = sft.getUserData.get(ObserversKey).asInstanceOf[String]
       if (obs == null || obs.isEmpty) { Seq.empty } else { obs.split(",") }
-    }
-
-    def columnBounds(): Seq[Int] = sft.getAttributeDescriptors.asScala.toSeq.collect {
-      case d if d == sft.getGeometryDescriptor || sft.getUserData.get(DefaultDtgField) == d.getLocalName || d.fsBounds() =>
-        sft.indexOf(d.getLocalName)
     }
 
     private def remove(key: String): Option[String] = Option(sft.getUserData.remove(key).asInstanceOf[String])

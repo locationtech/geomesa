@@ -12,8 +12,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg._
 import org.apache.iceberg.data.parquet.GenericParquetReaders
 import org.apache.iceberg.data.{InternalRecordWrapper, Record}
+import org.apache.iceberg.deletes.{Deletes, PositionDeleteIndex, PositionDeleteIndexUtil}
 import org.apache.iceberg.expressions.{Evaluator, Expressions}
+import org.apache.iceberg.io.DeleteSchemaUtil
 import org.apache.iceberg.parquet.Parquet
+import org.apache.iceberg.types.TypeUtil
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
@@ -21,6 +24,7 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
+import scala.util.control.NonFatal
 
 /**
  * Reads parquet files based on an iceberg table scan
@@ -38,6 +42,11 @@ class IcebergParquetScan(scan: TableScan, threads: Int, fileFilter: Option[Strin
   private val localQueue = new java.util.LinkedList[Record]()
 
   private val projection = scan.schema()
+  private lazy val deleteProjection =
+    if (projection.findField(MetadataColumns.ROW_POSITION.fieldId()) != null) { projection } else {
+      TypeUtil.join(projection, new Schema(MetadataColumns.ROW_POSITION))
+    }
+
   private val caseSensitive = scan.isCaseSensitive
 
   private val closed = new AtomicBoolean(false)
@@ -105,13 +114,15 @@ class IcebergParquetScan(scan: TableScan, threads: Int, fileFilter: Option[Strin
     }
   }
 
-  private def readFile(task: FileScanTask): CloseableIterator[Record] = {
+  private def readFile(task: FileScanTask, projection: Schema): CloseableIterator[Record] = {
     val inputFile = scan.table().io().newInputFile(task.file())
     if (fileFilter.exists(_.apply(inputFile.location()) == false)) {
       logger.debug(s"Skipping file ${inputFile.location()} [${task.start()}:${task.length()}] due to file filter")
       CloseableIterator.empty[Record]
     } else {
       logger.debug(s"Reading file ${inputFile.location()} [${task.start()}:${task.length()}]")
+      // we have to pass in the file path as a constant
+      val idToConstant = java.util.Map.of[Integer, Any](MetadataColumns.FILE_PATH_COLUMN_ID, inputFile.location())
       val reader =
         Parquet.read(inputFile)
           .project(projection)
@@ -119,32 +130,55 @@ class IcebergParquetScan(scan: TableScan, threads: Int, fileFilter: Option[Strin
           .caseSensitive(caseSensitive)
           .filter(task.residual())
           // TODO implement ParquetValueReader directly instead of using records
-          .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(projection, fileSchema))
+          .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(projection, fileSchema, idToConstant))
           .build[Record]()
       val iter = reader.iterator()
       CloseableIterator(iter.asScala, CloseWithLogging(Seq(iter, reader)))
     }
   }
 
+  private def readDeleteFile(delete: DeleteFile, dataFilePath: String): PositionDeleteIndex = {
+    require(delete.content() == FileContent.POSITION_DELETES,
+      s"Only positional deletes are supported, but got: ${delete.content()}")
+    val deleteFileSchema = DeleteSchemaUtil.pathPosSchema()
+    val builder =
+      Parquet.read(scan.table().io().newInputFile(delete))
+        .project(deleteFileSchema)
+        .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(deleteFileSchema, fileSchema))
+        .filter(Expressions.equal(MetadataColumns.DELETE_FILE_PATH.name(), dataFilePath))
+    WithClose(builder.build()) { deletes =>
+      Deletes.toPositionIndex(dataFilePath, deletes, delete)
+    }
+  }
+
   private class TaskRunnable(task: CombinedScanTask) extends Runnable {
     override def run(): Unit = {
-      task.files().iterator().asScala.foreach { file =>
-        if (!closed.get()) {
-          if (file.deletes().isEmpty) {
-            WithClose(readFile(file)) { iter =>
+      try {
+        task.files().iterator().asScala.foreach { file =>
+          if (!closed.get()) {
+            val deleteIndex = if (file.deletes().isEmpty) { None } else {
+              val deletes = file.deletes().asScala.map(readDeleteFile(_, file.file().location()))
+              Some(PositionDeleteIndexUtil.merge(deletes.asJava))
+            }
+            val projection = if (deleteIndex.isEmpty) { IcebergParquetScan.this.projection } else { deleteProjection }
+
+            WithClose(readFile(file, projection)) { iter =>
+              lazy val wrapper = new InternalRecordWrapper(projection.asStruct())
+              val withDeletes = deleteIndex.fold(iter) { index =>
+                val position = projection.accessorForField(MetadataColumns.ROW_POSITION.fieldId())
+                iter.filterNot(r => index.isDeleted(position.get(wrapper.wrap(r)).asInstanceOf[java.lang.Long]))
+              }
               val residual = file.residual()
-              val filtered = if (residual == null || residual == Expressions.alwaysTrue()) { iter } else {
-                val wrapper = new InternalRecordWrapper(projection.asStruct())
+              val filtered = if (residual == null || residual == Expressions.alwaysTrue()) { withDeletes } else {
                 val filter = new Evaluator(projection.asStruct(), residual, caseSensitive)
-                iter.filter(r => filter.eval(wrapper.wrap(r)))
+                withDeletes.filter(r => filter.eval(wrapper.wrap(r)))
               }
               filtered.foreach(sharedQueue.put)
             }
-          } else {
-            // TODO implement deletes
-            ???
           }
         }
+      } catch {
+        case NonFatal(e) => logger.error("Error running scan task:", e)
       }
     }
   }

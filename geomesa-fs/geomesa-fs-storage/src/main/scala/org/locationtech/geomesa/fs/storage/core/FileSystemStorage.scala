@@ -7,12 +7,13 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.core
-
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
+import io.micrometer.core.instrument.Tags
 import org.apache.commons.codec.digest.MurmurHash3
 import org.apache.hadoop.fs.Path
 import org.apache.iceberg._
 import org.apache.iceberg.parquet.ParquetUtil
+import org.apache.iceberg.types.Conversions
 import org.apache.parquet.hadoop.example.GroupReadSupport
 import org.apache.parquet.hadoop.{ParquetFileReader, ParquetReader}
 import org.geotools.api.data.Query
@@ -21,8 +22,9 @@ import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.fs.storage.core.FileSystemContext.RichConf
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
-import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, IcebergParquetScan, RecordSimpleFeature, SimpleFeatureIcebergSchema}
+import org.locationtech.geomesa.fs.storage.core.iceberg._
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.core.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter}
@@ -30,9 +32,10 @@ import org.locationtech.geomesa.fs.storage.core.schema.{ColumnName, SimpleFeatur
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme
 import org.locationtech.geomesa.fs.storage.core.utils.FileScan.FluentScan
 import org.locationtech.geomesa.fs.storage.core.utils.FileSize.UpdatingFileSizeEstimator
-import org.locationtech.geomesa.fs.storage.core.utils.{FileScan, FileSize}
+import org.locationtech.geomesa.fs.storage.core.utils.{FileScan, FileSize, MultiPartitionWriter}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -42,7 +45,7 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, WithCl
 import java.io.{Closeable, Flushable}
 import java.net.URI
 import java.nio.charset.StandardCharsets
-import java.util.UUID
+import java.util.{Locale, UUID}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
@@ -69,6 +72,10 @@ case class FileSystemStorage(
   val sizer: FileSize = new FileSize(table)
   val metadata: DataFiles = new DataFiles()
 
+  // common metrics tags for this storage instance
+  val tags: Tags =
+    Tags.of("store", getClass.getSimpleName.toLowerCase(Locale.US), "catalog", table.name()).and(TagUtils.typeNameTag(sft.getTypeName))
+
   protected val authProvider: AuthorizationsProvider =
     AuthUtils.getProvider(
       context.conf.get(AuthProviderParam.key).map(p => AuthProviderParam.key -> p).toMap.asJava,
@@ -93,6 +100,9 @@ case class FileSystemStorage(
         case NonFatal(e) => CloseQuietly(builder.result).foreach(e.addSuppressed); throw e
       }
     }
+    if (FileValidationEnabled.toBoolean.get) {
+      builder += FileValidationObserverFactory
+    }
     builder.result
   }
 
@@ -105,7 +115,17 @@ case class FileSystemStorage(
    * @param threads suggested threads used for reading data files
    * @return reader
    */
-  def getReader(query: Query, threads: Int): CloseableIterator[SimpleFeature] = {
+  def getReader(query: Query, threads: Int): CloseableIterator[SimpleFeature] = getReader(query, threads, forUpdate = false)
+
+  /**
+   * Gets a reader
+   *
+   * @param query query
+   * @param threads read threads
+   * @param forUpdate include row and file data required for positional deletes
+   * @return
+   */
+  private[core] def getReader(query: Query, threads: Int, forUpdate: Boolean): CloseableIterator[SimpleFeature] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val configured = QueryRunner.configureQuery(sft, query)
@@ -115,22 +135,21 @@ case class FileSystemStorage(
     val transform = configured.getHints.getTransform
     val sort = configured.getHints.getSortFields
     val max = configured.getHints.getMaxFeatures
-    // note: readSchema keeps the columns in the original order, not the transform order
-    val readSchema = schema.read(transform.map(_._1), icebergFilter.columns)
+    val readSchema = schema.read(transform.map(_._1), icebergFilter.columns, forUpdate)
 
     logger.debug(s"Running query '${query.getTypeName}' ${ECQL.toCQL(filter)}")
     logger.debug(s"  Original filter: ${ECQL.toCQL(query.getFilter)}")
-    logger.debug(s"  Push-down filter: $icebergFilter")
+    logger.debug(s"  Push-down filter: ${icebergFilter.expression}")
     logger.debug(s"  Client-side filter: ${icebergFilter.remainder.fold("none")(ECQL.toCQL)}")
     logger.debug(s"  Transforms: ${transform.fold("none") { case (t, _) => if (t.isEmpty) { "empty" } else { t }}}")
+    logger.debug(s"  Read schema: ${readSchema.schema}")
     logger.debug(s"  Sort: ${sort.fold("none") { fields => fields.map { case (f, rev) => s"$f ${if (rev) "descending" else ""}"}.mkString(", ")}}")
     logger.debug(s"  Max features: ${max.getOrElse("none")}")
 
-    // TODO investigate - this doesn't seem to be pruning row groups effectively
     val tableScan =
       table.newScan()
         .caseSensitive(false)
-        .select(readSchema.schema.columns().asScala.map(_.name()).asJava) // exclude z2 cols even if there's no transform
+        .project(readSchema.schema) // exclude z2 cols even if there's no transform
         .filter(icebergFilter.expression)
 
     val scan = {
@@ -149,7 +168,7 @@ case class FileSystemStorage(
           // simple case where transform is handled by the iceberg scan
           filtered
         } else {
-          // need to re-order cols, remove filtering-only cols, evaluate transform expressions, etc
+          // need to evaluate transform expressions
           filtered.map(sf => new TransformSimpleFeature(tsft, transforms).setFeature(sf))
         }
       }
@@ -163,72 +182,23 @@ case class FileSystemStorage(
   }
 
   /**
-   * Get a writer for a given partition. This method is thread-safe and can be called multiple times,
-   * although this can result in multiple data files.
+   * Get an appending writer for a given partition. This method is thread-safe and can be called multiple times,
+   * but a given feature can only be appended/modified in a single thread, otherwise the behavior is undefined.
    *
    * @param partition partitions
    * @return writer
    */
-  def getWriter(partition: Partition): FileSystemWriter = createWriter(partition, FileContent.DATA)
-
-  /**
-   * Gets a modifying writer. This method is thread-safe and can be called multiple times,
-   * although if a feature is modified multiple times concurrently, the last update 'wins'.
-   * There is no guarantee that any concurrent modifications will be reflected in the returned
-   * writer.
-   *
-   * @param filter the filter used to select features for modification
-   * @param threads suggested threads used for reading data files
-   * @return
-   */
-  def getWriter(filter: Filter, threads: Int): FileSystemUpdateWriter =
-    throw new UnsupportedOperationException() // TODO support updates/deletes
-
-  override def close(): Unit = CloseWithLogging(Option(table).collect { case c: Closeable => c })
-
-  /**
-   * Create a writer for the given file
-   *
-   * @param file file to write to
-   * @param partition partition being written to
-   * @param observer observer to report stats on the data written
-   * @return
-   */
-  private def createWriter(file: URI, partition: Partition, observer: FileSystemObserver): FileSystemWriter = {
+  def getWriter(partition: Partition): FileSystemWriter = {
     val compression = Option(System.getProperty(ParquetCompressionOpt)).map(ParquetCompressionOpt -> _).toMap
     val conf = compression ++ context.conf ++ Map(SimpleFeatureSchema.PartitionKey -> partition.toString)
-    val observers =
-      if (FileValidationEnabled.toBoolean.get) {
-        CompositeObserver(Seq(observer, FileValidationObserver(file)))
-      } else {
-        observer
-      }
-    new ParquetFileSystemWriter(sft, conf, table.io(), file, observers)
-  }
 
-  /**
-   * Create a new writer
-   *
-   * @param partition partition being written to
-   * @param content file type
-   * @return
-   */
-  private def createWriter(partition: Partition, content: FileContent): FileSystemWriter = {
     def newWriter(): FileSystemWriter = {
-      val file = FileSystemStorage.newFilePath(sft.getTypeName)
-      val path = context.root.resolve(file)
-      val tableObserver = content match {
-        case FileContent.DATA =>
-          new AddDataFileObserver(path, partition)
-        // TODO support deletes
-        // case FileContent.POSITION_DELETES =>
-        // case FileContent.EQUALITY_DELETES =>
-        case _ => throw new UnsupportedOperationException(s"Unsupported file content: $content")
-      }
+      val path = context.root.resolve(FileSystemStorage.newFilePath(sft.getTypeName))
+      val tableObserver = new AddDataFileObserver(path, partition)
       val observer = if (observers.isEmpty) { tableObserver } else {
         new CompositeObserver(observers.map(_.apply(path)).+:(tableObserver))
       }
-      createWriter(path, partition, observer)
+      new ParquetFileSystemWriter(sft, conf, table.io(), path, observer)
     }
 
     sizer.targetSize match {
@@ -236,6 +206,29 @@ case class FileSystemStorage(
       case Some(s) => new ChunkedFileSystemWriter(Iterator.continually(newWriter()), sizer.estimator(s))
     }
   }
+
+  /**
+   * Get an appending writer that will write to multiple partitions, based on the features being written.
+   * Note that this writer does not support the `size` method
+   *
+   * @return
+   */
+  // noinspection AccessorLikeMethodIsEmptyParen
+  def getMultiPartitionWriter(): FileSystemWriter = new MultiPartitionWriter(this, context.conf.getWriterMaxOpenPartitions)
+
+  /**
+   * Gets a modifying writer. This method is thread-safe and can be called multiple times, but a given feature
+   * can only be appended/modified in a single thread, otherwise the behavior is undefined. There is no guarantee
+   * that any concurrent modifications will be reflected in the returned writer.
+   *
+   * @param filter the filter used to select features for modification
+   * @param threads suggested threads used for reading data files
+   * @return
+   */
+  def getWriter(filter: Filter, threads: Int): FileSystemUpdateWriter =
+    IcebergUpdateWriter(this, filter, threads, context.conf.getWriterMaxOpenPartitions)
+
+  override def close(): Unit = CloseWithLogging(Option(table).collect { case c: Closeable => c })
 
   /**
    * Helper for accessing metadata on files and partitions
@@ -346,6 +339,16 @@ case class FileSystemStorage(
      */
     def partition(file: DataFile): Partition =
       Partition(schemesWithIndex.map { case (s, i) => s.getPartition(file.partition(), i) })
+
+    def partition(partition: Partition): PartitionData = {
+      val data = new PartitionData(table.spec().partitionType)
+      var i = 0
+      partition.values.foreach { value =>
+        data.set(i, Conversions.fromPartitionString(data.getType(i), value.value))
+        i += 1
+      }
+      data
+    }
   }
 
   /**
@@ -362,7 +365,7 @@ case class FileSystemStorage(
       .withFormat(FileFormat.PARQUET)
       .withPath(inputFile.location())
       .withFileSizeInBytes(inputFile.getLength)
-      .withPartitionValues(partition.values.map(_.value).asJava)
+      .withPartition(metadata.partition(partition))
       .withMetrics(metrics)
       // TODO withSort(f.sort)
       .build()
@@ -390,7 +393,9 @@ case class FileSystemStorage(
 
 object FileSystemStorage extends LazyLogging {
 
-  val ParquetCompressionOpt = "parquet.compression"
+  val ParquetCompressionOpt   = "parquet.compression"
+  val WriterMaxOpenPartitions = "fs.writer.partitions.max.open"
+  val WriterMaxOpenPartitionsDefault = 32
 
   /**
    * Writes files up to a given size, then starts a new file
@@ -441,6 +446,12 @@ object FileSystemStorage extends LazyLogging {
     }
   }
 
+  private case object FileValidationObserverFactory extends FileSystemObserverFactory {
+    override def init(storage: FileSystemStorage): Unit = {}
+    override def apply(path: URI): FileSystemObserver = FileValidationObserver(path)
+    override def close(): Unit = {}
+  }
+
   /**
    * Validate a file by reading it back
    *
@@ -471,8 +482,9 @@ object FileSystemStorage extends LazyLogging {
    * @param typeName simple feature type name
    * @return
    */
-  def newFilePath(typeName: String): String = {
-    val filename = s"${ColumnName.encode(typeName).take(20)}_${UUID.randomUUID().toString.replaceAllLiterally("-", "")}.parquet"
+  def newFilePath(typeName: String, prefix: String = ""): String = {
+    val filename =
+      s"${ColumnName.encode(typeName).take(20)}_$prefix${UUID.randomUUID().toString.replaceAllLiterally("-", "")}.parquet"
     // partitioning logic taken from Apache Iceberg: https://iceberg.apache.org/docs/nightly/aws/#object-store-file-layout
     val hash = {
       val bytes = filename.getBytes(StandardCharsets.UTF_8)

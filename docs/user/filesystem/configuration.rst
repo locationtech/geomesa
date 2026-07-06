@@ -16,6 +16,12 @@ Storage Configuration Properties
 Storage-specific configuration properties are configured through the :ref:`fsds_parameters` ``fs.config.properties`` and
 ``fs.config.file``. Additional properties related to metadata storage are outlined in :ref:`fsds_metadata`.
 
+fs.writer.partitions.max.open
++++++++++++++++++++++++++++++
+
+When writing to multiple partitions at once, this restricts the maximum number of partition files to hold open at one time, per
+writer. It can also be specified through :ref:`fsds_parameters`, which will take precedence.
+
 .. _fsds_parquet_geometries_prop:
 
 geomesa.parquet.geometries

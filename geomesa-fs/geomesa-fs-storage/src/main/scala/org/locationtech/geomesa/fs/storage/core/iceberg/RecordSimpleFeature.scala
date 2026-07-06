@@ -9,11 +9,12 @@
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import org.apache.iceberg.data.Record
+import org.apache.iceberg.{Accessor, MetadataColumns, StructLike}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractMutableSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.iceberg.RecordSimpleFeature.RecordConverter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.{GeoParquetNative, GeoParquetWkb}
-import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
+import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
@@ -31,12 +32,33 @@ import java.util.Date
  * @param fields converters for the raw record fields
  * @param record the underlying record
  */
-class RecordSimpleFeature(sft: SimpleFeatureType, fields: Array[RecordConverter], record: Record)
-    extends AbstractMutableSimpleFeature(sft) {
+class RecordSimpleFeature(
+    sft: SimpleFeatureType,
+    fields: Array[RecordConverter],
+    record: Record,
+    filePathAccessor: Accessor[StructLike],
+    rowPosAccessor: Accessor[StructLike],
+  ) extends AbstractMutableSimpleFeature(sft) {
 
   this.id = record.get(0, classOf[String])
 
   private val values = Array.ofDim[AnyRef](fields.length)
+
+  /**
+   * Gets the full file path that this feature came from. Note - this requires the path to be selected on read, otherwise
+   * the behavior of this method is not defined
+   *
+   * @return
+   */
+  def getFilePath: String = filePathAccessor.get(record).asInstanceOf[String]
+
+  /**
+   * Gets the row number in the file that this feature came from. Note - this requires the row to be selected on read, otherwise
+   * the behavior of this method is not defined
+   *
+   * @return
+   */
+  def getRowPosition: Long = rowPosAccessor.get(record).asInstanceOf[java.lang.Long]
 
   override def setAttributeNoConvert(index: Int, value: AnyRef): Unit = values(index) = value
 
@@ -61,29 +83,35 @@ class RecordSimpleFeature(sft: SimpleFeatureType, fields: Array[RecordConverter]
 
 object RecordSimpleFeature {
 
+  import scala.collection.JavaConverters._
+
   def apply(schema: SimpleFeatureIcebergSchema): RecordFeatureFactory = {
     var i = 0
-    var offset = 2 // 0 is fid, 1 is vis
     val converters = Array.ofDim[RecordConverter](schema.sft.getAttributeCount)
+    val cols = schema.schema.columns().asScala
     while (i < converters.length) {
       val descriptor = schema.sft.getDescriptor(i)
       val types = ObjectType.selectType(descriptor)
       val (from, to) = Converter(types, schema)
+      val col = ColumnName.encode(descriptor.getLocalName)
+      val offset = cols.indexWhere(_.name() == col)
       converters(i) = new RecordConverter(offset, from, to)
-      if (types.head == ObjectType.GEOMETRY && offset + 1 < schema.schema.columns().size() &&
-          schema.schema.columns().get(offset + 1).name().startsWith(SimpleFeatureSchema.InternalFieldDelimiter)) {
-        offset += 1
-      }
-      offset += 1
       i += 1
     }
+    val filePathAccessor = schema.schema.accessorForField(MetadataColumns.FILE_PATH.fieldId())
+    val rowPosAccessor = schema.schema.accessorForField(MetadataColumns.ROW_POSITION.fieldId())
 
-    new RecordFeatureFactory(schema.sft, converters)
+    new RecordFeatureFactory(schema.sft, converters, filePathAccessor, rowPosAccessor)
   }
 
-  class RecordFeatureFactory(sft: SimpleFeatureType, converters: Array[RecordConverter])
-      extends (Record => SimpleFeature) {
-    override def apply(record: Record): SimpleFeature = new RecordSimpleFeature(sft, converters, record)
+  class RecordFeatureFactory(
+      sft: SimpleFeatureType,
+      converters: Array[RecordConverter],
+      filePathAccessor: Accessor[StructLike],
+      rowPosAccessor: Accessor[StructLike],
+    ) extends (Record => SimpleFeature) {
+    override def apply(record: Record): SimpleFeature =
+      new RecordSimpleFeature(sft, converters, record, filePathAccessor, rowPosAccessor)
   }
 
   private class RecordConverter(i: Int, fromFeature: Converter, toFeature: Converter) {

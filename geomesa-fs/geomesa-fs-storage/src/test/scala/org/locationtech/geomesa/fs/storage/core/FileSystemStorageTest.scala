@@ -447,7 +447,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           testQuery(storage, sft)("INCLUDE", null, updates)
         }
       }
-    }.pendingUntilFixed()
+    }
 
     "use custom file observers" in {
       val userData = s"${StorageKeys.ObserversKey}='${classOf[TestObserverFactory].getName}'"
@@ -494,22 +494,22 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
             val feature = updater.next()
             if (feature.getID == "0") {
               updater.remove()
-            } else if (feature.getID == "1") {
+            } else if (feature.getID == "5") {
               feature.setAttribute(1, "name-updated")
               updater.write()
             }
           }
 
-          TestObserverFactory.observers must haveSize(2) // 2 partitions were updated
+          TestObserverFactory.observers must haveSize(1) // 1 partition was updated (deletes are not passed to observers)
           forall(TestObserverFactory.observers)(_.closed must beFalse)
 
           updater.close()
 
           forall(TestObserverFactory.observers)(_.closed must beTrue)
-          TestObserverFactory.observers.flatMap(_.features) must haveLength(2)
+          TestObserverFactory.observers.flatMap(_.features) must haveLength(1)
         }
       }
-    }.pendingUntilFixed()
+    }
 
     "write files with a target size" in {
       val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")

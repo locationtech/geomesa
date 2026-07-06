@@ -17,23 +17,18 @@ import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
 import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName}
-import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
 
 import java.io.Closeable
-import java.util.Map.Entry
-import java.util.concurrent._
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
-import java.util.function.BiFunction
-import scala.util.control.NonFatal
+import java.util.concurrent.atomic.AtomicLong
 
 class FileSystemFeatureStore(
     val storage: FileSystemStorage,
@@ -42,24 +37,22 @@ class FileSystemFeatureStore(
     config: FileSystemDataStoreConfig,
   ) extends ContentFeatureStore(entry, query) with LazyLogging {
 
-  private val sft = storage.sft
-
   override def getWriterInternal(query: Query, flags: Int): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
     // note: check update first as sometimes we get ADD | UPDATE
     if ((flags & WRITER_UPDATE) == WRITER_UPDATE) {
-      new FileSystemFeatureWriterModify(storage, sft, query.getFilter, config.readThreads)
+      new FileSystemFeatureWriterModify(storage, query.getFilter, config.readThreads)
     } else if ((flags & WRITER_ADD) == WRITER_ADD) {
-      new FileSystemFeatureWriterAppend(storage, sft, config.writeMaxOpenPartitions, config.writeTimeout.toMillis)
+      new FileSystemFeatureWriterAppend(storage)
     } else {
       throw new IllegalArgumentException(s"Expected one of $WRITER_ADD or $WRITER_UPDATE, but got: $flags")
     }
   }
 
-  override def buildFeatureType(): SimpleFeatureType = sft
+  override def buildFeatureType(): SimpleFeatureType = storage.sft
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = {
     val envelope = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    val bboxFieldName = BoundingBoxField.groupName(ColumnName.encode(sft.getGeometryDescriptor.getLocalName))
+    val bboxFieldName = BoundingBoxField.groupName(ColumnName.encode(storage.sft.getGeometryDescriptor.getLocalName))
     val bboxField = storage.schema.schema.findField(bboxFieldName).`type`().asStructType()
     val (minFieldIds, maxFieldIds) =
       Seq(BoundingBoxField.XMin, BoundingBoxField.YMin, BoundingBoxField.XMax, BoundingBoxField.YMax)
@@ -88,7 +81,7 @@ class FileSystemFeatureStore(
 
     val query = new Query(original)
     // The type name can sometimes be empty such as Query.ALL
-    query.setTypeName(sft.getTypeName)
+    query.setTypeName(storage.sft.getTypeName)
 
     val reader = config.queryTimeout match {
       case None => storage.getReader(query, threads = config.readThreads)
@@ -101,7 +94,7 @@ class FileSystemFeatureStore(
     val iter = new FileSystemFeatureIterator(reader)
 
     // transforms will be set after getting the iterator
-    val transformSft = query.getHints.getTransformSchema.getOrElse(sft)
+    val transformSft = query.getHints.getTransformSchema.getOrElse(storage.sft)
 
     // note: DelegateSimpleFeatureIterator will close the iterator by checking that it implements Closeable
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
@@ -167,167 +160,42 @@ object FileSystemFeatureStore {
    * Appending feature writer
    *
    * @param storage storage instance
-   * @param sft simple feature type
-   * @param maxOpenPartitions max open partition writers
-   * @param writerTimeoutMillis write timeout, for flushing partitions
    */
-  private class FileSystemFeatureWriterAppend(
-      storage: FileSystemStorage,
-      sft: SimpleFeatureType,
-      maxOpenPartitions: Int,
-      writerTimeoutMillis: Long
-    ) extends FastSettableFeatureWriter with LazyLogging {
+  private class FileSystemFeatureWriterAppend(storage: FileSystemStorage) extends FastSettableFeatureWriter {
 
-    @volatile
-    private var closed = false
-
-    private val writers = new ConcurrentHashMap[Partition, WriterHolder]()
-
-    private val computeForWrite: BiFunction[Partition, WriterHolder, WriterHolder] = (p, current) => {
-      if (current == null) {
-        logger.debug(s"Opening writer for partition $p")
-        new WriterHolder(storage.getWriter(p))
-      } else {
-        current.updateAccessTime() // update access time before returning so it's not expired
-        current
-      }
-    }
-
-    private val computeForExpire: BiFunction[Partition, WriterHolder, WriterHolder] = (p, current) => {
-      // double check that the writer is still expired, as this method is atomic wrt computeForWrite
-      if (current != null && current.age >= writerTimeoutMillis) {
-        logger.debug(
-          s"Closing writer for partition $p (last accessed ${current.age}ms ago) due to hitting " +
-            s"expiry ${writerTimeoutMillis}ms")
-        CloseWithLogging(current)
-        null
-      } else {
-        current
-      }
-    }
-
-    private val ex = Executors.newSingleThreadScheduledExecutor()
-
-    private val expire: Runnable = () => {
-      var nextRun = writerTimeoutMillis
-      writers.entrySet().forEach { entry =>
-        if (!closed) {
-          val delta = writerTimeoutMillis - entry.getValue.age
-          if (delta < 1) {
-            try { writers.computeIfPresent(entry.getKey, computeForExpire) } catch {
-              case NonFatal(e) => logger.warn(s"Error expiring feature writer for partition ${entry.getKey}:", e)
-            }
-          } else {
-            nextRun = math.min(delta, nextRun)
-          }
-        }
-      }
-      if (!closed) {
-        try {
-          ex.synchronized {
-            future = ex.schedule(expire, nextRun + 1000, TimeUnit.MILLISECONDS)
-          }
-        } catch {
-          case _: RejectedExecutionException => // executor was shutdown due to close
-        }
-      }
-    }
-
-    private var future: ScheduledFuture[_] = ex.schedule(expire, writerTimeoutMillis + 1000, TimeUnit.MILLISECONDS)
-
+    private val writer = storage.getMultiPartitionWriter()
     private val featureIds = new AtomicLong(0)
     private var feature: ScalaSimpleFeature = _
 
-    override def getFeatureType: SimpleFeatureType = sft
+    override def getFeatureType: SimpleFeatureType = storage.sft
 
     override def hasNext: Boolean = false
 
     override def next(): ScalaSimpleFeature = {
-      feature = new ScalaSimpleFeature(sft, featureIds.getAndIncrement().toString)
+      feature = new ScalaSimpleFeature(storage.sft, featureIds.getAndIncrement().toString)
       feature
     }
 
-    override def write(): Unit = {
-      val sf = GeoMesaFeatureWriter.featureWithFid(feature)
-      val partition = Partition(storage.schemes.map(_.getPartition(sf)))
-      writers.compute(partition, computeForWrite).write(sf)
-      feature = null
-      if (writers.size() > maxOpenPartitions) {
-        val oldest = writers.reduceEntries(maxOpenPartitions / 2, WriterHolder.Oldest)
-        // may have been expired asynchronously due to inactivity
-        if (writers.remove(oldest.getKey, oldest.getValue)) {
-          logger.debug(
-            s"Closing writer for partition ${oldest.getKey} (last accessed ${oldest.getValue.age}ms ago) due to hitting max " +
-              s"writer threshold $maxOpenPartitions")
-          CloseWithLogging(oldest.getValue)
-        }
-      }
-    }
+    override def write(): Unit = writer.write(GeoMesaFeatureWriter.featureWithFid(feature))
 
     override def remove(): Unit = throw new IllegalArgumentException("This writer is append only")
 
-    override def close(): Unit = {
-      try {
-        closed = true
-        ex.synchronized {
-          future.cancel(false)
-          ex.shutdown()
-        }
-        // ensure all writers are closed before returning from this method
-        ex.awaitTermination(Long.MaxValue, TimeUnit.MILLISECONDS)
-      } finally {
-        var ex: Throwable = null
-        writers.forEach { (p, writer) =>
-          logger.debug(s"Closing writer for partition $p")
-          CloseQuietly(writer).foreach(e => if (ex == null) { ex = e } else { ex.addSuppressed(e) })
-        }
-        if (ex != null) {
-          throw ex
-        }
-      }
-    }
-  }
-
-  private class WriterHolder(writer: FileSystemWriter) extends Closeable {
-
-    @volatile
-    private var lastAccess: Long = System.currentTimeMillis()
-    private val closed: AtomicBoolean = new AtomicBoolean(false)
-
-    def write(sf: SimpleFeature): Unit = writer.write(sf)
-    def age: Long = System.currentTimeMillis() - lastAccess
-    def updateAccessTime(): Unit = lastAccess = System.currentTimeMillis()
-
-    override def close(): Unit = {
-      if (closed.compareAndSet(false, true)) {
-        writer.close()
-      }
-    }
-  }
-
-  private object WriterHolder {
-    val Oldest: BiFunction[Entry[Partition, WriterHolder], Entry[Partition, WriterHolder], Entry[Partition, WriterHolder]] =
-      (left, right) => if (right.getValue.age < left.getValue.age) { right } else { left }
+    override def close(): Unit = writer.close()
   }
 
   /**
     * Modifying feature writer
     *
     * @param storage instance
-    * @param sft simple feature type
     * @param filter query filter
     * @param readThreads read threads
     */
-  private class FileSystemFeatureWriterModify(
-      storage: FileSystemStorage,
-      sft: SimpleFeatureType,
-      filter: Filter,
-      readThreads: Int
-    ) extends FeatureWriter[SimpleFeatureType, SimpleFeature] with LazyLogging {
+  private class FileSystemFeatureWriterModify(storage: FileSystemStorage, filter: Filter, readThreads: Int)
+      extends FeatureWriter[SimpleFeatureType, SimpleFeature] with LazyLogging {
 
     private val writer = storage.getWriter(filter, threads = readThreads)
 
-    override def getFeatureType: SimpleFeatureType = sft
+    override def getFeatureType: SimpleFeatureType = storage.sft
 
     override def hasNext: Boolean = writer.hasNext
     // TODO implement FastSettableFeatureWriter and wire ScalaSimpleFeature all the way through

@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
-import org.apache.iceberg.Schema
 import org.apache.iceberg.types.Types._
+import org.apache.iceberg.{MetadataColumns, Schema}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.filter.FilterHelper
@@ -47,36 +47,36 @@ class SimpleFeatureIcebergSchema private (
    *
    * @param transform query transform definition
    * @param filtered columns that have filters against them
+   * @param includeRowPositions include _file and _pos columns necessary for handling updates/deletes
    * @return
    */
-  def read(transform: Option[String], filtered: Set[String]): SimpleFeatureIcebergSchema = {
-    val readCols = {
-      val projection = transform match {
-        case None => sft.getAttributeDescriptors.asScala.map(_.getLocalName)
-        case Some(defs) =>
-          Transforms(sft, defs).flatMap {
-            case t: PropertyTransform => Seq(sft.getDescriptor(t.i).getLocalName)
-            case t: RenameTransform => Seq(sft.getDescriptor(t.i).getLocalName)
-            case t: ExpressionTransform => FilterHelper.propertyNames(t.expression, sft)
-            case t => throw new UnsupportedOperationException(s"An implementation is missing: ${t.getClass}")
-          }
-      }
-      (Seq(FeatureIdField, VisibilitiesField) ++ projection.map(ColumnName.encode) ++ filtered).toSet
-    }
-    // note: columns from iceberg scans are returned in the original order
-    val readSft = if (transform.isEmpty) { sft } else {
-      val builder = new SimpleFeatureTypeBuilder()
-      sft.getAttributeDescriptors.asScala.foreach { descriptor =>
-        if (readCols.contains(ColumnName.encode(descriptor.getLocalName))) {
-          builder.add(descriptor)
+  def read(transform: Option[String], filtered: Set[String], includeRowPositions: Boolean = false): SimpleFeatureIcebergSchema = {
+    val (readCols, readSft) = transform match {
+      case None =>
+        val baseCols =
+          Seq(FeatureIdField, VisibilitiesField) ++ sft.getAttributeDescriptors.asScala.map(d => ColumnName.encode(d.getLocalName))
+        val readCols = baseCols ++ filtered.filterNot(baseCols.contains)
+        (readCols, sft)
+      case Some(defs) =>
+        val fromTransform = Transforms(sft, defs).flatMap {
+          case t: PropertyTransform => Seq(sft.getDescriptor(t.i).getLocalName)
+          case t: RenameTransform => Seq(sft.getDescriptor(t.i).getLocalName)
+          case t: ExpressionTransform => FilterHelper.propertyNames(t.expression, sft)
+          case t => throw new UnsupportedOperationException(s"An implementation is missing: ${t.getClass}")
         }
-      }
-      builder.setName(sft.getName)
-      val readSft = builder.buildFeatureType()
-      readSft.getUserData.putAll(sft.getUserData)
-      readSft
+        val attributes = fromTransform.distinct
+        val baseCols = Seq(FeatureIdField, VisibilitiesField) ++ attributes.map(ColumnName.encode)
+        val readCols = baseCols ++ filtered.filterNot(baseCols.contains)
+        val readSft = {
+          val sftBuilder = new SimpleFeatureTypeBuilder()
+          attributes.foreach(name => sftBuilder.add(sft.getDescriptor(name)))
+          sftBuilder.setName(sft.getName)
+          sftBuilder.buildFeatureType()
+        }
+        readSft.getUserData.putAll(sft.getUserData)
+        (readCols, readSft)
     }
-    val schema = fields.toSchema(readCols)
+    val schema = fields.toSchema(readCols, includeRowPositions)
     new SimpleFeatureIcebergSchema(readSft, geometries, metadata, schema, fields)
   }
 }
@@ -184,10 +184,13 @@ object SimpleFeatureIcebergSchema {
 
   private case class IcebergFields(fields: Seq[NestedField], aliases: Map[String, Integer]) {
     def toSchema: Schema = new Schema(fields.asJava, aliases.asJava, java.util.Set.of[Integer](1))
-    def toSchema(fieldFilter: Set[String]): Schema = {
-      val filtered = fields.filter(f => fieldFilter.contains(f.name()))
-      val ids = filtered.collectFirst { case f if f.name() == FeatureIdField => Int.box(f.fieldId()) }
-      new Schema(filtered.asJava, aliases.asJava, ids.toSet.asJava)
+    def toSchema(cols: Seq[String], includeRowPositions: Boolean): Schema = {
+      val projection =
+        cols.map(col => fields.find(_.name() == col).getOrElse(throw new IllegalStateException(s"Unexpected projection: $col")))
+      val withRows =
+        if (includeRowPositions) { projection ++ Seq(MetadataColumns.FILE_PATH, MetadataColumns.ROW_POSITION) } else { projection }
+      val ids = projection.collectFirst { case f if f.name() == FeatureIdField => Int.box(f.fieldId()) }
+      new Schema(withRows.asJava, aliases.asJava, ids.toSet.asJava)
     }
   }
 }

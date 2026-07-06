@@ -10,12 +10,13 @@ package org.locationtech.geomesa.fs.data
 
 import org.apache.iceberg.CatalogUtil
 import org.locationtech.geomesa.fs.storage.converter.ConverterCatalog
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ReadWriteFlag, SystemPropertyDurationParam, SystemPropertyIntegerParam}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ReadWriteFlag, SystemPropertyIntegerParam}
 
 import java.util.Properties
 import scala.concurrent.duration.Duration
@@ -83,21 +84,11 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
       readWrite = GeoMesaDataStoreFactory.QueryThreadsParam.readWrite
     )
 
-  val WriteTimeoutParam =
-    new GeoMesaParam[Duration](
-      "fs.writer.partition.timeout",
-      "Timeout for closing a partition file after write, e.g. '60 seconds'",
-      default = Duration("60s"),
-      systemProperty = Some(SystemPropertyDurationParam(WriterFileTimeout)),
-      supportsNiFiExpressions = true,
-      readWrite = ReadWriteFlag.WriteOnly
-    )
-
   val WritersMaxOpenPartitionsParam =
     new GeoMesaParam[Integer](
-      "fs.writer.partitions.max.open",
+      FileSystemStorage.WriterMaxOpenPartitions,
       "How many partition files to hold open concurrently during a write operation",
-      default = 32,
+      default = FileSystemStorage.WriterMaxOpenPartitionsDefault,
       systemProperty = Some(SystemPropertyIntegerParam(WritersMaxOpenPartitions)),
       supportsNiFiExpressions = true,
       readWrite = ReadWriteFlag.WriteOnly
