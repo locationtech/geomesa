@@ -46,8 +46,8 @@ unsigned hex of the upstream GeoMesa SFC index. For Z2, the index is
 ``Z2SFC.index(lon, lat) << 2`` — a left-shift by 2 to rotate the lat/lon
 hemisphere bits up into the top hex char (Z2SFC reserves bits 62 and 63,
 so the shift wastes nothing). At ``N_chars = 1`` the 16 possible partition
-values map to a 4×4 grid of hemispheric quadrants; CONUS occupies 4 of
-them. For XZ2, the index is ``XZ2SFC(g=12).index(envelope)`` with no shift
+values map to a 4×4 grid of hemispheric quadrants. For XZ2, the index is
+``XZ2SFC(g=12).index(envelope)`` with no shift
 (sequence codes don't carry geographic info in their high bits in a way
 a fixed shift could exploit). SFC outputs are always non-negative, so
 unsigned-hex byte-lex order already matches numeric order — no Calrissian
