@@ -9,15 +9,15 @@ Architecture
 .. code-block:: text
 
     ┌────────────────────────────────────────────────────────────────────────┐
-    │  Trino cluster (481+)                                                   │
-    │                                                                         │
-    │  catalog: iceberg          catalog: spatial_iceberg                     │
+    │  Trino cluster (481+)                                                  │
+    │                                                                        │
+    │  catalog: iceberg          catalog: spatial_iceberg                    │
     │  (stock Iceberg connector) (SpatialConnector wrapping Iceberg)         │
-    │                             └── SpatialConnectorMetadata                │
-    │                                  applyFilter() → bbox + Z2 TupleDomain  │
-    │                                                                         │
-    │  CQL clients ──► geomesa-trino-datastore ──► TrinoFilterToSQL           │
-    │                  (CQL filter ──► bbox-overlap + CASE WHEN shortcut SQL) │
+    │                             └── SpatialConnectorMetadata               │
+    │                                  applyFilter() → bbox + Z2 TupleDomain │
+    │                                                                        │
+    │  CQL clients ──► geomesa-trino-datastore ──► TrinoFilterToSQL          │
+    │                 (CQL filter ──► bbox-overlap + CASE WHEN shortcut SQL) │
     └──────────────┬──────────────────────────────────────┬──────────────────┘
                    │                                      │
            ┌───────▼──────────┐                  ┌────────▼─────────────────┐
