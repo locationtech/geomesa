@@ -7,12 +7,14 @@ Row Entitlements
 ----------------
 
 Tables may carry a per-row visibility expression in a ``visibilities``
-(FSDS-compatible) or ``__vis__`` column; NULL/empty rows are unrestricted. When
-any ``geomesa.security.*`` parameter is configured on the data store connection,
-the data store builds an ``AuthorizationsProvider`` (geomesa-security SPI) and
-ANDs an ``is_visible`` UDF predicate into every read, count, and bounds
-query so that filtering runs inside Trino workers and counts stay correct. A
-client-side predicate re-checks rehydrated visibility as defense-in-depth.
+(FSDS-compatible) or ``__vis__`` column; NULL/empty rows are unrestricted. For any
+table with a visibility column, the data store builds an ``AuthorizationsProvider``
+(geomesa-security SPI) and ANDs an ``is_visible`` UDF predicate into every read,
+count, and bounds query so that filtering runs inside Trino workers and counts stay
+correct. Enforcement is **fail-closed**: with no ``geomesa.security.*`` parameters
+configured, the provider grants no authorizations and only unrestricted rows are
+returned. A client-side predicate re-checks rehydrated visibility as
+defense-in-depth.
 
 .. list-table::
     :header-rows: 1

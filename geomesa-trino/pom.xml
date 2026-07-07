@@ -20,45 +20,23 @@
     <module>geomesa-trino-datastore</module>
   </modules>
 
-  <repositories>
-    <repository>
-      <id>central</id>
-      <name>Maven Central</name>
-      <url>https://repo.maven.apache.org/maven2/</url>
-    </repository>
-    <repository>
-      <id>osgeo</id>
-      <name>OSGeo Maven repository</name>
-      <url>https://repo.osgeo.org/repository/release/</url>
-    </repository>
-  </repositories>
-
   <properties>
-    <trino.version>481</trino.version>
-    <!-- Junit 5 test discovery breaks without this override -->
-    <junit5.version>5.12.2</junit5.version>
-    <junit.jupiter.version>${junit5.version}</junit.jupiter.version>
     <skipITs>true</skipITs>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>io.trino</groupId>
-        <artifactId>trino-jdbc</artifactId>
-        <version>${trino.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>${junit5.version}</version>
+        <version>${junit.jupiter.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter</artifactId>
-        <version>${junit5.version}</version>
+        <version>${junit.jupiter.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -96,6 +74,13 @@
           </dependency>
         </dependencies>
       </plugin>
+      <!-- Declared active here (not just pluginManagement, which doesn't bind executions)
+           so both child modules run their *IT classes under -DskipITs=false without
+           re-declaring the plugin themselves. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
     </plugins>
     <pluginManagement>
       <plugins>
@@ -124,4 +109,48 @@
       </plugins>
     </pluginManagement>
   </build>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <!-- These modules are (nearly) java-only, so the scala doc tooling the geomesa
+               parent uses doesn't apply: attach javadocs with the regular javadoc plugin
+               (required for maven central). Inherited by both child modules. -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <!-- populates ${dep.cp}, which the geomesa parent's javadoc config puts on
+                 the javadoc class path -->
+            <executions>
+              <execution>
+                <id>generate-classpath</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>build-classpath</goal>
+                </goals>
+                <configuration>
+                  <outputFile>${project.build.directory}/module-classpath</outputFile>
+                  <outputProperty>dep.cp</outputProperty>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

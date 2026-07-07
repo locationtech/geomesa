@@ -15,22 +15,22 @@ The Trino data store takes the following parameters:
     * - Parameter
       - Required
       - Description
-    * - ``host``
+    * - ``trino.host``
       - yes
       - Trino coordinator host
-    * - ``port``
+    * - ``trino.port``
       - yes
       - Trino coordinator port
-    * - ``catalog``
+    * - ``trino.catalog``
       - no
       - Trino catalog (use ``spatial_iceberg`` for spatial pushdown)
-    * - ``schema``
+    * - ``trino.schema``
       - no
       - Trino schema (default ``spatial``)
-    * - ``icebergRestUrl``
+    * - ``namespace``
       - no
-      - Iceberg REST catalog URL, for schema-creation operations
-    * - ``user``
+      - Namespace URI applied to type names
+    * - ``trino.user``
       - no
       - Trino session user
     * - ``geomesa.security.*``
@@ -46,10 +46,10 @@ methods, assuming that the GeoMesa code is on the classpath:
 .. code-block:: java
 
     Map<String, Object> parameters = new HashMap<>();
-    parameters.put("host", "trino-coordinator");
-    parameters.put("port", 8080);
-    parameters.put("catalog", "spatial_iceberg");
-    parameters.put("schema", "spatial");
+    parameters.put("trino.host", "trino-coordinator");
+    parameters.put("trino.port", 8080);
+    parameters.put("trino.catalog", "spatial_iceberg");
+    parameters.put("trino.schema", "spatial");
     org.geotools.api.data.DataStore dataStore =
         org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 

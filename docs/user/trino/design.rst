@@ -213,7 +213,7 @@ named ``geom``:
       - Notes
     * - ``__fid__``
       - VARCHAR (required)
-      - feature id; hidden from ``SELECT *``
+      - SimpleFeature ID
     * - ``geom``
       - VARBINARY
       - WKB geometry, identical on both catalogs; wrap with ``ST_GeomFromBinary(geom)`` for spatial functions

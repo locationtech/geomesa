@@ -15,7 +15,8 @@ import java.security.MessageDigest;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link AuthorizationResolver} that reads a session's authorization tokens
@@ -46,7 +47,7 @@ import java.util.logging.Logger;
 public final class ExtraCredentialAuthorizationResolver implements AuthorizationResolver {
 
     private static final Logger LOG =
-        Logger.getLogger(ExtraCredentialAuthorizationResolver.class.getName());
+        LoggerFactory.getLogger(ExtraCredentialAuthorizationResolver.class);
 
     /** Catalog property naming the extra credential that carries the tokens. */
     static final String CREDENTIAL_KEY = "geomesa.security.auths-credential";
@@ -110,7 +111,7 @@ public final class ExtraCredentialAuthorizationResolver implements Authorization
             String t = token.trim();
             if (t.isEmpty()) continue;
             if (!AuthTokens.isValid(t)) {
-                LOG.warning("Dropping invalid authorization token '" + t + "' from extra credential");
+                LOG.warn("Dropping invalid authorization token '" + t + "' from extra credential");
                 continue;
             }
             out.add(t);

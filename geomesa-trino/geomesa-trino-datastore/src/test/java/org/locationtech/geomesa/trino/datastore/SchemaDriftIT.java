@@ -71,11 +71,10 @@ class SchemaDriftIT {
             "INSERT INTO " + TABLE + " VALUES ('1', 'a', 'U'), ('2', 'b', NULL)");
 
         Map<String, Object> params = new HashMap<>();
-        params.put("host",           "localhost");
-        params.put("port",           8080);
-        params.put("catalog",        "spatial_iceberg");
-        params.put("schema",         "spatial");
-        params.put("icebergRestUrl", "http://localhost:8181");
+        params.put("trino.host",    "localhost");
+        params.put("trino.port",    8080);
+        params.put("trino.catalog", "spatial_iceberg");
+        params.put("trino.schema",  "spatial");
         params.put("geomesa.security.auths", "U,FOUO");
         ds = DataStoreFinder.getDataStore(params);
         assertThat(ds).isNotNull();

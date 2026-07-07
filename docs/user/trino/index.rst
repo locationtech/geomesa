@@ -32,6 +32,11 @@ GeoMesa Trino consists of two modules:
 * ``geomesa-trino-datastore`` — a client-side GeoTools data store over Trino JDBC, which
   translates CQL filters into optimized spatial SQL.
 
+.. note::
+
+    The module is currently scoped as a **read-only** query engine — tables are created
+    and populated by external writers, in particular the :doc:`FileSystem data store </user/filesystem/index>`.
+
 .. toctree::
     :maxdepth: 1
 

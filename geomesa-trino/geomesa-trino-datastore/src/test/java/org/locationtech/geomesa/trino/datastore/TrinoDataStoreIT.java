@@ -51,11 +51,10 @@ class TrinoDataStoreIT {
         }
 
         Map<String, Object> params = Map.of(
-            "host",           "localhost",
-            "port",           8080,
-            "catalog",        "spatial_iceberg",
-            "schema",         "spatial",
-            "icebergRestUrl", "http://localhost:8181"
+            "trino.host",    "localhost",
+            "trino.port",    8080,
+            "trino.catalog", "spatial_iceberg",
+            "trino.schema",  "spatial"
         );
         ds = DataStoreFinder.getDataStore(params);
         assertThat(ds).as("DataStoreFinder must locate TrinoDataStoreFactory").isNotNull();
@@ -152,6 +151,56 @@ class TrinoDataStoreIT {
             " ST_GeometryFromText('POLYGON ((-80 37, -70 37, -70 45, -80 45, -80 37))'))" +
             " AND dtg > TIMESTAMP '2023-01-01 00:00:00 UTC'" +
             " AND dtg < TIMESTAMP '2024-01-01 00:00:00 UTC'");
+    }
+
+    @Test
+    void maxFeaturesIsPushedDownAsLimit() throws Exception {
+        Query q = new Query("observations");
+        q.setMaxFeatures(5);
+        assertThat(readFids(q)).as("reader must return exactly maxFeatures rows").hasSize(5);
+    }
+
+    @Test
+    void startIndexPagingReturnsDisjointFullPages() throws Exception {
+        // The framework applies startIndex client-side (canOffset is false), so the
+        // pushed-down LIMIT must cover startIndex + maxFeatures or later pages come
+        // back short/empty. Natural order sorts by __fid__, making pages deterministic.
+        Query page1 = new Query("observations");
+        page1.setSortBy(org.geotools.api.filter.sort.SortBy.NATURAL_ORDER);
+        page1.setMaxFeatures(50);
+
+        Query page2 = new Query("observations");
+        page2.setSortBy(org.geotools.api.filter.sort.SortBy.NATURAL_ORDER);
+        page2.setStartIndex(50);
+        page2.setMaxFeatures(50);
+
+        List<String> first = readFids(page1);
+        List<String> second = readFids(page2);
+        assertThat(first).as("page 1 must be full").hasSize(50);
+        assertThat(second).as("page 2 must be full, not truncated by the pushed-down limit").hasSize(50);
+        assertThat(second).as("pages must not overlap").doesNotContainAnyElementsOf(first);
+    }
+
+    @Test
+    void getCountRespectsMaxFeatures() throws Exception {
+        // canLimit=true disables the framework's min(count, maxFeatures) clamp, so the
+        // store must apply it itself.
+        Query q = new Query("observations");
+        q.setMaxFeatures(5);
+        assertThat(ds.getFeatureSource("observations").getCount(q))
+            .as("count must be clamped to maxFeatures")
+            .isEqualTo(5);
+    }
+
+    private List<String> readFids(Query q) throws Exception {
+        List<String> fids = new ArrayList<>();
+        try (FeatureReader<SimpleFeatureType, SimpleFeature> reader =
+                 ds.getFeatureReader(q, Transaction.AUTO_COMMIT)) {
+            while (reader.hasNext()) {
+                fids.add(reader.next().getID());
+            }
+        }
+        return fids;
     }
 
     @Test

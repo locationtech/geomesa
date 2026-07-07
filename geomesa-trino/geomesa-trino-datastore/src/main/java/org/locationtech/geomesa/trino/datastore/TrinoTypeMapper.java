@@ -15,11 +15,12 @@ import org.locationtech.jts.geom.Geometry;
 
 import java.sql.Types;
 import java.util.Date;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class TrinoTypeMapper {
 
-    private static final Logger LOG = Logger.getLogger(TrinoTypeMapper.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(TrinoTypeMapper.class);
 
     /**
      * Columns hidden from the GeoTools schema: the spatial extension's
@@ -75,7 +76,7 @@ class TrinoTypeMapper {
      *  per occurrence at WARNING so an unhandled column type (DECIMAL, ARRAY, ROW, …) surfaces
      *  instead of silently becoming a byte[]. */
     private static Class<?> unmappedBinding(int sqlType, String name) {
-        LOG.warning("No GeoTools binding for SQL type " + sqlType + " on column '" + name
+        LOG.warn("No GeoTools binding for SQL type " + sqlType + " on column '" + name
             + "'; exposing it as byte[] (opaque).");
         return byte[].class;
     }

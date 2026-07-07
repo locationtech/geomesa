@@ -106,6 +106,7 @@
         <s2.geometry.version>20250620-rc1</s2.geometry.version>
         <sizeof.version>0.4.4</sizeof.version>
         <spring.security.version>5.8.16</spring.security.version> <!-- geoserver is still on 5.x -->
+        <trino.version>481</trino.version>
         <typesafe.config.version>1.4.3</typesafe.config.version>
         <zstd.version>1.5.7-7</zstd.version>
 
@@ -125,7 +126,7 @@
         <!-- test dependencies -->
         <specs2.version>4.23.0</specs2.version>
         <junit.version>4.13.2</junit.version>
-        <junit.jupiter.version>5.9.3</junit.jupiter.version>
+        <junit.jupiter.version>5.12.2</junit.jupiter.version> <!-- geomesa-trino test discovery requires 5.12+ -->
         <testcontainers.version>2.0.3</testcontainers.version>
         <testcontainers.accumulo.version>1.6.0</testcontainers.accumulo.version>
         <testcontainers.hbase.version>1.2.0</testcontainers.hbase.version>
@@ -1136,6 +1137,11 @@
                 <groupId>org.apache.accumulo</groupId>
                 <artifactId>accumulo-access</artifactId>
                 <version>${accumulo.access.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.trino</groupId>
+                <artifactId>trino-jdbc</artifactId>
+                <version>${trino.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.esotericsoftware</groupId>

@@ -14,11 +14,12 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class TrinoSchemaDiscovery {
 
-    private static final java.util.logging.Logger LOG =
-        java.util.logging.Logger.getLogger(TrinoSchemaDiscovery.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(TrinoSchemaDiscovery.class);
 
     private final TrinoDataStore store;
 
@@ -53,7 +54,7 @@ class TrinoSchemaDiscovery {
             Set<String> geometryColumnNames = discoverGeometryColumnNames(allNames);
             visColumn = discoverVisibilityColumn(allNames);
             if (allNames.contains(FSDS_VIS_COLUMN) && allNames.contains(COMPANION_VIS_COLUMN)) {
-                LOG.warning(typeName + " has both 'visibilities' and '__vis__'; using 'visibilities'");
+                LOG.warn(typeName + " has both 'visibilities' and '__vis__'; using 'visibilities'");
             }
 
             boolean defaultGeomSet = false;

@@ -38,7 +38,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.UnaryOperator;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ConnectorMetadata wrapper that injects spatial range constraints into
@@ -63,7 +64,7 @@ import java.util.logging.Logger;
  */
 public class SpatialConnectorMetadata implements ConnectorMetadata {
 
-    private static final Logger LOG = Logger.getLogger(SpatialConnectorMetadata.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(SpatialConnectorMetadata.class);
 
     /** Guards a one-time WARNING when foreign-classloader geometry extraction fails: a
      *  systematic break there silently disables all spatial pruning, so surface it once
@@ -188,8 +189,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         // Empty = steady state: a prior round absorbed the injected domains into
         // the handle. The log is the only trace if a delegate ever rejects them.
         if (delegateResult.isEmpty()) {
-            LOG.fine(() -> "applyFilter: delegate returned empty with " + domains.size()
-                + " injected spatial domain(s) on " + delegate.getTableName(session, handle));
+            LOG.atDebug()
+                .setMessage("applyFilter: delegate returned empty with {} injected spatial domain(s) on {}")
+                .addArgument(domains.size())
+                .addArgument(() -> delegate.getTableName(session, handle))
+                .log();
             return Optional.empty();
         }
         ConstraintApplicationResult<ConnectorTableHandle> dr = delegateResult.get();
@@ -347,7 +351,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
                         Geometry geom = new WKTReader().read(wktSlice.toStringUtf8());
                         return Optional.of(geom.getEnvelopeInternal());
                     } catch (Exception e) {
-                        LOG.fine("Could not parse WKT literal into an envelope: " + e.getMessage());
+                        LOG.debug("Could not parse WKT literal into an envelope: " + e.getMessage());
                         return Optional.empty();
                     }
                 }
@@ -395,10 +399,10 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             // folded-geometry representation) silently disables ALL spatial pruning, so warn
             // once loudly; later occurrences stay at FINE to avoid per-query log spam.
             if (ENVELOPE_EXTRACTION_WARNED.compareAndSet(false, true)) {
-                LOG.warning("Could not extract envelope from a Geometry constant; spatial pruning "
+                LOG.warn("Could not extract envelope from a Geometry constant; spatial pruning "
                     + "will be skipped for such predicates (further occurrences at FINE): " + e);
             } else {
-                LOG.fine("Could not extract envelope from Geometry constant: " + e);
+                LOG.debug("Could not extract envelope from Geometry constant: " + e);
             }
             return Optional.empty();
         }
@@ -748,7 +752,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             geomCatalog.recordVisibilityColumn(delegate.getTableName(session, tableHandle),
                 handles.keySet());
         } catch (RuntimeException e) {
-            LOG.fine(() -> "Could not record visibility column: " + e.getMessage());
+            LOG.debug("Could not record visibility column: {}", e.getMessage());
         }
         return handles;
     }

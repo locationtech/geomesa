@@ -12,7 +12,6 @@ import org.geotools.api.feature.type.Name;
 import org.geotools.data.store.ContentDataStore;
 import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
-import org.geotools.feature.NameImpl;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
 
 import java.io.IOException;
@@ -58,7 +57,6 @@ public class TrinoDataStore extends ContentDataStore {
     private final int port;
     private final String catalog;
     private final String trinoSchema;
-    private final String icebergRestUrl;
     private final AuthorizationsProvider authProvider;
     private final String user;
     /** Shared secret presented to the connector; null/empty when the catalog isn't secret-gated. */
@@ -68,31 +66,12 @@ public class TrinoDataStore extends ContentDataStore {
     private List<Name> cachedTypeNames;
     private long cachedTypeNamesExpiry;
 
-    TrinoDataStore(String host, int port, String catalog,
-                   String schema, String icebergRestUrl) {
-        this(host, port, catalog, schema, icebergRestUrl, null, DEFAULT_USER);
-    }
-
-    TrinoDataStore(String host, int port, String catalog,
-                   String schema, String icebergRestUrl,
-                   AuthorizationsProvider authProvider) {
-        this(host, port, catalog, schema, icebergRestUrl, authProvider, DEFAULT_USER);
-    }
-
-    TrinoDataStore(String host, int port, String catalog,
-                   String schema, String icebergRestUrl,
-                   AuthorizationsProvider authProvider, String user) {
-        this(host, port, catalog, schema, icebergRestUrl, authProvider, user, null);
-    }
-
-    TrinoDataStore(String host, int port, String catalog,
-                   String schema, String icebergRestUrl,
+    TrinoDataStore(String host, int port, String catalog, String schema,
                    AuthorizationsProvider authProvider, String user, String secret) {
         this.host = host;
         this.port = port;
         this.catalog = catalog;
         this.trinoSchema = schema;
-        this.icebergRestUrl = icebergRestUrl;
         this.authProvider = authProvider;
         this.user = user;
         this.secret = secret;
@@ -149,9 +128,18 @@ public class TrinoDataStore extends ContentDataStore {
         return props;
     }
 
-    String catalog()        { return catalog; }
-    String trinoSchema()    { return trinoSchema; }
-    String icebergRestUrl() { return icebergRestUrl; }
+    String catalog()     { return catalog; }
+    String trinoSchema() { return trinoSchema; }
+
+    /** Double-quote a SQL identifier (column/table/schema/catalog name), escaping any
+     *  embedded quotes, so caller-influenced names (query property names, sort columns,
+     *  discovered type names) can't break out of the identifier position. Same algorithm
+     *  as the JDBC 4.3 {@link java.sql.Statement#enquoteIdentifier} default (alwaysQuote
+     *  variant) — kept static here because SQL is composed, and unit-tested, before any
+     *  {@code Statement} exists. */
+    static String escapeQuotes(String identifier) {
+        return "\"" + identifier.replace("\"", "\"\"") + "\"";
+    }
 
     /**
      * Lists the available type (table) names, cached for the type-names TTL.
@@ -171,7 +159,7 @@ public class TrinoDataStore extends ContentDataStore {
     }
 
     private List<Name> queryTypeNames() throws IOException {
-        String sql = "SELECT table_name FROM " + quoteIdentifier(catalog)
+        String sql = "SELECT table_name FROM " + escapeQuotes(catalog)
             + ".information_schema.tables WHERE table_schema = ? AND table_type = 'BASE TABLE'";
         List<Name> names = new ArrayList<>();
         try (Connection conn = connect();
@@ -179,18 +167,13 @@ public class TrinoDataStore extends ContentDataStore {
             ps.setString(1, trinoSchema);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    names.add(new NameImpl(rs.getString("table_name")));
+                    names.add(name(rs.getString("table_name")));
                 }
             }
         } catch (SQLException e) {
             throw new IOException("Failed to list tables", e);
         }
         return Collections.unmodifiableList(names);
-    }
-
-    /** Quote a Trino identifier (e.g. the catalog) so it can't break the SQL or inject. */
-    private static String quoteIdentifier(String id) {
-        return '"' + id.replace("\"", "\"\"") + '"';
     }
 
     /**

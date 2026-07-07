@@ -76,11 +76,10 @@ class VisibilityIT {
      */
     private DataStore store(String auths) throws IOException {
         Map<String, Object> params = new HashMap<>();
-        params.put("host",           "localhost");
-        params.put("port",           8080);
-        params.put("catalog",        "spatial_iceberg");
-        params.put("schema",         "spatial");
-        params.put("icebergRestUrl", "http://localhost:8181");
+        params.put("trino.host",    "localhost");
+        params.put("trino.port",    8080);
+        params.put("trino.catalog", "spatial_iceberg");
+        params.put("trino.schema",  "spatial");
         if (auths != null) {
             params.put("geomesa.security.auths", auths);
         }
@@ -119,31 +118,33 @@ class VisibilityIT {
     // ── Tests ─────────────────────────────────────────────────────────────────
 
     /**
-     * A store with no auth param (security disabled) sees every row. A "U" store
-     * sees a strict subset, and a store with "" (no auths) sees an even stricter
-     * subset (only the null-visibility rows). A fully-cleared "U,FOUO" store clears
-     * every tier, so it matches the unfiltered count.
+     * Auths are fail-closed end-to-end: an UNCONFIGURED store (no geomesa.security
+     * params) behaves exactly like a store with explicit empty auths — both see
+     * only the null-visibility rows (see {@code TrinoDataStore.connect(List)}:
+     * null/empty auths forward no credential, so the caller sees only unrestricted
+     * rows). Granting auths then widens the result set tier by tier.
      *
      * VIS_CYCLE = [null, U, U&FOUO]:
-     *   none   → only cycle[0] (null-vis) rows       → the smallest set
-     *   U      → cycle[0] + cycle[1] rows            → larger
-     *   U,FOUO → all tiers                           → largest (== unfiltered)
+     *   unconfigured / "" → only cycle[0] (null-vis) rows → the smallest set
+     *   U                 → cycle[0] + cycle[1] rows       → larger
+     *   U,FOUO            → all tiers                      → largest
      *
      * Using monotonic inequalities rather than exact share arithmetic keeps the
      * test stable across minor ingest variations (dedup, partial re-ingest, etc.).
      */
     @Test
     void authFilteringProducesStrictlyMonotonicCounts() throws IOException {
-        int all  = countVia(store(null));       // security disabled → every row
+        int unconfigured = countVia(store(null)); // no security params → fail-closed
         int fouo = countVia(store("U,FOUO"));    // clears every VIS_CYCLE tier (null, U, U&FOUO)
         int u    = countVia(store("U"));          // sees null + U tiers
         int none = countVia(store(""));           // sees only null-visibility rows
 
-        assertThat(all).as("unfiltered store must have at least one row").isGreaterThan(0);
         assertThat(none).as("empty-auths count must be > 0 (null-vis rows exist)").isGreaterThan(0);
         assertThat(u).as("'U' auth count must be > empty-auths count").isGreaterThan(none);
         assertThat(fouo).as("'U,FOUO' auth count must be > 'U' auth count").isGreaterThan(u);
-        assertThat(all).as("'U,FOUO' clears every tier, so it matches the unfiltered count").isEqualTo(fouo);
+        assertThat(unconfigured)
+            .as("an unconfigured store is fail-closed: it matches the explicit empty-auths count")
+            .isEqualTo(none);
     }
 
     /**

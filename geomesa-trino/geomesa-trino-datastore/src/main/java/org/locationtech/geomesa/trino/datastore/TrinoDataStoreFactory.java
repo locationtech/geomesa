@@ -30,25 +30,24 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
 
     /** Trino coordinator host (required). */
     public static final Param HOST =
-        new Param("host", String.class, "Trino host", true);
+        new Param("trino.host", String.class, "Trino host", true);
     /** Trino coordinator port (required). */
     public static final Param PORT =
-        new Param("port", Integer.class, "Trino port", true);
+        new Param("trino.port", Integer.class, "Trino port", true);
     /** Trino catalog; use {@code spatial_iceberg} for Z2 pruning (default {@code spatial_iceberg}). */
     public static final Param CATALOG =
-        new Param("catalog", String.class, "Trino catalog (use spatial_iceberg for Z2 pruning)",
+        new Param("trino.catalog", String.class, "Trino catalog (use spatial_iceberg for Z2 pruning)",
             false, "spatial_iceberg");
     /** Trino schema (default {@code spatial}). */
     public static final Param SCHEMA =
-        new Param("schema", String.class, "Trino schema", false, "spatial");
-    /** Iceberg REST catalog URL. */
-    public static final Param ICEBERG_REST_URL =
-        new Param("icebergRestUrl", String.class, "Iceberg REST catalog URL",
-            false, "http://localhost:8181");
+        new Param("trino.schema", String.class, "Trino schema", false, "spatial");
+    /** Namespace URI applied to type names (GeoServer-workspace support). */
+    public static final Param NAMESPACE =
+        new Param("namespace", String.class, "Namespace URI", false);
     /** Trino connection user (service account); must hold the full auth set when Trino-layer
      *  visibility enforcement is active on the catalog. */
     public static final Param USER =
-        new Param("user", String.class,
+        new Param("trino.user", String.class,
             "Trino connection user (service account). Must hold the full auth set "
                 + "when Trino-layer visibility enforcement is active on the catalog.",
             false, TrinoDataStore.DEFAULT_USER);
@@ -68,12 +67,14 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
         "Shared secret presented to Trino as the 'secret' extra credential; must match the "
             + "catalog's geomesa.security.auths-secret. No comma or colon.", false);
 
+    private static final String TRINO_DRIVER_CLASS = "io.trino.jdbc.TrinoDriver";
+
     /**
      * Returns the human-readable display name of this datastore factory.
      *
      * @return display name
      */
-    @Override public String getDisplayName()  { return "GeoMesa Trino DataStore"; }
+    @Override public String getDisplayName()  { return "Trino (GeoMesa)"; }
     /**
      * Returns a human-readable description of this datastore factory.
      *
@@ -86,7 +87,7 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
      * @return parameter descriptors
      */
     @Override public Param[] getParametersInfo() {
-        return new Param[]{HOST, PORT, CATALOG, SCHEMA, ICEBERG_REST_URL, USER,
+        return new Param[]{HOST, PORT, CATALOG, SCHEMA, NAMESPACE, USER,
             AUTHS, AUTHS_FORCE_EMPTY, AUTH_PROVIDER, SECRET};
     }
 
@@ -98,7 +99,7 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
      */
     @Override
     public boolean canProcess(Map<String, ?> params) {
-        return params.containsKey("host") && params.containsKey("port");
+        return params.containsKey(HOST.key) && params.containsKey(PORT.key);
     }
 
     /**
@@ -109,12 +110,11 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
      */
     @Override
     public DataStore createDataStore(Map<String, ?> params) throws IOException {
-        String host           = (String)  HOST.lookUp(params);
-        int    port           = (Integer) PORT.lookUp(params);
-        String catalog        = lookUpOrDefault(CATALOG, params, "spatial_iceberg");
-        String schema         = lookUpOrDefault(SCHEMA, params, "spatial");
-        String icebergRestUrl = lookUpOrDefault(ICEBERG_REST_URL, params, "http://localhost:8181");
-        String user           = lookUpOrDefault(USER, params, TrinoDataStore.DEFAULT_USER);
+        String host    = (String)  HOST.lookUp(params);
+        int    port    = (Integer) PORT.lookUp(params);
+        String catalog = lookUpOrDefault(CATALOG, params);
+        String schema  = lookUpOrDefault(SCHEMA, params);
+        String user    = lookUpOrDefault(USER, params);
 
         String authsStr = (String) AUTHS.lookUp(params);
         Boolean forceEmpty = (Boolean) AUTHS_FORCE_EMPTY.lookUp(params);
@@ -129,14 +129,19 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
         }
         AuthorizationsProvider authProvider = AuthUtils.getProvider(params, auths);
         String secret = (String) SECRET.lookUp(params);
-        return new TrinoDataStore(host, port, catalog, schema, icebergRestUrl, authProvider, user, secret);
+        TrinoDataStore ds =
+            new TrinoDataStore(host, port, catalog, schema, authProvider, user, secret);
+        String namespace = (String) NAMESPACE.lookUp(params);
+        if (namespace != null && !namespace.isBlank()) {
+            ds.setNamespaceURI(namespace);
+        }
+        return ds;
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T lookUpOrDefault(Param param, Map<String, ?> params, T defaultValue)
-        throws IOException {
+    private static <T> T lookUpOrDefault(Param param, Map<String, ?> params) throws IOException {
         T value = (T) param.lookUp(params);
-        return value != null ? value : defaultValue;
+        return value != null ? value : (T) param.getDefaultValue();
     }
 
     /**
@@ -158,7 +163,7 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
     @Override
     public boolean isAvailable() {
         try {
-            Class.forName("io.trino.jdbc.TrinoDriver");
+            Class.forName(TRINO_DRIVER_CLASS);
             return true;
         } catch (ClassNotFoundException e) {
             return false;

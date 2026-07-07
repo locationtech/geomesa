@@ -30,7 +30,8 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,7 +63,7 @@ import java.util.regex.Pattern;
  */
 public final class GeoMesaColumnCatalog {
 
-    private static final Logger LOG = Logger.getLogger(GeoMesaColumnCatalog.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(GeoMesaColumnCatalog.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -256,7 +257,7 @@ public final class GeoMesaColumnCatalog {
             String partitionSpecJson,
             boolean hasXz2, boolean hasZ2) {
         if (hasXz2 && hasZ2) {
-            LOG.fine("Geometry column '" + geomName + "' has both " + companion(geomName, Z2_SUFFIX)
+            LOG.debug("Geometry column '" + geomName + "' has both " + companion(geomName, Z2_SUFFIX)
                 + " and " + companion(geomName, XZ2_SUFFIX) + "; preferring XZ2.");
         }
         if (hasXz2) {
@@ -267,7 +268,7 @@ public final class GeoMesaColumnCatalog {
                 // no spatial discrimination. Skip the partition handle so we don't push
                 // useless ranges; per-file bbox-stat pruning still narrows the scan.
                 if (bits < MIN_XZ2_PRUNING_BITS) {
-                    LOG.fine("XZ2 column " + companion(geomName, XZ2_SUFFIX) + " has partition "
+                    LOG.debug("XZ2 column " + companion(geomName, XZ2_SUFFIX) + " has partition "
                         + "width=" + (bits / 4) + " (bits=" + bits + "); width < 13 yields no "
                         + "partition pruning under g=12 XZ2SFC — using bbox-stat pruning only.");
                     return Optional.empty();
@@ -337,13 +338,13 @@ public final class GeoMesaColumnCatalog {
                 try {
                     return OptionalInt.of(deriveBitsFromTruncateWidth(width));
                 } catch (IllegalArgumentException ex) {
-                    LOG.fine("Ignoring out-of-range truncate width " + width
+                    LOG.debug("Ignoring out-of-range truncate width " + width
                         + " for source field " + sourceFieldId);
                     return OptionalInt.empty();
                 }
             }
         } catch (Exception e) {
-            LOG.fine("Failed to parse partition spec JSON: " + e.getMessage());
+            LOG.debug("Failed to parse partition spec JSON: " + e.getMessage());
         }
         return OptionalInt.empty();
     }

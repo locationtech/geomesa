@@ -17,7 +17,8 @@ import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link AuthorizationResolver} backed by a properties file mapping Trino
@@ -40,7 +41,7 @@ import java.util.logging.Logger;
  */
 public final class FileAuthorizationResolver implements AuthorizationResolver {
 
-    private static final Logger LOG = Logger.getLogger(FileAuthorizationResolver.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(FileAuthorizationResolver.class);
 
     private static final String USER_PREFIX  = "user.";
     private static final String GROUP_PREFIX = "group.";
@@ -97,14 +98,14 @@ public final class FileAuthorizationResolver implements AuthorizationResolver {
                     next.load(in);
                 }
             } else {
-                LOG.warning("Auth-mapping file not found: " + file
+                LOG.warn("Auth-mapping file not found: " + file
                     + " — all identities resolve to empty authorizations (fail-closed)");
             }
             Snapshot next0 = new Snapshot(next, modified);
             snapshot = next0;  // single atomic publish
             return next0.mapping();
         } catch (IOException e) {
-            LOG.warning("Failed to read auth-mapping file " + file + ": " + e.getMessage()
+            LOG.warn("Failed to read auth-mapping file " + file + ": " + e.getMessage()
                 + " — using last good mapping (or empty)");
             return current.mapping();
         }
@@ -119,7 +120,7 @@ public final class FileAuthorizationResolver implements AuthorizationResolver {
             // can't round-trip through the row-filter chain — drop it (narrowing =
             // fail-closed) rather than honor it; see AuthTokens.
             if (!AuthTokens.isValid(t)) {
-                LOG.warning("Dropping invalid authorization token '" + t + "' from auth-mapping file "
+                LOG.warn("Dropping invalid authorization token '" + t + "' from auth-mapping file "
                     + "(tokens must be printable ASCII without ',', '|', ';', ':', or whitespace)");
                 continue;
             }

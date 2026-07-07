@@ -18,7 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Connector-level access control that injects a per-row visibility filter on
@@ -48,7 +49,7 @@ import java.util.logging.Logger;
  */
 public final class VisibilityAccessControl implements ConnectorAccessControl {
 
-    private static final Logger LOG = Logger.getLogger(VisibilityAccessControl.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(VisibilityAccessControl.class);
 
     private final String catalog;
     private final GeoMesaColumnCatalog geomCatalog;
@@ -94,7 +95,7 @@ public final class VisibilityAccessControl implements ConnectorAccessControl {
             // cold worker). Fail closed — hide all rows rather than risk leaking
             // a vis-bearing table. Normal scans observe columns first, so this
             // should not fire in practice.
-            LOG.warning("Visibility column not observed for " + catalog + "." + table
+            LOG.warn("Visibility column not observed for " + catalog + "." + table
                 + " before row-filter analysis; hiding all rows (fail-closed)");
             return List.of(viewExpression(context, table, "false"));
         }

@@ -25,15 +25,18 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 
 import org.locationtech.geomesa.security.AuthorizationsProvider;
 
+import static org.locationtech.geomesa.trino.datastore.TrinoDataStore.escapeQuotes;
+
 import java.io.IOException;
 import java.sql.*;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.stream.Collectors;
 
 class TrinoFeatureSource extends ContentFeatureSource {
 
-    private static final Logger LOG = Logger.getLogger(TrinoFeatureSource.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(TrinoFeatureSource.class);
 
     private final TrinoDataStore trinoStore;
 
@@ -77,6 +80,34 @@ class TrinoFeatureSource extends ContentFeatureSource {
     }
 
     /**
+     * Max-features is pushed down as a LIMIT in the SQL (see getReaderInternal), so the
+     * framework should not re-apply it by truncating the reader. Offsets are NOT pushed
+     * down ({@code canOffset} stays false): the framework skips {@code startIndex} rows
+     * from the reader client-side, so the pushed-down limit covers them too — see
+     * {@link #effectiveLimit(Query)}.
+     *
+     * @param query the query being planned
+     * @return {@code true}; limiting is handled in SQL
+     */
+    @Override
+    protected boolean canLimit(Query query) {
+        return true;
+    }
+
+    /** The SQL LIMIT for a query: {@code startIndex + maxFeatures}, or -1 when unlimited.
+     *  Because the framework applies the {@code startIndex} skip client-side (canOffset
+     *  is false), the pushed-down limit must include the rows the framework will skip;
+     *  the same value caps {@code getCount} (the framework subtracts {@code startIndex}
+     *  from the returned count afterwards). */
+    private static long effectiveLimit(Query query) {
+        if (query.isMaxFeaturesUnlimited()) {
+            return -1;
+        }
+        int start = query.getStartIndex() != null ? query.getStartIndex() : 0;
+        return (long) start + query.getMaxFeatures();
+    }
+
+    /**
      * Builds the feature type by discovering the Trino table's schema.
      *
      * @return the discovered simple feature type
@@ -102,11 +133,11 @@ class TrinoFeatureSource extends ContentFeatureSource {
                 try {
                     return countOnce(query);
                 } catch (SQLException retry) {
-                    LOG.warning("Failed to execute count query after schema refresh: " + retry.getMessage());
+                    LOG.warn("Failed to execute count query after schema refresh: " + retry.getMessage());
                     return -1;
                 }
             }
-            LOG.warning("Failed to execute count query: " + e.getMessage());
+            LOG.warn("Failed to execute count query: " + e.getMessage());
             return -1;
         }
     }
@@ -116,8 +147,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
         VisibilityContext vis = visibility();
         String where = combineWhere(encodeFilterSql(query.getFilter()),
             vis == null ? null : vis.conjunct());
-        String sql = String.format("SELECT COUNT(*) FROM \"%s\".\"%s\".\"%s\"%s",
-            trinoStore.catalog(), trinoStore.trinoSchema(), typeName, where);
+        String sql = String.format("SELECT COUNT(*) FROM %s.%s.%s%s",
+            escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(typeName), where);
         try (Connection conn = trinoStore.connect(vis == null ? null : vis.auths());
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -126,8 +157,15 @@ class TrinoFeatureSource extends ContentFeatureSource {
             // Advance past the last row so the Trino JDBC driver receives the "no more pages"
             // confirmation before close. Otherwise, query appears as cancelled to Trino.
             while (rs.next()) {}
+            // canLimit=true disables the framework's min(count, maxFeatures) clamp, so
+            // apply it here; startIndex + maxFeatures because the framework subtracts
+            // startIndex from the returned count when canOffset is false.
+            long cap = effectiveLimit(query);
+            if (cap >= 0 && total > cap) {
+                total = cap;
+            }
             if (total > Integer.MAX_VALUE) {
-                LOG.fine("Count " + total + " exceeds Integer.MAX_VALUE; reporting -1 (unknown).");
+                LOG.debug("Count " + total + " exceeds Integer.MAX_VALUE; reporting -1 (unknown).");
                 return -1;
             }
             return (int) total;
@@ -149,11 +187,11 @@ class TrinoFeatureSource extends ContentFeatureSource {
                 try {
                     return boundsOnce(query);
                 } catch (SQLException retry) {
-                    LOG.warning("Failed to compute bounds after schema refresh: " + retry.getMessage());
+                    LOG.warn("Failed to compute bounds after schema refresh: " + retry.getMessage());
                     return null;
                 }
             }
-            LOG.warning("Failed to compute bounds for '" + entry.getName().getLocalPart()
+            LOG.warn("Failed to compute bounds for '" + entry.getName().getLocalPart()
                 + "': " + e.getMessage());
             return null;
         }
@@ -168,10 +206,10 @@ class TrinoFeatureSource extends ContentFeatureSource {
         String where = combineWhere(encodeFilterSql(query.getFilter()),
             vis == null ? null : vis.conjunct());
         String sql = String.format(
-            "SELECT MIN(\"%1$s\".xmin), MIN(\"%1$s\".ymin)," +
-            " MAX(\"%1$s\".xmax), MAX(\"%1$s\".ymax)" +
-            " FROM \"%2$s\".\"%3$s\".\"%4$s\"%5$s",
-            bboxCol, trinoStore.catalog(), trinoStore.trinoSchema(), typeName, where);
+            "SELECT MIN(%1$s.xmin), MIN(%1$s.ymin)," +
+            " MAX(%1$s.xmax), MAX(%1$s.ymax)" +
+            " FROM %2$s.%3$s.%4$s%5$s",
+            escapeQuotes(bboxCol), escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(typeName), where);
         try (Connection conn = trinoStore.connect(vis == null ? null : vis.auths());
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -223,14 +261,14 @@ class TrinoFeatureSource extends ContentFeatureSource {
         SimpleFeatureType sft = query.retrieveAllProperties()
             ? getSchema()
             : SimpleFeatureTypeBuilder.retype(getSchema(), query.getPropertyNames());
-        String cols = "\"" + fidColumn + "\"";
+        String cols = escapeQuotes(fidColumn);
         if (sft.getAttributeCount() > 0) {
             cols += ", " + sft.getAttributeDescriptors().stream()
-                .map(d -> "\"" + d.getLocalName() + "\"")
+                .map(d -> escapeQuotes(d.getLocalName()))
                 .collect(Collectors.joining(", "));
         }
         if (visColumn != null) {
-            cols += ", \"" + visColumn.replace("\"", "\"\"") + "\"";
+            cols += ", " + escapeQuotes(visColumn);
         }
         // Auths fetched once (in visibility()) so the extra credential, the SQL
         // conjunct, and the client-side backstop can't diverge under per-request
@@ -239,8 +277,10 @@ class TrinoFeatureSource extends ContentFeatureSource {
         String where = combineWhere(encodeFilterSql(query.getFilter()),
             visColumn == null ? null : visibilityConjunct(visColumn, auths));
         String orderBy = toOrderByClause(query.getSortBy());
-        String sql = String.format("SELECT %s FROM \"%s\".\"%s\".\"%s\"%s%s",
-            cols, trinoStore.catalog(), trinoStore.trinoSchema(), typeName, where, orderBy);
+        long cap = effectiveLimit(query);
+        String limit = cap < 0 ? "" : " LIMIT " + cap;
+        String sql = String.format("SELECT %s FROM %s.%s.%s%s%s%s",
+            cols, escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(typeName), where, orderBy, limit);
         Connection conn;
         try {
             conn = trinoStore.connect(auths);
@@ -286,7 +326,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
             } else if (s == SortBy.REVERSE_ORDER) {
                 order = SortOrder.DESCENDING;
             }
-            sb.append('"').append(col.replace("\"", "\"\"")).append('"')
+            sb.append(escapeQuotes(col))
               .append(order == SortOrder.DESCENDING ? " DESC" : " ASC");
         }
         return sb.toString();
@@ -298,9 +338,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
      *  the UDF would re-split it into auths that were never issued (see {@link AuthTokens}). */
     static String visibilityConjunct(String visColumn, List<String> auths) {
         AuthTokens.validate(auths);
-        String column = "\"" + visColumn.replace("\"", "\"\"") + "\"";
         String literal = String.join(",", auths).replace("'", "''");
-        return "is_visible(" + column + ", '" + literal + "')";
+        return "is_visible(" + escapeQuotes(visColumn) + ", '" + literal + "')";
     }
 
     /** Combine the (possibly null) filter SQL and visibility conjunct into a
@@ -362,14 +401,14 @@ class TrinoFeatureSource extends ContentFeatureSource {
             if (!schemaDrifted(getSchema(), fresh)) {
                 return false;
             }
-            LOG.warning("Schema for '" + typeName + "' changed underneath the datastore "
+            LOG.warn("Schema for '" + typeName + "' changed underneath the datastore "
                 + "(e.g. table recreated or visibility column added/removed); "
                 + "refreshing cached schema and retrying");
             entry.getState(getTransaction()).flush();
             schema = null;
             return true;
         } catch (IOException e) {
-            LOG.fine("Schema re-discovery for '" + typeName + "' failed: " + e.getMessage());
+            LOG.debug("Schema re-discovery for '" + typeName + "' failed: " + e.getMessage());
             return false;
         }
     }
@@ -384,10 +423,10 @@ class TrinoFeatureSource extends ContentFeatureSource {
         }
         List<String> cachedAttrs = cached.getAttributeDescriptors().stream()
             .map(d -> d.getLocalName() + ":" + d.getType().getBinding().getName())
-            .collect(Collectors.toList());
+            .toList();
         List<String> freshAttrs = fresh.getAttributeDescriptors().stream()
             .map(d -> d.getLocalName() + ":" + d.getType().getBinding().getName())
-            .collect(Collectors.toList());
+            .toList();
         return !cachedAttrs.equals(freshAttrs);
     }
 }

@@ -20,8 +20,8 @@ class TrinoDataStoreFactoryTest {
 
     private static Map<String, Object> baseParams() {
         Map<String, Object> params = new HashMap<>();
-        params.put("host", "localhost");
-        params.put("port", 8080);
+        params.put("trino.host", "localhost");
+        params.put("trino.port", 8080);
         return params;
     }
 

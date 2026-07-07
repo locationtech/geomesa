@@ -34,7 +34,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.stream.Collectors;
 
 /**
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
  */
 public class TrinoFilterToSQL extends FilterToSQL {
 
-    private static final Logger LOG = Logger.getLogger(TrinoFilterToSQL.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(TrinoFilterToSQL.class);
 
     /**
      * Creates a filter translator that double-quotes identifiers.
@@ -441,7 +442,7 @@ public class TrinoFilterToSQL extends FilterToSQL {
             case "miles", "mi"              -> distance * 1609.344;
             case "nautical miles", "nm"     -> distance * 1852.0;
             default -> {
-                LOG.warning("Unrecognized DWITHIN distance unit '" + units + "'; treating distance as meters.");
+                LOG.warn("Unrecognized DWITHIN distance unit '" + units + "'; treating distance as meters.");
                 yield distance;
             }
         };
