@@ -118,7 +118,11 @@
     <dependency>
       <groupId>org.apache.accumulo</groupId>
       <artifactId>accumulo-access</artifactId>
-      <version>${accumulo.access.version}</version>
+    </dependency>
+    <!-- Bounded caches in GeoMesaSecurityFunctions -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
     </dependency>
 
     <dependency>

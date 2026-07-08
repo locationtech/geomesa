@@ -17,9 +17,12 @@ import io.trino.spi.type.StandardTypes;
 import org.apache.accumulo.access.AccessEvaluator;
 import org.apache.accumulo.access.Authorizations;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Row-entitlement UDF: same semantics as geomesa-security's
@@ -28,11 +31,25 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class GeoMesaSecurityFunctions {
 
-    // Worker-lifetime cache; auth sets are few. Cleared if it ever grows past
-    // the bound (degenerate caller) rather than evicting per-entry.
-    private static final int MAX_CACHED_AUTH_SETS = 1024;
-    private static final ConcurrentHashMap<String, AccessEvaluator> EVALUATORS =
-        new ConcurrentHashMap<>();
+    private record Decision(String auths, String visibility) {}
+
+    // Two bounded worker-lifetime caches (Guava — already on the plugin
+    // classpath via trino-iceberg, and what Trino itself caches with), layered:
+    // (a) auths → AccessEvaluator, so a caller's auth set is parsed once;
+    // (b) (auths, visibility) → decision. The visibility row filter invokes
+    //     is_visible once per row, and AccessEvaluator.canAccess(String)
+    //     re-parses the expression on every call — while distinct
+    //     (auth-set, expression) pairs are few (users × the dataset's
+    //     visibility ladder). Caching the boolean makes the steady-state
+    //     per-row cost a single cache hit. Sound because the decision is a
+    //     pure function of the pair; fail-closed results for invalid
+    //     expressions are cached the same way (equally deterministic).
+    private static final LoadingCache<String, AccessEvaluator> EVALUATORS =
+        CacheBuilder.newBuilder().maximumSize(1024)
+            .build(CacheLoader.from(GeoMesaSecurityFunctions::buildEvaluator));
+    private static final LoadingCache<Decision, Boolean> DECISIONS =
+        CacheBuilder.newBuilder().maximumSize(8192)
+            .build(CacheLoader.from(GeoMesaSecurityFunctions::evaluate));
 
     private GeoMesaSecurityFunctions() {}
 
@@ -54,20 +71,23 @@ public final class GeoMesaSecurityFunctions {
         if (visibility == null || visibility.length() == 0) {
             return true;
         }
+        return DECISIONS.getUnchecked(
+            new Decision(auths.toStringUtf8(), visibility.toStringUtf8()));
+    }
+
+    private static Boolean evaluate(Decision decision) {
         try {
-            return evaluator(auths.toStringUtf8()).canAccess(visibility.toStringUtf8());
+            // getUnchecked rewraps loader failures as UncheckedExecutionException
+            // (a RuntimeException), so an invalid auth string fails closed too.
+            return EVALUATORS.getUnchecked(decision.auths()).canAccess(decision.visibility());
         } catch (RuntimeException e) {
-            return false;  // fail closed on invalid expressions
+            return Boolean.FALSE;  // fail closed on invalid expressions
         }
     }
 
-    private static AccessEvaluator evaluator(String auths) {
-        if (EVALUATORS.size() > MAX_CACHED_AUTH_SETS) {
-            EVALUATORS.clear();
-        }
-        return EVALUATORS.computeIfAbsent(auths, a -> {
-            List<String> list = a.isEmpty() ? List.of() : Arrays.asList(a.split(","));
-            return AccessEvaluator.of(Authorizations.of(list));
-        });
+    private static AccessEvaluator buildEvaluator(String auths) {
+        List<String> list = auths.isEmpty() ? List.of() : Arrays.asList(auths.split(","));
+        return AccessEvaluator.of(Authorizations.of(list));
     }
 }
+

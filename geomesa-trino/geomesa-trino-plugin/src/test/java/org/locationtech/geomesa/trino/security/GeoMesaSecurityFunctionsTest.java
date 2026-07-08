@@ -64,4 +64,29 @@ class GeoMesaSecurityFunctionsTest {
         assertThat(visible("admin&&(", "admin")).isFalse();
         assertThat(visible("admin&", "admin")).isFalse();
     }
+
+    @Test
+    void repeatedEvaluationsAreConsistent() {
+        // Second and later calls for the same (auths, visibility) pair are served
+        // from the decision cache; results must match the uncached first call —
+        // including the cached fail-closed result for an invalid expression.
+        for (int i = 0; i < 3; i++) {
+            assertThat(visible("admin&ops", "admin,ops")).isTrue();
+            assertThat(visible("admin&ops", "ops")).isFalse();
+            assertThat(visible("admin&&(", "admin")).isFalse();
+        }
+    }
+
+    @Test
+    void cacheOverflowKeepsAnswersCorrect() {
+        // Push well past one generation of both caches (distinct auth sets and
+        // distinct decisions) to force rotations, then verify fresh and
+        // previously-seen pairs still answer correctly.
+        for (int i = 0; i < 20_000; i++) {
+            assertThat(visible("tok" + i, "tok" + i)).isTrue();
+        }
+        assertThat(visible("admin", "admin")).isTrue();
+        assertThat(visible("admin", "user")).isFalse();
+        assertThat(visible("tok0", "tok0")).isTrue();
+    }
 }

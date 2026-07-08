@@ -59,7 +59,15 @@ import java.util.regex.Pattern;
  *
  * <p>Cache lifecycle: lazy population with a {@link #DEFAULT_TTL_NANOS 5-minute}
  * TTL, so companion-column DDL is picked up without a restart. Staleness in
- * either direction is prune-safe.
+ * either direction is prune-safe. DDL forwarded through the spatial connector
+ * invalidates eagerly ({@link #invalidate}/{@link #invalidateSchema}); tables
+ * dropped outside it (plain iceberg catalog, REST API, maintenance tools) are
+ * reclaimed by an opportunistic sweep that removes entries not refreshed within
+ * {@link #SWEEP_RETENTION_TTL_MULTIPLE} TTLs, so a long-lived server with
+ * table churn does not accumulate dead entries. Sweep removal is safe on both
+ * maps: geometry descriptors re-discover on the next {@link #resolve}, and the
+ * visibility record is re-written at analysis time (before the access control
+ * reads it) on every query, with fail-closed semantics if it is ever absent.
  */
 public final class GeoMesaColumnCatalog {
 
@@ -100,19 +108,30 @@ public final class GeoMesaColumnCatalog {
     /** Default time-to-live for cached descriptors; see {@link #resolve}. */
     static final long DEFAULT_TTL_NANOS = java.time.Duration.ofMinutes(5).toNanos();
 
+    /** Entries not refreshed within this many TTLs are removed by the sweep.
+     *  Comfortably above one TTL so an entry is never reclaimed between the
+     *  analysis-time write and the same query's planning-time read. */
+    static final int SWEEP_RETENTION_TTL_MULTIPLE = 4;
+
     private record CachedEntry(Map<String, GeometryColumn> geoms, long bornNanos) {}
+
+    private record VisEntry(Optional<String> column, long bornNanos) {}
 
     private final ConcurrentHashMap<SchemaTableName, CachedEntry> cache =
         new ConcurrentHashMap<>();
     private final long ttlNanos;
     private final java.util.function.LongSupplier clock;
 
+    /** Last sweep timestamp; sweeps run at most once per TTL, from whichever
+     *  caller thread crosses the threshold first (CAS-elected). */
+    private final java.util.concurrent.atomic.AtomicLong lastSweepNanos;
+
     /** Per-table visibility-column record, written at analysis time by
      *  {@code SpatialConnectorMetadata.getColumnHandles} and read by the
      *  Trino-layer {@link org.locationtech.geomesa.trino.security.VisibilityAccessControl}. Value is the column name
      *  ({@code __vis__}) or empty when the table has none.
      */
-    private final ConcurrentHashMap<SchemaTableName, Optional<String>> visColumns =
+    private final ConcurrentHashMap<SchemaTableName, VisEntry> visColumns =
         new ConcurrentHashMap<>();
 
     /**
@@ -125,6 +144,7 @@ public final class GeoMesaColumnCatalog {
     GeoMesaColumnCatalog(long ttlNanos, java.util.function.LongSupplier clock) {
         this.ttlNanos = ttlNanos;
         this.clock = clock;
+        this.lastSweepNanos = new java.util.concurrent.atomic.AtomicLong(clock.getAsLong());
     }
 
     /** Resolves the geometry-column descriptors for a table; cached per table,
@@ -141,6 +161,7 @@ public final class GeoMesaColumnCatalog {
                                                 ConnectorTableHandle handle,
                                                 ConnectorMetadata delegate) {
         long now = clock.getAsLong();
+        maybeSweep(now);
         CachedEntry cached = cache.get(tableName);
         if (cached != null && now - cached.bornNanos() < ttlNanos) {
             return cached.geoms();
@@ -164,7 +185,9 @@ public final class GeoMesaColumnCatalog {
      * @param columnNames the table's column names
      */
     public void recordVisibilityColumn(SchemaTableName tableName, Set<String> columnNames) {
-        visColumns.put(tableName, detectVisibilityColumn(columnNames));
+        long now = clock.getAsLong();
+        maybeSweep(now);
+        visColumns.put(tableName, new VisEntry(detectVisibilityColumn(columnNames), now));
     }
 
     /** The recorded visibility column for a table: {@code Optional.of(name)} if
@@ -175,7 +198,21 @@ public final class GeoMesaColumnCatalog {
      * @return the recorded visibility column, or null if not yet observed
      */
     public Optional<String> visibilityColumn(SchemaTableName tableName) {
-        return visColumns.get(tableName);
+        VisEntry entry = visColumns.get(tableName);
+        return entry == null ? null : entry.column();
+    }
+
+    /** Removes entries not refreshed within {@link #SWEEP_RETENTION_TTL_MULTIPLE}
+     *  TTLs from both maps. Reclaims memory for tables dropped outside the
+     *  forwarded-DDL path; runs at most once per TTL, on a caller thread. */
+    private void maybeSweep(long now) {
+        long last = lastSweepNanos.get();
+        if (now - last < ttlNanos || !lastSweepNanos.compareAndSet(last, now)) {
+            return;
+        }
+        long retention = SWEEP_RETENTION_TTL_MULTIPLE * ttlNanos;
+        cache.values().removeIf(e -> now - e.bornNanos() > retention);
+        visColumns.values().removeIf(e -> now - e.bornNanos() > retention);
     }
 
     /** Drops all cached state for a table. Called when forwarded DDL removes or

@@ -43,7 +43,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * ConnectorMetadata wrapper that injects spatial range constraints into
- * applyFilter for spatial predicates (ST_Intersects, ST_Within, ST_Contains)
+ * applyFilter for intersection-implying spatial predicates (ST_Intersects,
+ * ST_Within, ST_Contains, ST_Crosses, ST_Touches, ST_Overlaps, ST_Equals)
  * and the equivalent __X_bbox__ struct comparisons. For each such predicate the
  * code extracts the query envelope and injects per-geom:
  *   (1) four REAL-typed domains on the {xmin, ymin, xmax, ymax} sub-fields of
@@ -302,19 +303,25 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     /**
      * Function names whose row-side argument is a geometry and whose query-side
      * argument is a geometry literal — the shape this connector can extract an
-     * envelope from for Z2/bbox pushdown. All three are sound for overlap-only
-     * pruning: a matching row's bbox must overlap the query envelope. {@code
-     * ST_Disjoint} is excluded on purpose — see the class javadoc.
+     * envelope from for Z2/bbox pushdown. Every listed predicate implies the two
+     * geometries intersect (in either argument order), so overlap-only pruning is
+     * sound: a matching row's bbox must overlap the query envelope. {@code
+     * ST_Disjoint} is excluded on purpose — see the class javadoc. {@code
+     * ST_Distance}-based predicates carry no extractable envelope; the datastore
+     * lowers DWITHIN to bbox comparisons the pattern-reconstruction path picks up.
      */
     private static boolean isSpatialPredicateName(String fn) {
-        return fn.equals("st_intersects") || fn.equals("st_within")
-            || fn.equals("st_contains");
+        return switch (fn) {
+            case "st_intersects", "st_within", "st_contains",
+                 "st_crosses", "st_touches", "st_overlaps", "st_equals" -> true;
+            default -> false;
+        };
     }
 
     /**
      * Walks the ConnectorExpression tree looking for spatial function calls
-     * (st_intersects/st_within/st_contains/st_disjoint) with a geometry-constant
-     * argument and returns that geometry's envelope. Used by findSpatialMatch and
+     * (see {@link #isSpatialPredicateName}) with a geometry-constant argument
+     * and returns that geometry's envelope. Used by findSpatialMatch and
      * collectSpatialMatches.
      */
     Optional<Envelope> tryExtractEnvelope(ConnectorExpression expr) {

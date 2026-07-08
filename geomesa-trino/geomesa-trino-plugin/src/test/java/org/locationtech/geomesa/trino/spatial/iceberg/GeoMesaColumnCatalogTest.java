@@ -174,4 +174,48 @@ class GeoMesaColumnCatalogTest {
 
         assertThat(delegate.calls).isEqualTo(1);
     }
+
+    // -----------------------------------------------------------------------
+    // Sweep: reclaiming entries for tables dropped outside forwarded DDL
+    // -----------------------------------------------------------------------
+
+    @Test
+    void sweepReclaimsEntriesForTablesDroppedOutsideForwardedDdl() {
+        long ttl = Duration.ofMinutes(5).toNanos();
+        AtomicLong clock = new AtomicLong(0);
+        GeoMesaColumnCatalog catalog = new GeoMesaColumnCatalog(ttl, clock::get);
+        SchemaTableName dropped = new SchemaTableName("s", "dropped_externally");
+        catalog.recordVisibilityColumn(dropped, java.util.Set.of("geom", "__vis__"));
+        assertThat(catalog.visibilityColumn(dropped)).contains("__vis__");
+
+        // Past the retention window with no refresh (the table was dropped via the
+        // plain iceberg catalog, so no invalidate() ran). Any other traffic — here a
+        // record on an unrelated table — triggers the sweep.
+        clock.addAndGet(GeoMesaColumnCatalog.SWEEP_RETENTION_TTL_MULTIPLE * ttl + 1);
+        catalog.recordVisibilityColumn(new SchemaTableName("s", "other"),
+            java.util.Set.of("geom"));
+
+        // null = "not observed" — a recreated table re-records at analysis time,
+        // and until then the access control fails closed.
+        assertThat(catalog.visibilityColumn(dropped)).isNull();
+    }
+
+    @Test
+    void activelyRefreshedEntriesSurviveSweep() {
+        long ttl = Duration.ofMinutes(5).toNanos();
+        AtomicLong clock = new AtomicLong(0);
+        GeoMesaColumnCatalog catalog = new GeoMesaColumnCatalog(ttl, clock::get);
+        SchemaTableName live = new SchemaTableName("s", "live");
+        catalog.recordVisibilityColumn(live, java.util.Set.of("geom", "__vis__"));
+
+        // Refreshed at 2×TTL (every analyzed query re-records), swept at 5×TTL:
+        // age since refresh is 3×TTL, inside the retention window.
+        clock.addAndGet(2 * ttl);
+        catalog.recordVisibilityColumn(live, java.util.Set.of("geom", "__vis__"));
+        clock.addAndGet(3 * ttl);
+        catalog.recordVisibilityColumn(new SchemaTableName("s", "other"),
+            java.util.Set.of("geom"));
+
+        assertThat(catalog.visibilityColumn(live)).contains("__vis__");
+    }
 }

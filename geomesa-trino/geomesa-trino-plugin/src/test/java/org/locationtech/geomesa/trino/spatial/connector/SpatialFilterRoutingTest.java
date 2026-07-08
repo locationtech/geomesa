@@ -43,16 +43,23 @@ class SpatialFilterRoutingTest {
             ));
     }
 
-    /** Builds an st_disjoint call with a real Geometry constant, mirroring {@link
-     *  #stIntersects}. Used to assert disjoint is NOT collected for pushdown. */
-    private static Call stDisjoint(String geomCol, org.locationtech.jts.geom.Envelope env) {
+    /** Builds an arbitrary ST_* call with a real Geometry constant, mirroring {@link
+     *  #stIntersects}. */
+    private static Call stCall(String functionName, String geomCol,
+                               org.locationtech.jts.geom.Envelope env) {
         io.airlift.slice.Slice geomSlice = io.trino.geospatial.serde.JtsGeometrySerde.serialize(
             new GeometryFactory().toGeometry(env));
         Constant geomConst = new Constant(geomSlice, TestGeometryType.GEOMETRY);
         return new Call(
             io.trino.spi.type.BooleanType.BOOLEAN,
-            new FunctionName("st_disjoint"),
+            new FunctionName(functionName),
             List.of(new Variable(geomCol, VarbinaryType.VARBINARY), geomConst));
+    }
+
+    /** Builds an st_disjoint call with a real Geometry constant. Used to assert
+     *  disjoint is NOT collected for pushdown. */
+    private static Call stDisjoint(String geomCol, org.locationtech.jts.geom.Envelope env) {
+        return stCall("st_disjoint", geomCol, env);
     }
 
     private static Call and(ConnectorExpression... args) {
@@ -77,6 +84,24 @@ class SpatialFilterRoutingTest {
         assertThat(mixed)
             .extracting(SpatialConnectorMetadata.SpatialMatch::geomName)
             .containsExactly("center");
+    }
+
+    @Test
+    void allIntersectionImplyingOpsAreCollectedForPushdown() {
+        // Each of these predicates requires the geometries to intersect, so
+        // overlap-only bbox/Z2 pruning is sound for all of them — a matching
+        // row's bbox must overlap the query envelope.
+        SpatialConnectorMetadata m = new SpatialConnectorMetadata(null, null);
+        org.locationtech.jts.geom.Envelope env = new org.locationtech.jts.geom.Envelope(0, 1, 0, 1);
+        for (String fn : List.of("st_intersects", "st_within", "st_contains",
+                                 "st_crosses", "st_touches", "st_overlaps", "st_equals")) {
+            List<SpatialConnectorMetadata.SpatialMatch> matches =
+                m.findAllSpatialMatches(stCall(fn, "geom", env));
+            assertThat(matches).as("%s should produce a pushdown match", fn).hasSize(1);
+            assertThat(matches.get(0).functionName()).isEqualTo(fn);
+            assertThat(matches.get(0).geomName()).isEqualTo("geom");
+            assertThat(matches.get(0).envelope().getMaxX()).isEqualTo(1.0);
+        }
     }
 
     @Test
