@@ -19,8 +19,6 @@ Parameter                          Type   Description
                                           Environment variables in property values will be interpolated using ``${...}`` syntax
 ``fs.writer.partitions.max.open``  Int    When writing to multiple partitions at once, this restricts the maximum number of
                                           partition files to hold open at one time, per writer, defaults to ``32``
-``fs.writer.partition.timeout``    String Timeout for closing a partition file after write, e.g. '60 seconds'. This is to
-                                          prevent too many open files during large write operations
 ``geomesa.query.threads``          Int    The number of threads used for each query, defaults to ``4``
 ``geomesa.query.timeout``          String The max time a query will be allowed to run before being killed. The
                                           timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``

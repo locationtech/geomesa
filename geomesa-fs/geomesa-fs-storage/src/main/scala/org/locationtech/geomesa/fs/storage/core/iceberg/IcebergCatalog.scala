@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, TableIdentifier}
 import org.apache.iceberg.{CatalogUtil, PartitionSpec}
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -15,10 +16,12 @@ import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.Ge
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Metadata, StorageCatalog, namespaced}
+import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.Closeable
+import java.util.concurrent.TimeUnit
 
 /**
  * Catalog implementation backed by iceberg
@@ -31,17 +34,26 @@ class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
 
   import scala.collection.JavaConverters._
 
+  private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
+
   private val namespace = Namespace.of(ColumnName.encode(context.conf.required("iceberg.namespace")))
   private val catalog = IcebergCatalog.createCatalog(context)
 
-  override def getTypeNames: Seq[String] = {
-    if (catalog.namespaceExists(namespace)) {
-      catalog.listTables(namespace).asScala.toSeq.flatMap { id =>
+  // avoid repeatedly loading tables when getting type names
+  private val typeNameCache = Caffeine.newBuilder().expireAfterWrite(expiry, TimeUnit.MILLISECONDS).build(
+    new CacheLoader[TableIdentifier, Option[String]]() {
+      override def load(id: TableIdentifier): Option[String] = {
         val table = catalog.loadTable(id)
         try { Option(table.properties().get("geomesa.sft.name")) } finally {
           CloseWithLogging(Option(table).collect { case c: Closeable => c })
         }
       }
+    }
+  )
+
+  override def getTypeNames: Seq[String] = {
+    if (catalog.namespaceExists(namespace)) {
+      catalog.listTables(namespace).asScala.toSeq.flatMap(id => typeNameCache.get(id))
     } else {
       Seq.empty
     }

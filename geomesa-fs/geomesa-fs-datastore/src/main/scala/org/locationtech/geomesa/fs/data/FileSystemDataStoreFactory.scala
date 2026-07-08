@@ -46,15 +46,13 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     // can be very useful. Seems possibly numcores/2 might is a good setting (which is a standard idea)
 
     val readThreads = QueryThreadsParam.lookup(params)
-    val maxOpenPartitions = WritersMaxOpenPartitionsParam.lookup(params)
-    val writeTimeout = WriteTimeoutParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite)
 
     val namespace = NamespaceParam.lookupOpt(params)
 
     val path = new URI(PathParam.lookup(params))
     val context = FileSystemContext.create(path, buildConf(params), namespace)
-    val config = FileSystemDataStoreConfig(context, readThreads, maxOpenPartitions, writeTimeout, queryTimeout)
+    val config = FileSystemDataStoreConfig(context, readThreads, queryTimeout)
 
     lazy val encodingType =
       if (params.get("fs.encoding") == "converter") {
@@ -132,6 +130,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     AuthProviderParam.lookupOpt(params).foreach(p => builder += (AuthsParam.key -> p.getClass.getName))
     AuthsParam.lookupOpt(params).foreach(auths => builder += (AuthsParam.key -> auths))
     CatalogTypeParam.lookupOpt(params).filter(_.nonEmpty).foreach(t => builder += (CatalogUtil.ICEBERG_CATALOG_TYPE -> t))
+    WritersMaxOpenPartitionsParam.lookupOpt(params).foreach(m => builder += (WritersMaxOpenPartitionsParam.key -> m.toString))
     builder.result()
   }
 }
@@ -147,7 +146,6 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.CatalogTypeParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigFileParam,
-      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.WriteTimeoutParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.QueryThreadsParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.QueryTimeoutParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.AuthProviderParam,

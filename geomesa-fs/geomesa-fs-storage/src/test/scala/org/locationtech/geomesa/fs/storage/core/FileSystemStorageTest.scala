@@ -447,7 +447,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           testQuery(storage, sft)("INCLUDE", null, updates)
         }
       }
-    }.pendingUntilFixed()
+    }
 
     "use custom file observers" in {
       val userData = s"${StorageKeys.ObserversKey}='${classOf[TestObserverFactory].getName}'"
@@ -494,22 +494,22 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
             val feature = updater.next()
             if (feature.getID == "0") {
               updater.remove()
-            } else if (feature.getID == "1") {
+            } else if (feature.getID == "5") {
               feature.setAttribute(1, "name-updated")
               updater.write()
             }
           }
 
-          TestObserverFactory.observers must haveSize(2) // 2 partitions were updated
+          TestObserverFactory.observers must haveSize(1) // 1 partition was updated (deletes are not passed to observers)
           forall(TestObserverFactory.observers)(_.closed must beFalse)
 
           updater.close()
 
           forall(TestObserverFactory.observers)(_.closed must beTrue)
-          TestObserverFactory.observers.flatMap(_.features) must haveLength(2)
+          TestObserverFactory.observers.flatMap(_.features) must haveLength(1)
         }
       }
-    }.pendingUntilFixed()
+    }
 
     "write files with a target size" in {
       val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
@@ -575,13 +575,11 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
 }
 
 object FileSystemStorageTest {
-  class IcebergRestContainer
-      extends GenericContainer[IcebergRestContainer](DockerImageName.parse("tabulario/iceberg-rest").withTag(sys.props("iceberg.rest.docker.tag"))) {
+
+  val IcebergRestImage = DockerImageName.parse("apache/iceberg-rest-fixture").withTag(sys.props("iceberg.rest.docker.tag"))
+
+  class IcebergRestContainer extends GenericContainer[IcebergRestContainer](IcebergRestImage) {
     withExposedPorts(8181)
-    // Override the upstream image's malformed default URI (jdbc:sqlite:file:/tmp/iceberg_rest_mode=memory)
-    // `mode=memory` ended up in the filename instead of as a query parameter. Also add a busy_timeout, so transient
-    // contention from Iceberg's connection pool doesn't show up as SQLITE_BUSY 500s during multi-table ingests
-    withEnv("CATALOG_URI", "jdbc:sqlite:file:/tmp/iceberg_rest.db?journal_mode=WAL&synchronous=NORMAL&busy_timeout=30000")
     withEnv("CATALOG_WAREHOUSE", "s3://geomesa/iceberg/")
     withEnv("CATALOG_IO__IMPL", "org.apache.iceberg.aws.s3.S3FileIO")
     withEnv("CATALOG_S3_ENDPOINT", "http://minio:9000")
