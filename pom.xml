@@ -221,7 +221,7 @@
         <test.cassandra.docker.tag>3.11.19</test.cassandra.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
         <test.hbase.docker.tag>2.6.3-jdk17</test.hbase.docker.tag>
-        <test.iceberg.rest.docker.tag>1.6.0</test.iceberg.rest.docker.tag>
+        <test.iceberg.rest.docker.tag>1.10.1</test.iceberg.rest.docker.tag>
         <test.kafka.docker.tag>3.9.1</test.kafka.docker.tag>
         <test.minio.docker.tag>RELEASE.2024-10-29T16-01-48Z</test.minio.docker.tag>
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>

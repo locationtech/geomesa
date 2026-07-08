@@ -575,13 +575,11 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
 }
 
 object FileSystemStorageTest {
-  class IcebergRestContainer
-      extends GenericContainer[IcebergRestContainer](DockerImageName.parse("tabulario/iceberg-rest").withTag(sys.props("iceberg.rest.docker.tag"))) {
+
+  val IcebergRestImage = DockerImageName.parse("apache/iceberg-rest-fixture").withTag(sys.props("iceberg.rest.docker.tag"))
+
+  class IcebergRestContainer extends GenericContainer[IcebergRestContainer](IcebergRestImage) {
     withExposedPorts(8181)
-    // Override the upstream image's malformed default URI (jdbc:sqlite:file:/tmp/iceberg_rest_mode=memory)
-    // `mode=memory` ended up in the filename instead of as a query parameter. Also add a busy_timeout, so transient
-    // contention from Iceberg's connection pool doesn't show up as SQLITE_BUSY 500s during multi-table ingests
-    withEnv("CATALOG_URI", "jdbc:sqlite:file:/tmp/iceberg_rest.db?journal_mode=WAL&synchronous=NORMAL&busy_timeout=30000")
     withEnv("CATALOG_WAREHOUSE", "s3://geomesa/iceberg/")
     withEnv("CATALOG_IO__IMPL", "org.apache.iceberg.aws.s3.S3FileIO")
     withEnv("CATALOG_S3_ENDPOINT", "http://minio:9000")
