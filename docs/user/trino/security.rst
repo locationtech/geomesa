@@ -6,8 +6,10 @@ Trino Data Store Security
 Row Entitlements
 ----------------
 
-Tables may carry a per-row visibility expression in a ``visibilities``
-(FSDS-compatible) or ``__vis__`` column; NULL/empty rows are unrestricted. For any
+Tables may carry a per-row visibility expression in a ``__vis__`` column (the
+column the FileSystem data store populates); NULL/empty rows are unrestricted.
+A bare column merely named ``visibilities`` is treated as ordinary user data,
+not an enforcement column. For any
 table with a visibility column, the data store builds an ``AuthorizationsProvider``
 (geomesa-security SPI) and ANDs an ``is_visible`` UDF predicate into every read,
 count, and bounds query so that filtering runs inside Trino workers and counts stay

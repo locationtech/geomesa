@@ -14,12 +14,8 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class TrinoSchemaDiscovery {
-
-    private static final Logger LOG = LoggerFactory.getLogger(TrinoSchemaDiscovery.class);
 
     private final TrinoDataStore store;
 
@@ -53,9 +49,6 @@ class TrinoSchemaDiscovery {
             }
             Set<String> geometryColumnNames = discoverGeometryColumnNames(allNames);
             visColumn = discoverVisibilityColumn(allNames);
-            if (allNames.contains(FSDS_VIS_COLUMN) && allNames.contains(COMPANION_VIS_COLUMN)) {
-                LOG.warn(typeName + " has both 'visibilities' and '__vis__'; using 'visibilities'");
-            }
 
             boolean defaultGeomSet = false;
             for (int i = 1; i <= meta.getColumnCount(); i++) {
@@ -64,9 +57,13 @@ class TrinoSchemaDiscovery {
                 if (name.equals(visColumn)) continue;  // vis column is metadata, not a SFT attribute
 
                 boolean isGeom = geometryColumnNames.contains(name);
+                // A __X_z2__ companion marks a point-only geometry column, so the
+                // attribute can be bound to Point rather than the generic Geometry.
+                boolean isPoint = isGeom && isPointColumn(name, allNames);
                 // SRID is no longer carried in a table property; default to WGS84.
                 int srid = isGeom ? 4326 : 0;
-                var descriptor = TrinoTypeMapper.toDescriptor(name, meta.getColumnType(i), isGeom, srid);
+                var descriptor =
+                    TrinoTypeMapper.toDescriptor(name, meta.getColumnType(i), isGeom, isPoint, srid);
                 tb.add(descriptor);
 
                 if (isGeom && !defaultGeomSet) {
@@ -103,21 +100,23 @@ class TrinoSchemaDiscovery {
         return result;
     }
 
+    /** True when the geometry column carries a {@code __<name>_z2__} companion —
+     *  point-only by the spatial-column convention (non-point data uses XZ2). */
+    static boolean isPointColumn(String name, Set<String> allNames) {
+        return allNames.contains("__" + name + "_z2__");
+    }
+
     /** User-data key on the discovered SimpleFeatureType holding the table's
      *  visibility column name (absent when the table has none). */
     static final String VIS_COLUMN_KEY = "trino.visibility.column";
 
-    /** FSDS Iceberg-compatible name; preferred when both conventions exist. */
-    static final String FSDS_VIS_COLUMN = "visibilities";
-    /** This project's companion-style name. */
-    static final String COMPANION_VIS_COLUMN = "__vis__";
+    /** The per-row visibility column name — {@code __vis__} */
+    static final String VIS_COLUMN = "__vis__";
 
-    /** Returns the table's visibility column name, or null if it has none.
-     *  "visibilities" wins over "__vis__" when both are present. */
+    /** Returns the table's visibility column name ({@code __vis__}), or null if
+     *  the table has none. */
     static String discoverVisibilityColumn(Set<String> allNames) {
-        if (allNames.contains(FSDS_VIS_COLUMN)) return FSDS_VIS_COLUMN;
-        if (allNames.contains(COMPANION_VIS_COLUMN)) return COMPANION_VIS_COLUMN;
-        return null;
+        return allNames.contains(VIS_COLUMN) ? VIS_COLUMN : null;
     }
 
 }

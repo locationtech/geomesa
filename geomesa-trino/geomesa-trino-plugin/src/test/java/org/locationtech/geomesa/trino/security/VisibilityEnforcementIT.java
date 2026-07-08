@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Pre-conditions: a running Trino at localhost:8080 with the plugin loaded, the
  * {@code geomesa.security.auth-resolver} / {@code geomesa.security.auth-mapping-file}
  * catalog properties configured, and the demo spatial.observations table ingested
- * (it carries the U//FOUO {@code visibilities} ladder). The demo auth config must
+ * (it carries the U//FOUO {@code __vis__} ladder). The demo auth config must
  * grant {@code U,FOUO} to user {@code testuser} (via the {@code fouo} group) and
  * {@code U} to user {@code public} (via the {@code public} group); unmapped users
  * get no auths.
@@ -79,7 +79,7 @@ class VisibilityEnforcementIT {
 
     @Test
     void nonVisibilityTableIsUnaffected() throws SQLException {
-        // regions (part of the same demo dataset) has no visibilities
+        // regions (part of the same demo dataset) has no __vis__
         // column → no filter emitted, no error, same count for every identity.
         long asNobody   = count(SPATIAL, "nobody",   "regions");
         long asTestuser = count(SPATIAL, "testuser", "regions");

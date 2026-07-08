@@ -43,28 +43,29 @@ class VisibilityAccessControlTest {
     }
 
     @Test
-    void emitsFilterForVisibilitiesColumn() {
+    void emitsFilterForVisColumn() {
         GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
-        cat.recordVisibilityColumn(TABLE, Set.of("__fid__", "geom", "visibilities"));
+        cat.recordVisibilityColumn(TABLE, Set.of("__fid__", "geom", "__vis__"));
         List<ViewExpression> filters = control(cat).getRowFilters(ctx("alice"), TABLE);
         assertThat(filters).hasSize(1);
         ViewExpression f = filters.get(0);
         // auths sorted for determinism: {U, FOUO} -> "FOUO,U"
-        assertThat(f.getExpression()).isEqualTo("is_visible(\"visibilities\", 'FOUO,U')");
+        assertThat(f.getExpression()).isEqualTo("is_visible(\"__vis__\", 'FOUO,U')");
         assertThat(f.getCatalog()).contains(CATALOG);
         assertThat(f.getSchema()).contains("spatial");
     }
 
     @Test
-    void prefersVisibilitiesOverCompanion() {
+    void bareVisibilitiesColumnDoesNotEngageEnforcement() {
+        // A user attribute merely named "visibilities" is ordinary data — only the
+        // companion-style __vis__ (which the FSDS populates) engages filtering.
         GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
-        cat.recordVisibilityColumn(TABLE, Set.of("geom", "visibilities", "__vis__"));
-        assertThat(control(cat).getRowFilters(ctx("alice"), TABLE).get(0).getExpression())
-            .contains("\"visibilities\"");
+        cat.recordVisibilityColumn(TABLE, Set.of("geom", "visibilities"));
+        assertThat(control(cat).getRowFilters(ctx("alice"), TABLE)).isEmpty();
     }
 
     @Test
-    void usesCompanionWhenOnlyOnePresent() {
+    void usesCompanionVisColumn() {
         GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
         cat.recordVisibilityColumn(TABLE, Set.of("geom", "__vis__"));
         assertThat(control(cat).getRowFilters(ctx("alice"), TABLE).get(0).getExpression())
@@ -81,9 +82,9 @@ class VisibilityAccessControlTest {
     @Test
     void emptyAuthsForUnknownUserEmitEmptyLiteral() {
         GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
-        cat.recordVisibilityColumn(TABLE, Set.of("geom", "visibilities"));
+        cat.recordVisibilityColumn(TABLE, Set.of("geom", "__vis__"));
         assertThat(control(cat).getRowFilters(ctx("nobody"), TABLE).get(0).getExpression())
-            .isEqualTo("is_visible(\"visibilities\", '')");
+            .isEqualTo("is_visible(\"__vis__\", '')");
     }
 
     @Test

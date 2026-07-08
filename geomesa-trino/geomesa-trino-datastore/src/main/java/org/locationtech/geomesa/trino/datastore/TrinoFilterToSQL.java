@@ -11,6 +11,7 @@ package org.locationtech.geomesa.trino.datastore;
 import org.geotools.api.filter.Id;
 import org.geotools.api.filter.identity.Identifier;
 import org.geotools.api.filter.spatial.BBOX;
+import org.geotools.api.filter.spatial.BinarySpatialOperator;
 import org.geotools.api.filter.spatial.DWithin;
 import org.geotools.api.filter.spatial.Intersects;
 import org.geotools.api.filter.spatial.Within;
@@ -104,6 +105,31 @@ public class TrinoFilterToSQL extends FilterToSQL {
 
     // ── Spatial ───────────────────────────────────────────────────────────────
 
+    /** A binary spatial filter's operands, normalized: the geometry column name and the
+     *  query-geometry literal, regardless of which side of the filter each appeared on.
+     *  {@code literalFirst} records the original order for non-symmetric operators
+     *  (e.g. {@code WITHIN(literal, geom)} asks whether the literal is within the row
+     *  geometry — a different predicate from {@code WITHIN(geom, literal)}). */
+    record SpatialOperands(String column, Geometry geometry, boolean literalFirst) {}
+
+    /** Extracts the property/literal pair from a binary spatial filter in either operand
+     *  order. CQL permits {@code INTERSECTS(POLYGON(...), geom)} as well as the usual
+     *  {@code INTERSECTS(geom, POLYGON(...))}. */
+    private SpatialOperands spatialOperands(BinarySpatialOperator filter) {
+        Expression e1 = filter.getExpression1();
+        Expression e2 = filter.getExpression2();
+        if (e2 instanceof Literal lit && lit.getValue() instanceof Geometry g) {
+            String col = e1 instanceof PropertyName pn ? pn.getPropertyName() : defaultGeomCol();
+            return new SpatialOperands(col, g, false);
+        }
+        if (e1 instanceof Literal lit && lit.getValue() instanceof Geometry g) {
+            String col = e2 instanceof PropertyName pn ? pn.getPropertyName() : defaultGeomCol();
+            return new SpatialOperands(col, g, true);
+        }
+        throw new IllegalArgumentException(
+            "Unsupported spatial filter operands (expected one geometry literal and one property name): " + filter);
+    }
+
     /**
      * Translates a BBOX filter into a bbox-overlap predicate.
      *
@@ -129,9 +155,8 @@ public class TrinoFilterToSQL extends FilterToSQL {
      */
     @Override
     public Object visit(Intersects filter, Object extraData) {
-        Expression e1 = filter.getExpression1();
-        Expression e2 = filter.getExpression2();
-        Geometry queryGeom = (Geometry) ((Literal) e2).getValue();
+        // Intersects is symmetric, so operand order doesn't change the predicate.
+        SpatialOperands ops = spatialOperands(filter);
 
         // Fast path: ST_Intersects(point, rect) ⇔ bbox-overlap(bbox(point), rect)
         // because bbox(Point) = Point.
@@ -142,15 +167,16 @@ public class TrinoFilterToSQL extends FilterToSQL {
         //  - Point data: for any non-point geometry (Line, Polygon, MultiPoint),
         //    bbox(g) is a strict superset of g, so bbox-overlap is necessary but
         //    not sufficient for ST_Intersects.
-        if (queryGeom instanceof Polygon p && p.isRectangle() && storedGeometryIsPoint()) {
-            String col = e1 instanceof PropertyName pn ? pn.getPropertyName() : defaultGeomCol();
-            writeBboxOverlap(col, p.getEnvelopeInternal());
+        if (ops.geometry() instanceof Polygon p && p.isRectangle()
+                && storedGeometryIsPoint(ops.column())) {
+            writeBboxOverlap(ops.column(), p.getEnvelopeInternal());
             return extraData;
         }
 
-        // General case: bbox-overlap (pushable to file-level pruning) AND
-        // CASE WHEN bbox-contained THEN TRUE ELSE ST_Intersects (row-level shortcut).
-        writeIntersectsWithBboxShortcut(e1, e2);
+        // General case: bbox-overlap (pushable to file-level pruning) AND either the
+        // CASE WHEN bbox-contained shortcut (rectangular queries only) or the exact
+        // row-level ST_Intersects.
+        writeIntersects(ops.column(), ops.geometry());
         return extraData;
     }
 
@@ -163,17 +189,20 @@ public class TrinoFilterToSQL extends FilterToSQL {
      */
     @Override
     public Object visit(Within filter, Object extraData) {
+        SpatialOperands ops = spatialOperands(filter);
+        // n.b. Within is NOT symmetric
+        if (ops.literalFirst()) {
+            writeLiteralWithinColumn(ops.column(), ops.geometry());
+            return extraData;
+        }
         // For axis-aligned rectangular query polygons, bbox⊆rect is equivalent to
         // ST_Within(geom, rect) — no row-level ST_Within evaluation needed at all.
         // For non-rectangular polygons, fall back to bbox-overlap (Z2 pushdown) AND
         // exact ST_Within at row level.
-        Expression e1 = filter.getExpression1();
-        Expression e2 = filter.getExpression2();
-        Geometry queryGeom = (Geometry) ((Literal) e2).getValue();
-        if (queryGeom instanceof Polygon p && p.isRectangle()) {
-            writeWithinRectangleAsBboxContained(e1, p);
+        if (ops.geometry() instanceof Polygon p && p.isRectangle()) {
+            writeWithinRectangleAsBboxContained(ops.column(), p);
         } else {
-            writeWithinNonRectangle(e1, queryGeom);
+            writeWithinNonRectangle(ops.column(), ops.geometry());
         }
         return extraData;
     }
@@ -187,8 +216,10 @@ public class TrinoFilterToSQL extends FilterToSQL {
      */
     @Override
     public Object visit(DWithin filter, Object extraData) {
-        String col = ((PropertyName) filter.getExpression1()).getPropertyName();
-        Geometry refGeom = (Geometry) ((Literal) filter.getExpression2()).getValue();
+        // n.b. DWithin is symmetric
+        SpatialOperands ops = spatialOperands(filter);
+        String col = ops.column();
+        Geometry refGeom = ops.geometry();
         double distanceMeters = convertToMeters(filter.getDistance(), filter.getDistanceUnits());
 
         // Treat reference as a point (centroid for non-point geometries — same as before).
@@ -288,10 +319,11 @@ public class TrinoFilterToSQL extends FilterToSQL {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /**
-     * True iff the FeatureType's geometry column is declared as exactly
-     * {@link Point} (not MultiPoint, not a subclass). Used by
-     * {@link #visit(Intersects, Object)} to detect when the bbox-overlap +
-     * CASE WHEN rewrite collapses to bbox-overlap alone.
+     * True iff the named geometry column is declared as exactly {@link Point}.
+     * Used by {@link #visit(Intersects, Object)} to detect when the bbox-overlap +
+     * CASE WHEN rewrite collapses to bbox-overlap alone. The binding comes from
+     * schema discovery, which declares {@code Point} for columns carrying a
+     * {@code __<col>_z2__} companion.
      * <p>
      * Strict {@code equals} (not {@code isAssignableFrom}) is required:
      * {@code bbox(MultiPoint)} is the union extent, so the optimization is
@@ -301,10 +333,10 @@ public class TrinoFilterToSQL extends FilterToSQL {
      * Returns {@code false} when no FeatureType is set — callers must keep the
      * safe general-case rewrite in that branch.
      */
-    private boolean storedGeometryIsPoint() {
-        return featureType != null
-            && featureType.getGeometryDescriptor() != null
-            && Point.class.equals(featureType.getGeometryDescriptor().getType().getBinding());
+    private boolean storedGeometryIsPoint(String col) {
+        if (featureType == null) return false;
+        var descriptor = featureType.getDescriptor(col);
+        return descriptor != null && Point.class.equals(descriptor.getType().getBinding());
     }
 
     /**
@@ -361,8 +393,7 @@ public class TrinoFilterToSQL extends FilterToSQL {
      * pattern matcher) AND bbox-contained (the actual exact predicate). No
      * row-level ST_Within evaluation needed.
      */
-    private void writeWithinRectangleAsBboxContained(Expression e1, Polygon rect) {
-        String col = e1 instanceof PropertyName pn ? pn.getPropertyName() : defaultGeomCol();
+    private void writeWithinRectangleAsBboxContained(String col, Polygon rect) {
         String bboxCol = bboxColName(col);
         Envelope env = rect.getEnvelopeInternal();
         // bbox-overlap (lets SI reconstruct the envelope and push Z2 ranges) AND
@@ -376,13 +407,29 @@ public class TrinoFilterToSQL extends FilterToSQL {
      * subset of its envelope. We still emit bbox-overlap as a leading conjunct so
      * SI's connector can push Z2 partition pruning + bbox file-stat pruning.
      */
-    private void writeWithinNonRectangle(Expression e1, Geometry queryGeom) {
-        String col = ((PropertyName) e1).getPropertyName();
+    private void writeWithinNonRectangle(String col, Geometry queryGeom) {
         String bboxCol = bboxColName(col);
         Envelope env = queryGeom.getEnvelopeInternal();
         write("(" + bboxOverlapSql(bboxCol, env) + ")"
             + " AND ST_Within(ST_GeomFromBinary(" + quoteIdent(col) + "),"
             + " " + geomFromText(queryGeom) + ")");
+    }
+
+    /**
+     * {@code WITHIN(literal, geom)} — the literal contained in the row geometry. The
+     * necessary pushable prefilter is bbox-COVERS: the row bbox must contain the
+     * literal's envelope (literal ⊆ geom ⇒ env(literal) ⊆ env(geom) = bbox). The exact
+     * test is {@code ST_Within(literal, geom)} with the operands in the original order.
+     */
+    private void writeLiteralWithinColumn(String col, Geometry literalGeom) {
+        String q = quoteIdent(bboxColName(col));
+        Envelope env = literalGeom.getEnvelopeInternal();
+        String bboxCovers = String.format(
+            "%s.xmin <= %s AND %s.xmax >= %s AND %s.ymin <= %s AND %s.ymax >= %s",
+            q, env.getMinX(), q, env.getMaxX(), q, env.getMinY(), q, env.getMaxY());
+        write("(" + bboxCovers + ")"
+            + " AND ST_Within(" + geomFromText(literalGeom) + ","
+            + " ST_GeomFromBinary(" + quoteIdent(col) + "))");
     }
 
     /**
@@ -400,11 +447,16 @@ public class TrinoFilterToSQL extends FilterToSQL {
      * optimizer intact and short-circuits the WKB decode + ST_Intersects test
      * for any row whose bbox is fully inside the envelope.
      *
-     * <p><b>Soundness:</b>
+     * <p><b>The CASE WHEN shortcut applies ONLY to axis-aligned rectangular
+     * query polygons</b> (where the polygon equals its envelope). For any other query
+     * geometry, bbox-containment in the ENVELOPE does not imply intersection with the
+     * GEOMETRY (examples, a polygon with a hole, a crescent, etc. contain
+     * envelope regions outside the polygon), so the exact {@code ST_Intersects} runs for
+     * every bbox-overlapping row instead. For rectangles:
      * <ul>
      *   <li>bbox-overlap=FALSE ⇒ ST_Intersects=FALSE, AND short-circuits, row excluded ✓</li>
      *   <li>bbox-overlap=TRUE, bbox-contained=TRUE ⇒ CASE returns TRUE, row included
-     *       (correct: bbox⊆env ⇒ geom intersects env, since bbox contains points of geom) ✓</li>
+     *       (bbox ⊆ rect ⇒ geom ⊆ rect ⇒ intersects) ✓</li>
      *   <li>bbox-overlap=TRUE, bbox-contained=FALSE ⇒ CASE returns exact ST_Intersects ✓</li>
      * </ul>
      *
@@ -413,18 +465,24 @@ public class TrinoFilterToSQL extends FilterToSQL {
      * causing ST_Intersects to evaluate up to 4× per row (3.3× slowdown measured).
      * CASE WHEN is opaque to that rewrite.
      */
-    private void writeIntersectsWithBboxShortcut(Expression e1, Expression e2) {
-        String col = ((PropertyName) e1).getPropertyName();
+    private void writeIntersects(String col, Geometry geom) {
         String bboxCol = bboxColName(col);
-        Geometry geom = (Geometry) ((Literal) e2).getValue();
         Envelope env = geom.getEnvelopeInternal();
-        // bbox-overlap (necessary; pushable to file-level pruning) AND CASE WHEN
-        // bbox-contained (sufficient) THEN TRUE ELSE exact ST_Intersects — the
-        // row-level shortcut. CASE WHEN (not OR) survives Trino's optimizer intact.
-        write("(" + bboxOverlapSql(bboxCol, env) + ") AND "
-            + "CASE WHEN " + bboxContainedSql(bboxCol, env) + " THEN TRUE"
-            + " ELSE ST_Intersects(ST_GeomFromBinary(" + quoteIdent(col) + "),"
-            + " " + geomFromText(geom) + ") END");
+        String exact = "ST_Intersects(ST_GeomFromBinary(" + quoteIdent(col) + "),"
+            + " " + geomFromText(geom) + ")";
+        if (geom instanceof Polygon p && p.isRectangle()) {
+            // Rectangle: bbox-overlap (necessary; pushable to file-level pruning) AND
+            // CASE WHEN bbox-contained (sufficient — the polygon IS its envelope) THEN TRUE
+            // ELSE exact ST_Intersects. CASE WHEN (not OR) survives Trino's optimizer intact.
+            write("(" + bboxOverlapSql(bboxCol, env) + ") AND "
+                + "CASE WHEN " + bboxContainedSql(bboxCol, env) + " THEN TRUE"
+                + " ELSE " + exact + " END");
+        } else {
+            // Non-rectangular query: envelope containment alone doesn't imply intersection
+            // with the geometry itself, so no row-level shortcut — just the
+            // pushable bbox-overlap prefilter and the exact test.
+            write("(" + bboxOverlapSql(bboxCol, env) + ") AND " + exact);
+        }
     }
 
     private static String formatTimestamp(Date date) {

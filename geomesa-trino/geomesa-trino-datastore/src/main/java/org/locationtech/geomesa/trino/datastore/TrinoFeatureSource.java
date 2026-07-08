@@ -298,8 +298,11 @@ class TrinoFeatureSource extends ContentFeatureSource {
                     new FeatureVisibilityFilter(auths));
             }
             return reader;
-        } catch (SQLException e) {
+        } catch (Exception e) {
             try { conn.close(); } catch (SQLException suppressed) { e.addSuppressed(suppressed); }
+            if (e instanceof RuntimeException re) {
+                throw re;
+            }
             throw new IOException("Failed to execute query: " + sql, e);
         }
     }

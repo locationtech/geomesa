@@ -26,8 +26,8 @@ class VisibilityRowFilterTest {
 
     @Test
     void conjunctQuotesColumnAndEscapesAuths() {
-        assertThat(VisibilityRowFilter.conjunct("visibilities", List.of("U", "FOUO")))
-            .isEqualTo("is_visible(\"visibilities\", 'U,FOUO')");
+        assertThat(VisibilityRowFilter.conjunct("__vis__", List.of("U", "FOUO")))
+            .isEqualTo("is_visible(\"__vis__\", 'U,FOUO')");
     }
 
     @Test
@@ -38,8 +38,8 @@ class VisibilityRowFilterTest {
 
     @Test
     void singleQuoteInAuthIsDoubled() {
-        assertThat(VisibilityRowFilter.conjunct("visibilities", List.of("U", "o'brien")))
-            .isEqualTo("is_visible(\"visibilities\", 'U,o''brien')");
+        assertThat(VisibilityRowFilter.conjunct("__vis__", List.of("U", "o'brien")))
+            .isEqualTo("is_visible(\"__vis__\", 'U,o''brien')");
     }
 
     @Test
@@ -51,7 +51,7 @@ class VisibilityRowFilterTest {
     @Test
     void authTokenContainingTransportDelimiterIsRejected() {
         for (String bad : List.of("FOO,BAR", "FOO|BAR", "FOO;BAR", "FOO:BAR", "FOO BAR", "")) {
-            assertThatThrownBy(() -> VisibilityRowFilter.conjunct("visibilities", List.of("U", bad)))
+            assertThatThrownBy(() -> VisibilityRowFilter.conjunct("__vis__", List.of("U", bad)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("authorization token");
         }

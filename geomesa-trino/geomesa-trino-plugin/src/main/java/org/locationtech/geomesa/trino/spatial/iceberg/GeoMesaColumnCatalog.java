@@ -94,10 +94,8 @@ public final class GeoMesaColumnCatalog {
     private static final String Z2_SUFFIX   = "_z2__";
     private static final String XZ2_SUFFIX  = "_xz2__";
 
-    // Per-row visibility column conventions (see TrinoSchemaDiscovery): the
-    // FSDS-compatible "visibilities" is preferred over the companion "__vis__".
-    private static final String FSDS_VIS_COLUMN = "visibilities";
-    private static final String COMPANION_VIS_COLUMN = "__vis__";
+    // Per-row visibility column
+    private static final String VIS_COLUMN = "__vis__";
 
     /** Default time-to-live for cached descriptors; see {@link #resolve}. */
     static final long DEFAULT_TTL_NANOS = java.time.Duration.ofMinutes(5).toNanos();
@@ -112,9 +110,8 @@ public final class GeoMesaColumnCatalog {
     /** Per-table visibility-column record, written at analysis time by
      *  {@code SpatialConnectorMetadata.getColumnHandles} and read by the
      *  Trino-layer {@link org.locationtech.geomesa.trino.security.VisibilityAccessControl}. Value is the column name
-     *  ({@code visibilities}/{@code __vis__}) or empty when the table has none.
-     *  An absent key means "not yet observed" — the access control treats that
-     *  as fail-closed. Overwritten on every observation, so it tracks DDL. */
+     *  ({@code __vis__}) or empty when the table has none.
+     */
     private final ConcurrentHashMap<SchemaTableName, Optional<String>> visColumns =
         new ConcurrentHashMap<>();
 
@@ -161,8 +158,7 @@ public final class GeoMesaColumnCatalog {
 
     /** Records which visibility column (if any) a table exposes, detected from
      *  its column names. Called at analysis time so {@link #visibilityColumn}
-     *  is warm when the access control runs. {@code visibilities} wins over
-     *  {@code __vis__}.
+     *  is warm when the access control runs.
      *
      * @param tableName the schema-qualified table name
      * @param columnNames the table's column names
@@ -203,11 +199,9 @@ public final class GeoMesaColumnCatalog {
         visColumns.keySet().removeIf(tn -> tn.getSchemaName().equals(schemaName));
     }
 
-    /** {@code visibilities} (preferred) or {@code __vis__}, else empty. */
+    /** {@code __vis__} when present, else empty. */
     static Optional<String> detectVisibilityColumn(Set<String> columnNames) {
-        if (columnNames.contains(FSDS_VIS_COLUMN)) return Optional.of(FSDS_VIS_COLUMN);
-        if (columnNames.contains(COMPANION_VIS_COLUMN)) return Optional.of(COMPANION_VIS_COLUMN);
-        return Optional.empty();
+        return columnNames.contains(VIS_COLUMN) ? Optional.of(VIS_COLUMN) : Optional.empty();
     }
 
     /** Pure discovery: given a column map and the table's partition-spec JSON

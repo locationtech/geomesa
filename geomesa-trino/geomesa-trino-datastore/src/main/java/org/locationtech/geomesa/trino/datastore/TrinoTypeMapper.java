@@ -12,6 +12,7 @@ import org.geotools.api.feature.type.AttributeDescriptor;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
 
 import java.sql.Types;
 import java.util.Date;
@@ -35,7 +36,7 @@ class TrinoTypeMapper {
     }
 
     static AttributeDescriptor toDescriptor(String name, int sqlType,
-                                             boolean isGeometry, int srid) {
+                                             boolean isGeometry, boolean isPoint, int srid) {
         AttributeTypeBuilder b = new AttributeTypeBuilder();
         b.setName(name);
         b.setNillable(true);
@@ -51,7 +52,10 @@ class TrinoTypeMapper {
                 }
             }
             b.setCRS(crs);
-            b.setBinding(Geometry.class);
+            // Point when the column carries a __<name>_z2__ companion; this enables the
+            // point/rectangle bbox fast path in TrinoFilterToSQL. Generic Geometry
+            // otherwise (XZ2-companioned columns may hold any geometry type).
+            b.setBinding(isPoint ? Point.class : Geometry.class);
             return b.buildDescriptor(name, b.buildGeometryType());
         }
 

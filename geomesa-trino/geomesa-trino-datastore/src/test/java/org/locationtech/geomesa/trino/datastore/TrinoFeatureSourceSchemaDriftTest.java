@@ -33,8 +33,8 @@ class TrinoFeatureSourceSchemaDriftTest {
     @Test
     void identicalSchemasAreNotDrifted() throws Exception {
         assertThat(TrinoFeatureSource.schemaDrifted(
-            sft("name:String,age:Integer", "visibilities"),
-            sft("name:String,age:Integer", "visibilities"))).isFalse();
+            sft("name:String,age:Integer", "__vis__"),
+            sft("name:String,age:Integer", "__vis__"))).isFalse();
         assertThat(TrinoFeatureSource.schemaDrifted(
             sft("name:String", null),
             sft("name:String", null))).isFalse();
@@ -51,7 +51,7 @@ class TrinoFeatureSourceSchemaDriftTest {
     void addedVisibilityColumnIsDrift() throws Exception {
         assertThat(TrinoFeatureSource.schemaDrifted(
             sft("name:String", null),
-            sft("name:String", "visibilities"))).isTrue();
+            sft("name:String", "__vis__"))).isTrue();
     }
 
     @Test

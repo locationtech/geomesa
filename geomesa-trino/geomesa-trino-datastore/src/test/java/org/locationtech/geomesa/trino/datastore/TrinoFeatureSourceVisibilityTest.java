@@ -26,8 +26,8 @@ class TrinoFeatureSourceVisibilityTest {
 
     @Test
     void conjunctQuotesColumnAndEscapesAuths() {
-        assertThat(TrinoFeatureSource.visibilityConjunct("visibilities", List.of("admin", "u'ser")))
-            .isEqualTo("is_visible(\"visibilities\", 'admin,u''ser')");
+        assertThat(TrinoFeatureSource.visibilityConjunct("__vis__", List.of("admin", "u'ser")))
+            .isEqualTo("is_visible(\"__vis__\", 'admin,u''ser')");
     }
 
     @Test
@@ -46,7 +46,7 @@ class TrinoFeatureSourceVisibilityTest {
     void authTokenContainingTransportDelimiterIsRejected() {
         for (String bad : List.of("FOO,BAR", "FOO|BAR", "FOO;BAR", "FOO:BAR", "FOO BAR", "")) {
             assertThatThrownBy(() ->
-                TrinoFeatureSource.visibilityConjunct("visibilities", List.of("U", bad)))
+                TrinoFeatureSource.visibilityConjunct("__vis__", List.of("U", bad)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("authorization token");
         }

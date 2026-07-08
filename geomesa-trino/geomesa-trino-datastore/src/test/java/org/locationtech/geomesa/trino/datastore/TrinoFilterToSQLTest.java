@@ -240,11 +240,11 @@ class TrinoFilterToSQLTest {
     }
 
     @Test
-    void intersectsNonRectangleOnPointDataKeepsCaseWhenShortcut() throws Exception {
-        // L-shaped query polygon: a point inside the envelope but inside the L's
-        // notch is NOT inside the polygon. bbox-overlap-only would over-include.
-        // The CASE WHEN bbox-contained predicate still catches the rows fully
-        // inside the envelope; ELSE catches the notch.
+    void intersectsNonRectangleEmitsExactStIntersectsWithoutShortcut() throws Exception {
+        // L-shaped query polygon: a row whose bbox sits inside the ENVELOPE but in the
+        // L's notch does NOT intersect the polygon, so the bbox-contained THEN TRUE
+        // shortcut is unsound for any non-rectangular query geometry. Expect just the
+        // pushable bbox-overlap prefilter AND the exact row-level ST_Intersects.
         SimpleFeatureTypeBuilder b = new SimpleFeatureTypeBuilder();
         b.setName("test");
         b.add("geom", Point.class);
@@ -253,8 +253,51 @@ class TrinoFilterToSQLTest {
         Filter f = ECQL.toFilter(
             "INTERSECTS(geom, POLYGON((0 0, 10 0, 10 5, 5 5, 5 10, 0 10, 0 0)))");
         String sql = translator.encodeToString(f);
+        assertThat(sql).doesNotContain("CASE WHEN");
+        assertThat(sql).doesNotContain("THEN TRUE");
+        assertThat(sql).contains(") AND ST_Intersects(ST_GeomFromBinary(\"geom\"),");
+    }
+
+    // ── Operand order: literal-first spatial filters ──────────────────────────
+    //
+    // CQL permits the geometry literal on either side (e.g. INTERSECTS(POLYGON, geom)).
+    // Intersects/DWithin are symmetric; Within is not — WITHIN(literal, geom) asks
+    // whether the literal is contained in the row geometry.
+
+    @Test
+    void intersectsWithLiteralFirstIsHandled() throws Exception {
+        Filter f = ECQL.toFilter(
+            "INTERSECTS(POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)), geom)");
+        String sql = translator.encodeToString(f);
+        // Same predicate as the property-first form: rectangle query → bbox-overlap
+        // AND CASE WHEN shortcut on the geom column's companions.
+        assertThat(sql).startsWith("(\"__geom_bbox__\".xmax >= -80.0");
         assertThat(sql).contains("CASE WHEN");
         assertThat(sql).contains("ELSE ST_Intersects(ST_GeomFromBinary(\"geom\"),");
+    }
+
+    @Test
+    void dwithinWithLiteralFirstIsHandled() throws Exception {
+        Filter f = ECQL.toFilter("DWITHIN(POINT(-77.04 38.91), geom, 1000, meters)");
+        String sql = translator.encodeToString(f);
+        assertThat(sql).startsWith("(\"__geom_bbox__\".xmax >= ");
+        assertThat(sql).contains("ST_Distance(to_spherical_geography(ST_GeomFromBinary(\"geom\")),");
+    }
+
+    @Test
+    void withinWithLiteralFirstTestsLiteralContainedInRowGeometry() throws Exception {
+        // WITHIN(literal, geom): the literal within the row geometry — the REVERSE
+        // containment. Expect ST_Within(literal, geom) plus the bbox-COVERS prefilter
+        // (the row bbox must contain the literal's envelope).
+        Filter f = ECQL.toFilter(
+            "WITHIN(POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)), geom)");
+        String sql = translator.encodeToString(f);
+        assertThat(sql).contains("\"__geom_bbox__\".xmin <= -80.0");
+        assertThat(sql).contains("\"__geom_bbox__\".xmax >= -70.0");
+        assertThat(sql).contains("\"__geom_bbox__\".ymin <= 37.0");
+        assertThat(sql).contains("\"__geom_bbox__\".ymax >= 45.0");
+        assertThat(sql).contains("AND ST_Within(ST_GeometryFromText(");
+        assertThat(sql).contains("ST_GeomFromBinary(\"geom\"))");
     }
 
     @Test

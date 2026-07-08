@@ -17,26 +17,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TrinoSchemaDiscoveryTest {
 
     @Test
-    void discoversFsdsVisibilitiesColumn() {
-        assertThat(TrinoSchemaDiscovery.discoverVisibilityColumn(
-            Set.of("__fid__", "geom", "visibilities"))).isEqualTo("visibilities");
-    }
-
-    @Test
     void discoversCompanionStyleVisColumn() {
         assertThat(TrinoSchemaDiscovery.discoverVisibilityColumn(
             Set.of("__fid__", "geom", "__vis__"))).isEqualTo("__vis__");
     }
 
     @Test
-    void visibilitiesWinsWhenBothPresent() {
+    void bareVisibilitiesColumnIsNotTreatedAsVisibility() {
+        // A user attribute merely named "visibilities" is ordinary data, not an
+        // enforcement column — only the companion-style __vis__ engages filtering.
         assertThat(TrinoSchemaDiscovery.discoverVisibilityColumn(
-            Set.of("geom", "visibilities", "__vis__"))).isEqualTo("visibilities");
+            Set.of("__fid__", "geom", "visibilities"))).isNull();
     }
 
     @Test
     void absentVisColumnYieldsNull() {
         assertThat(TrinoSchemaDiscovery.discoverVisibilityColumn(
             Set.of("__fid__", "geom", "dtg"))).isNull();
+    }
+
+    @Test
+    void z2CompanionMarksPointColumn() {
+        assertThat(TrinoSchemaDiscovery.isPointColumn("center",
+            Set.of("center", "__center_z2__", "__center_bbox__"))).isTrue();
+    }
+
+    @Test
+    void xz2CompanionIsNotPointColumn() {
+        assertThat(TrinoSchemaDiscovery.isPointColumn("ellipse",
+            Set.of("ellipse", "__ellipse_xz2__", "__ellipse_bbox__"))).isFalse();
     }
 }

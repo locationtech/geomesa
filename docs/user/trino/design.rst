@@ -105,9 +105,12 @@ the query envelope. The form differs by spatial filter type:
     * - CQL filter
       - Emitted SQL pattern
       - Soundness
-    * - ``INTERSECTS(geom, polygon)``
-      - ``(bbox-overlap) AND CASE WHEN bbox-contained THEN TRUE ELSE ST_Intersects(geom, polygon) END``
-      - bbox⊆env(polygon) ⇒ ST_Intersects=TRUE (sufficient)
+    * - ``INTERSECTS(geom, axis-aligned rectangle)``
+      - ``(bbox-overlap) AND CASE WHEN bbox-contained THEN TRUE ELSE ST_Intersects(geom, rect) END``
+      - bbox⊆rect ⇒ geom⊆rect ⇒ ST_Intersects=TRUE (sufficient; the rectangle IS its envelope)
+    * - ``INTERSECTS(geom, non-rectangular polygon)``
+      - ``(bbox-overlap) AND ST_Intersects(geom, polygon)``
+      - no shortcut: bbox⊆env(polygon) does NOT imply intersection (holes, concavity)
     * - ``WITHIN(geom, axis-aligned rectangle)``
       - ``(bbox-overlap) AND (bbox-contained)``
       - bbox⊆rect ⇔ ST_Within=TRUE (**exact equivalence** — no row-level ST_Within)
