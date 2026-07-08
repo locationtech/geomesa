@@ -233,16 +233,22 @@ public class TrinoFilterToSQL extends FilterToSQL {
             lat = refGeom.getEnvelope().getCentroid().getY();
         }
 
-        boolean nearPole = Math.abs(lat) >= NEAR_POLE_LAT;
-
         // OUTER bbox: bounding box of "every point within d of ref" — necessary-overlap
         // prefilter. The safety margin absorbs flat-vs-spherical projection error so we
-        // don't accidentally exclude rows whose true distance is just under d. Near a pole
-        // (or when the span would exceed 180°) the within-d region wraps all longitudes, so
-        // we use a full-longitude band rather than a bounded (row-dropping) span.
+        // don't accidentally exclude rows whose true distance is just under d.
+        // Longitude scaling: degrees of longitude shrink toward the poles, so cos() is
+        // evaluated at the POLEWARD EDGE of the latitude band (not its center) — the
+        // narrowest point, where the required longitude span is widest; sizing by the
+        // center latitude under-covers for large radii at high latitudes and drops rows
+        // (e.g. lat 60°, d=1000 km: cos(60°)/cos(69.9°) ≈ 1.46, past the 1.1 margin).
+        // The near-pole gate is likewise evaluated at the band edge. Near a pole (or when
+        // the span would exceed 180°) the within-d region wraps all longitudes, so we use
+        // a full-longitude band rather than a bounded (row-dropping) span.
         double outerDegLat = (distanceMeters / METERS_PER_DEGREE) * OUTER_SAFETY_MARGIN;
+        double polewardLat = Math.min(Math.abs(lat) + outerDegLat, 90.0);
+        boolean nearPole = polewardLat >= NEAR_POLE_LAT;
         double outerDegLon = nearPole ? Double.POSITIVE_INFINITY
-            : (distanceMeters / (METERS_PER_DEGREE * Math.cos(Math.toRadians(lat)))) * OUTER_SAFETY_MARGIN;
+            : (distanceMeters / (METERS_PER_DEGREE * Math.cos(Math.toRadians(polewardLat)))) * OUTER_SAFETY_MARGIN;
         Envelope outer = outerDegLon >= 180.0
             ? new Envelope(-180.0, 180.0, lat - outerDegLat, lat + outerDegLat)
             : new Envelope(lon - outerDegLon, lon + outerDegLon, lat - outerDegLat, lat + outerDegLat);
@@ -262,10 +268,17 @@ public class TrinoFilterToSQL extends FilterToSQL {
             write("(" + bboxOverlapSql(bboxCol, outer) + ") AND " + distanceCheck);
         } else {
             // INNER inscribed rectangle: half-sides (d × INNER_SAFETY_MARGIN × INSCRIBED_FACTOR)
-            // scaled to lat/lon. Corners land at distance INNER_SAFETY_MARGIN × d from ref, so
-            // any bbox(geom) ⊆ this rectangle ⇒ every point of geom is within d ⇒ DWITHIN=TRUE.
+            // scaled to lat/lon. Corners land at distance ≤ INNER_SAFETY_MARGIN × d from ref,
+            // so any bbox(geom) ⊆ this rectangle ⇒ every point of geom is within d ⇒ TRUE.
+            // Longitude scaling mirrors the outer box in the conservative direction: cos()
+            // is evaluated at the EQUATORWARD EDGE of the band (its physically widest
+            // point), so the rectangle's real half-width never exceeds the target anywhere
+            // in the band — sizing by the center latitude lets the equatorward corners land
+            // beyond d (e.g. lat 70°, d=1000 km: corner ≈ 1.03 d), wrongly including rows.
             double innerDegLat = (distanceMeters / METERS_PER_DEGREE) * INSCRIBED_FACTOR * INNER_SAFETY_MARGIN;
-            double innerDegLon = (distanceMeters / (METERS_PER_DEGREE * Math.cos(Math.toRadians(lat)))) * INSCRIBED_FACTOR * INNER_SAFETY_MARGIN;
+            double equatorwardLat = Math.max(Math.abs(lat) - innerDegLat, 0.0);
+            double innerDegLon = (distanceMeters / (METERS_PER_DEGREE * Math.cos(Math.toRadians(equatorwardLat))))
+                * INSCRIBED_FACTOR * INNER_SAFETY_MARGIN;
             Envelope inner = new Envelope(lon - innerDegLon, lon + innerDegLon,
                                           lat - innerDegLat, lat + innerDegLat);
             // Outer bbox-overlap (file/Z2 pruning) AND CASE WHEN inner-rectangle-contained

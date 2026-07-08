@@ -143,6 +143,82 @@ class TrinoFilterToSQLTest {
     }
 
     @Test
+    void dwithinHighLatitudeOuterBoxCoversTrueRegion() throws Exception {
+        // lat 60°, d = 1000 km: the poleward band edge sits at ~69.9°, where a degree of
+        // longitude covers cos(69.9°)/cos(60°) ≈ 69% of what it covers at the center.
+        // Sizing the outer box with cos(center) yields a ±19.8° half-span while points
+        // within d near the band edge reach ~±26.1° — silently excluded. The fix sizes
+        // with cos(poleward edge); assert the emitted half-span covers the true extreme.
+        Filter f = ECQL.toFilter("DWITHIN(geom, POINT(10 60), 1000000, meters)");
+        String sql = new TrinoFilterToSQL().encodeToString(f);
+        double minX = extractBound(sql, "\"__geom_bbox__\".xmax >= ");
+        double maxX = extractBound(sql, "\"__geom_bbox__\".xmin <= ");
+        // True requirement (spherical): d / (111,320 m/deg × cos(69.9°)) ≈ 26.1°
+        assertThat(10.0 - minX).as("west half-span").isGreaterThan(26.2);
+        assertThat(maxX - 10.0).as("east half-span").isGreaterThan(26.2);
+    }
+
+    @Test
+    void dwithinBandReachingPoleUsesFullLongitudeBand() throws Exception {
+        // Centered at 80° with d = 1000 km the band reaches ~89.9° — effectively at the
+        // pole — so the region wraps all longitudes even though the CENTER is below the
+        // near-pole gate. The gate must be evaluated at the band edge.
+        Filter f = ECQL.toFilter("DWITHIN(geom, POINT(10 80), 1000000, meters)");
+        String sql = new TrinoFilterToSQL().encodeToString(f);
+        assertThat(sql).contains("\"__geom_bbox__\".xmax >= -180");
+        assertThat(sql).contains("\"__geom_bbox__\".xmin <= 180");
+        assertThat(sql).doesNotContain("CASE WHEN");
+    }
+
+    @Test
+    void dwithinInnerRectangleCornersNeverExceedDistance() throws Exception {
+        // The THEN TRUE shortcut is sound only if every point of the inner rectangle is
+        // within d of the reference. Sized with cos(center) the equatorward corners land
+        // beyond d at high latitude + large radius (lat 70°, d=1000 km → ~1.03 d); the
+        // fix sizes with cos(equatorward edge). Verify all four corners by haversine.
+        double lat = 70.0, lon = 10.0, d = 1_000_000;
+        Filter f = ECQL.toFilter("DWITHIN(geom, POINT(10 70), 1000000, meters)");
+        String sql = new TrinoFilterToSQL().encodeToString(f);
+        // Inner rectangle bounds live in the CASE WHEN clause (xmin >= / xmax <= form).
+        String inner = sql.substring(sql.indexOf("CASE WHEN"));
+        double xMin = extractBound(inner, "\"__geom_bbox__\".xmin >= ");
+        double xMax = extractBound(inner, "\"__geom_bbox__\".xmax <= ");
+        double yMin = extractBound(inner, "\"__geom_bbox__\".ymin >= ");
+        double yMax = extractBound(inner, "\"__geom_bbox__\".ymax <= ");
+        for (double cy : new double[]{yMin, yMax}) {
+            for (double cx : new double[]{xMin, xMax}) {
+                assertThat(haversineMeters(lat, lon, cy, cx))
+                    .as("corner (%s, %s)", cx, cy)
+                    .isLessThan(d);
+            }
+        }
+    }
+
+    /** First numeric bound following {@code marker} in the SQL. */
+    private static double extractBound(String sql, String marker) {
+        int i = sql.indexOf(marker);
+        assertThat(i).as("marker present: " + marker).isGreaterThanOrEqualTo(0);
+        int start = i + marker.length();
+        int end = start;
+        while (end < sql.length() && (Character.isDigit(sql.charAt(end))
+                || sql.charAt(end) == '-' || sql.charAt(end) == '.'
+                || sql.charAt(end) == 'E')) {
+            end++;
+        }
+        return Double.parseDouble(sql.substring(start, end));
+    }
+
+    /** Great-circle distance on the WGS84 mean sphere. */
+    private static double haversineMeters(double lat1, double lon1, double lat2, double lon2) {
+        double r = 6_371_008.8;
+        double p1 = Math.toRadians(lat1), p2 = Math.toRadians(lat2);
+        double dp = Math.toRadians(lat2 - lat1), dl = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dp / 2) * Math.sin(dp / 2)
+            + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+        return 2 * r * Math.asin(Math.sqrt(a));
+    }
+
+    @Test
     void duringTranslatesToTimestampRange() throws Exception {
         Filter f = ECQL.toFilter(
             "dtg DURING 2023-01-01T00:00:00Z/2024-01-01T00:00:00Z");
