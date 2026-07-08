@@ -13,7 +13,7 @@ import org.locationtech.geomesa.trino.security.TrustedPrincipalHeaderAuthenticat
 import io.trino.spi.Plugin;
 import io.trino.spi.connector.ConnectorFactory;
 import io.trino.spi.security.HeaderAuthenticatorFactory;
-import org.locationtech.geomesa.trino.spatial.connector.SpatialConnectorFactory;
+import org.locationtech.geomesa.trino.spatial.iceberg.connector.SpatialConnectorFactory;
 
 import java.util.List;
 import java.util.Set;

@@ -14,7 +14,6 @@ import org.apache.iceberg.transforms.Transform;
 import org.apache.iceberg.types.Type;
 import org.apache.iceberg.types.Types;
 import org.apache.iceberg.util.SerializableFunction;
-import org.locationtech.geomesa.iceberg.spatial.transforms.SfcBridge;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;

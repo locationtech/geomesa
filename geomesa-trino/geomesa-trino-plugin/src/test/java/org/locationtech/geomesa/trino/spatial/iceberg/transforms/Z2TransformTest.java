@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.trino.spatial.iceberg.transforms;
 
-import org.locationtech.geomesa.iceberg.spatial.transforms.SfcBridge;
 import org.apache.iceberg.PartitionSpec;
 import org.apache.iceberg.PartitionSpecParser;
 import org.apache.iceberg.Schema;

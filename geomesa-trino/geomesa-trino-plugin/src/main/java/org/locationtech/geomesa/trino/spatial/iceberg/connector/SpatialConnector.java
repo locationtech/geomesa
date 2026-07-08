@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.trino.spatial.connector;
+package org.locationtech.geomesa.trino.spatial.iceberg.connector;
 import org.locationtech.geomesa.trino.security.AuthorizationResolver;
 import org.locationtech.geomesa.trino.security.VisibilityAccessControl;
 

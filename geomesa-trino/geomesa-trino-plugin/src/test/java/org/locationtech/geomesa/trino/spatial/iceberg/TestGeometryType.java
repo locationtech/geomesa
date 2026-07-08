@@ -15,7 +15,7 @@ import io.trino.spi.block.BlockBuilderStatus;
 import io.trino.spi.block.VariableWidthBlock;
 import io.trino.spi.type.AbstractType;
 import io.trino.spi.type.TypeSignature;
-import org.locationtech.geomesa.trino.spatial.connector.SpatialConnectorMetadata;
+import org.locationtech.geomesa.trino.spatial.iceberg.connector.SpatialConnectorMetadata;
 
 /**
  * Minimal stand-in for Trino's geospatial {@code Geometry} type, for unit tests.

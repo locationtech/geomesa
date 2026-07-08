@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.iceberg.spatial.transforms
+package org.locationtech.geomesa.trino.spatial.iceberg.transforms
 
 import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
 

@@ -19,9 +19,8 @@ import io.trino.spi.connector.SchemaTableName;
 import io.trino.spi.type.RealType;
 import org.locationtech.geomesa.trino.spatial.GeometryColumn;
 import org.locationtech.geomesa.trino.spatial.SpatialIndexKind;
-import org.locationtech.geomesa.trino.spatial.iceberg.SpatialPartitionHandle;
-import org.locationtech.geomesa.trino.spatial.connector.SpatialConnector;
-import org.locationtech.geomesa.trino.spatial.connector.SpatialConnectorMetadata;
+import org.locationtech.geomesa.trino.spatial.iceberg.connector.SpatialConnector;
+import org.locationtech.geomesa.trino.spatial.iceberg.connector.SpatialConnectorMetadata;
 
 import java.util.LinkedHashMap;
 import java.util.List;

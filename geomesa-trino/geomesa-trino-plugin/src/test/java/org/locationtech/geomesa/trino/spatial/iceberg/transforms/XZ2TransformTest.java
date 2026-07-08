@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.trino.spatial.iceberg.transforms;
 
-import org.locationtech.geomesa.iceberg.spatial.transforms.SfcBridge;
 import org.apache.iceberg.types.Types;
 import org.junit.jupiter.api.Test;
 import org.locationtech.geomesa.trino.spatial.iceberg.GeometryType;
