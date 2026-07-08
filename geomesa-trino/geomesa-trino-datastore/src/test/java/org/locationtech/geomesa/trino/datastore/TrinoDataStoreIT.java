@@ -154,6 +154,27 @@ class TrinoDataStoreIT {
     }
 
     @Test
+    void disjointFilterCountMatchesBaseline() throws Exception {
+        // Exercises the no-prefilter translation path end-to-end: DISJOINT emits
+        // exact ST_Disjoint with no bbox conjunct (a prefilter would prune the answer).
+        Filter f = ECQL.toFilter(
+            "DISJOINT(geom, POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)))");
+        assertCountMatchesJdbc(f,
+            "WHERE ST_Disjoint(ST_GeomFromBinary(geom)," +
+            " ST_GeometryFromText('POLYGON ((-80 37, -70 37, -70 45, -80 45, -80 37))'))");
+    }
+
+    @Test
+    void containsFilterCountMatchesBaseline() throws Exception {
+        // Property-first CONTAINS: row geometry contains the literal point —
+        // bbox-covers prefilter + exact ST_Contains.
+        Filter f = ECQL.toFilter("CONTAINS(geom, POINT(-77.04 38.91))");
+        assertCountMatchesJdbc(f,
+            "WHERE ST_Contains(ST_GeomFromBinary(geom)," +
+            " ST_GeometryFromText('POINT (-77.04 38.91)'))");
+    }
+
+    @Test
     void maxFeaturesIsPushedDownAsLimit() throws Exception {
         Query q = new Query("observations");
         q.setMaxFeatures(5);

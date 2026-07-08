@@ -11,9 +11,16 @@ package org.locationtech.geomesa.trino.datastore;
 import org.geotools.api.filter.Id;
 import org.geotools.api.filter.identity.Identifier;
 import org.geotools.api.filter.spatial.BBOX;
+import org.geotools.api.filter.spatial.Beyond;
 import org.geotools.api.filter.spatial.BinarySpatialOperator;
+import org.geotools.api.filter.spatial.Contains;
+import org.geotools.api.filter.spatial.Crosses;
+import org.geotools.api.filter.spatial.Disjoint;
 import org.geotools.api.filter.spatial.DWithin;
+import org.geotools.api.filter.spatial.Equals;
 import org.geotools.api.filter.spatial.Intersects;
+import org.geotools.api.filter.spatial.Overlaps;
+import org.geotools.api.filter.spatial.Touches;
 import org.geotools.api.filter.spatial.Within;
 import org.geotools.api.filter.temporal.During;
 import org.geotools.api.filter.expression.Expression;
@@ -104,28 +111,66 @@ public class TrinoFilterToSQL extends FilterToSQL {
     private static final double NEAR_POLE_LAT = 85.0;
 
     // ── Spatial ───────────────────────────────────────────────────────────────
+    //
+    // All binary spatial operators funnel through the base class's dispatcher: the
+    // public visit(*) methods delegate to visitBinarySpatialOperator, which splits
+    // the operands into the property/literal pair before calling the hook below. BBOX
+    // keeps a dedicated visit() override because its literal is an envelope, not a
+    // Geometry.
 
-    /** A binary spatial filter's operands, normalized: the geometry column name and the
-     *  query-geometry literal, regardless of which side of the filter each appeared on.
-     *  {@code literalFirst} records the original order for non-symmetric operators
-     *  (e.g. {@code WITHIN(literal, geom)} asks whether the literal is within the row
-     *  geometry — a different predicate from {@code WITHIN(geom, literal)}). */
-    record SpatialOperands(String column, Geometry geometry, boolean literalFirst) {}
+    /** Single translation point for every binary spatial operator. {@code swapped}
+     *  means the geometry literal was expression1 (e.g. {@code INTERSECTS(POLYGON,
+     *  geom)}) — irrelevant for symmetric operators, semantics-reversing for
+     *  Within/Contains (which are each other's complement: {@code contains(a, b) ⇔
+     *  within(b, a)}). Disjoint and Beyond get NO bbox prefilter */
+    @Override
+    protected Object visitBinarySpatialOperator(BinarySpatialOperator filter,
+            PropertyName property, Literal literal, boolean swapped, Object extraData) {
+        String col = property.getPropertyName();
+        if (!(literal.getValue() instanceof Geometry geom)) {
+            throw new IllegalArgumentException(
+                "Unsupported spatial filter literal (expected a geometry): " + filter);
+        }
+        if (filter instanceof Intersects) {                  // symmetric
+            writeIntersectsFor(col, geom);
+        } else if (filter instanceof Within) {
+            if (swapped) {
+                writeLiteralWithinColumn(col, geom);
+            } else {
+                writeWithin(col, geom);
+            }
+        } else if (filter instanceof Contains) {
+            if (swapped) {
+                writeWithin(col, geom);                      // CONTAINS(lit, geom) ⇔ WITHIN(geom, lit)
+            } else {
+                writeColumnContainsLiteral(col, geom);
+            }
+        } else if (filter instanceof DWithin d) {            // symmetric
+            writeDWithin(col, geom, convertToMeters(d.getDistance(), d.getDistanceUnits()));
+        } else if (filter instanceof Beyond b) {             // symmetric
+            writeBeyond(col, geom, convertToMeters(b.getDistance(), b.getDistanceUnits()));
+        } else if (filter instanceof Crosses) {              // symmetric
+            writeIntersectionImplyingOp("ST_Crosses", col, geom);
+        } else if (filter instanceof Touches) {              // symmetric
+            writeIntersectionImplyingOp("ST_Touches", col, geom);
+        } else if (filter instanceof Overlaps) {             // symmetric
+            writeIntersectionImplyingOp("ST_Overlaps", col, geom);
+        } else if (filter instanceof Equals) {               // symmetric
+            writeIntersectionImplyingOp("ST_Equals", col, geom);
+        } else if (filter instanceof Disjoint) {             // symmetric
+            write("ST_Disjoint(ST_GeomFromBinary(" + quoteIdent(col) + "),"
+                + " " + geomFromText(geom) + ")");
+        } else {
+            throw new IllegalArgumentException("Unsupported spatial operator: " + filter);
+        }
+        return extraData;
+    }
 
-    /** Extracts the property/literal pair from a binary spatial filter in either operand
-     *  order. CQL permits {@code INTERSECTS(POLYGON(...), geom)} as well as the usual
-     *  {@code INTERSECTS(geom, POLYGON(...))}. */
-    private SpatialOperands spatialOperands(BinarySpatialOperator filter) {
-        Expression e1 = filter.getExpression1();
-        Expression e2 = filter.getExpression2();
-        if (e2 instanceof Literal lit && lit.getValue() instanceof Geometry g) {
-            String col = e1 instanceof PropertyName pn ? pn.getPropertyName() : defaultGeomCol();
-            return new SpatialOperands(col, g, false);
-        }
-        if (e1 instanceof Literal lit && lit.getValue() instanceof Geometry g) {
-            String col = e2 instanceof PropertyName pn ? pn.getPropertyName() : defaultGeomCol();
-            return new SpatialOperands(col, g, true);
-        }
+    /** Other operand shapes the base dispatcher couldn't split into a property/literal pair
+     *  are unsupported. */
+    @Override
+    protected Object visitBinarySpatialOperator(BinarySpatialOperator filter,
+            Expression e1, Expression e2, Object extraData) {
         throw new IllegalArgumentException(
             "Unsupported spatial filter operands (expected one geometry literal and one property name): " + filter);
     }
@@ -146,81 +191,37 @@ public class TrinoFilterToSQL extends FilterToSQL {
         return extraData;
     }
 
-    /**
-     * Translates an Intersects filter, with a bbox-overlap prefilter and row-level shortcut.
-     *
-     * @param filter intersects filter
-     * @param extraData caller-supplied context, returned unchanged
-     * @return extraData
-     */
-    @Override
-    public Object visit(Intersects filter, Object extraData) {
-        // Intersects is symmetric, so operand order doesn't change the predicate.
-        SpatialOperands ops = spatialOperands(filter);
-
-        // Fast path: ST_Intersects(point, rect) ⇔ bbox-overlap(bbox(point), rect)
-        // because bbox(Point) = Point.
-        // Soundness needs BOTH conditions:
-        //  - Rectangle query: lines/polygons can have bboxes that overlap a non-
-        //    rectangular envelope without g ∩ R ≠ ∅. Equivalence only holds for
-        //    axis-aligned rectangles.
-        //  - Point data: for any non-point geometry (Line, Polygon, MultiPoint),
-        //    bbox(g) is a strict superset of g, so bbox-overlap is necessary but
-        //    not sufficient for ST_Intersects.
-        if (ops.geometry() instanceof Polygon p && p.isRectangle()
-                && storedGeometryIsPoint(ops.column())) {
-            writeBboxOverlap(ops.column(), p.getEnvelopeInternal());
-            return extraData;
+    /** Intersects translation.
+     *  Fast path: ST_Intersects(point, rect) ⇔ bbox-overlap(bbox(point), rect)
+     *  because bbox(Point) = Point. Soundness needs BOTH conditions:
+     *  a rectangle query (equivalence only holds for axis-aligned rectangles) AND
+     *  point data (for any non-point geometry, bbox(g) is a strict superset of g,
+     *  so bbox-overlap is necessary but not sufficient). Otherwise: bbox-overlap
+     *  (pushable to file-level pruning) AND either the CASE WHEN bbox-contained
+     *  shortcut (rectangular queries only) or the exact row-level ST_Intersects. */
+    private void writeIntersectsFor(String col, Geometry geom) {
+        if (geom instanceof Polygon p && p.isRectangle() && storedGeometryIsPoint(col)) {
+            writeBboxOverlap(col, p.getEnvelopeInternal());
+            return;
         }
-
-        // General case: bbox-overlap (pushable to file-level pruning) AND either the
-        // CASE WHEN bbox-contained shortcut (rectangular queries only) or the exact
-        // row-level ST_Intersects.
-        writeIntersects(ops.column(), ops.geometry());
-        return extraData;
+        writeIntersects(col, geom);
     }
 
-    /**
-     * Translates a Within filter, using bbox-containment for rectangles and exact ST_Within otherwise.
-     *
-     * @param filter within filter
-     * @param extraData caller-supplied context, returned unchanged
-     * @return extraData
-     */
-    @Override
-    public Object visit(Within filter, Object extraData) {
-        SpatialOperands ops = spatialOperands(filter);
-        // n.b. Within is NOT symmetric
-        if (ops.literalFirst()) {
-            writeLiteralWithinColumn(ops.column(), ops.geometry());
-            return extraData;
-        }
-        // For axis-aligned rectangular query polygons, bbox⊆rect is equivalent to
-        // ST_Within(geom, rect) — no row-level ST_Within evaluation needed at all.
-        // For non-rectangular polygons, fall back to bbox-overlap (Z2 pushdown) AND
-        // exact ST_Within at row level.
-        if (ops.geometry() instanceof Polygon p && p.isRectangle()) {
-            writeWithinRectangleAsBboxContained(ops.column(), p);
+    /** WITHIN(geom, literal): for axis-aligned rectangular query polygons,
+     *  bbox⊆rect is equivalent to ST_Within(geom, rect) — no row-level ST_Within
+     *  needed at all. For anything else, bbox-overlap (Z2 pushdown) AND exact
+     *  ST_Within at row level. Also serves swapped Contains
+     *  ({@code CONTAINS(lit, geom) ⇔ WITHIN(geom, lit)}). */
+    private void writeWithin(String col, Geometry geom) {
+        if (geom instanceof Polygon p && p.isRectangle()) {
+            writeWithinRectangleAsBboxContained(col, p);
         } else {
-            writeWithinNonRectangle(ops.column(), ops.geometry());
+            writeWithinNonRectangle(col, geom);
         }
-        return extraData;
     }
 
-    /**
-     * Translates a DWithin filter into outer/inner bbox bounds plus an exact spherical distance check.
-     *
-     * @param filter distance-within filter
-     * @param extraData caller-supplied context, returned unchanged
-     * @return extraData
-     */
-    @Override
-    public Object visit(DWithin filter, Object extraData) {
-        // n.b. DWithin is symmetric
-        SpatialOperands ops = spatialOperands(filter);
-        String col = ops.column();
-        Geometry refGeom = ops.geometry();
-        double distanceMeters = convertToMeters(filter.getDistance(), filter.getDistanceUnits());
+    /** DWithin translation: outer/inner bbox bounds plus an exact spherical distance check. */
+    private void writeDWithin(String col, Geometry refGeom, double distanceMeters) {
 
         // Treat reference as a point (centroid for non-point geometries — same as before).
         double lon, lat;
@@ -273,7 +274,47 @@ public class TrinoFilterToSQL extends FilterToSQL {
                 + "CASE WHEN " + bboxContainedSql(bboxCol, inner) + " THEN TRUE"
                 + " ELSE " + distanceCheck + " END");
         }
-        return extraData;
+    }
+
+    // ── Other binary spatial operators ────────────────────────────────────────
+    //
+    // Crosses/Touches/Overlaps/Equals all imply a non-empty intersection, so each
+    // gets the pushable bbox-overlap prefilter (Z2/file pruning) plus the exact
+    // row-level ST_* test. No CASE WHEN shortcuts: envelope containment proves
+    // nothing for these predicates (see the Intersects rectangle gate).
+
+    /** {@code CONTAINS(geom, literal)} — the row geometry contains the literal, so
+     *  the pushable prefilter is bbox-COVERS (the row bbox must contain the literal's
+     *  envelope) plus exact {@code ST_Contains}. The literal-first form is handled in
+     *  the dispatcher as {@code WITHIN(geom, literal)}. */
+    private void writeColumnContainsLiteral(String col, Geometry geom) {
+        String q = quoteIdent(bboxColName(col));
+        Envelope env = geom.getEnvelopeInternal();
+        String bboxCovers = String.format(
+            "%s.xmin <= %s AND %s.xmax >= %s AND %s.ymin <= %s AND %s.ymax >= %s",
+            q, env.getMinX(), q, env.getMaxX(), q, env.getMinY(), q, env.getMaxY());
+        write("(" + bboxCovers + ")"
+            + " AND ST_Contains(ST_GeomFromBinary(" + quoteIdent(col) + "),"
+            + " " + geomFromText(geom) + ")");
+    }
+
+    /** Beyond — DWithin's complement: exact spherical distance check, no prefilter. */
+    private void writeBeyond(String col, Geometry refGeom, double distanceMeters) {
+        String refWkt = wkt.write(refGeom).replace("'", "''");
+        write(String.format(Locale.ROOT,
+            "ST_Distance(to_spherical_geography(ST_GeomFromBinary(%s)),"
+            + " to_spherical_geography(ST_GeometryFromText('%s'))) > %.0f",
+            quoteIdent(col), refWkt, distanceMeters));
+    }
+
+    /** Shared shape for the intersection-implying operators (Crosses, Touches,
+     *  Overlaps, Equals): the pushable bbox-overlap prefilter (necessary — each of
+     *  these predicates implies a non-empty intersection, which implies overlapping
+     *  envelopes) AND the exact row-level test. */
+    private void writeIntersectionImplyingOp(String function, String col, Geometry geom) {
+        write("(" + bboxOverlapSql(bboxColName(col), geom.getEnvelopeInternal()) + ")"
+            + " AND " + function + "(ST_GeomFromBinary(" + quoteIdent(col) + "),"
+            + " " + geomFromText(geom) + ")");
     }
 
     // ── Temporal ──────────────────────────────────────────────────────────────

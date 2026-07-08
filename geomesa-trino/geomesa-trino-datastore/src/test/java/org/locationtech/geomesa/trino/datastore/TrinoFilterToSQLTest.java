@@ -311,6 +311,75 @@ class TrinoFilterToSQLTest {
         assertThat(sql).contains("ELSE ST_Intersects(ST_GeomFromBinary(\"geom\"),");
     }
 
+    // ── Other binary spatial operators ────────────────────────────────────────
+
+    @Test
+    void crossesTouchesOverlapsEqualsGetBboxPrefilterAndExactTest() throws Exception {
+        // Each of these implies a non-empty intersection, so the pushable
+        // bbox-overlap prefilter is a valid necessary condition; the exact ST_*
+        // runs at row level with no CASE WHEN shortcut.
+        record Case(String cql, String function) {}
+        var cases = java.util.List.of(
+            new Case("CROSSES(geom, LINESTRING(-80 37, -70 45))", "ST_Crosses"),
+            new Case("TOUCHES(geom, POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)))", "ST_Touches"),
+            new Case("OVERLAPS(geom, POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)))", "ST_Overlaps"),
+            new Case("EQUALS(geom, POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)))", "ST_Equals"));
+        for (Case c : cases) {
+            String sql = new TrinoFilterToSQL().encodeToString(ECQL.toFilter(c.cql()));
+            assertThat(sql).as(c.cql()).startsWith("(\"__geom_bbox__\".xmax >= -80.0");
+            assertThat(sql).as(c.cql()).contains(") AND " + c.function() + "(ST_GeomFromBinary(\"geom\"),");
+            assertThat(sql).as(c.cql()).doesNotContain("CASE WHEN");
+        }
+    }
+
+    @Test
+    void disjointHasNoBboxPrefilter() throws Exception {
+        // Disjoint's result set is the complement of the overlap region — a bbox
+        // prefilter would prune exactly the rows that satisfy the predicate.
+        Filter f = ECQL.toFilter(
+            "DISJOINT(geom, POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)))");
+        String sql = translator.encodeToString(f);
+        assertThat(sql).startsWith("ST_Disjoint(ST_GeomFromBinary(\"geom\"),");
+        assertThat(sql).doesNotContain("__geom_bbox__");
+    }
+
+    @Test
+    void beyondTranslatesToDistanceGreaterThanWithoutPrefilter() throws Exception {
+        // Beyond is DWithin's complement: exact spherical distance > d, and like
+        // Disjoint no bbox prefilter (the matching rows are OUTSIDE the neighborhood).
+        Filter f = ECQL.toFilter("BEYOND(geom, POINT(-77.04 38.91), 100000, meters)");
+        String sql = translator.encodeToString(f);
+        assertThat(sql).startsWith("ST_Distance(to_spherical_geography(ST_GeomFromBinary(\"geom\")),");
+        assertThat(sql).contains("> 100000");
+        assertThat(sql).doesNotContain("__geom_bbox__");
+    }
+
+    @Test
+    void containsPropertyFirstGetsBboxCoversPrefilterAndExactTest() throws Exception {
+        // CONTAINS(geom, literal): the row geometry contains the literal, so the row
+        // bbox must COVER the literal's envelope (necessary, pushable) + exact test.
+        Filter f = ECQL.toFilter("CONTAINS(geom, POINT(-77.04 38.91))");
+        String sql = translator.encodeToString(f);
+        assertThat(sql).contains("\"__geom_bbox__\".xmin <= -77.04");
+        assertThat(sql).contains("\"__geom_bbox__\".xmax >= -77.04");
+        assertThat(sql).contains("\"__geom_bbox__\".ymin <= 38.91");
+        assertThat(sql).contains("\"__geom_bbox__\".ymax >= 38.91");
+        assertThat(sql).contains("AND ST_Contains(ST_GeomFromBinary(\"geom\"),");
+    }
+
+    @Test
+    void containsLiteralFirstIsWithinReversed() throws Exception {
+        // CONTAINS(literal, geom) ⇔ WITHIN(geom, literal): for a rectangular literal
+        // this collapses to the exact bbox-contained predicate — same as the Within
+        // rectangle path, no row-level ST_ function at all.
+        Filter f = ECQL.toFilter(
+            "CONTAINS(POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)), geom)");
+        String sql = translator.encodeToString(f);
+        assertThat(sql).contains(") AND (\"__geom_bbox__\".xmin >= -80.0");
+        assertThat(sql).doesNotContain("ST_Contains");
+        assertThat(sql).doesNotContain("ST_Within");
+    }
+
     @Test
     void attributeAndIntersectsJoinedWithAnd() throws Exception {
         Filter f = ECQL.toFilter(

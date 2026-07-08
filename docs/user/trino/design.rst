@@ -123,6 +123,15 @@ the query envelope. The form differs by spatial filter type:
     * - ``BBOX(geom, env)``
       - ``bbox-overlap`` directly
       - exact for axis-aligned bbox queries
+    * - ``CROSSES`` / ``TOUCHES`` / ``OVERLAPS`` / ``EQUALS``
+      - ``(bbox-overlap) AND ST_<op>(geom, g)``
+      - each implies a non-empty intersection ⇒ bbox-overlap is a valid necessary prefilter
+    * - ``CONTAINS(geom, g)``
+      - ``(bbox-covers) AND ST_Contains(geom, g)``
+      - geom ⊇ g ⇒ bbox(geom) ⊇ env(g) (necessary); reversed operands reuse the WITHIN paths
+    * - ``DISJOINT`` / ``BEYOND``
+      - exact ``ST_Disjoint`` / spherical distance > d, **no prefilter**
+      - the matching rows lie outside the query neighborhood — an overlap prefilter would prune the answer
 
 CASE WHEN — not OR. Trino's optimizer distributes OR over AND, causing the
 expensive predicate to evaluate up to 4× per row (3.3× wall-clock slowdown
