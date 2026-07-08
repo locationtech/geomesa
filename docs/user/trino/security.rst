@@ -15,8 +15,7 @@ table with a visibility column, the data store builds an ``AuthorizationsProvide
 count, and bounds query so that filtering runs inside Trino workers and counts stay
 correct. Enforcement is **fail-closed**: with no ``geomesa.security.*`` parameters
 configured, the provider grants no authorizations and only unrestricted rows are
-returned. A client-side predicate re-checks rehydrated visibility as
-defense-in-depth.
+returned.
 
 .. list-table::
     :header-rows: 1

@@ -270,9 +270,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
         if (visColumn != null) {
             cols += ", " + escapeQuotes(visColumn);
         }
-        // Auths fetched once (in visibility()) so the extra credential, the SQL
-        // conjunct, and the client-side backstop can't diverge under per-request
-        // providers.
+        // Auths fetched once (in visibility()) so the extra credential and the SQL
+        // conjunct can't diverge under per-request providers.
         List<String> auths = vis == null ? null : vis.auths();
         String where = combineWhere(encodeFilterSql(query.getFilter()),
             visColumn == null ? null : visibilityConjunct(visColumn, auths));
@@ -291,13 +290,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
             Statement stmt = conn.createStatement();
             stmt.setFetchSize(10_000);  // hint; reduces client page round trips
             ResultSet rs   = stmt.executeQuery(sql);
-            FeatureReader<SimpleFeatureType, SimpleFeature> reader =
-                new TrinoFeatureReader(sft, conn, stmt, rs, fidColumn, visColumn);
-            if (visColumn != null) {
-                reader = new VisibilityFilteringFeatureReader(reader,
-                    new FeatureVisibilityFilter(auths));
-            }
-            return reader;
+            return new TrinoFeatureReader(sft, conn, stmt, rs, fidColumn, visColumn);
         } catch (Exception e) {
             try { conn.close(); } catch (SQLException suppressed) { e.addSuppressed(suppressed); }
             if (e instanceof RuntimeException re) {
@@ -370,7 +363,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
 
     /** The table's visibility column plus the caller's auths, captured together so
      *  a query makes a single {@code provider.getAuthorizations()} call and feeds
-     *  the same auths to the extra credential, the SQL conjunct, and the backstop. */
+     *  the same auths to the extra credential and the SQL conjunct. */
     private record VisibilityContext(String visColumn, List<String> auths) {
         String conjunct() {
             return visibilityConjunct(visColumn, auths);

@@ -55,10 +55,6 @@
       <artifactId>geomesa-security_${scala.binary.version}</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.accumulo</groupId>
-      <artifactId>accumulo-access</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
