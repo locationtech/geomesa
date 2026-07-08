@@ -17,6 +17,11 @@ import io.trino.spi.expression.ConnectorExpression;
 import io.trino.spi.expression.Constant;
 import io.trino.spi.expression.FieldDereference;
 import io.trino.spi.expression.Variable;
+
+import static io.trino.spi.expression.StandardFunctions.AND_FUNCTION_NAME;
+import static io.trino.spi.expression.StandardFunctions.CAST_FUNCTION_NAME;
+import static io.trino.spi.expression.StandardFunctions.GREATER_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+import static io.trino.spi.expression.StandardFunctions.LESS_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
 import io.trino.spi.predicate.*;
 import io.trino.spi.security.TrinoPrincipal;
 import io.trino.spi.statistics.TableStatistics;
@@ -133,9 +138,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         // struct comparisons (re-entry on a second planning iteration). The reconstructed
         // envelope is anchored to whichever geom's bbox struct the comparisons reference.
         if (matches.isEmpty()) {
-            Optional<BboxPatternMatch> bbox = tryExtractBboxPatternMatch(constraint.getExpression());
-            if (bbox.isEmpty()) return delegate.applyFilter(session, handle, constraint);
-            matches = List.of(new SpatialMatch(bbox.get().envelope(), "bbox_pattern", bbox.get().geomName()));
+            List<BboxPatternMatch> bboxes = tryExtractBboxPatternMatches(constraint.getExpression());
+            if (bboxes.isEmpty()) return delegate.applyFilter(session, handle, constraint);
+            matches = bboxes.stream()
+                .map(bp -> new SpatialMatch(bp.envelope(), "bbox_pattern", bp.geomName()))
+                .toList();
         }
 
         Map<String, GeometryColumn> geoms = geomsFor(session, handle);
@@ -329,7 +336,9 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
 
         String fn = call.getFunctionName().getName().toLowerCase(Locale.ROOT);
         if (!isSpatialPredicateName(fn)) {
-            // Recurse into sub-expressions (e.g., AND nodes), looking for geometry functions
+            // Recurse through conjunctions only (see collectSpatialMatches): an
+            // envelope found under $or/$not does not constrain the full result set.
+            if (!AND_FUNCTION_NAME.equals(call.getFunctionName())) return Optional.empty();
             for (ConnectorExpression arg : call.getArguments()) {
                 Optional<Envelope> result = tryExtractEnvelope(arg);
                 if (result.isPresent()) return result;
@@ -340,11 +349,12 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         // Look for a geometry argument. Trino constant-folds ST_GeometryFromText('WKT')
         // to a Geometry constant before PushPredicateIntoTableScan fires, so Form 1 is
         // the normal path. Form 2 handles the un-folded call defensively.
-        // Name-based type check avoids classloader identity mismatch between our bundled
-        // GeometryType and the one registered in Trino's type registry.
+        // Name-based type check (StandardTypes.GEOMETRY) avoids classloader identity
+        // mismatch between our bundled GeometryType and the one in Trino's registry.
         for (ConnectorExpression arg : call.getArguments()) {
             // Form 1: Geometry constant (already folded by the optimizer).
-            if (arg instanceof Constant constant && "Geometry".equals(constant.getType().getBaseName())) {
+            if (arg instanceof Constant constant
+                    && io.trino.spi.type.StandardTypes.GEOMETRY.equals(constant.getType().getBaseName())) {
                 return envelopeOf(constant.getValue());
             }
             // Form 2: ST_GeometryFromText(varchar_literal) not yet folded.
@@ -453,6 +463,13 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             }
             return;  // don't recurse into nested ST_*
         }
+        // Descend through CONJUNCTIONS only. A spatial predicate under $or, $not (or
+        // any other combinator) is not a top-level constraint on the result set:
+        // injecting its envelope would prune rows that satisfy the query through
+        // another branch (e.g. DISJOINT(a) OR CROSSES(b) — rows matching only the
+        // disjoint side live OUTSIDE b's envelope; NOT(WITHIN(t)) — matching rows
+        // live outside t). Found by the datastore filter-parity suite.
+        if (!AND_FUNCTION_NAME.equals(call.getFunctionName())) return;
         for (ConnectorExpression arg : call.getArguments()) collectSpatialMatches(arg, acc);
     }
 
@@ -480,28 +497,45 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
 
     // ── Bbox-pattern reconstruction ───────────────────────────────────────────
 
+    /** Single-match convenience over {@link #tryExtractBboxPatternMatches}; retained
+     *  for test fixtures. */
     Optional<BboxPatternMatch> tryExtractBboxPatternMatch(ConnectorExpression expr) {
-        double[] b = {Double.NaN, Double.NaN, Double.NaN, Double.NaN};
-        String[] geomName = {null};
-        collectBboxBounds(expr, b, geomName);
-        if (Double.isNaN(b[0]) || Double.isNaN(b[1]) || Double.isNaN(b[2]) || Double.isNaN(b[3])) {
-            return Optional.empty();
-        }
-        if (geomName[0] == null) return Optional.empty();
-        return Optional.of(new BboxPatternMatch(new Envelope(b[0], b[1], b[2], b[3]), geomName[0]));
+        return tryExtractBboxPatternMatches(expr).stream().findFirst();
     }
 
-    /** Recursively walks the expression tree filling in bbox bounds AND capturing
-     *  the parent column name of the bbox struct (e.g. {@code __center_bbox__} →
-     *  {@code center}). All four bound comparisons must reference the same geom
-     *  for the pattern to match. */
-    private void collectBboxBounds(ConnectorExpression expr, double[] b, String[] geomName) {
+    /** Reconstructs one envelope per geometry column whose bbox struct has all four
+     *  bound comparisons present as top-level conjuncts. Per-geom (not first-geom-
+     *  wins): multi-geom queries lower each spatial predicate to its own bbox
+     *  comparisons, and each deserves independent pruning. */
+    List<BboxPatternMatch> tryExtractBboxPatternMatches(ConnectorExpression expr) {
+        Map<String, double[]> bounds = new java.util.LinkedHashMap<>();
+        collectBboxBounds(expr, bounds);
+        List<BboxPatternMatch> out = new ArrayList<>();
+        for (Map.Entry<String, double[]> e : bounds.entrySet()) {
+            double[] b = e.getValue();
+            if (!Double.isNaN(b[0]) && !Double.isNaN(b[1])
+                    && !Double.isNaN(b[2]) && !Double.isNaN(b[3])) {
+                out.add(new BboxPatternMatch(new Envelope(b[0], b[1], b[2], b[3]), e.getKey()));
+            }
+        }
+        return out;
+    }
+
+    /** Recursively walks the expression tree filling in per-geom bbox bounds, keyed
+     *  by the parent column name of the bbox struct (e.g. {@code __center_bbox__} →
+     *  {@code center}). Bounds order: {xmax≥, xmin≤, ymax≥, ymin≤} → {minX, maxX,
+     *  minY, maxY} of the reconstructed envelope. */
+    private void collectBboxBounds(ConnectorExpression expr, Map<String, double[]> bounds) {
         if (!(expr instanceof Call call)) return;
-        String fn = call.getFunctionName().getName();
-        boolean gte = fn.equals("$greater_than_or_equal");
-        boolean lte = fn.equals("$less_than_or_equal");
+        boolean gte = GREATER_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME.equals(call.getFunctionName());
+        boolean lte = LESS_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME.equals(call.getFunctionName());
         if (!gte && !lte) {
-            for (ConnectorExpression arg : call.getArguments()) collectBboxBounds(arg, b, geomName);
+            // Descend through conjunctions only: bbox comparisons under $or/$not (or
+            // inside a CASE shortcut) are not top-level constraints — reconstructing
+            // an envelope from them would over-prune the other branches. Found by the
+            // datastore filter-parity suite (DISJOINT(a) OR CROSSES(b) lost rows).
+            if (!AND_FUNCTION_NAME.equals(call.getFunctionName())) return;
+            for (ConnectorExpression arg : call.getArguments()) collectBboxBounds(arg, bounds);
             return;
         }
         if (call.getArguments().size() != 2) return;
@@ -516,10 +550,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         }
         if (ref == null || val == null) return;
 
-        // All four bound comparisons must reference the same bbox struct (same geom).
-        if (geomName[0] == null) geomName[0] = ref.geomName();
-        else if (!geomName[0].equals(ref.geomName())) return;
-
+        double[] b = bounds.computeIfAbsent(ref.geomName(),
+            k -> new double[]{Double.NaN, Double.NaN, Double.NaN, Double.NaN});
         switch (ref.fieldName()) {
             case "xmax" -> { if (gte) b[0] = val; }
             case "xmin" -> { if (lte) b[1] = val; }
@@ -535,7 +567,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      *  {@code __<X>_bbox__}) AND the sub-field name. Returns null otherwise. */
     private FieldRef bboxFieldRef(ConnectorExpression expr) {
         if (expr instanceof Call c
-                && "$cast".equals(c.getFunctionName().getName())
+                && CAST_FUNCTION_NAME.equals(c.getFunctionName())
                 && c.getArguments().size() == 1) {
             expr = c.getArguments().get(0);
         }
@@ -570,7 +602,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private Double constantDouble(ConnectorExpression expr) {
         // Unwrap CAST on constant: e.g., CAST(-80.0 AS REAL)
         if (expr instanceof Call c
-                && "$cast".equals(c.getFunctionName().getName())
+                && CAST_FUNCTION_NAME.equals(c.getFunctionName())
                 && c.getArguments().size() == 1) {
             expr = c.getArguments().get(0);
         }
@@ -580,7 +612,9 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         if (val instanceof Double d) return d;
         if (val instanceof Long l) {
             // REAL values are stored as IEEE 754 bits in a long
-            if ("real".equals(c.getType().getBaseName())) return (double) Float.intBitsToFloat(l.intValue());
+            if (io.trino.spi.type.StandardTypes.REAL.equals(c.getType().getBaseName())) {
+                return (double) Float.intBitsToFloat(l.intValue());
+            }
             return l.doubleValue();
         }
         return null;

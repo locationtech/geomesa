@@ -18,6 +18,10 @@ import org.locationtech.geomesa.trino.spatial.iceberg.TestGeometryType;
 
 import java.util.*;
 
+import static io.trino.spi.expression.StandardFunctions.AND_FUNCTION_NAME;
+import static io.trino.spi.expression.StandardFunctions.GREATER_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+import static io.trino.spi.expression.StandardFunctions.LESS_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+import static io.trino.spi.expression.StandardFunctions.OR_FUNCTION_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
@@ -140,14 +144,20 @@ class SpatialConnectorMetadataTest {
 
     /** Builds the 4-predicate AND expression for a lat/lon bbox query. */
     private static ConnectorExpression bboxAndExpr(double loX, double hiX, double loY, double hiY) {
-        Variable bboxVar = new Variable("__geom_bbox__", BBOX_ROW_TYPE);
+        return bboxAndExprFor("__geom_bbox__", loX, hiX, loY, hiY);
+    }
+
+    /** Like {@link #bboxAndExpr} but against an arbitrary bbox struct column. */
+    private static ConnectorExpression bboxAndExprFor(String bboxColumn,
+            double loX, double hiX, double loY, double hiY) {
+        Variable bboxVar = new Variable(bboxColumn, BBOX_ROW_TYPE);
         FieldDereference xmin = new FieldDereference(RealType.REAL, bboxVar, 0);
         FieldDereference ymin = new FieldDereference(RealType.REAL, bboxVar, 1);
         FieldDereference xmax = new FieldDereference(RealType.REAL, bboxVar, 2);
         FieldDereference ymax = new FieldDereference(RealType.REAL, bboxVar, 3);
-        FunctionName gte = new FunctionName("$greater_than_or_equal");
-        FunctionName lte = new FunctionName("$less_than_or_equal");
-        FunctionName and = new FunctionName("$and");
+        FunctionName gte = GREATER_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+        FunctionName lte = LESS_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+        FunctionName and = AND_FUNCTION_NAME;
         Call p1 = new Call(BooleanType.BOOLEAN, gte, List.of(xmax, new Constant(loX, DoubleType.DOUBLE)));
         Call p2 = new Call(BooleanType.BOOLEAN, lte, List.of(xmin, new Constant(hiX, DoubleType.DOUBLE)));
         Call p3 = new Call(BooleanType.BOOLEAN, gte, List.of(ymax, new Constant(loY, DoubleType.DOUBLE)));
@@ -178,9 +188,9 @@ class SpatialConnectorMetadataTest {
             new FakeMetadata(), freshCatalog());
         // Use a plan symbol name that Trino would actually produce (underscores stripped)
         Variable bboxVar = new Variable("geom_bbox", BBOX_ROW_TYPE);
-        FunctionName gte = new FunctionName("$greater_than_or_equal");
-        FunctionName lte = new FunctionName("$less_than_or_equal");
-        FunctionName and = new FunctionName("$and");
+        FunctionName gte = GREATER_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+        FunctionName lte = LESS_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+        FunctionName and = AND_FUNCTION_NAME;
         FieldDereference xmax = new FieldDereference(RealType.REAL, bboxVar, 2);
         FieldDereference xmin = new FieldDereference(RealType.REAL, bboxVar, 0);
         FieldDereference ymax = new FieldDereference(RealType.REAL, bboxVar, 3);
@@ -206,14 +216,46 @@ class SpatialConnectorMetadataTest {
     }
 
     @Test
+    void bboxPatternUnderOrIsNotReconstructed() {
+        // Bound comparisons inside a disjunction are not top-level constraints —
+        // reconstructing an envelope from them would over-prune the other branch.
+        SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
+            new FakeMetadata(), freshCatalog());
+        ConnectorExpression bbox = bboxAndExpr(-80.0, -70.0, 37.0, 45.0);
+        ConnectorExpression or = new Call(BooleanType.BOOLEAN, OR_FUNCTION_NAME,
+            List.of(bbox, new Variable("flag", BooleanType.BOOLEAN)));
+        assertThat(meta.tryExtractBboxPatternMatch(or)).isEmpty();
+    }
+
+    @Test
+    void bboxPatternReconstructsPerGeomForMultiGeomConjunctions() {
+        // Two geoms' bbox comparisons ANDed together yield one envelope EACH —
+        // multi-geom queries get independent pruning, not first-geom-wins.
+        SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
+            new FakeMetadata(), freshCatalog());
+        ConnectorExpression both = new Call(BooleanType.BOOLEAN, AND_FUNCTION_NAME,
+            List.of(bboxAndExprFor("__center_bbox__", -80.0, -70.0, 37.0, 45.0),
+                    bboxAndExprFor("__ellipse_bbox__", 10.0, 11.0, 20.0, 21.0)));
+        List<SpatialConnectorMetadata.BboxPatternMatch> matches =
+            meta.tryExtractBboxPatternMatches(both);
+        assertThat(matches)
+            .extracting(SpatialConnectorMetadata.BboxPatternMatch::geomName)
+            .containsExactlyInAnyOrder("center", "ellipse");
+        SpatialConnectorMetadata.BboxPatternMatch ellipse = matches.stream()
+            .filter(bp -> bp.geomName().equals("ellipse")).findFirst().orElseThrow();
+        assertThat(ellipse.envelope().getMinX()).isEqualTo(10.0);
+        assertThat(ellipse.envelope().getMaxY()).isEqualTo(21.0);
+    }
+
+    @Test
     void incompleteBboxReturnEmpty() {
         SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
             new FakeMetadata(), freshCatalog());
         // Only 3 of 4 bbox predicates — not enough to reconstruct the envelope
         Variable bboxVar = new Variable("__geom_bbox__", BBOX_ROW_TYPE);
-        FunctionName gte = new FunctionName("$greater_than_or_equal");
-        FunctionName lte = new FunctionName("$less_than_or_equal");
-        FunctionName and = new FunctionName("$and");
+        FunctionName gte = GREATER_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+        FunctionName lte = LESS_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+        FunctionName and = AND_FUNCTION_NAME;
         Call p1 = new Call(BooleanType.BOOLEAN, gte, List.of(
             new FieldDereference(RealType.REAL, bboxVar, 2), new Constant(-80.0, DoubleType.DOUBLE)));
         Call p2 = new Call(BooleanType.BOOLEAN, lte, List.of(
@@ -237,8 +279,8 @@ class SpatialConnectorMetadataTest {
             RowType.field("d", RealType.REAL)
         );
         Variable otherVar = new Variable("other_struct", otherType);
-        FunctionName gte = new FunctionName("$greater_than_or_equal");
-        FunctionName and = new FunctionName("$and");
+        FunctionName gte = GREATER_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+        FunctionName and = AND_FUNCTION_NAME;
         Call p = new Call(BooleanType.BOOLEAN, gte, List.of(
             new FieldDereference(RealType.REAL, otherVar, 2), new Constant(-80.0, DoubleType.DOUBLE)));
         ConnectorExpression expr = new Call(BooleanType.BOOLEAN, and, List.of(p));

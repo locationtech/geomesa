@@ -132,7 +132,7 @@ public class TrinoFilterToSQL extends FilterToSQL {
                 "Unsupported spatial filter literal (expected a geometry): " + filter);
         }
         if (filter instanceof Intersects) {                  // symmetric
-            writeIntersectsFor(col, geom);
+            writeIntersects(col, geom);
         } else if (filter instanceof Within) {
             if (swapped) {
                 writeLiteralWithinColumn(col, geom);
@@ -187,34 +187,24 @@ public class TrinoFilterToSQL extends FilterToSQL {
         String col = filter.getExpression1() instanceof PropertyName pn
             ? pn.getPropertyName() : defaultGeomCol();
         BoundingBox b = filter.getBounds();
-        writeBboxOverlap(col, new Envelope(b.getMinX(), b.getMaxX(), b.getMinY(), b.getMaxY()));
+        // BBOX(geom, env) ⇔ INTERSECTS(geom, envelope-rectangle) — route through the
+        // rectangle intersects emission (overlap prefilter + shrunk-contained shortcut
+        // + exact ST_Intersects fallback). A bare float32 bbox-overlap is NOT exact:
+        // the stored bbox is rounded to nearest, so it admits rows up to ½ ulp outside
+        // the envelope (boundary rows made this visible in the filter-parity suite).
+        Envelope env = new Envelope(b.getMinX(), b.getMaxX(), b.getMinY(), b.getMaxY());
+        writeIntersects(col, new org.locationtech.jts.geom.GeometryFactory().toGeometry(env));
         return extraData;
     }
 
-    /** Intersects translation.
-     *  Fast path: ST_Intersects(point, rect) ⇔ bbox-overlap(bbox(point), rect)
-     *  because bbox(Point) = Point. Soundness needs BOTH conditions:
-     *  a rectangle query (equivalence only holds for axis-aligned rectangles) AND
-     *  point data (for any non-point geometry, bbox(g) is a strict superset of g,
-     *  so bbox-overlap is necessary but not sufficient). Otherwise: bbox-overlap
-     *  (pushable to file-level pruning) AND either the CASE WHEN bbox-contained
-     *  shortcut (rectangular queries only) or the exact row-level ST_Intersects. */
-    private void writeIntersectsFor(String col, Geometry geom) {
-        if (geom instanceof Polygon p && p.isRectangle() && storedGeometryIsPoint(col)) {
-            writeBboxOverlap(col, p.getEnvelopeInternal());
-            return;
-        }
-        writeIntersects(col, geom);
-    }
-
-    /** WITHIN(geom, literal): for axis-aligned rectangular query polygons,
-     *  bbox⊆rect is equivalent to ST_Within(geom, rect) — no row-level ST_Within
-     *  needed at all. For anything else, bbox-overlap (Z2 pushdown) AND exact
-     *  ST_Within at row level. Also serves swapped Contains
+    /** WITHIN(geom, literal): rectangular query polygons take the shrunk-contained
+     *  shortcut with an exact ST_Within fallback (see {@link #writeWithinRectangle});
+     *  anything else emits bbox-overlap (Z2 pushdown) AND exact ST_Within at row
+     *  level. Also serves swapped Contains
      *  ({@code CONTAINS(lit, geom) ⇔ WITHIN(geom, lit)}). */
     private void writeWithin(String col, Geometry geom) {
         if (geom instanceof Polygon p && p.isRectangle()) {
-            writeWithinRectangleAsBboxContained(col, p);
+            writeWithinRectangle(col, p);
         } else {
             writeWithinNonRectangle(col, geom);
         }
@@ -223,53 +213,55 @@ public class TrinoFilterToSQL extends FilterToSQL {
     /** DWithin translation: outer/inner bbox bounds plus an exact spherical distance check. */
     private void writeDWithin(String col, Geometry refGeom, double distanceMeters) {
 
-        // Treat reference as a point (centroid for non-point geometries — same as before).
-        double lon, lat;
-        if (refGeom instanceof Point pt) {
-            lon = pt.getX();
-            lat = pt.getY();
-        } else {
-            lon = refGeom.getEnvelope().getCentroid().getX();
-            lat = refGeom.getEnvelope().getCentroid().getY();
-        }
+        // The reference envelope. For a point this degenerates to the point itself; for an
+        // extended reference (linestring, polygon) the within-d region surrounds the WHOLE
+        // geometry, so the outer box must be the envelope expanded by d — a radius-d box
+        // around the centroid would wrongly prune rows near the reference's far ends.
+        Envelope ref = refGeom.getEnvelopeInternal();
 
         // OUTER bbox: bounding box of "every point within d of ref" — necessary-overlap
         // prefilter. The safety margin absorbs flat-vs-spherical projection error so we
         // don't accidentally exclude rows whose true distance is just under d.
         // Longitude scaling: degrees of longitude shrink toward the poles, so cos() is
-        // evaluated at the POLEWARD EDGE of the latitude band (not its center) — the
-        // narrowest point, where the required longitude span is widest; sizing by the
+        // evaluated at the POLEWARD EDGE of the expanded latitude band (not its center) —
+        // the narrowest point, where the required longitude span is widest; sizing by the
         // center latitude under-covers for large radii at high latitudes and drops rows
         // (e.g. lat 60°, d=1000 km: cos(60°)/cos(69.9°) ≈ 1.46, past the 1.1 margin).
         // The near-pole gate is likewise evaluated at the band edge. Near a pole (or when
-        // the span would exceed 180°) the within-d region wraps all longitudes, so we use
-        // a full-longitude band rather than a bounded (row-dropping) span.
+        // the span would wrap the full circle) the within-d region covers all longitudes,
+        // so we use a full-longitude band rather than a bounded (row-dropping) span.
         double outerDegLat = (distanceMeters / METERS_PER_DEGREE) * OUTER_SAFETY_MARGIN;
-        double polewardLat = Math.min(Math.abs(lat) + outerDegLat, 90.0);
+        double polewardLat = Math.min(Math.max(Math.abs(ref.getMinY() - outerDegLat),
+                                               Math.abs(ref.getMaxY() + outerDegLat)), 90.0);
         boolean nearPole = polewardLat >= NEAR_POLE_LAT;
         double outerDegLon = nearPole ? Double.POSITIVE_INFINITY
             : (distanceMeters / (METERS_PER_DEGREE * Math.cos(Math.toRadians(polewardLat)))) * OUTER_SAFETY_MARGIN;
-        Envelope outer = outerDegLon >= 180.0
-            ? new Envelope(-180.0, 180.0, lat - outerDegLat, lat + outerDegLat)
-            : new Envelope(lon - outerDegLon, lon + outerDegLon, lat - outerDegLat, lat + outerDegLat);
+        Envelope outer = (outerDegLon >= 180.0 || ref.getWidth() + 2 * outerDegLon >= 360.0)
+            ? new Envelope(-180.0, 180.0, ref.getMinY() - outerDegLat, ref.getMaxY() + outerDegLat)
+            : new Envelope(ref.getMinX() - outerDegLon, ref.getMaxX() + outerDegLon,
+                           ref.getMinY() - outerDegLat, ref.getMaxY() + outerDegLat);
 
         String ptWkt = wkt.write(refGeom).replace("'", "''");
         String bboxCol = bboxColName(col);
-        // Exact spherical distance — always correct, used as the fallback (and, near the poles,
-        // the sole) row-level check.
-        String distanceCheck = String.format(Locale.ROOT,
-            "ST_Distance(to_spherical_geography(ST_GeomFromBinary(%s)),"
-            + " to_spherical_geography(ST_GeometryFromText('%s'))) <= %.0f",
-            quoteIdent(col), ptWkt, distanceMeters);
+        // Exact spherical distance — always correct, used as the fallback (and, for
+        // non-point references and near the poles, the sole) row-level check.
+        String distanceCheck = String.format(Locale.ROOT, "%s <= %.0f",
+            sphericalDistanceSql(col, refGeom, ptWkt), distanceMeters);
 
-        if (nearPole) {
-            // The flat inscribed-rectangle shortcut is unsound where longitude lines converge;
-            // fall through to the exact distance check for every candidate row.
+        if (nearPole || !(refGeom instanceof Point)) {
+            // No inscribed-rectangle shortcut here. Near the poles the flat approximation
+            // is unsound where longitude lines converge. For an extended reference the
+            // rectangle would sit on the envelope centroid — a point that need not lie ON
+            // the geometry, so rectangle containment proves nothing about distance to it.
+            // Every candidate row falls through to the exact distance check.
             write("(" + bboxOverlapSql(bboxCol, outer) + ") AND " + distanceCheck);
         } else {
-            // INNER inscribed rectangle: half-sides (d × INNER_SAFETY_MARGIN × INSCRIBED_FACTOR)
-            // scaled to lat/lon. Corners land at distance ≤ INNER_SAFETY_MARGIN × d from ref,
-            // so any bbox(geom) ⊆ this rectangle ⇒ every point of geom is within d ⇒ TRUE.
+            double lon = ((Point) refGeom).getX();
+            double lat = ((Point) refGeom).getY();
+            // INNER inscribed rectangle (point references only): half-sides (d ×
+            // INNER_SAFETY_MARGIN × INSCRIBED_FACTOR) scaled to lat/lon. Corners land at
+            // distance ≤ INNER_SAFETY_MARGIN × d from ref, so any bbox(geom) ⊆ this
+            // rectangle ⇒ every point of geom is within d ⇒ TRUE.
             // Longitude scaling mirrors the outer box in the conservative direction: cos()
             // is evaluated at the EQUATORWARD EDGE of the band (its physically widest
             // point), so the rectangle's real half-width never exceeds the target anywhere
@@ -314,10 +306,29 @@ public class TrinoFilterToSQL extends FilterToSQL {
     /** Beyond — DWithin's complement: exact spherical distance check, no prefilter. */
     private void writeBeyond(String col, Geometry refGeom, double distanceMeters) {
         String refWkt = wkt.write(refGeom).replace("'", "''");
-        write(String.format(Locale.ROOT,
-            "ST_Distance(to_spherical_geography(ST_GeomFromBinary(%s)),"
-            + " to_spherical_geography(ST_GeometryFromText('%s'))) > %.0f",
-            quoteIdent(col), refWkt, distanceMeters));
+        write(String.format(Locale.ROOT, "%s > %.0f",
+            sphericalDistanceSql(col, refGeom, refWkt), distanceMeters));
+    }
+
+    /**
+     * Spherical distance (meters) between the row geometry and a reference geometry.
+     * Trino's spherical {@code ST_Distance} only accepts POINT inputs, so for an
+     * extended reference the planar nearest pair is found first
+     * ({@code geometry_nearest_points}) and the spherical distance is measured
+     * between those two points — exact for point references, and a close
+     * approximation for lines/polygons (the planar nearest point can deviate
+     * slightly from the geodesic nearest at mid latitudes).
+     */
+    private String sphericalDistanceSql(String col, Geometry refGeom, String refWkt) {
+        String geomExpr = "ST_GeomFromBinary(" + quoteIdent(col) + ")";
+        String refExpr = "ST_GeometryFromText('" + refWkt + "')";
+        if (refGeom instanceof Point) {
+            return "ST_Distance(to_spherical_geography(" + geomExpr + "),"
+                + " to_spherical_geography(" + refExpr + "))";
+        }
+        String np = "geometry_nearest_points(" + geomExpr + ", " + refExpr + ")";
+        return "ST_Distance(to_spherical_geography(" + np + "[1]),"
+            + " to_spherical_geography(" + np + "[2]))";
     }
 
     /** Shared shape for the intersection-implying operators (Crosses, Touches,
@@ -351,6 +362,23 @@ public class TrinoFilterToSQL extends FilterToSQL {
         return extraData;
     }
 
+    /**
+     * Temporal literals must be TIMESTAMP-typed in the emitted SQL: the base class
+     * writes {@link Date} values as quoted strings, which Trino cannot compare to a
+     * timestamp-with-time-zone column. Covers BEFORE/AFTER, BETWEEN, and plain
+     * comparison operators on date attributes (DURING has its own visit).
+     *
+     * @param literal the literal value to write
+     */
+    @Override
+    protected void writeLiteral(Object literal) throws IOException {
+        if (literal instanceof Date date) {
+            out.write("TIMESTAMP '" + formatTimestamp(date) + "'");
+        } else {
+            super.writeLiteral(literal);
+        }
+    }
+
     // ── Feature ID ────────────────────────────────────────────────────────────
 
     /**
@@ -371,27 +399,6 @@ public class TrinoFilterToSQL extends FilterToSQL {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
-
-    /**
-     * True iff the named geometry column is declared as exactly {@link Point}.
-     * Used by {@link #visit(Intersects, Object)} to detect when the bbox-overlap +
-     * CASE WHEN rewrite collapses to bbox-overlap alone. The binding comes from
-     * schema discovery, which declares {@code Point} for columns carrying a
-     * {@code __<col>_z2__} companion.
-     * <p>
-     * Strict {@code equals} (not {@code isAssignableFrom}) is required:
-     * {@code bbox(MultiPoint)} is the union extent, so the optimization is
-     * unsound for MultiPoint even though MultiPoint is "point-like". JTS does
-     * not make MultiPoint a Point subclass, so this is also defensive.
-     * <p>
-     * Returns {@code false} when no FeatureType is set — callers must keep the
-     * safe general-case rewrite in that branch.
-     */
-    private boolean storedGeometryIsPoint(String col) {
-        if (featureType == null) return false;
-        var descriptor = featureType.getDescriptor(col);
-        return descriptor != null && Point.class.equals(descriptor.getType().getBinding());
-    }
 
     /**
      * Emit the 4-clause necessary-overlap predicate against {@code __<col>_bbox__}.
@@ -439,20 +446,40 @@ public class TrinoFilterToSQL extends FilterToSQL {
     }
 
     /**
-     * For an axis-aligned rectangular query polygon, ST_Within(geom, rect) is
-     * exactly equivalent to {@code bbox(geom) ⊆ rect}: bbox⊆rect ⇒ geom⊆rect
-     * (since geom⊆bbox), and bbox⊄rect ⇒ geom touches the bbox side that's
-     * outside rect ⇒ geom has a point outside rect ⇒ NOT geom⊆rect.
-     * <p>So we emit bbox-overlap (for SI's Z2 partition pushdown via the existing
-     * pattern matcher) AND bbox-contained (the actual exact predicate). No
-     * row-level ST_Within evaluation needed.
+     * For an axis-aligned rectangular query polygon: bbox-overlap (necessary; lets
+     * SI reconstruct the envelope and push Z2/bbox pruning) AND CASE WHEN the bbox
+     * is contained in a slightly-SHRUNK rectangle THEN TRUE ELSE the exact
+     * {@code ST_Within} test.
+     *
+     * <p>The shortcut cannot use the rectangle itself: WITHIN is boundary-exclusive
+     * (a geometry touching the rectangle's edge is NOT within it), while the
+     * inclusive bbox-contained comparison would admit it — boundary-snapped GPS
+     * points made exactly that mismatch visible in the filter-parity suite. The
+     * stored bbox is also float32 (rounded to nearest, up to ½ ulp off the true
+     * bounds). Shrinking each side by two float ulps makes containment prove the
+     * geometry lies strictly inside the rectangle; anything on or near the boundary
+     * falls through to the exact row-level test.
      */
-    private void writeWithinRectangleAsBboxContained(String col, Polygon rect) {
+    private void writeWithinRectangle(String col, Polygon rect) {
         String bboxCol = bboxColName(col);
         Envelope env = rect.getEnvelopeInternal();
-        // bbox-overlap (lets SI reconstruct the envelope and push Z2 ranges) AND
-        // bbox-contained (equivalent to ST_Within(geom, rect) for rectangles).
-        write("(" + bboxOverlapSql(bboxCol, env) + ") AND (" + bboxContainedSql(bboxCol, env) + ")");
+        Envelope shrunk = new Envelope(
+            shrinkLo(env.getMinX()), shrinkHi(env.getMaxX()),
+            shrinkLo(env.getMinY()), shrinkHi(env.getMaxY()));
+        write("(" + bboxOverlapSql(bboxCol, env) + ") AND "
+            + "CASE WHEN " + bboxContainedSql(bboxCol, shrunk) + " THEN TRUE"
+            + " ELSE ST_Within(ST_GeomFromBinary(" + quoteIdent(col) + "),"
+            + " " + geomFromText(rect) + ") END");
+    }
+
+    /** A lower bound moved two float32 ulps inward; see {@link #writeWithinRectangle}. */
+    private static double shrinkLo(double v) {
+        return Math.nextUp(Math.nextUp((float) v));
+    }
+
+    /** An upper bound moved two float32 ulps inward; see {@link #writeWithinRectangle}. */
+    private static double shrinkHi(double v) {
+        return Math.nextDown(Math.nextDown((float) v));
     }
 
     /**
@@ -528,8 +555,16 @@ public class TrinoFilterToSQL extends FilterToSQL {
             // Rectangle: bbox-overlap (necessary; pushable to file-level pruning) AND
             // CASE WHEN bbox-contained (sufficient — the polygon IS its envelope) THEN TRUE
             // ELSE exact ST_Intersects. CASE WHEN (not OR) survives Trino's optimizer intact.
+            // The shortcut rectangle is shrunk by two float ulps per side: the stored
+            // bbox is float32 rounded to nearest (up to ½ ulp off the true bounds), so
+            // containment in the UNSHRUNK rectangle could return TRUE for a geometry a
+            // hair outside it; shrunk containment proves true containment, and the
+            // boundary shell falls through to the exact test.
+            Envelope shrunk = new Envelope(
+                shrinkLo(env.getMinX()), shrinkHi(env.getMaxX()),
+                shrinkLo(env.getMinY()), shrinkHi(env.getMaxY()));
             write("(" + bboxOverlapSql(bboxCol, env) + ") AND "
-                + "CASE WHEN " + bboxContainedSql(bboxCol, env) + " THEN TRUE"
+                + "CASE WHEN " + bboxContainedSql(bboxCol, shrunk) + " THEN TRUE"
                 + " ELSE " + exact + " END");
         } else {
             // Non-rectangular query: envelope containment alone doesn't imply intersection

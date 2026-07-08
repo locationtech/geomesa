@@ -24,6 +24,9 @@ import org.locationtech.jts.geom.GeometryFactory;
 import java.util.List;
 import java.util.Optional;
 
+import static io.trino.spi.expression.StandardFunctions.AND_FUNCTION_NAME;
+import static io.trino.spi.expression.StandardFunctions.NOT_FUNCTION_NAME;
+import static io.trino.spi.expression.StandardFunctions.OR_FUNCTION_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SpatialFilterRoutingTest {
@@ -65,7 +68,7 @@ class SpatialFilterRoutingTest {
     private static Call and(ConnectorExpression... args) {
         return new Call(
             io.trino.spi.type.BooleanType.BOOLEAN,
-            new FunctionName("$and"),
+            AND_FUNCTION_NAME,
             List.of(args));
     }
 
@@ -84,6 +87,29 @@ class SpatialFilterRoutingTest {
         assertThat(mixed)
             .extracting(SpatialConnectorMetadata.SpatialMatch::geomName)
             .containsExactly("center");
+    }
+
+    @Test
+    void spatialPredicatesUnderOrOrNotAreNotCollected() {
+        // A spatial predicate under $or/$not is not a top-level constraint: pushing
+        // its envelope would prune rows that satisfy the query through the other
+        // branch (DISJOINT(a) OR CROSSES(b)) or that live outside it (NOT INTERSECTS).
+        // Caught end-to-end by the datastore filter-parity suite.
+        SpatialConnectorMetadata m = new SpatialConnectorMetadata(null, null);
+        org.locationtech.jts.geom.Envelope env = new org.locationtech.jts.geom.Envelope(0, 1, 0, 1);
+        Call or = new Call(BooleanType.BOOLEAN, OR_FUNCTION_NAME,
+            List.of(stIntersects("center", env), stCall("st_crosses", "ellipse", env)));
+        assertThat(m.findAllSpatialMatches(or)).isEmpty();
+        Call not = new Call(BooleanType.BOOLEAN, NOT_FUNCTION_NAME,
+            List.of(stIntersects("center", env)));
+        assertThat(m.findAllSpatialMatches(not)).isEmpty();
+        // A conjunct BESIDE the $or is still collected — only the disjunction's own
+        // branches are excluded.
+        List<SpatialConnectorMetadata.SpatialMatch> mixed =
+            m.findAllSpatialMatches(and(stIntersects("geom", env), or));
+        assertThat(mixed)
+            .extracting(SpatialConnectorMetadata.SpatialMatch::geomName)
+            .containsExactly("geom");
     }
 
     @Test
@@ -158,7 +184,7 @@ class SpatialFilterRoutingTest {
             List.of(new Variable("visibilities", VarcharType.VARCHAR),
                     new Constant(Slices.utf8Slice("admin"), VarcharType.VARCHAR)));
 
-        Call andExpr = new Call(BooleanType.BOOLEAN, new FunctionName("$and"),
+        Call andExpr = new Call(BooleanType.BOOLEAN, AND_FUNCTION_NAME,
             List.of(spatial, visibility));
 
         List<SpatialConnectorMetadata.SpatialMatch> matches = m.findAllSpatialMatches(andExpr);

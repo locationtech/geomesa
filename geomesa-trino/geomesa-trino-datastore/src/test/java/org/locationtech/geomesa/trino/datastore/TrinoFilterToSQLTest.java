@@ -36,11 +36,17 @@ class TrinoFilterToSQLTest {
 
     @Test
     void bboxTranslatesToBboxStructColumns() throws Exception {
+        // BBOX routes through the rectangle-intersects emission: bbox-overlap prefilter
+        // (pushable), shrunk-contained shortcut, exact ST_Intersects fallback. A bare
+        // float32 bbox-overlap would admit rows up to ½ ulp outside the envelope (the
+        // stored bbox is rounded to nearest) — caught by the filter-parity suite.
         Filter f = ff.bbox("geom", -80.0, 37.0, -70.0, 45.0, "EPSG:4326");
         String sql = translator.encodeToString(f);
-        assertThat(sql).isEqualTo(
-            "\"__geom_bbox__\".xmax >= -80.0 AND \"__geom_bbox__\".xmin <= -70.0" +
+        assertThat(sql).startsWith(
+            "(\"__geom_bbox__\".xmax >= -80.0 AND \"__geom_bbox__\".xmin <= -70.0" +
             " AND \"__geom_bbox__\".ymax >= 37.0 AND \"__geom_bbox__\".ymin <= 45.0");
+        assertThat(sql).contains(") AND CASE WHEN \"__geom_bbox__\".xmin >= ");
+        assertThat(sql).contains(" THEN TRUE ELSE ST_Intersects(ST_GeomFromBinary(\"geom\"),");
     }
 
     @Test
@@ -57,10 +63,14 @@ class TrinoFilterToSQLTest {
         assertThat(sql).contains("\"__geom_bbox__\".xmin <= -70.0");
         assertThat(sql).contains("\"__geom_bbox__\".ymax >= 37.0");
         assertThat(sql).contains("\"__geom_bbox__\".ymin <= 45.0");
-        assertThat(sql).contains(") AND CASE WHEN \"__geom_bbox__\".xmin >= -80.0");
-        assertThat(sql).contains("\"__geom_bbox__\".xmax <= -70.0");
-        assertThat(sql).contains("\"__geom_bbox__\".ymin >= 37.0");
-        assertThat(sql).contains("\"__geom_bbox__\".ymax <= 45.0");
+        // The contained shortcut uses bounds shrunk two float ulps inside the query
+        // rectangle (the stored bbox is float32, rounded to nearest).
+        assertThat(sql).contains(") AND CASE WHEN \"__geom_bbox__\".xmin >= ");
+        String shortcut = sql.substring(sql.indexOf("CASE WHEN"));
+        assertThat(extractBound(shortcut, "\"__geom_bbox__\".xmin >= ")).isGreaterThan(-80.0);
+        assertThat(extractBound(shortcut, "\"__geom_bbox__\".xmax <= ")).isLessThan(-70.0);
+        assertThat(extractBound(shortcut, "\"__geom_bbox__\".ymin >= ")).isGreaterThan(37.0);
+        assertThat(extractBound(shortcut, "\"__geom_bbox__\".ymax <= ")).isLessThan(45.0);
         assertThat(sql).contains("THEN TRUE");
         assertThat(sql).contains("ELSE ST_Intersects(ST_GeomFromBinary(\"geom\"),");
         assertThat(sql).contains("POLYGON");
@@ -68,23 +78,27 @@ class TrinoFilterToSQLTest {
     }
 
     @Test
-    void withinRectangleTranslatesToBboxOverlapAndBboxContainedNoRowLevelStWithin() throws Exception {
-        // Rectangular query polygon: bbox⊆rect ⇔ ST_Within(geom, rect). Exact
-        // equivalence — no row-level ST_Within needed. Emit bbox-overlap (for SI's
-        // Z2 pushdown via the existing pattern) AND bbox-contained (the exact predicate).
+    void withinRectangleUsesShrunkContainedShortcutWithExactStWithinFallback() throws Exception {
+        // Rectangular query polygon: bbox-overlap prefilter AND CASE WHEN contained-in-
+        // SHRUNK-rect THEN TRUE ELSE exact ST_Within. The shortcut rectangle must be
+        // strictly smaller than the query rectangle: WITHIN is boundary-exclusive, so a
+        // point ON the rectangle edge must fall through to (and fail) the exact test —
+        // the filter-parity suite caught boundary-snapped GPS points being wrongly
+        // included by the old inclusive bbox-contained equivalence.
         Filter f = ECQL.toFilter(
             "WITHIN(geom, POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)))");
         String sql = translator.encodeToString(f);
         assertThat(sql).startsWith("(\"__geom_bbox__\".xmax >= -80.0");
         assertThat(sql).contains("\"__geom_bbox__\".xmin <= -70.0");
-        assertThat(sql).contains("\"__geom_bbox__\".ymax >= 37.0");
-        assertThat(sql).contains("\"__geom_bbox__\".ymin <= 45.0");
-        assertThat(sql).contains(") AND (\"__geom_bbox__\".xmin >= -80.0");
-        assertThat(sql).contains("\"__geom_bbox__\".xmax <= -70.0");
-        assertThat(sql).contains("\"__geom_bbox__\".ymin >= 37.0");
-        assertThat(sql).contains("\"__geom_bbox__\".ymax <= 45.0");
-        assertThat(sql).doesNotContain("ST_Within");
-        assertThat(sql).doesNotContain("CASE");
+        assertThat(sql).contains(") AND CASE WHEN \"__geom_bbox__\".xmin >= ");
+        assertThat(sql).contains(" THEN TRUE ELSE ST_Within(ST_GeomFromBinary(\"geom\"),");
+        assertThat(sql).endsWith(" END");
+        // The shortcut bounds sit strictly inside the query rectangle on every side.
+        String shortcut = sql.substring(sql.indexOf("CASE WHEN"));
+        assertThat(extractBound(shortcut, "\"__geom_bbox__\".xmin >= ")).isGreaterThan(-80.0);
+        assertThat(extractBound(shortcut, "\"__geom_bbox__\".xmax <= ")).isLessThan(-70.0);
+        assertThat(extractBound(shortcut, "\"__geom_bbox__\".ymin >= ")).isGreaterThan(37.0);
+        assertThat(extractBound(shortcut, "\"__geom_bbox__\".ymax <= ")).isLessThan(45.0);
     }
 
     @Test
@@ -194,6 +208,47 @@ class TrinoFilterToSQLTest {
         }
     }
 
+    @Test
+    void dwithinLinestringOuterBoxCoversFarEndsAndSkipsInscribedShortcut() throws Exception {
+        // For an extended reference the within-d region surrounds the WHOLE geometry. A
+        // radius-d box around the envelope centroid (the old behavior) excludes rows near
+        // the far ends: for this ~470 km linestring and d = 1 km, a point 550 m from the
+        // (48, 27) endpoint sits ~230 km from the centroid — silently pruned. The outer
+        // box must be the reference envelope EXPANDED by d.
+        Filter f = ECQL.toFilter("DWITHIN(geom, LINESTRING(45 23, 48 27), 1000, meters)");
+        String sql = translator.encodeToString(f);
+        double minX = extractBound(sql, "\"__geom_bbox__\".xmax >= ");
+        double maxX = extractBound(sql, "\"__geom_bbox__\".xmin <= ");
+        double minY = extractBound(sql, "\"__geom_bbox__\".ymax >= ");
+        double maxY = extractBound(sql, "\"__geom_bbox__\".ymin <= ");
+        assertThat(minX).as("west bound covers west endpoint + d").isLessThan(45.0);
+        assertThat(maxX).as("east bound covers east endpoint + d").isGreaterThan(48.0049);
+        assertThat(minY).as("south bound covers south endpoint + d").isLessThan(23.0);
+        assertThat(maxY).as("north bound covers north endpoint + d").isGreaterThan(27.0049);
+        // No inscribed-rectangle TRUE shortcut: it would sit on the envelope centroid,
+        // which need not lie ON the geometry, so containment proves nothing.
+        assertThat(sql).doesNotContain("CASE WHEN");
+        // Exact spherical distance is the sole row check. Trino's spherical ST_Distance
+        // only accepts points, so the extended reference goes through the planar
+        // nearest-points pair first.
+        assertThat(sql).contains(") AND ST_Distance(to_spherical_geography("
+            + "geometry_nearest_points(ST_GeomFromBinary(\"geom\"), ST_GeometryFromText(");
+        assertThat(sql).contains("LINESTRING (45 23, 48 27)");
+    }
+
+    @Test
+    void dwithinPolygonReferenceUsesEnvelopeExpandedOuterBoxWithoutShortcut() throws Exception {
+        Filter f = ECQL.toFilter(
+            "DWITHIN(geom, POLYGON((45 23, 48 23, 48 27, 45 27, 45 23)), 1000, meters)");
+        String sql = translator.encodeToString(f);
+        double minX = extractBound(sql, "\"__geom_bbox__\".xmax >= ");
+        double maxX = extractBound(sql, "\"__geom_bbox__\".xmin <= ");
+        assertThat(minX).isLessThan(45.0);
+        assertThat(maxX).isGreaterThan(48.0);
+        assertThat(sql).doesNotContain("CASE WHEN");
+        assertThat(sql).contains("<= 1000");
+    }
+
     /** First numeric bound following {@code marker} in the SQL. */
     private static double extractBound(String sql, String marker) {
         int i = sql.indexOf(marker);
@@ -216,6 +271,20 @@ class TrinoFilterToSQLTest {
         double a = Math.sin(dp / 2) * Math.sin(dp / 2)
             + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
         return 2 * r * Math.asin(Math.sqrt(a));
+    }
+
+    @Test
+    void temporalComparisonLiteralsAreTimestampTyped() throws Exception {
+        // BEFORE/AFTER (and BETWEEN etc.) route Date literals through writeLiteral —
+        // they must emit TIMESTAMP literals, not quoted strings, or Trino rejects the
+        // varchar-vs-timestamptz comparison (caught by the filter-parity suite).
+        String after = translator.encodeToString(
+            ECQL.toFilter("dtg AFTER 2023-06-01T12:30:00Z"));
+        assertThat(after).contains("\"dtg\" > TIMESTAMP '2023-06-01 12:30:00");
+        assertThat(after).doesNotContain("> '2023");
+        String before = translator.encodeToString(
+            ECQL.toFilter("dtg BEFORE 2023-06-01T12:30:00Z"));
+        assertThat(before).contains("\"dtg\" < TIMESTAMP '2023-06-01 12:30:00");
     }
 
     @Test
@@ -280,7 +349,13 @@ class TrinoFilterToSQLTest {
     // sufficient, not just necessary).
 
     @Test
-    void intersectsRectangleOnPointDataTranslatesToBboxOverlapOnly() throws Exception {
+    void intersectsRectangleOnPointDataKeepsExactFallback() throws Exception {
+        // There is deliberately NO bbox-overlap-only fast path for point columns any
+        // more: bbox-overlap(point-bbox, rect) ⇔ intersects only holds in infinite
+        // precision — the stored bbox is float32 (rounded to nearest), so a point up
+        // to ½ ulp outside the rectangle can pass the inclusive overlap test. The
+        // filter-parity suite caught exactly that on real GPS data. Point columns take
+        // the same shrunk-shortcut + exact-ST_Intersects shape as everything else.
         SimpleFeatureTypeBuilder b = new SimpleFeatureTypeBuilder();
         b.setName("test");
         b.add("geom", Point.class);
@@ -290,11 +365,8 @@ class TrinoFilterToSQLTest {
             "INTERSECTS(geom, POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)))");
         String sql = translator.encodeToString(f);
 
-        // Same predicate shape as a plain BBOX filter — no CASE, no ST_Intersects,
-        // no WKB-decode in the per-row work.
-        assertThat(sql).isEqualTo(
-            "\"__geom_bbox__\".xmax >= -80.0 AND \"__geom_bbox__\".xmin <= -70.0" +
-            " AND \"__geom_bbox__\".ymax >= 37.0 AND \"__geom_bbox__\".ymin <= 45.0");
+        assertThat(sql).startsWith("(\"__geom_bbox__\".xmax >= -80.0");
+        assertThat(sql).contains(" THEN TRUE ELSE ST_Intersects(ST_GeomFromBinary(\"geom\"),");
     }
 
     @Test
@@ -445,15 +517,15 @@ class TrinoFilterToSQLTest {
 
     @Test
     void containsLiteralFirstIsWithinReversed() throws Exception {
-        // CONTAINS(literal, geom) ⇔ WITHIN(geom, literal): for a rectangular literal
-        // this collapses to the exact bbox-contained predicate — same as the Within
-        // rectangle path, no row-level ST_ function at all.
+        // CONTAINS(literal, geom) ⇔ WITHIN(geom, literal): a rectangular literal takes
+        // the Within rectangle path — shrunk-contained shortcut with an exact ST_Within
+        // fallback (never ST_Contains, and never a bare bbox equivalence).
         Filter f = ECQL.toFilter(
             "CONTAINS(POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)), geom)");
         String sql = translator.encodeToString(f);
-        assertThat(sql).contains(") AND (\"__geom_bbox__\".xmin >= -80.0");
+        assertThat(sql).contains(") AND CASE WHEN \"__geom_bbox__\".xmin >= ");
+        assertThat(sql).contains(" THEN TRUE ELSE ST_Within(ST_GeomFromBinary(\"geom\"),");
         assertThat(sql).doesNotContain("ST_Contains");
-        assertThat(sql).doesNotContain("ST_Within");
     }
 
     @Test

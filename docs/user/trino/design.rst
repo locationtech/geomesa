@@ -112,17 +112,25 @@ the query envelope. The form differs by spatial filter type:
       - ``(bbox-overlap) AND ST_Intersects(geom, polygon)``
       - no shortcut: bbox⊆env(polygon) does NOT imply intersection (holes, concavity)
     * - ``WITHIN(geom, axis-aligned rectangle)``
-      - ``(bbox-overlap) AND (bbox-contained)``
-      - bbox⊆rect ⇔ ST_Within=TRUE (**exact equivalence** — no row-level ST_Within)
+      - ``(bbox-overlap) AND CASE WHEN bbox-in-shrunk-rect THEN TRUE ELSE ST_Within(geom, rect) END``
+      - WITHIN is boundary-exclusive and the stored bbox is float32, so the shortcut
+        rectangle is shrunk by two float ulps per side (containment then proves the
+        geometry is strictly interior); boundary-adjacent rows take the exact test
     * - ``WITHIN(geom, non-rectangular polygon)``
       - ``(bbox-overlap) AND ST_Within(geom, polygon)``
       - bbox⊆env(polygon) does NOT imply geom⊆polygon
     * - ``DWITHIN(geom, ref, d)``
       - ``(outer-bbox) AND CASE WHEN bbox-in-inner-inscribed-rect THEN TRUE ELSE ST_Distance(...) ≤ d END``
-      - inner inscribed rect inside d-circle ⇒ all points within d (sufficient)
+      - outer bbox = env(ref) expanded by d (covers extended references end to end);
+        the inscribed-rect shortcut applies to point references only — for lines and
+        polygons the exact spherical check runs via the planar nearest-points pair
+        (Trino's spherical ``ST_Distance`` is point-only)
     * - ``BBOX(geom, env)``
-      - ``bbox-overlap`` directly
-      - exact for axis-aligned bbox queries
+      - same as ``INTERSECTS(geom, envelope-rectangle)``
+      - a bare float32 bbox-overlap is not exact (the stored bbox is rounded to
+        nearest, admitting rows up to ½ ulp outside the envelope), so BBOX takes the
+        rectangle-intersects shape: overlap prefilter + shrunk-contained shortcut +
+        exact ``ST_Intersects`` fallback
     * - ``CROSSES`` / ``TOUCHES`` / ``OVERLAPS`` / ``EQUALS``
       - ``(bbox-overlap) AND ST_<op>(geom, g)``
       - each implies a non-empty intersection ⇒ bbox-overlap is a valid necessary prefilter
