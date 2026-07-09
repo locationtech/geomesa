@@ -40,6 +40,7 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
+* accumulo ``2.1.4`` -> ``2.1.5``
 * arrow ``18.3.0`` -> ``19.0.0``
 * avro ``1.11.4`` -> ``1.12.1``
 * commons-codec ``1.17.1`` -> ``1.18.0``
