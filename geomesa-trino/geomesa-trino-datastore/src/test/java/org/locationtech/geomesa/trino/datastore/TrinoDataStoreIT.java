@@ -56,6 +56,9 @@ class TrinoDataStoreIT {
             "trino.catalog", "spatial_iceberg",
             "trino.schema",  "spatial"
         );
+        Assumptions.assumeTrue(TestFixtures.ensureTable("observations"),
+            "spatial.observations not ingested and not provisionable — skipping (see class javadoc)");
+
         ds = DataStoreFinder.getDataStore(params);
         assertThat(ds).as("DataStoreFinder must locate TrinoDataStoreFactory").isNotNull();
     }

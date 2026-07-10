@@ -36,28 +36,28 @@ class TrinoDataStoreConnectionTest {
         // Pipe-delimited, NOT space/comma: the Trino JDBC extraCredentials value
         // forbids spaces and uses comma/colon as structural separators. The
         // resolver splits the value on pipes, commas, or whitespace.
-        Properties props = TrinoDataStore.connectionProperties("svc", List.of("U", "FOUO"), null);
-        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:U|FOUO");
+        Properties props = TrinoDataStore.connectionProperties("svc", List.of("basic", "privileged"), null);
+        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:basic|privileged");
     }
 
     @Test
     void singleAuthEncodes() {
-        Properties props = TrinoDataStore.connectionProperties("svc", List.of("U"), null);
-        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:U");
+        Properties props = TrinoDataStore.connectionProperties("svc", List.of("basic"), null);
+        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:basic");
     }
 
     @Test
     void secretAddedAsSecondPairDelimitedBySemicolon() {
         // Trino JDBC extraCredentials delimits name:value pairs with SEMICOLONS.
-        Properties props = TrinoDataStore.connectionProperties("svc", List.of("U", "FOUO"), "tok3n");
-        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:U|FOUO;secret:tok3n");
+        Properties props = TrinoDataStore.connectionProperties("svc", List.of("basic", "privileged"), "tok3n");
+        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:basic|privileged;secret:tok3n");
     }
 
     @Test
     void noValueContainsSpaces() {
         // Guards against the Trino JDBC "contains spaces or is not printable ASCII"
         // rejection of extraCredentials values.
-        Properties props = TrinoDataStore.connectionProperties("svc", List.of("U", "FOUO"), "tok3n");
+        Properties props = TrinoDataStore.connectionProperties("svc", List.of("basic", "privileged"), "tok3n");
         assertThat(props.getProperty("extraCredentials")).doesNotContain(" ");
     }
 
@@ -74,7 +74,7 @@ class TrinoDataStoreConnectionTest {
         // any of them would be silently re-split into auths that were never issued.
         for (String bad : List.of("FOO,BAR", "FOO|BAR", "FOO;BAR", "FOO:BAR", "FOO BAR", "")) {
             assertThatThrownBy(() ->
-                TrinoDataStore.connectionProperties("svc", List.of("U", bad), null))
+                TrinoDataStore.connectionProperties("svc", List.of("basic", bad), null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("authorization token");
         }

@@ -34,20 +34,37 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Integration test: requires a running Trino at localhost:8080 with the plugin
  * loaded and the demo synthetic observations ingested with the __vis__ column.
  *
- * VIS_CYCLE = [None, "U", "U&FOUO"] (a notional U//FOUO clearance
- * ladder) assigned by row index i % 3.  The assertions are expressed as strict
- * monotonic inequalities (0 &lt; none &lt; U &lt; U,FOUO) rather than exact share
- * arithmetic so that minor variations in row count (e.g. dedup, re-ingest) do
- * not break the test.
+ * <p>The ingested data must carry a three-tier visibility ladder assigned by row
+ * index i % 3: {@code [null, P, P&Q]}, where P is the partial-clearance token and
+ * P&amp;Q the full set. The tokens are DETECTED from the table's distinct
+ * {@code __vis__} values (via the plain catalog), so the test runs flag-free
+ * against any deployment's ladder; explicit overrides remain available:
+ * <pre>
+ *   -Dgeomesa.it.auths.partial=&lt;P&gt;      (default "basic")
+ *   -Dgeomesa.it.auths.full=&lt;P,Q,...&gt;   (default "basic,privileged")
+ * </pre>
+ * See {@link TestFixtures#visibilityLadder}.
+ *
+ * <p>The assertions are expressed as strict monotonic inequalities
+ * (0 &lt; none &lt; partial &lt; full) rather than exact share arithmetic so that minor
+ * variations in row count (e.g. dedup, re-ingest) do not break the test.
  *
  * The one exception — countsMatchIteration — verifies that getCount() and manual
- * iteration produce the same result for a partially-cleared ("U,FOUO") auth set,
+ * iteration produce the same result for a partially-cleared (full-auth) set,
  * which is the primary correctness invariant for the filtering stack.
  */
 @Tag("integration")
 class VisibilityIT {
 
     private static final String TABLE = "observations";
+
+    /** Auth token granting the middle visibility tier; resolved in
+     *  {@link #requiresTrino} (see class javadoc). */
+    private static String PARTIAL_AUTH;
+
+    /** Comma-separated auth set clearing every tier; resolved in
+     *  {@link #requiresTrino} (see class javadoc). */
+    private static String FULL_AUTHS;
 
     private final List<DataStore> stores = new ArrayList<>();
 
@@ -65,6 +82,13 @@ class VisibilityIT {
             Assumptions.assumeTrue(false,
                 "Trino not reachable at localhost:8080 — skipping visibility integration tests");
         }
+        Assumptions.assumeTrue(TestFixtures.ensureTable(TABLE),
+            "spatial." + TABLE + " not ingested and not provisionable — skipping (see class javadoc)");
+        // Resolve AFTER ensureTable: freshly-provisioned data is written from the
+        // same properties/defaults, so detection and data always agree.
+        String[] ladder = TestFixtures.visibilityLadder(TABLE);
+        PARTIAL_AUTH = ladder[0];
+        FULL_AUTHS = ladder[1];
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -124,10 +148,10 @@ class VisibilityIT {
      * null/empty auths forward no credential, so the caller sees only unrestricted
      * rows). Granting auths then widens the result set tier by tier.
      *
-     * VIS_CYCLE = [null, U, U&FOUO]:
-     *   unconfigured / "" → only cycle[0] (null-vis) rows → the smallest set
-     *   U                 → cycle[0] + cycle[1] rows       → larger
-     *   U,FOUO            → all tiers                      → largest
+     * Visibility ladder = [null, partial, partial&rest] (see class javadoc):
+     *   unconfigured / "" → only tier-0 (null-vis) rows → the smallest set
+     *   partial auth        → tier 0 + tier 1 rows        → larger
+     *   full auths          → all tiers                   → largest
      *
      * Using monotonic inequalities rather than exact share arithmetic keeps the
      * test stable across minor ingest variations (dedup, partial re-ingest, etc.).
@@ -135,13 +159,16 @@ class VisibilityIT {
     @Test
     void authFilteringProducesStrictlyMonotonicCounts() throws IOException {
         int unconfigured = countVia(store(null)); // no security params → fail-closed
-        int fouo = countVia(store("U,FOUO"));    // clears every VIS_CYCLE tier (null, U, U&FOUO)
-        int u    = countVia(store("U"));          // sees null + U tiers
-        int none = countVia(store(""));           // sees only null-visibility rows
+        int full    = countVia(store(FULL_AUTHS));   // clears every visibility tier
+        int partial = countVia(store(PARTIAL_AUTH)); // sees null + partial tiers
+        int none    = countVia(store(""));           // sees only null-visibility rows
 
         assertThat(none).as("empty-auths count must be > 0 (null-vis rows exist)").isGreaterThan(0);
-        assertThat(u).as("'U' auth count must be > empty-auths count").isGreaterThan(none);
-        assertThat(fouo).as("'U,FOUO' auth count must be > 'U' auth count").isGreaterThan(u);
+        assertThat(partial)
+            .as("'%s' auth count must be > empty-auths count", PARTIAL_AUTH).isGreaterThan(none);
+        assertThat(full)
+            .as("'%s' auth count must be > '%s' auth count", FULL_AUTHS, PARTIAL_AUTH)
+            .isGreaterThan(partial);
         assertThat(unconfigured)
             .as("an unconfigured store is fail-closed: it matches the explicit empty-auths count")
             .isEqualTo(none);
@@ -161,18 +188,18 @@ class VisibilityIT {
     }
 
     /**
-     * getCount() and manual iteration must return the same value for a
-     * partially-cleared "U,FOUO" auth set — the primary correctness invariant
-     * for the filtering stack. Every marked row returned to this user requires
-     * at least "U", so each non-null visibility contains that token.
+     * getCount() and manual iteration must return the same value for the
+     * full auth set — the primary correctness invariant for the filtering
+     * stack. Every marked row in the ladder requires at least the partial
+     * token, so each non-null visibility contains it.
      */
     @Test
     void countsMatchIteration() throws IOException {
-        DataStore fouo = store("U,FOUO");
-        int viaCount   = countVia(fouo);
-        int viaIter    = iterate(fouo, "U");
+        DataStore full = store(FULL_AUTHS);
+        int viaCount   = countVia(full);
+        int viaIter    = iterate(full, PARTIAL_AUTH);
         assertThat(viaCount)
-            .as("getCount() and FeatureReader iteration must agree for auths='U,FOUO'")
+            .as("getCount() and FeatureReader iteration must agree for auths='%s'", FULL_AUTHS)
             .isEqualTo(viaIter);
         assertThat(viaCount).isGreaterThan(0);
     }

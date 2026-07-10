@@ -22,14 +22,14 @@ import static io.trino.spi.expression.StandardFunctions.AND_FUNCTION_NAME;
 import static io.trino.spi.expression.StandardFunctions.CAST_FUNCTION_NAME;
 import static io.trino.spi.expression.StandardFunctions.GREATER_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
 import static io.trino.spi.expression.StandardFunctions.LESS_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME;
+import static io.trino.spi.expression.StandardFunctions.OR_FUNCTION_NAME;
 import io.trino.spi.predicate.*;
 import io.trino.spi.security.TrinoPrincipal;
 import io.trino.spi.statistics.TableStatistics;
 import io.trino.spi.type.RealType;
 import io.trino.spi.type.RowType;
 import io.trino.spi.type.VarcharType;
-import org.locationtech.geomesa.trino.spatial.iceberg.transforms.XZ2Transform;
-import org.locationtech.geomesa.trino.spatial.iceberg.transforms.Z2Transform;
+import org.locationtech.geomesa.trino.spatial.iceberg.transforms.SpatialIndexRanges;
 import org.locationtech.geomesa.trino.spatial.iceberg.BboxHandles;
 import org.locationtech.geomesa.trino.spatial.iceberg.GeoMesaColumnCatalog;
 import org.locationtech.geomesa.trino.spatial.GeometryColumn;
@@ -41,7 +41,6 @@ import org.locationtech.jts.io.WKTReader;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +60,9 @@ import org.slf4j.LoggerFactory;
  * Multi-geom support: a single query may filter on multiple geometry columns;
  * findAllSpatialMatches walks ALL spatial calls in the expression tree so
  * each geom column gets independent pruning via its own companions.
+ * Disjunctions are handled when every OR branch spatially constrains the same
+ * geom column (e.g. {@code ST_Intersects(g, p1) OR ST_Intersects(g, p2)}):
+ * the pushed cover is the union of the branch envelopes.
  *
  * <p>{@code ST_Disjoint} is deliberately NOT pushed down: its result set is the
  * rows that do NOT overlap the envelope, so the overlap-only bbox/Z2 domains
@@ -71,11 +73,6 @@ import org.slf4j.LoggerFactory;
 public class SpatialConnectorMetadata implements ConnectorMetadata {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpatialConnectorMetadata.class);
-
-    /** Guards a one-time WARNING when foreign-classloader geometry extraction fails: a
-     *  systematic break there silently disables all spatial pruning, so surface it once
-     *  loudly rather than only at FINE. Subsequent failures stay at FINE (no per-query spam). */
-    private static final AtomicBoolean ENVELOPE_EXTRACTION_WARNED = new AtomicBoolean();
 
     /** Ordered sub-field names of a {@code __<X>_bbox__} struct column. */
     private static final List<String> BBOX_FIELDS = List.of("xmin", "ymin", "xmax", "ymax");
@@ -88,10 +85,17 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private final ConnectorMetadata delegate;
     private final GeoMesaColumnCatalog geomCatalog;
 
-    /** Result of locating a spatial predicate in a constraint expression: the
-     *  query envelope, the spatial function's name (lowercased ASCII), and the
-     *  name of the geometry column the predicate is filtering on. */
-    record SpatialMatch(Envelope envelope, String functionName, String geomName) {}
+    /** Result of locating a spatial constraint in a constraint expression: the
+     *  query envelope(s), the spatial function's name (lowercased ASCII; {@code
+     *  "$or"} for a disjunction of spatial predicates), and the name of the
+     *  geometry column the constraint is filtering on. A single predicate
+     *  yields one envelope; an OR of predicates on the same geom yields one
+     *  envelope per branch — matching rows lie within their union. */
+    record SpatialMatch(List<Envelope> envelopes, String functionName, String geomName) {
+        SpatialMatch(Envelope envelope, String functionName, String geomName) {
+            this(List.of(envelope), functionName, geomName);
+        }
+    }
 
     /** Result of the bbox-pattern reconstruction path: the reconstructed envelope
      *  and the geom-column name parsed from the bbox struct parent variable. */
@@ -156,7 +160,12 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             GeometryColumn g = geoms.get(match.geomName());
             if (g == null) continue;  // ST_* on a non-geom column → leave in residual
 
-            Envelope env = match.envelope();
+            // The four bbox sub-field domains are ANDed by the engine, so a
+            // multi-envelope (OR) match can only push their combined bounds.
+            // Partition ranges live in a single Domain and are pushed per
+            // envelope, preserving the union's selectivity.
+            Envelope env = new Envelope(match.envelopes().get(0));
+            match.envelopes().forEach(env::expandToInclude);
 
             // Bbox sub-field domains for per-file Parquet-stat pruning.
             g.bbox().ifPresent(bbox -> {
@@ -173,7 +182,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
 
             // Spatial-partition pushdown for manifest-list pruning.
             g.partition().ifPresent(sp -> {
-                List<Range> ranges = buildPartitionRanges(sp, env);
+                List<Range> ranges = buildPartitionRanges(sp, match.envelopes());
                 if (!ranges.isEmpty()) {
                     domains.merge(sp.column(),
                         Domain.create(SortedRangeSet.copyOf(VarcharType.VARCHAR, ranges), false),
@@ -220,32 +229,30 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
 
     /**
      * Builds the {@code SortedRangeSet} entries for a spatial-partition column over
-     * the query envelope. Z2 emits contiguous closed ranges; XZ2 emits a hybrid of
-     * wide ranges (level-0 partition-grid cells) and point-equality singletons
-     * (higher-level cells). The singleton must be {@code Range.equal} rather than a
-     * zero-width {@code Range.range}: when a zero-width range is AND-combined with
-     * all four bbox sub-field predicates, Iceberg's metadata evaluator over-prunes
-     * files whose per-column stats each pass individually, silently dropping
-     * matching rows (observed on Trino 476 + Iceberg 1.9.1; any 3-of-4 bbox
-     * combination is fine — only the full conjunction triggers it).
+     * the query envelope(s) — one cover per envelope, unioned by the range set
+     * (overlaps are merged by {@code SortedRangeSet.copyOf}). Z2 emits contiguous
+     * closed ranges; XZ2 emits a hybrid of wide ranges (level-0 partition-grid
+     * cells) and point-equality singletons (higher-level cells). The singleton must
+     * be {@code Range.equal} rather than a zero-width {@code Range.range}: when a
+     * zero-width range is AND-combined with all four bbox sub-field predicates,
+     * Iceberg's metadata evaluator over-prunes files whose per-column stats each
+     * pass individually, silently dropping matching rows (observed on Trino 476 +
+     * Iceberg 1.9.1; any 3-of-4 bbox combination is fine — only the full
+     * conjunction triggers it).
      */
-    private static List<Range> buildPartitionRanges(SpatialPartitionHandle sp, Envelope env) {
+    private static List<Range> buildPartitionRanges(SpatialPartitionHandle sp, List<Envelope> envelopes) {
         List<Range> ranges = new ArrayList<>();
-        switch (sp.kind()) {
-            case Z2 -> {
-                for (String[] r : Z2Transform.z2RangesAtReferenceHex(env, sp.bits())) {
+        for (Envelope env : envelopes) {
+            List<String[]> hexRanges = switch (sp.kind()) {
+                case Z2  -> SpatialIndexRanges.z2Ranges(env);
+                case XZ2 -> SpatialIndexRanges.xz2Ranges(env);
+            };
+            for (String[] r : hexRanges) {
+                if (r[0].equals(r[1])) {
+                    ranges.add(Range.equal(VarcharType.VARCHAR, Slices.utf8Slice(r[0])));
+                } else {
                     ranges.add(Range.range(VarcharType.VARCHAR,
                         Slices.utf8Slice(r[0]), true, Slices.utf8Slice(r[1]), true));
-                }
-            }
-            case XZ2 -> {
-                for (String[] r : XZ2Transform.xz2RangesAtReferenceHex(env, sp.bits())) {
-                    if (r[0].equals(r[1])) {
-                        ranges.add(Range.equal(VarcharType.VARCHAR, Slices.utf8Slice(r[0])));
-                    } else {
-                        ranges.add(Range.range(VarcharType.VARCHAR,
-                            Slices.utf8Slice(r[0]), true, Slices.utf8Slice(r[1]), true));
-                    }
                 }
             }
         }
@@ -326,26 +333,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     }
 
     /**
-     * Walks the ConnectorExpression tree looking for spatial function calls
-     * (see {@link #isSpatialPredicateName}) with a geometry-constant argument
-     * and returns that geometry's envelope. Used by findSpatialMatch and
-     * collectSpatialMatches.
+     * Extracts the envelope of the geometry-constant argument of a spatial
+     * function call (see {@link #isSpatialPredicateName}; the caller has
+     * already verified the function name). Used by collectSpatialMatches.
      */
-    Optional<Envelope> tryExtractEnvelope(ConnectorExpression expr) {
-        if (!(expr instanceof Call call)) return Optional.empty();
-
-        String fn = call.getFunctionName().getName().toLowerCase(Locale.ROOT);
-        if (!isSpatialPredicateName(fn)) {
-            // Recurse through conjunctions only (see collectSpatialMatches): an
-            // envelope found under $or/$not does not constrain the full result set.
-            if (!AND_FUNCTION_NAME.equals(call.getFunctionName())) return Optional.empty();
-            for (ConnectorExpression arg : call.getArguments()) {
-                Optional<Envelope> result = tryExtractEnvelope(arg);
-                if (result.isPresent()) return result;
-            }
-            return Optional.empty();
-        }
-
+    Optional<Envelope> tryExtractEnvelope(Call call) {
         // Look for a geometry argument. Trino constant-folds ST_GeometryFromText('WKT')
         // to a Geometry constant before PushPredicateIntoTableScan fires, so Form 1 is
         // the normal path. Form 2 handles the un-folded call defensively.
@@ -414,13 +406,10 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             // Unexpected geometry-constant shape: skip pushdown, fall back to a correct
             // (if unpruned) scan. A systematic failure here (e.g. a Trino upgrade changing the
             // folded-geometry representation) silently disables ALL spatial pruning, so warn
-            // once loudly; later occurrences stay at FINE to avoid per-query log spam.
-            if (ENVELOPE_EXTRACTION_WARNED.compareAndSet(false, true)) {
-                LOG.warn("Could not extract envelope from a Geometry constant; spatial pruning "
-                    + "will be skipped for such predicates (further occurrences at FINE): " + e);
-            } else {
-                LOG.debug("Could not extract envelope from Geometry constant: " + e);
-            }
+            // loudly every time — it fires at most once per planned query, and a single
+            // warning is too easy to lose in a long-lived server's logs.
+            LOG.warn("Could not extract envelope from a Geometry constant; spatial pruning "
+                + "will be skipped for this predicate: " + e);
             return Optional.empty();
         }
     }
@@ -463,14 +452,59 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             }
             return;  // don't recurse into nested ST_*
         }
-        // Descend through CONJUNCTIONS only. A spatial predicate under $or, $not (or
-        // any other combinator) is not a top-level constraint on the result set:
-        // injecting its envelope would prune rows that satisfy the query through
-        // another branch (e.g. DISJOINT(a) OR CROSSES(b) — rows matching only the
-        // disjoint side live OUTSIDE b's envelope; NOT(WITHIN(t)) — matching rows
-        // live outside t). Found by the datastore filter-parity suite.
+        // Disjunctions prune only when EVERY branch constrains the same geometry
+        // column; the sound cover is then the union of the branch envelopes.
+        if (OR_FUNCTION_NAME.equals(call.getFunctionName())) {
+            acc.addAll(orSpatialMatches(call));
+            return;
+        }
+        // Otherwise descend through CONJUNCTIONS only. A spatial predicate under
+        // $not (or any other combinator) is not a top-level constraint on the
+        // result set: injecting its envelope would prune rows that satisfy the
+        // query through another path (e.g. NOT(WITHIN(t)) — matching rows live
+        // outside t). Found by the datastore filter-parity suite.
         if (!AND_FUNCTION_NAME.equals(call.getFunctionName())) return;
         for (ConnectorExpression arg : call.getArguments()) collectSpatialMatches(arg, acc);
+    }
+
+    /**
+     * Matches for a disjunction: rows satisfying {@code b1 OR b2 OR ...} lie in
+     * the union of the branch envelopes, but ONLY for a geometry column that is
+     * spatially constrained in <em>every</em> branch — a row can satisfy the OR
+     * through a branch that says nothing about a given geom (e.g.
+     * {@code DISJOINT(a) OR CROSSES(b)} — rows matching only the disjoint side
+     * live OUTSIDE b's envelope; found by the datastore filter-parity suite).
+     * Nested ANDs/ORs are handled by recursion through
+     * {@link #findAllSpatialMatches}.
+     */
+    private List<SpatialMatch> orSpatialMatches(Call or) {
+        // Per-branch, per-geom envelopes; a branch with no spatial match on any
+        // geom vetoes the whole disjunction (its rows are unconstrained).
+        Map<String, List<Envelope>> unionByGeom = null;
+        for (ConnectorExpression branch : or.getArguments()) {
+            Map<String, List<Envelope>> branchByGeom = new LinkedHashMap<>();
+            for (SpatialMatch m : findAllSpatialMatches(branch)) {
+                branchByGeom.computeIfAbsent(m.geomName(), k -> new ArrayList<>())
+                    .addAll(m.envelopes());
+            }
+            if (branchByGeom.isEmpty()) return List.of();
+            if (unionByGeom == null) {
+                unionByGeom = branchByGeom;
+            } else {
+                // Keep only geoms constrained in every branch seen so far.
+                unionByGeom.keySet().retainAll(branchByGeom.keySet());
+                for (Map.Entry<String, List<Envelope>> e : branchByGeom.entrySet()) {
+                    List<Envelope> existing = unionByGeom.get(e.getKey());
+                    if (existing != null) existing.addAll(e.getValue());
+                }
+            }
+            if (unionByGeom.isEmpty()) return List.of();
+        }
+        List<SpatialMatch> out = new ArrayList<>();
+        for (Map.Entry<String, List<Envelope>> e : unionByGeom.entrySet()) {
+            out.add(new SpatialMatch(List.copyOf(e.getValue()), "$or", e.getKey()));
+        }
+        return out;
     }
 
     /** Extracts the geom-column name from a spatial-function call. The expected

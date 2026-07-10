@@ -12,7 +12,7 @@ import io.trino.plugin.iceberg.IcebergColumnHandle;
 import org.locationtech.geomesa.trino.spatial.SpatialIndexKind;
 
 /** Iceberg column handle for a spatial-partition column ({@code __<X>_z2__} or
- *  {@code __<X>_xz2__}) and the effective bit resolution N, derived from the
- *  column's {@code truncate(width)} transform in the table's partition spec
- *  (N = 4 × width). See {@link GeoMesaColumnCatalog#deriveBitsFromTruncateWidth}. */
-public record SpatialPartitionHandle(SpatialIndexKind kind, IcebergColumnHandle column, int bits) {}
+ *  {@code __<X>_xz2__}). Pushed ranges are emitted at full index precision;
+ *  the column's {@code truncate(width)} partition transform (if any) prunes by
+ *  prefix, so the width does not need to be known here. */
+public record SpatialPartitionHandle(SpatialIndexKind kind, IcebergColumnHandle column) {}

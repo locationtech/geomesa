@@ -306,7 +306,8 @@ class SpatialConnectorMetadataTest {
         Optional<SpatialConnectorMetadata.SpatialMatch> match = meta.findSpatialMatch(expr);
         assertThat(match).isPresent();
         assertThat(match.get().functionName()).isEqualTo("st_intersects");
-        assertThat(match.get().envelope().getMinX()).isEqualTo(-80.0);
+        assertThat(match.get().envelopes()).hasSize(1);
+        assertThat(match.get().envelopes().get(0).getMinX()).isEqualTo(-80.0);
     }
 
     @Test
@@ -326,6 +327,95 @@ class SpatialConnectorMetadataTest {
         Optional<SpatialConnectorMetadata.SpatialMatch> match = meta.findSpatialMatch(expr);
         assertThat(match).isPresent();
         assertThat(match.get().functionName()).isEqualTo("st_within");
+    }
+
+    // ── OR'd spatial predicates ───────────────────────────────────────────────
+
+    /** ST_Intersects(ST_GeomFromBinary(<geomColumn>), <envelope literal>). */
+    private static Call intersects(String geomColumn, double minX, double maxX,
+                                   double minY, double maxY) {
+        Variable geomVar = new Variable(geomColumn, VarbinaryType.VARBINARY);
+        io.airlift.slice.Slice slice = io.trino.geospatial.serde.JtsGeometrySerde.serialize(
+            new org.locationtech.jts.geom.GeometryFactory().toGeometry(
+                new org.locationtech.jts.geom.Envelope(minX, maxX, minY, maxY)));
+        return new Call(BooleanType.BOOLEAN, new FunctionName("st_intersects"),
+            List.of(geomVar, new Constant(slice, TestGeometryType.GEOMETRY)));
+    }
+
+    @Test
+    void orOfSpatialPredicatesOnSameGeomYieldsUnionMatch() {
+        SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
+            new FakeMetadata(), freshCatalog());
+        ConnectorExpression or = new Call(BooleanType.BOOLEAN, OR_FUNCTION_NAME,
+            List.of(intersects("geom", -80, -70, 37, 45),
+                    intersects("geom", 10, 11, 20, 21)));
+
+        List<SpatialConnectorMetadata.SpatialMatch> matches = meta.findAllSpatialMatches(or);
+        assertThat(matches).hasSize(1);
+        SpatialConnectorMetadata.SpatialMatch m = matches.get(0);
+        assertThat(m.geomName()).isEqualTo("geom");
+        assertThat(m.envelopes()).hasSize(2);
+        assertThat(m.envelopes().get(0).getMinX()).isEqualTo(-80.0);
+        assertThat(m.envelopes().get(1).getMinX()).isEqualTo(10.0);
+    }
+
+    @Test
+    void orWithNonSpatialBranchYieldsNoMatches() {
+        // A row can satisfy the OR through the non-spatial branch, which says
+        // nothing about geom — no envelope may be pushed.
+        SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
+            new FakeMetadata(), freshCatalog());
+        ConnectorExpression or = new Call(BooleanType.BOOLEAN, OR_FUNCTION_NAME,
+            List.of(intersects("geom", -80, -70, 37, 45),
+                    new Variable("flag", BooleanType.BOOLEAN)));
+        assertThat(meta.findAllSpatialMatches(or)).isEmpty();
+    }
+
+    @Test
+    void orOverDifferentGeomsYieldsNoMatches() {
+        // Each branch constrains a different geometry column; neither is
+        // constrained in EVERY branch, so nothing can be pushed.
+        SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
+            new FakeMetadata(), freshCatalog());
+        ConnectorExpression or = new Call(BooleanType.BOOLEAN, OR_FUNCTION_NAME,
+            List.of(intersects("center", -80, -70, 37, 45),
+                    intersects("ellipse", 10, 11, 20, 21)));
+        assertThat(meta.findAllSpatialMatches(or)).isEmpty();
+    }
+
+    @Test
+    void orNestedUnderAndStillYieldsUnionMatch() {
+        // AND(flag, OR(intersects(g,p1), intersects(g,p2))) — the OR is a
+        // top-level conjunct, so its union envelope constrains the result set.
+        SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
+            new FakeMetadata(), freshCatalog());
+        ConnectorExpression or = new Call(BooleanType.BOOLEAN, OR_FUNCTION_NAME,
+            List.of(intersects("geom", -80, -70, 37, 45),
+                    intersects("geom", 10, 11, 20, 21)));
+        ConnectorExpression and = new Call(BooleanType.BOOLEAN, AND_FUNCTION_NAME,
+            List.of(new Variable("flag", BooleanType.BOOLEAN), or));
+
+        List<SpatialConnectorMetadata.SpatialMatch> matches = meta.findAllSpatialMatches(and);
+        assertThat(matches).hasSize(1);
+        assertThat(matches.get(0).envelopes()).hasSize(2);
+    }
+
+    @Test
+    void orBranchesMixedOnSharedAndUnsharedGeomsPushOnlyTheSharedGeom() {
+        // Branch 1 constrains {center, ellipse}, branch 2 only {center}:
+        // center is constrained in every branch (pushable); ellipse is not.
+        SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
+            new FakeMetadata(), freshCatalog());
+        ConnectorExpression branch1 = new Call(BooleanType.BOOLEAN, AND_FUNCTION_NAME,
+            List.of(intersects("center", -80, -70, 37, 45),
+                    intersects("ellipse", 0, 1, 0, 1)));
+        ConnectorExpression or = new Call(BooleanType.BOOLEAN, OR_FUNCTION_NAME,
+            List.of(branch1, intersects("center", 10, 11, 20, 21)));
+
+        List<SpatialConnectorMetadata.SpatialMatch> matches = meta.findAllSpatialMatches(or);
+        assertThat(matches).hasSize(1);
+        assertThat(matches.get(0).geomName()).isEqualTo("center");
+        assertThat(matches.get(0).envelopes()).hasSize(2);
     }
 
     @Test

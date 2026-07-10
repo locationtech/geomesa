@@ -8,11 +8,9 @@
 
 package org.locationtech.geomesa.trino.spatial;
 import org.locationtech.geomesa.trino.security.GeoMesaSecurityFunctions;
-import org.locationtech.geomesa.trino.security.TrustedPrincipalHeaderAuthenticatorFactory;
 
 import io.trino.spi.Plugin;
 import io.trino.spi.connector.ConnectorFactory;
-import io.trino.spi.security.HeaderAuthenticatorFactory;
 import org.locationtech.geomesa.trino.spatial.iceberg.connector.SpatialConnectorFactory;
 
 import java.util.List;
@@ -45,15 +43,5 @@ public class SpatialIcebergPlugin implements Plugin {
     @Override
     public Set<Class<?>> getFunctions() {
         return Set.of(GeoMesaSecurityFunctions.class);
-    }
-
-    /**
-     * Returns the header-authenticator factories provided by this plugin.
-     *
-     * @return the trusted-principal header authenticator factory
-     */
-    @Override
-    public Iterable<HeaderAuthenticatorFactory> getHeaderAuthenticatorFactories() {
-        return List.of(new TrustedPrincipalHeaderAuthenticatorFactory());
     }
 }

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.trino.spatial;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -22,14 +23,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * -DskipITs=false.
  *
  * Pre-conditions — the following demo tables must be ingested:
- *   - spatial.observations (Z2) and spatial.regions (XZ2), required by the
- *     regions* tests
- *   - spatial.tdrive (Z2), required by every tdrive* / ST_Intersects /
- *     miscSpatialFunctionsWork test below
+ *   - spatial.regions (XZ2), required by the regions* tests
+ *   - spatial.tdrive (Z2), required by every other test below
  *
- *   The tests themselves do not ingest — running -DskipITs=false against a Trino
- *   instance that's missing tdrive or regions will surface "Table does not exist"
- *   errors per test. Re-ingest the missing dataset and re-run.
+ *   The tests themselves do not ingest — each test skips (JUnit assumption)
+ *   when its dataset is absent, so a partially-provisioned Trino runs the
+ *   tests it can and skips the rest.
  */
 @Tag("integration")
 class Z2PruningIT {
@@ -38,14 +37,38 @@ class Z2PruningIT {
         "jdbc:trino://localhost:8080/spatial_iceberg?user=admin";
 
     private static Connection conn;
+    private static java.util.Set<String> tables = java.util.Set.of();
 
     @BeforeAll
-    static void connect() throws SQLException {
-        conn = DriverManager.getConnection(TRINO_JDBC_URL);
+    static void connect() {
+        try {
+            conn = DriverManager.getConnection(TRINO_JDBC_URL);
+            java.util.Set<String> found = new java.util.HashSet<>();
+            // information_schema, not SHOW TABLES: the latter throws when the
+            // spatial schema doesn't exist yet (fresh warehouse) — that state
+            // must fall through to per-test provisioning/skips, not abort here.
+            try (Statement s = conn.createStatement();
+                 ResultSet rs = s.executeQuery("SELECT table_name FROM information_schema.tables"
+                     + " WHERE table_schema = 'spatial'")) {
+                while (rs.next()) found.add(rs.getString(1));
+            }
+            tables = found;
+        } catch (SQLException e) {
+            Assumptions.assumeTrue(false,
+                "Trino not reachable at localhost:8080 — skipping (" + e.getMessage() + ")");
+        }
+    }
+
+    /** Skips the calling test when the demo table is not ingested and cannot be
+     *  provisioned from a bundled fixture (regions is; tdrive is not). */
+    private static void assumeTable(String table) {
+        Assumptions.assumeTrue(tables.contains(table) || TestFixtures.ensureTable(table),
+            "spatial." + table + " not ingested and not provisionable — skipping (see class javadoc)");
     }
 
     @Test
     void explainPreservesSpatialFilterAsResidual() throws SQLException {
+        assumeTable("tdrive");
         // Bbox sub-field domains ARE injected by SpatialConnectorMetadata (xmin/ymin/
         // xmax/ymax on __geom_bbox__), but Iceberg's EXPLAIN summary doesn't surface
         // nested struct sub-field constraints in `constraint on [...]` — only top-level
@@ -72,6 +95,7 @@ class Z2PruningIT {
 
     @Test
     void z2PartitionPushdownReducesScannedRows() throws SQLException {
+        assumeTable("tdrive");
         // Trino's iceberg connector projects truncate-string partition
         // predicates at split time but does NOT surface them in the EXPLAIN
         // summary's `constraint on [...]` block (that block only shows
@@ -91,6 +115,7 @@ class Z2PruningIT {
 
     @Test
     void geometryColumnTypeIsVarbinary() throws SQLException {
+        assumeTable("tdrive");
         // No Geometry-type overlay: geom is plain VARBINARY (raw WKB). Spatial SQL
         // wraps it with ST_GeomFromBinary; the connector's value is planning-time
         // pushdown, not a column-type swap.
@@ -106,6 +131,7 @@ class Z2PruningIT {
 
     @Test
     void describeShowsGeomAsVarbinaryOnBothCatalogs() throws SQLException {
+        assumeTable("tdrive");
         // Both catalogs expose identical column shapes — geom is VARBINARY on
         // spatial_iceberg and iceberg alike. The spatial connector adds no type
         // overlay; it only injects bbox/Z2 pushdown in applyFilter at planning time.
@@ -133,6 +159,7 @@ class Z2PruningIT {
 
     @Test
     void stIntersectsCountMatchesBaseline() throws SQLException {
+        assumeTable("tdrive");
         // Correctness cross-check on tdrive: the spatial_iceberg connector's bbox/Z2
         // pushdown must not change results vs the stock iceberg baseline. Both sides
         // wrap geom with ST_GeomFromBinary (the only valid form — geom is varbinary).
@@ -161,6 +188,7 @@ class Z2PruningIT {
 
     @Test
     void miscSpatialFunctionsWork() throws SQLException {
+        assumeTable("tdrive");
         // Smoke test for the stock geospatial functions on the WKB-backed geom column,
         // wrapped with ST_GeomFromBinary (Trino 481 requires the explicit wrap —
         // there is no implicit varbinary→geometry coercion).
@@ -210,6 +238,7 @@ class Z2PruningIT {
 
     @Test
     void regionsDescribeShowsXz2Column() throws SQLException {
+        assumeTable("regions");
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("DESCRIBE spatial_iceberg.spatial.regions")) {
             String xz2 = null;
@@ -230,6 +259,7 @@ class Z2PruningIT {
 
     @Test
     void regionsXz2PartitionPushdownReducesScannedRows() throws SQLException {
+        assumeTable("regions");
         // Trino's iceberg connector projects truncate-string partition
         // predicates at split time but does NOT surface them in the EXPLAIN
         // summary's `constraint on [...]` block. The observable proof of XZ2
@@ -248,6 +278,7 @@ class Z2PruningIT {
 
     @Test
     void regionsCountMatchesUnprunedBaseline() throws SQLException {
+        assumeTable("regions");
         // Cross-check correctness: count rows on spatial_iceberg.spatial.regions with
         // the XZ2 partition predicate active matches the count without any predicate
         // applied at the iceberg (baseline) catalog. Same physical Parquet files,

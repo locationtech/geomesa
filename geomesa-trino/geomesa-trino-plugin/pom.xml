@@ -98,8 +98,11 @@
       </exclusions>
     </dependency>
 
-    <!-- SLF4J as a direct compile dep- the connector's isolated plugin classloader does
-         not delegate org.slf4j to Trino core, so the plugin must bundle slf4j-api itself -->
+    <dependency>
+      <groupId>io.trino</groupId>
+      <artifactId>trino-plugin-toolkit</artifactId>
+      <version>${trino.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -114,17 +117,14 @@
       <artifactId>trino-geospatial-toolkit</artifactId>
       <version>${trino.version}</version>
     </dependency>
-    <!-- Visibility-expression evaluation for is_visible(); same engine as geomesa-security's VisibilityUtils -->
     <dependency>
       <groupId>org.apache.accumulo</groupId>
       <artifactId>accumulo-access</artifactId>
     </dependency>
-    <!-- Bounded caches in GeoMesaSecurityFunctions -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>

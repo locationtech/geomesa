@@ -26,8 +26,8 @@ class VisibilityRowFilterTest {
 
     @Test
     void conjunctQuotesColumnAndEscapesAuths() {
-        assertThat(VisibilityRowFilter.conjunct("__vis__", List.of("U", "FOUO")))
-            .isEqualTo("is_visible(\"__vis__\", 'U,FOUO')");
+        assertThat(VisibilityRowFilter.conjunct("__vis__", List.of("basic", "privileged")))
+            .isEqualTo("is_visible(\"__vis__\", 'basic,privileged')");
     }
 
     @Test
@@ -38,20 +38,20 @@ class VisibilityRowFilterTest {
 
     @Test
     void singleQuoteInAuthIsDoubled() {
-        assertThat(VisibilityRowFilter.conjunct("__vis__", List.of("U", "o'brien")))
-            .isEqualTo("is_visible(\"__vis__\", 'U,o''brien')");
+        assertThat(VisibilityRowFilter.conjunct("__vis__", List.of("basic", "o'brien")))
+            .isEqualTo("is_visible(\"__vis__\", 'basic,o''brien')");
     }
 
     @Test
     void doubleQuoteInColumnIsDoubled() {
-        assertThat(VisibilityRowFilter.conjunct("ve\"rt", List.of("U")))
-            .isEqualTo("is_visible(\"ve\"\"rt\", 'U')");
+        assertThat(VisibilityRowFilter.conjunct("ve\"rt", List.of("basic")))
+            .isEqualTo("is_visible(\"ve\"\"rt\", 'basic')");
     }
 
     @Test
     void authTokenContainingTransportDelimiterIsRejected() {
         for (String bad : List.of("FOO,BAR", "FOO|BAR", "FOO;BAR", "FOO:BAR", "FOO BAR", "")) {
-            assertThatThrownBy(() -> VisibilityRowFilter.conjunct("__vis__", List.of("U", bad)))
+            assertThatThrownBy(() -> VisibilityRowFilter.conjunct("__vis__", List.of("basic", bad)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("authorization token");
         }

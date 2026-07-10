@@ -44,8 +44,9 @@ import java.util.Random;
  * keeps only the Point entries (Z2 rejects extended geometries) while the XZ2
  * corpus keeps everything. Values are sourced directly from the upstream
  * GeoMesa SFCs via {@link SfcBridge} so the corpus is the ground truth.
- * Each entry includes the raw SFC Long, the unsigned 16-char hex
- * ({@link Z2Transform#hexEncode}), and the WKB hex.
+ * Each entry includes the raw SFC Long, the left-aligned hex encoding
+ * ({@code Z2SFC.hexEncode}/{@code XZ2SFC.hexEncode} via {@link SfcBridge}),
+ * and the WKB hex.
  */
 class Z2ParityCorpusGenerator {
 
@@ -136,7 +137,7 @@ class Z2ParityCorpusGenerator {
                 byte[] wkb = wkbW.write(g);
                 String wkbHex = HexFormat.of().formatHex(wkb);
                 long z2 = SfcBridge.z2Index(pt.getX(), pt.getY());
-                String z2Hex = Z2Transform.encodeColumn(z2);
+                String z2Hex = SfcBridge.z2Hex(pt.getX(), pt.getY());
                 if (!first) pw.println(",");
                 pw.printf("  {\"wkt\": \"%s\", \"wkb_hex\": \"%s\", \"z2\": %d, \"z2_hex\": \"%s\"}",
                     g.toText(), wkbHex, z2, z2Hex);
@@ -157,8 +158,9 @@ class Z2ParityCorpusGenerator {
                 String wkbHex = HexFormat.of().formatHex(wkb);
                 Envelope env = g.getEnvelopeInternal();
                 long xz2 = SfcBridge.xz2Index(
-                    env.getMinX(), env.getMinY(), env.getMaxX(), env.getMaxY(), XZ2Transform.G);
-                String xz2Hex = Z2Transform.hexEncode(xz2);
+                    env.getMinX(), env.getMinY(), env.getMaxX(), env.getMaxY(), SpatialIndexRanges.G);
+                String xz2Hex = SfcBridge.xz2Hex(
+                    env.getMinX(), env.getMinY(), env.getMaxX(), env.getMaxY(), SpatialIndexRanges.G);
                 if (!first) pw.println(",");
                 pw.printf("  {\"wkt\": \"%s\", \"wkb_hex\": \"%s\", \"xz2\": %d, \"xz2_hex\": \"%s\"}",
                     g.toText(), wkbHex, xz2, xz2Hex);

@@ -27,9 +27,9 @@ class VisibilityAccessControlTest {
     private static final String CATALOG = "spatial_iceberg";
     private static final SchemaTableName TABLE = new SchemaTableName("spatial", "observations");
 
-    // alice -> {U, FOUO}; everyone else -> empty (fail-closed).
+    // alice -> {basic, privileged}; everyone else -> empty (fail-closed).
     private static final AuthorizationResolver RESOLVER = id ->
-        "alice".equals(id.getUser()) ? Set.of("U", "FOUO") : Set.of();
+        "alice".equals(id.getUser()) ? Set.of("basic", "privileged") : Set.of();
 
     private static ConnectorSecurityContext ctx(String user) {
         return new ConnectorSecurityContext(
@@ -49,8 +49,8 @@ class VisibilityAccessControlTest {
         List<ViewExpression> filters = control(cat).getRowFilters(ctx("alice"), TABLE);
         assertThat(filters).hasSize(1);
         ViewExpression f = filters.get(0);
-        // auths sorted for determinism: {U, FOUO} -> "FOUO,U"
-        assertThat(f.getExpression()).isEqualTo("is_visible(\"__vis__\", 'FOUO,U')");
+        // auths sorted for determinism: {basic, privileged} -> "basic,privileged"
+        assertThat(f.getExpression()).isEqualTo("is_visible(\"__vis__\", 'basic,privileged')");
         assertThat(f.getCatalog()).contains(CATALOG);
         assertThat(f.getSchema()).contains("spatial");
     }
@@ -69,7 +69,7 @@ class VisibilityAccessControlTest {
         GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
         cat.recordVisibilityColumn(TABLE, Set.of("geom", "__vis__"));
         assertThat(control(cat).getRowFilters(ctx("alice"), TABLE).get(0).getExpression())
-            .isEqualTo("is_visible(\"__vis__\", 'FOUO,U')");
+            .isEqualTo("is_visible(\"__vis__\", 'basic,privileged')");
     }
 
     @Test

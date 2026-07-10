@@ -29,10 +29,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Pre-conditions: a running Trino at localhost:8080 with the plugin loaded, the
  * {@code geomesa.security.auth-resolver} / {@code geomesa.security.auth-mapping-file}
  * catalog properties configured, and the demo spatial.observations table ingested
- * (it carries the U//FOUO {@code __vis__} ladder). The demo auth config must
- * grant {@code U,FOUO} to user {@code testuser} (via the {@code fouo} group) and
- * {@code U} to user {@code public} (via the {@code public} group); unmapped users
- * get no auths.
+ * with a tiered {@code __vis__} ladder. The demo auth config must grant user
+ * {@code testuser} (via a group) a strict superset of the auths granted to user
+ * {@code public}, with {@code public}'s auths clearing the middle tier; unmapped
+ * users get no auths. The test is agnostic to the actual token names — only the
+ * identities and their relative grants matter.
  *
  * <p>Local Trino has no authentication, so the JDBC {@code user} property sets the
  * session identity. Assertions are monotonic inequalities (robust to row-count
@@ -51,6 +52,15 @@ class VisibilityEnforcementIT {
         } catch (Exception e) {
             Assumptions.assumeTrue(false, "Trino not reachable at localhost:8080 — skipping");
         }
+        assumeTable("observations");
+    }
+
+    /** Skips the calling test when the demo table is not ingested and cannot be
+     *  provisioned from a bundled fixture. */
+    private static void assumeTable(String table) {
+        Assumptions.assumeTrue(
+            org.locationtech.geomesa.trino.spatial.TestFixtures.ensureTable(table),
+            "spatial." + table + " not ingested and not provisionable — skipping (see class javadoc)");
     }
 
     private static long count(String jdbcBase, String user, String table) throws SQLException {
@@ -62,23 +72,24 @@ class VisibilityEnforcementIT {
         }
     }
 
-    // User identities below must exist in the demo auth config:
-    // "public" in the public group → U; "testuser" in the fouo group → U,FOUO.
+    // User identities below must exist in the demo auth config (see class javadoc):
+    // "public" gets the partial-tier auths; "testuser" gets a strict superset.
     @Test
     void directSqlIsRowFilteredByClearanceOnSpatialCatalog() throws SQLException {
         long nobody   = count(SPATIAL, "nobody",   "observations"); // unmapped → unrestricted only
-        long publik   = count(SPATIAL, "public",   "observations"); // U (via public group)
-        long testuser = count(SPATIAL, "testuser", "observations"); // U,FOUO (via fouo group)
+        long publik   = count(SPATIAL, "public",   "observations"); // partial-tier auths
+        long testuser = count(SPATIAL, "testuser", "observations"); // full auths (via group)
         long admin    = count(SPATIAL, "admin",    "observations"); // unmapped → unrestricted only
 
         assertThat(nobody).as("unmapped user sees only unrestricted rows").isGreaterThan(0);
-        assertThat(publik).as("U clearance sees more than unrestricted-only").isGreaterThan(nobody);
-        assertThat(testuser).as("group-granted U,FOUO sees more than U-only").isGreaterThan(publik);
+        assertThat(publik).as("partial clearance sees more than unrestricted-only").isGreaterThan(nobody);
+        assertThat(testuser).as("group-granted full auths see more than partial").isGreaterThan(publik);
         assertThat(admin).as("another unmapped user matches the unmapped baseline").isEqualTo(nobody);
     }
 
     @Test
     void nonVisibilityTableIsUnaffected() throws SQLException {
+        assumeTable("regions");
         // regions (part of the same demo dataset) has no __vis__
         // column → no filter emitted, no error, same count for every identity.
         long asNobody   = count(SPATIAL, "nobody",   "regions");

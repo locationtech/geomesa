@@ -106,7 +106,7 @@ public class TrinoDataStore extends ContentDataStore {
      *  <p>The Trino JDBC {@code extraCredentials} property is {@code name:value}
      *  pairs delimited by SEMICOLONS (NOT commas), and each value must be printable
      *  ASCII with no spaces. So auth tokens are joined with PIPES and the secret is
-     *  a second pair: {@code auths:U|FOUO;secret:<value>}. Throws
+     *  a second pair: {@code auths:basic|privileged;secret:<value>}. Throws
      *  {@code IllegalArgumentException} on a token containing a transport delimiter —
      *  the server-side resolver would re-split it into auths that were never issued
      *  (see {@link AuthTokens}). */

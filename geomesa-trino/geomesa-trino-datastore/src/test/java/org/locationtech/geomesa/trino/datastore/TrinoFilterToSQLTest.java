@@ -508,10 +508,13 @@ class TrinoFilterToSQLTest {
         // bbox must COVER the literal's envelope (necessary, pushable) + exact test.
         Filter f = ECQL.toFilter("CONTAINS(geom, POINT(-77.04 38.91))");
         String sql = translator.encodeToString(f);
-        assertThat(sql).contains("\"__geom_bbox__\".xmin <= -77.04");
-        assertThat(sql).contains("\"__geom_bbox__\".xmax >= -77.04");
-        assertThat(sql).contains("\"__geom_bbox__\".ymin <= 38.91");
-        assertThat(sql).contains("\"__geom_bbox__\".ymax >= 38.91");
+        // Bounds are float32-aligned in the admitting direction: the stored bbox is
+        // nearest-rounded float32, so raw double bounds can drop covering rows whose
+        // stored values rounded across them (see TrinoFilterToSQL.bboxOverlapSql).
+        assertThat(sql).contains("\"__geom_bbox__\".xmin <= -77.03999328613281");
+        assertThat(sql).contains("\"__geom_bbox__\".xmax >= -77.04000091552734");
+        assertThat(sql).contains("\"__geom_bbox__\".ymin <= 38.910003662109375");
+        assertThat(sql).contains("\"__geom_bbox__\".ymax >= 38.90999984741211");
         assertThat(sql).contains("AND ST_Contains(ST_GeomFromBinary(\"geom\"),");
     }
 

@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 /**
  * {@link AuthorizationResolver} that reads a session's authorization tokens
  * straight from a Trino <em>extra credential</em> carrying a comma-delimited
- * list (e.g. {@code auths=U,FOUO}). Intended for deployments fronted by a
+ * list (e.g. {@code auths=basic,privileged}). Intended for deployments fronted by a
  * trusted service mesh that authenticates the caller and injects the
  * authoritative token set: the mesh rewrites its identity header (e.g.
  * {@code x-auths}) into Trino's {@code X-Trino-Extra-Credential} client

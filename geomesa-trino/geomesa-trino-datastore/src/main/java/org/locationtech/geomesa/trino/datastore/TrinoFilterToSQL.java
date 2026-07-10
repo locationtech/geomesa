@@ -295,9 +295,12 @@ public class TrinoFilterToSQL extends FilterToSQL {
     private void writeColumnContainsLiteral(String col, Geometry geom) {
         String q = quoteIdent(bboxColName(col));
         Envelope env = geom.getEnvelopeInternal();
+        // Float32-aligned bounds keep the covers-prefilter necessary against the
+        // nearest-rounded stored bbox; see bboxOverlapSql.
         String bboxCovers = String.format(
             "%s.xmin <= %s AND %s.xmax >= %s AND %s.ymin <= %s AND %s.ymax >= %s",
-            q, env.getMinX(), q, env.getMaxX(), q, env.getMinY(), q, env.getMaxY());
+            q, ceilF32(env.getMinX()), q, floorF32(env.getMaxX()),
+            q, ceilF32(env.getMinY()), q, floorF32(env.getMaxY()));
         write("(" + bboxCovers + ")"
             + " AND ST_Contains(ST_GeomFromBinary(" + quoteIdent(col) + "),"
             + " " + geomFromText(geom) + ")");
@@ -413,14 +416,36 @@ public class TrinoFilterToSQL extends FilterToSQL {
      * The 4-clause "bbox(geom) overlaps env" fragment. Necessary condition for any
      * geom/env interaction, and the exact shape SI's connector reads to push Z2
      * partition pruning + per-file bbox-stat pruning.
+     *
+     * <p>Bounds are emitted float32-aligned ({@link #floorF32}/{@link #ceilF32}):
+     * the stored bbox values are float32 rounded to NEAREST, so comparing them
+     * against the raw double bound can drop a row whose true coordinate is within
+     * ~½ ulp inside the envelope edge (the stored value rounds across it). Float
+     * rounding is monotone, so relaxing each bound to the nearest float in the
+     * admitting direction keeps the prefilter necessary without admitting more
+     * than one extra float32 quantum per side.
      */
     private static String bboxOverlapSql(String bboxCol, Envelope env) {
         String q = quoteIdent(bboxCol);
         return String.format(
             "%s.xmax >= %s AND %s.xmin <= %s" +
             " AND %s.ymax >= %s AND %s.ymin <= %s",
-            q, env.getMinX(), q, env.getMaxX(),
-            q, env.getMinY(), q, env.getMaxY());
+            q, floorF32(env.getMinX()), q, ceilF32(env.getMaxX()),
+            q, floorF32(env.getMinY()), q, ceilF32(env.getMaxY()));
+    }
+
+    /** Largest float32 value ≤ v (as a double literal); see {@link #bboxOverlapSql}.
+     *  Mirrors the connector's {@code pruneSafeLowerBound}. Exactly-representable
+     *  values pass through unchanged. */
+    private static double floorF32(double v) {
+        float f = (float) v;
+        return f > v ? Math.nextDown(f) : f;
+    }
+
+    /** Smallest float32 value ≥ v (as a double literal); see {@link #floorF32}. */
+    private static double ceilF32(double v) {
+        float f = (float) v;
+        return f < v ? Math.nextUp(f) : f;
     }
 
     /** The 4-clause "bbox(geom) fully contained in env" fragment. */
@@ -505,9 +530,12 @@ public class TrinoFilterToSQL extends FilterToSQL {
     private void writeLiteralWithinColumn(String col, Geometry literalGeom) {
         String q = quoteIdent(bboxColName(col));
         Envelope env = literalGeom.getEnvelopeInternal();
+        // Float32-aligned bounds keep the covers-prefilter necessary against the
+        // nearest-rounded stored bbox; see bboxOverlapSql.
         String bboxCovers = String.format(
             "%s.xmin <= %s AND %s.xmax >= %s AND %s.ymin <= %s AND %s.ymax >= %s",
-            q, env.getMinX(), q, env.getMaxX(), q, env.getMinY(), q, env.getMaxY());
+            q, ceilF32(env.getMinX()), q, floorF32(env.getMaxX()),
+            q, ceilF32(env.getMinY()), q, floorF32(env.getMaxY()));
         write("(" + bboxCovers + ")"
             + " AND ST_Within(" + geomFromText(literalGeom) + ","
             + " ST_GeomFromBinary(" + quoteIdent(col) + "))");

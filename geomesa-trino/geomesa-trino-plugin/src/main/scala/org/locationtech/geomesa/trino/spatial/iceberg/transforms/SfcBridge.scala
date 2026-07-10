@@ -21,9 +21,11 @@ import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
  *
  * Bridge methods take no Scala default arguments; all parameters are explicit.
  *
- * Outputs match the cloud GeoMesa writer bit-for-bit:
- *   - Z2: non-negative 62-bit Long (31 bits/axis).
- *   - XZ2 at g=12: sequence code in [0, ~22M].
+ * Hex outputs delegate to `Z2SFC.hexEncode`/`XZ2SFC.hexEncode`, which
+ * left-align the significant bits so lexicographic (truncate-prefix)
+ * comparison over the encoded strings matches numeric comparison of the
+ * underlying index values — the same encoding GeoMesa writers use for
+ * hex-partitioned storage columns.
  */
 object SfcBridge {
   private def clampLon(x: Double): Double = math.min(180.0, math.max(-180.0, x))
@@ -37,16 +39,24 @@ object SfcBridge {
     Z2SFC.index(clampLon(lon), clampLat(lat), lenient = false)
 
   /**
-   * Z2 index ranges covering the query envelope. Returns an array of
-   * `[lower, upper]` pairs in Z2SFC's native (non-negative) Long space.
+   * Z2 cell value for a single (lon, lat) point, hex-encoded via
+   * `Z2SFC.hexEncode` (left-aligned so truncate-prefix matching works).
+   */
+  def z2Hex(lon: Double, lat: Double): String =
+    Z2SFC.hexEncode(z2Index(lon, lat))
+
+  /**
+   * Z2 index ranges covering the query envelope, hex-encoded via
+   * `Z2SFC.hexEncode`. Returns an array of inclusive `[lower, upper]` pairs;
+   * stored values produced by `z2Hex` compare lexicographically within them.
    *
    * @param maxRanges rough upper bound on the number of ranges returned; the SFC
    *                  coarsens (merges) past it, so the cover remains a superset of
    *                  the envelope — pruning gets less selective, never lossy
    */
-  def z2RangesAsLongs(xMin: Double, yMin: Double, xMax: Double, yMax: Double, maxRanges: Int): Array[Array[Long]] =
+  def z2HexRanges(xMin: Double, yMin: Double, xMax: Double, yMax: Double, maxRanges: Int): Array[Array[String]] =
     Z2SFC.ranges((clampLon(xMin), clampLon(xMax)), (clampLat(yMin), clampLat(yMax)), 64, Some(maxRanges)).iterator
-      .map(r => Array(r.lower, r.upper))
+      .map(r => Array(Z2SFC.hexEncode(r.lower), Z2SFC.hexEncode(r.upper)))
       .toArray
 
   /**
@@ -57,15 +67,27 @@ object SfcBridge {
     XZ2SFC(g).index(clampLon(xMin), clampLat(yMin), clampLon(xMax), clampLat(yMax), lenient = false)
 
   /**
-   * XZ2 index ranges covering the query envelope at the given `g` resolution.
-   * Returns an array of `[lower, upper]` pairs in XZ2SFC sequence-code Long space.
+   * XZ2 cell value for a geometry's envelope at the given `g` resolution,
+   * hex-encoded via `XZ2SFC.hexEncode` (bit-shifted left so the significant
+   * bits are left-aligned and truncate-prefix matching works).
+   */
+  def xz2Hex(xMin: Double, yMin: Double, xMax: Double, yMax: Double, g: Short): String =
+    XZ2SFC(g).hexEncode(xz2Index(xMin, yMin, xMax, yMax, g))
+
+  /**
+   * XZ2 index ranges covering the query envelope at the given `g` resolution,
+   * hex-encoded via `XZ2SFC.hexEncode`. Returns an array of inclusive
+   * `[lower, upper]` pairs; stored values produced by `xz2Hex` compare
+   * lexicographically within them.
    *
    * @param maxRanges rough upper bound on the number of ranges returned; the SFC
    *                  coarsens (merges) past it, so the cover remains a superset of
    *                  the envelope — pruning gets less selective, never lossy
    */
-  def xz2RangesAsLongs(xMin: Double, yMin: Double, xMax: Double, yMax: Double, g: Short, maxRanges: Int): Array[Array[Long]] =
-    XZ2SFC(g).ranges((clampLon(xMin), clampLat(yMin), clampLon(xMax), clampLat(yMax)), Some(maxRanges)).iterator
-      .map(r => Array(r.lower, r.upper))
+  def xz2HexRanges(xMin: Double, yMin: Double, xMax: Double, yMax: Double, g: Short, maxRanges: Int): Array[Array[String]] = {
+    val sfc = XZ2SFC(g)
+    sfc.ranges((clampLon(xMin), clampLat(yMin), clampLon(xMax), clampLat(yMax)), Some(maxRanges)).iterator
+      .map(r => Array(sfc.hexEncode(r.lower), sfc.hexEncode(r.upper)))
       .toArray
+  }
 }

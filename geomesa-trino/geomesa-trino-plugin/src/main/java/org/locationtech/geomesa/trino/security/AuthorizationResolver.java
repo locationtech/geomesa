@@ -14,7 +14,7 @@ import java.util.Set;
 
 /**
  * Maps a Trino session identity to the set of authorization tokens it holds
- * (e.g. {@code U}, {@code FOUO}), used to build the row-level
+ * (e.g. {@code basic}, {@code privileged}), used to build the row-level
  * visibility filter. The pluggable seam: the built-in implementation is
  * {@link FileAuthorizationResolver}; an external lookup (LDAP/REST/IdP claims)
  * can be supplied via the {@code geomesa.security.auth-resolver} catalog

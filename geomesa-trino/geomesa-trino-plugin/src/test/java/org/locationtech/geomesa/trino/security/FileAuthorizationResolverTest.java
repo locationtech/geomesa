@@ -27,34 +27,34 @@ class FileAuthorizationResolverTest {
     @Test
     void userMappingResolves(@TempDir Path dir) throws Exception {
         Path f = dir.resolve("m.properties");
-        Files.write(f, java.util.List.of("user.alice=U,FOUO"));
+        Files.write(f, java.util.List.of("user.alice=basic,privileged"));
         var resolver = new FileAuthorizationResolver(f);
         assertThat(resolver.authorizationsFor(identity("alice", Set.of())))
-            .containsExactlyInAnyOrder("U", "FOUO");
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
     void groupMappingResolves(@TempDir Path dir) throws Exception {
         Path f = dir.resolve("m.properties");
-        Files.write(f, java.util.List.of("group.fouo=U,FOUO"));
+        Files.write(f, java.util.List.of("group.admins=basic,privileged"));
         var resolver = new FileAuthorizationResolver(f);
-        assertThat(resolver.authorizationsFor(identity("bob", Set.of("fouo"))))
-            .containsExactlyInAnyOrder("U", "FOUO");
+        assertThat(resolver.authorizationsFor(identity("bob", Set.of("admins"))))
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
     void userAndGroupAuthsAreUnioned(@TempDir Path dir) throws Exception {
         Path f = dir.resolve("m.properties");
-        Files.write(f, java.util.List.of("user.carol=U", "group.fouo-team=FOUO"));
+        Files.write(f, java.util.List.of("user.carol=basic", "group.admins-team=privileged"));
         var resolver = new FileAuthorizationResolver(f);
-        assertThat(resolver.authorizationsFor(identity("carol", Set.of("fouo-team"))))
-            .containsExactlyInAnyOrder("U", "FOUO");
+        assertThat(resolver.authorizationsFor(identity("carol", Set.of("admins-team"))))
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
     void unknownIdentityYieldsEmptyAuths(@TempDir Path dir) throws Exception {
         Path f = dir.resolve("m.properties");
-        Files.write(f, java.util.List.of("user.alice=U,FOUO"));
+        Files.write(f, java.util.List.of("user.alice=basic,privileged"));
         var resolver = new FileAuthorizationResolver(f);
         assertThat(resolver.authorizationsFor(identity("nobody", Set.of("no-group")))).isEmpty();
     }
@@ -62,10 +62,10 @@ class FileAuthorizationResolverTest {
     @Test
     void whitespaceAndBlankTokensAreTrimmedAndDropped(@TempDir Path dir) throws Exception {
         Path f = dir.resolve("m.properties");
-        Files.write(f, java.util.List.of("user.alice= U , FOUO ,,"));
+        Files.write(f, java.util.List.of("user.alice= basic , privileged ,,"));
         var resolver = new FileAuthorizationResolver(f);
         assertThat(resolver.authorizationsFor(identity("alice", Set.of())))
-            .containsExactlyInAnyOrder("U", "FOUO");
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
@@ -74,10 +74,10 @@ class FileAuthorizationResolverTest {
         // can't round-trip through the row-filter chain — dropped with a warning
         // (narrowing = fail-closed) rather than honored.
         Path f = dir.resolve("m.properties");
-        Files.write(f, java.util.List.of("user.alice=U,FOO|BAR,FOUO"));
+        Files.write(f, java.util.List.of("user.alice=basic,FOO|BAR,privileged"));
         var resolver = new FileAuthorizationResolver(f);
         assertThat(resolver.authorizationsFor(identity("alice", Set.of())))
-            .containsExactlyInAnyOrder("U", "FOUO");
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test

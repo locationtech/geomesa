@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
  * identities to authorization tokens:
  *
  * <pre>
- *   user.alice=U,FOUO
- *   group.fouo=U,FOUO
+ *   user.alice=basic,privileged
+ *   group.admins=basic,privileged
  * </pre>
  *
  * A request's authorizations are the union of its {@code user.<name>} entry and

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.trino.spatial;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Multi-geometry-column IT. Requires a running Trino at localhost:8080 with the
  * plugin loaded and the demo table spatial.observations_2geom ingested, with
  * center (Z2-partitioned) and ellipse (XZ2-partitioned) geometry columns.
+ * Skips (JUnit assumption) when Trino is unreachable or the table is absent.
  *
  * Skipped by default; run with -DskipITs=false (matching Z2PruningIT).
  */
@@ -32,8 +34,16 @@ class MultiGeomIT {
     private static Connection conn;
 
     @BeforeAll
-    static void connect() throws SQLException {
-        conn = DriverManager.getConnection(JDBC_URL);
+    static void connect() {
+        try {
+            conn = DriverManager.getConnection(JDBC_URL);
+            conn.createStatement().executeQuery("SELECT 1").close();
+        } catch (SQLException e) {
+            Assumptions.assumeTrue(false,
+                "Trino not reachable at localhost:8080 — skipping (" + e.getMessage() + ")");
+        }
+        Assumptions.assumeTrue(TestFixtures.ensureTable("observations_2geom"),
+            "spatial.observations_2geom not ingested and not provisionable — skipping (see class javadoc)");
     }
 
     @Test

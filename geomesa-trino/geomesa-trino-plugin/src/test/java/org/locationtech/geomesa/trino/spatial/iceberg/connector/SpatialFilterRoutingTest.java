@@ -126,7 +126,7 @@ class SpatialFilterRoutingTest {
             assertThat(matches).as("%s should produce a pushdown match", fn).hasSize(1);
             assertThat(matches.get(0).functionName()).isEqualTo(fn);
             assertThat(matches.get(0).geomName()).isEqualTo("geom");
-            assertThat(matches.get(0).envelope().getMaxX()).isEqualTo(1.0);
+            assertThat(matches.get(0).envelopes().get(0).getMaxX()).isEqualTo(1.0);
         }
     }
 
@@ -147,19 +147,19 @@ class SpatialFilterRoutingTest {
         // Verify each match has the correct non-null envelope with expected bounds.
         SpatialConnectorMetadata.SpatialMatch centerMatch = matches.stream()
             .filter(s -> "center".equals(s.geomName())).findFirst().orElseThrow();
-        assertThat(centerMatch.envelope()).isNotNull();
-        assertThat(centerMatch.envelope().getMinX()).isEqualTo(0.0);
-        assertThat(centerMatch.envelope().getMaxX()).isEqualTo(1.0);
-        assertThat(centerMatch.envelope().getMinY()).isEqualTo(0.0);
-        assertThat(centerMatch.envelope().getMaxY()).isEqualTo(1.0);
+        assertThat(centerMatch.envelopes().get(0)).isNotNull();
+        assertThat(centerMatch.envelopes().get(0).getMinX()).isEqualTo(0.0);
+        assertThat(centerMatch.envelopes().get(0).getMaxX()).isEqualTo(1.0);
+        assertThat(centerMatch.envelopes().get(0).getMinY()).isEqualTo(0.0);
+        assertThat(centerMatch.envelopes().get(0).getMaxY()).isEqualTo(1.0);
 
         SpatialConnectorMetadata.SpatialMatch ellipseMatch = matches.stream()
             .filter(s -> "ellipse".equals(s.geomName())).findFirst().orElseThrow();
-        assertThat(ellipseMatch.envelope()).isNotNull();
-        assertThat(ellipseMatch.envelope().getMinX()).isEqualTo(10.0);
-        assertThat(ellipseMatch.envelope().getMaxX()).isEqualTo(11.0);
-        assertThat(ellipseMatch.envelope().getMinY()).isEqualTo(10.0);
-        assertThat(ellipseMatch.envelope().getMaxY()).isEqualTo(11.0);
+        assertThat(ellipseMatch.envelopes().get(0)).isNotNull();
+        assertThat(ellipseMatch.envelopes().get(0).getMinX()).isEqualTo(10.0);
+        assertThat(ellipseMatch.envelopes().get(0).getMaxX()).isEqualTo(11.0);
+        assertThat(ellipseMatch.envelopes().get(0).getMinY()).isEqualTo(10.0);
+        assertThat(ellipseMatch.envelopes().get(0).getMaxY()).isEqualTo(11.0);
     }
 
     @Test

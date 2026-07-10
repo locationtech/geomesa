@@ -28,15 +28,15 @@ class ExtraCredentialAuthorizationResolverTest {
     @Test
     void readsTokensFromDefaultCredential() {
         var r = resolver(Map.of());
-        assertThat(r.authorizationsFor(identity(Map.of("auths", "U,FOUO"))))
-            .containsExactlyInAnyOrder("U", "FOUO");
+        assertThat(r.authorizationsFor(identity(Map.of("auths", "basic,privileged"))))
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
     void honorsConfiguredCredentialName() {
         var r = resolver(Map.of(ExtraCredentialAuthorizationResolver.CREDENTIAL_KEY, "x-auths"));
-        assertThat(r.authorizationsFor(identity(Map.of("x-auths", "U,FOUO"))))
-            .containsExactlyInAnyOrder("U", "FOUO");
+        assertThat(r.authorizationsFor(identity(Map.of("x-auths", "basic,privileged"))))
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
@@ -44,48 +44,48 @@ class ExtraCredentialAuthorizationResolverTest {
         // The JDBC datastore joins tokens with pipes (spaces are rejected by the
         // Trino JDBC extraCredentials value validation).
         var r = resolver(Map.of());
-        assertThat(r.authorizationsFor(identity(Map.of("auths", "U|FOUO"))))
-            .containsExactlyInAnyOrder("U", "FOUO");
+        assertThat(r.authorizationsFor(identity(Map.of("auths", "basic|privileged"))))
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
     void readsSpaceOrCommaDelimitedTokens() {
         // Robust to a mesh-injected header carrying a space or comma list too.
         var r = resolver(Map.of());
-        assertThat(r.authorizationsFor(identity(Map.of("auths", "U, FOUO"))))
-            .containsExactlyInAnyOrder("U", "FOUO");
+        assertThat(r.authorizationsFor(identity(Map.of("auths", "basic, privileged"))))
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
     void whitespaceAndBlankTokensAreTrimmedAndDropped() {
         var r = resolver(Map.of());
-        assertThat(r.authorizationsFor(identity(Map.of("auths", " U , FOUO ,,"))))
-            .containsExactlyInAnyOrder("U", "FOUO");
+        assertThat(r.authorizationsFor(identity(Map.of("auths", " basic , privileged ,,"))))
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
     void missingCredentialFailsClosedEmpty() {
         var r = resolver(Map.of());
-        assertThat(r.authorizationsFor(identity(Map.of("other", "U,FOUO")))).isEmpty();
+        assertThat(r.authorizationsFor(identity(Map.of("other", "basic,privileged")))).isEmpty();
     }
 
     @Test
     void secretGateHonorsAuthsWhenSecretMatches() {
         var r = resolver(Map.of(ExtraCredentialAuthorizationResolver.SECRET_KEY, "s3cr3t"));
-        assertThat(r.authorizationsFor(identity(Map.of("secret", "s3cr3t", "auths", "U FOUO"))))
-            .containsExactlyInAnyOrder("U", "FOUO");
+        assertThat(r.authorizationsFor(identity(Map.of("secret", "s3cr3t", "auths", "basic privileged"))))
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
     void secretGateFailsClosedWhenSecretWrong() {
         var r = resolver(Map.of(ExtraCredentialAuthorizationResolver.SECRET_KEY, "s3cr3t"));
-        assertThat(r.authorizationsFor(identity(Map.of("secret", "nope", "auths", "U FOUO")))).isEmpty();
+        assertThat(r.authorizationsFor(identity(Map.of("secret", "nope", "auths", "basic privileged")))).isEmpty();
     }
 
     @Test
     void secretGateFailsClosedWhenSecretMissing() {
         var r = resolver(Map.of(ExtraCredentialAuthorizationResolver.SECRET_KEY, "s3cr3t"));
-        assertThat(r.authorizationsFor(identity(Map.of("auths", "U FOUO")))).isEmpty();
+        assertThat(r.authorizationsFor(identity(Map.of("auths", "basic privileged")))).isEmpty();
     }
 
     @Test
@@ -100,7 +100,7 @@ class ExtraCredentialAuthorizationResolverTest {
         // wire pairs — no legitimate producer can grant such a token (AuthTokens rejects
         // them at the source), so the resolver drops rather than honors it.
         var r = resolver(Map.of());
-        assertThat(r.authorizationsFor(identity(Map.of("auths", "U|FOO:BAR|FOUO"))))
-            .containsExactlyInAnyOrder("U", "FOUO");
+        assertThat(r.authorizationsFor(identity(Map.of("auths", "basic|FOO:BAR|privileged"))))
+            .containsExactlyInAnyOrder("basic", "privileged");
     }
 }

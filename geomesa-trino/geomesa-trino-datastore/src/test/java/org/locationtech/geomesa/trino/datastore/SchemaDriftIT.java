@@ -66,16 +66,24 @@ class SchemaDriftIT {
             Assumptions.assumeTrue(false, "Trino not reachable at localhost:8080 — skipping integration tests");
         }
 
-        ddl("DROP TABLE IF EXISTS " + TABLE,
+        // The marked row's visibility and the store's auths are configurable so the
+        // test runs against any deployment's token scheme (same properties as
+        // VisibilityIT). The Trino-layer access control also filters this catalog
+        // using the deployment's auth mapping for the connecting service user, so
+        // the partial token must be one that mapping covers.
+        String partial = System.getProperty("geomesa.it.auths.partial", "basic");
+        String full    = System.getProperty("geomesa.it.auths.full", "basic,privileged");
+        ddl("CREATE SCHEMA IF NOT EXISTS spatial",
+            "DROP TABLE IF EXISTS " + TABLE,
             "CREATE TABLE " + TABLE + " (\"__fid__\" varchar, name varchar, \"__vis__\" varchar)",
-            "INSERT INTO " + TABLE + " VALUES ('1', 'a', 'U'), ('2', 'b', NULL)");
+            "INSERT INTO " + TABLE + " VALUES ('1', 'a', '" + partial + "'), ('2', 'b', NULL)");
 
         Map<String, Object> params = new HashMap<>();
         params.put("trino.host",    "localhost");
         params.put("trino.port",    8080);
         params.put("trino.catalog", "spatial_iceberg");
         params.put("trino.schema",  "spatial");
-        params.put("geomesa.security.auths", "U,FOUO");
+        params.put("geomesa.security.auths", full);
         ds = DataStoreFinder.getDataStore(params);
         assertThat(ds).isNotNull();
     }
