@@ -61,8 +61,8 @@ jobs:
             list: geomesa-trino/geomesa-trino-plugin,geomesa-trino/geomesa-trino-datastore
             scaladoc: "false"
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
         with:
           distribution: temurin
           java-version: |
@@ -70,7 +70,7 @@ jobs:
             ${{ env.JAVA_VERSION }}
       - name: Generate cache key
         run: echo "MOD_SELECTOR=$(echo '${{ matrix.projects.list }}' | sed 's/[^a-zA-Z0-9_.-]/-/g' | head -c 256)" >> "$GITHUB_ENV"
-      - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           key: ${{ hashFiles('**/pom.xml') }}-javadocs-${{ matrix.scala-version }}-${{ env.MOD_SELECTOR }}
           path: ~/.m2/repository/
