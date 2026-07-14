@@ -29,6 +29,7 @@ import io.trino.spi.statistics.TableStatistics;
 import io.trino.spi.type.RealType;
 import io.trino.spi.type.RowType;
 import io.trino.spi.type.VarcharType;
+import org.locationtech.geomesa.curve.interop.SpaceFillingCurves.HexRange;
 import org.locationtech.geomesa.trino.spatial.iceberg.transforms.SpatialIndexRanges;
 import org.locationtech.geomesa.trino.spatial.iceberg.BboxHandles;
 import org.locationtech.geomesa.trino.spatial.iceberg.GeoMesaColumnCatalog;
@@ -243,16 +244,16 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private static List<Range> buildPartitionRanges(SpatialPartitionHandle sp, List<Envelope> envelopes) {
         List<Range> ranges = new ArrayList<>();
         for (Envelope env : envelopes) {
-            List<String[]> hexRanges = switch (sp.kind()) {
+            List<HexRange> hexRanges = switch (sp.kind()) {
                 case Z2  -> SpatialIndexRanges.z2Ranges(env);
                 case XZ2 -> SpatialIndexRanges.xz2Ranges(env);
             };
-            for (String[] r : hexRanges) {
-                if (r[0].equals(r[1])) {
-                    ranges.add(Range.equal(VarcharType.VARCHAR, Slices.utf8Slice(r[0])));
+            for (HexRange r : hexRanges) {
+                if (r.lower().equals(r.upper())) {
+                    ranges.add(Range.equal(VarcharType.VARCHAR, Slices.utf8Slice(r.lower())));
                 } else {
                     ranges.add(Range.range(VarcharType.VARCHAR,
-                        Slices.utf8Slice(r[0]), true, Slices.utf8Slice(r[1]), true));
+                        Slices.utf8Slice(r.lower()), true, Slices.utf8Slice(r.upper()), true));
                 }
             }
         }

@@ -16,6 +16,8 @@ import org.apache.iceberg.transforms.Transforms;
 import org.apache.iceberg.transforms.UnknownTransform;
 import org.apache.iceberg.types.Types;
 import org.junit.jupiter.api.Test;
+import org.locationtech.geomesa.curve.interop.SpaceFillingCurves;
+import org.locationtech.geomesa.curve.interop.SpaceFillingCurves.HexRange;
 import org.locationtech.jts.geom.Envelope;
 
 import java.nio.ByteBuffer;
@@ -24,7 +26,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Behavioral tests for {@link SpatialIndexRanges} and the {@link SfcBridge}
+ * Behavioral tests for {@link SpatialIndexRanges} and the {@link SpaceFillingCurves}
  * hex encodings. Stored values and range endpoints delegate to upstream
  * GeoMesa {@code Z2SFC.hexEncode}/{@code XZ2SFC.hexEncode}, which left-align
  * the significant bits so lexicographic (and truncate-prefix) comparison
@@ -37,9 +39,9 @@ class SpatialIndexRangesTest {
 
     private static final long Z2_MAX_62 = (1L << 62) - 1L;
 
-    private static boolean covered(List<String[]> ranges, String stored) {
+    private static boolean covered(List<HexRange> ranges, String stored) {
         return ranges.stream().anyMatch(r ->
-            stored.compareTo(r[0]) >= 0 && stored.compareTo(r[1]) <= 0);
+            stored.compareTo(r.lower()) >= 0 && stored.compareTo(r.upper()) <= 0);
     }
 
     // ── Z2 ────────────────────────────────────────────────────────────────
@@ -50,39 +52,39 @@ class SpatialIndexRangesTest {
         double[] lats = { -89.999,  38.9, 0.0,  35.7,  89.999};
         for (double lon : lons) {
             for (double lat : lats) {
-                assertThat(SfcBridge.z2Index(lon, lat)).isBetween(0L, Z2_MAX_62);
+                assertThat(SpaceFillingCurves.z2Index(lon, lat)).isBetween(0L, Z2_MAX_62);
             }
         }
     }
 
     @Test
     void z2IndexClampsCoordinatesSlightlyOutsideWgs84Bounds() {
-        assertThat(SfcBridge.z2Index(180.0000001, 39.0)).isEqualTo(SfcBridge.z2Index(180.0, 39.0));
-        assertThat(SfcBridge.z2Index(-180.0000001, 39.0)).isEqualTo(SfcBridge.z2Index(-180.0, 39.0));
-        assertThat(SfcBridge.z2Index(116.0, 90.0000001)).isEqualTo(SfcBridge.z2Index(116.0, 90.0));
-        assertThat(SfcBridge.z2Index(116.0, -90.0000001)).isEqualTo(SfcBridge.z2Index(116.0, -90.0));
+        assertThat(SpaceFillingCurves.z2Index(180.0000001, 39.0)).isEqualTo(SpaceFillingCurves.z2Index(180.0, 39.0));
+        assertThat(SpaceFillingCurves.z2Index(-180.0000001, 39.0)).isEqualTo(SpaceFillingCurves.z2Index(-180.0, 39.0));
+        assertThat(SpaceFillingCurves.z2Index(116.0, 90.0000001)).isEqualTo(SpaceFillingCurves.z2Index(116.0, 90.0));
+        assertThat(SpaceFillingCurves.z2Index(116.0, -90.0000001)).isEqualTo(SpaceFillingCurves.z2Index(116.0, -90.0));
     }
 
     @Test
     void z2HexIs16CharLowercaseAndOrderPreserving() {
         // Encoded corners: SW (index 0) and NE (62-bit max, shifted left by 2).
-        assertThat(SfcBridge.z2Hex(-180.0, -90.0)).isEqualTo("0000000000000000");
-        assertThat(SfcBridge.z2Hex(180.0, 90.0)).isEqualTo("fffffffffffffffc");
-        String h = SfcBridge.z2Hex(-77.0, 38.9);
+        assertThat(SpaceFillingCurves.z2Hex(-180.0, -90.0)).isEqualTo("0000000000000000");
+        assertThat(SpaceFillingCurves.z2Hex(180.0, 90.0)).isEqualTo("fffffffffffffffc");
+        String h = SpaceFillingCurves.z2Hex(-77.0, 38.9);
         assertThat(h).hasSize(16).doesNotMatch(".*[A-F].*").doesNotStartWith("-");
     }
 
     @Test
     void z2RangesCoverEveryStoredPointInEnvelope() {
         Envelope env = new Envelope(-90.0, 90.0, -45.0, 45.0);
-        List<String[]> ranges = SpatialIndexRanges.z2Ranges(env);
+        List<HexRange> ranges = SpatialIndexRanges.z2Ranges(env);
         double lonStep = (env.getMaxX() - env.getMinX()) / 8.0;
         double latStep = (env.getMaxY() - env.getMinY()) / 8.0;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 double lon = env.getMinX() + i * lonStep + lonStep / 2.0;
                 double lat = env.getMinY() + j * latStep + latStep / 2.0;
-                String stored = SfcBridge.z2Hex(lon, lat);
+                String stored = SpaceFillingCurves.z2Hex(lon, lat);
                 assertThat(covered(ranges, stored))
                     .as("Point (%s, %s) hex %s not covered by any of %d ranges",
                         lon, lat, stored, ranges.size())
@@ -94,10 +96,10 @@ class SpatialIndexRangesTest {
     @Test
     void z2RangesCoverEnvelopeCorners() {
         Envelope env = new Envelope(-80.0, -70.0, 37.0, 47.0);
-        List<String[]> ranges = SpatialIndexRanges.z2Ranges(env);
+        List<HexRange> ranges = SpatialIndexRanges.z2Ranges(env);
         for (double lon : new double[]{env.getMinX(), env.getMaxX()}) {
             for (double lat : new double[]{env.getMinY(), env.getMaxY()}) {
-                assertThat(covered(ranges, SfcBridge.z2Hex(lon, lat)))
+                assertThat(covered(ranges, SpaceFillingCurves.z2Hex(lon, lat)))
                     .as("Corner (%s, %s)", lon, lat).isTrue();
             }
         }
@@ -106,27 +108,27 @@ class SpatialIndexRangesTest {
     @Test
     void z2RangesCoverPointEnvelope() {
         Envelope env = new Envelope(-77.0, -77.0, 38.9, 38.9);
-        List<String[]> ranges = SpatialIndexRanges.z2Ranges(env);
+        List<HexRange> ranges = SpatialIndexRanges.z2Ranges(env);
         assertThat(ranges).isNotEmpty();
-        assertThat(covered(ranges, SfcBridge.z2Hex(-77.0, 38.9))).isTrue();
+        assertThat(covered(ranges, SpaceFillingCurves.z2Hex(-77.0, 38.9))).isTrue();
     }
 
     @Test
     void z2RangesClampQueryEnvelopeOutsideWgs84Bounds() {
         // e.g. a DWITHIN buffer near a pole exceeds the WGS84 bounds
-        List<String[]> clamped = SpatialIndexRanges.z2Ranges(new Envelope(-180.0, -179.0, 88.0, 90.0));
-        List<String[]> outside = SpatialIndexRanges.z2Ranges(new Envelope(-180.5, -179.0, 88.0, 90.5));
+        List<HexRange> clamped = SpatialIndexRanges.z2Ranges(new Envelope(-180.0, -179.0, 88.0, 90.0));
+        List<HexRange> outside = SpatialIndexRanges.z2Ranges(new Envelope(-180.5, -179.0, 88.0, 90.5));
         assertThat(outside).usingRecursiveComparison().isEqualTo(clamped);
     }
 
     @Test
     void z2NearWorldEnvelopeRangeCountIsCappedButStillCoversPoints() {
         Envelope env = new Envelope(-179.9, 179.9, -89.9, 89.9);
-        List<String[]> ranges = SpatialIndexRanges.z2Ranges(env);
+        List<HexRange> ranges = SpatialIndexRanges.z2Ranges(env);
         assertThat(ranges).isNotEmpty();
         assertThat(ranges.size()).isLessThanOrEqualTo(SpatialIndexRanges.MAX_RANGES * 2);
         for (double[] pt : new double[][] {{0.5, 0.5}, {-122.4, 37.8}, {151.2, -33.9}}) {
-            assertThat(covered(ranges, SfcBridge.z2Hex(pt[0], pt[1])))
+            assertThat(covered(ranges, SpaceFillingCurves.z2Hex(pt[0], pt[1])))
                 .as("point (%s, %s) still covered by capped ranges", pt[0], pt[1])
                 .isTrue();
         }
@@ -135,13 +137,12 @@ class SpatialIndexRangesTest {
     @Test
     void z2RangeEndpointsAre16CharLowercaseAndOrdered() {
         Envelope env = new Envelope(-80.0, -70.0, 35.0, 45.0);
-        List<String[]> ranges = SpatialIndexRanges.z2Ranges(env);
+        List<HexRange> ranges = SpatialIndexRanges.z2Ranges(env);
         assertThat(ranges).isNotEmpty();
-        for (String[] r : ranges) {
-            assertThat(r).hasSize(2);
-            assertThat(r[0]).hasSize(16).doesNotMatch(".*[A-F].*").doesNotStartWith("-");
-            assertThat(r[1]).hasSize(16).doesNotMatch(".*[A-F].*").doesNotStartWith("-");
-            assertThat(r[0].compareTo(r[1])).isLessThanOrEqualTo(0);
+        for (HexRange r : ranges) {
+            assertThat(r.lower()).hasSize(16).doesNotMatch(".*[A-F].*").doesNotStartWith("-");
+            assertThat(r.upper()).hasSize(16).doesNotMatch(".*[A-F].*").doesNotStartWith("-");
+            assertThat(r.lower().compareTo(r.upper())).isLessThanOrEqualTo(0);
         }
     }
 
@@ -149,8 +150,8 @@ class SpatialIndexRangesTest {
 
     @Test
     void xz2IndexClampsEnvelopeSlightlyOutsideWgs84Bounds() {
-        assertThat(SfcBridge.xz2Index(-180.0000001, 39.0, -179.0, 90.0000001, SpatialIndexRanges.G))
-            .isEqualTo(SfcBridge.xz2Index(-180.0, 39.0, -179.0, 90.0, SpatialIndexRanges.G));
+        assertThat(SpaceFillingCurves.xz2Index(-180.0000001, 39.0, -179.0, 90.0000001, SpatialIndexRanges.G))
+            .isEqualTo(SpaceFillingCurves.xz2Index(-180.0, 39.0, -179.0, 90.0, SpatialIndexRanges.G));
     }
 
     @Test
@@ -158,9 +159,9 @@ class SpatialIndexRangesTest {
         // XZ2SFC(g=12) sequence codes are ≤ 25 significant bits; hexEncode
         // left-shifts by 3 and emits 7 hex chars, so the FIRST char already
         // discriminates spatially — truncate(width≥1) partition pruning works.
-        String world = SfcBridge.xz2Hex(-179.0, -89.0, 179.0, 89.0, SpatialIndexRanges.G);
-        String dc    = SfcBridge.xz2Hex(-77.5, 38.5, -76.5, 39.5, SpatialIndexRanges.G);
-        String tokyo = SfcBridge.xz2Hex(139.0, 35.0, 140.0, 36.0, SpatialIndexRanges.G);
+        String world = SpaceFillingCurves.xz2Hex(-179.0, -89.0, 179.0, 89.0, SpatialIndexRanges.G);
+        String dc    = SpaceFillingCurves.xz2Hex(-77.5, 38.5, -76.5, 39.5, SpatialIndexRanges.G);
+        String tokyo = SpaceFillingCurves.xz2Hex(139.0, 35.0, 140.0, 36.0, SpatialIndexRanges.G);
         for (String h : List.of(world, dc, tokyo)) {
             assertThat(h).hasSize(7).doesNotMatch(".*[A-F].*");
         }
@@ -169,10 +170,10 @@ class SpatialIndexRangesTest {
 
     @Test
     void xz2HexMatchesUpstreamEncodingOfIndex() {
-        long seq = SfcBridge.xz2Index(-77.5, 38.5, -76.5, 39.5, SpatialIndexRanges.G);
+        long seq = SpaceFillingCurves.xz2Index(-77.5, 38.5, -76.5, 39.5, SpatialIndexRanges.G);
         // Upstream XZ2SFC(12).hexEncode(z) == toHexDigits(z << 3, 7).
         String expected = java.util.HexFormat.of().toHexDigits(seq << 3, 7);
-        assertThat(SfcBridge.xz2Hex(-77.5, 38.5, -76.5, 39.5, SpatialIndexRanges.G))
+        assertThat(SpaceFillingCurves.xz2Hex(-77.5, 38.5, -76.5, 39.5, SpatialIndexRanges.G))
             .isEqualTo(expected);
     }
 
@@ -180,9 +181,9 @@ class SpatialIndexRangesTest {
     void xz2RangesCoverStoredValueForPolygonInEnvelope() {
         // For a polygon whose envelope is fully inside the query envelope, its
         // stored hex-encoded XZ2 must fall within at least one returned range.
-        String stored = SfcBridge.xz2Hex(-75.0, 38.0, -74.0, 39.0, SpatialIndexRanges.G);
+        String stored = SpaceFillingCurves.xz2Hex(-75.0, 38.0, -74.0, 39.0, SpatialIndexRanges.G);
         Envelope queryEnv = new Envelope(-80.0, -70.0, 35.0, 45.0);
-        List<String[]> ranges = SpatialIndexRanges.xz2Ranges(queryEnv);
+        List<HexRange> ranges = SpatialIndexRanges.xz2Ranges(queryEnv);
         assertThat(covered(ranges, stored))
             .as("hex-encoded XZ2 %s not covered by any of %d ranges", stored, ranges.size())
             .isTrue();
@@ -193,11 +194,11 @@ class SpatialIndexRangesTest {
         // The regression case: a polygon that straddles the query boundary
         // and whose centroid is OUTSIDE the envelope, but whose stored cell
         // must still match because the polygon overlaps the query.
-        String stored = SfcBridge.xz2Hex(9.0, 5.0, 11.0, 6.0, SpatialIndexRanges.G);
+        String stored = SpaceFillingCurves.xz2Hex(9.0, 5.0, 11.0, 6.0, SpatialIndexRanges.G);
         // Use a wider query envelope that fully contains the polygon for the
         // coverage assertion (boundary-straddle pruning is the Domain layer's
         // job at row time, not the range encoder's).
-        List<String[]> ranges = SpatialIndexRanges.xz2Ranges(new Envelope(8.0, 13.0, 4.0, 7.0));
+        List<HexRange> ranges = SpatialIndexRanges.xz2Ranges(new Envelope(8.0, 13.0, 4.0, 7.0));
         assertThat(covered(ranges, stored)).isTrue();
         // Sanity: the straddling envelope at least produces some ranges.
         assertThat(SpatialIndexRanges.xz2Ranges(new Envelope(10.5, 12.0, 4.0, 7.0))).isNotEmpty();
@@ -206,10 +207,10 @@ class SpatialIndexRangesTest {
     @Test
     void xz2NearWorldEnvelopeRangeCountIsCappedButStillCoversGeometries() {
         Envelope env = new Envelope(-179.9, 179.9, -89.9, 89.9);
-        List<String[]> ranges = SpatialIndexRanges.xz2Ranges(env);
+        List<HexRange> ranges = SpatialIndexRanges.xz2Ranges(env);
         assertThat(ranges).isNotEmpty();
         assertThat(ranges.size()).isLessThanOrEqualTo(SpatialIndexRanges.MAX_RANGES * 2);
-        String stored = SfcBridge.xz2Hex(-75.0, 38.0, -74.0, 39.0, SpatialIndexRanges.G);
+        String stored = SpaceFillingCurves.xz2Hex(-75.0, 38.0, -74.0, 39.0, SpatialIndexRanges.G);
         assertThat(covered(ranges, stored))
             .as("stored XZ2 value still covered by capped ranges")
             .isTrue();
@@ -218,13 +219,12 @@ class SpatialIndexRangesTest {
     @Test
     void xz2RangeEndpointsAre7CharLowercaseAndOrdered() {
         Envelope env = new Envelope(-80.0, -70.0, 35.0, 45.0);
-        List<String[]> ranges = SpatialIndexRanges.xz2Ranges(env);
+        List<HexRange> ranges = SpatialIndexRanges.xz2Ranges(env);
         assertThat(ranges).isNotEmpty();
-        for (String[] r : ranges) {
-            assertThat(r).hasSize(2);
-            assertThat(r[0]).hasSize(7).doesNotMatch(".*[A-F].*");
-            assertThat(r[1]).hasSize(7).doesNotMatch(".*[A-F].*");
-            assertThat(r[0].compareTo(r[1])).isLessThanOrEqualTo(0);
+        for (HexRange r : ranges) {
+            assertThat(r.lower()).hasSize(7).doesNotMatch(".*[A-F].*");
+            assertThat(r.upper()).hasSize(7).doesNotMatch(".*[A-F].*");
+            assertThat(r.lower().compareTo(r.upper())).isLessThanOrEqualTo(0);
         }
     }
 

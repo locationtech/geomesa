@@ -11,6 +11,7 @@ package org.locationtech.geomesa.trino.spatial.iceberg.transforms;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.geomesa.curve.interop.SpaceFillingCurves;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -43,9 +44,9 @@ import java.util.Random;
  * <p>Both corpora are emitted from the SAME geometry sequence; the Z2 corpus
  * keeps only the Point entries (Z2 rejects extended geometries) while the XZ2
  * corpus keeps everything. Values are sourced directly from the upstream
- * GeoMesa SFCs via {@link SfcBridge} so the corpus is the ground truth.
+ * GeoMesa SFCs via {@link SpaceFillingCurves} so the corpus is the ground truth.
  * Each entry includes the raw SFC Long, the left-aligned hex encoding
- * ({@code Z2SFC.hexEncode}/{@code XZ2SFC.hexEncode} via {@link SfcBridge}),
+ * ({@code Z2SFC.hexEncode}/{@code XZ2SFC.hexEncode} via {@link SpaceFillingCurves}),
  * and the WKB hex.
  */
 class Z2ParityCorpusGenerator {
@@ -136,8 +137,8 @@ class Z2ParityCorpusGenerator {
                 if (!(g instanceof org.locationtech.jts.geom.Point pt)) continue;
                 byte[] wkb = wkbW.write(g);
                 String wkbHex = HexFormat.of().formatHex(wkb);
-                long z2 = SfcBridge.z2Index(pt.getX(), pt.getY());
-                String z2Hex = SfcBridge.z2Hex(pt.getX(), pt.getY());
+                long z2 = SpaceFillingCurves.z2Index(pt.getX(), pt.getY());
+                String z2Hex = SpaceFillingCurves.z2Hex(pt.getX(), pt.getY());
                 if (!first) pw.println(",");
                 pw.printf("  {\"wkt\": \"%s\", \"wkb_hex\": \"%s\", \"z2\": %d, \"z2_hex\": \"%s\"}",
                     g.toText(), wkbHex, z2, z2Hex);
@@ -157,9 +158,9 @@ class Z2ParityCorpusGenerator {
                 byte[] wkb = wkbW.write(g);
                 String wkbHex = HexFormat.of().formatHex(wkb);
                 Envelope env = g.getEnvelopeInternal();
-                long xz2 = SfcBridge.xz2Index(
+                long xz2 = SpaceFillingCurves.xz2Index(
                     env.getMinX(), env.getMinY(), env.getMaxX(), env.getMaxY(), SpatialIndexRanges.G);
-                String xz2Hex = SfcBridge.xz2Hex(
+                String xz2Hex = SpaceFillingCurves.xz2Hex(
                     env.getMinX(), env.getMinY(), env.getMaxX(), env.getMaxY(), SpatialIndexRanges.G);
                 if (!first) pw.println(",");
                 pw.printf("  {\"wkt\": \"%s\", \"wkb_hex\": \"%s\", \"xz2\": %d, \"xz2_hex\": \"%s\"}",
