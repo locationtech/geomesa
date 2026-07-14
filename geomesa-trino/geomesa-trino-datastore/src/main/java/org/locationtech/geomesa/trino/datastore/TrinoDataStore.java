@@ -15,6 +15,7 @@ import org.geotools.data.store.ContentFeatureSource;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -122,18 +123,26 @@ public class TrinoDataStore extends ContentDataStore {
      *
      *  <p>The Trino JDBC {@code extraCredentials} property is {@code name:value}
      *  pairs delimited by SEMICOLONS (NOT commas), and each value must be printable
-     *  ASCII with no spaces. So auth tokens are joined with PIPES and the secret is
-     *  a second pair: {@code auths:basic|privileged;secret:<value>}. Throws
-     *  {@code IllegalArgumentException} on a token containing a transport delimiter —
-     *  the server-side resolver would re-split it into auths that were never issued
-     *  (see {@link AuthTokens}). */
+     *  ASCII with no spaces. The auth tokens are comma-joined and then base64url
+     *  encoded (unpadded) into a single value — the base64url alphabet can never
+     *  collide with the wire delimiters, so the transport is injection-proof by
+     *  construction: {@code auths:<base64url(tok1,tok2)>;secret:<value>}. The
+     *  server-side {@code ExtraCredentialAuthorizationResolver} decodes the same
+     *  format.
+     *
+     *  <p>Tokens are still validated against {@link AuthTokens} before encoding:
+     *  the SQL row-filter layer joins tokens with commas into the
+     *  {@code is_visible} literal, so the no-delimiter token contract remains
+     *  load-bearing there even though the wire itself no longer requires it. */
     static Properties connectionProperties(String user, List<String> auths, String secret) {
         AuthTokens.validate(auths);
         Properties props = new Properties();
         props.setProperty("user", user);
         StringBuilder creds = new StringBuilder();
         if (auths != null && !auths.isEmpty()) {
-            creds.append(AUTHS_CREDENTIAL).append(':').append(String.join("|", auths));
+            String encoded = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(String.join(",", auths).getBytes(StandardCharsets.UTF_8));
+            creds.append(AUTHS_CREDENTIAL).append(':').append(encoded);
         }
         if (secret != null && !secret.isEmpty()) {
             if (creds.length() > 0) creds.append(';');  // semicolon delimits pairs

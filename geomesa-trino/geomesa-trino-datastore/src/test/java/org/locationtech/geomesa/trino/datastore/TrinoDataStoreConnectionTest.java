@@ -32,25 +32,22 @@ class TrinoDataStoreConnectionTest {
     }
 
     @Test
-    void authsBecomePipeDelimitedExtraCredential() {
-        // Pipe-delimited, NOT space/comma: the Trino JDBC extraCredentials value
-        // forbids spaces and uses comma/colon as structural separators. The
-        // resolver splits the value on pipes, commas, or whitespace.
+    void authsBecomeBase64UrlExtraCredential() {
         Properties props = TrinoDataStore.connectionProperties("svc", List.of("basic", "privileged"), null);
-        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:basic|privileged");
+        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:YmFzaWMscHJpdmlsZWdlZA");
     }
 
     @Test
     void singleAuthEncodes() {
         Properties props = TrinoDataStore.connectionProperties("svc", List.of("basic"), null);
-        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:basic");
+        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:YmFzaWM");
     }
 
     @Test
     void secretAddedAsSecondPairDelimitedBySemicolon() {
         // Trino JDBC extraCredentials delimits name:value pairs with SEMICOLONS.
         Properties props = TrinoDataStore.connectionProperties("svc", List.of("basic", "privileged"), "tok3n");
-        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:basic|privileged;secret:tok3n");
+        assertThat(props.getProperty("extraCredentials")).isEqualTo("auths:YmFzaWMscHJpdmlsZWdlZA;secret:tok3n");
     }
 
     @Test
@@ -68,11 +65,8 @@ class TrinoDataStoreConnectionTest {
     }
 
     @Test
-    void authTokenContainingTransportDelimiterIsRejected() {
-        // '|' joins tokens in the credential value, ';'/':' delimit its pairs, and the
-        // server-side resolver splits on pipes/commas/whitespace — a token containing
-        // any of them would be silently re-split into auths that were never issued.
-        for (String bad : List.of("FOO,BAR", "FOO|BAR", "FOO;BAR", "FOO:BAR", "FOO BAR", "")) {
+    void authTokenContainingDelimiterIsRejected() {
+        for (String bad : List.of("FOO,BAR", "FOO BAR", "FOO;BAR", "FOO:BAR", "FOO BAR", "")) {
             assertThatThrownBy(() ->
                 TrinoDataStore.connectionProperties("svc", List.of("basic", bad), null))
                 .isInstanceOf(IllegalArgumentException.class)

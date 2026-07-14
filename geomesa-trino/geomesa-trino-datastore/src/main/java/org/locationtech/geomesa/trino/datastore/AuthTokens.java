@@ -15,9 +15,9 @@ import java.util.Collection;
  * meaning somewhere in the auth transport chain:
  *
  * <ul>
- *   <li>{@code |} — joins tokens in the JDBC {@code auths} extra credential;</li>
  *   <li>{@code ,} — joins tokens in the {@code is_visible} SQL literal (and splits them
- *       again inside the UDF), and delimits auth-mapping file lists;</li>
+ *       again inside the UDF), splits the decoded {@code auths} credential payload,
+ *       and delimits auth-mapping file lists;</li>
  *   <li>{@code ;} / {@code :} — delimit the Trino JDBC {@code extraCredentials}
  *       {@code name:value;name:value} wire encoding;</li>
  *   <li>whitespace and non-printable/non-ASCII — rejected by the Trino JDBC driver's
@@ -45,7 +45,7 @@ final class AuthTokens {
         }
         for (int i = 0; i < token.length(); i++) {
             char c = token.charAt(i);
-            if (c <= ' ' || c > '~' || c == ',' || c == '|' || c == ';' || c == ':') {
+            if (c <= ' ' || c > '~' || c == ',' || c == ';' || c == ':') {
                 return false;
             }
         }
@@ -62,8 +62,7 @@ final class AuthTokens {
             if (!isValid(token)) {
                 throw new IllegalArgumentException(
                     "Invalid authorization token '" + token + "': tokens must be non-empty printable"
-                    + " ASCII without ',', '|', ';', ':', or whitespace (structural delimiters in the"
-                    + " auth transport)");
+                    + " ASCII without ',', ';', ':', or whitespace");
             }
         }
     }

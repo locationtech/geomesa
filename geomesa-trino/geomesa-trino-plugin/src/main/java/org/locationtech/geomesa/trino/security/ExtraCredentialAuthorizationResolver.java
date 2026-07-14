@@ -12,6 +12,7 @@ import io.trino.spi.security.ConnectorIdentity;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -20,12 +21,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  * {@link AuthorizationResolver} that reads a session's authorization tokens
- * straight from a Trino <em>extra credential</em> carrying a comma-delimited
- * list (e.g. {@code auths=basic,privileged}). Intended for deployments fronted by a
- * trusted service mesh that authenticates the caller and injects the
- * authoritative token set: the mesh rewrites its identity header (e.g.
- * {@code x-auths}) into Trino's {@code X-Trino-Extra-Credential} client
- * header, which Trino exposes here via {@link ConnectorIdentity#getExtraCredentials()}.
+ * from a Trino <em>extra credential</em> carrying a base64url-encoded
+ * token list. The decoded payload is a comma or whitespace delimited list.
+ * Base64url keeps the wire value free of the extraCredentials pair delimiters
+ * by construction. Intended for deployments fronted by a trusted service mesh
+ * that authenticates the caller and injects the authoritative token set:
+ * the mesh base64url-encodes its identity header (e.g. {@code x-auths}) into Trino's
+ * {@code X-Trino-Extra-Credential} client header, which Trino exposes here
+ * via {@link ConnectorIdentity#getExtraCredentials()}.
  *
  * <p>Because the tokens flow through unchanged there is no mapping file to
  * maintain and nothing to drift from the platform's clearances. Selected with:
@@ -102,12 +105,16 @@ public final class ExtraCredentialAuthorizationResolver implements Authorization
         return MessageDigest.isEqual(expectedSecret, presented.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static void addTokens(Set<String> out, String csv) {
-        if (csv == null) return;
-        // Split on pipes, commas, or whitespace. The JDBC datastore joins tokens
-        // with pipes (extraCredentials values forbid spaces); a mesh header may use
-        // a comma or space list. Accept all three.
-        for (String token : csv.split("[\\s,|]+")) {
+    private static void addTokens(Set<String> out, String encoded) {
+        if (encoded == null) return;
+        String decoded;
+        try {
+            decoded = new String(Base64.getUrlDecoder().decode(encoded.trim()), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            LOG.warn("Authorization extra credential is not valid base64url; resolving to no auths");
+            return;
+        }
+        for (String token : decoded.split("[\\s,]+")) {
             String t = token.trim();
             if (t.isEmpty()) continue;
             if (!AuthTokens.isValid(t)) {
