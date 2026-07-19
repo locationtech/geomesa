@@ -9,13 +9,28 @@
 package org.locationtech.geomesa.trino.datastore;
 
 import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.feature.type.GeometryDescriptor;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
 class TrinoSchemaDiscovery {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TrinoSchemaDiscovery.class);
+
+    /** Iceberg table property holding the GeoMesa-encoded SimpleFeatureType spec. */
+    static final String SFT_SPEC_PROPERTY = "geomesa.sft.spec";
+
+    /** Iceberg table property holding the GeoMesa type name. */
+    static final String SFT_NAME_PROPERTY = "geomesa.sft.name";
 
     private final TrinoDataStore store;
 
@@ -30,6 +45,11 @@ class TrinoSchemaDiscovery {
 
         String sql = String.format("SELECT * FROM \"%s\".\"%s\".\"%s\" LIMIT 0",
             store.catalog(), store.trinoSchema(), typeName);
+
+        Map<String, String> sftProps = readSftProperties(typeName);
+        String sftSpec = sftProps.get(SFT_SPEC_PROPERTY);
+        Map<String, Class<?>> sftBindings = (sftSpec == null || sftSpec.isBlank())
+            ? Map.of() : geometryBindingsFromSpec(typeName, sftSpec);
 
         String visColumn = null;
         try (Connection conn = store.connect();
@@ -54,16 +74,14 @@ class TrinoSchemaDiscovery {
             for (int i = 1; i <= meta.getColumnCount(); i++) {
                 String name = meta.getColumnName(i);
                 if (TrinoTypeMapper.isHidden(name)) continue;
-                if (name.equals(visColumn)) continue;  // vis column is metadata, not a SFT attribute
+                if (name.equals(visColumn)) continue;  // vis column is metadata, not an SFT attribute
 
                 boolean isGeom = geometryColumnNames.contains(name);
-                // A __X_z2__ companion marks a point-only geometry column, so the
-                // attribute can be bound to Point rather than the generic Geometry.
-                boolean isPoint = isGeom && isPointColumn(name, allNames);
+                Class<?> geomBinding = isGeom ? resolveGeometryBinding(name, allNames, sftBindings) : null;
                 // SRID is no longer carried in a table property; default to WGS84.
                 int srid = isGeom ? 4326 : 0;
                 var descriptor =
-                    TrinoTypeMapper.toDescriptor(name, meta.getColumnType(i), isGeom, isPoint, srid);
+                    TrinoTypeMapper.toDescriptor(name, meta.getColumnType(i), isGeom, geomBinding, srid);
                 tb.add(descriptor);
 
                 if (isGeom && !defaultGeomSet) {
@@ -79,7 +97,64 @@ class TrinoSchemaDiscovery {
         if (visColumn != null) {
             sft.getUserData().put(VIS_COLUMN_KEY, visColumn);
         }
+        String sftName = sftProps.get(SFT_NAME_PROPERTY);
+        if (sftName != null && !sftName.isBlank()) {
+            sft.getUserData().put(SFT_NAME_PROPERTY, sftName);
+        }
         return sft;
+    }
+
+    /** The JTS geometry binding for a geometry column: the subtype declared by the stored SFT
+     *  when it names this attribute, else {@link Point} for a {@code __<name>_z2__} companion,
+     *  generic {@link Geometry} otherwise. */
+    static Class<?> resolveGeometryBinding(String name, Set<String> allNames,
+                                           Map<String, Class<?>> sftBindings) {
+        Class<?> fromSft = sftBindings.get(name);
+        if (fromSft != null) {
+            return fromSft;
+        }
+        return isPointColumn(name, allNames) ? Point.class : Geometry.class;
+    }
+
+    /** Parses a GeoMesa SFT spec into geometry-attribute-name → JTS subtype. */
+    static Map<String, Class<?>> geometryBindingsFromSpec(String typeName, String spec) {
+        try {
+            SimpleFeatureType sft = SimpleFeatureTypes.createType(typeName, spec);
+            Map<String, Class<?>> bindings = new LinkedHashMap<>();
+            for (AttributeDescriptor d : sft.getAttributeDescriptors()) {
+                if (d instanceof GeometryDescriptor) {
+                    bindings.put(d.getLocalName(), d.getType().getBinding());
+                }
+            }
+            return bindings;
+        } catch (RuntimeException e) {
+            LOG.warn("Could not parse stored GeoMesa SFT for '{}' ({}='{}'): {}; "
+                + "falling back to heuristic geometry binding",
+                typeName, SFT_SPEC_PROPERTY, spec, e.getMessage());
+            return Map.of();
+        }
+    }
+
+    /** Reads the {@code geomesa.sft.*} properties (spec + name) from the Iceberg
+     *  {@code <table>$properties} metadata table in one query; empty when the table carries none
+     *  or doesn't expose {@code $properties}. Non-fatal: any failure just disables SFT-driven
+     *  binding/name for this table. */
+    private Map<String, String> readSftProperties(String typeName) {
+        String sql = String.format(
+            "SELECT key, value FROM \"%s\".\"%s\".\"%s$properties\" WHERE key IN ('%s', '%s')",
+            store.catalog(), store.trinoSchema(), typeName, SFT_SPEC_PROPERTY, SFT_NAME_PROPERTY);
+        Map<String, String> props = new HashMap<>();
+        try (Connection conn = store.connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                props.put(rs.getString(1), rs.getString(2));
+            }
+        } catch (SQLException e) {
+            LOG.debug("No readable $properties for '{}' (no SFT metadata): {}",
+                typeName, e.getMessage());
+        }
+        return props;
     }
 
     /** Returns the set of column names that are geometry columns under the

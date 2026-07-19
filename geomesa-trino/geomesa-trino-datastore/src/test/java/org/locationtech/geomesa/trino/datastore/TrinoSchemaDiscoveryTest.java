@@ -9,7 +9,11 @@
 package org.locationtech.geomesa.trino.datastore;
 
 import org.junit.jupiter.api.Test;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,5 +50,59 @@ class TrinoSchemaDiscoveryTest {
     void xz2CompanionIsNotPointColumn() {
         assertThat(TrinoSchemaDiscovery.isPointColumn("ellipse",
             Set.of("ellipse", "__ellipse_xz2__", "__ellipse_bbox__"))).isFalse();
+    }
+
+    @Test
+    void sftBindingWinsOverHeuristic() {
+        // The stored SFT declares the exact subtype; it overrides the companion heuristic —
+        // both directions: an XZ2 column (heuristic would say generic Geometry) bound to
+        // Polygon, and a Z2 column (heuristic would say Point) bound to whatever the SFT says.
+        var allNames = Set.of("region", "__region_xz2__", "__region_bbox__");
+        assertThat(TrinoSchemaDiscovery.resolveGeometryBinding(
+            "region", allNames, Map.of("region", Polygon.class))).isEqualTo(Polygon.class);
+        assertThat(TrinoSchemaDiscovery.resolveGeometryBinding(
+            "center", Set.of("center", "__center_z2__"), Map.of("center", Polygon.class)))
+            .isEqualTo(Polygon.class);
+    }
+
+    @Test
+    void parsesRealWorldSftWithOptionsAndUserData() {
+        // The exact geomesa.sft.spec stored on the production trino_test.rawob_harrisnextgen
+        // table: per-attribute options (fs.bounds, default), a *-marked default Point geometry,
+        // and trailing ;-delimited user data. Must parse and yield geom → Point.
+        String spec = "flightId:String:fs.bounds=true,timeUp:Date:default=true:fs.bounds=true,"
+            + "lat:Double,lon:Double,alt:Double,classification:String,course:Double,speed:Double,"
+            + "callsign:String:fs.bounds=true,origin:String,destination:String,mode3a:String,"
+            + "modeS:String,tailNumber:String:fs.bounds=true,aircraftType:String,facilityName:String,"
+            + "facilityHash:String,airGround:String,updateType:String,altChange:String,"
+            + "processTime:Date,rcptTime:Date,iconHeading:Double,*geom:Point:srid=4326,"
+            + "recordHash:String,source:String,trackId:String,trueAirSpeed:Double,windDirection:Double,"
+            + "windSpeed:Double,windIsAccurate:Boolean,ingestLatency:Long;geomesa.index.dtg='timeUp'";
+        Map<String, Class<?>> bindings =
+            TrinoSchemaDiscovery.geometryBindingsFromSpec("rawob_harrisnextgen", spec);
+        assertThat(bindings).containsExactly(Map.entry("geom", Point.class));
+    }
+
+    @Test
+    void multiGeomSpecYieldsEachSubtype() {
+        Map<String, Class<?>> bindings = TrinoSchemaDiscovery.geometryBindingsFromSpec(
+            "t", "*center:Point:srid=4326,ellipse:Polygon:srid=4326,dtg:Date,label:String");
+        assertThat(bindings).containsOnly(
+            Map.entry("center", Point.class), Map.entry("ellipse", Polygon.class));
+    }
+
+    @Test
+    void unparseableSpecYieldsEmptyForHeuristicFallback() {
+        assertThat(TrinoSchemaDiscovery.geometryBindingsFromSpec("t", "]not a valid spec["))
+            .isEmpty();
+    }
+
+    @Test
+    void fallsBackToHeuristicWhenSftAbsent() {
+        // No SFT entry for this column → z2 companion ⇒ Point, xz2 companion ⇒ generic Geometry.
+        assertThat(TrinoSchemaDiscovery.resolveGeometryBinding(
+            "center", Set.of("center", "__center_z2__"), Map.of())).isEqualTo(Point.class);
+        assertThat(TrinoSchemaDiscovery.resolveGeometryBinding(
+            "ellipse", Set.of("ellipse", "__ellipse_xz2__"), Map.of())).isEqualTo(Geometry.class);
     }
 }

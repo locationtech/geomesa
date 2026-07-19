@@ -21,63 +21,81 @@ class TrinoTypeMapperTest {
 
     @Test
     void varcharMapsToString() {
-        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("fid", Types.VARCHAR, false, false, 0);
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("fid", Types.VARCHAR, false, null, 0);
         assertThat(d.getType().getBinding()).isEqualTo(String.class);
         assertThat(d.getLocalName()).isEqualTo("fid");
     }
 
     @Test
     void bigintMapsToLong() {
-        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("count_col", Types.BIGINT, false, false, 0);
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("count_col", Types.BIGINT, false, null, 0);
         assertThat(d.getType().getBinding()).isEqualTo(Long.class);
     }
 
     @Test
     void integerMapsToInteger() {
-        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("taxi_id", Types.INTEGER, false, false, 0);
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("taxi_id", Types.INTEGER, false, null, 0);
         assertThat(d.getType().getBinding()).isEqualTo(Integer.class);
     }
 
     @Test
     void doubleMapsToDouble() {
-        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("value", Types.DOUBLE, false, false, 0);
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("value", Types.DOUBLE, false, null, 0);
         assertThat(d.getType().getBinding()).isEqualTo(Double.class);
     }
 
     @Test
     void booleanMapsToBoolean() {
-        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("active", Types.BOOLEAN, false, false, 0);
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("active", Types.BOOLEAN, false, null, 0);
         assertThat(d.getType().getBinding()).isEqualTo(Boolean.class);
     }
 
     @Test
     void timestampWithTimezoneMapsToDate() {
-        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("dtg", Types.TIMESTAMP_WITH_TIMEZONE, false, false, 0);
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("dtg", Types.TIMESTAMP_WITH_TIMEZONE, false, null, 0);
         assertThat(d.getType().getBinding()).isEqualTo(Date.class);
     }
 
     @Test
-    void varbinaryWithGeometryFlagMapsToGeometry() {
-        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("geom_wkb", Types.VARBINARY, true, false, 4326);
-        assertThat(d.getType().getBinding()).isEqualTo(Geometry.class);
-        assertThat(d).isInstanceOf(org.geotools.api.feature.type.GeometryDescriptor.class);
+    void geometryBindingPassesThroughTheResolvedSubtype() {
+        // The caller resolves the subtype (from the stored SFT or the heuristic); the mapper
+        // binds exactly that. Covers the full JTS geometry hierarchy the SFT can declare.
+        for (Class<?> subtype : java.util.List.of(
+                org.locationtech.jts.geom.Point.class,
+                org.locationtech.jts.geom.LineString.class,
+                org.locationtech.jts.geom.Polygon.class,
+                org.locationtech.jts.geom.MultiPoint.class,
+                org.locationtech.jts.geom.MultiLineString.class,
+                org.locationtech.jts.geom.MultiPolygon.class,
+                org.locationtech.jts.geom.GeometryCollection.class,
+                Geometry.class)) {
+            AttributeDescriptor d = TrinoTypeMapper.toDescriptor("geom", Types.VARBINARY, true, subtype, 4326);
+            assertThat(d.getType().getBinding()).as(subtype.getSimpleName()).isEqualTo(subtype);
+            assertThat(d).isInstanceOf(org.geotools.api.feature.type.GeometryDescriptor.class);
+        }
+    }
+
+    @Test
+    void geometryDescriptorCarriesWgs84() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("geom_wkb", Types.VARBINARY, true, Geometry.class, 4326);
         assertThat(((org.geotools.api.feature.type.GeometryDescriptor) d)
             .getCoordinateReferenceSystem())
             .isEqualTo(org.geotools.referencing.crs.DefaultGeographicCRS.WGS84);
     }
 
     @Test
-    void varbinaryWithPointFlagMapsToPoint() {
-        // A __X_z2__ companion marks a point-only column; discovery passes isPoint=true
-        // so the descriptor binds Point (enables the rectangle/point bbox fast path).
-        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("center", Types.VARBINARY, true, true, 4326);
-        assertThat(d.getType().getBinding()).isEqualTo(org.locationtech.jts.geom.Point.class);
-        assertThat(d).isInstanceOf(org.geotools.api.feature.type.GeometryDescriptor.class);
+    void nullOrNonGeometryBindingDefaultsToGenericGeometry() {
+        // Defensive: a null binding (or a non-Geometry class slipping through) falls back to
+        // generic Geometry rather than producing an invalid descriptor.
+        assertThat(TrinoTypeMapper.toDescriptor("geom", Types.VARBINARY, true, null, 4326)
+            .getType().getBinding()).isEqualTo(Geometry.class);
+        assertThat(TrinoTypeMapper.toDescriptor("geom", Types.VARBINARY, true, String.class, 4326)
+            .getType().getBinding()).isEqualTo(Geometry.class);
     }
 
     @Test
     void varbinaryWithoutGeometryFlagMapsToBytesArray() {
-        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("raw_data", Types.VARBINARY, false, false, 0);
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("raw_data", Types.VARBINARY, false, null, 0);
         assertThat(d.getType().getBinding()).isEqualTo(byte[].class);
     }
 
