@@ -28,9 +28,9 @@ import java.util.concurrent.TimeUnit;
  * Trino store is read-only to function primarily as a query engine and does not expose the write-based operations
  * provided by {@code JDBCDataStore}. {@code ContentDataStore} is the lighter, correct base for a query-only source,
  * it lets us push filter/projection/sort/count/bounds down as Trino SQL (see {@link TrinoFeatureSource}), and
- * offers per-request-authenticated connections per query and visibility/entitlement filtering. A consequence is that
- * there is no shared connection pool: each query opens its own connection so the forwarded authorizations always
- * reflect the current caller context (see {@link #connect(List)}).
+ * offers per-request-authenticated connections per query and visibility/entitlement filtering. Because the
+ * forwarded authorizations are fixed on a connection at creation, connections are pooled keyed by the normalized
+ * auth set ({@link ConnectionPool}): requests with the same effective auths reuse connections (see {@link #connect(List)}).
  */
 public class TrinoDataStore extends ContentDataStore {
 
@@ -66,6 +66,9 @@ public class TrinoDataStore extends ContentDataStore {
     private List<Name> cachedTypeNames;
     private long cachedTypeNamesExpiry;
 
+    /** Connections keyed by normalized auth set — see {@link #connect(List)}. */
+    private final ConnectionPool pool = new ConnectionPool(this::openConnection);
+
     TrinoDataStore(String host, int port, String catalog, String schema,
                    AuthorizationsProvider authProvider, String user, String secret) {
         this.host = host;
@@ -87,17 +90,31 @@ public class TrinoDataStore extends ContentDataStore {
         return connect(null);
     }
 
-    /** Opens a per-query Trino connection, forwarding the caller's authorizations
-     *  as a Trino extra credential. The {@code spatial_iceberg} connector's
+    /** Returns a Trino connection carrying the caller's authorizations as a Trino
+     *  extra credential. The {@code spatial_iceberg} connector's
      *  ExtraCredentialAuthorizationResolver reads it to build the row-level
-     *  visibility filter for THIS request. A fresh connection is opened per query,
-     *  so the credential always reflects the current per-request auths. When
-     *  {@code auths} is null/empty no credential is sent (the caller then sees only
-     *  unrestricted rows — fail-closed). */
+     *  visibility filter for THIS request. Because the credential is fixed at
+     *  connection creation, connections are pooled keyed by the normalized
+     *  (sorted, deduped) auth set: a request only ever gets a connection whose
+     *  credential matches its own auths exactly. Close the connection to return
+     *  it to the pool. When {@code auths} is null/empty no credential is sent
+     *  (the caller then sees only unrestricted rows — fail-closed). */
     Connection connect(List<String> auths) throws SQLException {
+        return pool.borrow(auths);
+    }
+
+    /** Opens a real connection for a normalized auth set (pool miss). */
+    private Connection openConnection(List<String> normalizedAuths) throws SQLException {
         String url = String.format("jdbc:trino://%s:%d/%s/%s",
             host, port, catalog, trinoSchema);
-        return DriverManager.getConnection(url, connectionProperties(user, auths, secret));
+        return DriverManager.getConnection(url, connectionProperties(user, normalizedAuths, secret));
+    }
+
+    /** Closes all pooled connections. */
+    @Override
+    public void dispose() {
+        pool.close();
+        super.dispose();
     }
 
     /** Builds the JDBC connection properties. Extracted so the extra-credential
