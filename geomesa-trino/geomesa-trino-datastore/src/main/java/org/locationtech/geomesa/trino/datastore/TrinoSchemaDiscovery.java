@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
+import static org.locationtech.geomesa.trino.datastore.TrinoDataStore.escapeQuotes;
+
 class TrinoSchemaDiscovery {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrinoSchemaDiscovery.class);
@@ -43,8 +45,12 @@ class TrinoSchemaDiscovery {
         tb.setName(typeName);
         tb.setNamespaceURI(store.getNamespaceURI());
 
-        String sql = String.format("SELECT * FROM \"%s\".\"%s\".\"%s\" LIMIT 0",
-            store.catalog(), store.trinoSchema(), typeName);
+        String sql = String.format(
+            "SELECT * FROM %s.%s.%s LIMIT 0",
+            escapeQuotes(store.catalog()),
+            escapeQuotes(store.trinoSchema()),
+            escapeQuotes(typeName)
+        );
 
         Map<String, String> sftProps = readSftProperties(typeName);
         String sftSpec = sftProps.get(SFT_SPEC_PROPERTY);
@@ -141,8 +147,12 @@ class TrinoSchemaDiscovery {
      *  binding/name for this table. */
     private Map<String, String> readSftProperties(String typeName) {
         String sql = String.format(
-            "SELECT key, value FROM \"%s\".\"%s\".\"%s$properties\" WHERE key IN ('%s', '%s')",
-            store.catalog(), store.trinoSchema(), typeName, SFT_SPEC_PROPERTY, SFT_NAME_PROPERTY);
+            "SELECT key, value FROM %s.%s.%s WHERE key IN ('%s', '%s')",
+            escapeQuotes(store.catalog()),
+            escapeQuotes(store.trinoSchema()),
+            escapeQuotes(typeName + "$properties"),
+            SFT_SPEC_PROPERTY, SFT_NAME_PROPERTY
+        );
         Map<String, String> props = new HashMap<>();
         try (Connection conn = store.connect();
              Statement stmt = conn.createStatement();

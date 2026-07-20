@@ -66,20 +66,12 @@ class TrinoSchemaDiscoveryTest {
     }
 
     @Test
-    void parsesRealWorldSftWithOptionsAndUserData() {
-        // The exact geomesa.sft.spec stored on the production trino_test.rawob_harrisnextgen
-        // table: per-attribute options (fs.bounds, default), a *-marked default Point geometry,
-        // and trailing ;-delimited user data. Must parse and yield geom → Point.
-        String spec = "flightId:String:fs.bounds=true,timeUp:Date:default=true:fs.bounds=true,"
-            + "lat:Double,lon:Double,alt:Double,classification:String,course:Double,speed:Double,"
-            + "callsign:String:fs.bounds=true,origin:String,destination:String,mode3a:String,"
-            + "modeS:String,tailNumber:String:fs.bounds=true,aircraftType:String,facilityName:String,"
-            + "facilityHash:String,airGround:String,updateType:String,altChange:String,"
-            + "processTime:Date,rcptTime:Date,iconHeading:Double,*geom:Point:srid=4326,"
-            + "recordHash:String,source:String,trackId:String,trueAirSpeed:Double,windDirection:Double,"
-            + "windSpeed:Double,windIsAccurate:Boolean,ingestLatency:Long;geomesa.index.dtg='timeUp'";
+    void parsesSftWithOptionsAndUserData() {
+        String spec = "id:String:fs.bounds=true,dtg:Date:default=true:fs.bounds=true,"
+            + "name:String,count:Long,score:Double:fs.bounds=true,active:Boolean,"
+            + "*geom:Point:srid=4326;geomesa.index.dtg='dtg'";
         Map<String, Class<?>> bindings =
-            TrinoSchemaDiscovery.geometryBindingsFromSpec("rawob_harrisnextgen", spec);
+            TrinoSchemaDiscovery.geometryBindingsFromSpec("example", spec);
         assertThat(bindings).containsExactly(Map.entry("geom", Point.class));
     }
 
