@@ -43,13 +43,19 @@ class TrinoFeatureSourceVisibilityTest {
     }
 
     @Test
-    void authTokenContainingTransportDelimiterIsRejected() {
-        for (String bad : List.of("FOO,BAR", "FOO;BAR", "FOO:BAR", "FOO BAR", "")) {
+    void authTokenContainingCommaIsRejected() {
+        for (String bad : List.of("FOO,BAR", "")) {
             assertThatThrownBy(() ->
                 TrinoFeatureSource.visibilityConjunct("__vis__", List.of("basic", bad)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("authorization token");
         }
+    }
+
+    @Test
+    void nonCommaSpecialCharsAreAllowed() {
+        assertThat(TrinoFeatureSource.visibilityConjunct("__vis__", List.of("FOO;BAR", "FOO:BAR", "FOO BAR")))
+            .isEqualTo("is_visible(\"__vis__\", 'FOO;BAR,FOO:BAR,FOO BAR')");
     }
 
     @Test

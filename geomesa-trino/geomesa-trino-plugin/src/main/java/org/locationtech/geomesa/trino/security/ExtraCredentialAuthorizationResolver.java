@@ -114,7 +114,7 @@ public final class ExtraCredentialAuthorizationResolver implements Authorization
             LOG.warn("Authorization extra credential is not valid base64url; resolving to no auths");
             return;
         }
-        for (String token : decoded.split("[\\s,]+")) {
+        for (String token : decoded.split(",")) {
             String t = token.trim();
             if (t.isEmpty()) continue;
             if (!AuthTokens.isValid(t)) {

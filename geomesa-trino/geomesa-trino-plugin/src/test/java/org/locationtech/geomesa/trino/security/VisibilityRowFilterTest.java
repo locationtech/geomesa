@@ -49,11 +49,17 @@ class VisibilityRowFilterTest {
     }
 
     @Test
-    void authTokenContainingTransportDelimiterIsRejected() {
-        for (String bad : List.of("FOO,BAR", "FOO;BAR", "FOO:BAR", "FOO BAR", "")) {
+    void authTokenContainingCommaIsRejected() {
+        for (String bad : List.of("FOO,BAR", "")) {
             assertThatThrownBy(() -> VisibilityRowFilter.conjunct("__vis__", List.of("basic", bad)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("authorization token");
         }
+    }
+
+    @Test
+    void nonCommaSpecialCharsAreAllowed() {
+        assertThat(VisibilityRowFilter.conjunct("__vis__", List.of("FOO;BAR", "FOO:BAR", "FOO BAR")))
+            .isEqualTo("is_visible(\"__vis__\", 'FOO;BAR,FOO:BAR,FOO BAR')");
     }
 }

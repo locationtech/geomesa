@@ -69,15 +69,12 @@ class FileAuthorizationResolverTest {
     }
 
     @Test
-    void invalidTokensAreDroppedFailClosed(@TempDir Path dir) throws Exception {
-        // A token carrying a transport delimiter (':'/';'/interior space)
-        // can't round-trip through the row-filter chain — dropped with a warning
-        // (narrowing = fail-closed) rather than honored.
+    void pairDelimiterTokensAreHonored(@TempDir Path dir) throws Exception {
         Path f = dir.resolve("m.properties");
         Files.write(f, java.util.List.of("user.alice=basic,FOO;BAR,privileged"));
         var resolver = new FileAuthorizationResolver(f);
         assertThat(resolver.authorizationsFor(identity("alice", Set.of())))
-            .containsExactlyInAnyOrder("basic", "privileged");
+            .containsExactlyInAnyOrder("basic", "FOO;BAR", "privileged");
     }
 
     @Test

@@ -11,24 +11,17 @@ package org.locationtech.geomesa.trino.security;
 import java.util.Collection;
 
 /**
- * Validation for authorization tokens against the characters that carry structural
- * meaning somewhere in the auth transport chain:
+ * Validates authorization tokens against their join/split delimiter (,):
  *
  * <ul>
- *   <li>{@code ,} — joins tokens in the {@code is_visible} SQL literal (and splits them
- *       again inside the UDF), splits the decoded {@code auths} credential payload,
- *       and delimits auth-mapping file lists;</li>
- *   <li>{@code ;} / {@code :} — delimit the Trino JDBC {@code extraCredentials}
- *       {@code name:value;name:value} wire encoding;</li>
- *   <li>whitespace and non-printable/non-ASCII — rejected by the Trino JDBC driver's
- *       extraCredentials validation.</li>
+ *   <li>{@code ,} — joins tokens in the {@code is_visible} SQL literal, splits the decoded
+ *   {@code auths} credential payload, and * delimits auth-mapping file lists. A comma inside
+ *   a token would be split into sub-tokens, GRANTING each fragment as an authorization that
+ *   was never issued.</li>
  * </ul>
  *
- * <p>A token containing any of these cannot round-trip losslessly between the datastore's
- * client-side conjunct and the plugin's server-side row filter: it would be silently split
- * into sub-tokens, GRANTING each fragment as an authorization that was never issued. So
- * producers reject such tokens loudly (see {@link #validate}) and resolvers drop them
- * (fail-closed) rather than propagate them.
+ * <p>Producers reject a comma-bearing token loudly (see {@link #validate}) and resolvers drop
+ * it (fail-closed) rather than propagate it.
  *
  * <p>Mirrors the datastore's {@code org.locationtech.geomesa.trino.datastore.AuthTokens}
  * byte-for-byte — the two modules are isolated (neither is on the other's classpath), so
@@ -38,18 +31,11 @@ final class AuthTokens {
 
     private AuthTokens() {}
 
-    /** True iff the token is non-empty printable ASCII with no delimiter characters. */
+    /** True iff the token is non-empty and contains no comma — the sole structural delimiter
+     *  once the auths payload is base64url-encoded for transport and the {@code is_visible}
+     *  literal is quote-escaped. */
     static boolean isValid(String token) {
-        if (token == null || token.isEmpty()) {
-            return false;
-        }
-        for (int i = 0; i < token.length(); i++) {
-            char c = token.charAt(i);
-            if (c <= ' ' || c > '~' || c == ',' || c == ';' || c == ':') {
-                return false;
-            }
-        }
-        return true;
+        return token != null && !token.isEmpty() && token.indexOf(',') < 0;
     }
 
     /** Throws on the first invalid token. Call before joining tokens for transport —
@@ -61,9 +47,8 @@ final class AuthTokens {
         for (String token : auths) {
             if (!isValid(token)) {
                 throw new IllegalArgumentException(
-                    "Invalid authorization token '" + token + "': tokens must be non-empty printable"
-                    + " ASCII without ',', ';', ':', or whitespace (structural delimiters in the"
-                    + " auth transport)");
+                    "Invalid authorization token '" + token + "': tokens must be non-empty and"
+                    + " must not contain ','");
             }
         }
     }

@@ -71,20 +71,20 @@ class ExtraCredentialAuthorizationResolverTest {
     @Test
     void secretGateHonorsAuthsWhenSecretMatches() {
         var r = resolver(Map.of(ExtraCredentialAuthorizationResolver.SECRET_KEY, "s3cr3t"));
-        assertThat(r.authorizationsFor(identity(Map.of("secret", "s3cr3t", "auths", enc("basic privileged")))))
+        assertThat(r.authorizationsFor(identity(Map.of("secret", "s3cr3t", "auths", enc("basic,privileged")))))
             .containsExactlyInAnyOrder("basic", "privileged");
     }
 
     @Test
     void secretGateFailsClosedWhenSecretWrong() {
         var r = resolver(Map.of(ExtraCredentialAuthorizationResolver.SECRET_KEY, "s3cr3t"));
-        assertThat(r.authorizationsFor(identity(Map.of("secret", "nope", "auths", enc("basic privileged"))))).isEmpty();
+        assertThat(r.authorizationsFor(identity(Map.of("secret", "nope", "auths", enc("basic,privileged"))))).isEmpty();
     }
 
     @Test
     void secretGateFailsClosedWhenSecretMissing() {
         var r = resolver(Map.of(ExtraCredentialAuthorizationResolver.SECRET_KEY, "s3cr3t"));
-        assertThat(r.authorizationsFor(identity(Map.of("auths", enc("basic privileged"))))).isEmpty();
+        assertThat(r.authorizationsFor(identity(Map.of("auths", enc("basic,privileged"))))).isEmpty();
     }
 
     @Test
@@ -107,9 +107,9 @@ class ExtraCredentialAuthorizationResolverTest {
     }
 
     @Test
-    void tokensCarryingPairDelimitersAreDroppedFailClosed() {
+    void tokensCarryingPairDelimitersAreHonored() {
         var r = resolver(Map.of());
         assertThat(r.authorizationsFor(identity(Map.of("auths", enc("basic,FOO:BAR,privileged")))))
-            .containsExactlyInAnyOrder("basic", "privileged");
+            .containsExactlyInAnyOrder("basic", "FOO:BAR", "privileged");
     }
 }
