@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.io.LocalInputFile
+import org.everit.json.schema.Schema
 import org.everit.json.schema.loader.SchemaLoader
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -55,7 +56,15 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
   private val paths = new AtomicInteger()
 
   lazy val geoParquetSchema = WithClose(getClass.getClassLoader.getResourceAsStream("geoparquet-1.1.0-schema.json")) { is =>
-    SchemaLoader.load(new JSONObject(new JSONTokener(is)))
+    WithClose(getClass.getClassLoader.getResourceAsStream("projjson.schema.json")) { projjson =>
+      SchemaLoader.builder()
+        .schemaJson(new JSONObject(new JSONTokener(is)))
+        .registerSchemaByURI(new URI("https://proj.org/schemas/v0.7/projjson.schema.json"), new JSONObject(new JSONTokener(projjson)))
+        .build()
+        .load()
+        .build()
+        .asInstanceOf[Schema]
+    }
   }
 
   private val network = Network.newNetwork()
