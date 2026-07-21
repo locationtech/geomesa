@@ -34,6 +34,7 @@ public class SpatialConnector implements Connector {
     private final Connector delegate;
     private final GeoMesaColumnCatalog geomCatalog;
     private final ConnectorAccessControl accessControl;
+    private final boolean bboxShortCircuit;
 
     /**
      * Wraps a delegate connector with no Trino-layer visibility enforcement.
@@ -41,7 +42,7 @@ public class SpatialConnector implements Connector {
      * @param delegate the underlying iceberg connector
      */
     public SpatialConnector(Connector delegate) {
-        this(delegate, null, null);
+        this(delegate, null, null, true);
     }
 
     /**
@@ -55,10 +56,26 @@ public class SpatialConnector implements Connector {
      *                    access control delegates to Iceberg (no extra filter).
      */
     public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver) {
+        this(delegate, catalogName, resolver, true);
+    }
+
+    /**
+     * Wraps a delegate connector, optionally installing Trino-layer row-visibility enforcement
+     * and the page-source bbox cheap-reject.
+     *
+     * @param delegate       the underlying iceberg connector
+     * @param catalogName    the Trino catalog name; may be null when no resolver.
+     * @param resolver       identity→auths resolver; null disables Trino-layer enforcement.
+     * @param bboxShortCircuit when true, wrap the page source with the bbox cheap-reject
+     *                       ({@link SpatialPageSourceProvider}).
+     */
+    public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
+                            boolean bboxShortCircuit) {
         this.delegate = delegate;
         this.geomCatalog = new GeoMesaColumnCatalog();
         this.accessControl = resolver == null ? null
             : new VisibilityAccessControl(catalogName, geomCatalog, resolver);
+        this.bboxShortCircuit = bboxShortCircuit;
     }
 
     /**
@@ -105,7 +122,10 @@ public class SpatialConnector implements Connector {
     public ConnectorMetadata getMetadata(ConnectorSession session,
                                          ConnectorTransactionHandle transactionHandle) {
         return new SpatialConnectorMetadata(
-            delegate.getMetadata(session, transactionHandle), geomCatalog);
+            delegate.getMetadata(session, transactionHandle),
+            geomCatalog,
+            bboxShortCircuit
+        );
     }
 
     /**
@@ -115,7 +135,22 @@ public class SpatialConnector implements Connector {
      */
     @Override
     public ConnectorSplitManager getSplitManager() {
-        return delegate.getSplitManager();
+        ConnectorSplitManager splitManager = delegate.getSplitManager();
+        if (!bboxShortCircuit) {
+            return splitManager;
+        }
+        // BBOX Short-Circuit: unwrap a SpatialTableHandle before Iceberg's split manager sees it;
+        // the pushed bbox/z2 domains ride in the unwrapped handle's predicate, so file/manifest
+        // pruning is unaffected.
+        return new ConnectorSplitManager() {
+            @Override
+            public ConnectorSplitSource getSplits(ConnectorTransactionHandle transaction,
+                                                  ConnectorSession session, ConnectorTableHandle table,
+                                                  DynamicFilter dynamicFilter, Constraint constraint) {
+                return splitManager.getSplits(transaction, session, SpatialTableHandle.unwrap(table),
+                    dynamicFilter, constraint);
+            }
+        };
     }
 
     /**
@@ -125,7 +160,8 @@ public class SpatialConnector implements Connector {
      */
     @Override
     public ConnectorPageSourceProvider getPageSourceProvider() {
-        return delegate.getPageSourceProvider();
+        ConnectorPageSourceProvider provider = delegate.getPageSourceProvider();
+        return bboxShortCircuit ? new SpatialPageSourceProvider(provider) : provider;
     }
 
     /**
@@ -135,7 +171,10 @@ public class SpatialConnector implements Connector {
      */
     @Override
     public ConnectorPageSourceProviderFactory getPageSourceProviderFactory() {
-        return delegate.getPageSourceProviderFactory();
+        ConnectorPageSourceProviderFactory factory = delegate.getPageSourceProviderFactory();
+        return bboxShortCircuit
+            ? () -> new SpatialPageSourceProvider(factory.createPageSourceProvider())
+            : factory;
     }
 
     /**
