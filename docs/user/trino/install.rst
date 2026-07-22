@@ -80,8 +80,10 @@ Glue example:
     fs.s3.enabled=true
     s3.region=<region>
 
-Optionally add the ``geomesa.security.*`` catalog properties for Trino-layer row
-visibility (see :ref:`trino_security`).
+The connector passes any non-``geomesa.*`` property straight through to the Iceberg
+delegate. For the GeoMesa-specific catalog properties — including
+``geomesa.spatial.bbox-page-filter`` and the ``geomesa.security.*`` row-visibility
+keys — see :ref:`trino_configuration`.
 
 **3. Restart Trino** on all nodes. Verify the catalog is up with ``SHOW CATALOGS;``,
 then confirm pruning is active with the EXPLAIN checks under :ref:`trino_verify_pruning`.

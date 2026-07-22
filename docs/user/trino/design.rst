@@ -17,7 +17,7 @@ Architecture
     │                                  applyFilter() → bbox + Z2 TupleDomain │
     │                                                                        │
     │  CQL clients ──► geomesa-trino-datastore ──► TrinoFilterToSQL          │
-    │                 (CQL filter ──► bbox-overlap + CASE WHEN shortcut SQL) │
+    │                 (CQL filter ──► pure row-level ST_* SQL, column-first) │
     └──────────────┬──────────────────────────────────────┬──────────────────┘
                    │                                      │
            ┌───────▼──────────┐                  ┌────────▼─────────────────┐
@@ -91,59 +91,72 @@ set — files in non-overlapping Z2 cells have non-overlapping bbox stats, so
 benchmark deltas between the two connectors read ~0% on rectangular queries:
 both land at the same file count via different mechanisms.
 
-Layer 3: Row-Level CASE WHEN bbox-Contained Shortcut
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Layer 3: Connector-Side Page-Source bbox Filter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For surviving rows, the GeoMesa data store's ``TrinoFilterToSQL`` emits SQL that
-short-circuits the expensive geometry test when the row's bbox is fully inside
-the query envelope. The form differs by spatial filter type:
+The data store emits only row-level ``ST_*`` predicates (no ``CASE WHEN``), so the
+row-level saving that shortcut used to provide is recovered *inside the connector*, where
+it applies uniformly to data store queries and hand-written Trino SQL alike. When
+``geomesa.spatial.bbox-page-filter`` is enabled (the default), ``SpatialPageSourceProvider``
+wraps the Iceberg page source with ``BboxFilteringPageSource``. It reads only the cheap
+``__<geom>_bbox__`` sub-field columns (the REAL domains injected in Layer 2, carried to the
+worker in the table handle's unenforced predicate) and filters rows **before** the geometry
+WKB is decoded, in one of two modes chosen per query:
+
+* **Reject pre-filter** — for any spatial predicate, drops rows whose bbox cannot overlap
+  the query envelope and passes the survivors to the engine's exact ``ST_*`` residual. A
+  sound, non-destructive pre-filter: only rows failing a *necessary* overlap condition are
+  dropped, so no matching row is removed and the exact predicate still runs on every
+  survivor. Its win is the WKB decode it avoids on rejected rows.
+* **Short-circuit** — for a rectangle ``ST_Intersects`` on a Z2/point geometry column the
+  bbox proves the result exactly, so ``applyFilter()`` claims the predicate enforced
+  (replacing only the ``st_intersects`` node with ``TRUE`` — never ``is_visible`` or any
+  other conjunct) and the page source becomes authoritative: rows whose bbox is inside are
+  **accepted with no decode**, rows outside are rejected, and only the thin
+  envelope-boundary shell is decoded and tested exactly. For point columns the stored bbox
+  is degenerate (``xmin == xmax``, ``ymin == ymax``), so the classifier reads two coordinate
+  columns and the box test collapses to a point-in-range check.
+
+Directional float32 rounding keeps both modes exact: the reject box is rounded outward and
+the accept box inward, so any row a nearest-rounded float32 bbox could misclassify falls
+through to the exact test. The mode each predicate uses:
 
 .. list-table::
     :header-rows: 1
-    :widths: 20 45 35
+    :widths: 30 22 48
 
-    * - CQL filter
-      - Emitted SQL pattern
+    * - Predicate (emitted by the data store / recognized in SQL)
+      - Page-source mode
       - Soundness
-    * - ``INTERSECTS(geom, axis-aligned rectangle)``
-      - ``(bbox-overlap) AND CASE WHEN bbox-contained THEN TRUE ELSE ST_Intersects(geom, rect) END``
-      - bbox⊆rect ⇒ geom⊆rect ⇒ ST_Intersects=TRUE (sufficient; the rectangle IS its envelope)
-    * - ``INTERSECTS(geom, non-rectangular polygon)``
-      - ``(bbox-overlap) AND ST_Intersects(geom, polygon)``
-      - no shortcut: bbox⊆env(polygon) does NOT imply intersection (holes, concavity)
-    * - ``WITHIN(geom, axis-aligned rectangle)``
-      - ``(bbox-overlap) AND CASE WHEN bbox-in-shrunk-rect THEN TRUE ELSE ST_Within(geom, rect) END``
-      - WITHIN is boundary-exclusive and the stored bbox is float32, so the shortcut
-        rectangle is shrunk by two float ulps per side (containment then proves the
-        geometry is strictly interior); boundary-adjacent rows take the exact test
-    * - ``WITHIN(geom, non-rectangular polygon)``
-      - ``(bbox-overlap) AND ST_Within(geom, polygon)``
-      - bbox⊆env(polygon) does NOT imply geom⊆polygon
-    * - ``DWITHIN(geom, ref, d)``
-      - ``(outer-bbox) AND CASE WHEN bbox-in-inner-inscribed-rect THEN TRUE ELSE ST_Distance(...) ≤ d END``
-      - outer bbox = env(ref) expanded by d (covers extended references end to end);
-        the inscribed-rect shortcut applies to point references only — for lines and
-        polygons the exact spherical check runs via the planar nearest-points pair
-        (Trino's spherical ``ST_Distance`` is point-only)
-    * - ``BBOX(geom, env)``
-      - same as ``INTERSECTS(geom, envelope-rectangle)``
-      - a bare float32 bbox-overlap is not exact (the stored bbox is rounded to
-        nearest, admitting rows up to ½ ulp outside the envelope), so BBOX takes the
-        rectangle-intersects shape: overlap prefilter + shrunk-contained shortcut +
-        exact ``ST_Intersects`` fallback
-    * - ``CROSSES`` / ``TOUCHES`` / ``OVERLAPS`` / ``EQUALS``
-      - ``(bbox-overlap) AND ST_<op>(geom, g)``
-      - each implies a non-empty intersection ⇒ bbox-overlap is a valid necessary prefilter
-    * - ``CONTAINS(geom, g)``
-      - ``(bbox-covers) AND ST_Contains(geom, g)``
-      - geom ⊇ g ⇒ bbox(geom) ⊇ env(g) (necessary); reversed operands reuse the WITHIN paths
-    * - ``DISJOINT`` / ``BEYOND``
-      - exact ``ST_Disjoint`` / spherical distance > d, **no prefilter**
-      - the matching rows lie outside the query neighborhood — an overlap prefilter would prune the answer
+    * - ``ST_Intersects(geom, axis-aligned rectangle)`` on a point/Z2 column
+      - short-circuit
+      - bbox⊆rect ⇒ geom⊆rect ⇒ intersects (the rectangle IS its own envelope); the
+        boundary shell falls to the exact test
+    * - ``ST_Intersects`` on a non-rectangular polygon, or on a non-point (XZ2) column
+      - reject-only
+      - bbox⊆env(polygon) does NOT imply intersection (holes, concavity); the exact
+        ``ST_Intersects`` runs on survivors
+    * - ``ST_Within`` / ``ST_Contains`` / ``ST_Crosses`` / ``ST_Touches`` /
+        ``ST_Overlaps`` / ``ST_Equals``
+      - reject-only
+      - each implies a non-empty intersection ⇒ bbox-overlap is a valid necessary
+        prefilter; the exact predicate decides membership on survivors
+    * - ``DWITHIN`` — emitted as ``ST_Intersects(geom, outer rectangle) AND ST_Distance(...) ≤ d``
+      - reject-only (on the outer rectangle)
+      - the outer rectangle (reference expanded by ``d``) is a necessary bound on the
+        distance neighborhood; the exact spherical ``ST_Distance`` runs on survivors
+    * - ``ST_Disjoint`` / ``BEYOND`` (distance > d)
+      - none
+      - matching rows lie *outside* the query neighborhood — a bbox-overlap prefilter would
+        prune the answer, so no bbox pushdown is derived
 
-CASE WHEN — not OR. Trino's optimizer distributes OR over AND, causing the
-expensive predicate to evaluate up to 4× per row (3.3× wall-clock slowdown
-measured). CASE WHEN survives the optimizer intact and short-circuits cleanly.
+Doing this in the connector rather than as ``CASE WHEN`` SQL is deliberate: it keeps the
+data store's emitted SQL pure ``ST_*`` (so plans are identical however a query arrives),
+and it sidesteps Trino's optimizer distributing an ``OR`` form over ``AND`` — which would
+evaluate the expensive predicate up to 4× per row (a 3.3× wall-clock slowdown was measured
+with the old SQL forms). The filter is a pure performance layer: disabling it
+(``geomesa.spatial.bbox-page-filter=false``) changes runtime, never results. See
+:ref:`trino_configuration` for the cost/benefit and when to disable.
 
 .. _trino_partitioning:
 
