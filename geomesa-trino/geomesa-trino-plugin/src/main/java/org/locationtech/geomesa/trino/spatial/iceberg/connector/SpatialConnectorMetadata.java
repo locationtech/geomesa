@@ -82,6 +82,20 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     /** Ordered sub-field names of a {@code __<X>_bbox__} struct column. */
     private static final List<String> BBOX_FIELDS = List.of("xmin", "ymin", "xmax", "ymax");
 
+    // Trino function names this connector recognizes, lowercased for consistency.
+    // n.b. Trino itself resolves function names case-insensitively
+    private static final String ST_INTERSECTS         = "st_intersects";
+    private static final String ST_WITHIN             = "st_within";
+    private static final String ST_CONTAINS           = "st_contains";
+    private static final String ST_CROSSES            = "st_crosses";
+    private static final String ST_TOUCHES            = "st_touches";
+    private static final String ST_OVERLAPS           = "st_overlaps";
+    private static final String ST_EQUALS             = "st_equals";
+    private static final String ST_GEOMETRY_FROM_TEXT = "st_geometryfromtext";
+    private static final String ST_GEOM_FROM_TEXT     = "st_geomfromtext";
+    private static final String ST_GEOM_FROM_BINARY   = "st_geomfrombinary";
+    private static final String BBOX_PATTERN = "bbox_pattern";
+
     // Cached reflective accessors for foreign-classloader JTS Geometry/Envelope values
     // (see envelopeOf). Keyed by concrete Class so each lookup runs at most once.
     private static final Map<Class<?>, Method> GEOM_ENVELOPE_METHOD = new ConcurrentHashMap<>();
@@ -166,7 +180,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             List<BboxPatternMatch> bboxes = tryExtractBboxPatternMatches(constraint.getExpression());
             if (bboxes.isEmpty()) return delegate.applyFilter(session, handle, constraint);
             matches = bboxes.stream()
-                .map(bp -> new SpatialMatch(bp.envelope(), "bbox_pattern", bp.geomName()))
+                .map(bp -> new SpatialMatch(bp.envelope(), BBOX_PATTERN, bp.geomName()))
                 .toList();
         }
 
@@ -263,7 +277,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         if (bboxShortCircuit && matches.size() == 1 && resultHandle instanceof IcebergTableHandle ith) {
             SpatialMatch m = matches.get(0);
             GeometryColumn g = geoms.get(m.geomName());
-            if ("st_intersects".equals(m.functionName())
+            if (ST_INTERSECTS.equalsIgnoreCase(m.functionName())
                     && g != null
                     && g.partition().map(p -> p.kind() == SpatialIndexKind.Z2).orElse(false)
                     && queryIsRectangle(constraint.getExpression())) {
@@ -388,6 +402,18 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
                 (long) Float.floatToIntBits(high), true))), false);
     }
 
+    /** The call's function name lowercased, for case-insensitive matching against the
+     *  {@code ST_*} name constants (Trino resolves function names case-insensitively). */
+    private static String functionNameOf(Call call) {
+        return call.getFunctionName().getName().toLowerCase(Locale.ROOT);
+    }
+
+    /** True iff {@code call} names the given function, compared case-insensitively.
+     *  {@code lowerCaseName} must be one of the lowercased {@code ST_*} constants above. */
+    private static boolean matchesFunction(Call call, String lowerCaseName) {
+        return functionNameOf(call).equals(lowerCaseName);
+    }
+
     /**
      * Function names whose row-side argument is a geometry and whose query-side
      * argument is a geometry literal — the shape this connector can extract an
@@ -398,17 +424,17 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      * ST_Distance}-based predicates carry no extractable envelope; the datastore
      * lowers DWITHIN to bbox comparisons the pattern-reconstruction path picks up.
      */
-    private static boolean isSpatialPredicateName(String fn) {
-        return switch (fn) {
-            case "st_intersects", "st_within", "st_contains",
-                 "st_crosses", "st_touches", "st_overlaps", "st_equals" -> true;
+    private static boolean isSpatialPredicate(String fn) {
+        return switch (fn.toLowerCase()) {
+            case ST_INTERSECTS, ST_WITHIN, ST_CONTAINS,
+                 ST_CROSSES, ST_TOUCHES, ST_OVERLAPS, ST_EQUALS -> true;
             default -> false;
         };
     }
 
     /**
      * Extracts the envelope of the geometry-constant argument of a spatial
-     * function call (see {@link #isSpatialPredicateName}; the caller has
+     * function call (see {@link #isSpatialPredicate}; the caller has
      * already verified the function name). Used by collectSpatialMatches.
      */
     Optional<Envelope> tryExtractEnvelope(Call call) {
@@ -425,8 +451,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             }
             // Form 2: ST_GeometryFromText(varchar_literal) not yet folded.
             if (arg instanceof Call wktCall) {
-                String wktFn = wktCall.getFunctionName().getName().toLowerCase(Locale.ROOT);
-                if ((wktFn.equals("st_geometryfromtext") || wktFn.equals("st_geomfromtext"))
+                if ((matchesFunction(wktCall, ST_GEOMETRY_FROM_TEXT) || matchesFunction(wktCall, ST_GEOM_FROM_TEXT))
                         && !wktCall.getArguments().isEmpty()
                         && wktCall.getArguments().get(0) instanceof Constant wktConst) {
                     try {
@@ -513,8 +538,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
                 return isRectangleGeom(c.getValue());
             }
             if (arg instanceof Call wkt) {
-                String fn = wkt.getFunctionName().getName().toLowerCase(Locale.ROOT);
-                if ((fn.equals("st_geometryfromtext") || fn.equals("st_geomfromtext"))
+                if ((matchesFunction(wkt, ST_GEOMETRY_FROM_TEXT) || matchesFunction(wkt, ST_GEOM_FROM_TEXT))
                         && !wkt.getArguments().isEmpty()
                         && wkt.getArguments().get(0) instanceof Constant wc
                         && wc.getValue() instanceof Slice s) {
@@ -534,7 +558,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      *  which the engine must still apply. Only the spatial predicate is claimed enforced. */
     static ConnectorExpression dropSpatialCall(ConnectorExpression expr) {
         if (expr instanceof Call call) {
-            if ("st_intersects".equals(call.getFunctionName().getName().toLowerCase(Locale.ROOT))) {
+            if (matchesFunction(call, ST_INTERSECTS)) {
                 return Constant.TRUE;
             }
             if (AND_FUNCTION_NAME.equals(call.getFunctionName())) {
@@ -553,7 +577,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         if (!(expr instanceof Call call)) {
             return null;
         }
-        if ("st_intersects".equals(call.getFunctionName().getName().toLowerCase(Locale.ROOT))) {
+        if (matchesFunction(call, ST_INTERSECTS)) {
             return call;
         }
         if (AND_FUNCTION_NAME.equals(call.getFunctionName())) {
@@ -612,8 +636,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
 
     private void collectSpatialMatches(ConnectorExpression expr, List<SpatialMatch> acc) {
         if (!(expr instanceof Call call)) return;
-        String fn = call.getFunctionName().getName().toLowerCase(Locale.ROOT);
-        if (isSpatialPredicateName(fn)) {
+        String fn = functionNameOf(call);
+        if (isSpatialPredicate(fn)) {
             Optional<Envelope> envOpt = tryExtractEnvelope(call);
             Optional<String> geomNameOpt = extractGeomColumnName(call);
             if (envOpt.isPresent() && geomNameOpt.isPresent()) {
@@ -671,7 +695,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         }
         List<SpatialMatch> out = new ArrayList<>();
         for (Map.Entry<String, List<Envelope>> e : unionByGeom.entrySet()) {
-            out.add(new SpatialMatch(List.copyOf(e.getValue()), "$or", e.getKey()));
+            out.add(new SpatialMatch(List.copyOf(e.getValue()), OR_FUNCTION_NAME.getName(), e.getKey()));
         }
         return out;
     }
@@ -689,7 +713,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             }
             // Wrapped: ST_GeomFromBinary(var).
             if (arg instanceof Call inner
-                    && "st_geomfrombinary".equals(inner.getFunctionName().getName().toLowerCase(Locale.ROOT))
+                    && matchesFunction(inner, ST_GEOM_FROM_BINARY)
                     && !inner.getArguments().isEmpty()
                     && inner.getArguments().get(0) instanceof Variable v) {
                 return Optional.of(v.getName());
