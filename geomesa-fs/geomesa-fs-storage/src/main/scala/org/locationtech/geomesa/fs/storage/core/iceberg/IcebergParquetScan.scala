@@ -13,10 +13,11 @@ import org.apache.iceberg._
 import org.apache.iceberg.data.parquet.GenericParquetReaders
 import org.apache.iceberg.data.{InternalRecordWrapper, Record}
 import org.apache.iceberg.deletes.{Deletes, PositionDeleteIndex, PositionDeleteIndexUtil}
-import org.apache.iceberg.expressions.{Evaluator, Expressions}
+import org.apache.iceberg.expressions.{Evaluator, Expression, Expressions}
 import org.apache.iceberg.io.DeleteSchemaUtil
 import org.apache.iceberg.parquet.Parquet
 import org.apache.iceberg.types.TypeUtil
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
@@ -29,75 +30,87 @@ import scala.util.control.NonFatal
 /**
  * Reads parquet files based on an iceberg table scan
  *
- * @param scan scan
+ * @param table table to scan
+ * @param schema read schema
+ * @param filter filter
  * @param threads number of threads used to execute
  * @param fileFilter optional filter for restricting the files that are scanned
  */
-class IcebergParquetScan(scan: TableScan, threads: Int, fileFilter: Option[String => Boolean] = None)
-    extends CloseableIterator[Record] with LazyLogging {
+class IcebergParquetScan(
+    table: Table,
+    schema: SimpleFeatureIcebergSchema,
+    filter: Expression,
+    threads: Int,
+    fileFilter: Option[String => Boolean] = None
+  ) extends CloseableIterator[SimpleFeature] with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  private val sharedQueue = new LinkedBlockingQueue[Record](2000000)
-  private val localQueue = new java.util.LinkedList[Record]()
-
-  private val projection = scan.schema()
-  private lazy val deleteProjection =
-    if (projection.findField(MetadataColumns.ROW_POSITION.fieldId()) != null) { projection } else {
-      TypeUtil.join(projection, new Schema(MetadataColumns.ROW_POSITION))
-    }
-
-  private val caseSensitive = scan.isCaseSensitive
-
+  private val queue = new LinkedBlockingQueue[StructLike](10000)
   private val closed = new AtomicBoolean(false)
 
-  private val ex = new CachedThreadPool(threads)
-  private val tasks = scan.planTasks()
+  private lazy val deleteProjection =
+    if (schema.schema.findField(MetadataColumns.ROW_POSITION.fieldId()) != null) { schema.schema } else {
+      TypeUtil.join(schema.schema, new Schema(MetadataColumns.ROW_POSITION))
+    }
 
-  var i = 0
-  logger.debug("Submitting tasks")
-  tasks.forEach { task =>
-    logger.trace(s"Submitting task: $task")
-    ex.submit(new TaskRunnable(task))
-    i += 1
-  }
-  logger.debug(s"Submitted $i tasks, using $threads threads")
-  ex.shutdown()
+  private val row = StructSimpleFeature(schema)
 
-  private var current: Record = _
+  // WithClose here shuts down the executor service, but already submitted tasks will still be executed
+  private val ex =
+    WithClose(new CachedThreadPool(threads)) { pool =>
+      // note: exclude z2 cols even if there's no transform
+      val scan = table.newScan().caseSensitive(false).project(schema.schema).filter(filter)
+      try {
+        WithClose(scan.planTasks()) { plan =>
+          WithClose(plan.iterator()) { tasks =>
+            var taskCount = 0
+            var fileCount = 0
+            logger.debug("Submitting tasks")
+            tasks.forEachRemaining { task =>
+              logger.trace(s"Submitting task with ${task.filesCount()} file(s)")
+              pool.submit(new TaskRunnable(task))
+              taskCount += 1
+              fileCount += task.filesCount()
+            }
+            logger.debug(s"Submitted $taskCount tasks (scanning $fileCount total files) using $threads threads")
+          }
+        }
+      } finally {
+        CloseWithLogging(Option(scan).collect { case c: Closeable => c })
+      }
+      pool
+    }
+
+  private var current: StructLike = _
 
   override def hasNext: Boolean = {
     if (current != null) {
       return true
     }
-    current = localQueue.pollFirst()
+    current = queue.poll()
     if (current != null) {
       return true
     }
 
-    while (!ex.isTerminated) {
-      current = sharedQueue.poll(100, TimeUnit.MILLISECONDS)
-      if (current != null) {
-        sharedQueue.drainTo(localQueue, 10000)
-        return true
-      }
-    }
-
-    // last check - if ex.isTerminated, the queue should have whatever values are left
-    current = sharedQueue.poll()
-    if (current != null) {
-      sharedQueue.drainTo(localQueue, 10000)
-      true
-    } else {
+    if (closed.get()) {
       false
+    } else if (ex.isTerminated) {
+      current = queue.poll()
+      current != null
+    } else {
+      while (current == null && !ex.isTerminated) {
+        current = queue.poll(100, TimeUnit.MILLISECONDS)
+      }
+      current != null
     }
   }
 
-  override def next(): Record = {
+  override def next(): SimpleFeature = {
     if (hasNext) {
-      val ret = current
+      row.setRow(current)
       current = null
-      ret
+      row
     } else {
       Iterator.empty.next
     }
@@ -105,31 +118,27 @@ class IcebergParquetScan(scan: TableScan, threads: Int, fileFilter: Option[Strin
 
   override def close(): Unit = {
     if (closed.compareAndSet(false, true)) {
-      try {
-        ex.shutdownNow()
-        ex.awaitTermination(2, TimeUnit.SECONDS)
-      } finally {
-        CloseWithLogging(Seq(tasks) ++ Option(scan).collect { case c: Closeable => c })
-      }
+      ex.shutdownNow()
+      ex.awaitTermination(1, TimeUnit.SECONDS)
     }
   }
 
-  private def readFile(task: FileScanTask, projection: Schema): CloseableIterator[Record] = {
-    val inputFile = scan.table().io().newInputFile(task.file())
+  private def readFile(task: FileScanTask, projection: Schema): CloseableIterator[StructLike] = {
+    val inputFile = table.io().newInputFile(task.file())
     if (fileFilter.exists(_.apply(inputFile.location()) == false)) {
       logger.debug(s"Skipping file ${inputFile.location()} [${task.start()}:${task.length()}] due to file filter")
-      CloseableIterator.empty[Record]
+      CloseableIterator.empty[StructLike]
     } else {
-      logger.debug(s"Reading file ${inputFile.location()} [${task.start()}:${task.length()}]")
+      logger.debug(s"Reading file ${inputFile.location()} [${task.start()}:${task.length()}] with filter: ${task.residual()}")
       // we have to pass in the file path as a constant
       val idToConstant = java.util.Map.of[Integer, Any](MetadataColumns.FILE_PATH_COLUMN_ID, inputFile.location())
+      // note: can't reuse containers b/c we put everything onto the queue - reading row-by-row with reused containers is much slower
       val reader =
         Parquet.read(inputFile)
           .project(projection)
           .split(task.start(), task.length())
-          .caseSensitive(caseSensitive)
+          .caseSensitive(false)
           .filter(task.residual())
-          // TODO implement ParquetValueReader directly instead of using records
           .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(projection, fileSchema, idToConstant))
           .build[Record]()
       val iter = reader.iterator()
@@ -140,9 +149,10 @@ class IcebergParquetScan(scan: TableScan, threads: Int, fileFilter: Option[Strin
   private def readDeleteFile(delete: DeleteFile, dataFilePath: String): PositionDeleteIndex = {
     require(delete.content() == FileContent.POSITION_DELETES,
       s"Only positional deletes are supported, but got: ${delete.content()}")
+    logger.debug(s"Reading delete file ${delete.location()} [${delete.contentSizeInBytes()}]")
     val deleteFileSchema = DeleteSchemaUtil.pathPosSchema()
     val builder =
-      Parquet.read(scan.table().io().newInputFile(delete))
+      Parquet.read(table.io().newInputFile(delete))
         .project(deleteFileSchema)
         .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(deleteFileSchema, fileSchema))
         .filter(Expressions.equal(MetadataColumns.DELETE_FILE_PATH.name(), dataFilePath))
@@ -151,7 +161,7 @@ class IcebergParquetScan(scan: TableScan, threads: Int, fileFilter: Option[Strin
     }
   }
 
-  private class TaskRunnable(task: CombinedScanTask) extends Runnable {
+  private class TaskRunnable(val task: CombinedScanTask) extends Runnable {
     override def run(): Unit = {
       try {
         task.files().iterator().asScala.foreach { file =>
@@ -160,20 +170,20 @@ class IcebergParquetScan(scan: TableScan, threads: Int, fileFilter: Option[Strin
               val deletes = file.deletes().asScala.map(readDeleteFile(_, file.file().location()))
               Some(PositionDeleteIndexUtil.merge(deletes.asJava))
             }
-            val projection = if (deleteIndex.isEmpty) { IcebergParquetScan.this.projection } else { deleteProjection }
+            val projection = if (deleteIndex.isEmpty) { schema.schema } else { deleteProjection }
 
             WithClose(readFile(file, projection)) { iter =>
-              lazy val wrapper = new InternalRecordWrapper(projection.asStruct())
               val withDeletes = deleteIndex.fold(iter) { index =>
                 val position = projection.accessorForField(MetadataColumns.ROW_POSITION.fieldId())
-                iter.filterNot(r => index.isDeleted(position.get(wrapper.wrap(r)).asInstanceOf[java.lang.Long]))
+                iter.filterNot(r => index.isDeleted(position.get(r).asInstanceOf[java.lang.Long]))
               }
               val residual = file.residual()
               val filtered = if (residual == null || residual == Expressions.alwaysTrue()) { withDeletes } else {
-                val filter = new Evaluator(projection.asStruct(), residual, caseSensitive)
+                val filter = new Evaluator(projection.asStruct(), residual, false)
+                val wrapper = new InternalRecordWrapper(projection.asStruct())
                 withDeletes.filter(r => filter.eval(wrapper.wrap(r)))
               }
-              filtered.foreach(sharedQueue.put)
+              filtered.foreach(queue.put)
             }
           }
         }

@@ -20,7 +20,7 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.features.TransformSimpleFeature
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.core.FileSystemContext.RichConf
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
@@ -130,7 +130,7 @@ case class FileSystemStorage(
 
     val configured = QueryRunner.configureQuery(sft, query)
     val filter = Option(configured.getFilter).getOrElse(Filter.INCLUDE)
-    val icebergFilter = IcebergFilterConverter(sft, filter)
+    val icebergFilter = IcebergFilterConverter(sft, schemes, filter)
     val visFilter = VisibilityUtils.visible(authProvider)
     val transform = configured.getHints.getTransform
     val sort = configured.getHints.getSortFields
@@ -146,34 +146,25 @@ case class FileSystemStorage(
     logger.debug(s"  Sort: ${sort.fold("none") { fields => fields.map { case (f, rev) => s"$f ${if (rev) "descending" else ""}"}.mkString(", ")}}")
     logger.debug(s"  Max features: ${max.getOrElse("none")}")
 
-    val tableScan =
-      table.newScan()
-        .caseSensitive(false)
-        .project(readSchema.schema) // exclude z2 cols even if there's no transform
-        .filter(icebergFilter.expression)
-
-    val scan = {
-      val ff = RecordSimpleFeature(readSchema)
-      new IcebergParquetScan(tableScan, threads).map(ff.apply)
-    }
-    try {
-      val iter = scan.filter(visFilter.apply)
-      // apply any client side filter
-      val filtered =
-        icebergFilter.remainder.map(FastFilterFactory.optimize(readSchema.sft, _)).fold(iter)(f => iter.filter(f.evaluate))
-      // transform again as necessary to remove any cols needed for filtering, and/or to evaluate complex expressions
-      val transformed = transform.fold(filtered) { case (tdefs, tsft) =>
-        val transforms = Transforms(readSchema.sft, tdefs).toArray
-        if (tsft == readSchema.sft && transforms.forall(_.isInstanceOf[PropertyTransform])) {
-          // simple case where transform is handled by the iceberg scan
-          filtered
-        } else {
-          // need to evaluate transform expressions
-          filtered.map(sf => new TransformSimpleFeature(tsft, transforms).setFeature(sf))
-        }
+    val remainingFilter = icebergFilter.remainder.map(FastFilterFactory.optimize(readSchema.sft, _))
+    val transformer = transform.flatMap { case (tdefs, tsft) =>
+      val transforms = Transforms(readSchema.sft, tdefs).toArray
+      if (tsft == readSchema.sft && transforms.forall(_.isInstanceOf[PropertyTransform])) {
+        // simple case where transform is handled by the iceberg scan
+        None
+      } else {
+        // need to evaluate transform expressions
+        Some(new TransformSimpleFeature(tsft, transforms))
       }
-      // sort and limit
-      val sorted = sort.fold(transformed)(new SortingSimpleFeatureIterator(transformed, _))
+    }
+
+    val scan = new IcebergParquetScan(table, readSchema, icebergFilter.expression, threads)
+    try {
+      val visible = scan.filter(visFilter.apply)
+      val filtered = remainingFilter.fold(visible)(f => visible.filter(f.evaluate))
+      val transformed = transformer.fold(filtered)(t => filtered.map(t.setFeature))
+      // note - have to copy the features since sorting will not just be sequential access
+      val sorted = sort.fold(transformed)(new SortingSimpleFeatureIterator(transformed.map(ScalaSimpleFeature.copy), _))
       val limited = max.fold(sorted)(m => sorted.take(m))
       limited
     } catch {

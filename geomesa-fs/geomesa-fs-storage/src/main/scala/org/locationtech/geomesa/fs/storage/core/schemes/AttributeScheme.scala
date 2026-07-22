@@ -37,6 +37,8 @@ abstract class AttributeScheme[T: ClassTag](val attribute: String, index: Int, n
     opts.toString()
   }
 
+  override val column: String = ColumnName.encode(attribute)
+
   private val default = PartitionKey(name, toPartition(nullValue))
 
   override def getPartition(feature: SimpleFeature): PartitionKey = {
@@ -49,8 +51,8 @@ abstract class AttributeScheme[T: ClassTag](val attribute: String, index: Int, n
   }
 
   override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = bucketing match {
-    case None => b.identity(ColumnName.encode(attribute))
-    case Some(bucket) => b.truncate(ColumnName.encode(attribute), bucket.width)
+    case None => b.identity(column)
+    case Some(bucket) => b.truncate(column, bucket.width)
   }
 
   override def getPartition(partition: StructLike, i: Int): PartitionKey =
@@ -187,7 +189,7 @@ object AttributeScheme extends PartitionSchemeFactory {
       ff.equals(ff.property(attribute), ff.literal(partition.value))
 
     override def getCoveringExpression(partition: PartitionKey): Expression =
-      Expressions.equal[String](ColumnName.encode(attribute), partition.value)
+      Expressions.equal[String](column, partition.value)
   }
 
   /**
@@ -208,7 +210,7 @@ object AttributeScheme extends PartitionSchemeFactory {
     }
 
     override def getCoveringExpression(partition: PartitionKey): Expression =
-      Expressions.equal[String](Expressions.truncate[String](ColumnName.encode(attribute), maxWidth.width), partition.value)
+      Expressions.equal[String](Expressions.truncate[String](column, maxWidth.width), partition.value)
   }
 
   /**
@@ -242,8 +244,8 @@ object AttributeScheme extends PartitionSchemeFactory {
     }
 
     override def getCoveringExpression(partition: PartitionKey): Expression = divisor match {
-      case None => Expressions.equal[T](ColumnName.encode(attribute), decoder(partition.value))
-      case Some(d) => Expressions.equal[T](Expressions.truncate[T](ColumnName.encode(attribute), integral.toInt(d.divisor)), decoder(partition.value))
+      case None => Expressions.equal[T](column, decoder(partition.value))
+      case Some(d) => Expressions.equal[T](Expressions.truncate[T](column, integral.toInt(d.divisor)), decoder(partition.value))
     }
   }
 
@@ -301,8 +303,8 @@ object AttributeScheme extends PartitionSchemeFactory {
     }
 
     override def getCoveringExpression(partition: PartitionKey): Expression = scale match {
-      case None => Expressions.equal[T](ColumnName.encode(attribute), decoder(partition.value))
-      case Some(s) => Expressions.equal[T](Expressions.truncate[T](ColumnName.encode(attribute), s.scale), decoder(partition.value))
+      case None => Expressions.equal[T](column, decoder(partition.value))
+      case Some(s) => Expressions.equal[T](Expressions.truncate[T](column, s.scale), decoder(partition.value))
     }
   }
 

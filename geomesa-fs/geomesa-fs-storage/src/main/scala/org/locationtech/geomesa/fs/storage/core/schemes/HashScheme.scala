@@ -33,6 +33,8 @@ case class HashScheme[T](attribute: String, index: Int, buckets: Int, hasher: Mu
 
   override val name: String = s"${HashScheme.Name}:attribute=$attribute:buckets=$buckets"
 
+  override val column: String = ColumnName.encode(attribute)
+
   private val format = s"%0${(buckets - 1).toString.length}d"
   private val default = PartitionKey(name, format.format(0))
 
@@ -51,9 +53,9 @@ case class HashScheme[T](attribute: String, index: Int, buckets: Int, hasher: Mu
   }
 
   override def getCoveringExpression(partition: PartitionKey): Expression =
-    Expressions.equal(Expressions.bucket[Integer](ColumnName.encode(attribute), buckets), Integer.valueOf(partition.value))
+    Expressions.equal(Expressions.bucket[Integer](column, buckets), Integer.valueOf(partition.value))
 
-  override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.bucket(ColumnName.encode(attribute), buckets)
+  override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.bucket(column, buckets)
 
   override def getPartition(partition: StructLike, i: Int): PartitionKey =
     PartitionKey(name, format.format(partition.get(i, classOf[Integer])))

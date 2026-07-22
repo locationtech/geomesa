@@ -12,6 +12,7 @@ import org.apache.iceberg.expressions.Expression
 import org.apache.iceberg.{PartitionSpec, StructLike}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.{Partition, PartitionKey}
 
 import java.time.ZonedDateTime
@@ -40,6 +41,13 @@ trait PartitionScheme {
    * @return
    */
   def attribute: String
+
+  /**
+   * Name of the column used for expressions
+   *
+   * @return
+   */
+  def column: String
 
   /**
     * Return the partition in which a SimpleFeature should be stored

@@ -299,7 +299,6 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
               // geopandas seems to be the only thing that currently reads GeoParquet native encoding
             }
 
-
             // verify GeoParquet metadata
             WithClose(ParquetFileReader.open(new LocalInputFile(tmpFile))) { reader =>
               val meta = reader.getFileMetaData.getKeyValueMetaData
@@ -569,7 +568,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
   def testQuery(storage: FileSystemStorage, sft: SimpleFeatureType)
       (filter: String, transforms: Array[String], results: Seq[SimpleFeature]): MatchResult[Any] = {
     val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms: _*)
-    val features = CloseableIterator(storage.getReader(query, 1)).toList
+    val features = CloseableIterator(storage.getReader(query, 1)).map(ScalaSimpleFeature.copy).toList
     val attributes = Option(transforms).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>

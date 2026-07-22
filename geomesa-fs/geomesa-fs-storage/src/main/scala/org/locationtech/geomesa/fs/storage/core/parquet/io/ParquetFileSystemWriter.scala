@@ -104,7 +104,8 @@ object ParquetFileSystemWriter extends LazyLogging {
       .withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
       .withValidation(false)
       .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
-      .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_2_0)
+      // parquet v2 introduces packed delta encoding, which as of this writing prevents iceberg and trino from using vectorized reads
+      .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
       .withRowGroupSize(8L*1024*1024)
   }
 

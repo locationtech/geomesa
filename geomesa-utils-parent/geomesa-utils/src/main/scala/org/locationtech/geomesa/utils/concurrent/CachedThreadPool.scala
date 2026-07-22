@@ -80,15 +80,15 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService with Laz
     }
     val task = command match {
       case t: TrackableFutureTask[_] => t
-      case c => newTaskFor(c, null)
+      case c => new TrackableFutureTask[AnyRef](c, null)
     }
-    runOrQueueTask(task)
+    runOrQueueTask(task, continuation = false)
   }
 
-  private def runOrQueueTask(task: TrackableFutureTask[_]): Unit = {
+  private def runOrQueueTask(task: TrackableFutureTask[_], continuation: Boolean): Unit = {
     lock.lock()
     try {
-      if (available > 0) {
+      if (continuation || available > 0) {
         // note that we could fairly easily create a global thread limit by backing this with a different pool
         try { CachedThreadPool.pool.execute(task) } catch {
           case e: RejectedExecutionException =>
@@ -100,7 +100,9 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService with Laz
             pool.execute(task)
             pool.shutdown()
         }
-        available -= 1
+        if (!continuation) {
+          available -= 1
+        }
         tasks.add(task)
       } else {
         queue.offer(task) // unbounded queue so should always succeed
@@ -110,21 +112,22 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService with Laz
     }
   }
 
-  // noinspection SameParameterValue
-  override protected def newTaskFor[T](runnable: Runnable, value: T): TrackableFutureTask[T] =
+  override protected def newTaskFor[T](runnable: Runnable, value: T): RunnableFuture[T] =
     new TrackableFutureTask[T](runnable, value)
 
-  class TrackableFutureTask[T](runnable: Runnable, result: T) extends FutureTask[T](runnable, result) {
+  private class TrackableFutureTask[T](runnable: Runnable, result: T) extends FutureTask[T](runnable, result) {
     override def done(): Unit = {
       lock.lock()
       try {
-        available += 1
         tasks.remove(this)
         val next = queue.poll()
         if (next != null) {
-          runOrQueueTask(next) // note: this may briefly use more than maxThreads as this thread finishes up
-        } else if (isTerminated) {
-          CachedThreadPool.this.done.signalAll()
+          runOrQueueTask(next, continuation = true) // note: this may briefly use more than maxThreads as this thread finishes up
+        } else {
+          available += 1
+          if (isTerminated) {
+            CachedThreadPool.this.done.signalAll()
+          }
         }
       } finally {
         lock.unlock()

@@ -36,9 +36,7 @@ class FileScan(protected val tableScan: TableScan) {
 
 object FileScan {
 
-  type FluentScan =
-    FileScan with RetrieveMetadata[PartitionScan[FileScan] with FilterScan[FileScan]]
-      with PartitionScan[RetrieveMetadata[FileScan]] with FilterScan[RetrieveMetadata[FileScan]]
+  type FluentScan = FileScan with RetrieveMetadata[FilterScan[FileScan]] with FilterScan[RetrieveMetadata[FileScan]]
 
   /**
    * A step in the scan builder that allows for selecting metadata (e.g. column-level stats) to be retrieved
@@ -47,34 +45,43 @@ object FileScan {
     protected def tableScan: TableScan
     protected def metadataStep(scan: TableScan): T
 
+    /**
+     * Include column stats in the returned files
+     *
+     * @return
+     */
     def includeFileStats(): T = metadataStep(tableScan.includeColumnStats())
   }
 
   /**
-   * A step in the scan builder that allows for filtering the returned files based on partition
-   */
-  trait PartitionScan[T <: FileScan] extends FileScan {
-
-    protected def tableScan: TableScan
-    protected def schemes: Seq[PartitionScheme]
-    protected def filterStep(scan: TableScan): T
-
-    def forPartition(partition: Partition): T = {
-      val filters = schemes.zip(partition.values).map { case (s, p) => s.getCoveringExpression(p) }
-      filterStep(tableScan.filter(filters.reduce(Expressions.and)))
-    }
-  }
-
-  /**
-   * A step in the scan builder that allows for filtering the returned files based on a CQL filter
+   * A step in the scan builder that allows for filtering the returned files based on a CQL filter or partition
    */
   trait FilterScan[T <: FileScan] extends FileScan {
 
     protected def tableScan: TableScan
     protected def sft: SimpleFeatureType
+    protected def schemes: Seq[PartitionScheme]
     protected def filterStep(scan: TableScan): T
 
-    def forFilter(filter: Filter): FileScan = filterStep(tableScan.filter(IcebergFilterConverter(sft, filter).expression))
+    /**
+     * Filter results based on CQL
+     *
+     * @param filter filter
+     * @return
+     */
+    def forFilter(filter: Filter): FileScan =
+      filterStep(tableScan.filter(IcebergFilterConverter(sft, schemes, filter).expression))
+
+    /**
+     * Filter results based on a partition
+     *
+     * @param partition partition
+     * @return
+     */
+    def forPartition(partition: Partition): T = {
+      val filters = schemes.zip(partition.values).map { case (s, p) => s.getCoveringExpression(p) }
+      filterStep(tableScan.filter(filters.reduce(Expressions.and)))
+    }
   }
 
   /**
@@ -92,15 +99,14 @@ object FileScan {
 
   private class InitialScan(scan: TableScan, protected val sft: SimpleFeatureType, protected val schemes: Seq[PartitionScheme])
       extends FileScan(scan)
-        with RetrieveMetadata[PartitionScan[FileScan] with FilterScan[FileScan]]
-        with PartitionScan[RetrieveMetadata[FileScan]]
+        with RetrieveMetadata[FilterScan[FileScan]]
         with FilterScan[RetrieveMetadata[FileScan]] {
     override protected def metadataStep(scan: TableScan): FilterableScan = new FilterableScan(scan, sft, schemes)
     override protected def filterStep(scan: TableScan): OptionalMetadataScan = new OptionalMetadataScan(scan)
   }
 
   private class FilterableScan(scan: TableScan, protected val sft: SimpleFeatureType, protected val schemes: Seq[PartitionScheme])
-      extends FileScan(scan) with PartitionScan[FileScan] with FilterScan[FileScan] {
+      extends FileScan(scan) with FilterScan[FileScan] {
     override protected def filterStep(scan: TableScan): FileScan = new FileScan(scan)
   }
 

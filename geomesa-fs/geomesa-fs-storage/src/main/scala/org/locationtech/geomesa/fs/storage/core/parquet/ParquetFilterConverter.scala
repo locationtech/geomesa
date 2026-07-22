@@ -18,6 +18,7 @@ import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName}
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
+import org.locationtech.jts.geom.Point
 
 import java.util.Date
 import scala.reflect.ClassTag
@@ -69,8 +70,9 @@ object ParquetFilterConverter {
       }
     }
 
+    val isPoint = sft.getDescriptor(name.attribute).getType.getBinding == classOf[Point]
     val predicate = xyBounds.map { case (xmin, ymin, xmax, ymax) =>
-      BoundingBoxField.filterParquet(name.column, xmin, ymin, xmax, ymax)
+      BoundingBoxField.filterParquet(name.column, xmin, ymin, xmax, ymax, isPoint)
     }
     // since we don't know what the actual file encoding is up front, we always have to evaluate the full predicate post-read
     (predicate, Some(filter))

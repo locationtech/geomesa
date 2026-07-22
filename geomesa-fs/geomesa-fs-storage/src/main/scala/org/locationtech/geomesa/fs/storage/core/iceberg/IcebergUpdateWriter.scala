@@ -136,7 +136,7 @@ object IcebergUpdateWriter {
 
     override protected def createAction(partition: Partition): DeleteWriter = new DeleteWriter(storage, partition, files)
     override protected def apply(action: DeleteWriter, feature: SimpleFeature): Unit =
-      action.apply(feature.asInstanceOf[RecordSimpleFeature])
+      action.apply(feature.asInstanceOf[StructSimpleFeature])
   }
 
   /**
@@ -147,7 +147,7 @@ object IcebergUpdateWriter {
    * @param files set for returning any delete files created by this deleter
    */
   private class DeleteWriter(storage: FileSystemStorage, partition: Partition, files: java.util.Set[DeleteFile])
-      extends (RecordSimpleFeature => Unit) with Closeable with Flushable {
+      extends (StructSimpleFeature => Unit) with Closeable with Flushable {
 
     private val closed = new AtomicBoolean(false)
     private val deletes = Seq.newBuilder[(String, Long)]
@@ -161,7 +161,7 @@ object IcebergUpdateWriter {
         .createWriterFunc((schema: Schema, `type`: MessageType) => GenericParquetWriter.create(schema, `type`))
         .buildPositionWriter[Unit]()
 
-    override def apply(feature: RecordSimpleFeature): Unit = deletes += (feature.getFilePath -> feature.getRowPosition)
+    override def apply(feature: StructSimpleFeature): Unit = deletes += (feature.getFilePath -> feature.getRowPosition)
 
     override def flush(): Unit = {}
 

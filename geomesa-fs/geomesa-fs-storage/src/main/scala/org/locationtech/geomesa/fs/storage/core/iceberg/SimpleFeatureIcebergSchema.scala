@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
+import org.apache.iceberg.types.Types
 import org.apache.iceberg.types.Types._
 import org.apache.iceberg.{MetadataColumns, Schema}
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -185,8 +186,21 @@ object SimpleFeatureIcebergSchema {
   private case class IcebergFields(fields: Seq[NestedField], aliases: Map[String, Integer]) {
     def toSchema: Schema = new Schema(fields.asJava, aliases.asJava, java.util.Set.of[Integer](1))
     def toSchema(cols: Seq[String], includeRowPositions: Boolean): Schema = {
-      val projection =
-        cols.map(col => fields.find(_.name() == col).getOrElse(throw new IllegalStateException(s"Unexpected projection: $col")))
+      val parsedCols = new java.util.LinkedHashMap[String, Seq[String]]()
+      cols.foreach { col =>
+        val sep = col.indexOf('.')
+        if (sep == -1) { parsedCols.put(col, Seq.empty) } else {
+          parsedCols.compute(col.substring(0, sep),
+            (_, children) => (Option(children).getOrElse(Seq.empty) :+ col.substring(sep + 1)).distinct)
+        }
+      }
+      val projection = parsedCols.asScala.toSeq.map { case (name, children) =>
+        val field = fields.find(_.name() == name).getOrElse(throw new IllegalStateException(s"Unexpected projection: $name"))
+        if (children.isEmpty || children.size == field.`type`().asStructType().fields().size()) { field } else {
+          val subfields = field.`type`().asStructType().fields().asScala.filter(f => children.contains(f.name()))
+          Types.NestedField.optional(field.fieldId(), field.name(), Types.StructType.of(subfields.asJava))
+        }
+      }
       val withRows =
         if (includeRowPositions) { projection ++ Seq(MetadataColumns.FILE_PATH, MetadataColumns.ROW_POSITION) } else { projection }
       val ids = projection.collectFirst { case f if f.name() == FeatureIdField => Int.box(f.fieldId()) }

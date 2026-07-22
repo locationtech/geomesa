@@ -9,14 +9,17 @@
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import org.apache.iceberg.expressions.Expression.Operation
-import org.apache.iceberg.expressions.{Expression, Expressions, UnboundPredicate}
+import org.apache.iceberg.expressions.ExpressionVisitors.ExpressionVisitor
+import org.apache.iceberg.expressions._
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName}
+import org.locationtech.geomesa.fs.storage.core.schemes.{PartitionScheme, SpatialScheme}
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
+import org.locationtech.jts.geom.Point
 
 import java.util.Date
 import scala.reflect.ClassTag
@@ -30,18 +33,18 @@ object IcebergFilterConverter {
    * @param filter geotools filter
    * @return
    */
-  def apply(sft: SimpleFeatureType, filter: Filter): ReadFilter = {
+  def apply(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], filter: Filter): ReadFilter = {
     if (filter == Filter.INCLUDE) {
       ReadFilter(Expressions.alwaysTrue(), None, Set.empty)
     } else if (filter == Filter.EXCLUDE) {
       ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
     } else {
       val names = FilterHelper.propertyNames(filter).map(ColumnName.apply)
-      names.foldLeft(ReadFilter(Expressions.alwaysTrue(), Some(filter), names.map(_.column).toSet))(reduce(sft))
+      names.foldLeft(ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty))(reduce(sft, schemes))
     }
   }
 
-  private def reduce(sft: SimpleFeatureType)(result: ReadFilter, name: ColumnName): ReadFilter = {
+  private def reduce(sft: SimpleFeatureType, schemes: Seq[PartitionScheme])(result: ReadFilter, name: ColumnName): ReadFilter = {
     val filter = result.remainder.orNull
     if (filter == null) {
       return result // no more filter to evaluate
@@ -49,7 +52,7 @@ object IcebergFilterConverter {
     val bindings = ObjectType.selectType(sft.getDescriptor(name.attribute))
     val predicate = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates
-      case ObjectType.GEOMETRY => spatial(sft, name, filter)
+      case ObjectType.GEOMETRY => spatial(sft, schemes, name, filter)
       case ObjectType.DATE     => attribute[Date](sft, name, filter, Some(dateToMicros))
       case ObjectType.STRING   => attribute[String](sft, name, filter)
       case ObjectType.INT      => attribute[Integer](sft, name, filter)
@@ -57,29 +60,46 @@ object IcebergFilterConverter {
       case ObjectType.FLOAT    => attribute[java.lang.Float](sft, name, filter)
       case ObjectType.DOUBLE   => attribute[java.lang.Double](sft, name, filter)
       case ObjectType.BOOLEAN  => attribute[java.lang.Boolean](sft, name, filter)
-      case _ => ReadFilter(Expressions.alwaysTrue(), result.remainder, Set.empty)
+      case _ => ReadFilter(Expressions.alwaysTrue(), result.remainder, Set(name.column))
     }
     ReadFilter(Expressions.and(predicate.expression, result.expression), predicate.remainder, predicate.columns ++ result.columns)
   }
 
-  private def spatial(sft: SimpleFeatureType, name: ColumnName, filter: Filter): ReadFilter = {
+  private def spatial(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], name: ColumnName, filter: Filter): ReadFilter = {
     val (spatial, nonSpatial) = FilterExtractingVisitor(filter, name.attribute, sft, SpatialFilterStrategy.spatialCheck)
-    val bounds = spatial.map(FilterHelper.extractGeometries(_, name.attribute))
-    val xyBounds = bounds.toSeq.flatMap { extracted =>
-      Seq(extracted).filter(e => e.nonEmpty && !e.disjoint).flatMap { e =>
-        e.values.map(GeometryUtils.bounds)
+    if (spatial.isEmpty) {
+      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty)
+    }
+
+    val bounds = FilterHelper.extractGeometries(spatial.get, name.attribute)
+    if (bounds.disjoint) {
+      return ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
+    }
+    val xyBounds = bounds.values.map(GeometryUtils.bounds)
+    if (xyBounds.isEmpty) {
+      // couldn't extract anything, all evaluation will be client-side against the raw filter
+      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(name.column))
+    }
+
+    // row/group level filter against the bbox field
+    val bboxPredicate = {
+      val isPoint = sft.getDescriptor(name.attribute).getType.getBinding == classOf[Point]
+      val predicates = xyBounds.map { case (xmin, ymin, xmax, ymax) =>
+        BoundingBoxField.filterIceberg(name.column, xmin, ymin, xmax, ymax, isPoint)
       }
+      predicates.reduce(Expressions.or)
     }
+    val bboxCols = ExpressionVisitors.visit(bboxPredicate, ReferenceVisitor)
 
-    // filter against the bbox field
-    val predicate = xyBounds.map { case (xmin, ymin, xmax, ymax) =>
-      BoundingBoxField.filterIceberg(name.column, xmin, ymin, xmax, ymax)
-    }
+    // partition level filter for partition pruning
+    // assertion - we don't need to include the z col in our read schema as this expression will be removed during manifest scanning
+    val spatialScheme = schemes.collectFirst { case s: SpatialScheme if s.attribute == name.attribute => s }
+    val partitionPredicate = spatialScheme.fold[Expression](Expressions.alwaysTrue())(_.getCoveringExpression(xyBounds))
 
-    val remaining = if (bounds.exists(_.precise)) { nonSpatial } else { Some(filter) }
-    val geomCol = if (bounds.exists(b => !b.precise)) { Some(name.column) } else { None }
-    val bboxCol = if (predicate.nonEmpty) { Some(BoundingBoxField.groupName(name.column)) } else { None }
-    ReadFilter(predicate.reduce(Expressions.or), remaining, (geomCol ++ bboxCol).toSet)
+    val (remaining, geomCol) = if (bounds.precise) { (nonSpatial, None) } else { (Some(filter), Some(name.column)) }
+    val filterCols = bboxCols ++ geomCol
+
+    ReadFilter(Expressions.and(bboxPredicate, partitionPredicate), remaining, filterCols)
   }
 
   private def attribute[T : ClassTag](
@@ -88,41 +108,46 @@ object IcebergFilterConverter {
       filter: Filter,
       transform: Option[T => Any] = None): ReadFilter = {
     val (attribute, nonAttribute) = FilterExtractingVisitor(filter, name.attribute, sft)
+    if (attribute.isEmpty) {
+      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty)
+    }
+
     val binding = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
-    val bounds = attribute.map(FilterHelper.extractAttributeBounds(_, name.attribute, binding))
-    val predicate = bounds.flatMap { extracted =>
-      Some(extracted).filter(e => e.nonEmpty && !e.disjoint && e.values.forall(_.isBounded)).map { e =>
-        val values = transform match {
-          case None => e.values
-          case Some(t) =>
-            e.values.map { bounds =>
-              bounds.copy(bounds.lower.copy(bounds.lower.value.map(t.apply)), bounds.upper.copy(bounds.upper.value.map(t.apply)))
-            }
+    val bounds = FilterHelper.extractAttributeBounds(attribute.get, name.attribute, binding)
+    if (bounds.disjoint) {
+      return ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
+    } else if (bounds.isEmpty || bounds.exists(b => !b.isBounded)) {
+      // couldn't extract anything, all evaluation will be client-side against the raw filter
+      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(name.column))
+    }
+    val values = transform match {
+      case None => bounds.values
+      case Some(t) =>
+        bounds.values.map { bounds =>
+          bounds.copy(bounds.lower.copy(bounds.lower.value.map(t.apply)), bounds.upper.copy(bounds.upper.value.map(t.apply)))
         }
-        val filters = values.map { bounds =>
-          if (bounds.isEquals) {
-            Expressions.equal(name.column, bounds.lower.value.get)
-          } else {
-            val lower = bounds.lower.value.map { value =>
-              if (bounds.lower.inclusive) { Expressions.greaterThanOrEqual(name.column, value) } else { Expressions.greaterThan(name.column, value) }
-            }
-            val upper = bounds.upper.value.map { value =>
-              if (bounds.upper.inclusive) { Expressions.lessThanOrEqual(name.column, value) } else { Expressions.lessThan(name.column, value) }
-            }
-            (lower, upper) match {
-              case (Some(lo), Some(hi)) => Expressions.and(lo, hi)
-              case (Some(f), None) => f
-              case (None, Some(f)) => f
-              case (None, None) => throw new IllegalStateException() // shouldn't happen due to checks above
-            }
-          }
+    }
+    val filters = values.map { bounds =>
+      if (bounds.isEquals) {
+        Expressions.equal(name.column, bounds.lower.value.get)
+      } else {
+        val lower = bounds.lower.value.map { value =>
+          if (bounds.lower.inclusive) { Expressions.greaterThanOrEqual(name.column, value) } else { Expressions.greaterThan(name.column, value) }
         }
-        merge(filters)
+        val upper = bounds.upper.value.map { value =>
+          if (bounds.upper.inclusive) { Expressions.lessThanOrEqual(name.column, value) } else { Expressions.lessThan(name.column, value) }
+        }
+        (lower, upper) match {
+          case (Some(lo), Some(hi)) => Expressions.and(lo, hi)
+          case (Some(f), None) => f
+          case (None, Some(f)) => f
+          case (None, None) => throw new IllegalStateException() // shouldn't happen due to checks above
+        }
       }
     }
-    val remaining = if (bounds.exists(_.precise)) { nonAttribute } else { Some(filter) }
-    val cols = if (predicate.isDefined || bounds.exists(b => !b.precise)) { Set(name.column) } else { Set.empty[String] }
-    ReadFilter(predicate.getOrElse(Expressions.alwaysTrue()), remaining, cols)
+    val predicate = merge(filters)
+    val remaining = if (bounds.precise) { nonAttribute } else { Some(filter) }
+    ReadFilter(predicate, remaining, Set(name.column))
   }
 
   /**
@@ -160,4 +185,32 @@ object IcebergFilterConverter {
    * @param columns column names (encoded) needed for evaluating both the expression and filter
    */
   case class ReadFilter(expression: Expression, remainder: Option[Filter], columns: Set[String])
+
+  /**
+   * Visitor to extract column references (names) from an expression
+   */
+  private object ReferenceVisitor extends ExpressionVisitor[Set[String]] {
+
+    override def alwaysTrue: Set[String] = Set.empty
+
+    override def alwaysFalse: Set[String] = Set.empty
+
+    override def not(result: Set[String]): Set[String] = result
+
+    override def and(leftResult: Set[String], rightResult: Set[String]): Set[String] = leftResult ++ rightResult
+
+    override def or(leftResult: Set[String], rightResult: Set[String]): Set[String] = leftResult ++ rightResult
+
+    override def predicate[T](pred: UnboundPredicate[T]): Set[String] = unwrapTerm(pred.term())
+
+    override def predicate[T](pred: BoundPredicate[T]): Set[String] = unwrapTerm(pred.term())
+
+    private def unwrapTerm(term: Term): Set[String] = term match {
+      case ref: Reference[_] => Set(ref.name())
+      case t: UnboundTransform[_, _] => Set(t.ref.name())
+      case t: BoundTransform[_, _] => Set(t.ref.name())
+      case _ => Set.empty
+    }
+  }
+
 }

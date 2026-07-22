@@ -36,13 +36,15 @@ case class DateTimeScheme(attribute: String, index: Int, unit: ChronoUnit) exten
 
   override val name: String = s"${unit.name().toLowerCase(Locale.US)}:attribute=$attribute"
 
+  override val column: String = ColumnName.encode(attribute)
+
   private val encoder = DateTimeScheme.encoder(unit)
 
   override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = unit match {
-    case ChronoUnit.HOURS  => b.hour(ColumnName.encode(attribute))
-    case ChronoUnit.DAYS   => b.day(ColumnName.encode(attribute))
-    case ChronoUnit.MONTHS => b.month(ColumnName.encode(attribute))
-    case ChronoUnit.YEARS  => b.year(ColumnName.encode(attribute))
+    case ChronoUnit.HOURS  => b.hour(column)
+    case ChronoUnit.DAYS   => b.day(column)
+    case ChronoUnit.MONTHS => b.month(column)
+    case ChronoUnit.YEARS  => b.year(column)
     case _ => throw new UnsupportedOperationException("An implementation is missing")
   }
 
@@ -61,10 +63,10 @@ case class DateTimeScheme(attribute: String, index: Int, unit: ChronoUnit) exten
 
   override def getCoveringExpression(partition: PartitionKey): Expression = {
     val transform = unit match {
-      case ChronoUnit.HOURS  => Expressions.hour[Integer](ColumnName.encode(attribute))
-      case ChronoUnit.DAYS   => Expressions.day[Integer](ColumnName.encode(attribute))
-      case ChronoUnit.MONTHS => Expressions.month[Integer](ColumnName.encode(attribute))
-      case ChronoUnit.YEARS  => Expressions.year[Integer](ColumnName.encode(attribute))
+      case ChronoUnit.HOURS  => Expressions.hour[Integer](column)
+      case ChronoUnit.DAYS   => Expressions.day[Integer](column)
+      case ChronoUnit.MONTHS => Expressions.month[Integer](column)
+      case ChronoUnit.YEARS  => Expressions.year[Integer](column)
       case _ => throw new UnsupportedOperationException("An implementation is missing")
     }
     Expressions.equal[Integer](transform, encoder.decode(partition.value))

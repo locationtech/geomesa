@@ -31,6 +31,20 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage_${scala.binary.version}</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk.crt</groupId>
+                    <artifactId>aws-crt</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.s3.analyticsaccelerator</groupId>
+                    <artifactId>analyticsaccelerator-s3</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

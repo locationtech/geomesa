@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.storage.core
 package schemes
 
+import org.apache.iceberg.expressions.{Expression, Expressions}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme.EnumeratedScheme
 import org.locationtech.jts.geom.Geometry
@@ -18,7 +19,61 @@ import scala.reflect.ClassTag
 
 trait SpatialScheme extends PartitionScheme with EnumeratedScheme {
 
+  /**
+   * Number of digits in the hex-encoded space-filling curve values
+   *
+   * @return
+   */
   protected def digits: Int
+
+  /**
+   * Gets the full (not truncated) hex-encoded ranges for a query
+   *
+   * @param bounds query bounds, in the form (xmin, ymin, xmax, ymax)
+   * @return
+   */
+  protected def hexRanges(bounds: Seq[(Double, Double, Double, Double)]): Seq[(String, String)]
+
+  /**
+   * Gets an expression that will match the specified bounds
+   *
+   * @param bounds spatial bounds, in the form (xmin, ymin, xmax, ymax). Multiple bounds are logically OR'd together
+   * @return
+   */
+  def getCoveringExpression(bounds: Seq[(Double, Double, Double, Double)]): Expression = {
+    // truncate and merge any overlapping ranges
+    val allRanges = hexRanges(bounds).map(PartitionRange.apply).distinct.sortBy(_.lower)
+
+    val inValues = new java.util.ArrayList[String]()
+    var expression: Expression = Expressions.alwaysFalse()
+
+    def addPartitionRange(r: PartitionRange): Unit = {
+      if (r.lower == r.upper) {
+        inValues.add(r.lower)
+      } else {
+        val gte = Expressions.greaterThanOrEqual(Expressions.truncate[String](column, digits), r.lower)
+        val lte = Expressions.lessThanOrEqual(Expressions.truncate[String](column, digits), r.upper)
+        expression = Expressions.or(expression, Expressions.and(gte, lte))
+      }
+    }
+
+    val last = allRanges.reduce { (left, right) =>
+      left.merge(right) match {
+        case None => addPartitionRange(left); right
+        case Some(merged) => merged
+      }
+    }
+    addPartitionRange(last)
+
+    if (!inValues.isEmpty) {
+      expression = Expressions.or(expression, Expressions.in(Expressions.truncate[String](column, digits), inValues))
+    }
+
+    expression
+  }
+
+  override def getCoveringExpression(partition: PartitionKey): Expression =
+    Expressions.equal[String](Expressions.truncate[String](column, digits), partition.value)
 
   override def partitions: Seq[PartitionKey] = {
     val keys = (1 to digits).foldLeft(Seq("")) { (accumulated, _) =>
@@ -30,6 +85,44 @@ trait SpatialScheme extends PartitionScheme with EnumeratedScheme {
       }
     }
     keys.map(PartitionKey(name, _))
+  }
+
+  /**
+   * Ranged bounds, used for filtering on partitions
+   *
+   * @param lower lower bound, inclusive
+   * @param upper upper bound, exclusive
+   */
+  private case class PartitionRange(lower: String, upper: String) {
+
+    /**
+     * Attempt to merge two bounds. Only overlapping bounds will result in a successful merge. Trying to merge
+     * bounds from a different partition scheme is a logical error.
+     *
+     * @param other bounds to merge
+     * @return
+     */
+    def merge(other: PartitionRange): Option[PartitionRange] = {
+      if (lower <= other.lower) {
+        if (upper >= other.upper) {
+          Some(this)
+        } else if (upper >= other.lower) {
+          Some(PartitionRange(lower, other.upper))
+        } else {
+          None
+        }
+      } else if (lower > other.upper) {
+        None
+      } else if (upper >= other.upper) {
+        Some(PartitionRange(other.lower, upper))
+      } else {
+        Some(other)
+      }
+    }
+  }
+
+  private object PartitionRange {
+    def apply(bounds: (String, String)): PartitionRange = PartitionRange(bounds._1.take(digits), bounds._2.take(digits))
   }
 }
 

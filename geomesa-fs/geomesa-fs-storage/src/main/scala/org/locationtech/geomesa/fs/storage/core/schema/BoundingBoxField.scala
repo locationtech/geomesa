@@ -79,17 +79,18 @@ object BoundingBoxField {
    * @param ymax ymax
    * @return
    */
-  def filterParquet(geom: String, xmin: Double, ymin: Double, xmax: Double, ymax: Double): FilterPredicate = {
+  def filterParquet(geom: String, xmin: Double, ymin: Double, xmax: Double, ymax: Double, isPoint: Boolean): FilterPredicate = {
+    // TODO // if points, we can just project 2 of the 4 bbox fields, since min == max
     val bbox = groupName(geom)
     val xminCol = FilterApi.floatColumn(s"$bbox.$XMin")
     val yminCol = FilterApi.floatColumn(s"$bbox.$YMin")
     val xmaxCol = FilterApi.floatColumn(s"$bbox.$XMax")
     val ymaxCol = FilterApi.floatColumn(s"$bbox.$YMax")
     val filters = Seq[FilterPredicate](
-      FilterApi.ltEq(xminCol, Float.box(xmax.toFloat)),
-      FilterApi.gtEq(xmaxCol, Float.box(xmin.toFloat)),
-      FilterApi.ltEq(yminCol, Float.box(ymax.toFloat)),
-      FilterApi.gtEq(ymaxCol, Float.box(ymin.toFloat))
+      FilterApi.ltEq(xminCol, Float.box(Math.nextUp(xmax.toFloat))),
+      FilterApi.gtEq(xmaxCol, Float.box(Math.nextDown(xmin.toFloat))),
+      FilterApi.ltEq(yminCol, Float.box(Math.nextUp(ymax.toFloat))),
+      FilterApi.gtEq(ymaxCol, Float.box(Math.nextDown(ymin.toFloat))),
     )
     filters.reduce(FilterApi.and)
   }
@@ -104,13 +105,19 @@ object BoundingBoxField {
    * @param ymax ymax
    * @return
    */
-  def filterIceberg(geom: String, xmin: Double, ymin: Double, xmax: Double, ymax: Double): Expression = {
+  def filterIceberg(geom: String, xmin: Double, ymin: Double, xmax: Double, ymax: Double, isPoint: Boolean): Expression = {
     val bbox = groupName(geom)
+    // if points, we can just project 2 of the 4 bbox fields, since min == max
+    val Seq(bboxXMin, bboxXMax, bboxYMin, bboxYMax) = if (isPoint) {
+      Seq(s"$bbox.$XMin", s"$bbox.$XMin", s"$bbox.$YMin", s"$bbox.$YMin")
+    } else {
+      Seq(s"$bbox.$XMin", s"$bbox.$XMax", s"$bbox.$YMin", s"$bbox.$YMax")
+    }
     val exps = Seq(
-      Expressions.lessThanOrEqual(s"$bbox.$XMin", Float.box(xmax.toFloat)),
-      Expressions.greaterThanOrEqual(s"$bbox.$XMax", Float.box(xmin.toFloat)),
-      Expressions.lessThanOrEqual(s"$bbox.$YMin", Float.box(ymax.toFloat)),
-      Expressions.greaterThanOrEqual(s"$bbox.$YMax", Float.box(ymin.toFloat))
+      Expressions.lessThanOrEqual(bboxXMin, Float.box(Math.nextUp(xmax.toFloat))),
+      Expressions.greaterThanOrEqual(bboxXMax, Float.box(Math.nextDown(xmin.toFloat))),
+      Expressions.lessThanOrEqual(bboxYMin, Float.box(Math.nextUp(ymax.toFloat))),
+      Expressions.greaterThanOrEqual(bboxYMax, Float.box(Math.nextDown(ymin.toFloat))),
     )
     exps.reduce(Expressions.and)
   }

@@ -11,8 +11,9 @@ package org.locationtech.geomesa.fs.storage.jobs.parquet
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.apache.iceberg.DataFile
+import org.apache.iceberg.expressions.Expressions
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergParquetScan, RecordSimpleFeature}
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergParquetScan
 import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetPartitionInputFormat.{PartitionInputSplit, PartitionRecordReader}
@@ -110,8 +111,6 @@ object ParquetPartitionInputFormat {
 
   class PartitionRecordReader(files: Seq[String]) extends RecordReader[Void, SimpleFeature] {
 
-    import scala.collection.JavaConverters._
-
     private var catalog: StorageCatalog = _
     private var storage: FileSystemStorage = _
     private var reader: CloseableIterator[SimpleFeature] = _
@@ -134,12 +133,7 @@ object ParquetPartitionInputFormat {
       storage = catalog.load(typeName)
 
       val readSchema = storage.schema.read(None, Set.empty)
-      val ff = RecordSimpleFeature(readSchema)
-      val tableScan =
-        storage.table.newScan()
-          .select(readSchema.schema.columns().asScala.map(_.name()).asJava) // exclude z2 cols even if there's no transform
-
-      reader = new IcebergParquetScan(tableScan, math.min(8, files.size), Some(filterFiles)).map(ff.apply)
+      reader = new IcebergParquetScan(storage.table, readSchema, Expressions.alwaysTrue(), math.min(8, files.size), Some(filterFiles))
     }
 
     // TODO look at how the ParquetInputFormat provides progress and utilize something similar
