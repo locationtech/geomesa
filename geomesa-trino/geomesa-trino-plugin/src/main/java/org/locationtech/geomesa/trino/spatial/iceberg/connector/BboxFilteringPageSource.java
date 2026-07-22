@@ -29,27 +29,37 @@ import java.util.function.ObjLongConsumer;
 
 /**
  * Wraps the Iceberg page source with a sound, pre-decode bbox filter over a geometry's
- * {@code __X_bbox__} sub-fields, which the connector injected as real domains and which ride to
- * the worker in the table handle's unenforced predicate.
- *   <strong>Row Filtering</strong>:
+ * {@code __X_bbox__} sub-fields, which the connector injected as REAL domains and which ride to the
+ * worker in the table handle's unenforced predicate. Two modes, selected by whether an
+ * {@link AcceptConfig} is supplied:
+ *
+ * <ul>
+ *   <li><strong>Reject-only</strong> ({@code accept == null}) — drops rows whose bbox cannot overlap
+ *       the query envelope and hands the survivors to the engine's exact {@code ST_*} residual. A
+ *       sound pre-filter for any spatial predicate the connector could not claim enforced
+ *       (non-rectangle query, non-point column, {@code ST_Contains}, …): it saves the WKB decode on
+ *       the rejected rows without changing the result.</li>
+ *   <li><strong>Short-circuit</strong> ({@code accept != null}) — the connector claimed a rectangle
+ *       {@code ST_Intersects} on a point column enforced, so this is the authoritative filter:
  *       <ul>
- *         <li>bbox outside the <em>outer</em> (float32-outward-rounded) box ⇒ <strong>reject</strong>;</li>
- *         <li>bbox inside the <em>inner</em> (float32-inward-rounded) box ⇒ <strong>accept</strong>
- *             with no WKB decode — the row's geometry is provably inside the query rectangle;</li>
- *         <li>otherwise (the thin boundary shell, or a null bbox) ⇒ decode the geometry WKB and run
- *             the <strong>exact</strong> {@code intersects} test against the query rectangle.</li>
+ *         <li>bbox outside the reject box (float32-outward-rounded) ⇒ <strong>reject</strong>;</li>
+ *         <li>bbox inside the accept box (float32-inward-rounded) ⇒ <strong>accept</strong> with no
+ *             WKB decode — the geometry is provably inside the query rectangle;</li>
+ *         <li>otherwise (thin boundary shell, or a null bbox) ⇒ decode the WKB and run the
+ *             <strong>exact</strong> {@code intersects} test.</li>
  *       </ul>
- *       The outward/inward float32 rounding of the two boxes guarantees every row that could be
- *       misclassified by the nearest-rounded stored bbox falls through to the exact test, so the
- *       result is identical to the engine's exact predicate. Bbox-short-circuit mode is only ever
- *       engaged for a rectangle {@code ST_Intersects} on a geometry column whose SFT subtype is
- *       {@code Point} (see {@link SpatialConnectorMetadata}).
+ *       The outward/inward rounding guarantees any row a nearest-rounded float32 bbox could
+ *       misclassify falls through to the exact test, so the result equals the engine's exact
+ *       predicate.</li>
+ * </ul>
+ *
+ * <p>Both modes share the same reject pass over {@link #rejectBounds}; short-circuit adds the
+ * accept/shell classification on the survivors.
  *
  * <p><strong>Laziness.</strong> Only the cheap bbox columns are materialized to classify rows; the
- * geometry column is fetched only when a shell row is present in a page, and decoded only at the
- * shell positions. Accept and reject rows never touch the WKB. The bbox sub-field columns this
- * page source added to the physical read (beyond what the query projected) are stripped from the
- * returned page.
+ * geometry column is fetched only when a shell row appears in a page, and decoded only at the shell
+ * positions. Accept and reject rows never touch the WKB. Any bbox/geometry columns this page source
+ * added to the physical read (beyond what the query projected) are stripped from the returned page.
  */
 final class BboxFilteringPageSource implements ConnectorPageSource {
 
@@ -58,31 +68,33 @@ final class BboxFilteringPageSource implements ConnectorPageSource {
     /** One bbox-box bound: the row's real value in {@code channel} must lie within {@code [low, high]}. */
     record BboxBound(int channel, float low, float high) {}
 
-    /** Bbox-short-circuit configuration. {@code outerBounds} are the reject bounds (ANY violated by a
-     *  non-null bbox ⇒ reject); {@code innerBounds} are the containment bounds (ALL must hold ⇒ accept);
-     *  {@code geomChannel} is the physical channel of the geometry WKB column; {@code queryRect} is the
-     *  exact query rectangle for the shell test. */
-    record ShortCircuitConfig(List<BboxBound> outerBounds,
-                              List<BboxBound> innerBounds,
-                              int geomChannel,
-                              Geometry queryRect) {}
+    /** Short-circuit accept configuration; {@code null} ⇒ reject-only mode. {@code innerBounds}
+     *  are the containment bounds (ALL must hold ⇒ accept with no WKB decode); {@code geomChannel} is
+     *  the physical channel of the geometry WKB column; {@code queryRect} is the exact query rectangle
+     *  for the boundary-shell test. */
+    record AcceptConfig(List<BboxBound> innerBounds, int geomChannel, Geometry queryRect) {}
 
     private final ConnectorPageSource delegate;
-    private final ShortCircuitConfig config;
+    /** Reject box: a row whose non-null bbox violates any bound is provably outside the envelope. */
+    private final List<BboxBound> rejectBounds;
+    /** Accept/exact config in short-circuit mode; {@code null} ⇒ reject-only pre-filter. */
+    private final AcceptConfig accept;
 
     /** Number of channels the query actually requested; any beyond this were added to read the
-     *  bbox sub-fields and the geometry, and must be hidden from the engine. */
+     *  bbox sub-fields (and, in short-circuit mode, the geometry) and must be hidden from the engine. */
     private final int outputChannelCount;
     private final boolean stripAddedChannels;
 
     BboxFilteringPageSource(ConnectorPageSource delegate,
                             int outputChannelCount,
                             boolean stripAddedChannels,
-                            ShortCircuitConfig config) {
+                            List<BboxBound> rejectBounds,
+                            AcceptConfig accept) {
         this.delegate = delegate;
         this.outputChannelCount = outputChannelCount;
         this.stripAddedChannels = stripAddedChannels;
-        this.config = config;
+        this.rejectBounds = rejectBounds;
+        this.accept = accept;
     }
 
     @Override
@@ -93,29 +105,31 @@ final class BboxFilteringPageSource implements ConnectorPageSource {
         }
         int positions = page.getPositionCount();
 
-        List<BboxBound> outerBounds = config.outerBounds();
-        List<BboxBound> innerBounds = config.innerBounds();
-        Block[] outerBlocks = materialize(page, outerBounds);
-        Block[] innerBlocks = materialize(page, innerBounds);
+        Block[] rejectBlocks = materialize(page, rejectBounds);
+        Block[] innerBlocks = accept == null ? null : materialize(page, accept.innerBounds());
         Block geomBlock = null;   // geometry column + reader fetched lazily, only if a shell row appears
         WKBReader reader = null;
 
         int[] retained = new int[positions];
         int kept = 0;
         for (int p = 0; p < positions; p++) {
-            if (rejected(p, outerBlocks, outerBounds)) {
+            if (rejected(p, rejectBlocks, rejectBounds)) {
                 continue;   // provably outside the envelope → drop
             }
-            if (accepted(p, innerBlocks, innerBounds)) {
+            if (accept == null) {
+                retained[kept++] = p;
+                continue;   // reject-only: the engine's exact ST_ still runs on the survivors
+            }
+            if (accepted(p, innerBlocks, accept.innerBounds())) {
                 retained[kept++] = p;
                 continue;   // provably inside the envelope → accept with no WKB decode
             }
             // Boundary shell (or null bbox): decode WKB and run the exact test.
             if (geomBlock == null) {
-                geomBlock = page.getBlock(config.geomChannel());
+                geomBlock = page.getBlock(accept.geomChannel());
                 reader = new WKBReader();
             }
-            if (shellMatches(geomBlock, p, reader, config.queryRect())) {
+            if (shellMatches(geomBlock, p, reader, accept.queryRect())) {
                 retained[kept++] = p;
             }
         }

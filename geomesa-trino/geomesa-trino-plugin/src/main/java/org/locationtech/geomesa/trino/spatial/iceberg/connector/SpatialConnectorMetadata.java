@@ -184,15 +184,27 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             Envelope env = new Envelope(match.envelopes().get(0));
             match.envelopes().forEach(env::expandToInclude);
             // Bbox sub-field domains for per-file Parquet-stat pruning.
+            boolean point = geom.partition().map(p -> p.kind() == SpatialIndexKind.Z2).orElse(false);
             geom.bbox().ifPresent(bbox -> {
-                // Skip re-injection if the planner round-tripped this already.
-                if (constraint.getSummary().getDomains().map(d -> d.containsKey(bbox.xmax())).orElse(false)) {
+                // Skip re-injection if the planner round-tripped this already (xmin is injected in
+                // both the point and non-point forms below).
+                if (constraint.getSummary().getDomains().map(d -> d.containsKey(bbox.xmin())).orElse(false)) {
                     return;
                 }
-                domains.merge(bbox.xmax(), realGreaterThanOrEqual(pruneSafeLowerBound(env.getMinX())), Domain::intersect);
-                domains.merge(bbox.xmin(), realLessThanOrEqual(pruneSafeUpperBound(env.getMaxX())),    Domain::intersect);
-                domains.merge(bbox.ymax(), realGreaterThanOrEqual(pruneSafeLowerBound(env.getMinY())), Domain::intersect);
-                domains.merge(bbox.ymin(), realLessThanOrEqual(pruneSafeUpperBound(env.getMaxY())),    Domain::intersect);
+                if (point) {
+                    // Point data (Z2 ⟺ sft subtype Point): the stored bbox is degenerate —
+                    // xmin==xmax==x, ymin==ymax==y — so box overlap is a point-in-range test. One
+                    // two-sided domain per axis on the lower sub-field gives the same file pruning
+                    // while halving both the stat predicates and the columns the reject-only page
+                    // source later reads (it reconstructs the reject box from these domains).
+                    domains.merge(bbox.xmin(), realBetween(pruneSafeLowerBound(env.getMinX()), pruneSafeUpperBound(env.getMaxX())), Domain::intersect);
+                    domains.merge(bbox.ymin(), realBetween(pruneSafeLowerBound(env.getMinY()), pruneSafeUpperBound(env.getMaxY())), Domain::intersect);
+                } else {
+                    domains.merge(bbox.xmax(), realGreaterThanOrEqual(pruneSafeLowerBound(env.getMinX())), Domain::intersect);
+                    domains.merge(bbox.xmin(), realLessThanOrEqual(pruneSafeUpperBound(env.getMaxX())),    Domain::intersect);
+                    domains.merge(bbox.ymax(), realGreaterThanOrEqual(pruneSafeLowerBound(env.getMinY())), Domain::intersect);
+                    domains.merge(bbox.ymin(), realLessThanOrEqual(pruneSafeUpperBound(env.getMaxY())),    Domain::intersect);
+                }
                 injectedBboxes.add(bbox);
             });
 
@@ -365,6 +377,15 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         long bits = (long) Float.floatToIntBits(value);
         return Domain.create(SortedRangeSet.copyOf(RealType.REAL,
             List.of(Range.lessThanOrEqual(RealType.REAL, bits))), false);
+    }
+
+    /** Builds a REAL-typed Domain for "low <= column <= high" (used for point data, where the
+     *  degenerate bbox collapses each axis to a single two-sided range). */
+    private static Domain realBetween(float low, float high) {
+        return Domain.create(SortedRangeSet.copyOf(RealType.REAL, List.of(
+            Range.range(RealType.REAL,
+                (long) Float.floatToIntBits(low), true,
+                (long) Float.floatToIntBits(high), true))), false);
     }
 
     /**

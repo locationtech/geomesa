@@ -17,8 +17,8 @@ import io.trino.spi.connector.ConnectorPageSource;
 import io.trino.spi.connector.SourcePage;
 import io.trino.spi.type.VarbinaryType;
 import org.junit.jupiter.api.Test;
+import org.locationtech.geomesa.trino.spatial.iceberg.connector.BboxFilteringPageSource.AcceptConfig;
 import org.locationtech.geomesa.trino.spatial.iceberg.connector.BboxFilteringPageSource.BboxBound;
-import org.locationtech.geomesa.trino.spatial.iceberg.connector.BboxFilteringPageSource.ShortCircuitConfig;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -38,61 +38,64 @@ import static org.assertj.core.api.Assertions.assertThat;
  * exact-shell classification keeps. This is the coverage the corpus/parity IT can't give offline —
  * and the guard against a refactor silently turning the filter into a pass-through (every row kept).
  *
- * <p>Geometry subtype is {@code Point}, so each row's bbox is degenerate: {@code xmin==xmax==x} and
- * {@code ymin==ymax==y}. Bounds are built exactly as {@link SpatialPageSourceProvider#planAccept}
- * does, via its directional-rounding helpers, over the query rectangle {@code [0,10] × [0,20]}.
- * Physical channel layout: {@code 0=xmin, 1=ymin, 2=xmax, 3=ymax, 4=geom}.
+ * <p>Geometry subtype is {@code Point}, so each row's bbox is degenerate ({@code xmin==xmax==x},
+ * {@code ymin==ymax==y}) and {@code planAccept} reads only the two lower sub-fields as the point's
+ * {@code (x, y)}. Bounds are built exactly as {@link SpatialPageSourceProvider#planAccept} does, via
+ * its directional-rounding helpers, over the query rectangle {@code [0,10] × [0,20]}. Physical
+ * channel layout: {@code 0=x, 1=y, 2=geom}.
  */
 class BboxFilteringPageSourceTest {
 
     private static final GeometryFactory GF = new GeometryFactory();
-    private static final int XMIN = 0, YMIN = 1, XMAX = 2, YMAX = 3, GEOM = 4;
+    private static final int X = 0, Y = 1, GEOM = 2;
 
-    /** Reject/accept boxes over [0,10]×[0,20], built the same way the provider builds them. */
-    private static ShortCircuitConfig config() {
+    /** Reject box over [0,10]×[0,20]: point outside the outward-rounded rectangle (as planAccept builds). */
+    private static List<BboxBound> rejectBox() {
         double minX = 0, minY = 0, maxX = 10, maxY = 20;
-        List<BboxBound> outer = List.of(
-            new BboxBound(XMAX, SpatialPageSourceProvider.outLow(minX), Float.POSITIVE_INFINITY),
-            new BboxBound(XMIN, Float.NEGATIVE_INFINITY, SpatialPageSourceProvider.outHigh(maxX)),
-            new BboxBound(YMAX, SpatialPageSourceProvider.outLow(minY), Float.POSITIVE_INFINITY),
-            new BboxBound(YMIN, Float.NEGATIVE_INFINITY, SpatialPageSourceProvider.outHigh(maxY)));
+        return List.of(
+            new BboxBound(X, SpatialPageSourceProvider.outLow(minX), SpatialPageSourceProvider.outHigh(maxX)),
+            new BboxBound(Y, SpatialPageSourceProvider.outLow(minY), SpatialPageSourceProvider.outHigh(maxY)));
+    }
+
+    /** Accept/exact config over the same rectangle (short-circuit mode; {@code null} ⇒ reject-only). */
+    private static AcceptConfig acceptConfig() {
+        double minX = 0, minY = 0, maxX = 10, maxY = 20;
         List<BboxBound> inner = List.of(
-            new BboxBound(XMIN, SpatialPageSourceProvider.inLow(minX), Float.POSITIVE_INFINITY),
-            new BboxBound(XMAX, Float.NEGATIVE_INFINITY, SpatialPageSourceProvider.inHigh(maxX)),
-            new BboxBound(YMIN, SpatialPageSourceProvider.inLow(minY), Float.POSITIVE_INFINITY),
-            new BboxBound(YMAX, Float.NEGATIVE_INFINITY, SpatialPageSourceProvider.inHigh(maxY)));
+            new BboxBound(X, SpatialPageSourceProvider.inLow(minX), SpatialPageSourceProvider.inHigh(maxX)),
+            new BboxBound(Y, SpatialPageSourceProvider.inLow(minY), SpatialPageSourceProvider.inHigh(maxY)));
         Geometry rect = GF.createPolygon(new Coordinate[]{
             new Coordinate(minX, minY), new Coordinate(maxX, minY), new Coordinate(maxX, maxY),
             new Coordinate(minX, maxY), new Coordinate(minX, minY)});
-        return new ShortCircuitConfig(outer, inner, GEOM, rect);
+        return new AcceptConfig(inner, GEOM, rect);
     }
 
-    /** A page of point rows: bbox leaves from the coordinates, geometry from {@code geoms}
-     *  (null ⇒ null WKB). {@code xs.length} must equal {@code ys.length} and {@code geoms.length}. */
+    /** A page of point rows: the degenerate bbox is a single (x, y) pair per row, geometry from
+     *  {@code geoms} (null ⇒ null WKB). {@code xs.length} must equal {@code ys.length} and {@code geoms.length}. */
     private static SourcePage pointPage(float[] xs, float[] ys, Geometry[] geoms) {
-        return new StubSourcePage(xs.length,
-            realBlock(xs), realBlock(ys), realBlock(xs), realBlock(ys), geomBlock(geoms));
+        return new StubSourcePage(xs.length, realBlock(xs), realBlock(ys), geomBlock(geoms));
     }
 
-    /** A page whose bbox leaves are all SQL NULL (forcing the exact-shell path), with the given geoms. */
+    /** A page whose (x, y) are SQL NULL (forcing the exact-shell path), with the given geoms. */
     private static SourcePage nullBboxPage(Geometry[] geoms) {
         Block nulls = nullRealBlock(geoms.length);
-        return new StubSourcePage(geoms.length, nulls, nulls, nulls, nulls, geomBlock(geoms));
+        return new StubSourcePage(geoms.length, nulls, nulls, geomBlock(geoms));
     }
 
-    private static int filteredPositions(SourcePage page, ShortCircuitConfig config,
+    private static int filteredPositions(SourcePage page, List<BboxBound> rejectBounds, AcceptConfig accept,
                                          int outputChannelCount, boolean strip) {
-        var src = new BboxFilteringPageSource(new OneShotPageSource(page), outputChannelCount, strip, config);
-        SourcePage out = src.getNextSourcePage();
-        return out.getPositionCount();
+        var src = new BboxFilteringPageSource(
+            new OneShotPageSource(page), outputChannelCount, strip, rejectBounds, accept);
+        return src.getNextSourcePage().getPositionCount();
     }
+
+    // ---- short-circuit mode (accept != null): authoritative reject / accept / exact -------------
 
     @Test
     void rejectsPointsWhollyOutsideEnvelope() {
         // (-5,10) left of box, (50,10) right, (5,30) above — none can intersect [0,10]×[0,20].
         SourcePage page = pointPage(new float[]{-5, 50, 5}, new float[]{10, 10, 30},
             new Geometry[]{point(-5, 10), point(50, 10), point(5, 30)});
-        assertThat(filteredPositions(page, config(), 5, false)).isEqualTo(0);
+        assertThat(filteredPositions(page, rejectBox(), acceptConfig(), 5, false)).isEqualTo(0);
     }
 
     @Test
@@ -101,7 +104,7 @@ class BboxFilteringPageSourceTest {
         // path wrongly fell through to the exact test it would decode null and drop them → 0, failing.
         SourcePage page = pointPage(new float[]{5, 2, 8}, new float[]{10, 5, 15},
             new Geometry[]{null, null, null});
-        assertThat(filteredPositions(page, config(), 5, false)).isEqualTo(3);
+        assertThat(filteredPositions(page, rejectBox(), acceptConfig(), 5, false)).isEqualTo(3);
     }
 
     @Test
@@ -111,7 +114,7 @@ class BboxFilteringPageSourceTest {
             new float[]{5, -5, 2, 50, 8},
             new float[]{10, 10, 5, 10, 15},
             new Geometry[]{point(5, 10), point(-5, 10), point(2, 5), point(50, 10), point(8, 15)});
-        assertThat(filteredPositions(page, config(), 5, false)).isEqualTo(3);
+        assertThat(filteredPositions(page, rejectBox(), acceptConfig(), 5, false)).isEqualTo(3);
     }
 
     @Test
@@ -123,7 +126,7 @@ class BboxFilteringPageSourceTest {
             new float[]{5, -5, 2, 50, 8},
             new float[]{10, 10, 5, 10, 15},
             new Geometry[]{point(5, 10), point(-5, 10), point(2, 5), point(50, 10), point(8, 15)});
-        var src = new BboxFilteringPageSource(new OneShotPageSource(page), 0, true, config());
+        var src = new BboxFilteringPageSource(new OneShotPageSource(page), 0, true, rejectBox(), acceptConfig());
         SourcePage out = src.getNextSourcePage();
         assertThat(out.getPositionCount()).as("filtered position count").isEqualTo(3);
         assertThat(out.getChannelCount()).as("added channels hidden from engine").isEqualTo(0);
@@ -134,7 +137,29 @@ class BboxFilteringPageSourceTest {
         // Null bbox can prove neither reject nor accept, so each row decodes its WKB and runs the
         // exact intersection: the (5,10) point matches, the (50,10) point does not.
         SourcePage page = nullBboxPage(new Geometry[]{point(5, 10), point(50, 10)});
-        assertThat(filteredPositions(page, config(), 5, false)).isEqualTo(1);
+        assertThat(filteredPositions(page, rejectBox(), acceptConfig(), 5, false)).isEqualTo(1);
+    }
+
+    // ---- reject-only mode (accept == null): drop non-overlapping, keep the rest for the engine ---
+
+    @Test
+    void rejectOnlyDropsOutsidePointsAndKeepsTheRest() {
+        // Same mixed page; reject-only drops the two clearly-outside points and keeps the other three
+        // for the engine's exact ST_ (no accept/shell classification here).
+        SourcePage page = pointPage(
+            new float[]{5, -5, 2, 50, 8},
+            new float[]{10, 10, 5, 10, 15},
+            new Geometry[]{point(5, 10), point(-5, 10), point(2, 5), point(50, 10), point(8, 15)});
+        assertThat(filteredPositions(page, rejectBox(), null, 5, false)).isEqualTo(3);
+    }
+
+    @Test
+    void rejectOnlyKeepsNullBboxRowsWithoutDecoding() {
+        // A null bbox is never provably outside, so reject-only keeps BOTH rows for the engine WITHOUT
+        // decoding — including the (50,10) point the engine will later drop. Contrast with
+        // nullBboxRowFallsThroughToExactGeometryTest, where short-circuit mode decodes and keeps 1.
+        SourcePage page = nullBboxPage(new Geometry[]{point(5, 10), point(50, 10)});
+        assertThat(filteredPositions(page, rejectBox(), null, 5, false)).isEqualTo(2);
     }
 
     // ---- fixtures ---------------------------------------------------------------------------------
