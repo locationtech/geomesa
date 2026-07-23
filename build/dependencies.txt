@@ -182,7 +182,7 @@ org.apache.arrow:arrow-vector:19.0.0:compile
 org.apache.avro:avro:1.12.1:compile
 org.apache.commons:commons-collections4:4.4:compile
 org.apache.commons:commons-compress:1.26.0:compile
-org.apache.commons:commons-configuration2:2.10.1:compile
+org.apache.commons:commons-configuration2:2.15.1:compile
 org.apache.commons:commons-crypto:1.1.0:compile
 org.apache.commons:commons-csv:1.10.0:compile
 org.apache.commons:commons-dbcp2:2.11.0:compile
@@ -342,7 +342,7 @@ org.objenesis:objenesis:2.5.1:compile
 org.objenesis:objenesis:3.3:compile
 org.parboiled:parboiled-core:1.4.1:compile
 org.parboiled:parboiled-scala_2.12:1.3.1:compile
-org.postgresql:postgresql:42.7.11:compile
+org.postgresql:postgresql:42.7.13:compile
 org.projectnessie.nessie:nessie-client:0.107.5:compile
 org.projectnessie.nessie:nessie-model:0.107.5:compile
 org.reactivestreams:reactive-streams:1.0.4:compile
