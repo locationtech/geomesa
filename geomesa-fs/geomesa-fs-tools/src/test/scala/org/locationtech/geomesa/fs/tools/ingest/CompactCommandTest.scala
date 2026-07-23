@@ -95,10 +95,10 @@ class CompactCommandTest extends SpecificationWithJUnit with FsContainerTest {
       val command = new FsCompactCommand()
       command.params.featureName = sft.getTypeName
       command.params.path = path
-      command.params.runMode = RunModes.Distributed.toString
+      command.params.runMode = RunModes.Distributed.toString // TODO test local mode
       command.params.configuration = configs.toList.asJava
       command.execute() must not(throwAn[Exception])
-    }.pendingUntilFixed()
+    }
 
     "be one file per partition after compacting" in {
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
@@ -117,7 +117,7 @@ class CompactCommandTest extends SpecificationWithJUnit with FsContainerTest {
         count mustEqual numFeatures
         fs.getCount(Query.ALL) mustEqual numFeatures
       }
-    }.pendingUntilFixed()
+    }
 
     "run successfully with target file size" in {
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>

@@ -115,7 +115,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
         fs.getCount(Query.ALL) must beEqualTo(10)
         compareBounds(fs.getBounds, new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
 
-        val results = CloseableIterator(fs.getFeatures(new Query(sft.getTypeName)).features()).toList
+        val results = CloseableIterator(fs.getFeatures(new Query(sft.getTypeName)).features()).map(ScalaSimpleFeature.copy).toList
         results must containTheSameElementsAs(features)
 
         // This shows that a new FeatureSource has a correct view of the metadata on disk
@@ -142,7 +142,8 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
     "create a second ds with the same path" in {
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds =>
         ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
-        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        val results =
+          CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
         results must containTheSameElementsAs(features)
       }
     }
@@ -150,7 +151,8 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
     "query with multiple threads" in {
       WithClose(DataStoreFinder.getDataStore((dsParams ++ Map("geomesa.query.threads" -> "4")).asJava)) { ds =>
         ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
-        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        val results =
+          CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
         results must containTheSameElementsAs(features)
       }
     }
@@ -168,7 +170,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
         foreach(queries) { query =>
           val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)
           reader.getFeatureType.getName mustEqual name
-          val features = CloseableIterator(reader).toList
+          val features = CloseableIterator(reader).map(ScalaSimpleFeature.copy).toList
           features must not(beEmpty)
           foreach(features)(_.getFeatureType.getName mustEqual name)
         }
@@ -178,7 +180,8 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
     "enforce authorizations" in {
       WithClose(DataStoreFinder.getDataStore(dsParams.filter(_._1 != "geomesa.security.auths").asJava)) { ds =>
         ds.getTypeNames.toList must containTheSameElementsAs(Seq(sft.getTypeName))
-        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        val results =
+          CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
         results must beEmpty
       }
     }
@@ -221,7 +224,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
         filters.foreach { filter =>
           transforms.foreach { transform =>
             val query = new Query(sft.getTypeName, filter, transform: _*)
-            val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
             results must haveLength(features.length)
             if (transform == null) {
               results must containTheSameElementsAs(features)
@@ -245,7 +248,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
           val query = new Query(sft.getTypeName)
           query.setSortBy(FilterHelper.ff.sort("name", sortOrder))
           query.setMaxFeatures(1)
-          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
           results must haveSize(1)
           if (sortOrder == SortOrder.ASCENDING) {
             results.head.getID mustEqual "0"
@@ -270,7 +273,8 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
             FeatureUtils.write(writer, featureWithEmptyFid)
           }
         }
-        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        val results =
+          CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
         results.map(_.getID) must contain(allOf(beUUID))
       }
     }
@@ -299,7 +303,8 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
 
         foreach(filters) { filter =>
           val query = new Query(sft.getTypeName, filter)
-          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+          val results =
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList.sortBy(_.getID)
           results mustEqual expected
         }
       }
@@ -340,11 +345,11 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
 
           foreach(Seq("INCLUDE", s"bbox(geom,${env.getMinX},${env.getMinY},${env.getMaxX},${env.getMaxY})")) { filter =>
             val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-            CloseableIterator(fs.getFeatures(query).features()).toList.sortBy(_.getID) mustEqual features
+            CloseableIterator(fs.getFeatures(query).features()).map(ScalaSimpleFeature.copy).toList.sortBy(_.getID) mustEqual features
             val transform = new Query(sft.getTypeName, ECQL.toFilter(filter), "dtg", "geom")
             val transformSft = SimpleFeatureTypes.createType(sft.getTypeName,
               s"dtg:Date,*geom:${sft.getGeometryDescriptor.getType.getBinding.getSimpleName}")
-            CloseableIterator(fs.getFeatures(transform).features()).toList.sortBy(_.getID) mustEqual
+            CloseableIterator(fs.getFeatures(transform).features()).map(ScalaSimpleFeature.copy).toList.sortBy(_.getID) mustEqual
               features.map(ScalaSimpleFeature.retype(transformSft, _))
           }
         }

@@ -72,10 +72,10 @@ class FilterConverterTest extends SpecificationWithJUnit {
         case c: Operators.GtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__geom_bbox__.ymax" => c
       }
 
-      xmin.map(_.getValue.floatValue()) must beSome(-18.0f)
-      ymin.map(_.getValue.floatValue()) must beSome(-19.0f)
-      xmax.map(_.getValue.floatValue()) must beSome(-24.0f)
-      ymax.map(_.getValue.floatValue()) must beSome(-25.0f)
+      xmin.map(_.getValue.floatValue()) must beSome(Math.nextUp(-18.0f))
+      ymin.map(_.getValue.floatValue()) must beSome(Math.nextUp(-19.0f))
+      xmax.map(_.getValue.floatValue()) must beSome(Math.nextDown(-24.0f))
+      ymax.map(_.getValue.floatValue()) must beSome(Math.nextDown(-25.0f))
     }
 
     "convert non-point geo filter to bbox lt/gt" in {
@@ -99,10 +99,10 @@ class FilterConverterTest extends SpecificationWithJUnit {
         case c: Operators.GtEq[java.lang.Float] if c.getColumn.getColumnPath.toDotString == "__line_bbox__.ymax" => c
       }
 
-      xmin.map(_.getValue.floatValue()) must beSome(-18.0f)
-      ymin.map(_.getValue.floatValue()) must beSome(-19.0f)
-      xmax.map(_.getValue.floatValue()) must beSome(-24.0f)
-      ymax.map(_.getValue.floatValue()) must beSome(-25.0f)
+      xmin.map(_.getValue.floatValue()) must beSome(Math.nextUp(-18.0f))
+      ymin.map(_.getValue.floatValue()) must beSome(Math.nextUp(-19.0f))
+      xmax.map(_.getValue.floatValue()) must beSome(Math.nextDown(-24.0f))
+      ymax.map(_.getValue.floatValue()) must beSome(Math.nextDown(-25.0f))
     }
 
     "convert dtg ranges to long ranges" in {
