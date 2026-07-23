@@ -19,6 +19,7 @@
     <module>geomesa-trino-plugin</module>
     <module>geomesa-trino-datastore</module>
     <module>geomesa-trino-gs-plugin</module>
+    <module>geomesa-trino-dist</module>
   </modules>
 
   <properties>
