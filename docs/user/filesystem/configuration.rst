@@ -35,6 +35,16 @@ are:
 * ``GeoParquetNative`` - This schema uses `GeoParquet 1.1.0 <https://geoparquet.org/releases/v1.1.0/>`__ with geometries
   encoded "natively". This format doesn't require special libraries to read, but isn't as widely supported as WKB.
 
+parquet.writer.version
+++++++++++++++++++++++
+
+Specifies the file version to write, either ``v2`` (default) or ``v1``.
+
+parquet.compression
++++++++++++++++++++
+
+Specifies the file compression to use, by default ``ZSTD``.
+
 AWS S3 Configuration
 --------------------
 

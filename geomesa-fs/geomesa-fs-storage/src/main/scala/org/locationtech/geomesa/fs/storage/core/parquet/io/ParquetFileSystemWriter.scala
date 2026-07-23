@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.iceberg.io.FileIO
 import org.apache.parquet.column.ParquetProperties
+import org.apache.parquet.column.ParquetProperties.WriterVersion
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
@@ -93,8 +94,9 @@ object ParquetFileSystemWriter extends LazyLogging {
    * @return
    */
   def builder(file: OutputFile, conf: ParquetConfiguration): Builder = {
+    val version = WriterVersion.fromString(conf.get("parquet.writer.version", WriterVersion.PARQUET_2_0.name()))
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "ZSTD"))
-    logger.debug(s"Using Parquet Compression codec ${codec.name()}")
+    logger.debug(s"Using Parquet file version $version with compression ${codec.name()}")
     new Builder(file)
       .withConf(conf)
       .withCompressionCodec(codec)
@@ -104,8 +106,7 @@ object ParquetFileSystemWriter extends LazyLogging {
       .withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
       .withValidation(false)
       .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
-      // parquet v2 introduces packed delta encoding, which as of this writing prevents iceberg and trino from using vectorized reads
-      .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
+      .withWriterVersion(version)
       .withRowGroupSize(8L*1024*1024)
   }
 
