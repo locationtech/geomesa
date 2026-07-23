@@ -14,6 +14,10 @@
   <artifactId>geomesa-trino-plugin</artifactId>
   <name>GeoMesa Trino Plugin</name>
 
+  <properties>
+    <skipITs>true</skipITs>
+  </properties>
+
   <dependencyManagement>
     <dependencies>
       <!-- The geomesa parent pins jakarta.annotation-api to 1.3.5, which ships the
@@ -42,6 +46,26 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-jdk14</artifactId>
         <version>2.0.17</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit.jupiter.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${junit.jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>3.25.3</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -121,6 +145,17 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
+
+    <!-- Note: the parent injects the surefire-junit47 (JUnit 4) provider via
+         pluginManagement, which a child cannot remove. Without junit:junit on the test
+         classpath that provider crashes on missing org/junit/runner/notification/RunListener.
+         With it, junit47 finds 0 JUnit 4 tests and junit-platform runs all our JUnit 5 tests.
+         Do not remove even though no test imports org.junit. -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
@@ -139,19 +174,8 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>net.alchim31.maven</groupId>
-          <artifactId>scala-maven-plugin</artifactId>
-          <configuration>
-            <skip>true</skip>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
 
+  <build>
     <plugins>
       <!-- This is the only geomesa-trino module that must compile against Trino's
            Java-25 bytecode (trino-spi / trino-iceberg), so enforces a JDK-25 toolchain
@@ -215,7 +239,58 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.surefire</groupId>
+            <artifactId>surefire-junit-platform</artifactId>
+            <version>${maven.surefire.plugin.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <!-- Declared active here (not just pluginManagement, which doesn't bind executions)
+           so both child modules run their *IT classes under -DskipITs=false without
+           re-declaring the plugin themselves. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>net.alchim31.maven</groupId>
+          <artifactId>scala-maven-plugin</artifactId>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <excludedGroups>integration</excludedGroups>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <executions>
+            <execution>
+              <goals>
+                <goal>integration-test</goal>
+                <goal>verify</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <skipITs>${skipITs}</skipITs>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
   <profiles>
@@ -223,7 +298,9 @@
       <id>release</id>
       <build>
         <plugins>
-          <!-- since no scala, have to use the regular javadoc plugin -->
+          <!-- These modules are (nearly) java-only, so the scala doc tooling the geomesa
+               parent uses doesn't apply: attach javadocs with the regular javadoc plugin
+               (required for maven central). Inherited by both child modules. -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
@@ -239,7 +316,8 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-dependency-plugin</artifactId>
-            <!-- required to build site javadocs with mixed scala sources -->
+            <!-- populates ${dep.cp}, which the geomesa parent's javadoc config puts on
+                 the javadoc class path -->
             <executions>
               <execution>
                 <id>generate-classpath</id>

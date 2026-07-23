@@ -4,15 +4,27 @@
            xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
     <dependencySets>
         <dependencySet>
-            <outputDirectory>lib</outputDirectory>
+            <outputDirectory>dist/${tools.module}</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0644</fileMode>
-            <useProjectArtifact>true</useProjectArtifact>
+            <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-trino-datastore</include>
-                <include>org.locationtech.geomesa:geomesa-trino-plugin</include>
+                <include>org.locationtech.geomesa:geomesa-trino-plugin*</include>
             </includes>
         </dependencySet>
     </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>../../geomesa-tools/common-env</directory>
+            <outputDirectory>conf</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
+            <includes>
+                <include>hadoop-env.sh</include>
+                <include>log4j.properties</include>
+            </includes>
+        </fileSet>
+    </fileSets>
 </component>

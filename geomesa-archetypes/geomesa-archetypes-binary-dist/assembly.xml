@@ -13,6 +13,7 @@
       <excludes>
         <exclude>org.locationtech.geomesa:geomesa-${tools.module}-gs-plugin*</exclude>
         <exclude>org.locationtech.geomesa:geomesa-${tools.module}-distributed-runtime*</exclude>
+        <exclude>org.locationtech.geomesa:geomesa-${tools.module}-plugin*</exclude> <!-- trino -->
         <exclude>org.locationtech.geomesa:geomesa-${tools.module}-spark*</exclude>
         <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
         <exclude>org.locationtech.geomesa:docs</exclude>

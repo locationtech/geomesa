@@ -58,7 +58,7 @@ jobs:
           - name: utils
             list: geomesa-utils-parent/geomesa-bom,geomesa-utils-parent/geomesa-hadoop-utils,geomesa-utils-parent/geomesa-utils
           - name: trino
-            list: geomesa-trino/geomesa-trino-plugin,geomesa-trino/geomesa-trino-datastore,geomesa-trino/geomesa-trino-gs-plugin,geomesa-trino/geomesa-trino-dist
+            list: geomesa-trino/geomesa-trino-plugin,geomesa-trino/geomesa-trino-datastore,geomesa-trino/geomesa-trino-tools,geomesa-trino/geomesa-trino-gs-plugin,geomesa-trino/geomesa-trino-dist
             scaladoc: "false"
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0

@@ -20,25 +20,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- manage these out from the libdir -->
-            <dependency>
-                <groupId>org.apache.thrift</groupId>
-                <artifactId>libthrift</artifactId>
-                <version>${thrift.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-text</artifactId>
-                <version>${commons.text.version}</version>
-                <scope>provided</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-trino-datastore</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-trino-tools_${scala.binary.version}</artifactId>
+        </dependency>
+
         <!-- GeoServer plugins - needed as dependencies for reactor ordering, but don't bring in transitive deps -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -54,11 +45,18 @@
             </exclusions>
         </dependency>
 
-        <!-- additional deps to manage in for deploying to lib dir-->
+        <!-- Trino plugin -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-trino-datastore</artifactId>
+            <artifactId>geomesa-trino-plugin</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
     </dependencies>
 
     <build>
