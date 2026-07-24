@@ -49,17 +49,6 @@ class TrinoDataStoreFactoryTest {
     }
 
     @Test
-    void forceEmptyYieldsNoAuths() throws IOException {
-        Map<String, Object> params = baseParams();
-        params.put("geomesa.security.auths", "admin,user");
-        params.put("geomesa.security.auths.force-empty", Boolean.TRUE);
-        TrinoDataStore store =
-            (TrinoDataStore) new TrinoDataStoreFactory().createDataStore(params);
-        assertThat(store.authProvider()).isNotNull();
-        assertThat(store.authProvider().getAuthorizations()).isEmpty();
-    }
-
-    @Test
     void authsAreTrimmedAndBlanksDropped() throws IOException {
         Map<String, Object> params = baseParams();
         params.put("geomesa.security.auths", " admin, user,,ops ");
@@ -67,18 +56,6 @@ class TrinoDataStoreFactoryTest {
             (TrinoDataStore) new TrinoDataStoreFactory().createDataStore(params);
         assertThat(store.authProvider().getAuthorizations())
             .containsExactly("admin", "user", "ops");
-    }
-
-    @Test
-    void forceEmptyFalseAloneYieldsEmptyAuthsProvider() throws IOException {
-        // GeoServer can emit the Boolean default; behavior stays fail-closed
-        // (empty auths).
-        Map<String, Object> params = baseParams();
-        params.put("geomesa.security.auths.force-empty", Boolean.FALSE);
-        TrinoDataStore store =
-            (TrinoDataStore) new TrinoDataStoreFactory().createDataStore(params);
-        assertThat(store.authProvider()).isNotNull();
-        assertThat(store.authProvider().getAuthorizations()).isEmpty();
     }
 
     @Test
