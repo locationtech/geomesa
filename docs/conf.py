@@ -54,6 +54,8 @@ ultimate_replacements = {
   "{{scala_binary_version}}": target.versions.scala_binary_version,
   "{{spark_supported_versions}}": "version " + target.versions.spark_version,
   "{{spark_required_version}}": target.versions.spark_version,
+  "{{trino_supported_versions}}": "version " + target.versions.trino_version,
+  "{{trino_required_version}}": target.versions.trino_version,
 }
 
 

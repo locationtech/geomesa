@@ -1,41 +1,24 @@
 .. _trino_parameters:
 
-Using the Trino Data Store
-==========================
+Trino Data Store Parameters
+===========================
 
 Data Store Parameters
 ---------------------
 
-The Trino data store takes the following parameters:
+The Trino data store takes the following parameters (required parameters are marked with ``*``):
 
-.. list-table::
-    :header-rows: 1
-    :widths: 25 15 60
-
-    * - Parameter
-      - Required
-      - Description
-    * - ``trino.host``
-      - yes
-      - Trino coordinator host
-    * - ``trino.port``
-      - yes
-      - Trino coordinator port
-    * - ``trino.catalog``
-      - no
-      - Trino catalog (use ``spatial_iceberg`` for spatial pushdown)
-    * - ``trino.schema``
-      - no
-      - Trino schema (default ``spatial``)
-    * - ``namespace``
-      - no
-      - Namespace URI applied to type names
-    * - ``trino.user``
-      - no
-      - Trino session user
-    * - ``geomesa.security.*``
-      - no
-      - see :ref:`trino_security`
+================================== ====== ========================================================================================
+Parameter                          Type   Description
+================================== ====== ========================================================================================
+``trino.host *``                   String Trino coordinator host
+``trino.port *``                   Int    Trino coordinator port
+``trino.schema``                   String Trino schema (default ``spatial``)
+``trino.user``                     String Trino session user
+``geomesa.security.auths-secret``  String Shared secret presented to Trino as the 'secret' extra credential; must match the
+                                          catalog's secret
+``geomesa.security.*``                    See :ref:`trino_security`
+================================== ====== ========================================================================================
 
 Programmatic Access
 -------------------
@@ -48,54 +31,27 @@ methods, assuming that the GeoMesa code is on the classpath:
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("trino.host", "trino-coordinator");
     parameters.put("trino.port", 8080);
-    parameters.put("trino.catalog", "spatial_iceberg");
     parameters.put("trino.schema", "spatial");
     org.geotools.api.data.DataStore dataStore =
         org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
-
-CQL consumers via the data store get the optimized SQL shapes described in
-:ref:`trino_design` automatically.
 
 .. _trino_sql_patterns:
 
 SQL Patterns for Direct-SQL Consumers
 -------------------------------------
 
-Direct-SQL consumers (JDBC, BI tools) write their own SQL. Because the connector derives
-all pruning from the ``ST_*`` call itself, hand-written SQL needs no special shapes — a
-plain ``ST_*`` predicate gets the same Z2/XZ2 partition pruning, per-file bbox-stat
-pruning, and page-source bbox filter as a query issued through the data store. The
-examples below run against a table whose geometry column is named ``geom``, so its
-companions are ``__geom_bbox__`` and ``__geom_z2__``; substitute your geometry column's
-name per the convention in :ref:`trino_companion_columns` (e.g. a ``path`` column is pruned
-via ``__path_bbox__`` / ``__path_xz2__``).
+Direct-SQL consumers can still make spatial queries using standard spatial ``ST_*`` functions. The
+examples below run against a table whose geometry column is named ``geom`` - see :ref:`trino_companion_columns`
+for a description of the additional fields.
 
 .. code-block:: sql
 
-    -- ST_Intersects with an axis-aligned rectangle. The connector derives Z2/XZ2
-    -- partition pruning (Layer 1) and per-file bbox-stat pruning (Layer 2) from the
-    -- call; because the query is a rectangle on a point/Z2 column, its page source
-    -- accepts rows whose bbox is inside without decoding the WKB (Layer 3 short-circuit).
+    -- Standard intersects query
     SELECT COUNT(*) FROM spatial_iceberg.spatial.observations
     WHERE ST_Intersects(ST_GeomFromBinary(geom),
           ST_GeometryFromText('POLYGON ((-80 37, -70 37, -70 45, -80 45, -80 37))'));
 
-    -- ST_Intersects with a non-rectangular polygon. Same Layer 1/2 pruning; the page
-    -- source rejects rows whose bbox cannot overlap before the exact ST_Intersects runs.
-    SELECT COUNT(*) FROM spatial_iceberg.spatial.observations
-    WHERE ST_Intersects(ST_GeomFromBinary(geom),
-          ST_GeometryFromText('POLYGON ((-80 37, -75 41, -70 45, -80 45, -80 37))'));
-
-    -- ST_Within(geom, rectangle). bbox-overlap is a necessary prefilter; the exact
-    -- ST_Within decides membership on the survivors.
-    SELECT COUNT(*) FROM spatial_iceberg.spatial.observations
-    WHERE ST_Within(ST_GeomFromBinary(geom),
-          ST_GeometryFromText('POLYGON ((-80 37, -70 37, -70 45, -80 45, -80 37))'));
-
-    -- DWITHIN: the data store emits an outer ST_Intersects rectangle (the reference
-    -- expanded by the radius) AND the exact spherical distance test. The connector
-    -- derives Layer 1/2 pruning + page-source rejection from the outer rectangle; the
-    -- exact ST_Distance runs only on the survivors.
+    -- DWITHIN query
     SELECT COUNT(*) FROM spatial_iceberg.spatial.observations
     WHERE ST_Intersects(ST_GeomFromBinary(geom),
             ST_GeometryFromText('POLYGON ((-77.94 37.91, -76.14 37.91, -76.14 39.91, -77.94 39.91, -77.94 37.91))'))
@@ -104,19 +60,14 @@ via ``__path_bbox__`` / ``__path_xz2__``).
               to_spherical_geography(ST_GeometryFromText('POINT (-77.04 38.91)'))
           ) <= 100000;
 
-    -- Raw bbox-overlap on the struct sub-fields is still recognized, for BI tools that
-    -- cannot emit ST_*: it drives Layer 1 + Layer 2 pruning but is NOT an exact spatial
-    -- test — a float32 stored bbox admits rows up to ½ ulp outside the envelope — so pair
-    -- it with an ST_* predicate when exactness matters.
+    -- Bounding boxes can be queried directly, note that they are stored at float32 precision,
+    -- so may not provide 100% accurate results
     SELECT COUNT(*) FROM spatial_iceberg.spatial.observations
     WHERE "__geom_bbox__".xmax >= -80 AND "__geom_bbox__".xmin <= -70
       AND "__geom_bbox__".ymax >=  37 AND "__geom_bbox__".ymin <=  45;
 
-On **both** catalogs, ``geom`` is ``VARBINARY`` (raw WKB) — there is no Geometry-type
-overlay — so every spatial function call must wrap it with ``ST_GeomFromBinary(geom)``,
-as shown above. (Trino 481 removed the implicit ``VARBINARY → GEOMETRY`` coercion that
-earlier releases applied, so the wrap is now mandatory, not just conventional.) The
-data store emits this shape automatically.
+Note that geometry columns are defined as ``VARBINARY`` (encoded WKB), not Geometry types, thus every spatial function call
+must wrap the column with ``ST_GeomFromBinary(geom)``, as shown above.
 
 .. _trino_verify_pruning:
 
@@ -159,15 +110,3 @@ spatial_iceberg --schema spatial``):
            partition_summaries[1].upper_bound AS z2_prefix_max
     FROM iceberg.spatial."observations$manifests"
     ORDER BY partition_summaries[1].lower_bound;
-
-Integration Tests
------------------
-
-Unit tests run against no external services. Integration tests (tagged
-``@integration``, skipped by default) expect a running Trino at ``localhost:8080``
-with the plugin loaded and the demo ``spatial.*`` tables ingested, and skip
-themselves when Trino is unreachable:
-
-.. code-block:: bash
-
-    mvn verify -pl geomesa-trino/geomesa-trino-plugin,geomesa-trino/geomesa-trino-datastore -DskipITs=false

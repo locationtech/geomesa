@@ -55,9 +55,6 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
     /** Comma-delimited superset of authorizations to use for queries. */
     public static final Param AUTHS = new Param("geomesa.security.auths", String.class,
         "Comma-delimited superset of authorizations to be used for queries", false);
-    /** When true, ignore implicit authorizations from the underlying Trino user. */
-    public static final Param AUTHS_FORCE_EMPTY = new Param("geomesa.security.auths.force-empty",
-        Boolean.class, "Don't use implicit authorizations from the underlying Trino user", false);
     /** Explicit {@link AuthorizationsProvider} instance. */
     public static final Param AUTH_PROVIDER = new Param("geomesa.security.auths.provider",
         AuthorizationsProvider.class, "Explicit AuthorizationsProvider instance", false);
@@ -87,8 +84,7 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
      * @return parameter descriptors
      */
     @Override public Param[] getParametersInfo() {
-        return new Param[]{HOST, PORT, CATALOG, SCHEMA, NAMESPACE, USER,
-            AUTHS, AUTHS_FORCE_EMPTY, AUTH_PROVIDER, SECRET};
+        return new Param[]{HOST, PORT, SCHEMA, USER, AUTHS, SECRET, NAMESPACE};
     }
 
     /**
@@ -117,9 +113,8 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
         String user    = lookUpOrDefault(USER, params);
 
         String authsStr = (String) AUTHS.lookUp(params);
-        Boolean forceEmpty = (Boolean) AUTHS_FORCE_EMPTY.lookUp(params);
         List<String> auths;
-        if (Boolean.TRUE.equals(forceEmpty) || authsStr == null || authsStr.isBlank()) {
+        if (authsStr == null || authsStr.isBlank()) {
             auths = List.of();
         } else {
             auths = Arrays.stream(authsStr.split(","))

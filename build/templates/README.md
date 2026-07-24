@@ -19,10 +19,11 @@ geospatial analytics.
 
 ## Join the Community
 
-**<a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><sub><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></sub></a>** |
+[**Issues**](https://github.com/locationtech/geomesa/issues) |
+  [**Discussions**](https://github.com/locationtech/geomesa/discussions) |
+  **<a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><sub><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></sub></a>** |
   [**User list**](https://accounts.eclipse.org/mailing-list/geomesa-users) |
-  [**Developer list**](https://accounts.eclipse.org/mailing-list/geomesa-dev) |
-  [**JIRA issue tracking**](https://geomesa.atlassian.net/issues/?jql=order+by+created+DESC)
+  [**Developer list**](https://accounts.eclipse.org/mailing-list/geomesa-dev)
 
 ## Documentation
 
@@ -39,6 +40,7 @@ geospatial analytics.
   [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-cassandra_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-kafka_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-redis_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
+  [**Trino**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-trino_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-fs_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-gt_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz)
 
@@ -178,7 +180,7 @@ Maven artifacts are published nightly to the Eclipse Maven repository:
 Requirements:
 
 * [Git](https://git-scm.com/)
-* [Java JDK ${jdk.version}](https://adoptium.net/temurin/releases/)
+* [Java JDK ${jdk.version} and ${trino.jdk.version}](https://adoptium.net/temurin/releases/)
 * [Apache Maven](https://maven.apache.org/) ${maven.min.version} or later
 * [Docker](https://docs.docker.com/get-docker/) (only required for running unit tests)
 
@@ -189,10 +191,9 @@ git clone git@github.com:locationtech/geomesa.git
 cd geomesa
 ```
 
-The project is built using Maven, with Maven Toolchains to manage various target JVM version requirements.
-Current required JDKs:  ${jdk.version}, ${trino.jdk.version}
+The project is built using Maven, and uses Maven Toolchains to manage between Java ${jdk.version} and ${trino.jdk.version}.
+A compatible `toolchains.xml` can be generated using the following script:
 
-A script has been provided to create/update the toolchains configuration to support these requirements:
 ```bash
 ./build/scripts/update-maven-toolchains.sh
 ```

@@ -26,3 +26,4 @@ prometheus_version = '${prometheus.version}'
 redis_min_version = '${redis.min.version}'
 spark_version_full = '${spark.version}'
 spark_version = spark_version_full[:spark_version_full.rindex('.')]
+trino_version = '${trino.version}'
