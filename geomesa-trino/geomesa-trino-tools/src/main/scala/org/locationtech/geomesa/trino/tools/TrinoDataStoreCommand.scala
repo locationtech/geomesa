@@ -17,7 +17,7 @@ import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import java.io.File
 
 /**
- * Abstract class for FSDS commands
+ * Abstract class for TrinoDataStore commands
  */
 trait TrinoDataStoreCommand extends DataStoreCommand[TrinoDataStore] {
 

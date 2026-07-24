@@ -23,7 +23,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-trino-datastore</artifactId>
+            <artifactId>geomesa-trino-datastore_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -48,7 +48,7 @@
         <!-- Trino plugin -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-trino-plugin</artifactId>
+            <artifactId>geomesa-trino-plugin_${scala.binary.version}</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>

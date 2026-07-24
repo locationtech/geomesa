@@ -7,7 +7,7 @@
 # https://www.apache.org/licenses/LICENSE-2.0
 #
 
-# This file lists the dependencies required for running the geomesa-fs command-line tools.
+# This file lists the dependencies required for running the geomesa-trino command-line tools.
 # Usually these dependencies will be provided by the environment (e.g. HADOOP_HOME).
 # Update the versions as required to match the target environment.
 

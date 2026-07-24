@@ -3,24 +3,24 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.locationtech.geomesa</groupId>
-    <artifactId>geomesa_2.12</artifactId>
-    <version>6.0.0-SNAPSHOT</version>
-  </parent>
+    <parent>
+        <groupId>org.locationtech.geomesa</groupId>
+        <artifactId>geomesa_2.12</artifactId>
+        <version>6.0.0-SNAPSHOT</version>
+    </parent>
 
-  <artifactId>geomesa-trino</artifactId>
-  <packaging>pom</packaging>
-  <name>GeoMesa Trino</name>
+    <artifactId>geomesa-trino_2.12</artifactId>
+    <packaging>pom</packaging>
+    <name>GeoMesa Trino</name>
 
-  <modules>
-    <module>geomesa-trino-datastore</module>
-    <module>geomesa-trino-dist</module>
-    <module>geomesa-trino-gs-plugin</module>
-    <module>geomesa-trino-plugin</module>
-    <module>geomesa-trino-tools</module>
-  </modules>
+    <modules>
+        <module>geomesa-trino-datastore</module>
+        <module>geomesa-trino-dist</module>
+        <module>geomesa-trino-gs-plugin</module>
+        <module>geomesa-trino-plugin</module>
+        <module>geomesa-trino-tools</module>
+    </modules>
 
 </project>

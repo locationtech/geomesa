@@ -12,7 +12,7 @@ import org.locationtech.geomesa.tools.{Command, Runner}
 
 object TrinoRunner extends Runner {
 
-  override val name: String = "geomesa-fs"
+  override val name: String = "geomesa-trino"
 
   override protected def commands: Seq[Command] = {
     super.commands ++ Seq(
