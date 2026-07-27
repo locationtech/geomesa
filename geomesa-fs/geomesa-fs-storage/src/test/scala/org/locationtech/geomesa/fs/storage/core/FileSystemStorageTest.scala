@@ -28,6 +28,7 @@ import org.locationtech.geomesa.fs.storage.core.parquet.s3.S3InputFile
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeoParquetMetadata
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.utils.TestObserverFactory
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.security.{AuthsParam, DefaultAuthorizationsProvider, SecurityUtils, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -453,6 +454,56 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           }
 
           testQuery(storage, sft)("INCLUDE", null, updates)
+        }
+      }
+    }
+
+    "not return fids" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
+
+      val features = Seq.tabulate(10) { i =>
+        val sf = new ScalaSimpleFeature(sft, (99999 + i).toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute(0, s"name$i")
+        sf.setAttribute(1, s"$i")
+        sf.setAttribute(2, s"POINT(4$i 5$i)")
+        sf.setAttribute(3, f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf
+      }
+
+      WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, schemes)) { storage =>
+          storage must not(beNull)
+
+          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
+
+          features.foreach { f =>
+            val partition = Partition(storage.schemes.map(_.getPartition(f)))
+            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+            writer.write(f)
+          }
+
+          writers.foreach(_._2.close())
+
+          logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+          storage.metadata.partitions() must haveLength(writers.size)
+
+          val filter = "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z"
+          val transform = Array("name", "dtg", "geom")
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transform: _*)
+          query.getHints.put(QueryHints.INCLUDE_FID, false)
+
+          val results = CloseableIterator(storage.getReader(query, 1)).map(ScalaSimpleFeature.copy).toList
+          results must haveLength(8)
+
+          results.map(_.getID).intersect(features.map(_.getID)) must beEmpty
+
+          val expected = features.dropRight(2).map(f => transform.map(f.getAttribute).toSeq)
+
+          forall(results) { result =>
+            expected must contain(result.getAttributes.asScala)
+          }
         }
       }
     }

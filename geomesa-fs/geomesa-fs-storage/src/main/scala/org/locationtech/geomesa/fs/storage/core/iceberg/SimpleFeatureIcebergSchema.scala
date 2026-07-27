@@ -48,15 +48,20 @@ class SimpleFeatureIcebergSchema private (
    *
    * @param transform query transform definition
    * @param filtered columns that have filters against them
+   * @param includeFids include __fid__ column for accurate feature IDs
    * @param includeRowPositions include _file and _pos columns necessary for handling updates/deletes
    * @return
    */
-  def read(transform: Option[String], filtered: Set[String], includeRowPositions: Boolean = false): SimpleFeatureIcebergSchema = {
+  def read(
+      transform: Option[String],
+      filtered: Set[String],
+      includeFids: Boolean = true,
+      includeRowPositions: Boolean = false): SimpleFeatureIcebergSchema = {
+    val baseCols = if (includeFids) { Seq(FeatureIdField, VisibilitiesField) } else { Seq(VisibilitiesField) }
     val (readCols, readSft) = transform match {
       case None =>
-        val baseCols =
-          Seq(FeatureIdField, VisibilitiesField) ++ sft.getAttributeDescriptors.asScala.map(d => ColumnName.encode(d.getLocalName))
-        val readCols = baseCols ++ filtered.filterNot(baseCols.contains)
+        val featureCols = baseCols ++ sft.getAttributeDescriptors.asScala.map(d => ColumnName.encode(d.getLocalName))
+        val readCols = featureCols ++ filtered.filterNot(featureCols.contains)
         (readCols, sft)
       case Some(defs) =>
         val fromTransform = Transforms(sft, defs).flatMap {
@@ -66,8 +71,8 @@ class SimpleFeatureIcebergSchema private (
           case t => throw new UnsupportedOperationException(s"An implementation is missing: ${t.getClass}")
         }
         val attributes = fromTransform.distinct
-        val baseCols = Seq(FeatureIdField, VisibilitiesField) ++ attributes.map(ColumnName.encode)
-        val readCols = baseCols ++ filtered.filterNot(baseCols.contains)
+        val featureCols = baseCols ++ attributes.map(ColumnName.encode)
+        val readCols = featureCols ++ filtered.filterNot(featureCols.contains)
         val readSft = {
           val sftBuilder = new SimpleFeatureTypeBuilder()
           attributes.foreach(name => sftBuilder.add(sft.getDescriptor(name)))

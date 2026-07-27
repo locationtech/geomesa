@@ -28,6 +28,8 @@ object QueryHints {
   val QUERY_INDEX      = new ClassKey(classOf[String])
   val COST_EVALUATION  = new ClassKey(classOf[CostEvaluation])
 
+  val INCLUDE_FID      = new ClassKey(classOf[java.lang.Boolean])
+
   val DENSITY_BBOX     = new ClassKey(classOf[ReferencedEnvelope])
   val DENSITY_GEOM     = new ClassKey(classOf[String])
   val DENSITY_WEIGHT   = new ClassKey(classOf[String])
@@ -135,7 +137,8 @@ object QueryHints {
     def getDensityWeight: Option[String] = Option(hints.get(DENSITY_WEIGHT).asInstanceOf[String])
 
     def isArrowQuery: Boolean = Option(hints.get(ARROW_ENCODE).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
-    def isArrowIncludeFid: Boolean = Option(hints.get(ARROW_INCLUDE_FID).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
+    def isArrowIncludeFid: Boolean =
+      Option(hints.get(ARROW_INCLUDE_FID).asInstanceOf[java.lang.Boolean]).fold(isIncludeFid)(Boolean.unbox)
     def isArrowProxyFid: Boolean = Option(hints.get(ARROW_PROXY_FID).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
     def getArrowDictionaryFields: Seq[String] =
       Option(hints.get(ARROW_DICTIONARY_FIELDS).asInstanceOf[String]).toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
@@ -179,5 +182,7 @@ object QueryHints {
 
     def isFlipAxisOrder: Boolean =
       Option(hints.get(FLIP_AXIS_ORDER).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
+
+    def isIncludeFid: Boolean = Option(hints.get(INCLUDE_FID).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
   }
 }
