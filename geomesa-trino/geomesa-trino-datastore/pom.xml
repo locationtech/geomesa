@@ -40,6 +40,17 @@
             <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+            <!-- just pulled in for query hints -->
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-main</artifactId>
         </dependency>

@@ -35,6 +35,7 @@ class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeatu
     private final String fidColumn;
     private final String visColumn;
     private Boolean hasNext = null;
+    private long nextId = 0;
 
     TrinoFeatureReader(SimpleFeatureType sft, Connection conn,
                        Statement stmt, ResultSet rs, String fidColumn, String visColumn) {
@@ -82,11 +83,11 @@ class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeatu
         if (!hasNext()) throw new NoSuchElementException();
         hasNext = null;
 
-        String fid = null;
+        String fid;
         String vis = null;
         try {
-            String fidStr = rs.getString(fidColumn);
-            if (!rs.wasNull()) fid = fidStr;
+            // note: rs.getString should never return null here, but if it does SimpleFeatureBuilder will handle it
+            fid = fidColumn == null ? Long.toString(nextId++) : rs.getString(fidColumn);
 
             for (int i = 0; i < sft.getAttributeCount(); i++) {
                 AttributeDescriptor desc = sft.getDescriptor(i);

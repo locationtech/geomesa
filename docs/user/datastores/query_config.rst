@@ -106,6 +106,37 @@ QueryHints.EXACT_COUNT ``Boolean`` ``true`` or ``false``
 
         ...&viewparams=EXACT_COUNT:true
 
+Include Feature ID
+------------------
+
+In some data stores (e.g. those with columnar data formats like Arrow or Parquet), queries can be sped up by not returning
+feature IDs when they're not needed in the result. When excluded, a synthetic feature ID will be returned, but this ID
+should **not** be used for uniquely identifying the feature. By default, the correct feature ID is returned.
+
+====================== =========== =====================
+Key                    Type        GeoServer Conversion
+====================== =========== =====================
+QueryHints.INCLUDE_FID ``Boolean`` ``true`` or ``false``
+====================== =========== =====================
+
+.. tabs::
+
+    .. code-tab:: java
+
+        import org.locationtech.geomesa.index.conf.QueryHints;
+
+        query.getHints().put(QueryHints.INCLUDE_FID(), Boolean.FALSE);
+
+    .. code-tab:: scala
+
+        import org.locationtech.geomesa.index.conf.QueryHints
+
+        query.getHints.put(QueryHints.INCLUDE_FID, false)
+
+    .. code-tab:: none GeoServer
+
+        ...&viewparams=INCLUDE_FID:false
+
 Filter Compatibility
 --------------------
 

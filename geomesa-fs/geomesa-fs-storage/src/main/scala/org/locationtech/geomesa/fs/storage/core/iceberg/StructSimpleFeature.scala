@@ -10,10 +10,11 @@ package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import org.apache.iceberg.{Accessor, MetadataColumns, StructLike}
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.identity.FeatureId
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractMutableSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.iceberg.StructSimpleFeature.ColumnAccessor
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.{GeoParquetNative, GeoParquetWkb}
-import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
+import org.locationtech.geomesa.fs.storage.core.schema.{ColumnName, SimpleFeatureSchema}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
@@ -22,6 +23,7 @@ import org.locationtech.geomesa.utils.text.WKBUtils
 import java.nio.ByteBuffer
 import java.time.OffsetDateTime
 import java.util.Date
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * A simple feature implementation that wraps an iceberg record
@@ -31,6 +33,7 @@ import java.util.Date
  */
 class StructSimpleFeature(
     sft: SimpleFeatureType,
+    hasIds: Boolean,
     fields: Array[ColumnAccessor],
     filePathAccessor: Accessor[StructLike],
     rowPosAccessor: Accessor[StructLike],
@@ -40,10 +43,11 @@ class StructSimpleFeature(
   private var userData: java.util.Map[AnyRef, AnyRef] = _
 
   private val values = Array.ofDim[AnyRef](fields.length)
+  private val visCol = if (hasIds) { 1 } else { 0 }
 
   def setRow(row: StructLike): StructSimpleFeature = {
     this.row = row
-    this.id = row.get(0, classOf[String])
+    this.id = null
     this.userData = null
     var i = 0
     while (i < values.length) {
@@ -69,6 +73,19 @@ class StructSimpleFeature(
    */
   def getRowPosition: Long = rowPosAccessor.get(row).asInstanceOf[java.lang.Long]
 
+  override def getIdentifier: FeatureId = { getID; super.getIdentifier }
+
+  override def getID: String = {
+    if (id == null) {
+      if (hasIds) {
+        id = row.get(0, classOf[String])
+      } else {
+        id = java.lang.Long.toString(StructSimpleFeature.IdCounter.getAndIncrement())
+      }
+    }
+    id
+  }
+
   override def setAttributeNoConvert(index: Int, value: AnyRef): Unit = values(index) = value
 
   override def getAttribute(index: Int): AnyRef = {
@@ -83,7 +100,7 @@ class StructSimpleFeature(
   override def getUserData: java.util.Map[AnyRef, AnyRef] = {
     if (userData == null) {
       userData = new java.util.HashMap(1)
-      val visibility = row.get(1, classOf[String])
+      val visibility = row.get(visCol, classOf[String])
       if (visibility != null) {
         userData.put(SecurityUtils.FEATURE_VISIBILITY, visibility)
       }
@@ -96,10 +113,13 @@ object StructSimpleFeature {
 
   import scala.collection.JavaConverters._
 
+  private val IdCounter = new AtomicLong(0)
+
   def apply(schema: SimpleFeatureIcebergSchema): StructSimpleFeature = {
     var i = 0
     val accessors = Array.ofDim[ColumnAccessor](schema.sft.getAttributeCount)
     val cols = schema.schema.columns().asScala
+    val hasId = cols.headOption.exists(_.name() == SimpleFeatureSchema.FeatureIdField)
     while (i < accessors.length) {
       val descriptor = schema.sft.getDescriptor(i)
       val types = ObjectType.selectType(descriptor)
@@ -115,7 +135,7 @@ object StructSimpleFeature {
     val filePathAccessor = schema.schema.accessorForField(MetadataColumns.FILE_PATH.fieldId())
     val rowPosAccessor = schema.schema.accessorForField(MetadataColumns.ROW_POSITION.fieldId())
 
-    new StructSimpleFeature(schema.sft, accessors, filePathAccessor, rowPosAccessor)
+    new StructSimpleFeature(schema.sft, hasId, accessors, filePathAccessor, rowPosAccessor)
   }
 
   private sealed trait ColumnAccessor extends (StructLike => AnyRef) {

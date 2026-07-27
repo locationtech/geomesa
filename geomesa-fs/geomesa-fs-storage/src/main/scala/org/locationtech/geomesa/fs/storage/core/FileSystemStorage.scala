@@ -133,15 +133,16 @@ case class FileSystemStorage(
     val icebergFilter = IcebergFilterConverter(sft, schemes, filter)
     val visFilter = VisibilityUtils.visible(authProvider)
     val transform = configured.getHints.getTransform
+    val includeFids = configured.getHints.isIncludeFid
     val sort = configured.getHints.getSortFields
     val max = configured.getHints.getMaxFeatures
-    val readSchema = schema.read(transform.map(_._1), icebergFilter.columns, forUpdate)
+    val readSchema = schema.read(transform.map(_._1), icebergFilter.columns, includeFids, forUpdate)
 
     logger.debug(s"Running query '${query.getTypeName}' ${ECQL.toCQL(filter)}")
     logger.debug(s"  Original filter: ${ECQL.toCQL(query.getFilter)}")
     logger.debug(s"  Push-down filter: ${icebergFilter.expression}")
     logger.debug(s"  Client-side filter: ${icebergFilter.remainder.fold("none")(ECQL.toCQL)}")
-    logger.debug(s"  Transforms: ${transform.fold("none") { case (t, _) => if (t.isEmpty) { "empty" } else { t }}}")
+    logger.debug(s"  Transforms: ${transform.fold("none") { case (t, _) => if (t.isEmpty) { "empty" } else { t }}}, with${if (includeFids) { "" } else { "out" }} FIDs")
     logger.debug(s"  Read schema: ${readSchema.schema}")
     logger.debug(s"  Sort: ${sort.fold("none") { fields => fields.map { case (f, rev) => s"$f ${if (rev) "descending" else ""}"}.mkString(", ")}}")
     logger.debug(s"  Max features: ${max.getOrElse("none")}")

@@ -19,6 +19,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.data.container.FsContainerTest
 import org.locationtech.geomesa.fs.storage.core.StorageKeys
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -256,6 +257,18 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
             results.head.getID mustEqual "9"
           }
         }
+      }
+    }
+
+    "support not returning FID" in {
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds =>
+        val query = new Query(sft.getTypeName)
+        query.getHints.put(QueryHints.INCLUDE_FID, false)
+        val results1 = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
+        val results2 = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
+        results1 must haveSize(10)
+        results2 must haveSize(10)
+        results1.map(_.getID).intersect(results2.map(_.getID)) must beEmpty
       }
     }
 

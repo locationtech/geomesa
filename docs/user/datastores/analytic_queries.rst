@@ -288,7 +288,8 @@ This hint is used to trigger an Arrow query.
 ARROW_INCLUDE_FID
 ^^^^^^^^^^^^^^^^^
 
-This hint controls whether to include the feature ID as an Arrow vector or not. The default is to include it.
+This hint controls whether to include the feature ID as an Arrow vector or not. The default is to include it. Note that
+the generic ``INCLUDE_FID`` hint can also be used, but this hint will take precedence if included.
 
 ARROW_PROXY_FID
 ^^^^^^^^^^^^^^^

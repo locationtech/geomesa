@@ -23,6 +23,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.data.jdbc.FilterToSQLException;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 
+import org.locationtech.geomesa.index.conf.QueryHints;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
 
 import static org.locationtech.geomesa.trino.datastore.TrinoDataStore.escapeQuotes;
@@ -255,20 +256,31 @@ class TrinoFeatureSource extends ContentFeatureSource {
     private FeatureReader<SimpleFeatureType, SimpleFeature> openReader(Query query)
         throws IOException {
         String typeName = entry.getName().getLocalPart();
-        String fidColumn = "__fid__";
+        var includeFids = (Boolean) query.getHints().getOrDefault(QueryHints.INCLUDE_FID(), Boolean.TRUE);
+        String fidColumn = includeFids ? "__fid__" : null;
         VisibilityContext vis = visibility();
         String visColumn = vis == null ? null : vis.visColumn();
         SimpleFeatureType sft = query.retrieveAllProperties()
             ? getSchema()
             : SimpleFeatureTypeBuilder.retype(getSchema(), query.getPropertyNames());
-        String cols = escapeQuotes(fidColumn);
+        String cols = fidColumn == null ? "" : escapeQuotes(fidColumn);
         if (sft.getAttributeCount() > 0) {
-            cols += ", " + sft.getAttributeDescriptors().stream()
+            if (!cols.isEmpty()) {
+                cols += ", ";
+            }
+            cols += sft.getAttributeDescriptors().stream()
                 .map(d -> escapeQuotes(d.getLocalName()))
                 .collect(Collectors.joining(", "));
         }
         if (visColumn != null) {
-            cols += ", " + escapeQuotes(visColumn);
+            if (!cols.isEmpty()) {
+                cols += ", ";
+            }
+            cols += escapeQuotes(visColumn);
+        }
+        if (cols.isEmpty()) {
+            LOG.debug("Selecting __fid__ column as no columns are selected");
+            cols = "__fid__";
         }
         // Auths fetched once (in visibility()) so the extra credential and the SQL
         // conjunct can't diverge under per-request providers.

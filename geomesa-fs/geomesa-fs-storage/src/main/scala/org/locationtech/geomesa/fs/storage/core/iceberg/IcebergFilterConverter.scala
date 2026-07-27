@@ -8,23 +8,25 @@
 
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg.expressions.Expression.Operation
 import org.apache.iceberg.expressions.ExpressionVisitors.ExpressionVisitor
 import org.apache.iceberg.expressions._
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
-import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName}
+import org.locationtech.geomesa.filter.visitor.{FilterExtractingVisitor, IdExtractingVisitor}
+import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName, SimpleFeatureSchema}
 import org.locationtech.geomesa.fs.storage.core.schemes.{PartitionScheme, SpatialScheme}
-import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
+import org.locationtech.geomesa.index.strategies.{IdFilterStrategy, SpatialFilterStrategy}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
 import org.locationtech.jts.geom.Point
 
 import java.util.Date
 import scala.reflect.ClassTag
 
-object IcebergFilterConverter {
+object IcebergFilterConverter extends LazyLogging {
 
   /**
    * Returns an iceberg expression and a residual GeoTools filter that isn't captured by the expression (if any)
@@ -39,7 +41,8 @@ object IcebergFilterConverter {
     } else if (filter == Filter.EXCLUDE) {
       ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
     } else {
-      val names = FilterHelper.propertyNames(filter).map(ColumnName.apply)
+      val fid = if (FilterHelper.hasIdFilter(filter)) { Seq(SimpleFeatureSchema.FeatureIdField) } else { Seq.empty }
+      val names = (fid ++ FilterHelper.propertyNames(filter)).map(ColumnName.apply)
       names.foldLeft(ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty))(reduce(sft, schemes))
     }
   }
@@ -49,20 +52,38 @@ object IcebergFilterConverter {
     if (filter == null) {
       return result // no more filter to evaluate
     }
-    val bindings = ObjectType.selectType(sft.getDescriptor(name.attribute))
-    val predicate = bindings.head match {
-      // note: non-points use repeated values, which aren't supported in parquet predicates
-      case ObjectType.GEOMETRY => spatial(sft, schemes, name, filter)
-      case ObjectType.DATE     => attribute[Date](sft, name, filter, Some(dateToMicros))
-      case ObjectType.STRING   => attribute[String](sft, name, filter)
-      case ObjectType.INT      => attribute[Integer](sft, name, filter)
-      case ObjectType.LONG     => attribute[java.lang.Long](sft, name, filter)
-      case ObjectType.FLOAT    => attribute[java.lang.Float](sft, name, filter)
-      case ObjectType.DOUBLE   => attribute[java.lang.Double](sft, name, filter)
-      case ObjectType.BOOLEAN  => attribute[java.lang.Boolean](sft, name, filter)
-      case _ => ReadFilter(Expressions.alwaysTrue(), result.remainder, Set(name.column))
-    }
+    val predicate =
+      if (name.column == SimpleFeatureSchema.FeatureIdField) {
+        fid(result)
+      } else {
+        val bindings = ObjectType.selectType(sft.getDescriptor(name.attribute))
+        bindings.head match {
+          // note: non-points use repeated values, which aren't supported in parquet predicates
+          case ObjectType.GEOMETRY => spatial(sft, schemes, name, filter)
+          case ObjectType.DATE     => attribute[Date](sft, name, filter, Some(dateToMicros))
+          case ObjectType.STRING   => attribute[String](sft, name, filter)
+          case ObjectType.INT      => attribute[Integer](sft, name, filter)
+          case ObjectType.LONG     => attribute[java.lang.Long](sft, name, filter)
+          case ObjectType.FLOAT    => attribute[java.lang.Float](sft, name, filter)
+          case ObjectType.DOUBLE   => attribute[java.lang.Double](sft, name, filter)
+          case ObjectType.BOOLEAN  => attribute[java.lang.Boolean](sft, name, filter)
+          case _ => ReadFilter(Expressions.alwaysTrue(), result.remainder, Set(name.column))
+        }
+      }
     ReadFilter(Expressions.and(predicate.expression, result.expression), predicate.remainder, predicate.columns ++ result.columns)
+  }
+
+  private def fid(result: ReadFilter): ReadFilter = {
+    val filter = result.remainder.orNull // not null already checked at the call sight
+    val fidCol = Set(SimpleFeatureSchema.FeatureIdField)
+    val (idFilters, notIds) = IdExtractingVisitor(filter)
+    val ids = idFilters.fold(Set.empty[String])(IdFilterStrategy.intersectIdFilters)
+    if (ids.isEmpty) {
+      logger.warn(s"Detected an ID filter, but could not extract it: ${ECQL.toCQL(filter)}")
+      ReadFilter(Expressions.alwaysTrue(), result.remainder, fidCol)
+    } else {
+      ReadFilter(ids.map(Expressions.equal(SimpleFeatureSchema.FeatureIdField, _)).reduce(Expressions.or), notIds, fidCol)
+    }
   }
 
   private def spatial(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], name: ColumnName, filter: Filter): ReadFilter = {
