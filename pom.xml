@@ -257,6 +257,46 @@
     </properties>
 
     <profiles>
+        <profile>
+            <id>scala</id>
+            <activation>
+                <file>
+                    <exists>src/main/scala</exists>
+                </file>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-library</artifactId>
+                </dependency>
+            </dependencies>
+            <reporting>
+                <plugins>
+                    <plugin>
+                        <groupId>org.scoverage</groupId>
+                        <artifactId>scoverage-maven-plugin</artifactId>
+                        <reportSets>
+                            <reportSet>
+                                <reports>
+                                    <report>report-only</report>
+                                </reports>
+                            </reportSet>
+                        </reportSets>
+                    </plugin>
+                    <plugin>
+                        <groupId>net.alchim31.maven</groupId>
+                        <artifactId>scala-maven-plugin</artifactId>
+                        <reportSets>
+                            <reportSet>
+                                <reports>
+                                    <report>doc</report>
+                                </reports>
+                            </reportSet>
+                        </reportSets>
+                    </plugin>
+                </plugins>
+            </reporting>
+        </profile>
 
         <profile>
             <!-- for remote debugging tests -->
@@ -495,11 +535,6 @@
     </profiles>
 
     <dependencies>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-        </dependency>
-
         <!-- test dependencies -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -2688,8 +2723,7 @@
                     <configuration>
                         <!-- keep this plugin from re-compiling Java files that the scala-maven-plugin already compiled -->
                         <useIncrementalCompilation>false</useIncrementalCompilation>
-                        <source>${jdk.version}</source>
-                        <target>${jdk.version}</target>
+                        <release>${jdk.version}</release>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -2812,8 +2846,7 @@
                             <arg>-unchecked</arg>
                             <arg>-deprecation</arg>
                         </args>
-                        <source>${jdk.version}</source>
-                        <target>${jdk.version}</target>
+                        <release>${jdk.version}</release>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -3309,17 +3342,6 @@
     <reporting>
         <plugins>
             <plugin>
-                <groupId>org.scoverage</groupId>
-                <artifactId>scoverage-maven-plugin</artifactId>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>report-only</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <reportSets>
@@ -3337,17 +3359,6 @@
                     <reportSet>
                         <reports>
                             <report>javadoc-no-fork</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-            </plugin>
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>doc</report>
                         </reports>
                     </reportSet>
                 </reportSets>
