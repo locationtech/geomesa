@@ -69,6 +69,7 @@ The following dependencies have been upgraded:
 * spark ``3.5.5`` -> ``3.5.7``
 * spring ``5.3.39`` -> ``7.0.8``
 * spring-security ``5.8.16`` -> ``7.1.0``
+* typesafe-config ``1.4.3`` -> ``1.4.9``
 * zookeeper ``3.9.3`` -> ``3.9.5``
 
 StrategyDecider API Update

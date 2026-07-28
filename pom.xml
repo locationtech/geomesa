@@ -107,7 +107,7 @@
         <sizeof.version>0.4.4</sizeof.version>
         <spring.security.version>7.1.0</spring.security.version>
         <trino.version>481</trino.version>
-        <typesafe.config.version>1.4.3</typesafe.config.version>
+        <typesafe.config.version>1.4.9</typesafe.config.version>
         <zstd.version>1.5.7-7</zstd.version>
 
         <!-- standardized transitive dependencies -->

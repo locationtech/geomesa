@@ -44,7 +44,7 @@ com.googlecode.cqengine:cqengine:3.6.0:compile
 com.googlecode.json-simple:json-simple:1.1.1:compile
 com.jayway.jsonpath:json-path:2.9.0:compile
 com.typesafe.scala-logging:scala-logging_2.12:3.9.5:compile
-com.typesafe:config:1.4.3:compile
+com.typesafe:config:1.4.9:compile
 commons-cli:commons-cli:1.6.0:compile
 commons-codec:commons-codec:1.22.0:compile
 commons-dbcp:commons-dbcp:1.4:compile
