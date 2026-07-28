@@ -264,12 +264,6 @@
                     <exists>src/main/scala</exists>
                 </file>
             </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </dependency>
-            </dependencies>
             <reporting>
                 <plugins>
                     <plugin>
@@ -535,6 +529,11 @@
     </profiles>
 
     <dependencies>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+        </dependency>
+
         <!-- test dependencies -->
         <dependency>
             <groupId>org.slf4j</groupId>
