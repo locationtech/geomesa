@@ -38,7 +38,7 @@ function printDependency() {
       classifier="$classifier"$'\n'"                <scope>test</scope>"
     fi
   fi
-  if [[ $artifact =~ -runtime ]] || [[ $classifier =~ runtime ]]; then
+  if [[ $artifact =~ -runtime ]] || [[ $classifier =~ runtime ]] || [[ ${artifact%_*} = geomesa-trino-plugin ]]; then
     classifier="$classifier"$'\n'"                <!-- this is a shaded jar with all dependencies already included -->"
     classifier="$classifier"$'\n'"                <exclusions>"
     classifier="$classifier"$'\n'"                    <exclusion>"
