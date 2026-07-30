@@ -26,7 +26,6 @@ import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
-import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemReader
 import org.locationtech.geomesa.tools.`export`.ExportFormat
@@ -273,8 +272,7 @@ class AccumuloExportCommandTest extends TestWithDataStore {
   }
 
   def readParquet(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val fsc = FileSystemContext.create(new URI("/"), Map.empty)
-    WithClose(new ParquetFileSystemReader(LocalObjectStore, fsc, sft, FilterCompat.NOOP, None, _ => true, None).read(new URI(s"file://$file"))) { iter =>
+    WithClose(new ParquetFileSystemReader(LocalObjectStore, Map.empty, sft, FilterCompat.NOOP, None, _ => true, None).read(new URI(s"file://$file"))) { iter =>
       iter.map(ScalaSimpleFeature.copy).toList
     }
   }

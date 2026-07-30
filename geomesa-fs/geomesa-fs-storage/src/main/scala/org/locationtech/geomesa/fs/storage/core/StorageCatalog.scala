@@ -19,11 +19,11 @@ import java.io.Closeable
 trait StorageCatalog extends Closeable {
 
   /**
-   * File system context
+   * Configuration properties
    *
    * @return
    */
-  def context: FileSystemContext
+  def conf: Map[String, String]
 
   /**
    * Get the feature types known by this factory
@@ -53,11 +53,13 @@ trait StorageCatalog extends Closeable {
 
 object StorageCatalog {
 
+  val NamespaceConfigKey = "namespace"
+
   /**
    * Create a new storage catalog instance
    *
-   * @param context context
+   * @param conf config
    * @return
    */
-  def apply(context: FileSystemContext): StorageCatalog = new IcebergCatalog(context)
+  def apply(conf: Map[String, String]): StorageCatalog = new IcebergCatalog(conf)
 }

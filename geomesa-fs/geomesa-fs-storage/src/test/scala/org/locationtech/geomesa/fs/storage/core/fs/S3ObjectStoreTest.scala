@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.fs.storage.core.fs
 
 import org.apache.commons.io.IOUtils
-import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.utils.io.WithClose
 import org.slf4j.LoggerFactory
 import org.specs2.mutable.SpecificationWithJUnit
@@ -32,7 +31,6 @@ class S3ObjectStoreTest extends SpecificationWithJUnit with BeforeAfterAll {
     "fs.s3.secret-access-key" -> minio.getPassword,
     "fs.s3.force-path-style" -> "true",
   )
-  lazy val context = FileSystemContext(new URI("s3://geomesa/fs/"), conf, None)
 
   override def beforeAll(): Unit = {
     minio =
@@ -52,7 +50,7 @@ class S3ObjectStoreTest extends SpecificationWithJUnit with BeforeAfterAll {
 
   "S3ObjectStore" should {
     "prevent overwriting existing files in create" in {
-      WithClose(ObjectStore(context)) { fs =>
+      WithClose(ObjectStore("s3", conf)) { fs =>
         val file = new URI("s3://geomesa/fs/tmp.txt")
         val first = fs.create(file).orNull
         first must not(beNull)

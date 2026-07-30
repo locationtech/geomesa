@@ -26,7 +26,7 @@ import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounter
 import org.locationtech.geomesa.jobs.mapreduce.JobWithLibJars
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.utils.{DistributedCopy, JobRunner}
+import org.locationtech.geomesa.tools.utils.JobRunner
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.File
@@ -45,7 +45,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
     val job = {
       val conf = new Configuration()
-      storage.context.conf.foreach { case (k, v) => conf.set(k, v) }
+      storage.conf.foreach { case (k, v) => conf.set(k, v) }
       Job.getInstance(conf, "GeoMesa Storage Compaction")
     }
 
@@ -64,12 +64,12 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     job.setOutputKeyClass(classOf[Void])
     job.setOutputValueClass(classOf[SimpleFeature])
 
-    StorageConfiguration.setRootPath(job.getConfiguration, storage.context.root)
     StorageConfiguration.setSft(job.getConfiguration, storage.sft)
     StorageConfiguration.setPartitions(job.getConfiguration, partitions)
     storage.sizer.targetSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
-    FileOutputFormat.setOutputPath(job, tempPath.getOrElse(new Path(S3ObjectStore.s3aUri(storage.context.root))))
+    val outputPath = new Path(S3ObjectStore.s3aUri(s"${storage.table.location()}/tmp"))
+    FileOutputFormat.setOutputPath(job, tempPath.getOrElse(outputPath))
 
     // MapReduce options
     job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
@@ -88,11 +88,13 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
     def mapCounters: Seq[(String, Long)] = Seq((MappedCounter, written(job)), (FailedCounter, failed(job)))
 
-    val result = JobRunner.run(job, statusCallback, mapCounters, Seq.empty).merge {
+    val result = JobRunner.run(job, statusCallback, mapCounters, Seq.empty)
+    // TODO this doesn't work b/c the output format registers the files before we can distcp them
+    /*.merge {
       tempPath.map { tp =>
-        new DistributedCopy().copy(Seq(tp), new Path(storage.context.root), statusCallback)
+        new DistributedCopy().copy(Seq(tp), outputPath, statusCallback)
       }
-    }
+    }*/
 
     result match {
       case JobSuccess(message, counts) =>

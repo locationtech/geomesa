@@ -36,7 +36,6 @@ trait FsContainerTest extends BeforeAfterAll with LazyLogging {
        |fs.s3.force-path-style=true""".stripMargin
 
   protected lazy val dsParams = Map(
-    "fs.path" -> s"s3://geomesa/fs/iceberg/",
     "geomesa.security.auths" -> "user",
     "fs.config.properties" ->
       s"""type=rest

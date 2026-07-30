@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features.exporters
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.core.fs.{LocalObjectStore, ObjectStore, S3ObjectStore}
+import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
 
@@ -38,13 +38,8 @@ class GeoParquetExporter(path: String) extends FeatureExporter with LazyLogging 
 
     // use PathUtils.getUrl to handle local file paths (without a scheme)
     val uri = PathUtils.getUrl(path).toURI
-    fs = uri.getScheme match {
-      case "file" => LocalObjectStore
-      case "s3" | "s3a" => S3ObjectStore(conf)
-      case s => throw new UnsupportedOperationException(s"No implementation available for writing to scheme: $s")
-    }
-
-    writer = new ParquetFileSystemWriter(sft, conf, fs, uri)
+    fs = ObjectStore(uri.getScheme, conf)
+    writer = new ParquetFileSystemWriter(sft, conf, fs, uri.toString)
   }
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {

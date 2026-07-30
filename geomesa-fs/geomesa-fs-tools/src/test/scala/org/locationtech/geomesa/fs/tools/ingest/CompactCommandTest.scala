@@ -94,7 +94,6 @@ class CompactCommandTest extends SpecificationWithJUnit with FsContainerTest {
     "run successfully" in {
       val command = new FsCompactCommand()
       command.params.featureName = sft.getTypeName
-      command.params.path = path
       command.params.runMode = RunModes.Distributed.toString // TODO test local mode
       command.params.configuration = configs.toList.asJava
       command.execute() must not(throwAn[Exception])
@@ -125,7 +124,6 @@ class CompactCommandTest extends SpecificationWithJUnit with FsContainerTest {
       }
       val command = new FsCompactCommand()
       command.params.featureName = sft.getTypeName
-      command.params.path = path
       command.params.runMode = RunModes.Distributed.toString
       command.params.configuration = configs.toList.asJava
       command.execute() must not(throwAn[Exception])

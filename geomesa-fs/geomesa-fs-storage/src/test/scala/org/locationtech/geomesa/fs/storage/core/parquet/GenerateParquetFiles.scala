@@ -70,7 +70,7 @@ object GenerateParquetFiles extends StrictLogging {
       val conf = Map(SimpleFeatureSchema.GeometryEncodingKey -> encoding.toString)
       val file =
         s"${sys.props("java.io.tmpdir")}/${encoding.toString.replace("GeoParquet", "geoparquet-").toLowerCase(Locale.US)}-test.parquet"
-      WithClose(new ParquetFileSystemWriter(sft, conf, LocalObjectStore, URI.create(file))) { writer =>
+      WithClose(new ParquetFileSystemWriter(sft, conf, LocalObjectStore, file)) { writer =>
         features.foreach(writer.write)
       }
       logger.info(s"Wrote ${features.length} features to $file")

@@ -36,7 +36,9 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
 
   override def connection: Map[String, String] = {
     val builder = Map.newBuilder[String, String]
-    builder += (FileSystemDataStoreParams.PathParam.key -> params.path)
+    if (params.catalogType == null && params.configuration.isEmpty && params.configFile == null) {
+      throw new ParameterException("Must specify at least one of --catalog-type, --config or --config-file")
+    }
     if (params.catalogType != null) {
       builder += (FileSystemDataStoreParams.CatalogTypeParam.key -> params.catalogType)
     }
@@ -76,9 +78,6 @@ object FsDataStoreCommand {
   }
 
   trait FsParams {
-    @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)
-    var path: String = _
-
     @Parameter(
       names = Array("--catalog-type"),
       description = "Metadata catalog type to use",

@@ -151,8 +151,8 @@ object IcebergUpdateWriter {
 
     private val closed = new AtomicBoolean(false)
     private val deletes = Seq.newBuilder[(String, Long)]
-    private val path = storage.context.root.resolve(FileSystemStorage.newFilePath(storage.sft.getTypeName, "x-"))
-    private val file = storage.table.io().newOutputFile(path.toString)
+    private val path = storage.newFilePath("x-")
+    private val file = storage.table.io().newOutputFile(path)
 
     private val writer =
       Parquet.writeDeletes(file)

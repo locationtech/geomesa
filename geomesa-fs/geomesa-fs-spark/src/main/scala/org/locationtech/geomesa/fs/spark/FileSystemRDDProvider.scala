@@ -27,6 +27,8 @@ import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 
+import java.net.URI
+
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =
@@ -42,7 +44,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
       val storage = ds.storage(query.getTypeName)
 
       // set s3a configs first, may be needed to set input paths
-      storage.context.conf.foreach { case (k, v) => conf.set(k, v) }
+      storage.conf.foreach { case (k, v) => conf.set(k, v) }
 
       def configureQuery(filter: Filter, paths: Seq[DataFile]): Unit = {
         logger.debug(s"Reading ${paths.length} files with filter: ${ECQL.toCQL(filter)}")
@@ -51,7 +53,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
         val job = Job.getInstance(conf)
 
         // note: we have to copy all the conf twice?
-        FileInputFormat.setInputPaths(job, paths.map(p => new Path(S3ObjectStore.s3aUri(storage.context.root.resolve(p.location())))): _*)
+        FileInputFormat.setInputPaths(job, paths.map(p => new Path(S3ObjectStore.s3aUri(URI.create(p.location())))): _*)
         conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
         val newQuery = new Query(query)
         newQuery.setFilter(filter)

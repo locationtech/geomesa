@@ -12,12 +12,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, StorageCatalog}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.SpecificationWithJUnit
-
-import java.net.{URI, URL}
 
 class ConverterFileSystemStorageTest extends SpecificationWithJUnit with LazyLogging {
 
@@ -51,7 +48,7 @@ class ConverterFileSystemStorageTest extends SpecificationWithJUnit with LazyLog
 
   "ConverterFileSystemStorage" should {
     "read features in compressed tar.gz files" in {
-      val dir = Option(getClass.getClassLoader.getResource("example-convert-test-1")).map(parent).orNull
+      val dir = Option(getClass.getClassLoader.getResource("example-convert-test-1")).map(_.toURI).orNull
       dir must not(beNull)
 
       val conf = Map.newBuilder[String, String]
@@ -59,11 +56,10 @@ class ConverterFileSystemStorageTest extends SpecificationWithJUnit with LazyLog
       conf += (ConverterCatalog.PartitionSchemeParam -> "daily")
       conf += (ConverterCatalog.LeafStorageParam -> "false")
 
-      conf += (ConverterCatalog.ConverterPathParam -> "example-convert-test-1")
+      conf += (ConverterCatalog.ConverterPathParam -> dir.toString)
       conf += (ConverterCatalog.ConverterConfigParam -> converterConfig)
 
-      val context = FileSystemContext.create(dir, conf.result())
-      WithClose(new ConverterCatalog(context)) { catalog =>
+      WithClose(new ConverterCatalog(conf.result())) { catalog =>
         catalog.getTypeNames mustEqual Seq("example")
         WithClose(catalog.load("example")) { storage =>
           storage must not(beNull)
@@ -77,7 +73,7 @@ class ConverterFileSystemStorageTest extends SpecificationWithJUnit with LazyLog
     }
 
     "filter file paths by dtg" in {
-      val dir = Option(getClass.getClassLoader.getResource("example-convert-test-2")).map(parent).orNull
+      val dir = Option(getClass.getClassLoader.getResource("example-convert-test-2")).map(_.toURI).orNull
       dir must not(beNull)
 
       val conf = Map.newBuilder[String, String]
@@ -87,7 +83,7 @@ class ConverterFileSystemStorageTest extends SpecificationWithJUnit with LazyLog
       conf += (ConverterCatalog.PartitionOptsPrefix + "buffer" -> "10 minutes")
       conf += (ConverterCatalog.LeafStorageParam -> "false")
 
-      conf += (ConverterCatalog.ConverterPathParam -> "example-convert-test-2")
+      conf += (ConverterCatalog.ConverterPathParam -> dir.toString)
       conf += (ConverterCatalog.ConverterConfigParam -> converterConfig)
       conf += (ConverterCatalog.PathFilterName -> "dtg")
       conf += (ConverterCatalog.PathFilterOptsPrefix + "attribute" -> "dtg")
@@ -95,8 +91,7 @@ class ConverterFileSystemStorageTest extends SpecificationWithJUnit with LazyLog
       conf += (ConverterCatalog.PathFilterOptsPrefix + "format" -> "yyyyMMddHHmm")
       conf += (ConverterCatalog.PathFilterOptsPrefix + "buffer" -> "2 hours")
 
-      val context = FileSystemContext.create(dir, conf.result())
-      WithClose(new ConverterCatalog(context)) { catalog =>
+      WithClose(new ConverterCatalog(conf.result())) { catalog =>
         catalog.getTypeNames mustEqual Seq("example")
         WithClose(catalog.load("example")) { storage =>
           val filterText =
@@ -114,10 +109,5 @@ class ConverterFileSystemStorageTest extends SpecificationWithJUnit with LazyLog
         }
       }
     }
-  }
-
-  private def parent(resource: URL): URI = {
-    val uri = resource.toURI.toString
-    new URI(uri.substring(0, uri.lastIndexOf('/') + 1))
   }
 }

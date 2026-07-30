@@ -12,10 +12,11 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, TableIdentifier}
 import org.apache.iceberg.{CatalogUtil, PartitionSpec}
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Metadata, StorageCatalog, namespaced}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Metadata, StorageCatalog, namespaced}
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -26,18 +27,20 @@ import java.util.concurrent.TimeUnit
 /**
  * Catalog implementation backed by iceberg
  *
- * @param context file system context
+ * @param config configuration
  */
-class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
+class IcebergCatalog(config: Map[String, String]) extends StorageCatalog {
 
   import IcebergCatalog.{RichCatalog, RichConf}
 
   import scala.collection.JavaConverters._
 
+  val conf: Map[String, String] = S3ObjectStore.s3Configs(config)
+
   private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
 
-  private val namespace = Namespace.of(ColumnName.encode(context.conf.required("iceberg.namespace")))
-  private val catalog = IcebergCatalog.createCatalog(context)
+  private val namespace = Namespace.of(ColumnName.encode(conf.required("iceberg.namespace")))
+  private val catalog = IcebergCatalog.createCatalog(conf)
 
   // avoid repeatedly loading tables when getting type names
   private val typeNameCache = Caffeine.newBuilder().expireAfterWrite(expiry, TimeUnit.MILLISECONDS).build(
@@ -64,15 +67,15 @@ class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
     val sft =
       namespaced(
         SimpleFeatureTypes.createType(table.properties().get("geomesa.sft.name"), table.properties().get("geomesa.sft.spec")),
-        context.namespace)
+        conf.get(StorageCatalog.NamespaceConfigKey))
     // TODO get this from the table itself to allow for scheme migration
     val schemes = table.properties().get("geomesa.partition.spec").split(",").map(PartitionSchemeFactory.load(sft, _))
-    val schema = SimpleFeatureIcebergSchema(sft, context.conf)
-    FileSystemStorage(context, table, schemes, schema)
+    val schema = SimpleFeatureIcebergSchema(sft, conf)
+    FileSystemStorage(table, schemes, schema, conf)
   }
 
   override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long] = None): FileSystemStorage = {
-    val schema = SimpleFeatureIcebergSchema(namespaced(sft, context.namespace), context.conf)
+    val schema = SimpleFeatureIcebergSchema(namespaced(sft, conf.get(StorageCatalog.NamespaceConfigKey)), conf)
     if (schema.geometries != GeoParquetWkb) {
       // TODO supports native geometry encoding
       throw new UnsupportedOperationException(s"Only WKB geometry encoding is supported: ${schema.geometries}")
@@ -90,7 +93,7 @@ class IcebergCatalog(val context: FileSystemContext) extends StorageCatalog {
     val spec = schemes.foldLeft(PartitionSpec.builderFor(schema.schema))((b, m) => m.spec(b)).build()
     catalog.ensureNamespace(namespace)
     val table = catalog.createTable(tableId(sft.getTypeName), schema.schema, spec, null, tableProps.asJava)
-    FileSystemStorage(context, table, schemes, schema)
+    FileSystemStorage(table, schemes, schema, conf)
   }
 
   override def close(): Unit = catalog.close()
@@ -124,14 +127,13 @@ object IcebergCatalog {
     private def sn: Option[SupportsNamespaces] = Option(catalog).collect { case sn: SupportsNamespaces => sn }
   }
 
-  private def createCatalog(context: FileSystemContext): Catalog = {
+  private def createCatalog(conf: Map[String, String]): Catalog = {
     // add some defaults, to reduce boilerplate
     val defaults = Map(
       "io-impl" -> "org.apache.iceberg.aws.s3.S3FileIO",
       "file-format" -> "PARQUET",
-      "warehouse" -> context.root.resolve("metadata/").toString
     )
-    val props = defaults ++ context.conf
+    val props = defaults ++ conf
     CatalogUtil.buildIcebergCatalog("geomesa", props.asJava, null)
   }
 }

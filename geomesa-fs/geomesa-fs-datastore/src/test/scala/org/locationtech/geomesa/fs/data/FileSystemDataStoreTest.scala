@@ -84,7 +84,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
       )
       WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(sft)
-        ds.storage(sft.getTypeName).context.conf must containAllOf(
+        ds.storage(sft.getTypeName).conf must containAllOf(
           Map(
             "config.xml" -> "test", // from direct data store param
             "test-site" -> "bar", // from test-site.xml

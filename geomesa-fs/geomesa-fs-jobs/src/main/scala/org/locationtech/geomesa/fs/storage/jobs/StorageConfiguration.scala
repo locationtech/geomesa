@@ -18,8 +18,6 @@ import org.locationtech.geomesa.fs.storage.core.Partition
 import org.locationtech.geomesa.fs.storage.core.schemes.{PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-import java.net.URI
-
 object StorageConfiguration {
 
   import scala.collection.JavaConverters._
@@ -37,7 +35,6 @@ object StorageConfiguration {
     def partition(name: String): String = PartitionPrefix + name
   }
 
-  val PathKey                  = "geomesa.fs.path"
   val EncodingKey              = "geomesa.fs.encoding"
   val PartitionSchemeKeyPrefix = "geomesa.fs.partition.scheme."
   val PartitionsKeyPrefix      = "geomesa.fs.partitions."
@@ -64,9 +61,6 @@ object StorageConfiguration {
 
   def getSftName(conf: Configuration): String = conf.get(SftNameKey)
   def getSftSpec(conf: Configuration): String = conf.get(SftSpecKey)
-
-  def setRootPath(conf: Configuration, path: URI): Unit = conf.set(PathKey, path.toString)
-  def getRootPath(conf: Configuration): URI = new URI(conf.get(PathKey))
 
   def setPartitionScheme(conf: Configuration, scheme: Seq[PartitionScheme]): Unit = {
     var i = 0

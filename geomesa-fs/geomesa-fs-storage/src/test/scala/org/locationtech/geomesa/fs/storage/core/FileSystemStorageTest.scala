@@ -99,15 +99,13 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
   }
 
   // make a valid, unique namespace for each test
-  def newPath(): FileSystemContext = {
+  def newPath(): Map[String, String] = {
     val path = f"${paths.getAndIncrement()}%03d"
-    val root = URI.create(s"s3://geomesa/$path/")
-    val conf = s3Conf ++ Map(
+    s3Conf ++ Map(
       "type" -> "rest",
       "uri" -> s"http://${iceberg.getHost}:${iceberg.getFirstMappedPort}/",
       "iceberg.namespace" -> path,
     )
-    FileSystemContext.create(root, conf, None)
   }
 
   "FileSystemStorage" should {
@@ -368,7 +366,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
 
       val context = newPath()
-      WithClose(StorageCatalog(context.copy(conf = context.conf ++ Map(AuthsParam.key -> "user,admin")))) { catalog =>
+      WithClose(StorageCatalog(context ++ Map(AuthsParam.key -> "user,admin"))) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
           storage must not(beNull)
 
@@ -391,7 +389,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
       // verify we can load an existing storage, without specifying vis
       foreach(Seq("user", "")) { auths =>
-        WithClose(StorageCatalog(context.copy(conf = context.conf ++ Map(AuthsParam.key -> auths)))) { catalog =>
+        WithClose(StorageCatalog(context ++ Map(AuthsParam.key -> auths))) { catalog =>
           WithClose(catalog.load(sft.getTypeName)) { storage =>
             foreach(testCases) { case (filter, transforms, expected) =>
               val isVisible = VisibilityUtils.visible(new DefaultAuthorizationsProvider(auths.split(",").filter(_.nonEmpty)))

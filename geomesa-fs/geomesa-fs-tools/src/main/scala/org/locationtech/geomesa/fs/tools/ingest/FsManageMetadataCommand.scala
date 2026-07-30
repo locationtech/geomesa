@@ -45,14 +45,14 @@ object FsManageMetadataCommand extends LazyLogging {
 
       val paths = params.files.asScala.map { file =>
         val path = {
+          val root = URI.create(storage.table.location())
           val tmp = new URI(file)
           if (tmp.getScheme == null || tmp.getScheme.isEmpty) {
-            new URI(storage.context.root.getScheme, tmp.getHost, tmp.getPath, tmp.getFragment)
-          } else if (tmp.getScheme == storage.context.root.getScheme) {
+            new URI(root.getScheme, tmp.getHost, tmp.getPath, tmp.getFragment)
+          } else if (tmp.getScheme == root.getScheme) {
             tmp
           } else {
-            throw new IllegalArgumentException(
-              s"File $file must be in the same filesystem as the storage context: ${storage.context.root}")
+            throw new IllegalArgumentException(s"File $file must be in the same filesystem as the storage context: $root")
           }
         }
         if (!storage.table.io().newInputFile(path.toString).exists()) {
@@ -62,7 +62,7 @@ object FsManageMetadataCommand extends LazyLogging {
       }
 
       def outputResult(file: DataFile): Unit = {
-        Command.user.info(s"Registered file ${storage.context.root.resolve(file.location())} containing ${file.recordCount()} known features")
+        Command.user.info(s"Registered file ${file.location()} containing ${file.recordCount()} known features")
         // TODO: extract and display bounds from DataFile.lowerBounds()/upperBounds()
       }
 
@@ -86,9 +86,11 @@ object FsManageMetadataCommand extends LazyLogging {
 
     override def execute(): Unit = withDataStore { ds =>
       val storage = ds.storage(params.featureName)
-      val uri = storage.context.root.resolve(params.file).toString
-      storage.table.newDelete().deleteFile(uri).commit()
-      Command.user.info(s"Unregistered file: $uri")
+      if (!storage.table.io().newInputFile(params.file).exists()) {
+        throw new IllegalArgumentException(s"File ${params.file} does not exist")
+      }
+      storage.table.newDelete().deleteFile(params.file).commit()
+      Command.user.info(s"Unregistered file: ${params.file}")
     }
   }
 

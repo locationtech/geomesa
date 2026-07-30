@@ -11,9 +11,6 @@ package observer
 package s3
 
 import org.apache.iceberg.aws.s3.S3FileIO
-import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
-
-import java.net.URI
 
 /**
  * Visibility observer for aws sdk v2
@@ -26,13 +23,13 @@ class S3VisibilityObserverFactory extends FileSystemObserverFactory {
   override def init(storage: FileSystemStorage): Unit = {
     try {
       fs = storage.table.io().asInstanceOf[S3FileIO]
-      tag = storage.context.conf.getOrElse(S3VisibilityObserverFactory.TagNameConfig, S3VisibilityObserverFactory.DefaultTag)
+      tag = storage.conf.getOrElse(S3VisibilityObserverFactory.TagNameConfig, S3VisibilityObserverFactory.DefaultTag)
     } catch {
       case e: Exception => throw new RuntimeException("Unable to get s3 client", e)
     }
   }
 
-  override def apply(path: URI): FileSystemObserver = new S3VisibilityObserver(path, fs, tag)
+  override def apply(path: String): FileSystemObserver = new S3VisibilityObserver(path, fs, tag)
 
   override def close(): Unit = {}
 }

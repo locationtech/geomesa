@@ -36,7 +36,6 @@ trait FsContainerTest extends BeforeAfterAll with LazyLogging {
     "fs.s3.force-path-style" -> "true",
   )
 
-
   protected lazy val configs = s3Configs ++ Map(
     "type" -> "rest",
     "uri" -> s"http://${iceberg.getHost}:${iceberg.getFirstMappedPort}/",
@@ -44,7 +43,6 @@ trait FsContainerTest extends BeforeAfterAll with LazyLogging {
   )
 
   protected lazy val dsParams = Map(
-    "fs.path" -> s"s3://geomesa/fs/iceberg/",
     "geomesa.security.auths" -> "user",
     "fs.config.properties" -> configs.map { case (k, v) => s"$k=$v" }.mkString("\n"),
   )

@@ -29,11 +29,11 @@ import java.util.Base64
  * @param fs s3 client
  * @param tag tag name to use
  */
-class S3VisibilityObserver(path: URI, fs: S3FileIO, tag: String) extends FileSystemObserver {
+class S3VisibilityObserver(path: String, fs: S3FileIO, tag: String) extends FileSystemObserver {
 
   private val visibilities = scala.collection.mutable.Set.empty[String]
 
-  private val key = S3ObjectStore.parseS3Path(path)
+  private val key = S3ObjectStore.parseS3Path(new URI(path))
 
   override def apply(feature: SimpleFeature): Unit = {
     val vis = SecurityUtils.getVisibility(feature)

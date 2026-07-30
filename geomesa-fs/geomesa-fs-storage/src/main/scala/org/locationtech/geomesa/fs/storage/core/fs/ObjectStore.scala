@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.fs.storage.core.fs
 
 import org.apache.commons.compress.archivers.ArchiveStreamFactory.{JAR, TAR, ZIP}
-import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.ArchiveFormat.ArchiveFormat
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore.NamedInputStream
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -136,11 +135,11 @@ trait ObjectStore extends Closeable {
 
 object ObjectStore {
 
-  def apply(context: FileSystemContext): ObjectStore = {
-    context.root.getScheme match {
+  def apply(scheme: String, conf: Map[String, String]): ObjectStore = {
+    scheme.toLowerCase(Locale.US) match {
       case "file" => LocalObjectStore
-      case "s3" | "s3a" => S3ObjectStore(context.conf)
-      case scheme => throw new UnsupportedOperationException(s"No object store implemented for scheme: $scheme")
+      case "s3" | "s3a" => S3ObjectStore(conf)
+      case _ => throw new UnsupportedOperationException(s"No object store implemented for scheme: $scheme")
     }
   }
 
