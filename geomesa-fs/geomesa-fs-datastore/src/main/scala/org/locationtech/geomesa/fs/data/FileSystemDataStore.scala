@@ -17,7 +17,7 @@ import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSo
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.stats.FileSystemStats
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
@@ -42,13 +42,13 @@ class FileSystemDataStore(catalog: StorageCatalog, config: FileSystemDataStoreCo
     }
   )
 
-  config.context.namespace.foreach(setNamespaceURI)
-
   override val stats: GeoMesaStats = new FileSystemStats(this)
+
+  this.namespaceURI = config.conf.getOrElse(StorageCatalog.NamespaceConfigKey, null)
 
   override def createTypeNames(): java.util.List[Name] = {
     val names = new java.util.ArrayList[Name]()
-    catalog.getTypeNames.foreach(name => names.add(new NameImpl(config.context.namespace.orNull, name)))
+    catalog.getTypeNames.foreach(name => names.add(new NameImpl(getNamespaceURI, name)))
     names
   }
 
@@ -104,12 +104,12 @@ object FileSystemDataStore {
   /**
    * Config options
    *
-   * @param context handle to the file system
+   * @param conf file system configuration props
    * @param readThreads number of threads per read
    * @param queryTimeout read timeout
    */
   case class FileSystemDataStoreConfig(
-    context: FileSystemContext,
+    conf: Map[String, String],
     readThreads: Int,
     queryTimeout: Option[Duration],
   )

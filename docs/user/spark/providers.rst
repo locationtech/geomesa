@@ -98,7 +98,10 @@ from an s3 bucket:
     import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
-    val params = Map("fs.path" -> "s3a://mybucket/geomesa/datastore")
+    val params = Map(
+      "fs.catalog.type" -> "rest",
+      "fs.config.properties" -> Seq("uri=http://rest-catalog:8080/", "iceberg.namespace=geomesa").mkString("\n"),
+    )
     val query = new Query("gdelt")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 

@@ -16,7 +16,7 @@ the :ref:`fsds_parameters` ``fs.config.properties`` and ``fs.config.file``.
 ``fs.options.converter.path``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This property must point to the root path containing the files to read.
+This property must be a fully-qualified URI pointing to the root path containing the files to read.
 
 ``fs.options.sft.name``
 ^^^^^^^^^^^^^^^^^^^^^^^

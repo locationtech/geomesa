@@ -68,7 +68,6 @@ abstract class FileSystemConverterJob(
     // (default is at 0.05 which takes all the map slots and isn't needed)
     job.getConfiguration.set("mapreduce.job.reduce.slowstart.completedmaps", ".90")
 
-    StorageConfiguration.setRootPath(job.getConfiguration, root)
     StorageConfiguration.setPartitionScheme(job.getConfiguration, schemes)
     targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 

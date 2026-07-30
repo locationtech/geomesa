@@ -14,6 +14,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.iceberg._
 import org.apache.iceberg.parquet.ParquetUtil
 import org.apache.iceberg.types.Conversions
+import org.apache.iceberg.util.LocationUtil
 import org.apache.parquet.hadoop.example.GroupReadSupport
 import org.apache.parquet.hadoop.{ParquetFileReader, ParquetReader}
 import org.geotools.api.data.Query
@@ -22,7 +23,6 @@ import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.fs.storage.core.FileSystemContext.RichConf
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.iceberg._
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
@@ -52,16 +52,16 @@ import scala.util.control.NonFatal
 /**
  * Persists simple features to a file system and provides query access
  *
- * @param context file system context
  * @param table iceberg table
  * @param schemes partition scheme
  * @param schema data file schema
+ * @param conf configuration
  */
 case class FileSystemStorage(
-    context: FileSystemContext,
     table: Table,
     schemes: Seq[PartitionScheme],
     schema: SimpleFeatureIcebergSchema,
+    conf: Map[String, String],
   ) extends Closeable with StrictLogging {
 
   import org.locationtech.geomesa.fs.storage.core.FileSystemStorage._
@@ -78,8 +78,8 @@ case class FileSystemStorage(
 
   protected val authProvider: AuthorizationsProvider =
     AuthUtils.getProvider(
-      context.conf.get(AuthProviderParam.key).map(p => AuthProviderParam.key -> p).toMap.asJava,
-      context.conf.getOrElse(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
+      conf.get(AuthProviderParam.key).map(p => AuthProviderParam.key -> p).toMap.asJava,
+      conf.getOrElse(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
     )
 
   // don't require observers if we never write any data
@@ -182,10 +182,10 @@ case class FileSystemStorage(
    */
   def getWriter(partition: Partition): FileSystemWriter = {
     val compression = Option(System.getProperty(ParquetCompressionOpt)).map(ParquetCompressionOpt -> _).toMap
-    val conf = compression ++ context.conf ++ Map(SimpleFeatureSchema.PartitionKey -> partition.toString)
+    val conf = compression ++ this.conf ++ Map(SimpleFeatureSchema.PartitionKey -> partition.toString)
 
     def newWriter(): FileSystemWriter = {
-      val path = context.root.resolve(FileSystemStorage.newFilePath(sft.getTypeName))
+      val path = newFilePath()
       val tableObserver = new AddDataFileObserver(path, partition)
       val observer = if (observers.isEmpty) { tableObserver } else {
         new CompositeObserver(observers.map(_.apply(path)).+:(tableObserver))
@@ -206,7 +206,7 @@ case class FileSystemStorage(
    * @return
    */
   // noinspection AccessorLikeMethodIsEmptyParen
-  def getMultiPartitionWriter(): FileSystemWriter = new MultiPartitionWriter(this, context.conf.getWriterMaxOpenPartitions)
+  def getMultiPartitionWriter(): FileSystemWriter = new MultiPartitionWriter(this, conf.getWriterMaxOpenPartitions)
 
   /**
    * Gets a modifying writer. This method is thread-safe and can be called multiple times, but a given feature
@@ -218,7 +218,7 @@ case class FileSystemStorage(
    * @return
    */
   def getWriter(filter: Filter, threads: Int): FileSystemUpdateWriter =
-    IcebergUpdateWriter(this, filter, threads, context.conf.getWriterMaxOpenPartitions)
+    IcebergUpdateWriter(this, filter, threads, conf.getWriterMaxOpenPartitions)
 
   override def close(): Unit = CloseWithLogging(Option(table).collect { case c: Closeable => c })
 
@@ -259,11 +259,11 @@ case class FileSystemStorage(
     def register(files: Map[Partition, Seq[URI]]): Seq[DataFile] = {
       val dataFiles = files.toSeq.flatMap { case (partition, paths) =>
         paths.map { path =>
-          val filePath = FileSystemStorage.newFilePath(sft.getTypeName)
-          val destination = context.root.resolve(filePath)
+          val destination = newFilePath()
           logger.debug(s"Copying $path to $destination")
-          WithClose(ObjectStore(context))(_.copy(path, destination))
-          toDataFile(destination.toString, partition)
+          val uri = URI.create(destination)
+          WithClose(ObjectStore(uri.getScheme, conf))(_.copy(path, uri))
+          toDataFile(destination, partition)
         }
       }
 
@@ -282,7 +282,7 @@ case class FileSystemStorage(
      */
     def register(files: Seq[URI]): Seq[DataFile] = {
       val partitioned = scala.collection.mutable.Map.empty[String, ArrayBuffer[URI]]
-      WithClose(ObjectStore(context)) { fs =>
+      WithClose(ObjectStore(files.head.getScheme, conf)) { fs =>
         files.foreach { file =>
           WithClose(ParquetFileReader.open(ParquetFileSystemReader.inputFile(fs, file))) { reader =>
             val partition = reader.getFileMetaData.getKeyValueMetaData.get(SimpleFeatureSchema.PartitionKey)
@@ -343,6 +343,9 @@ case class FileSystemStorage(
     }
   }
 
+  private[core] def newFilePath(prefix: String = ""): String =
+    s"${LocationUtil.stripTrailingSlash(table.location())}/${FileSystemStorage.newFilePath(sft.getTypeName, prefix)}"
+
   /**
    * Reads the parquet metadata for a path and creates a data file
    *
@@ -369,13 +372,13 @@ case class FileSystemStorage(
    * @param path file path
    * @param partition file partition
    */
-  private class AddDataFileObserver(path: URI, partition: Partition) extends FileSystemObserver {
+  private class AddDataFileObserver(path: String, partition: Partition) extends FileSystemObserver {
     override def apply(feature: SimpleFeature): Unit = {}
     override def flush(): Unit = {}
     override def close(): Unit = {
       // TODO this is reading the file footer again, could we track this during write instead?
       logger.debug(s"Adding new data file: $path")
-      val file = toDataFile(path.toString, partition)
+      val file = toDataFile(path, partition)
       val append = table.newAppend()
       append.appendFile(file)
       append.commit()
@@ -440,7 +443,7 @@ object FileSystemStorage extends LazyLogging {
 
   private case object FileValidationObserverFactory extends FileSystemObserverFactory {
     override def init(storage: FileSystemStorage): Unit = {}
-    override def apply(path: URI): FileSystemObserver = FileValidationObserver(path)
+    override def apply(path: String): FileSystemObserver = FileValidationObserver(path)
     override def close(): Unit = {}
   }
 
@@ -449,7 +452,7 @@ object FileSystemStorage extends LazyLogging {
    *
    * @param file file to validate
    */
-  case class FileValidationObserver(file: URI) extends FileSystemObserver {
+  case class FileValidationObserver(file: String) extends FileSystemObserver {
     override def apply(feature: SimpleFeature): Unit = {}
     override def flush(): Unit = {}
     override def close(): Unit = {
@@ -529,13 +532,6 @@ object FileSystemStorage extends LazyLogging {
    * Reader trait
    */
   trait FileSystemPathReader {
-
-    /**
-     * Root path
-     *
-     * @return
-     */
-    def root: URI
 
     /**
      * Reads a file

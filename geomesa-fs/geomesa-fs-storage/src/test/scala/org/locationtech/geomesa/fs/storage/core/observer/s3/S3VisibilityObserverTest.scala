@@ -13,7 +13,7 @@ import org.apache.iceberg.Table
 import org.apache.iceberg.aws.s3.S3FileIO
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -23,7 +23,6 @@ import org.specs2.mutable.SpecificationWithJUnit
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.{PutObjectTaggingRequest, PutObjectTaggingResponse, Tag}
 
-import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 import java.util.concurrent.CompletableFuture
@@ -48,7 +47,7 @@ class S3VisibilityObserverTest extends SpecificationWithJUnit with Mockito {
     val table = mock[Table]
     table.io() returns io
     val storage = mock[FileSystemStorage]
-    storage.context returns FileSystemContext.create(URI.create("s3a://foo/"), Map.empty)
+    storage.conf returns Map.empty
     storage.table returns table
     factory.init(storage)
     s3
@@ -66,7 +65,7 @@ class S3VisibilityObserverTest extends SpecificationWithJUnit with Mockito {
     "tag a single visibility label" >> {
       WithClose(new S3VisibilityObserverFactory) { factory =>
         val s3 = mockS3(factory)
-        val observer = factory.apply(new URI("s3a://foo/bar/baz.json"))
+        val observer = factory.apply("s3a://foo/bar/baz.json")
         observer(feature(0, "user"))
         observer.close()
 
@@ -84,7 +83,7 @@ class S3VisibilityObserverTest extends SpecificationWithJUnit with Mockito {
     "tag multiple visibility labels" >> {
       WithClose(new S3VisibilityObserverFactory) { factory =>
         val s3 = mockS3(factory)
-        val observer = factory.apply(new URI("s3a://foo/bar/baz.json"))
+        val observer = factory.apply("s3a://foo/bar/baz.json")
         observer(feature(0, "user"))
         observer(feature(1, "admin"))
         observer(feature(2, "user"))
@@ -108,7 +107,7 @@ class S3VisibilityObserverTest extends SpecificationWithJUnit with Mockito {
     "simplify tag expressions" >> {
       WithClose(new S3VisibilityObserverFactory) { factory =>
         val s3 = mockS3(factory)
-        val observer = factory.apply(new URI("s3a://foo/bar/baz.json"))
+        val observer = factory.apply("s3a://foo/bar/baz.json")
         observer(feature(0, "user&admin"))
         observer(feature(1, "admin"))
         observer(feature(2, "user"))

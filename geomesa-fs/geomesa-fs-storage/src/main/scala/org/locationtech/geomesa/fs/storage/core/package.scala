@@ -13,7 +13,6 @@ import com.typesafe.config.ConfigFactory
 import org.apache.iceberg.Table
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.ConvertToBoolean
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -22,7 +21,6 @@ import pureconfig.generic.semiauto.deriveConvert
 import pureconfig.{ConfigConvert, ConfigSource}
 
 import java.lang.reflect.Type
-import java.net.URI
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
@@ -48,52 +46,10 @@ package object core {
   def namespaced(sft: SimpleFeatureType, namespace: Option[String]): SimpleFeatureType =
     namespace.map(ns => SimpleFeatureTypes.renameSft(sft, s"$ns:${sft.getTypeName}")).getOrElse(sft)
 
-  /**
-   * Holder for file system configuration
-   *
-   * @param root root path
-   * @param conf configuration
-   * @param namespace optional feature namespace
-   */
-  case class FileSystemContext(root: URI, conf: Map[String, String], namespace: Option[String]) {
-    require(root.getScheme != null && root.getScheme.nonEmpty, s"Invalid root, no scheme specified: $root")
-    require(root.toString.endsWith("/"), s"Invalid root URI, must end with '/': $root")
-  }
 
-  object FileSystemContext {
-
-    /**
-     * Helper method to ensure the root is property formatted
-     *
-     * @param root root path
-     * @param conf configuration
-     * @return
-     */
-    def create(root: URI, conf: Map[String, String]): FileSystemContext = create(root, conf, None)
-
-    /**
-     * Helper method to ensure the root is property formatted
-     *
-     * @param root root path
-     * @param conf configuration
-     * @param namespace namespace
-     * @return
-     */
-    def create(root: URI, conf: Map[String, String], namespace: Option[String]): FileSystemContext = {
-      val validatedRoot = {
-        val rootWithScheme = if (root.getScheme != null && root.getScheme.nonEmpty) { root } else {
-          new URI("file", root.getAuthority, root.getPath, root.getQuery, root.getFragment)
-        }
-        val rootWithSlash = if (rootWithScheme.toString.endsWith("/")) { rootWithScheme } else { new URI(rootWithScheme.toString + "/") }
-        rootWithSlash
-      }
-      FileSystemContext(validatedRoot, S3ObjectStore.s3Configs(conf), namespace)
-    }
-
-    implicit class RichConf(val conf: Map[String, String]) extends AnyRef {
-      def getWriterMaxOpenPartitions: Int =
-        conf.get(FileSystemStorage.WriterMaxOpenPartitions).fold(FileSystemStorage.WriterMaxOpenPartitionsDefault)(_.toInt)
-    }
+  implicit class RichConf(val conf: Map[String, String]) extends AnyRef {
+    def getWriterMaxOpenPartitions: Int =
+      conf.get(FileSystemStorage.WriterMaxOpenPartitions).fold(FileSystemStorage.WriterMaxOpenPartitionsDefault)(_.toInt)
   }
 
   object Metadata {
@@ -230,9 +186,6 @@ package object core {
    */
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
     import StorageKeys._
-    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.DefaultDtgField
-
-    import scala.collection.JavaConverters._
 
     def setScheme(names: String): Unit = sft.getUserData.put(SchemeKey, names)
     def removeScheme(): Option[Seq[String]] = {

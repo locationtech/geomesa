@@ -3,12 +3,11 @@
 FileSystem Data Store Parameters
 ================================
 
-Use the following parameters for a FileSystem data store (required parameters are marked with ``*``):
+Use the following parameters for a FileSystem data store:
 
 ================================== ====== ========================================================================================
 Parameter                          Type   Description
 ================================== ====== ========================================================================================
-``fs.path *``                      String The root path to write and read data from (e.g. ``s3a://mybucket/datastores/testds``)
 ``fs.catalog.type``                String A convenience method for specifying the Iceberg catalog ``type``. See
                                           :ref:`fsds_metadata` for details
 ``fs.config.properties``           String Storage configuration properties, in Java properties format. See
@@ -27,6 +26,9 @@ Parameter                          Type   Description
 ``geomesa.security.auth-provider`` String  Class name for an ``AuthorizationsProvider`` implementation
 ================================== ====== ========================================================================================
 
+There are different ways to specify the configuration properties, but note that at least one of ``fs.catalog.type``,
+``fs.config.properties`` or ``fs.config.file`` must be specified in order to load the FileSystem data store.
+
 Programmatic Access
 -------------------
 
@@ -36,8 +38,8 @@ the GeoMesa code is on the classpath:
 .. code-block:: java
 
     Map<String, String> parameters = Map.of(
-      "fs.path", "hdfs://localhost:9000/fs-root/",
-      "fs.catalog.type", "rest"
+      "fs.catalog.type", "rest",
+      "fs.config.properties", String.join("\n", "uri=http://localhost:8080/", "iceberg.namespace=geomesa")
     );
     org.geotools.api.data.DataStore dataStore =
         org.geotools.api.data.DataStoreFinder.getDataStore(parameters);

@@ -30,10 +30,10 @@ trait FileSystemObserverFactory extends Closeable {
   /**
    * Create an observer for the given path
    *
-   * @param path file path being written, relative to the root URL
+   * @param path file path being written
    * @return
    */
-  def apply(path: URI): FileSystemObserver
+  def apply(path: String): FileSystemObserver
 }
 
 object FileSystemObserverFactory {

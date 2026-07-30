@@ -14,7 +14,7 @@ import org.apache.iceberg.DataFile
 import org.apache.iceberg.expressions.Expressions
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergParquetScan
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.jobs.parquet.ParquetPartitionInputFormat.{PartitionInputSplit, PartitionRecordReader}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -36,12 +36,10 @@ class ParquetPartitionInputFormat extends InputFormat[Void, SimpleFeature] {
       builder.result()
     }
 
-    val root = StorageConfiguration.getRootPath(hadoopConf)
     val fileSize = StorageConfiguration.getTargetFileSize(hadoopConf)
     val typeName = StorageConfiguration.getSftName(hadoopConf)
 
-    val fsc = FileSystemContext.create(root, conf)
-    WithClose(StorageCatalog(fsc)) { catalog =>
+    WithClose(StorageCatalog(conf)) { catalog =>
       WithClose(catalog.load(typeName)) { storage =>
         val sizeCheck = fileSize.orElse(storage.sizer.targetSize).map(t => (f: DataFile) => storage.sizer.fileIsSized(f, t))
         val splits = StorageConfiguration.getPartitions(hadoopConf).map { partition =>
@@ -126,10 +124,8 @@ object ParquetPartitionInputFormat {
         hadoopConf.forEach(e => builder += e.getKey -> e.getValue)
         builder.result()
       }
-      val root = StorageConfiguration.getRootPath(hadoopConf)
       val typeName = StorageConfiguration.getSftName(hadoopConf)
-      val fsc = FileSystemContext.create(root, conf)
-      catalog = StorageCatalog(fsc)
+      catalog = StorageCatalog(conf)
       storage = catalog.load(typeName)
 
       val readSchema = storage.schema.read(None, Set.empty)

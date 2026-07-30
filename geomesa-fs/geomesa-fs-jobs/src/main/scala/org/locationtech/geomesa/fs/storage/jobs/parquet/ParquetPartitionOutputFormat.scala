@@ -15,7 +15,7 @@ import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
 import org.apache.hadoop.mapreduce.security.TokenCache
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, Partition, PartitionKey, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition, PartitionKey, StorageCatalog}
 import org.locationtech.geomesa.fs.storage.jobs.StorageConfiguration
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FileSizeEstimator}
 
@@ -51,18 +51,14 @@ class ParquetPartitionOutputFormat extends OutputFormat[Void, SimpleFeature] {
 
     import StorageConfiguration.Counters.{Features, Group}
 
-    private val fsc = {
+    private val conf = {
       val hadoopConf = context.getConfiguration
-      val conf = {
-        val builder = Map.newBuilder[String, String]
-        hadoopConf.forEach(e => builder += e.getKey -> hadoopConf.get(e.getKey)) // use .get to resolve envs
-        builder.result()
-      }
-      val root = StorageConfiguration.getRootPath(hadoopConf)
-      FileSystemContext.create(root, conf)
+      val builder = Map.newBuilder[String, String]
+      hadoopConf.forEach(e => builder += e.getKey -> hadoopConf.get(e.getKey)) // use .get to resolve envs
+      builder.result()
     }
 
-    private val catalog = StorageCatalog(fsc)
+    private val catalog = StorageCatalog(conf)
     private val storage = catalog.load(StorageConfiguration.getSftName(context.getConfiguration))
 
     private val fileSize = StorageConfiguration.getTargetFileSize(context.getConfiguration)

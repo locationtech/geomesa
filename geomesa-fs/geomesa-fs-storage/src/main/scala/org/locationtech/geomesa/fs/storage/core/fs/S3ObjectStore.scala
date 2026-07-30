@@ -476,6 +476,14 @@ object S3ObjectStore {
   }
 
   /**
+   * If the URI has an 's3://' scheme, converts it to 's3a://' for use with hadoop
+   *
+   * @param path path
+   * @return
+   */
+  def s3aUri(path: String): URI = s3aUri(URI.create(path))
+
+  /**
    * Write buffering strategies
    */
   object WriteBuffering extends Enumeration {

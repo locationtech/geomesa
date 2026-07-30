@@ -15,7 +15,7 @@ import org.geotools.data.memory.MemoryDataStore
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Partition, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.{Partition, StorageCatalog}
 import org.locationtech.geomesa.fs.tools.ingest.container.FsContainerTest
 import org.locationtech.geomesa.tools.`export`.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
@@ -45,7 +45,6 @@ class ExportToFsTest extends SpecificationWithJUnit with FsContainerTest {
       ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features: _*))
 
-      val context = FileSystemContext.create(URI.create(dsParams("fs.path")), configs)
       val file = Files.createTempFile("", "2016_01_01_out.parquet").toFile.getAbsolutePath
 
       val command: ExportCommand[DataStore] = new ExportCommand[DataStore]() {
@@ -59,10 +58,10 @@ class ExportToFsTest extends SpecificationWithJUnit with FsContainerTest {
       command.params.force = true
       command.execute()
 
-      WithClose(StorageCatalog(context)) { catalog =>
+      WithClose(StorageCatalog(configs)) { catalog =>
         WithClose(catalog.create(sft, Seq("daily"))) { storage =>
           val register = URI.create("s3://geomesa/2016_01_01_out.parquet")
-          WithClose(ObjectStore(context)) { fs =>
+          WithClose(ObjectStore("s3", configs)) { fs =>
             WithClose(fs.create(register).get) { os =>
               WithClose(new FileInputStream(file)) { is =>
                 IOUtils.copy(is, os)

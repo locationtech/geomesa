@@ -26,7 +26,6 @@ import scala.util.control.NonFatal
 
 class ConverterFileSystemReader(
     fs: ObjectStore,
-    val root: URI,
     converter: SimpleFeatureConverter,
     filter: Option[Filter],
     transform: Option[(String, SimpleFeatureType)],

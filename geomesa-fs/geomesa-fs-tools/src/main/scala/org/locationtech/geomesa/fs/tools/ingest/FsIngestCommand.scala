@@ -15,8 +15,8 @@ import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, Metadata}
+import org.locationtech.geomesa.fs.storage.core.Metadata
+import org.locationtech.geomesa.fs.storage.core.fs.{ObjectStore, S3ObjectStore}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.ParquetConverterJob
@@ -61,7 +61,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
         val targetFileSize = Metadata.get(storage.table, Metadata.TargetFileSize).map(_.toLong)
 
         tmpPath.foreach { tp =>
-          WithClose(ObjectStore(FileSystemContext.create(tp, storage.context.conf))) { fs =>
+          WithClose(ObjectStore(tp.getScheme, storage.conf)) { fs =>
             if (fs.exists(tp)) {
               Command.user.info(s"Deleting temp path $tp")
               val toCheck = new java.util.LinkedList[URI]()
@@ -78,9 +78,10 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
           }
         }
 
+        val outputPath = S3ObjectStore.s3aUri(s"${storage.table.location()}/tmp")
         new ParquetConverterJob(
           connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths, reducers,
-          storage.context.root, storage.schemes, tmpPath.map(new Path(_)), targetFileSize) {
+          outputPath, storage.schemes, tmpPath.map(new Path(_)), targetFileSize) {
           override def configureJob(job: Job): Unit = {
             super.configureJob(job)
             if (params.combineInputs) {

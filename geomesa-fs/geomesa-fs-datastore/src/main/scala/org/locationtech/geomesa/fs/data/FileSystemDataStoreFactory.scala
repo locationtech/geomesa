@@ -16,7 +16,7 @@ import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.storage.converter.ConverterCatalog
-import org.locationtech.geomesa.fs.storage.core.FileSystemContext
+import org.locationtech.geomesa.fs.storage.core.StorageCatalog
 import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergCatalog
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -48,11 +48,8 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val readThreads = QueryThreadsParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite)
 
-    val namespace = NamespaceParam.lookupOpt(params)
-
-    val path = new URI(PathParam.lookup(params))
-    val context = FileSystemContext.create(path, buildConf(params), namespace)
-    val config = FileSystemDataStoreConfig(context, readThreads, queryTimeout)
+    val conf = buildConf(params)
+    val config = FileSystemDataStoreConfig(conf, readThreads, queryTimeout)
 
     lazy val encodingType =
       if (params.get("fs.encoding") == "converter") {
@@ -62,12 +59,12 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
         false
       }
 
-    val catalogType = context.conf.getOrElse(CatalogUtil.ICEBERG_CATALOG_TYPE, null)
+    val catalogType = conf.getOrElse(CatalogUtil.ICEBERG_CATALOG_TYPE, null)
     val catalog =
       if (catalogType == ConverterCatalog.CatalogType || (catalogType == null && encodingType)) {
-        new ConverterCatalog(context)
+        new ConverterCatalog(conf)
       } else {
-        new IcebergCatalog(context)
+        new IcebergCatalog(conf)
       }
 
     new FileSystemDataStore(catalog, config)
@@ -131,6 +128,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     AuthsParam.lookupOpt(params).foreach(auths => builder += (AuthsParam.key -> auths))
     CatalogTypeParam.lookupOpt(params).filter(_.nonEmpty).foreach(t => builder += (CatalogUtil.ICEBERG_CATALOG_TYPE -> t))
     WritersMaxOpenPartitionsParam.lookupOpt(params).foreach(m => builder += (WritersMaxOpenPartitionsParam.key -> m.toString))
+    NamespaceParam.lookupOpt(params).foreach(n => builder += StorageCatalog.NamespaceConfigKey -> n)
     builder.result()
   }
 }
@@ -142,7 +140,6 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
 
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
-      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.PathParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.CatalogTypeParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigFileParam,
@@ -156,7 +153,9 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
   private lazy val configuration = new Configuration()
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =
-    org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.PathParam.exists(params)
+    org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigParam.exists(params) ||
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigFileParam.exists(params) ||
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.CatalogTypeParam.exists(params)
 
   @deprecated("Moved to org.locationtech.geomesa.fs.data.FileSystemDataStoreParams")
   object FileSystemDataStoreParams extends org.locationtech.geomesa.fs.data.FileSystemDataStoreParams

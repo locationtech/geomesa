@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.storage.core.parquet.io
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.iceberg.io.FileIO
-import org.apache.parquet.column.ParquetProperties
 import org.apache.parquet.column.ParquetProperties.WriterVersion
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.hadoop.api.WriteSupport
@@ -49,16 +48,16 @@ class ParquetFileSystemWriter(
   import scala.collection.JavaConverters._
 
   // TODO consolidate this on FileIO instead of ObjectStore
-  def this(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: URI, observer: FileSystemObserver) =
-    this(sft, conf, ObjectStoreOutput(fs, file), observer)
+  def this(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: String, observer: FileSystemObserver) =
+    this(sft, conf, ObjectStoreOutput(fs, URI.create(file)), observer)
 
-  def this(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: URI) =
+  def this(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: String) =
     this(sft, conf, fs, file, NoOpObserver)
 
-  def this(sft: SimpleFeatureType, conf: Map[String, String], io: FileIO, file: URI, observer: FileSystemObserver) =
+  def this(sft: SimpleFeatureType, conf: Map[String, String], io: FileIO, file: String, observer: FileSystemObserver) =
     this(sft, conf, IcebergOutput(io, file), observer)
 
-  def this(sft: SimpleFeatureType, conf: Map[String, String], io: FileIO, file: URI) =
+  def this(sft: SimpleFeatureType, conf: Map[String, String], io: FileIO, file: String) =
     this(sft, conf, io, file, NoOpObserver)
 
   private val parquetConf = new PlainParquetConfiguration(conf.asJava)
@@ -138,8 +137,8 @@ object ParquetFileSystemWriter extends LazyLogging {
     override def size: Long = fs.size(path)
   }
 
-  private case class IcebergOutput(io: FileIO, path: URI) extends FileOutput {
-    override val file: IcebergOutputFile = new IcebergOutputFile(io.newOutputFile(path.toString))
+  private case class IcebergOutput(io: FileIO, path: String) extends FileOutput {
+    override val file: IcebergOutputFile = new IcebergOutputFile(io.newOutputFile(path))
     override def size: Long = file.original.toInputFile.getLength
   }
 

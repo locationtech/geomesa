@@ -13,13 +13,12 @@ import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.core.utils.TestObserverFactory.TestObserver
 
-import java.net.URI
 import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
 class TestObserverFactory extends FileSystemObserverFactory {
   override def init(storage: FileSystemStorage): Unit = {}
-  override def apply(path: URI): FileSystemObserver = {
+  override def apply(path: String): FileSystemObserver = {
     val observer = new TestObserver(path)
     TestObserverFactory.observers += observer
     observer
@@ -34,7 +33,7 @@ object TestObserverFactory {
   val observers: scala.collection.mutable.Set[TestObserver] =
     Collections.synchronizedSet(new java.util.HashSet[TestObserver]()).asScala
 
-  class TestObserver(val path: URI) extends FileSystemObserver {
+  class TestObserver(val path: String) extends FileSystemObserver {
 
     val features = ArrayBuffer.empty[SimpleFeature]
     var closed = false

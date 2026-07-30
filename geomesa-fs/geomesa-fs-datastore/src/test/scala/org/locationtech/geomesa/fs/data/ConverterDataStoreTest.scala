@@ -15,7 +15,6 @@ import org.apache.commons.io.IOUtils
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.data.container.FsContainerTest
-import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
@@ -60,10 +59,10 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with FsContainerTest
 
   "ConverterDataStore" should {
     "work with one datastore" in {
+      val path = s"file://${this.getClass.getClassLoader.getResource("example").getFile}/datastore1"
       val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path"              -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.catalog.type"      -> "converter",
-        "fs.config.properties" -> fsConfig(sftByName("fs-test"), "datastore1")
+        "fs.config.properties" -> fsConfig(sftByName("fs-test"), path)
       ).asJava)
       ds must not(beNull)
 
@@ -77,10 +76,10 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with FsContainerTest
     }
 
     "work with something else" in {
+      val path = s"file://${this.getClass.getClassLoader.getResource("example").getFile}/datastore2"
       val params = Map(
-        "fs.path"              -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"          -> "converter", // verify back-compatible fs.encoding config
-        "fs.config.properties" -> fsConfig(sftByName("fs-test"), "datastore2")
+        "fs.config.properties" -> fsConfig(sftByName("fs-test"), path)
       )
       WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
         ds must not(beNull)
@@ -97,7 +96,7 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with FsContainerTest
 
     "read tar.gz files from s3 storage" in {
       val bucket = "s3://geomesa/"
-      val config = fsConfig(sftByName("fs-test"), "datastore1")
+      val config = fsConfig(sftByName("fs-test"), s"${bucket}datastore1")
       val props = {
         val properties = new Properties()
         properties.load(new StringReader(config))
@@ -106,8 +105,7 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with FsContainerTest
       // number of times to write the sample files into our tgz
       // note: we need fairly large files to trigger GEOMESA-3411
       val multiplier = 177156
-      val fsc = FileSystemContext.create(new URI(bucket), props)
-      WithClose(ObjectStore(fsc)) { fs =>
+      WithClose(ObjectStore("s3", props)) { fs =>
         Seq("00", "15", "30", "45").foreach { file =>
           val path = s"datastore1/2017/001/01/$file"
           val contents = WithClose(getClass.getClassLoader.getResourceAsStream(s"example/$path"))(IOUtils.toByteArray)
@@ -119,7 +117,6 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with FsContainerTest
 
       foreach(Seq(("100 millis", true), ("5 minutes", false))) { case (timeout, expectTimeout) =>
         val params = Map(
-          "fs.path"               -> bucket,
           "fs.catalog.type"       -> "converter",
           "fs.config.properties"  -> config,
           "geomesa.query.threads" -> "12",
@@ -177,10 +174,10 @@ class ConverterDataStoreTest extends SpecificationWithJUnit with FsContainerTest
         """.stripMargin
       ).root().render(ConfigRenderOptions.concise)
 
+      val path = s"file://${this.getClass.getClassLoader.getResource("example").getFile}/datastore1"
       val params = Map(
-        "fs.path"              -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.catalog.type"      -> "converter",
-        "fs.config.properties" -> fsConfig(sftByConf(conf), "datastore1")
+        "fs.config.properties" -> fsConfig(sftByConf(conf), path)
       )
       WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
         ds must not(beNull)

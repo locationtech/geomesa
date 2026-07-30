@@ -17,23 +17,24 @@ import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.{PathFiltering, PathFilteringFactory}
 import org.locationtech.geomesa.fs.storage.converter.schemes.{NamedOptions, PartitionSchemeFactory}
 import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
-import org.locationtech.geomesa.fs.storage.core.{FileSystemContext, FileSystemStorage, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
+
+import java.net.URI
 
 /**
  * Storage catalog for synthetic "converter" storage
  *
- * @param context file system context
+ * @param conf file system config
  */
-class ConverterCatalog(val context: FileSystemContext) extends StorageCatalog with LazyLogging {
+class ConverterCatalog(val conf: Map[String, String]) extends StorageCatalog with LazyLogging {
 
   import ConverterCatalog._
 
   private val sft = {
     val sftArg =
-      context.conf.get(SftConfigParam)
-        .orElse(context.conf.get(SftNameParam))
+      conf.get(SftConfigParam)
+        .orElse(conf.get(SftNameParam))
         .getOrElse(throw new IllegalArgumentException(s"Must provide either simple feature type config or name"))
     SftArgResolver.getArg(SftArgs(sftArg, null)) match {
       case Left(e) => throw new IllegalArgumentException("Could not load SimpleFeatureType with provided parameters", e)
@@ -43,31 +44,31 @@ class ConverterCatalog(val context: FileSystemContext) extends StorageCatalog wi
 
   private val schemes = {
     val partitionSchemeName =
-      context.conf.getOrElse(PartitionSchemeParam, throw new IllegalArgumentException("Must provide partition scheme name"))
+      conf.getOrElse(PartitionSchemeParam, throw new IllegalArgumentException("Must provide partition scheme name"))
     val partitionSchemeOpts =
-        context.conf.collect { case (k, v) if k.startsWith(PartitionOptsPrefix) => k.substring(PartitionOptsPrefix.length) -> v }
+        conf.collect { case (k, v) if k.startsWith(PartitionOptsPrefix) => k.substring(PartitionOptsPrefix.length) -> v }
     PartitionSchemeFactory.load(sft, NamedOptions(partitionSchemeName, partitionSchemeOpts))
   }
 
-  private val converterPath =
-    context.conf.get(ConverterPathParam)
-      .map(p => context.root.resolve(p))
-      .getOrElse(throw new IllegalArgumentException("Must provide converter path"))
+  private val converterPath = {
+    val path = conf.get(ConverterPathParam).map(URI.create).getOrElse(throw new IllegalArgumentException("Must provide converter path"))
+    if (path.toString.endsWith("/")) { path } else { new URI(path.toString + "/") }
+  }
 
   private val leafStorage =
-    context.conf.get(LeafStorageParam)
+    conf.get(LeafStorageParam)
       .map(_.toBoolean)
       .getOrElse {
         val deprecated = s"${PartitionOptsPrefix}leaf-storage"
-        context.conf.get(deprecated).fold(true) { s =>
+        conf.get(deprecated).fold(true) { s =>
           logger.warn(s"Using deprecated leaf-storage partition-scheme option. Please define leaf-storage using '$LeafStorageParam'")
           s.toBoolean
         }
       }
 
-  private val pathFiltering = context.conf.get(PathFilterName).flatMap { name =>
+  private val pathFiltering = conf.get(PathFilterName).flatMap { name =>
     val pathFilteringOpts =
-      context.conf.collect { case (k, v) if k.startsWith(PathFilterOptsPrefix) => k.substring(PathFilterOptsPrefix.length) -> v }
+      conf.collect { case (k, v) if k.startsWith(PathFilterOptsPrefix) => k.substring(PathFilterOptsPrefix.length) -> v }
     val factory = PathFilteringFactory.load(NamedOptions(name, pathFilteringOpts))
     if (factory.isEmpty) {
       throw new IllegalArgumentException(s"Failed to load ${classOf[PathFiltering].getName} for config '$name'")
@@ -79,7 +80,7 @@ class ConverterCatalog(val context: FileSystemContext) extends StorageCatalog wi
 
   override def load(typeName: String): FileSystemStorage = {
     if (typeName == sft.getTypeName) {
-      val convertArg = context.conf.get(ConverterConfigParam).orElse(context.conf.get(ConverterNameParam)).getOrElse {
+      val convertArg = conf.get(ConverterConfigParam).orElse(conf.get(ConverterNameParam)).getOrElse {
         throw new IllegalArgumentException(s"Must provide either converter config or name")
       }
       val converterConfig = ConverterConfigResolver.getArg(ConfArgs(convertArg)) match {
@@ -91,10 +92,9 @@ class ConverterCatalog(val context: FileSystemContext) extends StorageCatalog wi
       catalog.initialize("geomesa", java.util.Map.of())
       val ns = Namespace.of("geomesa")
       catalog.createNamespace(ns)
-      val schema = SimpleFeatureIcebergSchema(sft, context.conf)
+      val schema = SimpleFeatureIcebergSchema(sft, conf)
       val table = catalog.createTable(TableIdentifier.of(ns, "converter"), schema.schema)
-      val newContext = FileSystemContext.create(converterPath, context.conf, context.namespace)
-      new ConverterStorage(newContext, table, schema, schemes, converter, pathFiltering, leafStorage)
+      new ConverterStorage(table, schema, schemes, conf, converterPath, converter, pathFiltering, leafStorage)
     } else {
       throw new IllegalArgumentException(s"Schema '$typeName' doesn't exist - available schemas: ${sft.getTypeName}")
     }

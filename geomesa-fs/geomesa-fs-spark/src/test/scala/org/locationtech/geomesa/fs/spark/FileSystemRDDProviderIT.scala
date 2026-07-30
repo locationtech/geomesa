@@ -55,6 +55,8 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
   lazy val spark: SparkSession = cluster.getOrCreateSession().withJTS
   lazy val sc: SQLContext = spark.sqlContext.withJTS // <-- withJTS should be a noop given the above, but is here to test that code path
 
+  // TODO need to set up and point to an iceberg catalog
+
   // these params will work in the spark executor, but not locally outside the docker network
   lazy val sparkDsParams = {
     Map(

@@ -25,17 +25,7 @@ object FileSystemDataStoreParams extends FileSystemDataStoreParams
 
 trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
 
-  val WriterFileTimeout: SystemProperty = SystemProperty("geomesa.fs.writer.partition.timeout")
   val WritersMaxOpenPartitions: SystemProperty = SystemProperty("geomesa.fs.writer.partitions.max.open")
-
-  val PathParam =
-    new GeoMesaParam[String](
-      "fs.path",
-      "Root of the filesystem hierarchy",
-      optional = false,
-      supportsNiFiExpressions = true,
-      readWrite = ReadWriteFlag.ReadWrite,
-    )
 
   val CatalogTypeParam =
     new GeoMesaParam[String](

@@ -29,7 +29,6 @@ class FileSystemThreadedReaderTest extends SpecificationWithJUnit {
       val feature = ScalaSimpleFeature.create(sft, "1", "name")
       val featureGate = new LinkedBlockingQueue[Boolean](1)
       val reader = new FileSystemPathReader() {
-        override def root: URI = new URI("/")
         override def read(file: URI): CloseableIterator[SimpleFeature] = {
           featureGate.take()
           CloseableIterator.single(feature)

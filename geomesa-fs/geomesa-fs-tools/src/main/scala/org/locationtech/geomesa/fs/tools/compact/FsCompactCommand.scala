@@ -22,7 +22,6 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.utils.TerminalCallback
-import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.util.Locale
@@ -59,9 +58,7 @@ object FsCompactCommand {
         filtered
       }
 
-      val mode = params.mode.getOrElse {
-        if (PathUtils.isRemote(storage.context.root.toString)) { RunModes.Distributed } else { RunModes.Local }
-      }
+      val mode = params.mode.getOrElse(RunModes.Distributed)
 
       Command.user.info(s"Compacting ${toCompact.size} files in ${mode.toString.toLowerCase(Locale.US)} mode")
 

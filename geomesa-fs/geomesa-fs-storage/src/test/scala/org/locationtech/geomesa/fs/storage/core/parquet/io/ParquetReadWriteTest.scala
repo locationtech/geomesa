@@ -95,7 +95,7 @@ class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
       randomAccessFile.close()
 
       // Validate the file
-      FileValidationObserver(f.toUri).close() must throwA[RuntimeException].like {
+      FileValidationObserver(f.toString).close() must throwA[RuntimeException].like {
         case e => e.getMessage must contain("corrupted")
       }
     }

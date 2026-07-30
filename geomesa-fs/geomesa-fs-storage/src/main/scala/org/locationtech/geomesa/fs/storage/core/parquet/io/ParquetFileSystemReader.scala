@@ -16,7 +16,6 @@ import org.apache.parquet.hadoop.api.ReadSupport
 import org.apache.parquet.io.{InputFile, LocalInputFile}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.TransformSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.FileSystemContext
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.core.fs.{LocalObjectStore, ObjectStore, S3ObjectStore}
 import org.locationtech.geomesa.fs.storage.core.parquet.s3.S3InputFile
@@ -31,7 +30,7 @@ import scala.util.control.NonFatal
 
 class ParquetFileSystemReader(
     fs: ObjectStore,
-    context: FileSystemContext,
+    conf: Map[String, String],
     sft: SimpleFeatureType,
     parquetFilter: FilterCompat.Filter,
     gtFilter: Option[org.geotools.api.filter.Filter],
@@ -50,10 +49,8 @@ class ParquetFileSystemReader(
       f => new TransformSimpleFeature(tsft, definitions, f)
   }
 
-  private val conf = new PlainParquetConfiguration(context.conf.asJava)
-  SimpleFeatureParquetSchema.setSft(conf, sft)
-
-  override def root: URI = context.root
+  private val parquetConf = new PlainParquetConfiguration(conf.asJava)
+  SimpleFeatureParquetSchema.setSft(parquetConf, sft)
 
   override def read(file: URI): CloseableIterator[SimpleFeature] = {
     // TODO we can examine file bounds and simplify/eliminate the gtFilter
@@ -64,7 +61,7 @@ class ParquetFileSystemReader(
   private class ParquetFileIterator(path: URI) extends CloseableIterator[SimpleFeature] {
 
     private val reader: ParquetReader[SimpleFeature] =
-      ParquetFileSystemReader.builder(fs, path).withConf(conf).withFilter(parquetFilter).build()
+      ParquetFileSystemReader.builder(fs, path).withConf(parquetConf).withFilter(parquetFilter).build()
 
     private var staged: SimpleFeature = _
 

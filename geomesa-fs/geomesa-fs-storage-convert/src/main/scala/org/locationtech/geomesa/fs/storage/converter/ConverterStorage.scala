@@ -21,7 +21,7 @@ import org.locationtech.geomesa.fs.storage.converter.utils.FileSystemThreadedRea
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemUpdateWriter, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
-import org.locationtech.geomesa.fs.storage.core.{CacheDurationProperty, FileSystemContext, FileSystemStorage, Partition}
+import org.locationtech.geomesa.fs.storage.core.{CacheDurationProperty, FileSystemStorage, Partition}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.security.VisibilityUtils
@@ -34,18 +34,19 @@ import scala.runtime.BoxedUnit
 import scala.util.control.NonFatal
 
 class ConverterStorage(
-    context: FileSystemContext,
     table: Table,
     schema: SimpleFeatureIcebergSchema,
     layout: PartitionScheme,
+    conf: Map[String, String],
+    rootPath: URI,
     converter: SimpleFeatureConverter,
     pathFiltering: Option[PathFiltering],
     leafStorage: Boolean,
-  ) extends FileSystemStorage(context, table, Seq.empty, schema) {
+  ) extends FileSystemStorage(table, Seq.empty, schema, conf) {
 
   import scala.collection.JavaConverters._
 
-  private val fs = ObjectStore(context)
+  private val fs = ObjectStore(rootPath.getScheme, conf)
 
   private val depth = layout.depth - (if (leafStorage) { 1 } else { 0 })
 
@@ -79,7 +80,7 @@ class ConverterStorage(
       }
     }
 
-    val reader = new ConverterFileSystemReader(fs, context.root, converter, filter, transform, pathFiltering)
+    val reader = new ConverterFileSystemReader(fs, converter, filter, transform, pathFiltering)
     val scan = FileSystemThreadedReader(reader, files.toSeq, threads)
 
     try {
@@ -110,9 +111,9 @@ class ConverterStorage(
     val map = new java.util.HashMap[String, Seq[URI]]()
     try {
       val toCheck = new java.util.LinkedList[URI]()
-      fs.list(context.root).foreach(toCheck.add)
-      val maxDepth = depth + context.root.toString.count(_ == '/')
-      val rootPathLength = context.root.toString.length
+      fs.list(rootPath).foreach(toCheck.add)
+      val maxDepth = depth + rootPath.toString.count(_ == '/')
+      val rootPathLength = rootPath.toString.length
       while (!toCheck.isEmpty) {
         val file = toCheck.remove()
         logger.debug(s"Checking ${file.getPath}")
