@@ -92,7 +92,7 @@ public class TrinoDataStoreTest {
                         "fs.s3.secret-access-key=" + minio.getPassword(),
                         "fs.s3.force-path-style=true");
 
-        var fsds = DataStoreFinder.getDataStore(Map.of("fs.path", "s3://geomesa/fs/iceberg/", "fs.config.properties", fsProps));
+        var fsds = DataStoreFinder.getDataStore(Map.of("fs.config.properties", fsProps));
         try {
             fsds.createSchema(sft);
             try (var writer = fsds.getFeatureWriterAppend(sft.getTypeName(), Transaction.AUTO_COMMIT)) {
