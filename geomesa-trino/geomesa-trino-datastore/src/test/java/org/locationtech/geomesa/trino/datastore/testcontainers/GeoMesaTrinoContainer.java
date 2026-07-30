@@ -66,11 +66,11 @@ public class GeoMesaTrinoContainer extends TrinoContainer {
                 path = Paths.get(URI.create(jar)).toFile().getAbsolutePath();
             }
         } catch (URISyntaxException e) {
-            throw new RuntimeException("Could not load geomesa-accumulo-distributed-runtime JAR from classpath", e);
+            throw new RuntimeException("Could not load geomesa-trino-plugin JAR from classpath", e);
         }
         if (path == null) {
             throw new RuntimeException(
-                    "Could not load geomesa-accumulo-distributed-runtime JAR from classpath");
+                    "Could not load geomesa-trino-plugin JAR from classpath");
         }
         return path;
     }

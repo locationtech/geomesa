@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.trino.datastore.testcontainers;
 
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.List;
@@ -17,6 +18,11 @@ public class IcebergRestContainer extends GenericContainer<IcebergRestContainer>
     public IcebergRestContainer(String s3AccessKeyId, String s3SecretAccessKey) {
         super(DockerImageName.parse("apache/iceberg-rest-fixture").withTag(System.getProperty("iceberg.rest.docker.tag")));
         setExposedPorts(List.of(8181));
+        setWaitStrategy(
+            Wait.forHttp("/v1/config")
+                   .forPort(8181)
+                   .forStatusCode(200)
+        );
         addEnv("CATALOG_WAREHOUSE", "s3://geomesa/iceberg/");
         addEnv("CATALOG_IO__IMPL", "org.apache.iceberg.aws.s3.S3FileIO");
         addEnv("CATALOG_S3_ENDPOINT", "http://minio:9000");
