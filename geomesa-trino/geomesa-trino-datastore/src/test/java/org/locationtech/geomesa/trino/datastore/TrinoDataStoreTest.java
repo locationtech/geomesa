@@ -15,10 +15,10 @@ import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;
 import org.locationtech.geomesa.trino.datastore.testcontainers.GeoMesaTrinoContainer;
 import org.locationtech.geomesa.trino.datastore.testcontainers.IcebergRestContainer;
@@ -74,7 +74,7 @@ public class TrinoDataStoreTest {
         return (SimpleFeature) sf;
     }).toList();
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeAll() throws Exception {
         minio.start();
         minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName(), minio.getPassword());
@@ -105,7 +105,7 @@ public class TrinoDataStoreTest {
         trino.start();
     }
 
-    @AfterClass
+    @AfterAll
     public static void afterAll() {
         trino.stop();
         iceberg.stop();
