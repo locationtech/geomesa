@@ -18,6 +18,7 @@ import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.stats.FileSystemStats
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.MetricsConfig
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
@@ -43,6 +44,8 @@ class FileSystemDataStore(catalog: StorageCatalog, config: FileSystemDataStoreCo
   )
 
   override val stats: GeoMesaStats = new FileSystemStats(this)
+
+  private val registry = config.metrics.map(_.register())
 
   this.namespaceURI = config.conf.getOrElse(StorageCatalog.NamespaceConfigKey, null)
 
@@ -91,7 +94,7 @@ class FileSystemDataStore(catalog: StorageCatalog, config: FileSystemDataStoreCo
   override def dispose(): Unit = {
     try {
       CloseWithLogging(cache.asMap().asScala.values)
-      CloseWithLogging(catalog)
+      CloseWithLogging(Seq(catalog) ++ registry)
       cache.invalidateAll()
     } finally {
       super.dispose()
@@ -112,5 +115,6 @@ object FileSystemDataStore {
     conf: Map[String, String],
     readThreads: Int,
     queryTimeout: Option[Duration],
+    metrics: Option[MetricsConfig],
   )
 }

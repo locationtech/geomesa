@@ -33,9 +33,9 @@ GeoMesa code is hosted on GitHub, and the project is hosted at locationtech:
 Issue Tracking
 --------------
 
-GeoMesa uses JIRA to track ongoing development and issues:
+GeoMesa uses GitHub to track ongoing development and issues:
 
-* https://geomesa.atlassian.net/issues/?jql=
+* https://github.com/locationtech/geomesa/issues
 
 Building
 --------
@@ -47,11 +47,11 @@ Contributing
 
 GeoMesa uses git pull requests for contributions. To create a pull request, follow these steps:
 
-* Before starting work, reach out to the community via the [developers list](https://accounts.eclipse.org/mailing-list/geomesa-dev)
-  or on [Gitter](https://gitter.im/locationtech/geomesa) to ensure the contribution aligns with the project's goals.
-* Most contributions must reference a valid JIRA ticket, unless the change is very small. Sign up for an account at
-  https://geomesa.atlassian.net/issues/?jql= and self-assign a ticket. Alternatively, contact the
-  [developers list](https://accounts.eclipse.org/mailing-list/geomesa-dev) about doing it for you.
+* Before starting work, reach out to the community to ensure the contribution aligns with the project's goals.
+  This can be accomplished by creating an [issue](https://github.com/locationtech/geomesa/issues), a
+  [discussion](https://github.com/locationtech/geomesa/discussions), emailing the
+  [developers list](https://accounts.eclipse.org/mailing-list/geomesa-dev), or posting on
+  [Gitter](https://gitter.im/locationtech/geomesa).
 * Ensure that you have signed the Eclipse CLA with the email associated with your GitHub account:
   https://www.eclipse.org/legal/ECA.php
 * Fork the GeoMesa project on GitHub - go to https://github.com/locationtech/geomesa and click 'Fork'.
@@ -65,9 +65,8 @@ Coding Standards
 ----------------
 
 * An initial pull request should be up-to-date with the current main branch.
-* The pull request title should consist of a JIRA ticket number followed by a short description, with additional
-  information in bullets below as required.
-  * See e.g. https://github.com/locationtech/geomesa/commit/1f345132a717816d5a4951f73b2b73537fce305b
+* The pull request title should reference the relevant component, as applicable (e.g. `Docs - ...`).
+* The pull request description should reference any issue numbers, with additional information in bullets below as required.
 * Code must be reasonably formatted. Scala does not conform well to automatic formatting, but in general
   GeoMesa tries to adhere to the official Scala style guide: https://docs.scala-lang.org/style/
 * Code should include unit tests when appropriate.
@@ -88,10 +87,7 @@ To add a new copyright owner, a template file can be placed under `build/copyrig
 Contact
 -------
 
-Contact the GeoMesa developers via the developers mailing list:
-
-* https://accounts.eclipse.org/mailing-list/geomesa-dev
-
-For user information, use the users mailing list:
-
-* https://accounts.eclipse.org/mailing-list/geomesa-users
+* [GitHub Discussions](https://github.com/locationtech/geomesa/discussions)
+* [Developer mailing list](https://accounts.eclipse.org/mailing-list/geomesa-dev)
+* [User mailing list](https://accounts.eclipse.org/mailing-list/geomesa-users)
+* [Community chat on Gitter](https://gitter.im/locationtech/geomesa)

@@ -8,11 +8,12 @@
 
 package org.locationtech.geomesa.fs.data
 
+import com.typesafe.config.Config
 import org.apache.iceberg.CatalogUtil
 import org.locationtech.geomesa.fs.storage.converter.ConverterCatalog
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{MetricsRegistryParam, NamespaceParams}
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -85,6 +86,10 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
     )
 
   val QueryTimeoutParam: GeoMesaParam[Duration] = GeoMesaDataStoreFactory.QueryTimeoutParam
+
+  val MetricsRegistryParam: MetricsRegistryParam = GeoMesaDataStoreFactory.MetricsRegistryParam
+
+  val MetricsRegistryConfigParam: GeoMesaParam[Config] = GeoMesaDataStoreFactory.MetricsRegistryConfigParam
 
   @deprecated("Use fs.config.properties and/or fs.config.file")
   private[data] val ConfigPathsParam =
