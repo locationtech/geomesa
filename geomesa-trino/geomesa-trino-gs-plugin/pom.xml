@@ -11,6 +11,7 @@
 
     <artifactId>geomesa-trino-gs-plugin_2.12</artifactId>
     <name>GeoMesa Trino GeoServer Plugin</name>
+    <packaging>pom</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,15 +43,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-        </dependency>
-        <!-- provided, but needs to be included here for unit tests -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-process-feature</artifactId>
         </dependency>
     </dependencies>
 
