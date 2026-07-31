@@ -92,16 +92,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-
-        <!-- Note: the parent injects the surefire-junit47 (JUnit 4) provider via
-             pluginManagement, which a child cannot remove. Without junit:junit on the test
-             classpath that provider crashes on missing org/junit/runner/notification/RunListener.
-             With it, junit47 finds 0 JUnit 4 tests and junit-platform runs all our JUnit 5 tests.
-             Do not remove even though no test imports org.junit. -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

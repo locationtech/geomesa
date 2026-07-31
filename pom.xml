@@ -544,6 +544,13 @@
             <groupId>ch.qos.reload4j</groupId>
             <artifactId>reload4j</artifactId>
         </dependency>
+        <!-- JUnit Platform engine supporting JUnit 4 / specs2 (@RunWith JUnitRunner) specs,
+             replacing the surefire-junit47 provider. -->
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -2515,6 +2522,12 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.junit.vintage</groupId>
+                <artifactId>junit-vintage-engine</artifactId>
+                <version>${junit.jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj.version}</version>
@@ -2868,7 +2881,7 @@
                     <dependencies>
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
-                            <artifactId>surefire-junit47</artifactId>
+                            <artifactId>surefire-junit-platform</artifactId>
                             <version>${maven.surefire.plugin.version}</version>
                         </dependency>
                     </dependencies>
