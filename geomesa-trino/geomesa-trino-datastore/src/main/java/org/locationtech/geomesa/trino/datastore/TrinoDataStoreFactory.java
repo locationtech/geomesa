@@ -10,6 +10,7 @@ package org.locationtech.geomesa.trino.datastore;
 
 import org.geotools.api.data.DataStore;
 import org.geotools.api.data.DataStoreFactorySpi;
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory;
 import org.locationtech.geomesa.security.AuthUtils;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
 
@@ -64,6 +65,11 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
         "Shared secret presented to Trino as the 'secret' extra credential; must match the "
             + "catalog's geomesa.security.auths-secret. No comma or colon.", false);
 
+    public static final GeoMesaDataStoreFactory.MetricsRegistryParam METRICS_REGISTRY_PARAM =
+            GeoMesaDataStoreFactory.MetricsRegistryParam();
+
+    public static final Param METRICS_REGISTRY_CONFIG_PARAM = GeoMesaDataStoreFactory.MetricsRegistryConfigParam();
+
     private static final String TRINO_DRIVER_CLASS = "io.trino.jdbc.TrinoDriver";
 
     /**
@@ -84,7 +90,7 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
      * @return parameter descriptors
      */
     @Override public Param[] getParametersInfo() {
-        return new Param[]{HOST, PORT, SCHEMA, USER, AUTHS, SECRET, NAMESPACE};
+        return new Param[]{HOST, PORT, SCHEMA, USER, AUTHS, SECRET, METRICS_REGISTRY_PARAM, METRICS_REGISTRY_CONFIG_PARAM, NAMESPACE};
     }
 
     /**
@@ -124,8 +130,10 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
         }
         AuthorizationsProvider authProvider = AuthUtils.getProvider(params, auths);
         String secret = (String) SECRET.lookUp(params);
+        var metricsOpt = METRICS_REGISTRY_PARAM.lookupRegistry(params);
+        var metrics = metricsOpt.isDefined() ? metricsOpt.get() : null;
         TrinoDataStore ds =
-            new TrinoDataStore(host, port, catalog, schema, authProvider, user, secret);
+            new TrinoDataStore(host, port, catalog, schema, authProvider, user, secret, metrics);
         String namespace = (String) NAMESPACE.lookUp(params);
         if (namespace != null && !namespace.isBlank()) {
             ds.setNamespaceURI(namespace);

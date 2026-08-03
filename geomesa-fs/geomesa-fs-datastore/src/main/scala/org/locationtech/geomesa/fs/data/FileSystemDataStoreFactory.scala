@@ -47,9 +47,10 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     val readThreads = QueryThreadsParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite)
+    val metrics = MetricsRegistryParam.lookupRegistry(params)
 
     val conf = buildConf(params)
-    val config = FileSystemDataStoreConfig(conf, readThreads, queryTimeout)
+    val config = FileSystemDataStoreConfig(conf, readThreads, queryTimeout, metrics)
 
     lazy val encodingType =
       if (params.get("fs.encoding") == "converter") {
@@ -147,6 +148,8 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.QueryTimeoutParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.AuthProviderParam,
       org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.AuthsParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.MetricsRegistryParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.MetricsRegistryConfigParam,
     )
 
   // lazy to avoid masking classpath errors with missing hadoop

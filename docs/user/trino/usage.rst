@@ -8,17 +8,21 @@ Data Store Parameters
 
 The Trino data store takes the following parameters (required parameters are marked with ``*``):
 
-================================== ====== ========================================================================================
-Parameter                          Type   Description
-================================== ====== ========================================================================================
-``trino.host *``                   String Trino coordinator host
-``trino.port *``                   Int    Trino coordinator port
-``trino.schema``                   String Trino schema (default ``spatial``)
-``trino.user``                     String Trino session user
-``geomesa.security.auths-secret``  String Shared secret presented to Trino as the 'secret' extra credential; must match the
-                                          catalog's secret
-``geomesa.security.*``                    See :ref:`trino_security`
-================================== ====== ========================================================================================
+=================================== ====== ========================================================================================
+Parameter                           Type   Description
+=================================== ====== ========================================================================================
+``trino.host *``                    String Trino coordinator host
+``trino.port *``                    Int    Trino coordinator port
+``trino.schema``                    String Trino schema (default ``spatial``)
+``trino.user``                      String Trino session user
+``geomesa.security.auths-secret``   String Shared secret presented to Trino as the 'secret' extra credential; must match the
+                                           catalog's secret
+``geomesa.security.*``                     See :ref:`trino_security`
+``geomesa.metrics.registry``        String Specify the type of registry used to publish metrics. Must be one of ``none``,
+                                           ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.
+``geomesa.metrics.registry.config`` String Override the default registry config. See :ref:`geomesa_metrics` for configuration
+                                           details.
+=================================== ====== ========================================================================================
 
 Programmatic Access
 -------------------

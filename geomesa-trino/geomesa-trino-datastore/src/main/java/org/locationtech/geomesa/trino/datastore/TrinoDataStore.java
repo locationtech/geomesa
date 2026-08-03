@@ -12,8 +12,12 @@ import org.geotools.api.feature.type.Name;
 import org.geotools.data.store.ContentDataStore;
 import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
@@ -35,6 +39,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class TrinoDataStore extends ContentDataStore {
 
+    private static final Logger LOG = LoggerFactory.getLogger(TrinoDataStore.class);
     private static final long TYPE_NAMES_TTL_NANOS = TimeUnit.SECONDS.toNanos(60);
 
     /** Default Trino connection user — a dedicated service account. The datastore
@@ -62,6 +67,7 @@ public class TrinoDataStore extends ContentDataStore {
     private final String user;
     /** Shared secret presented to the connector; null/empty when the catalog isn't secret-gated. */
     private final String secret;
+    private final Closeable registry;
 
     private final Object typeNamesLock = new Object();
     private List<Name> cachedTypeNames;
@@ -71,7 +77,7 @@ public class TrinoDataStore extends ContentDataStore {
     private final ConnectionPool pool = new ConnectionPool(this::openConnection);
 
     TrinoDataStore(String host, int port, String catalog, String schema,
-                   AuthorizationsProvider authProvider, String user, String secret) {
+                   AuthorizationsProvider authProvider, String user, String secret, GeoMesaDataStoreFactory.MetricsConfig metrics) {
         this.host = host;
         this.port = port;
         this.catalog = catalog;
@@ -79,7 +85,7 @@ public class TrinoDataStore extends ContentDataStore {
         this.authProvider = authProvider;
         this.user = user;
         this.secret = secret;
-        setNamespaceURI("http://geomesa.locationtech.org");
+        this.registry = metrics == null ? null : metrics.register();
     }
 
     /** Null when no security params were supplied (filtering disabled). */
@@ -114,8 +120,14 @@ public class TrinoDataStore extends ContentDataStore {
     /** Closes all pooled connections. */
     @Override
     public void dispose() {
-        pool.close();
-        super.dispose();
+        // noinspection EmptyTryBlock
+        try (pool; registry) {
+            // just use try for auto close
+        } catch (IOException e) {
+            LOG.error("Error disposing data store:", e);
+        } finally {
+            super.dispose();
+        }
     }
 
     /** Builds the JDBC connection properties. Extracted so the extra-credential
