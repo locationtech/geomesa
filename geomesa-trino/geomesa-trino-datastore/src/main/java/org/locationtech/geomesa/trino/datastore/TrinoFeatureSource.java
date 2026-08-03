@@ -116,7 +116,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
     @Override
     protected SimpleFeatureType buildFeatureType() throws IOException {
         String typeName = entry.getName().getLocalPart();
-        return new TrinoSchemaDiscovery(trinoStore).discover(typeName);
+        String tableName = trinoStore.getTableName(typeName);
+        return new TrinoSchemaDiscovery(trinoStore).discover(typeName, tableName);
     }
 
     /**
@@ -149,7 +150,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
         String where = combineWhere(encodeFilterSql(query.getFilter()),
             vis == null ? null : vis.conjunct());
         String sql = String.format("SELECT COUNT(*) FROM %s.%s.%s%s",
-            escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(typeName), where);
+            escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(trinoStore.getTableName(typeName)), where);
         try (Connection conn = trinoStore.connect(vis == null ? null : vis.auths());
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -210,7 +211,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
             "SELECT MIN(%1$s.xmin), MIN(%1$s.ymin)," +
             " MAX(%1$s.xmax), MAX(%1$s.ymax)" +
             " FROM %2$s.%3$s.%4$s%5$s",
-            escapeQuotes(bboxCol), escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(typeName), where);
+            escapeQuotes(bboxCol), escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(trinoStore.getTableName(typeName)), where);
         try (Connection conn = trinoStore.connect(vis == null ? null : vis.auths());
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -291,7 +292,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
         long cap = effectiveLimit(query);
         String limit = cap < 0 ? "" : " LIMIT " + cap;
         String sql = String.format("SELECT %s FROM %s.%s.%s%s%s%s",
-            cols, escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(typeName), where, orderBy, limit);
+            cols, escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(trinoStore.getTableName(typeName)), where, orderBy, limit);
         Connection conn;
         try {
             conn = trinoStore.connect(auths);
@@ -405,7 +406,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
     private boolean refreshSchemaIfDrifted() {
         String typeName = entry.getName().getLocalPart();
         try {
-            SimpleFeatureType fresh = new TrinoSchemaDiscovery(trinoStore).discover(typeName);
+            SimpleFeatureType fresh = new TrinoSchemaDiscovery(trinoStore).discover(typeName, trinoStore.getTableName(typeName));
             if (!schemaDrifted(getSchema(), fresh)) {
                 return false;
             }

@@ -40,18 +40,18 @@ class TrinoSchemaDiscovery {
         this.store = store;
     }
 
-    SimpleFeatureType discover(String typeName) throws IOException {
+    SimpleFeatureType discover(String typeName, String tableName) throws IOException {
         SimpleFeatureTypeBuilder tb = new SimpleFeatureTypeBuilder();
         tb.setName(typeName);
         tb.setNamespaceURI(store.getNamespaceURI());
 
         String visColumn = null;
         List<AttributeDescriptor> descriptors = new ArrayList<>();
-        Map<String, String> sftProps = readSftProperties(typeName);
+        Map<String, String> sftProps = readSftProperties(tableName);
 
         try (Connection conn = store.connect()) {
             DatabaseMetaData metaData = conn.getMetaData();
-            try (ResultSet rs = metaData.getColumns(store.catalog(), store.trinoSchema(), typeName, null)) {
+            try (ResultSet rs = metaData.getColumns(store.catalog(), store.trinoSchema(), tableName, null)) {
                 while (rs.next()) {
                     String columnName = rs.getString("COLUMN_NAME");
                     if (VIS_COLUMN.equals(columnName)) {
@@ -75,7 +75,7 @@ class TrinoSchemaDiscovery {
 
         if (descriptors.isEmpty()) {
             // back-compatible fall-back
-            discoverFromPlainCols(tb, typeName, sftProps);
+            discoverFromPlainCols(tb, typeName, tableName, sftProps);
         } else {
             descriptors.forEach(tb::add);
             descriptors.stream()
@@ -101,14 +101,14 @@ class TrinoSchemaDiscovery {
         return sft;
     }
 
-    private void discoverFromPlainCols(SimpleFeatureTypeBuilder tb, String typeName, Map<String, String> sftProps)
+    private void discoverFromPlainCols(SimpleFeatureTypeBuilder tb, String typeName, String tableName, Map<String, String> sftProps)
             throws IOException {
 
         String sql = String.format(
                 "SELECT * FROM %s.%s.%s LIMIT 0",
                 escapeQuotes(store.catalog()),
                 escapeQuotes(store.trinoSchema()),
-                escapeQuotes(typeName)
+                escapeQuotes(tableName)
         );
 
         String sftSpec = sftProps.get(SFT_SPEC_PROPERTY);
@@ -193,12 +193,12 @@ class TrinoSchemaDiscovery {
      *  {@code <table>$properties} metadata table in one query; empty when the table carries none
      *  or doesn't expose {@code $properties}. Non-fatal: any failure just disables SFT-driven
      *  binding/name for this table. */
-    private Map<String, String> readSftProperties(String typeName) {
+    private Map<String, String> readSftProperties(String tableName) {
         String sql = String.format(
             "SELECT key, value FROM %s.%s.%s",
             escapeQuotes(store.catalog()),
             escapeQuotes(store.trinoSchema()),
-            escapeQuotes(typeName + "$properties")
+            escapeQuotes(tableName + "$properties")
         );
         Map<String, String> props = new HashMap<>();
         try (Connection conn = store.connect();
@@ -209,7 +209,7 @@ class TrinoSchemaDiscovery {
             }
         } catch (SQLException e) {
             LOG.debug("No readable $properties for '{}' (no SFT metadata): {}",
-                typeName, e.getMessage());
+                tableName, e.getMessage());
         }
         return props;
     }

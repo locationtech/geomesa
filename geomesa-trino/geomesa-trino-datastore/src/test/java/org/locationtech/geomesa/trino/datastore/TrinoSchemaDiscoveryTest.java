@@ -67,8 +67,8 @@ class TrinoSchemaDiscoveryTest {
 
     @Test
     void parsesSftWithOptionsAndUserData() {
-        String spec = "id:String:fs.bounds=true,dtg:Date:default=true:fs.bounds=true,"
-            + "name:String,count:Long,score:Double:fs.bounds=true,active:Boolean,"
+        String spec = "id:String,dtg:Date:default=true,"
+            + "name:String,count:Long,score:Double,active:Boolean,"
             + "*geom:Point:srid=4326;geomesa.index.dtg='dtg'";
         Map<String, Class<?>> bindings =
             TrinoSchemaDiscovery.geometryBindingsFromSpec("example", spec);

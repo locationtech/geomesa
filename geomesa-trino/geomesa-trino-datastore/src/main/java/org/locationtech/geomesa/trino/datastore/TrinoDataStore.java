@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 public class TrinoDataStore extends ContentDataStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrinoDataStore.class);
-    private static final long TYPE_NAMES_TTL_NANOS = TimeUnit.SECONDS.toNanos(60);
+    private static final long TYPE_NAMES_TTL_MILLIS = TimeUnit.SECONDS.toMillis(60);
 
     /** Default Trino connection user — a dedicated service account. The datastore
      *  is the trusted intermediary: it forwards each caller's authorizations to
@@ -70,8 +70,8 @@ public class TrinoDataStore extends ContentDataStore {
     private final Closeable registry;
 
     private final Object typeNamesLock = new Object();
-    private List<Name> cachedTypeNames;
-    private long cachedTypeNamesExpiry;
+    private Map<String, String> cachedTypeNames;
+    private long cachedTypeNamesExpiry = 0L;
 
     /** Connections keyed by normalized auth set — see {@link #connect(List)}. */
     private final ConnectionPool pool = new ConnectionPool(this::openConnection);
@@ -187,31 +187,57 @@ public class TrinoDataStore extends ContentDataStore {
     @Override
     protected List<Name> createTypeNames() throws IOException {
         synchronized (typeNamesLock) {
-            if (cachedTypeNames != null && System.nanoTime() - cachedTypeNamesExpiry < 0) {
-                return cachedTypeNames;
+            if (cachedTypeNames == null || System.currentTimeMillis() > cachedTypeNamesExpiry) {
+                cachedTypeNames = queryTypeNames();
+                cachedTypeNamesExpiry = System.currentTimeMillis() + TYPE_NAMES_TTL_MILLIS;
             }
-            cachedTypeNames = queryTypeNames();
-            cachedTypeNamesExpiry = System.nanoTime() + TYPE_NAMES_TTL_NANOS;
-            return cachedTypeNames;
+            return new ArrayList<>(cachedTypeNames.keySet().stream().map(this::name).toList());
         }
     }
 
-    private List<Name> queryTypeNames() throws IOException {
+    // note: expects createTypeNames() to have already been called
+    String getTableName(String typeName) {
+        synchronized (typeNamesLock) {
+            return cachedTypeNames.get(typeName);
+        }
+    }
+
+    private Map<String, String> queryTypeNames() throws IOException {
         String sql = "SELECT table_name FROM " + escapeQuotes(catalog)
             + ".information_schema.tables WHERE table_schema = ? AND table_type = 'BASE TABLE'";
-        List<Name> names = new ArrayList<>();
-        try (Connection conn = connect();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, trinoSchema);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    names.add(name(rs.getString("table_name")));
+        List<String> tableNames = new ArrayList<>();
+        Map<String, String> names = new HashMap<>();
+        try (Connection conn = connect()) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, trinoSchema);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        tableNames.add(rs.getString("table_name"));
+                    }
+                }
+            }
+
+            for (String tableName: tableNames) {
+                String selectTableProperties = String.format(
+                        "SELECT value FROM %s.%s.%s  WHERE key = 'geomesa.sft.name'",
+                        escapeQuotes(catalog),
+                        escapeQuotes(trinoSchema),
+                        escapeQuotes(tableName + "$properties")
+                );
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery(selectTableProperties)) {
+                    if (rs.next()) {
+                        names.put(rs.getString(1), tableName);
+                    } else {
+                        LOGGER.warning("Did not find expected property 'geomesa.sft.name' for table: " + tableName);
+                        names.put(tableName, tableName);
+                    }
                 }
             }
         } catch (SQLException e) {
             throw new IOException("Failed to list tables", e);
         }
-        return Collections.unmodifiableList(names);
+        return Collections.unmodifiableMap(names);
     }
 
     /**

@@ -37,7 +37,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
 
   def createFormat(geom: String = "Point", createGeom: Int => String = createPoint): (SimpleFeatureType, Seq[SimpleFeature]) = {
     import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
-    val sft = SimpleFeatureTypes.createType("parquet", s"name:String:fs.bounds=true,age:Int,dtg:Date,*geom:$geom:srid=4326")
+    val sft = SimpleFeatureTypes.createType("parquet", s"name:String,age:Int,dtg:Date,*geom:$geom:srid=4326")
     sft.setScheme("daily")
     val features = Seq.tabulate(10) { i =>
       val sf = ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", createGeom(i))
