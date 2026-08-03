@@ -10,12 +10,15 @@ package org.locationtech.geomesa.fs.storage.core
 package schemes
 
 import org.apache.iceberg.expressions.{Expression, Expressions}
-import org.apache.iceberg.{PartitionSpec, StructLike}
+import org.apache.iceberg.transforms.PartitionSpecVisitor
+import org.apache.iceberg.{PartitionField, PartitionSpec, Schema, StructLike}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme.{TemporalPartition, TemporalScheme}
+import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory.BaseSpecVisitor
 import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.time.format.DateTimeFormatter
@@ -87,6 +90,8 @@ object DateTimeScheme extends PartitionSchemeFactory {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
+  import scala.collection.JavaConverters._
+
   val Epoch: ZonedDateTime = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC)
 
   override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
@@ -106,6 +111,25 @@ object DateTimeScheme extends PartitionSchemeFactory {
         throw new IllegalArgumentException("`step` argument is no longer supported in date-time schemes")
       }
       DateTimeScheme(dtg, index, u)
+    }
+  }
+
+  override def load(schema: SimpleFeatureIcebergSchema, spec: Schema, field: PartitionField): Option[PartitionScheme] = {
+    PartitionSpecVisitor.visit(spec, field, new BaseSpecVisitor() {
+      override def year(sourceName: String, sourceId: Int): Option[PartitionScheme] = load(schema, sourceName, ChronoUnit.YEARS)
+      override def month(sourceName: String, sourceId: Int): Option[PartitionScheme] = load(schema, sourceName, ChronoUnit.MONTHS)
+      override def day(sourceName: String, sourceId: Int): Option[PartitionScheme] = load(schema, sourceName, ChronoUnit.DAYS)
+      override def hour(sourceName: String, sourceId: Int): Option[PartitionScheme] = load(schema, sourceName, ChronoUnit.HOURS)
+    })
+  }
+
+  private def load(schema: SimpleFeatureIcebergSchema, col: String, unit: ChronoUnit): Option[PartitionScheme] = {
+    schema.sft.getAttributeDescriptors.asScala.find(d => col == ColumnName.encode(d.getLocalName)).flatMap { d =>
+      if (classOf[Date].isAssignableFrom(d.getType.getBinding)) {
+        Some(DateTimeScheme(d.getLocalName, schema.sft.indexOf(d.getLocalName), unit))
+      } else {
+        None
+      }
     }
   }
 

@@ -10,13 +10,16 @@ package org.locationtech.geomesa.fs.storage.core
 package schemes
 
 import org.apache.iceberg.expressions.{Expression, Expressions}
-import org.apache.iceberg.{PartitionSpec, StructLike}
+import org.apache.iceberg.transforms.PartitionSpecVisitor
+import org.apache.iceberg.{PartitionField, PartitionSpec, Schema, StructLike}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.function.{BucketHashFunction, MurmurHashFunction}
+import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme.EnumeratedScheme
+import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory.BaseSpecVisitor
 
 /**
  * Hash (bucket) scheme
@@ -65,6 +68,8 @@ case class HashScheme[T](attribute: String, index: Int, buckets: Int, hasher: Mu
 
 object HashScheme extends PartitionSchemeFactory {
 
+  import scala.collection.JavaConverters._
+
   val Name = "hash"
 
   override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
@@ -80,5 +85,19 @@ object HashScheme extends PartitionSchemeFactory {
       require(buckets != null, s"Hash scheme requires a number of buckets to be specified with 'buckets=<n>'")
       Some(new HashScheme(attribute, index, buckets.toInt, hasher))
     }
+  }
+
+  override def load(schema: SimpleFeatureIcebergSchema, spec: Schema, field: PartitionField): Option[PartitionScheme] = {
+    PartitionSpecVisitor.visit(spec, field, new BaseSpecVisitor() {
+      override def bucket(sourceName: String, sourceId: Int, numBuckets: Int): Option[PartitionScheme] = {
+        schema.sft.getAttributeDescriptors.asScala.find(d => sourceName == ColumnName.encode(d.getLocalName)).flatMap { d =>
+          val binding = d.getType.getBinding
+          MurmurHashFunction.Hashers.find(_.binding.isAssignableFrom(binding)).map { hasher =>
+            val attribute = d.getLocalName
+            new HashScheme(attribute, schema.sft.indexOf(attribute), numBuckets, hasher)
+          }
+        }
+      }
+    })
   }
 }

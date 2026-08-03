@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.storage.core
 package schemes
 
+import org.apache.iceberg.PartitionSpec
 import org.apache.iceberg.expressions.{Expression, Expressions}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme.EnumeratedScheme
@@ -51,6 +52,7 @@ trait SpatialScheme extends PartitionScheme with EnumeratedScheme {
       if (r.lower == r.upper) {
         inValues.add(r.lower)
       } else {
+        // TODO will this work with schema migration?
         val gte = Expressions.greaterThanOrEqual(Expressions.truncate[String](column, digits), r.lower)
         val lte = Expressions.lessThanOrEqual(Expressions.truncate[String](column, digits), r.upper)
         expression = Expressions.or(expression, Expressions.and(gte, lte))
@@ -86,6 +88,8 @@ trait SpatialScheme extends PartitionScheme with EnumeratedScheme {
     }
     keys.map(PartitionKey(name, _))
   }
+
+  override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder = b.truncate(column, digits)
 
   /**
    * Ranged bounds, used for filtering on partitions

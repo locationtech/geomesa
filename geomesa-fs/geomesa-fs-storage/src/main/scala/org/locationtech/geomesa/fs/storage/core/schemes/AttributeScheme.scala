@@ -10,13 +10,15 @@ package org.locationtech.geomesa.fs.storage.core
 package schemes
 
 import org.apache.iceberg.expressions.{Expression, Expressions}
-import org.apache.iceberg.{PartitionSpec, StructLike}
+import org.apache.iceberg.transforms.PartitionSpecVisitor
+import org.apache.iceberg.{PartitionField, PartitionSpec, Schema, StructLike}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.AttributeScheme.Bucketing
-import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
+import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory.BaseSpecVisitor
 
 import scala.reflect.ClassTag
 
@@ -70,6 +72,8 @@ object AttributeScheme extends PartitionSchemeFactory {
 
   import FilterHelper.ff
 
+  import scala.collection.JavaConverters._
+
   val Name = "attribute"
 
   override def load(sft: SimpleFeatureType, scheme: String): Option[PartitionScheme] = {
@@ -79,15 +83,39 @@ object AttributeScheme extends PartitionSchemeFactory {
       require(attribute != null, s"Attribute scheme requires an attribute to be specified with 'attribute=<attribute>'")
       val index = attributeIndex(sft, attribute)
       val binding = sft.getDescriptor(index).getType.getBinding
-      require(AttributeIndexKey.encodable(binding), s"Invalid type binding '${binding.getName}' of attribute '$attribute'")
 
       val width = opts.getSingle("width").map(w => WidthBucketing(w.toInt))
       val divisor = opts.getSingle("divisor").map(_.toInt)
       val scale = opts.getSingle("scale").map(_.toInt)
 
+      if (opts.getMulti("allow").nonEmpty) {
+        throw new IllegalArgumentException("`allow` option is no longer supported for attribute schemes")
+      } else if (opts.getSingle("default").isDefined) {
+        throw new IllegalArgumentException("`default` option is no longer supported for attribute schemes")
+      }
+
       val isString = classOf[String].isAssignableFrom(binding)
       val isWholeNumber = binding == classOf[Integer] || binding == classOf[java.lang.Long]
       val isDecimalNumber = binding == classOf[java.lang.Float] || binding == classOf[java.lang.Double]
+
+      val scheme = if (isString) {
+        width match {
+          case None => new StringScheme(attribute, index)
+          case Some(w) => new TruncatedStringScheme(attribute, index, w)
+        }
+      } else if (binding == classOf[Integer]) {
+        new IntScheme(attribute, index, divisor.map(IntegralBucketing.apply[Int]))
+      } else if (binding == classOf[java.lang.Long]) {
+        new LongScheme(attribute, index, divisor.map(d => IntegralBucketing(d.toLong)))
+      } else if (binding == classOf[java.lang.Float]) {
+        new FloatScheme(attribute, index, scale.map(FractionalBucketing.apply[Float]))
+      } else if (binding == classOf[java.lang.Double]) {
+        new DoubleScheme(attribute, index, scale.map(FractionalBucketing.apply[Double]))
+      } else {
+        throw new IllegalArgumentException(
+          s"Attribute scheme is not supported for type ${binding.getSimpleName} - " +
+            s"supported types are String Integer, Long, Float, and Double")
+      }
 
       if (width.isDefined && !isString) {
         throw new IllegalArgumentException(
@@ -100,33 +128,38 @@ object AttributeScheme extends PartitionSchemeFactory {
           s"'scale' option is only supported for Float and Double-type attributes, not ${binding.getSimpleName}")
       }
 
-      if (opts.getMulti("allow").nonEmpty) {
-        throw new IllegalArgumentException("`allow` option is no longer supported for attribute schemes")
-      } else if (opts.getSingle("default").isDefined) {
-        throw new IllegalArgumentException("`default` option is no longer supported for attribute schemes")
-      }
+      Some(scheme)
+    }
+  }
 
-      if (isString) {
+  def load(schema: SimpleFeatureIcebergSchema, spec: Schema, field: PartitionField): Option[PartitionScheme] = {
+    PartitionSpecVisitor.visit(spec, field, new BaseSpecVisitor() {
+      override def identity(sourceName: String, sourceId: Int): Option[PartitionScheme] = load(schema, sourceName, None)
+      override def truncate(sourceName: String, sourceId: Int, width: Int): Option[PartitionScheme] = load(schema, sourceName, Some(width))
+    })
+  }
+
+  private def load(schema: SimpleFeatureIcebergSchema, col: String, width: Option[Int]): Option[PartitionScheme] = {
+    schema.sft.getAttributeDescriptors.asScala.find(d => col == ColumnName.encode(d.getLocalName)).flatMap { d =>
+      val attribute = d.getLocalName
+      val index = schema.sft.indexOf(attribute)
+      val binding = d.getType.getBinding
+
+      if (classOf[String].isAssignableFrom(binding)) {
         width match {
           case None => Some(new StringScheme(attribute, index))
-          case Some(w) => Some(new TruncatedStringScheme(attribute, index, w))
+          case Some(w) => Some(new TruncatedStringScheme(attribute, index, WidthBucketing(w)))
         }
       } else if (binding == classOf[Integer]) {
-        val bucketing = divisor.map(IntegralBucketing.apply[Int])
-        Some(new IntScheme(attribute, index, bucketing))
+        Some(new IntScheme(attribute, index, width.map(IntegralBucketing.apply[Int])))
       } else if (binding == classOf[java.lang.Long]) {
-        val bucketing = divisor.map(d => IntegralBucketing(d.toLong))
-        Some(new LongScheme(attribute, index, bucketing))
+        Some(new LongScheme(attribute, index, width.map(d => IntegralBucketing(d.toLong))))
       } else if (binding == classOf[java.lang.Float]) {
-        val bucketing = scale.map(FractionalBucketing.apply[Float])
-        Some(new FloatScheme(attribute, index, bucketing))
+        Some(new FloatScheme(attribute, index, width.map(FractionalBucketing.apply[Float])))
       } else if (binding == classOf[java.lang.Double]) {
-        val bucketing = scale.map(FractionalBucketing.apply[Double])
-        Some(new DoubleScheme(attribute, index, bucketing))
+        Some(new DoubleScheme(attribute, index, width.map(FractionalBucketing.apply[Double])))
       } else {
-        throw new IllegalArgumentException(
-          s"Attribute scheme is not supported for type ${binding.getSimpleName} - " +
-            s"supported types are String Integer, Long, Float, and Double")
+        None
       }
     }
   }

@@ -129,7 +129,8 @@ object SimpleFeatureIcebergSchema {
     sft.getAttributeDescriptors.asScala.foreach { d =>
       val name = ColumnName(d.getLocalName)
       val objectType = ObjectType.selectType(d)
-      builder += buildField(name.column, objectType, geometries, fieldIds, nestedFieldIds)
+      val doc = SimpleFeatureTypes.encodeDescriptor(sft, d)
+      builder += buildField(name.column, objectType, doc, geometries, fieldIds, nestedFieldIds)
       if (objectType.head == ObjectType.GEOMETRY) {
         builder += BoundingBoxField.icebergSchema(name.column, fieldIds, nestedFieldIds)
         builder += ZValueField.icebergSchema(name.column, objectType(1), fieldIds)
@@ -153,10 +154,11 @@ object SimpleFeatureIcebergSchema {
   private def buildField(
       name: String,
       bindings: Seq[ObjectType],
+      doc: String,
       geometries: GeometryEncoding,
       fieldIds: AtomicInteger,
       nestedFieldIds: AtomicInteger): NestedField = {
-    val builder = NestedField.optional(name).withId(fieldIds.getAndIncrement())
+    val builder = NestedField.optional(name).withId(fieldIds.getAndIncrement()).withDoc(doc)
     val typed: NestedField.Builder = bindings.head match {
       case ObjectType.INT     => builder.ofType(IntegerType.get())
       case ObjectType.DOUBLE  => builder.ofType(DoubleType.get())
@@ -169,12 +171,12 @@ object SimpleFeatureIcebergSchema {
       case ObjectType.UUID    => builder.ofType(UUIDType.get())
 
       case ObjectType.LIST =>
-        val subType = buildField("", bindings.drop(1), geometries, nestedFieldIds, null /* should not be used*/)
+        val subType = buildField("", bindings.drop(1), null, geometries, nestedFieldIds, null /* should not be used*/)
         builder.ofType(ListType.ofRequired(subType.fieldId(), subType.`type`()))
 
       case ObjectType.MAP =>
-        val keyType = buildField("", bindings.slice(1, 2), geometries, nestedFieldIds, null /* should not be used*/)
-        val valueType = buildField("", bindings.slice(2, 3), geometries, nestedFieldIds, null /* should not be used*/)
+        val keyType = buildField("", bindings.slice(1, 2), null, geometries, nestedFieldIds, null /* should not be used*/)
+        val valueType = buildField("", bindings.slice(2, 3), null, geometries, nestedFieldIds, null /* should not be used*/)
         builder.ofType(MapType.ofRequired(keyType.fieldId(), valueType.fieldId(), keyType.`type`(), valueType.`type`()))
 
       case ObjectType.GEOMETRY =>
