@@ -30,7 +30,7 @@ object ColumnName {
    * @return
    */
   def encode(name: String): String = {
-    if (name.startsWith("__")) {
+    if (name.startsWith(SimpleFeatureSchema.InternalFieldDelimiter)) {
       // internal field (fid, bbox, etc)
       name
     } else {

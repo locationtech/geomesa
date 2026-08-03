@@ -10,14 +10,9 @@ package org.locationtech.geomesa.fs.storage.core
 
 import org.geotools.api.feature.simple.SimpleFeatureType
 
-import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 package object schemes {
-
-  // used to create upper bounds based on a prefix
-  // note: we use 1 instead of 0 b/c 0 is not a valid char in postgres so breaks jdbc metadata filtering
-  val ZeroChar = new String(Array[Byte](1), StandardCharsets.UTF_8)
 
   private[schemes] def attributeIndex(sft: SimpleFeatureType, name: String, binding: Option[Class[_]] = None): Int = {
     val index = sft.indexOf(name)

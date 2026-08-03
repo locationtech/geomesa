@@ -45,19 +45,77 @@ class TrinoSchemaDiscovery {
         tb.setName(typeName);
         tb.setNamespaceURI(store.getNamespaceURI());
 
+        String visColumn = null;
+        List<AttributeDescriptor> descriptors = new ArrayList<>();
+        Map<String, String> sftProps = readSftProperties(typeName);
+
+        try (Connection conn = store.connect()) {
+            DatabaseMetaData metaData = conn.getMetaData();
+            try (ResultSet rs = metaData.getColumns(store.catalog(), store.trinoSchema(), typeName, null)) {
+                while (rs.next()) {
+                    String columnName = rs.getString("COLUMN_NAME");
+                    if (VIS_COLUMN.equals(columnName)) {
+                        visColumn = columnName;
+                    } else if (columnName != null && !columnName.startsWith("__")) {
+                        // attribute descriptors are encoded in the column "doc" which maps to REMARKS in sql
+                        String columnDoc = rs.getString("REMARKS");
+                        if (columnDoc != null) {
+                            try {
+                                descriptors.add(SimpleFeatureTypes.createDescriptor(columnDoc));
+                            } catch (Exception e) {
+                                LOG.warn("Error parsing column doc as descriptor: {}", columnDoc, e);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IOException("Failed to discover schema for " + typeName, e);
+        }
+
+        if (descriptors.isEmpty()) {
+            // back-compatible fall-back
+            discoverFromPlainCols(tb, typeName, sftProps);
+        } else {
+            descriptors.forEach(tb::add);
+            descriptors.stream()
+                    .filter(d -> "true".equals(d.getUserData().get("default")) && d instanceof GeometryDescriptor)
+                    .findFirst()
+                    .ifPresent(d -> tb.setDefaultGeometry(d.getLocalName()));
+        }
+
+        SimpleFeatureType sft = tb.buildFeatureType();
+        if (visColumn != null) {
+            sft.getUserData().put(VIS_COLUMN_KEY, visColumn);
+        }
+        String sftName = sftProps.get(SFT_NAME_PROPERTY);
+        if (sftName != null && !sftName.isBlank()) {
+            sft.getUserData().put(SFT_NAME_PROPERTY, sftName);
+        }
+        sftProps.forEach((k, v) -> {
+            if (k.startsWith("geomesa.userdata.")) {
+                sft.getUserData().put(k.substring("geomesa.userdata.".length()), v);
+            }
+
+        });
+        return sft;
+    }
+
+    private void discoverFromPlainCols(SimpleFeatureTypeBuilder tb, String typeName, Map<String, String> sftProps)
+            throws IOException {
+
         String sql = String.format(
-            "SELECT * FROM %s.%s.%s LIMIT 0",
-            escapeQuotes(store.catalog()),
-            escapeQuotes(store.trinoSchema()),
-            escapeQuotes(typeName)
+                "SELECT * FROM %s.%s.%s LIMIT 0",
+                escapeQuotes(store.catalog()),
+                escapeQuotes(store.trinoSchema()),
+                escapeQuotes(typeName)
         );
 
-        Map<String, String> sftProps = readSftProperties(typeName);
         String sftSpec = sftProps.get(SFT_SPEC_PROPERTY);
         Map<String, Class<?>> sftBindings = (sftSpec == null || sftSpec.isBlank())
-            ? Map.of() : geometryBindingsFromSpec(typeName, sftSpec);
+                ? Map.of() : geometryBindingsFromSpec(typeName, sftSpec);
 
-        String visColumn = null;
+        String visColumn;
         try (Connection conn = store.connect();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -87,7 +145,7 @@ class TrinoSchemaDiscovery {
                 // SRID is no longer carried in a table property; default to WGS84.
                 int srid = isGeom ? 4326 : 0;
                 var descriptor =
-                    TrinoTypeMapper.toDescriptor(name, meta.getColumnType(i), isGeom, geomBinding, srid);
+                        TrinoTypeMapper.toDescriptor(name, meta.getColumnType(i), isGeom, geomBinding, srid);
                 tb.add(descriptor);
 
                 if (isGeom && !defaultGeomSet) {
@@ -98,16 +156,6 @@ class TrinoSchemaDiscovery {
         } catch (SQLException e) {
             throw new IOException("Failed to discover schema for " + typeName, e);
         }
-
-        SimpleFeatureType sft = tb.buildFeatureType();
-        if (visColumn != null) {
-            sft.getUserData().put(VIS_COLUMN_KEY, visColumn);
-        }
-        String sftName = sftProps.get(SFT_NAME_PROPERTY);
-        if (sftName != null && !sftName.isBlank()) {
-            sft.getUserData().put(SFT_NAME_PROPERTY, sftName);
-        }
-        return sft;
     }
 
     /** The JTS geometry binding for a geometry column: the subtype declared by the stored SFT
@@ -147,11 +195,10 @@ class TrinoSchemaDiscovery {
      *  binding/name for this table. */
     private Map<String, String> readSftProperties(String typeName) {
         String sql = String.format(
-            "SELECT key, value FROM %s.%s.%s WHERE key IN ('%s', '%s')",
+            "SELECT key, value FROM %s.%s.%s",
             escapeQuotes(store.catalog()),
             escapeQuotes(store.trinoSchema()),
-            escapeQuotes(typeName + "$properties"),
-            SFT_SPEC_PROPERTY, SFT_NAME_PROPERTY
+            escapeQuotes(typeName + "$properties")
         );
         Map<String, String> props = new HashMap<>();
         try (Connection conn = store.connect();

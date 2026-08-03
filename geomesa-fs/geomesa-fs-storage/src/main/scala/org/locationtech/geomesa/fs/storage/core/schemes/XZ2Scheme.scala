@@ -9,13 +9,17 @@
 package org.locationtech.geomesa.fs.storage.core
 package schemes
 
-import org.apache.iceberg.{PartitionSpec, StructLike}
+import org.apache.iceberg.transforms.PartitionSpecVisitor
+import org.apache.iceberg.{PartitionField, Schema, StructLike}
+import org.geotools.api.feature.`type`.GeometryDescriptor
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.function.XZ2Function
+import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.schema.{ColumnName, ZValueField}
+import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory.BaseSpecVisitor
 import org.locationtech.geomesa.fs.storage.core.schemes.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.jts.geom.Geometry
@@ -64,9 +68,6 @@ case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends SpatialSc
     ff.between(ff.function(XZ2Function.FunctionName.getName), ff.literal(lower), ff.literal(upper))
   }
 
-  override def spec(b: PartitionSpec.Builder): PartitionSpec.Builder =
-    b.truncate(ZValueField.xz2FieldName(ColumnName.encode(attribute)), digits)
-
   override def getPartition(partition: StructLike, i: Int): PartitionKey = PartitionKey(name, partition.get(i, classOf[String]))
 
   override protected def hexRanges(bounds: Seq[(Double, Double, Double, Double)]): Seq[(String, String)] = {
@@ -76,6 +77,25 @@ case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends SpatialSc
 }
 
 object XZ2Scheme extends SpatialPartitionSchemeFactory[Geometry]("xz2") {
+
+  import scala.collection.JavaConverters._
+
   override def buildPartitionScheme(bits: Int, geom: String, geomIndex: Int): PartitionScheme =
     XZ2Scheme(geom, geomIndex, bits)
+
+  override def load(schema: SimpleFeatureIcebergSchema, spec: Schema, field: PartitionField): Option[PartitionScheme] = {
+    PartitionSpecVisitor.visit(spec, field, new BaseSpecVisitor() {
+      override def truncate(sourceName: String, sourceId: Int, width: Int): Option[PartitionScheme] = {
+        if (sourceName.endsWith(ZValueField.XZ2ValueFieldSuffix)) {
+          schema.sft.getAttributeDescriptors.asScala.collectFirst {
+            case d: GeometryDescriptor if ZValueField.xz2FieldName(ColumnName.encode(d.getLocalName)) == sourceName =>
+              // there's 1 extra hex digit compared to number of bits to account for bit-shifting
+              buildPartitionScheme((width - 1) * 4, d.getLocalName, schema.sft.indexOf(d.getLocalName))
+          }
+        } else {
+          None
+        }
+      }
+    })
+  }
 }
