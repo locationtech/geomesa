@@ -62,8 +62,9 @@ public class TrinoDataStoreTest {
                     .withNetwork(network)
                     .withNetworkAliases("rest-catalog");
 
+    // note: the dash in the name tests feature type names that don't exactly map to table names
     private static final SimpleFeatureType sft =
-            SimpleFeatureTypes.createType("parquet", "name:String:fs.bounds=true,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.fs.scheme='daily,z2:bits=4'");
+            SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.fs.scheme='daily,z2:bits=4'");
 
     private static final List<SimpleFeature> features = IntStream.range(0, 10).boxed().map(i -> {
         var sf = new ScalaSimpleFeature(sft, Integer.toString(i), null, null);

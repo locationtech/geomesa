@@ -11,10 +11,8 @@ package org.locationtech.geomesa.fs.storage
 import com.google.gson._
 import com.typesafe.config.ConfigFactory
 import org.apache.iceberg.Table
-import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.ConvertToBoolean
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
 import pureconfig.generic.semiauto.deriveConvert
@@ -22,7 +20,7 @@ import pureconfig.{ConfigConvert, ConfigSource}
 
 import java.lang.reflect.Type
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 package object core {
 
@@ -175,10 +173,6 @@ package object core {
     val ObserversKey = "geomesa.fs.observers"
   }
 
-  object StorageAttributeKeys {
-    val Bounds = "fs.bounds"
-  }
-
   /**
    * Implicit methods to set/retrieve storage configuration options in SimpleFeatureType user data
    *
@@ -234,13 +228,6 @@ package object core {
     }
 
     private def remove(key: String): Option[String] = Option(sft.getUserData.remove(key).asInstanceOf[String])
-  }
-
-  implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
-    def fsBounds(): Boolean = {
-      val b = ad.getUserData.get(StorageAttributeKeys.Bounds)
-      if (b == null) { false } else { Try(ConvertToBoolean.convert(b)).getOrElse(false) }
-    }
   }
 
   // kept around for back compatibility with encoded partition schemes
