@@ -20,13 +20,16 @@ html_title = 'GeoMesa %s Manuals' % release
 
 exclude_patterns = [ 'README.md' ]
 
+html_theme_options = {
+  'display_version': False,  # disables the fallback theme version string text, replaced by our version picker
+}
+
 # replacement in code blocks - https://github.com/sphinx-doc/sphinx/issues/4054#issuecomment-329097229
 def ultimateReplace(app, docname, source):
   result = source[0]
   for key in app.config.ultimate_replacements:
     result = result.replace(key, app.config.ultimate_replacements[key])
   source[0] = result
-
 
 ultimate_replacements = {
   "{{accumulo_supported_versions}}": "version " + target.versions.accumulo_version,

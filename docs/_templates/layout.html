@@ -14,3 +14,58 @@
 {% endif %}
 {% endblock %}
 
+{% block sidebartitle %}
+
+{# here we replace the default sidebar to add a version picker dropdown #}
+
+{# parent default logo and title #}
+{% if logo and theme_logo_only %}
+<a href="{{ homepage or pathto(master_doc) }}">
+  <img src="{{ pathto('_static/' + logo, 1) }}" class="logo" alt="{{ _('Logo') }}"/>
+</a>
+{% else %}
+<a href="{{ homepage or pathto(master_doc) }}" class="icon icon-home">
+  {{ project }}
+  {% if logo %}
+  <img src="{{ pathto('_static/' + logo, 1) }}" class="logo" alt="{{ _('Logo') }}"/>
+  {% endif %}
+</a>
+{% endif %}
+
+{# replace version string with a version picker dropdown #}
+<div class="version-picker" style="margin-bottom: 15px; text-align: center;">
+  <select id="version-selector" onchange="window.location.href=this.value;" style="border-radius: 4px; background: #2980b9; color: white; border: none; font-size: 0.9em; font-family: inherit; cursor: pointer;">
+    <option value="#">Loading...</option>
+  </select>
+</div>
+
+{# default search box #}
+{% include "searchbox.html" %}
+
+{# script to fetch options and populate versions dropdown #}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var selector = document.getElementById('version-selector');
+        var currentUrl = window.location.href;
+
+        fetch('/versions.json')
+            .then(response => response.json())
+            .then(data => {
+                selector.innerHTML = '';
+                data.versions.forEach(v => {
+                    var opt = document.createElement('option');
+                    opt.value = "/documentation/" + v.path + "/";
+                    opt.innerHTML = v.name;
+                    selector.appendChild(opt);
+                    if (currentUrl.includes(v.path)) {
+                        opt.selected = true;
+                    }
+                });
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    });
+</script>
+
+{% endblock %}
