@@ -52,6 +52,7 @@ trait FileSystemDataStoreParams extends SecurityParams with NamespaceParams {
     new GeoMesaParam[Properties](
       "fs.config.properties",
       "Configuration options, in Java properties format",
+      largeText = true,
       supportsNiFiExpressions = true,
       readWrite = ReadWriteFlag.ReadWrite,
     )
