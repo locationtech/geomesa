@@ -218,6 +218,26 @@ public class TrinoDataStore extends ContentDataStore {
             }
 
             for (String tableName: tableNames) {
+                // check if the properties table exists - note that direct existence checks work,
+                // but something like `where table_name like '%$properties'` will not return anything
+                String checkPropertiesTable = String.format(
+                        "SELECT 1 FROM %s.information_schema.tables WHERE table_schema = ? AND table_name = ?",
+                        escapeQuotes(catalog)
+                );
+                boolean propertiesTableExists;
+                try (PreparedStatement ps = conn.prepareStatement(checkPropertiesTable)) {
+                    ps.setString(1, trinoSchema);
+                    ps.setString(2, tableName + "$properties");
+                    try (ResultSet rs = ps.executeQuery()) {
+                        propertiesTableExists = rs.next();
+                    }
+                }
+
+                if (!propertiesTableExists) {
+                    LOG.info("Suppressing non-Iceberg table '{}' as it does not have a '$properties' metadata table", tableName);
+                    continue;
+                }
+
                 String selectTableProperties = String.format(
                         "SELECT value FROM %s.%s.%s  WHERE key = 'geomesa.sft.name'",
                         escapeQuotes(catalog),
@@ -229,8 +249,7 @@ public class TrinoDataStore extends ContentDataStore {
                     if (rs.next()) {
                         names.put(rs.getString(1), tableName);
                     } else {
-                        LOGGER.warning("Did not find expected property 'geomesa.sft.name' for table: " + tableName);
-                        names.put(tableName, tableName);
+                        LOG.info("Suppressing table '{}' as it does not have expected property 'geomesa.sft.name'", tableName);
                     }
                 }
             }
