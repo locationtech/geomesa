@@ -234,8 +234,7 @@ public class TrinoDataStore extends ContentDataStore {
                 }
 
                 if (!propertiesTableExists) {
-                    LOGGER.info("Suppressing non-Iceberg table '" + tableName +
-                            "' as it does not have a '$properties' metadata table");
+                    LOG.info("Suppressing non-Iceberg table '{}' as it does not have a '$properties' metadata table", tableName);
                     continue;
                 }
 
@@ -250,8 +249,7 @@ public class TrinoDataStore extends ContentDataStore {
                     if (rs.next()) {
                         names.put(rs.getString(1), tableName);
                     } else {
-                        LOGGER.info("Suppressing table '" + tableName +
-                                "' as it does not have expected property 'geomesa.sft.name'");
+                        LOG.info("Suppressing table '{}' as it does not have expected property 'geomesa.sft.name'", tableName);
                     }
                 }
             }
