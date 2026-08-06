@@ -73,8 +73,8 @@
         <avro.version>1.12.1</avro.version>
         <aws.analyticsaccelerator.version>1.3.1</aws.analyticsaccelerator.version>
         <aws.sdk.v1.version>1.12.793</aws.sdk.v1.version> <!-- latest available as of 2025/11 -->
-        <aws.sdk.version>2.38.7</aws.sdk.version> <!-- latest available as of 2025/11 -->
-        <aws.crt.version>0.39.4</aws.crt.version>
+        <aws.sdk.version>2.44.14</aws.sdk.version> <!-- match version used by iceberg -->
+        <aws.crt.version>0.46.1</aws.crt.version> <!-- ensure compatible with aws sdk version -->
         <caffeine.version>3.1.8</caffeine.version>
         <clearspring.analytics.version>2.9.8</clearspring.analytics.version>
         <commons.codec.version>1.22.0</commons.codec.version>
