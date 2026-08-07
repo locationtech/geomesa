@@ -73,8 +73,8 @@
         <avro.version>1.12.1</avro.version>
         <aws.analyticsaccelerator.version>1.3.1</aws.analyticsaccelerator.version>
         <aws.sdk.v1.version>1.12.793</aws.sdk.v1.version> <!-- latest available as of 2025/11 -->
-        <aws.sdk.version>2.38.7</aws.sdk.version> <!-- latest available as of 2025/11 -->
-        <aws.crt.version>0.39.4</aws.crt.version>
+        <aws.sdk.version>2.44.14</aws.sdk.version> <!-- match version used by iceberg -->
+        <aws.crt.version>0.46.1</aws.crt.version> <!-- ensure compatible with aws sdk version -->
         <caffeine.version>3.1.8</caffeine.version>
         <clearspring.analytics.version>2.9.8</clearspring.analytics.version>
         <commons.codec.version>1.22.0</commons.codec.version>
@@ -173,11 +173,11 @@
         <!-- note: plugin versions are generally set to the latest available -->
         <maven.min.version>3.8.1</maven.min.version> <!-- 3.8.1 required by scala-maven-plugin -->
         <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
-        <cyclonedx.maven.plugin.version>2.9.2</cyclonedx.maven.plugin.version>
+        <cyclonedx.maven.plugin.version>2.9.3</cyclonedx.maven.plugin.version>
         <exec.maven.plugin.version>3.5.0</exec.maven.plugin.version>
         <git.commit.id.plugin.version>9.0.2</git.commit.id.plugin.version>
         <jacoco.maven.plugin.version>0.8.14</jacoco.maven.plugin.version>
-        <license.maven.plugin.version>5.0.0</license.maven.plugin.version>
+        <license.maven.plugin.version>5.1.1</license.maven.plugin.version>
         <maven.antrun.plugin.version>3.2.0</maven.antrun.plugin.version>
         <maven.assembly.plugin.version>3.8.0</maven.assembly.plugin.version>
         <maven.checkstyle.plugin.version>3.6.0</maven.checkstyle.plugin.version>
@@ -189,7 +189,7 @@
         <maven.failsafe.plugin.version>3.5.6</maven.failsafe.plugin.version>
         <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
         <maven.install.plugin.version>3.1.4</maven.install.plugin.version>
-        <maven.jar.plugin.version>3.5.0</maven.jar.plugin.version>
+        <maven.jar.plugin.version>3.5.1</maven.jar.plugin.version>
         <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
         <maven.project.info.reports.plugin.version>3.9.0</maven.project.info.reports.plugin.version>
         <maven.release.plugin.version>3.2.0</maven.release.plugin.version>
