@@ -13,6 +13,7 @@
 
     <artifactId>geomesa-trino-plugin_2.12</artifactId>
     <name>GeoMesa Trino Plugin</name>
+    <packaging>trino-plugin</packaging>
 
     <properties>
         <skipITs>true</skipITs>
@@ -20,6 +21,49 @@
 
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>io.trino</groupId>
+                <artifactId>trino-spi</artifactId>
+                <version>${trino.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>2.21</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.airlift</groupId>
+                <artifactId>slice</artifactId>
+                <version>2.7</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-api</artifactId>
+                <version>1.61.0</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-api-incubator</artifactId>
+                <version>1.61.0-alpha</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-context</artifactId>
+                <version>1.61.0</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-common</artifactId>
+                <version>1.61.0</version>
+                <scope>provided</scope>
+            </dependency>
             <!-- The geomesa parent pins jakarta.annotation-api to 1.3.5, which ships the
                  old javax.annotation namespace. -->
             <dependency>
@@ -55,11 +99,32 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-z3_${scala.binary.version}</artifactId>
         </dependency>
+
+        <!-- trino provided dependencies -->
         <dependency>
             <groupId>io.trino</groupId>
             <artifactId>trino-spi</artifactId>
-            <version>${trino.version}</version>
-            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.airlift</groupId>
+            <artifactId>slice</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+        </dependency>
+
+        <!-- The geomesa parent manages jsr305 to 'provided' (geomesa's own runtime
+             supplies it), but the Trino runtime does not, so force it back to compile so
+             it is bundled. The trino-maven-plugin rejects provided non-SPI dependencies. -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <scope>compile</scope>
         </dependency>
 
         <!-- Trino iceberg connector — compile so we can wrap IcebergPlugin -->
@@ -156,73 +221,43 @@
         </dependency>
     </dependencies>
 
-
     <build>
         <plugins>
-            <!-- This is the only geomesa-trino module that must compile against Trino's
-                 Java-25 bytecode (trino-spi / trino-iceberg), so enforces a JDK-25 toolchain
-                 requirement. Requires a JDK 25 entry in ~/.m2/toolchains.xml (see
-                 build/scripts/update-maven-toolchains.sh). trino.jdk.version is inherited
-                 from the geomesa root pom. -->
+            <!-- We use the maven compiler plugin instead of the scala plugin as it doesn't support java 25 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-toolchains-plugin</artifactId>
-                <version>3.3.0</version>
+                <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <toolchains>
-                        <jdk>
-                            <version>${trino.jdk.version}</version>
-                        </jdk>
-                    </toolchains>
+                    <release>${jdk.version}</release>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>toolchain</goal>
-                        </goals>
+                        <id>scala-sources</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>scala-versioned-sources</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>scala-compile-first</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>scala-test-compile</id>
+                        <phase>none</phase>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <shadedArtifactAttached>false</shadedArtifactAttached>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <!-- combine.self=override: the geomesa parent's shade pluginManagement
-                                 excludes org.slf4j:* from shaded jars (geomesa expects slf4j provided by
-                                 the runtime) -->
-                            <artifactSet combine.self="override">
-                                <excludes>
-                                    <exclude>io.trino:trino-spi</exclude>
-                                    <exclude>org.apache.logging.log4j:log4j-slf4j-impl</exclude>
-                                    <exclude>org.apache.logging.log4j:log4j-slf4j2-impl</exclude>
-                                    <exclude>ch.qos.logback:*</exclude>
-                                </excludes>
-                            </artifactSet>
-                            <transformers>
-                                <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
+                <groupId>io.trino</groupId>
+                <artifactId>trino-maven-plugin</artifactId>
+                <version>24</version>
+                <extensions>true</extensions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -243,6 +278,7 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
             </plugin>
         </plugins>
+
         <pluginManagement>
             <plugins>
                 <plugin>

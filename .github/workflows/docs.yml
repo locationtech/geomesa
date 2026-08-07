@@ -13,7 +13,8 @@ permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 env:
-  JAVA_VERSION: 17
+  JAVA_VERSION: 25
+  JAVA_RUNTIME_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
 
 jobs:
@@ -24,7 +25,9 @@ jobs:
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: temurin
-          java-version: "${{ env.JAVA_VERSION }}"
+          java-version: |
+            ${{ env.JAVA_RUNTIME_VERSION }}
+            ${{ env.JAVA_VERSION }}
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           key: ${{ hashFiles('**/pom.xml') }}-docs

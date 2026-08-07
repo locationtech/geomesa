@@ -14,11 +14,12 @@ import org.testcontainers.containers.BindMode;
 import org.testcontainers.trino.TrinoContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class GeoMesaTrinoContainer extends TrinoContainer {
 
@@ -34,44 +35,46 @@ public class GeoMesaTrinoContainer extends TrinoContainer {
     }
 
     public GeoMesaTrinoContainer withGeoMesaPlugin() {
-        return withGeoMesaPlugin(findDistributedRuntime());
-    }
-
-    public GeoMesaTrinoContainer withGeoMesaPlugin(String jarHostPath) {
-        logger.info("Binding to host path {}", jarHostPath);
-        return (GeoMesaTrinoContainer) withFileSystemBind(jarHostPath,
-                "/usr/lib/trino/plugin/iceberg-spatial/geomesa-trino-plugin.jar",
-                BindMode.READ_ONLY);
-    }
-
-    private static String findDistributedRuntime() {
-        String path = null;
-        try {
-            URL url = GeoMesaTrinoContainer.class.getClassLoader().getResource(TRINO_PLUGIN_PROPS);
-            URI uri = url == null ? null : url.toURI();
-            logger.debug("Trino plugin lookup: {}", uri);
-            if (uri != null && uri.toString().endsWith("/target/classes/" + TRINO_PLUGIN_PROPS)) {
-                // running through an IDE
-                File targetDir = Paths.get(uri).toFile().getParentFile().getParentFile();
-                File[] names = targetDir.listFiles((dir, name) ->
-                        name.startsWith("geomesa-trino-plugin_") &&
-                                (name.endsWith("-SNAPSHOT.jar") || name.matches(
-                                        ".*-[0-9]+\\.[0-9]+\\.[0-9]+\\.jar")));
-                if (names != null && names.length == 1) {
-                    path = names[0].getAbsolutePath();
-                }
-            } else if (uri != null && "jar".equals(uri.getScheme())) {
-                // running through maven
-                String jar = uri.toString().substring(4).replaceAll("\\.jar!.*", ".jar");
-                path = Paths.get(URI.create(jar)).toFile().getAbsolutePath();
-            }
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("Could not load geomesa-trino-plugin JAR from classpath", e);
-        }
-        if (path == null) {
+        var pluginZip = System.getProperty("trino.plugin.path.2.12", System.getProperty("trino.plugin.path.2.13"));
+        if (pluginZip == null) {
             throw new RuntimeException(
-                    "Could not load geomesa-trino-plugin JAR from classpath");
+                    "Could not load 'trino.plugin.path' from sys properties - is surefire configured correctly?");
         }
-        return path;
+
+        try {
+            // create temp directory for extracted plugin files
+            var tempPluginDir = Files.createTempDirectory("geomesa-trino-plugin-");
+            logger.debug("Extracting plugin zip {} to {}", pluginZip, tempPluginDir);
+
+            // extract zip file
+            try (var zis = new ZipInputStream(Files.newInputStream(Paths.get(pluginZip)))) {
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    if (!entry.isDirectory()) {
+                        Path targetPath = tempPluginDir.resolve(entry.getName());
+                        Files.createDirectories(targetPath.getParent());
+                        Files.copy(zis, targetPath);
+                        targetPath.toFile().deleteOnExit();
+
+                        // strip first directory component for container path
+                        String entryName = entry.getName();
+                        String fileName = entryName.contains("/") ?
+                            entryName.substring(entryName.indexOf('/') + 1) : entryName;
+                        String containerPath = "/usr/lib/trino/plugin/iceberg-spatial/" + fileName;
+                        logger.debug("Mounting {} to {}", targetPath, containerPath);
+                        // noinspection resource
+                        withFileSystemBind(targetPath.toString(), containerPath, BindMode.READ_ONLY);
+                    }
+                    zis.closeEntry();
+                }
+            }
+
+            // delete temp directory on exit (after its contents)
+            tempPluginDir.toFile().deleteOnExit();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to extract plugin zip", e);
+        }
+
+        return this;
     }
 }
