@@ -94,7 +94,7 @@ Source Code
 
 To build and install the source distribution requires:
 
-* `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+* `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_build_version}}
 * `Apache Maven <https://maven.apache.org/>`__ {{maven_required_version}}
 
 Source can be cloned using `Git <https://git-scm.com/>`__ or downloaded from `GitHub`__.

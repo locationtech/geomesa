@@ -7,8 +7,8 @@ permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 env:
-  JAVA_VERSION: 17
-  TRINO_JAVA_VERSION: 25
+  JAVA_VERSION: 25
+  JAVA_RUNTIME_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_RELEASE_ARGS: clean deploy -Prelease,docs,python -Dmaven.test.skip -Daether.checksums.algorithms=MD5,SHA-1,SHA-256
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,7 +46,7 @@ jobs:
         with:
           distribution: temurin
           java-version: |
-            ${{ env.TRINO_JAVA_VERSION }}
+            ${{ env.JAVA_RUNTIME_VERSION }}
             ${{ env.JAVA_VERSION }}
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 #v6.3.0
         with:

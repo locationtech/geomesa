@@ -180,7 +180,7 @@ Maven artifacts are published nightly to the Eclipse Maven repository:
 Requirements:
 
 * [Git](https://git-scm.com/)
-* [Java JDK 17 and 25](https://adoptium.net/temurin/releases/)
+* [Java JDK 25](https://adoptium.net/temurin/releases/)
 * [Apache Maven](https://maven.apache.org/) 3.8.1 or later
 * [Docker](https://docs.docker.com/get-docker/) (only required for running unit tests)
 
@@ -191,14 +191,7 @@ git clone git@github.com:locationtech/geomesa.git
 cd geomesa
 ```
 
-The project is built using Maven, and uses Maven Toolchains to manage between Java 17 and 25.
-A compatible `toolchains.xml` can be generated using the following script:
-
-```bash
-./build/scripts/update-maven-toolchains.sh
-```
-
-To build, run:
+The project is built using Maven with Java 25. To build, run:
 
 ```bash
 mvn clean install -Dmaven.test.skip
@@ -206,7 +199,14 @@ mvn clean install -Dmaven.test.skip
 
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
-To run unit tests, omit the `-Dmaven.test.skip` (note: requires `docker` to be available).
+To run unit tests, omit the `-Dmaven.test.skip`. Running unit tests requires installing `docker` and configuring the Maven
+Toolchains plugin for Java 17. A compatible `toolchains.xml` can be generated using the following script:
+
+```bash
+./build/scripts/update-maven-toolchains.sh
+```
+
+
 
 ### Build with Bloop Compile Server
 

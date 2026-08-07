@@ -19,6 +19,7 @@ geoserver_version = '${geoserver.version}'
 hadoop_min_version = '${hadoop.min.version}'
 hbase_version_full = '${hbase.version.recommended}'
 hbase_version = hbase_version_full[:hbase_version_full.rindex('.')]
+java_build_version = '${jdk.version}'
 kafka_min_version = '${kafka.min.version}'
 micrometer_version = '${micrometer.version}'
 postgres_min_version = '${postgres.min.version}'

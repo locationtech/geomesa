@@ -23,7 +23,7 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-accumulo-distributed-runtime_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
-                <!-- this is a shaded jar with all dependencies already included -->
+                <!-- this is a bundled jar with all dependencies already included -->
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -61,7 +61,7 @@
                 <artifactId>geomesa-accumulo-spark_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
                 <classifier>runtime</classifier>
-                <!-- this is a shaded jar with all dependencies already included -->
+                <!-- this is a bundled jar with all dependencies already included -->
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -229,7 +229,7 @@
                 <artifactId>geomesa-fs-spark_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
                 <classifier>runtime</classifier>
-                <!-- this is a shaded jar with all dependencies already included -->
+                <!-- this is a bundled jar with all dependencies already included -->
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -267,7 +267,7 @@
                 <artifactId>geomesa-gt-spark_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
                 <classifier>runtime</classifier>
-                <!-- this is a shaded jar with all dependencies already included -->
+                <!-- this is a bundled jar with all dependencies already included -->
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -294,7 +294,7 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-hbase-distributed-runtime-hbase2_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
-                <!-- this is a shaded jar with all dependencies already included -->
+                <!-- this is a bundled jar with all dependencies already included -->
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -337,7 +337,7 @@
                 <artifactId>geomesa-hbase-spark_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
                 <classifier>runtime</classifier>
-                <!-- this is a shaded jar with all dependencies already included -->
+                <!-- this is a bundled jar with all dependencies already included -->
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -457,14 +457,10 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-trino-gs-plugin_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-trino-plugin_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
-                <!-- this is a shaded jar with all dependencies already included -->
+                <type>zip</type>
+                <!-- this is a bundled zip with all dependencies already included -->
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>

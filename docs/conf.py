@@ -43,6 +43,7 @@ ultimate_replacements = {
   "{{hbase_required_version}}": target.versions.hbase_version,
   "{{hadoop_supported_versions}}": "versions " + target.versions.hadoop_min_version + " and later",
   "{{hadoop_required_version}}": target.versions.hadoop_min_version + " or later",
+  "{{java_build_version}}": target.versions.java_build_version,
   "{{java_supported_versions}}": "versions 17 and 21",
   "{{java_required_version}}": "17 or 21",
   "{{kafka_supported_versions}}": "versions " + target.versions.kafka_min_version + " and later",

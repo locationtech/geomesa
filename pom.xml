@@ -52,8 +52,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- java/scala -->
-        <jdk.version>17</jdk.version>
-        <trino.jdk.version>25</trino.jdk.version>
+        <jdk.version>25</jdk.version> <!-- we use java 25 for trino compatibility, but set release to 17 -->
+        <jdk.release.version>17</jdk.release.version>
         <scala.version>2.12.21</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
 
         <scala.binary.version>2.12</scala.binary.version>
@@ -230,7 +230,7 @@
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
-        <test.spark.docker.tag>${spark.version}-scala${scala.binary.version}-java${jdk.version}-ubuntu</test.spark.docker.tag>
+        <test.spark.docker.tag>${spark.version}-scala${scala.binary.version}-java${jdk.release.version}-ubuntu</test.spark.docker.tag>
         <test.trino.docker.tag>${trino.version}</test.trino.docker.tag>
         <test.zookeeper.docker.tag>3.9.4</test.zookeeper.docker.tag>
 
@@ -994,6 +994,7 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-trino-plugin_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <type>zip</type>
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -2748,7 +2749,7 @@
                     <configuration>
                         <!-- keep this plugin from re-compiling Java files that the scala-maven-plugin already compiled -->
                         <useIncrementalCompilation>false</useIncrementalCompilation>
-                        <release>${jdk.version}</release>
+                        <release>${jdk.release.version}</release>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -2871,7 +2872,7 @@
                             <arg>-unchecked</arg>
                             <arg>-deprecation</arg>
                         </args>
-                        <release>${jdk.version}</release>
+                        <release>${jdk.release.version}</release>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -2900,6 +2901,9 @@
                         </excludes>
                         <argLine>${maven.test.jvmargs}</argLine>
                         <debugForkedProcess>${maven.test.debug}</debugForkedProcess>
+                        <jdkToolchain>
+                            <version>${jdk.release.version}</version>
+                        </jdkToolchain>
                         <systemPropertyVariables>
                             <java.awt.headless>true</java.awt.headless>
                             <user.timezone>UTC</user.timezone>
@@ -2941,6 +2945,9 @@
                         <argLine>${maven.test.opens}</argLine>
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <testSourceDirectory>src/test/scala</testSourceDirectory>
+                        <jdkToolchain>
+                            <version>${jdk.release.version}</version>
+                        </jdkToolchain>
                         <systemPropertyVariables>
                             <maven.target.dir>${project.build.directory}</maven.target.dir>
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>

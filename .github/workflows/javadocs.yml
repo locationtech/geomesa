@@ -9,8 +9,8 @@ permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 env:
-  JAVA_VERSION: 17
-  TRINO_JAVA_VERSION: 25
+  JAVA_VERSION: 25
+  JAVA_RUNTIME_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes
   MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar javadoc:jar -Psite
@@ -66,7 +66,7 @@ jobs:
         with:
           distribution: temurin
           java-version: |
-            ${{ matrix.projects.name == 'trino' && env.TRINO_JAVA_VERSION || env.JAVA_VERSION }}
+            ${{ env.JAVA_RUNTIME_VERSION }}
             ${{ env.JAVA_VERSION }}
       - name: Generate cache key
         run: echo "MOD_SELECTOR=$(echo '${{ matrix.projects.list }}' | sed 's/[^a-zA-Z0-9_.-]/-/g' | head -c 256)" >> "$GITHUB_ENV"

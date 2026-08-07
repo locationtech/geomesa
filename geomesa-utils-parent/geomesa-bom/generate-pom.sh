@@ -9,11 +9,17 @@ export LC_ALL=C # ensure stable sort order across different locales
 POM="geomesa-utils-parent/geomesa-bom/pom.xml"
 
 echo "Running maven build to generate installed artifact list"
+# we get the list of artifacts from `mvn clean install` (seems to be only way...)
+build_output="$(mvn clean install -Dmaven.main.skip -Dmaven.test.skip -Dmaven.source.skip -Dmaven.assembly.skip -B -T2C -pl '!geomesa-trino/geomesa-trino-plugin' 2>&1)"
+# trino doesn't build with maven.source.skip, so just add it here manually
+version="$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
+scala_abi="$(mvn help:evaluate -Dexpression=scala.binary.version -q -DforceStdout)"
+build_output="$build_output"$'\n'"Installing .m2/repository/org/locationtech/geomesa/geomesa-trino-plugin_${scala_abi}/${version}/geomesa-trino-plugin_${scala_abi}-${version}.zip"
+
 deps=()
 # mapfile reads the results into an array
-# we get the list of artifacts from `mvn clean install` (seems to be only way...)
 mapfile -t deps < <(
-  mvn clean install -Dmaven.main.skip -Dmaven.test.skip -Dmaven.source.skip -Dmaven.assembly.skip -B -T2C 2>&1 |
+  echo "$build_output" |
   grep Installing | # pull out installed artifacts only
   grep -v -e "\.pom$" | # skip poms
   sed 's|.*\.m2/repository/org/locationtech/geomesa/||' | # strip line prefix
@@ -31,15 +37,16 @@ function printDependency() {
   # elements look like 'geomesa-utils_2.12/4.0.0-SNAPSHOT/geomesa-utils_2.12-4.0.0-SNAPSHOT.jar'
   artifact="$(echo "$dep" | awk -F '/' '{ print $1 }')"
   version="$(echo "$dep" | awk -F '/' '{ print $2 }')"
+  packaging="${dep##*.}"
   classifier=""
-  if ! [[ $dep =~ .*$artifact-$version.jar ]]; then
+  if [[ $packaging = "jar" ]] && ! [[ $dep =~ .*$artifact-$version.jar ]]; then
     classifier=$'\n'"                <classifier>$(echo "$dep" | sed -E 's/.*-([a-z]+)\.jar/\1/')</classifier>"
     if [[ $classifier =~ test ]]; then
       classifier="$classifier"$'\n'"                <scope>test</scope>"
     fi
   fi
-  if [[ $artifact =~ -runtime ]] || [[ $classifier =~ runtime ]] || [[ ${artifact%_*} = geomesa-trino-plugin ]]; then
-    classifier="$classifier"$'\n'"                <!-- this is a shaded jar with all dependencies already included -->"
+  if [[ $artifact =~ -runtime ]] || [[ $classifier =~ runtime ]] || [[ $packaging = "zip" ]]; then
+    classifier="$classifier"$'\n'"                <!-- this is a bundled $packaging with all dependencies already included -->"
     classifier="$classifier"$'\n'"                <exclusions>"
     classifier="$classifier"$'\n'"                    <exclusion>"
     classifier="$classifier"$'\n'"                        <groupId>*</groupId>"
@@ -47,11 +54,16 @@ function printDependency() {
     classifier="$classifier"$'\n'"                    </exclusion>"
     classifier="$classifier"$'\n'"                </exclusions>"
   fi
+  if [[ $packaging = "jar" ]]; then
+    packaging=""
+  else
+    packaging=$'\n'"                <type>$packaging</type>"
+  fi
   {
     echo "            <dependency>"
     echo "                <groupId>org.locationtech.geomesa</groupId>"
     echo "                <artifactId>${artifact%_*}_\${scala.binary.version}</artifactId>"
-    echo "                <version>\${project.version}</version>$classifier"
+    echo "                <version>\${project.version}</version>$packaging$classifier"
     echo "            </dependency>"
   } | tee -a "$POM"
 }
