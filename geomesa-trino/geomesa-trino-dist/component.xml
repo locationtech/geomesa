@@ -10,7 +10,7 @@
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-trino-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-trino-plugin*:zip</include>
             </includes>
         </dependencySet>
     </dependencySets>

@@ -49,12 +49,7 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-trino-plugin_${scala.binary.version}</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
+            <type>zip</type>
         </dependency>
 
     </dependencies>

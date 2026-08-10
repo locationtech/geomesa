@@ -44,23 +44,23 @@ distribution. If you have built from source, the distribution is created in the 
 Deploying the Plugin into a Trino Cluster
 -----------------------------------------
 
-Install the Plugin JAR
-^^^^^^^^^^^^^^^^^^^^^^
+Install the Plugin JARs
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``geomesa-trino_{{scala_binary_version}}-{{release}}/dist/trino/`` directory contains the server-side
-JAR that must be deployed into the Trino cluster.
+JARs that must be deployed into the Trino cluster.
 
 The version of the plugin runtime JAR must match the version of the GeoMesa
 data store client JAR (usually installed in GeoServer; see below). If not,
 queries might not work correctly or at all.
 
 Trino loads each subdirectory of its plugin directory (``/usr/lib/trino/plugin/`` in the standard layout) as an independent
-plugin. Create a new subdirectory on every coordinator and worker and copy the plugin JAR into it:
+plugin. Extract the plugin zip file into a new subdirectory on every coordinator and worker:
 
 .. code-block:: bash
 
-    mkdir /usr/lib/trino/plugin/spatial-iceberg
-    cp geomesa-trino-plugin-{{release}}.jar /usr/lib/trino/plugin/spatial-iceberg/
+    unzip -d /usr/lib/trino/plugin/ geomesa-trino-plugin_{{scala_binary_version}}-{{release}}.zip
+    mv /usr/lib/trino/plugin/geomesa-trino-plugin_{{scala_binary_version}}-{{release}} /usr/lib/trino/plugin/spatial-iceberg
 
 Define a Spatial Catalog
 ^^^^^^^^^^^^^^^^^^^^^^^^

@@ -16,8 +16,8 @@ permissions:
   contents: write
 
 env:
-  JAVA_VERSION: 17
-  TRINO_JAVA_VERSION: 25
+  JAVA_VERSION: 25
+  JAVA_RUNTIME_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_PREPARE_ARGS: release:prepare -DdryRun=true -DautoVersionSubmodules=true
   MAVEN_BUILD_ARGS: -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip -Dmaven.javadoc.skip=true
@@ -38,7 +38,7 @@ jobs:
         with:
           distribution: temurin
           java-version: |
-            ${{ env.TRINO_JAVA_VERSION }}
+            ${{ env.JAVA_RUNTIME_VERSION }}
             ${{ env.JAVA_VERSION }}
       - name: Run release plugin
         run: |
