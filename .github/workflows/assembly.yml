@@ -17,7 +17,7 @@ env:
   JAVA_RUNTIME_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_COMPILE_NO_OP_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip -Dmaven.main.skip -pl !geomesa-trino/geomesa-trino-plugin
-  MAVEN_COMPILE_TRINO_PLUGIN_ARGS: clean install -Dmaven.test.skip -Dmaven.source.skip -pl geomesa-trino/geomesa-trino-plugin
+  MAVEN_COMPILE_TRINO_PLUGIN_ARGS: clean install -Dmaven.test.skip -Dmaven.source.skip -pl geomesa-trino/geomesa-trino-plugin -am
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true
 
 jobs:
@@ -42,6 +42,10 @@ jobs:
           path: ~/.m2/repository/
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
+      - name: Compile Trino plugin
+        run: |
+          set -o pipefail
+          mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS | tee -a build.log
       - name: Compile
         id: compile
         continue-on-error: true
@@ -59,10 +63,6 @@ jobs:
           else
             exit 1
           fi
-      - name: Compile Trino plugin
-        run: |
-          set -o pipefail
-          mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS | tee -a build.log
       - name: Build assemblies
         run: mvn $MAVEN_ASSEMBLY_ARGS $MAVEN_CLI_OPTS
       - name: Remove geomesa artifacts

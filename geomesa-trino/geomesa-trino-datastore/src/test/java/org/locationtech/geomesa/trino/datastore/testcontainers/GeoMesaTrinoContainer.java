@@ -23,8 +23,6 @@ import java.util.zip.ZipInputStream;
 
 public class GeoMesaTrinoContainer extends TrinoContainer {
 
-    public static final String TRINO_PLUGIN_PROPS = "geomesa-trino-plugin.properties";
-
     public static final DockerImageName IMAGE =
             DockerImageName.parse("trinodb/trino").withTag(System.getProperty("trino.docker.tag"));
 
@@ -35,7 +33,10 @@ public class GeoMesaTrinoContainer extends TrinoContainer {
     }
 
     public GeoMesaTrinoContainer withGeoMesaPlugin() {
-        var pluginZip = System.getProperty("trino.plugin.path.2.12", System.getProperty("trino.plugin.path.2.13"));
+        var pluginZip = System.getProperty("trino.plugin.path.2.12");
+        if (pluginZip == null || pluginZip.isEmpty()) {
+            pluginZip = System.getProperty("trino.plugin.path.2.13");
+        }
         if (pluginZip == null) {
             throw new RuntimeException(
                     "Could not load 'trino.plugin.path' from sys properties - is surefire configured correctly?");

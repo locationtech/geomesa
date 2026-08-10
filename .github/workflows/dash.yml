@@ -14,7 +14,7 @@ env:
   JAVA_RUNTIME_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_COMPILE_NO_OP_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip -pl !geomesa-trino/geomesa-trino-plugin
-  MAVEN_COMPILE_TRINO_PLUGIN_ARGS: clean install -Dmaven.test.skip -Dmaven.source.skip -pl geomesa-trino/geomesa-trino-plugin
+  MAVEN_COMPILE_TRINO_PLUGIN_ARGS: clean install -Dmaven.test.skip -Dmaven.source.skip -pl geomesa-trino/geomesa-trino-plugin -am
   MAVEN_DASH_ARGS: org.eclipse.dash:license-tool-plugin:license-check -Ddash.fail=true -Ddash.batch=50 -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa
 
 jobs:
@@ -54,8 +54,8 @@ jobs:
             done
             if [[ -n "$changed" ]]; then
               echo "Detected dependency change, double-checking dependencies.txt"
-              mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
               mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS
+              mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
               ./build/scripts/calculate-cqs.sh
               git diff --exit-code --quiet build/dependencies.txt || {
                 echo 'Detected dependency changes - please run `./build/scripts/calculate-cqs.sh` and commit the results'
@@ -73,6 +73,11 @@ jobs:
             changed="true"
           fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
+      - name: Compile Trino plugin
+        if: steps.dependency_changes.outputs.changed == 'true'
+        run: |
+          set -o pipefail
+          mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS | tee -a build.log
       - name: Compile
         if: steps.dependency_changes.outputs.changed == 'true'
         id: compile
@@ -91,10 +96,6 @@ jobs:
           else
             exit 1
           fi
-      - name: Compile Trino plugin
-        run: |
-          set -o pipefail
-          mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS | tee -a build.log
       - name: License check
         if: steps.dependency_changes.outputs.changed == 'true'
         run: mvn $MAVEN_DASH_ARGS $MAVEN_CLI_OPTS
