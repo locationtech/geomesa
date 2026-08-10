@@ -20,6 +20,7 @@ com.github.pureconfig:pureconfig-core_2.12:0.17.4:compile
 com.github.pureconfig:pureconfig-generic-base_2.12:0.17.4:compile
 com.github.pureconfig:pureconfig-generic_2.12:0.17.4:compile
 com.github.pureconfig:pureconfig_2.12:0.17.4:compile
+com.google.code.findbugs:jsr305:3.0.2:compile
 com.google.code.gson:gson:2.10.1:compile
 com.google.errorprone:error_prone_annotations:2.26.1:compile
 com.google.errorprone:error_prone_annotations:2.49.0:compile
@@ -66,7 +67,6 @@ io.airlift:log:424:compile
 io.airlift:node:424:compile
 io.airlift:secrets-spi:424:compile
 io.airlift:security:424:compile
-io.airlift:slice:2.7:compile
 io.airlift:stats:424:compile
 io.airlift:units:1.13:compile
 io.dropwizard.metrics:metrics-core:3.2.6:compile
@@ -113,14 +113,10 @@ io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:2.27.0:compil
 io.opentelemetry.semconv:opentelemetry-semconv-incubating:1.40.0-alpha:compile
 io.opentelemetry.semconv:opentelemetry-semconv:1.29.0-alpha:compile
 io.opentelemetry.semconv:opentelemetry-semconv:1.40.0:compile
-io.opentelemetry:opentelemetry-api-incubator:1.61.0-alpha:compile
 io.opentelemetry:opentelemetry-api:1.48.0:compile
 io.opentelemetry:opentelemetry-api:1.49.0:compile
-io.opentelemetry:opentelemetry-api:1.61.0:compile
-io.opentelemetry:opentelemetry-common:1.61.0:compile
 io.opentelemetry:opentelemetry-context:1.48.0:compile
 io.opentelemetry:opentelemetry-context:1.49.0:compile
-io.opentelemetry:opentelemetry-context:1.61.0:compile
 io.prometheus:prometheus-metrics-config:1.5.1:compile
 io.prometheus:prometheus-metrics-core:1.5.1:compile
 io.prometheus:prometheus-metrics-exporter-common:1.5.1:compile
@@ -418,7 +414,6 @@ com.github.jnr:jnr-constants:0.9.9:provided
 com.github.jnr:jnr-ffi:2.1.7:provided
 com.github.jnr:jnr-posix:3.0.44:provided
 com.github.jnr:jnr-x86asm:1.0.2:provided
-com.google.code.findbugs:jsr305:3.0.2:provided
 com.google.crypto.tink:tink:1.9.0:provided
 com.google.inject.extensions:guice-servlet:5.1.0:provided
 com.google.inject:guice:5.1.0:provided
@@ -438,6 +433,7 @@ commons-daemon:commons-daemon:1.0.13:provided
 commons-net:commons-net:3.9.0:provided
 commons-pool:commons-pool:1.5.4:provided
 dnsjava:dnsjava:3.6.1:provided
+io.airlift:slice:2.7:provided
 io.confluent:common-utils:7.8.0:provided
 io.confluent:kafka-avro-serializer:7.8.0:provided
 io.confluent:kafka-schema-registry-client:7.8.0:provided
@@ -456,6 +452,10 @@ io.netty:netty-transport-native-epoll:linux-aarch_64:4.1.121.Final:provided
 io.netty:netty-transport-native-epoll:linux-riscv64:4.1.121.Final:provided
 io.netty:netty-transport-native-kqueue:osx-aarch_64:4.1.121.Final:provided
 io.netty:netty-transport-native-kqueue:osx-x86_64:4.1.121.Final:provided
+io.opentelemetry:opentelemetry-api-incubator:1.65.0-alpha:provided
+io.opentelemetry:opentelemetry-api:1.65.0:provided
+io.opentelemetry:opentelemetry-common:1.65.0:provided
+io.opentelemetry:opentelemetry-context:1.65.0:provided
 io.prometheus:prometheus-metrics-exporter-pushgateway:1.5.1:provided
 io.swagger.core.v3:swagger-annotations:2.1.10:provided
 io.trino:trino-spi:481:provided
