@@ -17,6 +17,7 @@
 
     <properties>
         <skipITs>true</skipITs>
+        <opentelemetry.version>1.65.0</opentelemetry.version> <!-- note: trino bundles 1.61.0, but that triggers a CVE in our scanning -->
     </properties>
 
     <dependencyManagement>
@@ -43,25 +44,25 @@
             <dependency>
                 <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-api</artifactId>
-                <version>1.61.0</version>
+                <version>${opentelemetry.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-api-incubator</artifactId>
-                <version>1.61.0-alpha</version>
+                <version>${opentelemetry.version}-alpha</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-context</artifactId>
-                <version>1.61.0</version>
+                <version>${opentelemetry.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-common</artifactId>
-                <version>1.61.0</version>
+                <version>${opentelemetry.version}</version>
                 <scope>provided</scope>
             </dependency>
             <!-- The geomesa parent pins jakarta.annotation-api to 1.3.5, which ships the
@@ -286,6 +287,9 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <configuration>
                         <excludedGroups>integration</excludedGroups>
+                        <jdkToolchain>
+                            <version>${jdk.version}</version>
+                        </jdkToolchain>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -301,6 +305,9 @@
                     </executions>
                     <configuration>
                         <skipITs>${skipITs}</skipITs>
+                        <jdkToolchain>
+                            <version>${jdk.version}</version>
+                        </jdkToolchain>
                     </configuration>
                 </plugin>
             </plugins>
