@@ -8,13 +8,11 @@ cd "$(dirname "$0")/../.." || exit
 export LC_ALL=C # ensure stable sort order across different locales
 POM="geomesa-utils-parent/geomesa-bom/pom.xml"
 
-echo "Running maven build to generate installed artifact list"
 # we get the list of artifacts from `mvn clean install` (seems to be only way...)
-build_output="$(mvn clean install -Dmaven.main.skip -Dmaven.test.skip -Dmaven.source.skip -Dmaven.assembly.skip -B -T2C -pl '!geomesa-trino/geomesa-trino-plugin' 2>&1)"
-# trino doesn't build with maven.source.skip, so just add it here manually
-version="$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
-scala_abi="$(mvn help:evaluate -Dexpression=scala.binary.version -q -DforceStdout)"
-build_output="$build_output"$'\n'"Installing .m2/repository/org/locationtech/geomesa/geomesa-trino-plugin_${scala_abi}/${version}/geomesa-trino-plugin_${scala_abi}-${version}.zip"
+echo "Running maven build to generate installed artifact list"
+# trino doesn't build with maven.source.skip, so build it first
+build_output="$(mvn clean install -Dmaven.test.skip -Dmaven.source.skip -B -T2C -pl 'geomesa-trino/geomesa-trino-plugin' -am 2>&1)"
+build_output="$build_output"$'\n'"$(mvn clean install -Dmaven.main.skip -Dmaven.test.skip -Dmaven.source.skip -Dmaven.assembly.skip -B -T2C -pl '!geomesa-trino/geomesa-trino-plugin' 2>&1)"
 
 deps=()
 # mapfile reads the results into an array
@@ -24,7 +22,7 @@ mapfile -t deps < <(
   grep -v -e "\.pom$" | # skip poms
   sed 's|.*\.m2/repository/org/locationtech/geomesa/||' | # strip line prefix
   sed 's|\.|!|g' | # replace . with ! so that classifiers sort after regular artifact
-  sort | # sort artifacts
+  sort -u | # sort artifacts
   sed 's|!|.|g' # undo classifier sort hack
 )
 
