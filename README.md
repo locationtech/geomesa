@@ -62,7 +62,7 @@ CD24F317 Emilio Lahr-Vivaz <elahrvivaz(-at-)ccri.com>
 
 ## Maven Integration
 
-[![Maven](.github/maven-badge.svg)](https://search.maven.org/search?q=g:org.locationtech.geomesa)
+[![Maven](.github/maven-badge.svg)](https://central.sonatype.com/search?q=g:org.locationtech.geomesa)
 
 GeoMesa is hosted on Maven Central. To include it as a dependency, add the desired modules, for example:
 
@@ -181,7 +181,7 @@ Requirements:
 
 * [Git](https://git-scm.com/)
 * [Java JDK 25](https://adoptium.net/temurin/releases/)
-* [Apache Maven](https://maven.apache.org/) 3.8.1 or later
+* [Apache Maven](https://maven.apache.org/) 3.9.14 or later
 * [Docker](https://docs.docker.com/get-docker/) (only required for running unit tests)
 
 Use Git to download the source code. Navigate to the destination directory, then run:

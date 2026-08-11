@@ -62,7 +62,7 @@ CD24F317 Emilio Lahr-Vivaz <elahrvivaz(-at-)ccri.com>
 
 ## Maven Integration
 
-[![Maven](.github/maven-badge.svg)](https://search.maven.org/search?q=g:org.locationtech.geomesa)
+[![Maven](.github/maven-badge.svg)](https://central.sonatype.com/search?q=g:org.locationtech.geomesa)
 
 GeoMesa is hosted on Maven Central. To include it as a dependency, add the desired modules, for example:
 
