@@ -171,7 +171,7 @@
 
         <!-- plugins -->
         <!-- note: plugin versions are generally set to the latest available -->
-        <maven.min.version>3.8.1</maven.min.version> <!-- 3.8.1 required by scala-maven-plugin -->
+        <maven.min.version>3.9.14</maven.min.version> <!-- 3.9.14 required by trino-maven-plugin -->
         <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
         <cyclonedx.maven.plugin.version>2.9.3</cyclonedx.maven.plugin.version>
         <exec.maven.plugin.version>3.5.0</exec.maven.plugin.version>

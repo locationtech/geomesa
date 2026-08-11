@@ -122,7 +122,6 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-minio</artifactId>
         </dependency>
-        <!-- TODO fix having both slf4j-jdk14 and slf4j-reload4j on the test classpath -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-trino-plugin_${scala.binary.version}</artifactId>
