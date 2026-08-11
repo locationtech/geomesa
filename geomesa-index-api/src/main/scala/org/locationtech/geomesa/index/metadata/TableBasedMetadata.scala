@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, IsCloseable, WithClose}
 import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.io.Closeable
@@ -324,7 +324,8 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
         future = null
       }
       if (es != null) {
-        CloseWithLogging(es)
+        // note: we have to be explicit, as starting with Java 19 ExecutorService extends AutoCloseable which means two implicits match
+        CloseWithLogging(es)(IsCloseable.executorServiceIsCloseable)
         es = null
       }
     }

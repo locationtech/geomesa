@@ -20,7 +20,8 @@ import org.apache.iceberg.types.TypeUtil
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.locationtech.geomesa.utils.io.IsCloseableImplicits.ExecutorServiceIsCloseable
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, IsCloseable, WithClose}
 
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
@@ -57,6 +58,8 @@ class IcebergParquetScan(
   private val row = StructSimpleFeature(schema)
 
   // WithClose here shuts down the executor service, but already submitted tasks will still be executed
+  // note: we have to be explicit, as starting with Java 19 ExecutorService extends AutoCloseable which means two implicits match
+  private implicit val exIsCloseable: ExecutorServiceIsCloseable = IsCloseable.executorServiceIsCloseable
   private val ex =
     WithClose(new CachedThreadPool(threads)) { pool =>
       // note: exclude z2 cols even if there's no transform
