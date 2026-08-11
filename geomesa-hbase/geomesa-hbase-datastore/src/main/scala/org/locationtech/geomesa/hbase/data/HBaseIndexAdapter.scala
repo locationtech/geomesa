@@ -43,7 +43,7 @@ import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, IsFlushableImplicits, WithClose}
+import org.locationtech.geomesa.utils.io._
 import org.locationtech.geomesa.utils.text.StringSerialization
 
 import java.nio.charset.StandardCharsets
@@ -732,7 +732,8 @@ object HBaseIndexAdapter extends LazyLogging {
 
     override def close(): Unit = {
       try { CloseWithLogging.raise(mutators) } finally {
-        CloseWithLogging(pools)
+        // note: we have to be explicit, as starting with Java 19 ExecutorService extends AutoCloseable which means two implicits match
+        CloseWithLogging(pools)(IsCloseable.executorServiceArrayIsCloseable)
       }
       if (!pools.foldLeft(true) { case (terminated, pool) => terminated && pool.awaitTermination(60, TimeUnit.SECONDS) }) {
         logger.warn("Failed to terminate thread pool after 60 seconds")
