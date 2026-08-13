@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.convert2.composite
 
-import com.codahale.metrics.Counter
 import org.apache.commons.io.IOUtils
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.convert.EvaluationContext

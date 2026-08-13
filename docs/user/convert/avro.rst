@@ -10,22 +10,48 @@ Configuration
 
 The Avro converter supports the following configuration keys:
 
-=============== ======== ======= ==========================================================================================
-Key             Required Type    Description
-=============== ======== ======= ==========================================================================================
-``type``        yes      String  Must be the string ``avro``.
-``schema``      yes      String  The Avro schema used for parsing (may be omitted if using ``schema-file``).
-``schema-file`` yes      String  A pointer to an Avro schema on the classpath (may be omitted if using ``schema``).
-=============== ======== ======= ==========================================================================================
+================ ======= ==========================================================================================
+Key              Type    Description
+================ ======= ==========================================================================================
+``type``         String  Must be the string ``avro``.
+``schema``       String  The Avro schema used for parsing
+``schema-file``  String  The path to an Avro schema on the classpath
+``schema-files`` List    A list of paths to Avro schemas on the classpath
+================ ======= ==========================================================================================
 
-``schema``/``schema-file``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Exactly one of ``schema``, ``schema-file``, or ``schema-files`` must be specified - see below for details.
 
-The Avro converter supports parsing whole Avro files, with the schema embedded, or Avro IPC messages with
-the schema omitted. For an embedded schema, set ``schema = "embedded"`` in your converter definition.
-For IPC messages, specify the schema in one of two ways: to use an inline schema string, set
-``schema = "<schema string>"``; or to use a schema defined in a separate file, set ``schema-file = "<path to file>"``
-(the schema file must be available on the classpath).
+Avro Formats
+------------
+
+The Avro converter supports parsing Avro files in different formats. The schema configuration will determine
+what format the converter expects.
+
+Object Container Files
+^^^^^^^^^^^^^^^^^^^^^^
+
+For portability, some Avro files contain the schema
+`embedded in the file <https://avro.apache.org/docs/1.11.4/specification/#object-container-files>`__. To parse this type of file,
+specify ``schema = "embedded"``.
+
+Files with External Schemas
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To parse files or IPC messages that do not have a schema, the schema must be provided externally. To parse this type of file,
+specify the schema in one of two ways: as an inline schema string using ``schema = "<schema string>"``; or as a schema file
+available on the classpath using ``schema-file = "<path to file>"``.
+
+Single Object Encoding
+^^^^^^^^^^^^^^^^^^^^^^
+
+`Single Object Encoding <https://avro.apache.org/docs/1.11.4/specification/#single-object-encoding>`__ is a way to specify
+just the fingerprint of a schema as a prefix of the message. The schemas themselves must still be provided externally. To parse
+this type of message, specify ``schema-files = [ "<path to file 1>", "<path to file 2>" ]``.
+
+Schema Registry
+^^^^^^^^^^^^^^^
+
+To parse messages where schemas are stored in a schema registry, see :ref:`avro_schema_registry_converter`.
 
 .. _avro_converter_functions:
 
