@@ -52,6 +52,16 @@ object PartitionedPostgisDataStoreParams {
       false
     )
 
+  val PrepareThreshold =
+    new Param(
+      "prepare_threshold",
+      classOf[Integer],
+      "pgjdbc prepareThreshold connection property. -1 forces binary result wire format on the first " +
+          "execution, which one-shot queries never reach with the pgjdbc default of 5. Leave unset to use " +
+          "the pgjdbc default. See https://jdbc.postgresql.org/documentation/use/",
+      false
+    )
+
   // note: need a default string constructor so geotools can create it from the param
   class Timeout(repr: String) {
     private val duration = Duration(repr)

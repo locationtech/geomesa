@@ -31,7 +31,7 @@ import scala.util.control.NonFatal
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with LazyLogging {
 
   import JDBCDataStoreFactory.{DATABASE, USER}
-  import PartitionedPostgisDataStoreParams.{DbType, IdleInTransactionTimeout, PreparedStatements, ReadAccessRoles}
+  import PartitionedPostgisDataStoreParams.{DbType, IdleInTransactionTimeout, PrepareThreshold, PreparedStatements, ReadAccessRoles}
   import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{MetricsRegistryConfigParam, MetricsRegistryParam}
 
   import scala.collection.JavaConverters._
@@ -44,7 +44,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with 
 
   override protected def setupParameters(parameters: java.util.Map[String, AnyRef]): Unit = {
     super.setupParameters(parameters)
-    Seq(DbType, IdleInTransactionTimeout, PreparedStatements, ReadAccessRoles, MetricsRegistryParam, MetricsRegistryConfigParam)
+    Seq(DbType, IdleInTransactionTimeout, PreparedStatements, ReadAccessRoles, PrepareThreshold, MetricsRegistryParam, MetricsRegistryConfigParam)
         .foreach(p => parameters.put(p.key, p))
   }
 
@@ -180,18 +180,25 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with 
   override protected def createSQLDialect(dataStore: JDBCDataStore, params: java.util.Map[String, _]): SQLDialect =
     new PostGISDialect(dataStore)
 
-  private def createConnectionOptions(params: java.util.Map[String, _]): Map[String, String] = {
+  private[postgis] def createConnectionOptions(params: java.util.Map[String, _]): Map[String, String] = {
     val options =
       Seq(IdleInTransactionTimeout)
         .flatMap(p => p.opt(params).map(t => s"-c ${p.key}=${t.millis}"))
 
     logger.debug(s"Connection options: ${options.mkString(" ")}")
 
-    if (options.isEmpty) {
-      Map.empty
-    } else {
-      Map("options" -> options.mkString(" "))
-    }
+    val serverOptions =
+      if (options.isEmpty) { Map.empty[String, String] } else { Map("options" -> options.mkString(" ")) }
+
+    // prepareThreshold is a pgjdbc driver connection property (not a server GUC), so it is added
+    // directly rather than through the '-c <guc>' options string. -1 forces binary result wire
+    // format on the first execution, which one-shot queries never reach with the default of 5.
+    val driverOptions =
+      Option(PrepareThreshold.lookUp(params).asInstanceOf[Integer])
+        .map(v => "prepareThreshold" -> v.toString)
+        .toMap
+
+    serverOptions ++ driverOptions
   }
 }
 

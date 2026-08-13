@@ -18,6 +18,10 @@ Parameter                               Type     Description
                                                  for more information. Setting this timeout may help prevent abandoned queries from slowing down database operations.
 ``read_access_roles``                   String   A comma-separated list of roles that should be granted read-only access to any new schemas. These roles must already exist in the
                                                  database.
+``prepare_threshold``                   Integer  The pgjdbc ``prepareThreshold`` connection property. By default (``5``), the JDBC driver only requests the binary result wire
+                                                 format after a statement has been server-prepared, so one-shot queries are always decoded as the slower text format. Set to
+                                                 ``-1`` to force the binary format on the first execution. Leave unset to use the pgjdbc default. See the
+                                                 `pgjdbc documentation <https://jdbc.postgresql.org/documentation/use/>`__ for more information.
 ``geomesa.metrics.registry``            String   Specify the type of registry used to publish metrics. Must be one of ``none``,
                                                  ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.
 ``geomesa.metrics.registry.config``     String   Override the default registry config. See :ref:`geomesa_metrics` for configuration details.
