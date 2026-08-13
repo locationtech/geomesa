@@ -19,21 +19,8 @@
         <module>geomesa-trino-datastore</module>
         <module>geomesa-trino-dist</module>
         <module>geomesa-trino-gs-plugin</module>
+        <module>geomesa-trino-plugin</module>
         <module>geomesa-trino-tools</module>
     </modules>
 
-    <profiles>
-        <profile>
-            <!-- to avoid the error "unknown packaging: trino-plugin" when not using jdk 25, we hide trino behind a jdk
-                 activation, which then allows the enforcer plugin to fail with a clear message -->
-            <id>trino-plugin</id>
-            <activation>
-                <!-- note: this won't interpolate properties so has to be hard-coded -->
-                <jdk>[25,25.1)</jdk>
-            </activation>
-            <modules>
-                <module>geomesa-trino-plugin</module>
-            </modules>
-        </profile>
-    </profiles>
 </project>
