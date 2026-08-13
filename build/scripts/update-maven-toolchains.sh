@@ -244,36 +244,78 @@ function lookup_placeholder {
   fi
 }
 
+# 1: base dir to find pom.xml files under (for resolving ${property} placeholders)
+# 2: directory of the pom that declared the requirement
+# 3: raw version string, possibly a ${property} placeholder
+# 4: mechanism that asked for it, used by the requirements report
+# Resolves the version and records it in UNIQUE_JDKS, TOOLCHAIN_JDKS and TOOLCHAIN_SOURCES
+# return 0 (success) if a version was recorded, otherwise return 1 (failure)
+function record_toolchain_jdk {
+  local dir="$1"
+  local pom_dir="$2"
+  local raw="$3"
+  local mechanism="$4"
+  lookup_placeholder "$raw" "$dir" || return 1
+  [[ -n "$LOOKUP" ]] || return 1
+  array_contains "$LOOKUP" "${UNIQUE_JDKS[@]}" || UNIQUE_JDKS+=("$LOOKUP")
+  # A single pom can request more than one toolchain JDK (eg. the geomesa root pom runs
+  # surefire on the release JDK while a module overrides it), accumulate them as discovered.
+  array_contains "$LOOKUP" ${TOOLCHAIN_JDKS["$pom_dir"]} \
+    || TOOLCHAIN_JDKS["$pom_dir"]="${TOOLCHAIN_JDKS[$pom_dir]:+${TOOLCHAIN_JDKS[$pom_dir]} }$LOOKUP"
+  array_contains "$mechanism" ${TOOLCHAIN_SOURCES["$LOOKUP"]} \
+    || TOOLCHAIN_SOURCES["$LOOKUP"]="${TOOLCHAIN_SOURCES[$LOOKUP]:+${TOOLCHAIN_SOURCES[$LOOKUP]} }$mechanism"
+}
+
 # 1: base dir to find pom.xml files under
-# scans all pom.xml files under dir and examines <toochains> for JDKs
-# all defined JDK versions are added to TOOLCHAIN_JDKS array
+# Scans all pom.xml files under dir for toolchain JDK requirements. Two independent
+# mechanisms can request a toolchain, and a build needs every JDK that either one names:
+#   A. maven-toolchains-plugin, configured as:
+#        <toolchains><jdk><version>N</version></jdk></toolchains>
+#   B. a per-plugin selector, configured as:
+#        <jdkToolchain><version>N</version></jdkToolchain>
+# All discovered versions land in UNIQUE_JDKS, keyed per-pom in TOOLCHAIN_JDKS, with the
+# requesting mechanism(s) keyed per-version in TOOLCHAIN_SOURCES.
 declare -A TOOLCHAIN_JDKS
+declare -A TOOLCHAIN_SOURCES
 function toolchain_jdks {
   local dir="$1"
   local -a toolchain_xmls
   local -a jdk_xmls
+  local -a selector_xmls
   local toolchain_xml
   local jdk_xml
+  local selector_xml
   local found
   local pom_dir
   UNIQUE_JDKS=()
   TOOLCHAIN_JDKS=()
+  TOOLCHAIN_SOURCES=()
   while read -r pom; do
     pom_dir=$(dirname "$pom")
-    tag_data_from_file "$pom" toolchains
-    toolchain_xmls=("${FOUND_DATA[@]}")
-    for toolchain_xml in "${toolchain_xmls[@]}"; do
-      tag_data_from_string "$toolchain_xml" jdk || continue
-      jdk_xmls=("${FOUND_DATA[@]}")
-      for jdk_xml in "${jdk_xmls[@]}"; do
-        tag_data_from_string "$jdk_xml" version || continue
-        for found in "${FOUND_DATA[@]}"; do
-          lookup_placeholder "$found" "$1"
-          array_contains "$LOOKUP" "${UNIQUE_JDKS[@]}" || UNIQUE_JDKS+=("$LOOKUP")
-          TOOLCHAIN_JDKS["$pom_dir"]="$LOOKUP"
+    # mechanism A: maven-toolchains-plugin
+    if tag_data_from_file "$pom" toolchains; then
+      toolchain_xmls=("${FOUND_DATA[@]}")
+      for toolchain_xml in "${toolchain_xmls[@]}"; do
+        tag_data_from_string "$toolchain_xml" jdk || continue
+        jdk_xmls=("${FOUND_DATA[@]}")
+        for jdk_xml in "${jdk_xmls[@]}"; do
+          tag_data_from_string "$jdk_xml" version || continue
+          for found in "${FOUND_DATA[@]}"; do
+            record_toolchain_jdk "$dir" "$pom_dir" "$found" 'maven-toolchains-plugin'
+          done
         done
       done
-    done
+    fi
+    # mechanism B: per-plugin <jdkToolchain> selector
+    if tag_data_from_file "$pom" jdkToolchain; then
+      selector_xmls=("${FOUND_DATA[@]}")
+      for selector_xml in "${selector_xmls[@]}"; do
+        tag_data_from_string "$selector_xml" version || continue
+        for found in "${FOUND_DATA[@]}"; do
+          record_toolchain_jdk "$dir" "$pom_dir" "$found" 'jdkToolchain'
+        done
+      done
+    fi
   done < <(find "$dir" -type f -name pom.xml -not -path '*/target/*')
 }
 
@@ -321,9 +363,11 @@ echo
 echo "Maven build JDK requirements:"
 echo "  - JDK ${BASE_JDK}: baseline JDK used by main reactor"
 for PROJ in "${!TOOLCHAIN_JDKS[@]}"; do
-  echo "  - JDK ${TOOLCHAIN_JDKS[$PROJ]}: maven-toolchains-plugin for: $PROJ"
+  for JDK in ${TOOLCHAIN_JDKS[$PROJ]}; do
+    echo "  - JDK ${JDK}: ${TOOLCHAIN_SOURCES[$JDK]// /, } for: $PROJ"
+  done
 done
-[[ "${#UNIQUE_JDKS[@]}" -lt 1 ]] && echo "  (no maven-toolchains-plugin requirements found in any pom.xml"
+[[ "${#UNIQUE_JDKS[@]}" -lt 1 ]] && echo "  (no toolchain JDK requirements found in any pom.xml)"
 echo
 
 # ensure baseline JDK is installed
@@ -339,7 +383,7 @@ fi
 declare -A FOUND_JDKS
 for JDK in "${UNIQUE_JDKS[@]}"; do
   if discover_jdk_home "$JDK"; then
-    echo "Found JDK $JDK at: $DISCOVERED_JDK"
+    [[ "$JDK" == "$BASE_JDK" ]] || echo "Found JDK $JDK at: $DISCOVERED_JDK"
     FOUND_JDKS["$JDK"]="$DISCOVERED_JDK"
   else
     MISSING_JDKS+=("$JDK")
