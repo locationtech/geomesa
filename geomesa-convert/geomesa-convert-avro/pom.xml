@@ -32,6 +32,10 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-convert-common_${scala.binary.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.specs2</groupId>

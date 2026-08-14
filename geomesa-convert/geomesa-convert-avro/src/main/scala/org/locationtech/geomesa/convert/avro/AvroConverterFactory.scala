@@ -16,7 +16,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory.AvroConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert, OptionConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert, ListConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, InferredType, Namer}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
@@ -202,7 +202,7 @@ object AvroConverterFactory {
     case _ => false
   }
 
-  object AvroConfigConvert extends ConverterConfigConvert[AvroConfig] with OptionConvert {
+  object AvroConfigConvert extends ConverterConfigConvert[AvroConfig] with OptionConvert with ListConvert {
 
     override protected def decodeConfig(
         cur: ConfigObjectCursor,
@@ -211,26 +211,29 @@ object AvroConverterFactory {
         caches: Map[String, Config],
         userData: Map[String, Expression]): Either[ConfigReaderFailures, AvroConfig] = {
 
-      def schemaOrFile(
+      def schemaConfig(
           schema: Option[String],
-          schemaFile: Option[String]): Either[ConfigReaderFailures, SchemaConfig] = {
-        (schema, schemaFile) match {
-          case (Some(s), None) if s.equalsIgnoreCase(SchemaEmbedded.name) => Right(SchemaEmbedded)
-          case (Some(s), None) => Right(SchemaString(s))
-          case (None, Some(s)) => Right(SchemaFile(s))
+          schemaFile: Option[String],
+          schemaFiles: Seq[String]): Either[ConfigReaderFailures, SchemaConfig] = {
+        (schema, schemaFile, schemaFiles) match {
+          case (Some(s), None, seq) if seq.isEmpty && s.equalsIgnoreCase(SchemaEmbedded.name) => Right(SchemaEmbedded)
+          case (Some(s), None, seq) if seq.isEmpty => Right(SchemaString(s))
+          case (None, Some(s), seq) if seq.isEmpty => Right(SchemaFile(s))
+          case (None, None, seq) if seq.nonEmpty => Right(SchemaFiles(seq))
           case _ =>
             val reason: FailureReason = new FailureReason {
-              override val description: String = "Exactly one of 'schema' or 'schema-file' must be defined"
+              override val description: String = "Exactly one of 'schema', 'schema-file' or 'schema-files' must be defined"
             }
             cur.failed(reason)
         }
       }
 
       for {
-        name       <- converterName(cur).right
-        schema     <- optional(cur, "schema").right
-        schemaFile <- optional(cur, "schema-file").right
-        either     <- schemaOrFile(schema, schemaFile).right
+        name        <- converterName(cur).right
+        schema      <- optional(cur, "schema").right
+        schemaFile  <- optional(cur, "schema-file").right // for back-compatibility
+        schemaFiles <- listFrom(cur.atKeyOrUndefined("schema-files")).right
+        either      <- schemaConfig(schema, schemaFile, schemaFiles).right
       } yield {
         AvroConfig(`type`, name, either, idField, caches, userData)
       }
@@ -241,6 +244,7 @@ object AvroConverterFactory {
         case SchemaEmbedded  => base.put("schema", SchemaEmbedded.name)
         case SchemaString(s) => base.put("schema", s)
         case SchemaFile(s)   => base.put("schema-file", s)
+        case SchemaFiles(s)  => base.put("schema-files", s.asJava)
       }
     }
   }

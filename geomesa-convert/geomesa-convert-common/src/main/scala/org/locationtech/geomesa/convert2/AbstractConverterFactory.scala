@@ -452,6 +452,22 @@ object AbstractConverterFactory extends LazyLogging {
   }
 
   /**
+   * Convert named configs
+   */
+  trait ListConvert {
+    protected def listFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Seq[String]] = {
+      if (cur.isUndefined) { Right(Seq.empty) } else {
+        def merge(cur: ConfigListCursor): Either[ConfigReaderFailures, Seq[String]] = {
+          cur.list.foldLeft[Either[ConfigReaderFailures, Seq[String]]](Right(Seq.empty)) {
+            case (seq, v) => for { s <- seq.right; c <- v.asString.right } yield { s :+ c }
+          }
+        }
+        for { list <- cur.asListCursor.right; seq <- merge(list).right } yield { seq }
+      }
+    }
+  }
+
+  /**
     * Access to primitive converts
     */
   object PrimitiveConvert extends PrimitiveReaders with PrimitiveWriters

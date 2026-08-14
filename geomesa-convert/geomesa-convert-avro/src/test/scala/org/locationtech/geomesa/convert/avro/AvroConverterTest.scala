@@ -13,21 +13,18 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.file.DataFileWriter
 import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
 import org.apache.commons.io.IOUtils
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileWriter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import java.nio.charset.StandardCharsets
 
-@RunWith(classOf[JUnitRunner])
-class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
+class AvroConverterTest extends SpecificationWithJUnit with AvroUtils with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -372,6 +369,92 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
         res(1).getAttribute(0) mustEqual "aname"
         res(0).getAttribute(1).toString mustEqual "POINT (45 55)"
         res(1).getAttribute(1).toString mustEqual "POINT (1 2)"
+      }
+    }
+
+    "convert single-object encoded avro records" >> {
+      import org.apache.avro.message.BinaryMessageEncoder
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "avro"
+          |   schema-files = ["/schema.avsc"]
+          |   id-field     = "uuid()"
+          |   fields = [
+          |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
+          |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
+          |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
+          |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
+          |     { name = "geom", transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      // encode the record using single-object encoding
+      val encoder = new BinaryMessageEncoder[GenericRecord](GenericData.get(), schema)
+      val singleObjectBuffer = encoder.encode(obj)
+      val singleObjectBytes = new Array[Byte](singleObjectBuffer.remaining())
+      singleObjectBuffer.get(singleObjectBytes)
+
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val res = WithClose(converter.process(new ByteArrayInputStream(singleObjectBytes), ec))(_.toList)
+        res must haveLength(1)
+        val sf = res.head
+        sf.getAttributeCount must be equalTo 2
+        sf.getAttribute("dtg") must not(beNull)
+
+        ec.failure.getCount mustEqual 0L
+        ec.success.getCount mustEqual 1L
+        ec.stats.failure(0) mustEqual 0L
+        ec.stats.success(0) mustEqual 1L
+        ec.line mustEqual 1L
+      }
+    }
+
+    "make avro bytes available as $0 with single-object encoding" >> {
+      import org.apache.avro.message.BinaryMessageEncoder
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "avro"
+          |   schema-files = ["/schema.avsc"]
+          |   id-field     = "md5($0)"
+          |   fields = [
+          |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
+          |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
+          |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
+          |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
+          |     { name = "geom", transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      // encode the record using single-object encoding
+      val encoder = new BinaryMessageEncoder[GenericRecord](GenericData.get(), schema)
+      val singleObjectBuffer = encoder.encode(obj)
+      val singleObjectBytes = new Array[Byte](singleObjectBuffer.remaining())
+      singleObjectBuffer.get(singleObjectBytes)
+
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val res = WithClose(converter.process(new ByteArrayInputStream(singleObjectBytes), ec))(_.toList)
+        res must haveLength(1)
+        val sf = res.head
+        sf.getID must not(beNull)
+        sf.getAttributeCount must be equalTo 2
+        sf.getAttribute("dtg") must not(beNull)
+
+        // verify that $0 contains the full single-object encoded bytes (header + fingerprint + data)
+        sf.getID.length mustEqual 32 // MD5 hash is 32 hex characters
+
+        ec.failure.getCount mustEqual 0L
+        ec.success.getCount mustEqual 1L
+        ec.stats.failure(0) mustEqual 0L
+        ec.stats.success(0) mustEqual 1L
+        ec.line mustEqual 1L
       }
     }
   }
