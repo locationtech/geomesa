@@ -28,9 +28,9 @@ jobs:
           java-version: |
             ${{ env.JAVA_RUNTIME_VERSION }}
             ${{ env.JAVA_VERSION }}
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-license-header-check
+          key: ${{ hashFiles('**/pom.xml') }}
           path: ~/.m2/repository/
       - name: Run license check
         run: mvn license:check $MAVEN_CLI_OPTS

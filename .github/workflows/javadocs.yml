@@ -68,11 +68,9 @@ jobs:
           java-version: |
             ${{ env.JAVA_RUNTIME_VERSION }}
             ${{ env.JAVA_VERSION }}
-      - name: Generate cache key
-        run: echo "MOD_SELECTOR=$(echo '${{ matrix.projects.list }}' | sed 's/[^a-zA-Z0-9_.-]/-/g' | head -c 256)" >> "$GITHUB_ENV"
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-javadocs-${{ matrix.scala-version }}-${{ env.MOD_SELECTOR }}
+          key: ${{ hashFiles('**/pom.xml') }}
           path: ~/.m2/repository/
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
@@ -98,6 +96,3 @@ jobs:
         run: mvn $MAVEN_SCALADOC_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
       - name: Build javadocs
         run: mvn $MAVEN_JAVADOC_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.scaladoc == 'false' && matrix.projects.list || 'geomesa-arrow/geomesa-arrow-jts' }}
-      - name: Remove geomesa artifacts
-        if: success() || failure()
-        run: rm -rf ~/.m2/repository/org/locationtech/geomesa
