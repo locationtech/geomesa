@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - '[0-9]+.[0-9]+.x'
+  workflow_dispatch:
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
