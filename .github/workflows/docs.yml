@@ -28,9 +28,11 @@ jobs:
           java-version: |
             ${{ env.JAVA_RUNTIME_VERSION }}
             ${{ env.JAVA_VERSION }}
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-docs
+          key: main-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            main-
           path: ~/.m2/repository/
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -41,6 +43,3 @@ jobs:
         run: pip install -r docs/requirements.txt
       - name: Build with Maven
         run: mvn clean install $MAVEN_CLI_OPTS -Pdocs -pl docs
-      - name: Remove geomesa artifacts
-        if: success() || failure()
-        run: rm -rf ~/.m2/repository/org/locationtech/geomesa

@@ -29,9 +29,11 @@ jobs:
           java-version: |
             ${{ env.JAVA_RUNTIME_VERSION }}
             ${{ env.JAVA_VERSION }}
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-dash
+          key: main-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            main-
           path: ~/.m2/repository/
       - name: Check for dependency changes
         id: dependency_changes
@@ -106,10 +108,4 @@ jobs:
             cat target/dash/summary
           else
             echo "No dependency changes detected - skipping license check"
-          fi
-      - name: Remove geomesa artifacts
-        if: success() || failure()
-        run: |
-          if [[ -d ~/.m2/repository/org/locationtech/geomesa ]]; then
-            rm -rf ~/.m2/repository/org/locationtech/geomesa
           fi

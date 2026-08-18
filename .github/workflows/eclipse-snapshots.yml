@@ -31,9 +31,11 @@ jobs:
           java-version: |
             ${{ env.JAVA_RUNTIME_VERSION }}
             ${{ env.JAVA_VERSION }}
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-eclipse-snapshots-${{ matrix.version }}
+          key: main-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            main-
           path: ~/.m2/repository/
       - name: Create settings.xml
         run: |
@@ -53,9 +55,6 @@ jobs:
         run: ./build/scripts/change-scala-version.sh ${{ matrix.version }}
       - name: Build with Maven
         run: mvn clean deploy -Peclipse -DskipTests -Dmaven.deploy.at.end=false $MAVEN_CLI_OPTS
-      - name: Remove geomesa artifacts
-        if: success() || failure()
-        run: rm -rf ~/.m2/repository/org/locationtech/geomesa
       - name: Remove settings.xml
         if: success() || failure()
         run: rm ~/.m2/settings.xml

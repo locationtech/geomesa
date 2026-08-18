@@ -1,0 +1,75 @@
+name: create-cache
+
+on:
+  push:
+    branches:
+      - main
+      - '[0-9]+.[0-9]+.x'
+  workflow_dispatch:
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+env:
+  JAVA_VERSION: 25
+  JAVA_RUNTIME_VERSION: 17
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
+  MAVEN_ARGS: dependency:go-offline
+
+jobs:
+  build:
+    name: create-cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: |
+            ${{ env.JAVA_RUNTIME_VERSION }}
+            ${{ env.JAVA_VERSION }}
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: main-${{ hashFiles('**/pom.xml') }}
+          path: ~/.m2/repository/
+      - name: Set Scala version 2.12
+        run: ./build/scripts/change-scala-version.sh 2.12
+      - name: Download dependencies 2.12
+        id: download0
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mvn $MAVEN_ARGS $MAVEN_CLI_OPTS | tee build.log
+      - name: Download dependencies 2.12 (retry)
+        if: steps.download0.outcome=='failure'
+        run: |
+          set -o pipefail
+          # retry if the failure was due to transient download errors from maven central
+          if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build.log; then
+            RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+            mvn $MAVEN_ARGS $MAVEN_CLI_OPTS $RESUME_FROM | tee -a build.log
+          else
+            exit 1
+          fi
+      - name: Set Scala version 2.13
+        run: ./build/scripts/change-scala-version.sh 2.13
+      - name: Download dependencies 2.13
+        id: download1
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mvn $MAVEN_ARGS $MAVEN_CLI_OPTS | tee build.log
+      - name: Download dependencies 2.13 (retry)
+        if: steps.download1.outcome=='failure'
+        run: |
+          set -o pipefail
+          # retry if the failure was due to transient download errors from maven central
+          if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' build.log; then
+            RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+            mvn $MAVEN_ARGS $MAVEN_CLI_OPTS $RESUME_FROM | tee -a build.log
+          else
+            exit 1
+          fi
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: rm -rf ~/.m2/repository/org/locationtech/geomesa

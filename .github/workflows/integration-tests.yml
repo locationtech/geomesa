@@ -39,9 +39,11 @@ jobs:
           java-version: |
             ${{ env.JAVA_RUNTIME_VERSION }}
             ${{ env.JAVA_VERSION }}
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-it-${{ matrix.scala-version }}-${{ matrix.projects.name }}
+          key: main-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            main-
           path: ~/.m2/repository/
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
@@ -66,6 +68,3 @@ jobs:
         run: mvn $MAVEN_IT_COMPILE_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
       - name: Run integration tests
         run: mvn $MAVEN_IT_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
-      - name: Remove geomesa artifacts
-        if: success() || failure()
-        run: rm -rf ~/.m2/repository/org/locationtech/geomesa
