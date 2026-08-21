@@ -38,8 +38,9 @@ jobs:
             ${{ env.JAVA_VERSION }}
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: main-${{ hashFiles('**/pom.xml') }}
+          key: main-${{ matrix.scala-version }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
+            main-${{ matrix.scala-version }}-
             main-
           path: ~/.m2/repository/
       - name: Set Scala version

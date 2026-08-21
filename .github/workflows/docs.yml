@@ -30,8 +30,9 @@ jobs:
             ${{ env.JAVA_VERSION }}
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: main-${{ hashFiles('**/pom.xml') }}
+          key: main-2.12-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
+            main-2.12-
             main-
           path: ~/.m2/repository/
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
