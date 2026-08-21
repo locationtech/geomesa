@@ -14,7 +14,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
-import org.locationtech.geomesa.utils.index.{IndexCoverage, TemporalIndexCheck}
+import org.locationtech.geomesa.utils.index.TemporalIndexCheck
 
 import java.io.Closeable
 import java.sql.{Connection, PreparedStatement}
@@ -154,6 +154,7 @@ package object dialect {
   case class TypeInfo(
       schema: SchemaName,
       typeName: String,
+      typeIdentifier: String,
       tables: Tables,
       cols: Columns,
       partitions: PartitionInfo,
@@ -165,11 +166,12 @@ package object dialect {
     import scala.collection.JavaConverters._
 
     def apply(schema: String, sft: SimpleFeatureType): TypeInfo = {
-      val tables = Tables(sft, schema)
+      val userData = sft.getUserData.asScala.map { case (k, v) => String.valueOf(k) -> String.valueOf(v) }
+      val identifier = userData.getOrElse(SftUserData.IdentAlias.key, sft.getTypeName)
+      val tables = Tables(sft, schema, identifier)
       val columns = Columns(sft)
       val partitions = PartitionInfo(sft)
-      val userData = sft.getUserData.asScala.map { case (k, v) => String.valueOf(k) -> String.valueOf(v) }
-      TypeInfo(SchemaName(schema), sft.getTypeName, tables, columns, partitions, userData.toMap)
+      TypeInfo(SchemaName(schema), sft.getTypeName, identifier, tables, columns, partitions, userData.toMap)
     }
   }
 
@@ -211,16 +213,17 @@ package object dialect {
       sortQueue: TableConfig)
 
   object Tables {
-    def apply(sft: SimpleFeatureType, schema: String): Tables = {
+    def apply(sft: SimpleFeatureType, schema: String, typeIdentifier: String): Tables = {
       val logged = SftUserData.WalLogEnabled.get(sft)
       val view = TableConfig(schema, sft.getTypeName, None)
+      val tablePrefix = TableConfig(schema, typeIdentifier, None).name.raw
       // we disable autovacuum for write ahead tables, as they are transient and get dropped fairly quickly
-      val writeAhead = TableConfig(schema, view.name.raw + WriteAheadTableSuffix.raw, SftUserData.WriteAheadTableSpace.get(sft), vacuum = false, logged)
-      val writeAheadPartitions = TableConfig(schema, view.name.raw + PartitionedWriteAheadTableSuffix.raw, SftUserData.WriteAheadPartitionsTableSpace.get(sft), vacuum = false, logged)
-      val mainPartitions = TableConfig(schema, view.name.raw + PartitionedTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged)
-      val spillPartitions = TableConfig(schema, view.name.raw + SpillTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged)
-      val analyzeQueue = TableConfig(schema, view.name.raw + AnalyzeTableSuffix.raw, None, logged = logged)
-      val sortQueue = TableConfig(schema, view.name.raw + SortTableSuffix.raw, None, logged = logged)
+      val writeAhead = TableConfig(schema, tablePrefix + WriteAheadTableSuffix.raw, SftUserData.WriteAheadTableSpace.get(sft), vacuum = false, logged)
+      val writeAheadPartitions = TableConfig(schema, tablePrefix + PartitionedWriteAheadTableSuffix.raw, SftUserData.WriteAheadPartitionsTableSpace.get(sft), vacuum = false, logged)
+      val mainPartitions = TableConfig(schema, tablePrefix + PartitionedTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged)
+      val spillPartitions = TableConfig(schema, tablePrefix + SpillTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged)
+      val analyzeQueue = TableConfig(schema, tablePrefix + AnalyzeTableSuffix.raw, None, logged = logged)
+      val sortQueue = TableConfig(schema, tablePrefix + SortTableSuffix.raw, None, logged = logged)
       Tables(view, writeAhead, writeAheadPartitions, mainPartitions, spillPartitions, analyzeQueue, sortQueue)
     }
   }

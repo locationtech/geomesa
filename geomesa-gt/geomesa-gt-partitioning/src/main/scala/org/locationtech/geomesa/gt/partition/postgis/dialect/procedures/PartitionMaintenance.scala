@@ -16,9 +16,9 @@ import scala.util.hashing.MurmurHash3
  */
 object PartitionMaintenance extends SqlProcedure with CronSchedule {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_partition_maintenance")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeIdentifier}_partition_maintenance")
 
-  override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeName}-part-maintenance")
+  override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeIdentifier}-part-maintenance")
 
   override protected def createStatements(info: TypeInfo): Seq[String] =
     Seq(proc(info)) ++ super.createStatements(info)

@@ -17,7 +17,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{SequenceTab
  */
 object PartitionWriteAheadLog extends SqlProcedure {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_partition_wa")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeIdentifier}_partition_wa")
 
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 

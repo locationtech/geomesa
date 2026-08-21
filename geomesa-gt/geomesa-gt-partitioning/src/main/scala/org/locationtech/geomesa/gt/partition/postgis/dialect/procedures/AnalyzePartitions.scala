@@ -14,9 +14,9 @@ package procedures
  */
 object AnalyzePartitions extends SqlProcedure with CronSchedule {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_analyze_partitions")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeIdentifier}_analyze_partitions")
 
-  override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeName}-analyze")
+  override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeIdentifier}-analyze")
 
   override protected def createStatements(info: TypeInfo): Seq[String] =
     Seq(proc(info)) ++ super.createStatements(info)

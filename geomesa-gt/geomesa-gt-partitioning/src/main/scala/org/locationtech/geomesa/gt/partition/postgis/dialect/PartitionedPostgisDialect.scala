@@ -120,27 +120,43 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
   }
 
   override def encodePostCreateTable(tableName: String, sql: StringBuffer): Unit = {
-    val i = sql.indexOf(tableName)
-    if (i == -1) {
-      logger.warn(s"Did not find table name '$tableName' in CREATE TABLE statement: $sql")
-    } else {
-      // rename to the write ahead table
-      sql.insert(i + tableName.length, WriteAheadTableSuffix.raw)
+    if (tableName.length > 63) {
+      throw new IllegalArgumentException("Can't create schema: type name exceeds max supported Postgres identifier length of 63")
     }
   }
 
   override def postCreateTable(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit = {
-    // Throw an error if the sft name is longer than 31 characters
-    if (sft.getTypeName.length() > 31) {
-      val errorMsg = "Can't create schema: type name exceeds max supported length of 31 characters"
-      throw new IllegalArgumentException(errorMsg)
-    }
 
     // note: we skip the call to `super`, which creates a spatial index (that we don't want), and which
     // alters the geometry column types (which we handle in the create statement)
-    val info = TypeInfo(schemaName, sft)
+
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
+      // if the sft name is longer than 31 characters, use an alias for delegate tables to avoid character limits
+      // 31 is the max length, based on the current length of our sql identifiers (tables, etc)
+      val typeId = if (sft.getTypeName.length() < 32) { None } else {
+        ex.execute(
+          s"CREATE SEQUENCE IF NOT EXISTS ${escape(schemaName)}.${PartitionedPostgisDialect.SftSeqName} " +
+            s"AS integer MINVALUE 0 MAXVALUE 65535")
+        val sql = s"SELECT nextval(${literal(s"$schemaName.${PartitionedPostgisDialect.SftSeqName}")})"
+        val nextVal = WithClose(cx.prepareStatement(sql)) { st =>
+          WithClose(st.executeQuery()) { rs =>
+            rs.next()
+            rs.getInt(1)
+          }
+        }
+        if (nextVal > 0xFFFF) {
+          throw new IllegalStateException(
+            s"Sequence ${PartitionedPostgisDialect.SftSeqName} has exceeded maximum supported value of 65535 unique feature types")
+        }
+        Some(sft.getTypeName.substring(0, 26) + f"_$nextVal%04x") // 4-character hex-encoded padded string
+      }
+
+      val info = TypeInfo(schemaName, typeId.fold(sft) { id =>
+        val copy = SimpleFeatureTypes.copy(sft)
+        copy.getUserData.put(SftUserData.IdentAlias.key, id)
+        copy
+      })
       PartitionedPostgisDialect.Commands.foreach(_.create(info))
       if (grants.nonEmpty) {
         val roles = grants.map(_.quoted).mkString(", ")
@@ -216,7 +232,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     UserDataTable.read(cx, schemaName, sft.getTypeName).foreach { case (k, v) => sft.getUserData.put(k, v) }
 
     // populate flags on indexed attributes
-    getIndexedColumns(cx, sft.getTypeName) match {
+    getIndexedColumns(cx, TypeInfo(schemaName, sft).tables.mainPartitions.name) match {
       case Success(cols) =>
         cols.foreach { col =>
           if (col != "fid") {
@@ -372,6 +388,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
 
 object PartitionedPostgisDialect extends StrictLogging {
 
+  private val SftSeqName = "geomesa_sft_seq"
+
   private val IgnoredTables = Seq("pg_stat_statements", "pg_stat_statements_info")
 
   private val GeometryMappings = Map[Class[_], String](
@@ -448,6 +466,8 @@ object PartitionedPostgisDialect extends StrictLogging {
     val QueryInterceptors: SftUserData[Option[String]] = SftUserData(SimpleFeatureTypes.Configs.QueryInterceptors, mutable = true, None)
     // set postgres table wal logging
     val WalLogEnabled: SftUserData[Boolean] = SftUserData("pg.wal.enabled", mutable = false, default = true)
+    // unique alias to use for identifiers so that we don't exceed the max postgres identifier length
+    val IdentAlias: SftUserData[Option[String]] = SftUserData("pg.ident.alias", mutable = false, None)
 
     // tablespace configurations - can be updated freely after the schema is created
     val WriteAheadTableSpace: SftUserData[Option[String]] = SftUserData("pg.partitions.tablespace.wa", mutable = true, None)
@@ -476,21 +496,20 @@ object PartitionedPostgisDialect extends StrictLogging {
    * Get a list of indexed columns for the given SimpleFeatureType
    *
    * @param cx connection
-   * @param typeName feature type name
+   * @param table table identifier
    * @return a sequence of SimpleFeatureType attribute names which have an index
    */
-  def getIndexedColumns(cx: Connection, typeName: String): Try[List[String]] = {
-    val attributesWithIndicesSql =
+  private def getIndexedColumns(cx: Connection, table: TableIdentifier): Try[List[String]] = {
+    val sql =
       s"""select distinct(att.attname) as indexed_attribute_name
          |from pg_class obj
          |join pg_index idx on idx.indrelid = obj.oid
          |join pg_attribute att on att.attrelid = obj.oid and att.attnum = any(idx.indkey)
-         |where obj.relname = concat(?, ${PartitionedTableSuffix.quoted})
+         |where obj.relname = ${literal(table.raw)}
          |order by att.attname;""".stripMargin
     Try {
-      WithClose(cx.prepareStatement(attributesWithIndicesSql)) { statement =>
-        statement.setString(1, typeName)
-        WithClose(statement.executeQuery()) { rs =>
+      WithClose(cx.createStatement()) { st =>
+        WithClose(st.executeQuery(sql)) { rs =>
           Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1)).toList
         }
       }

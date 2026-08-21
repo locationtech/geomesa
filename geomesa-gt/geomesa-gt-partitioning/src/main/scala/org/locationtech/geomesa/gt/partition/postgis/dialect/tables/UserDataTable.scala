@@ -54,6 +54,9 @@ class UserDataTable extends Sql {
     def insert(config: SftUserData[_], value: String): Unit =
       ex.executeUpdate(insertSql, Seq(info.typeName, config.key, value, config.mutable))
 
+    if (info.typeIdentifier != info.typeName) {
+      insert(SftUserData.IdentAlias, info.typeIdentifier)
+    }
     insert(SftUserData.DtgField, info.cols.dtg.raw)
     insert(SftUserData.IntervalHours, String.valueOf(info.partitions.hoursPerPartition))
     if (info.partitions.pagesPerRange != SftUserData.PagesPerRange.default) {

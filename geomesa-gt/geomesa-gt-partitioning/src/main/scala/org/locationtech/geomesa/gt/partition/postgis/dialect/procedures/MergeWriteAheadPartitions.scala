@@ -17,7 +17,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTabl
  */
 object MergeWriteAheadPartitions extends SqlProcedure {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_merge_wa_partitions")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeIdentifier}_merge_wa_partitions")
 
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 

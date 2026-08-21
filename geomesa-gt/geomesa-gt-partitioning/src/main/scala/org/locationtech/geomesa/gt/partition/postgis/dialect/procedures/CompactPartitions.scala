@@ -18,7 +18,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTabl
  */
 object CompactPartitions extends SqlProcedure {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_compact_partitions")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeIdentifier}_compact_partitions")
 
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 

@@ -14,7 +14,7 @@ package triggers
  */
 object InsertTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"insert_to_${info.typeName}")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"insert_to_${info.typeIdentifier}")
 
   override protected def table(info: TypeInfo): TableIdentifier = info.tables.view.name
 

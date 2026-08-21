@@ -134,10 +134,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         ds must beAnInstanceOf[JDBCDataStore]
 
         // This sft name exceeds 31 characters, so it should fail
-        val sft = SimpleFeatureTypes.renameSft(this.sft, "abcdefghijklmnopqrstuvwxyzabcde_____")
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz")
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft) must throwAn[java.io.IOException].like {
-          case e => e.getCause.getMessage mustEqual "Can't create schema: type name exceeds max supported length of 31 characters"
+          case e => e.getCause.getMessage mustEqual "Can't create schema: type name exceeds max supported Postgres identifier length of 63"
         }
       } finally {
         ds.dispose()
@@ -152,17 +152,16 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       try {
         ds must beAnInstanceOf[JDBCDataStore]
 
-        val sftNames: Seq[String] = Seq("test", "test-abcdefghijklmnopqrstuvwxyz")
+        val sftNames: Seq[String] = Seq("test", "test-abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz")
 
         foreach(sftNames) { name =>
-          val sft = SimpleFeatureTypes.renameSft(this.sft, name)
-          ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
-          ds.createSchema(sft)
+          ds.getTypeNames.toSeq must not(contain(name))
+          ds.createSchema(SimpleFeatureTypes.renameSft(this.sft, name))
 
-          val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
-          schema must not(beNull)
-          schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
-          logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+          val sft = Try(ds.getSchema(name)).getOrElse(null)
+          sft must not(beNull)
+          sft.getUserData.asScala must containAllOf(this.sft.getUserData.asScala.toSeq)
+          logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(sft)}")
 
           // write some data
           WithClose(new DefaultTransaction()) { tx =>

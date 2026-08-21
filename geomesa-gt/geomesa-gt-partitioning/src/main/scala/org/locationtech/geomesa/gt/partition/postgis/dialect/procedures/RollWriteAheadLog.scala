@@ -18,9 +18,9 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{SequenceTab
  */
 object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_roll_wa")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeIdentifier}_roll_wa")
 
-  override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeName}-roll-wa")
+  override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeIdentifier}-roll-wa")
 
   override protected def schedule(info: TypeInfo): SqlLiteral = SqlLiteral("9,19,29,39,49,59 * * * *")
 

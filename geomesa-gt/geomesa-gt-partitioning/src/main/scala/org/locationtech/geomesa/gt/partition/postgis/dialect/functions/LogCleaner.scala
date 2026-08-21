@@ -24,7 +24,7 @@ class LogCleaner extends SqlFunction with CronSchedule {
 
   override def name(info: TypeInfo): FunctionName = FunctionName("cron_log_cleaner")
 
-  override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeName}-cron-log-cleaner")
+  override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeIdentifier}-cron-log-cleaner")
 
   override protected def createStatements(info: TypeInfo): Seq[String] =
     Seq(function(info.schema)) ++ super.createStatements(info)
@@ -39,7 +39,7 @@ class LogCleaner extends SqlFunction with CronSchedule {
     SqlLiteral(s"SELECT ${info.schema.quoted}.cron_log_cleaner(${info.tables.view.name.asLiteral}, INTERVAL '7 DAYS')")
 
   private def function(schema: SchemaName): String = {
-    val info = TypeInfo(SchemaName("", ""), "", null, null, null)
+    val info = TypeInfo(SchemaName("", ""), "", "", null, null, null)
     val maintenanceSuffix = PartitionMaintenance.jobName(info).quoted
     val rollSuffix = RollWriteAheadLog.jobName(info).quoted
     val analyzeSuffix = AnalyzePartitions.jobName(info).quoted
