@@ -16,7 +16,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.SequenceTabl
  */
 object WriteAheadTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"insert_to_wa_writes_${info.typeName}")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"insert_to_wa_writes_${info.typeIdentifier}")
 
   override protected def table(info: TypeInfo): TableIdentifier = info.tables.writeAhead.name
 

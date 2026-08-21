@@ -14,7 +14,7 @@ package triggers
  */
 object UpdateTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"update_to_${info.typeName}")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"update_to_${info.typeIdentifier}")
 
   override protected def table(info: TypeInfo): TableIdentifier = info.tables.view.name
 

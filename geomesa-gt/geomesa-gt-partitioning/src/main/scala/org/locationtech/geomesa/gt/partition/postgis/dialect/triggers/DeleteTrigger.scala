@@ -14,7 +14,7 @@ package triggers
  */
 object DeleteTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"delete_from_${info.typeName}")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"delete_from_${info.typeIdentifier}")
 
   override protected def table(info: TypeInfo): TableIdentifier = info.tables.view.name
 

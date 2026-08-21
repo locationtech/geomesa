@@ -23,10 +23,42 @@ object WriteAheadTable extends SqlStatements {
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
     }
     val logging = if (info.tables.writeAhead.logged) { "" } else { "UNLOGGED" }
+    val renameMainTable =
+      s"""DO $$$$
+         |DECLARE
+         |  main_table_exists boolean;
+         |  wa_table_exists boolean;
+         |BEGIN
+         |  SELECT EXISTS (
+         |    SELECT 1
+         |    FROM pg_catalog.pg_class c
+         |    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+         |    WHERE n.nspname = ${literal(info.schema.raw)}
+         |      AND c.relname = ${literal(info.tables.view.name.raw)}
+         |      AND c.relkind = 'r' -- indicates a table, not a view
+         |  ) INTO main_table_exists;
+         |  SELECT EXISTS (
+         |    SELECT 1
+         |    FROM pg_catalog.pg_class c
+         |    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+         |    WHERE n.nspname = ${literal(info.schema.raw)}
+         |      AND c.relname = ${literal(table.name.raw)}
+         |      AND c.relkind = 'r' -- indicates a table, not a view
+         |  ) INTO wa_table_exists;
+         |
+         |  IF main_table_exists THEN
+         |    IF wa_table_exists THEN
+         |      -- schema was partially deleted but _wa table is still here
+         |      DROP TABLE ${info.tables.view.name.qualified};
+         |    ELSE
+         |      ALTER TABLE ${info.tables.view.name.qualified} RENAME TO ${table.name.quoted};
+         |    END IF;
+         |  END IF;
+         |END $$$$;""".stripMargin
     val move = table.tablespace.toSeq.map { ts =>
       s"ALTER TABLE ${table.name.qualified} SET TABLESPACE ${ts.quoted};\n"
     }
-    val block =
+    val createFirstPartition =
       s"""DO $$$$
          |DECLARE
          |  seq_val smallint;
@@ -50,7 +82,7 @@ object WriteAheadTable extends SqlStatements {
          |    ' ON ${info.schema.quoted}.' || quote_ident(partition) || '(${col.quoted})$tableTs';""".stripMargin}.mkString("\n")}
          |END $$$$;""".stripMargin
 
-    move ++ Seq(block)
+    Seq(renameMainTable) ++ move ++ Seq(createFirstPartition)
   }
 
   override protected def dropStatements(info: TypeInfo): Seq[String] = {

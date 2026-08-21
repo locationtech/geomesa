@@ -17,7 +17,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTabl
  */
 object DropAgedOffPartitions extends SqlProcedure {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_age_off")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeIdentifier}_age_off")
 
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 
