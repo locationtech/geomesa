@@ -952,6 +952,24 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     }
 
     /**
+     * Returns the credentials Iceberg's page-source provider needs to read the table's data files.
+     *
+     * <p>On the read path since Trino 483: the credentials-free
+     * {@code ConnectorPageSourceProvider.createPageSource} overload was removed, so an unforwarded
+     * (empty) result fails every scan with {@code connectorTableCredentials is empty} rather than
+     * degrading. The handle must be unwrapped — Iceberg casts it to its own type.
+     *
+     * @param session the connector session
+     * @param tableHandle the table handle
+     * @return the delegate's table credentials, if any
+     */
+    @Override
+    public Optional<ConnectorTableCredentials> getTableCredentials(ConnectorSession session,
+                                                                   ConnectorTableHandle tableHandle) {
+        return delegate.getTableCredentials(session, SpatialTableHandle.unwrap(tableHandle));
+    }
+
+    /**
      * Returns connector-specific info for the given table.
      *
      * @param session the connector session
@@ -1274,6 +1292,18 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public Optional<ConnectorViewDefinition> getView(ConnectorSession session,
                                                      SchemaTableName viewName) {
         return delegate.getView(session, viewName);
+    }
+
+    /**
+     * Returns the properties of the named view.
+     *
+     * @param session the connector session
+     * @param viewName the schema-qualified view name
+     * @return the view properties
+     */
+    @Override
+    public Map<String, Object> getViewProperties(ConnectorSession session, SchemaTableName viewName) {
+        return delegate.getViewProperties(session, viewName);
     }
 
     // Materialized views

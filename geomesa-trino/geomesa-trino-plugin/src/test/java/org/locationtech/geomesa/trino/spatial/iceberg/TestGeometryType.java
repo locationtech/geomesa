@@ -14,7 +14,7 @@ import io.trino.spi.block.BlockBuilder;
 import io.trino.spi.block.BlockBuilderStatus;
 import io.trino.spi.block.VariableWidthBlock;
 import io.trino.spi.type.AbstractType;
-import io.trino.spi.type.TypeSignature;
+import io.trino.spi.type.TypeDescriptor;
 import org.locationtech.geomesa.trino.spatial.iceberg.connector.SpatialConnectorMetadata;
 
 /**
@@ -35,7 +35,7 @@ public final class TestGeometryType extends AbstractType {
     public static final TestGeometryType GEOMETRY = new TestGeometryType();
 
     private TestGeometryType() {
-        super(new TypeSignature("Geometry"), Slice.class, VariableWidthBlock.class);
+        super(new TypeDescriptor("Geometry"), Slice.class, VariableWidthBlock.class);
     }
 
     @Override

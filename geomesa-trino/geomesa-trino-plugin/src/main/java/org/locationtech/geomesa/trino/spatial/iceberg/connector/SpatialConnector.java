@@ -146,9 +146,10 @@ public class SpatialConnector implements Connector {
             @Override
             public ConnectorSplitSource getSplits(ConnectorTransactionHandle transaction,
                                                   ConnectorSession session, ConnectorTableHandle table,
-                                                  DynamicFilter dynamicFilter, Constraint constraint) {
+                                                  Set<ColumnHandle> dynamicFilterColumns,
+                                                  Constraint constraint) {
                 return splitManager.getSplits(transaction, session, SpatialTableHandle.unwrap(table),
-                    dynamicFilter, constraint);
+                    dynamicFilterColumns, constraint);
             }
         };
     }

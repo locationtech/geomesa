@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.trino.spatial.iceberg.connector;
 
+import io.trino.spi.connector.ColumnHandle;
 import io.trino.spi.connector.Connector;
 import io.trino.spi.connector.ConnectorMetadata;
 import io.trino.spi.connector.ConnectorSession;
@@ -16,9 +17,10 @@ import io.trino.spi.connector.ConnectorSplitSource;
 import io.trino.spi.connector.ConnectorTableHandle;
 import io.trino.spi.connector.ConnectorTransactionHandle;
 import io.trino.spi.connector.Constraint;
-import io.trino.spi.connector.DynamicFilter;
 import io.trino.spi.transaction.IsolationLevel;
 import org.junit.jupiter.api.Test;
+
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,7 +37,8 @@ class SpatialConnectorSplitManagerGatingTest {
         @Override
         public ConnectorSplitSource getSplits(ConnectorTransactionHandle transaction,
                                               ConnectorSession session, ConnectorTableHandle table,
-                                              DynamicFilter dynamicFilter, Constraint constraint) {
+                                              Set<ColumnHandle> dynamicFilterColumns,
+                                              Constraint constraint) {
             return null;
         }
     };

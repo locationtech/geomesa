@@ -19,6 +19,7 @@ import io.trino.spi.connector.ConnectorTableCredentials;
 import io.trino.spi.connector.ConnectorTableHandle;
 import io.trino.spi.connector.ConnectorTransactionHandle;
 import io.trino.spi.connector.DynamicFilter;
+import io.trino.spi.connector.MemoryContext;
 import io.trino.spi.predicate.Domain;
 import io.trino.spi.predicate.Range;
 import io.trino.spi.predicate.SortedRangeSet;
@@ -73,27 +74,20 @@ final class SpatialPageSourceProvider implements ConnectorPageSourceProvider {
         this.delegate = delegate;
     }
 
+    // Only the MemoryContext overload is implemented, matching Iceberg's own provider: the
+    // credentials-only overload is deprecated in the SPI and Iceberg does not implement it, so
+    // forwarding to it would turn a clear "not implemented" into a confusing one.
     @Override
     public ConnectorPageSource createPageSource(
             ConnectorTransactionHandle transaction, ConnectorSession session,
             ConnectorSplit split, ConnectorTableHandle table,
             Optional<ConnectorTableCredentials> credentials,
-            List<ColumnHandle> columns, DynamicFilter dynamicFilter) {
+            List<ColumnHandle> columns, DynamicFilter dynamicFilter,
+            MemoryContext memoryContext) {
         Plan plan = plan(table, columns);
         ConnectorPageSource ps = delegate.createPageSource(
             transaction, session, split, SpatialTableHandle.unwrap(table), credentials,
-            plan.columns(), dynamicFilter);
-        return plan.wrap(ps);
-    }
-
-    @Override
-    public ConnectorPageSource createPageSource(
-            ConnectorTransactionHandle transaction, ConnectorSession session,
-            ConnectorSplit split, ConnectorTableHandle table,
-            List<ColumnHandle> columns, DynamicFilter dynamicFilter) {
-        Plan plan = plan(table, columns);
-        ConnectorPageSource ps = delegate.createPageSource(
-            transaction, session, split, SpatialTableHandle.unwrap(table), plan.columns(), dynamicFilter);
+            plan.columns(), dynamicFilter, memoryContext);
         return plan.wrap(ps);
     }
 
