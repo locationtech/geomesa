@@ -101,8 +101,10 @@ class SpatialConnectorMetadataDelegationTest {
         "getFunctionMetadata(ConnectorSession,FunctionId)",
         "getFunctions(ConnectorSession,SchemaFunctionName)",
         "getMetrics(ConnectorSession)",
+        // Table credentials: only the read-path overload (ConnectorTableHandle) is forwarded —
+        // since Trino 483 an empty result fails every scan. The table-function and write
+        // overloads stay unforwarded because neither path is forwarded at all (see above).
         "getTableCredentials(ConnectorSession,ConnectorTableFunctionHandle)",
-        "getTableCredentials(ConnectorSession,ConnectorTableHandle)",
         "getTableCredentials(ConnectorSession,ConnectorWritableTableHandle)",
         "listFunctions(ConnectorSession,String)");
 

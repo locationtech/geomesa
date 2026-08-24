@@ -10,6 +10,7 @@ package org.locationtech.geomesa.trino.spatial.iceberg.connector;
 
 import io.airlift.slice.Slices;
 import io.trino.spi.Page;
+import io.trino.spi.block.Bitmap;
 import io.trino.spi.block.Block;
 import io.trino.spi.block.BlockBuilder;
 import io.trino.spi.block.IntArrayBlock;
@@ -24,7 +25,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.WKBWriter;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -177,11 +177,11 @@ class BboxFilteringPageSourceTest {
         return new IntArrayBlock(values.length, Optional.empty(), bits);
     }
 
-    /** REAL block whose every position is SQL NULL. */
+    /** REAL block whose every position is SQL NULL. Since Trino 483 the block null mask is a
+     *  {@code long[]} bitmap of VALID (non-null) positions, so an all-zero bitmap is all-null. */
     private static Block nullRealBlock(int positions) {
-        boolean[] isNull = new boolean[positions];
-        Arrays.fill(isNull, true);
-        return new IntArrayBlock(positions, Optional.of(isNull), new int[positions]);
+        long[] valueIsValid = Bitmap.allocateWords(positions, false);
+        return new IntArrayBlock(positions, Optional.of(valueIsValid), new int[positions]);
     }
 
     /** VARBINARY block of WKB-encoded geometries (null ⇒ SQL NULL). */
