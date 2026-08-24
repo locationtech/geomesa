@@ -106,7 +106,7 @@
         <s2.geometry.version>20250620-rc1</s2.geometry.version>
         <sizeof.version>0.4.4</sizeof.version>
         <spring.security.version>7.1.0</spring.security.version>
-        <trino.version>481</trino.version>
+        <trino.version>483</trino.version>
         <typesafe.config.version>1.4.9</typesafe.config.version>
         <zstd.version>1.5.7-7</zstd.version>
 
