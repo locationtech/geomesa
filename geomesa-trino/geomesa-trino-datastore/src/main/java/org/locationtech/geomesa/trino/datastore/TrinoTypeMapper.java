@@ -15,12 +15,24 @@ import org.locationtech.jts.geom.Geometry;
 
 import java.sql.Types;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class TrinoTypeMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrinoTypeMapper.class);
+
+    /** GeoMesa attribute-option keys. Mirrors {@code SimpleFeatureTypes.AttributeOptions}:
+     *  {@code List} attribute declares its element type under {@code subtype},
+     *  {@code Map} declares its key and value types under {@code keyclass}/{@code valueclass},
+     *  {@code String} holding JSON sets {@code json=true}
+     */
+    static final String OPT_SUBTYPE     = "subtype";
+    static final String OPT_KEY_CLASS   = "keyclass";
+    static final String OPT_VALUE_CLASS = "valueclass";
+    static final String OPT_JSON        = "json";
 
     /**
      * Columns hidden from the GeoTools schema: the spatial extension's
@@ -34,8 +46,40 @@ class TrinoTypeMapper {
         return columnName.startsWith("__") && columnName.endsWith("__");
     }
 
+    /**
+     * Back-compatible overload for callers with no parameterized type name.
+     */
     static AttributeDescriptor toDescriptor(String name, int sqlType,
-                                             boolean isGeometry, Class<?> geometryBinding, int srid) {
+                                            boolean isGeometry, Class<?> geometryBinding, int srid) {
+        return toDescriptor(name, sqlType, null, isGeometry, geometryBinding, srid);
+    }
+
+    /**
+     * Maps one Trino column onto a GeoTools attribute descriptor.
+     *
+     * <p>Scalars map directly.
+     * Structural types — {@code array}, {@code map}, {@code row} use {@code typeName}.
+     * Given typeName:
+     *
+     * <ul>
+     *   <li>{@code array(<scalar>)} becomes a {@link List} with {@code subtype};</li>
+     *   <li>{@code map(<scalar>,<scalar>)} becomes a {@link Map} with {@code keyclass}/{@code valueclass};</li>
+     *   <li>nested data — {@code row(...)}, {@code array(row(...))} becomes a {@link String} marked {@code json=true},
+     *       and {@link TrinoFeatureReader} renders the value as JSON.</li>
+     * </ul>
+     *
+     * <p>Any other unmapped SQL type keeps falls back to byte[].
+     *
+     * @param name column name
+     * @param sqlType {@link java.sql.Types} code
+     * @param typeName parameterized Trino type name, or null when unavailable
+     * @param isGeometry whether the column was identified as a geometry
+     * @param geometryBinding resolved JTS subtype for a geometry column
+     * @param srid geometry SRID, 0 when not applicable
+     * @return the attribute descriptor
+     */
+    static AttributeDescriptor toDescriptor(String name, int sqlType, String typeName,
+                                            boolean isGeometry, Class<?> geometryBinding, int srid) {
         AttributeTypeBuilder b = new AttributeTypeBuilder();
         b.setName(name);
         b.setNillable(true);
@@ -58,28 +102,68 @@ class TrinoTypeMapper {
         }
 
         Class<?> binding = switch (sqlType) {
-            case Types.VARCHAR, Types.LONGNVARCHAR, Types.NVARCHAR -> String.class;
+            case Types.VARCHAR, Types.LONGNVARCHAR, Types.NVARCHAR  -> String.class;
             case Types.BIGINT                                       -> Long.class;
-            case Types.INTEGER, Types.SMALLINT, Types.TINYINT      -> Integer.class;
-            case Types.DOUBLE, Types.FLOAT, Types.REAL             -> Double.class;
-            case Types.BOOLEAN, Types.BIT                          -> Boolean.class;
-            case Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE    -> Date.class;
+            case Types.INTEGER, Types.SMALLINT, Types.TINYINT       -> Integer.class;
+            case Types.DOUBLE, Types.FLOAT, Types.REAL              -> Double.class;
+            case Types.BOOLEAN, Types.BIT                           -> Boolean.class;
+            case Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE     -> Date.class;
             case Types.BINARY, Types.VARBINARY, Types.LONGVARBINARY -> byte[].class;
-            // Truly unmapped SQL type (e.g. DECIMAL, ARRAY, ROW): fall back to opaque bytes,
-            // but warn so the unhandled column type is visible rather than silently lossy.
-            default                                                 -> unmappedBinding(sqlType, name);
+            default                                                 -> null;
         };
+        if (binding != null) {
+            b.setBinding(binding);
+            return b.buildDescriptor(name);
+        }
+        return structuralDescriptor(b, name, sqlType, typeName);
+    }
 
-        b.setBinding(binding);
+    /**
+     *  Descriptor for a structural column. Parsing of the type signature lives in {@link TrinoTypeSignature}.
+     */
+    private static AttributeDescriptor structuralDescriptor(AttributeTypeBuilder b, String name,
+                                                            int sqlType, String typeName) {
+        String t = TrinoTypeSignature.normalize(typeName);
+
+        String element = TrinoTypeSignature.arrayElement(t);
+        if (element != null) {
+            Class<?> binding = TrinoTypeSignature.scalarBinding(element);
+            if (binding != null) {
+                b.setBinding(List.class);
+                b.userData(OPT_SUBTYPE, binding.getName());
+                return b.buildDescriptor(name);
+            }
+            return jsonDescriptor(b, name);            // array of row/array/map
+        }
+
+        String[] kv = TrinoTypeSignature.mapKeyValue(t);
+        if (kv != null) {
+            Class<?> key = TrinoTypeSignature.scalarBinding(kv[0]);
+            Class<?> value = TrinoTypeSignature.scalarBinding(kv[1]);
+            if (key != null && value != null) {
+                b.setBinding(Map.class);
+                b.userData(OPT_KEY_CLASS, key.getName());
+                b.userData(OPT_VALUE_CLASS, value.getName());
+                return b.buildDescriptor(name);
+            }
+            return jsonDescriptor(b, name);            // map with a structural side
+        }
+
+        if (TrinoTypeSignature.isRowOrVariant(t)) {
+            return jsonDescriptor(b, name);
+        }
+
+        // Unrecognized type fallback.
+        LOG.warn("No GeoTools binding for SQL type {}{} on column '{}'; exposing it as byte[] (opaque).",
+                 sqlType, t.isEmpty() ? "" : " ('" + t + "')", name);
+        b.setBinding(byte[].class);
         return b.buildDescriptor(name);
     }
 
-    /** Fallback binding for an SQL type with no explicit mapping: opaque bytes, logged once
-     *  per occurrence at WARNING so an unhandled column type (DECIMAL, ARRAY, ROW, …) surfaces
-     *  instead of silently becoming a byte[]. */
-    private static Class<?> unmappedBinding(int sqlType, String name) {
-        LOG.warn("No GeoTools binding for SQL type " + sqlType + " on column '" + name
-            + "'; exposing it as byte[] (opaque).");
-        return byte[].class;
+    /** A String attribute flagged {@code json=true}; the reader renders the value as JSON. */
+    private static AttributeDescriptor jsonDescriptor(AttributeTypeBuilder b, String name) {
+        b.setBinding(String.class);
+        b.userData(OPT_JSON, "true");
+        return b.buildDescriptor(name);
     }
 }
