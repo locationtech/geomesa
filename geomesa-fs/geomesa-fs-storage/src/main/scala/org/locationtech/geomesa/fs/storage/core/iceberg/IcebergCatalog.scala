@@ -12,7 +12,7 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, TableIdentifier}
 import org.apache.iceberg.types.Types.NestedField
-import org.apache.iceberg.{CatalogUtil, PartitionSpec}
+import org.apache.iceberg.{CatalogUtil, PartitionSpec, RowLevelOperationMode, TableProperties}
 import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -120,9 +120,10 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
       val size = targetFileSize.map(s => s"${Metadata.PropertyPrefix}${Metadata.TargetFileSize}" -> s.toString).toMap
       // for back-compatibility
       val spec = Map("geomesa.sft.spec" -> SimpleFeatureTypes.encodeType(sft, includeUserData = true))
-      // file format v3 lets us use native geometries - but it's not yet supported in spark or trino
-      // val format = Map(TableProperties.FORMAT_VERSION -> "3")
-      typeName ++ userData ++ size ++ spec
+      // file format v3 lets us use variant encoding
+       val format =
+         Map(TableProperties.FORMAT_VERSION -> "3", TableProperties.DELETE_MODE -> RowLevelOperationMode.MERGE_ON_READ.modeName())
+      typeName ++ userData ++ size ++ spec ++ format
     }
 
     val spec = schemes.foldLeft(PartitionSpec.builderFor(schema.schema))((b, m) => m.spec(b)).build()

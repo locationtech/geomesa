@@ -582,7 +582,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
 
       // note: this is somewhat of a magic number, in that it works the first time through with no remainder
-      val targetSize = 4000L
+      val targetSize = 3800L
 
       WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes, Some(targetSize))) { storage =>

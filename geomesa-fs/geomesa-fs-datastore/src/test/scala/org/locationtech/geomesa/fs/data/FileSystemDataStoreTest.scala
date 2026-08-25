@@ -78,8 +78,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
   "FileSystemDataStore" should {
     "load deprecated hadoop configs" in {
       val params = dsParams ++ Map(
-        "iceberg.namespace" -> "deprecatedhaoop",
-        "fs.config.xml" -> "<configuration><property><name>config.xml</name><value>test</value></property></configuration>",
+        "fs.config.xml" -> "<configuration><property><name>config.xml</name><value>test</value></property><property><name>iceberg.namespace</name><value>deprecatedhaoop</value></property></configuration>",
         "fs.config.paths" -> new File(getClass.getClassLoader.getResource("test-site.xml").toURI).getAbsolutePath,
       )
       WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
@@ -97,6 +96,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
     "create a DS" in {
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(sft)
+        ds.getSchema(sft.getTypeName)
 
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
@@ -117,7 +117,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
         compareBounds(fs.getBounds, new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
 
         val results = CloseableIterator(fs.getFeatures(new Query(sft.getTypeName)).features()).map(ScalaSimpleFeature.copy).toList
-        results must containTheSameElementsAs(features)
+        results.sortBy(_.getID) mustEqual features
 
         // This shows that a new FeatureSource has a correct view of the metadata on disk
         WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { ds2 =>

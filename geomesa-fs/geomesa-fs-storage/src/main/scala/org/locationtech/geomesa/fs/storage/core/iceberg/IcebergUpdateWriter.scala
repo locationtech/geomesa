@@ -8,11 +8,9 @@
 
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
-import org.apache.iceberg.data.parquet.GenericParquetWriter
-import org.apache.iceberg.deletes.PositionDelete
-import org.apache.iceberg.parquet.Parquet
-import org.apache.iceberg.{DeleteFile, Schema}
-import org.apache.parquet.schema.MessageType
+import org.apache.iceberg.deletes.{BaseDVFileWriter, DVFileWriter}
+import org.apache.iceberg.io.OutputFile
+import org.apache.iceberg.{DeleteFile, PartitionSpec, StructLike}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -31,6 +29,7 @@ import java.io.{Closeable, Flushable}
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Supplier
 
 /**
  * Update writer implementation
@@ -134,50 +133,41 @@ object IcebergUpdateWriter {
 
     val files: java.util.Set[DeleteFile] = Collections.newSetFromMap(new ConcurrentHashMap[DeleteFile, java.lang.Boolean]())
 
-    override protected def createAction(partition: Partition): DeleteWriter = new DeleteWriter(storage, partition, files)
+    private val closed = new AtomicBoolean(false)
+    private val fileSupplier: Supplier[OutputFile] = () =>
+      storage.table.io().newOutputFile(storage.newFilePath().replaceAll("\\.parquet$", ".puffin"))
+    // the second parameter is a function to load previous deletes for merging
+    private val writer = new BaseDVFileWriter(fileSupplier, _ => null)
+
+    override protected def createAction(partition: Partition): DeleteWriter =
+      new DeleteWriter(writer, storage.table.spec(), storage.metadata.partition(partition))
     override protected def apply(action: DeleteWriter, feature: SimpleFeature): Unit =
       action.apply(feature.asInstanceOf[StructSimpleFeature])
+
+    override def close(): Unit = {
+      if (closed.compareAndSet(false, true)) {
+        try { super.close() } finally  {
+          CloseWithLogging(writer)
+        }
+        files.addAll(writer.result().deleteFiles())
+      }
+    }
   }
 
   /**
    * Single partition deleter
    *
-   * @param storage file system storage instance
+   * @param writer delete writer
+   * @param spec table partition spec
    * @param partition partition to delete records out of
-   * @param files set for returning any delete files created by this deleter
    */
-  private class DeleteWriter(storage: FileSystemStorage, partition: Partition, files: java.util.Set[DeleteFile])
+  private class DeleteWriter(writer: DVFileWriter, spec: PartitionSpec, partition: StructLike)
       extends (StructSimpleFeature => Unit) with Closeable with Flushable {
 
-    private val closed = new AtomicBoolean(false)
-    private val deletes = Seq.newBuilder[(String, Long)]
-    private val path = storage.newFilePath("x-")
-    private val file = storage.table.io().newOutputFile(path)
-
-    private val writer =
-      Parquet.writeDeletes(file)
-        .withSpec(storage.table.spec())
-        .withPartition(storage.metadata.partition(partition))
-        .createWriterFunc((schema: Schema, `type`: MessageType) => GenericParquetWriter.create(schema, `type`))
-        .buildPositionWriter[Unit]()
-
-    override def apply(feature: StructSimpleFeature): Unit = deletes += (feature.getFilePath -> feature.getRowPosition)
+    override def apply(feature: StructSimpleFeature): Unit =
+      writer.delete(feature.getFilePath, feature.getRowPosition, spec, partition)
 
     override def flush(): Unit = {}
-
-    override def close(): Unit = {
-      if (closed.compareAndSet(false, true)) {
-        try {
-          val struct = PositionDelete.create[Unit]()
-          // note: deletes need to be sorted by file+row
-          deletes.result().sorted.foreach { case (path, pos) =>
-            writer.write(struct.set(path, pos))
-          }
-        } finally{
-          CloseWithLogging(writer)
-        }
-        files.add(writer.toDeleteFile)
-      }
-    }
+    override def close(): Unit = {}
   }
 }

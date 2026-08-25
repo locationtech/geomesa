@@ -209,6 +209,16 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       case ObjectType.BOOLEAN => Types.primitive(PrimitiveTypeName.BOOLEAN, repetition).id(fieldIds.getAndIncrement())
       case ObjectType.BYTES   => Types.primitive(PrimitiveTypeName.BINARY, repetition).id(fieldIds.getAndIncrement())
 
+      case ObjectType.STRING if bindings.last == ObjectType.JSON =>
+        Types.buildGroup(repetition)
+          .id(fieldIds.getAndIncrement())
+          .as(LogicalTypeAnnotation.variantType(1))
+          .required(PrimitiveTypeName.BINARY).id(nestedFieldIds.getAndIncrement()).named("metadata")
+          .required(PrimitiveTypeName.BINARY).id(nestedFieldIds.getAndIncrement()).named("value")
+        // TODO can pull out known fields for shredding
+        //  val partiallyShredded: GroupType = Types.buildGroup(Repetition.REQUIRED).as(LogicalTypeAnnotation.variantType(1.toByte)).required(PrimitiveTypeName.BINARY).named("metadata").optional(PrimitiveTypeName.BINARY).named("value")// stores {custom_field_xyz: 123}.optionalGroup.optionalGroup.optional(PrimitiveTypeName.BINARY).as(stringType).named("typed_value").named("name").optionalGroup.optional(PrimitiveTypeName.INT32).named("typed_value").named("age").named("typed_value").named("person")
+
+
       case ObjectType.STRING =>
         Types.primitive(PrimitiveTypeName.BINARY, repetition)
           .id(fieldIds.getAndIncrement())

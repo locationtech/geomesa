@@ -11,12 +11,9 @@ package org.locationtech.geomesa.fs.storage.core.iceberg
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg._
 import org.apache.iceberg.data.parquet.GenericParquetReaders
-import org.apache.iceberg.data.{InternalRecordWrapper, Record}
-import org.apache.iceberg.deletes.{Deletes, PositionDeleteIndex, PositionDeleteIndexUtil}
+import org.apache.iceberg.data.{GenericDeleteFilter, InternalRecordWrapper, Record}
 import org.apache.iceberg.expressions.{Evaluator, Expression, Expressions}
-import org.apache.iceberg.io.DeleteSchemaUtil
 import org.apache.iceberg.parquet.Parquet
-import org.apache.iceberg.types.TypeUtil
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
@@ -49,11 +46,6 @@ class IcebergParquetScan(
 
   private val queue = new LinkedBlockingQueue[StructLike](10000)
   private val closed = new AtomicBoolean(false)
-
-  private lazy val deleteProjection =
-    if (schema.schema.findField(MetadataColumns.ROW_POSITION.fieldId()) != null) { schema.schema } else {
-      TypeUtil.join(schema.schema, new Schema(MetadataColumns.ROW_POSITION))
-    }
 
   private val row = StructSimpleFeature(schema)
 
@@ -149,34 +141,18 @@ class IcebergParquetScan(
     }
   }
 
-  private def readDeleteFile(delete: DeleteFile, dataFilePath: String): PositionDeleteIndex = {
-    require(delete.content() == FileContent.POSITION_DELETES,
-      s"Only positional deletes are supported, but got: ${delete.content()}")
-    logger.debug(s"Reading delete file ${delete.location()} [${delete.contentSizeInBytes()}]")
-    val deleteFileSchema = DeleteSchemaUtil.pathPosSchema()
-    val builder =
-      Parquet.read(table.io().newInputFile(delete))
-        .project(deleteFileSchema)
-        .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(deleteFileSchema, fileSchema))
-        .filter(Expressions.equal(MetadataColumns.DELETE_FILE_PATH.name(), dataFilePath))
-    WithClose(builder.build()) { deletes =>
-      Deletes.toPositionIndex(dataFilePath, deletes, delete)
-    }
-  }
-
   private class TaskRunnable(val task: CombinedScanTask) extends Runnable {
     override def run(): Unit = {
       try {
         task.files().iterator().asScala.foreach { file =>
           if (!closed.get()) {
-            val deleteIndex = if (file.deletes().isEmpty) { None } else {
-              val deletes = file.deletes().asScala.map(readDeleteFile(_, file.file().location()))
-              Some(PositionDeleteIndexUtil.merge(deletes.asJava))
+            val deleteFilter = if (file.deletes().isEmpty) { None } else {
+              Some(new GenericDeleteFilter(table.io(), file, table.schema(), schema.schema))
             }
-            val projection = if (deleteIndex.isEmpty) { schema.schema } else { deleteProjection }
-
+            val projection = deleteFilter.fold(schema.schema)(_.requiredSchema())
             WithClose(readFile(file, projection)) { iter =>
-              val withDeletes = deleteIndex.fold(iter) { index =>
+              val withDeletes = deleteFilter.fold(iter) { deletes =>
+                val index = deletes.deletedRowPositions()
                 val position = projection.accessorForField(MetadataColumns.ROW_POSITION.fieldId())
                 iter.filterNot(r => index.isDeleted(position.get(r).asInstanceOf[java.lang.Long]))
               }
