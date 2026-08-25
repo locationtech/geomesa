@@ -9,7 +9,8 @@
 
 package org.locationtech.geomesa.cassandra.index
 
-import com.datastax.driver.core.{PreparedStatement, Session}
+import com.datastax.oss.driver.api.core.CqlSession
+import com.datastax.oss.driver.api.core.cql.PreparedStatement
 import org.locationtech.geomesa.cassandra.{NamedColumn, RowSelect}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
@@ -56,13 +57,13 @@ trait CassandraColumnMapper {
 
   def select(range: ScanRange[_], tieredKeyRanges: Seq[ByteRange]): Seq[RowSelect]
 
-  def insert(session: Session, table: String): PreparedStatement = {
+  def insert(session: CqlSession, table: String): PreparedStatement = {
     val cql = s"INSERT INTO $table (${columns.map(_.name).mkString(", ")}) " +
         s"values (${Seq.fill(columns.length)("?").mkString(", ")})"
     session.prepare(cql)
   }
 
-  def delete(session: Session, table: String): PreparedStatement = {
+  def delete(session: CqlSession, table: String): PreparedStatement = {
     val cols = columns.collect { case c if c.name != SimpleFeatureColumnName => c.name }
     val cql = s"DELETE FROM $table WHERE ${cols.mkString("", " = ? and ", " = ?")}"
     session.prepare(cql)

@@ -49,6 +49,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
 
   lazy val params: Map[String, String] = Map(
     Params.ContactPointParam.getName -> s"${container.getContactPoint.getHostString}:${container.getContactPoint.getPort}",
+    Params.LocalDatacenterParam.getName -> "datacenter1",
     Params.KeySpaceParam.getName -> "geomesa_cassandra",
     Params.CatalogParam.getName -> "test_sft"
   )
@@ -71,11 +72,13 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
     "throw meaningful exceptions for invalid parameters" in {
       DataStoreFinder.getDataStore(Map(
         Params.ContactPointParam.getName -> "localhost",
+        Params.LocalDatacenterParam.getName -> "datacenter1",
         Params.KeySpaceParam.getName -> "geomesa_cassandra",
         Params.CatalogParam.getName -> "test_sft"
       ).asJava) must throwAn[IllegalArgumentException](s"Invalid parameter '${Params.ContactPointParam.key}'")
       DataStoreFinder.getDataStore(Map(
         Params.ContactPointParam.getName -> "localhost:foo",
+        Params.LocalDatacenterParam.getName -> "datacenter1",
         Params.KeySpaceParam.getName -> "geomesa_cassandra",
         Params.CatalogParam.getName -> "test_sft"
       ).asJava) must throwAn[IllegalArgumentException](s"Invalid parameter '${Params.ContactPointParam.key}'")

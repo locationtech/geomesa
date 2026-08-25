@@ -17,9 +17,4 @@ package object cassandra {
 
   case class ColumnSelect(column: NamedColumn, start: Any, end: Any, startInclusive: Boolean, endInclusive: Boolean)
   case class RowSelect(clauses: Seq[ColumnSelect])
-
-  object CassandraSystemProperties {
-    val ReadTimeoutMillis       = SystemProperty("geomesa.cassandra.read.timeout", "30 seconds")
-    val ConnectionTimeoutMillis = SystemProperty("geomesa.cassandra.connection.timeout", "30 seconds")
-  }
 }
