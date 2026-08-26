@@ -11,6 +11,7 @@ Parameter                            Type    Description
 ``cassandra.catalog *``              String  The name of the GeoMesa catalog table (previously ``geomesa.cassandra.catalog.table``)
 ``cassandra.contact.point *``        String  The connection point for Cassandra, in the form ``<host>:<port>`` - for a default
                                              local installation this will be ``localhost:9042``
+``cassandra.local-datacenter *``     String  The Cassandra datacenter to prioritize for queries and load balancing
 ``cassandra.keyspace *``             String  The Cassandra keyspace to use (must exist already)
 ``cassandra.username``               String  Cassandra user
 ``cassandra.password``               String  Cassandra password

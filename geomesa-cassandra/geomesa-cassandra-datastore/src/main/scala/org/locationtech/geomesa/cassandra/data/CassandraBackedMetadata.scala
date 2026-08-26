@@ -9,8 +9,8 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import com.datastax.driver.core.Session
-import com.datastax.driver.core.querybuilder.QueryBuilder
+import com.datastax.oss.driver.api.core.CqlSession
+import com.datastax.oss.driver.api.querybuilder.QueryBuilder
 import org.locationtech.geomesa.index.api.IndexAdapter
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -18,15 +18,16 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import java.nio.charset.StandardCharsets
 import scala.collection.JavaConverters._
 
-class CassandraBackedMetadata[T](val session: Session, val catalog: String, val serializer: MetadataSerializer[T])
+class CassandraBackedMetadata[T](val session: CqlSession, val catalog: String, val serializer: MetadataSerializer[T])
     extends TableBasedMetadata[T] {
 
   // note: session gets closed by datastore dispose
 
   override protected def checkIfTableExists: Boolean = {
-    val m = session.getCluster.getMetadata
-    val km = m.getKeyspace(session.getLoggedKeyspace)
-    km.getTable(catalog) != null
+    session.getKeyspace
+      .flatMap(session.getMetadata.getKeyspace)
+      .flatMap(_.getTable(catalog))
+      .isPresent
   }
 
   override protected def createTable(): Unit =
@@ -51,14 +52,19 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
 
   override protected def delete(typeName: String, keys: Seq[String]): Unit = {
     keys.foreach { key =>
-      val query = QueryBuilder.delete().from(catalog).where(QueryBuilder.eq("sft", typeName)).and(QueryBuilder.eq("key", key))
+      val query = QueryBuilder.deleteFrom(catalog)
+        .whereColumn("sft").isEqualTo(QueryBuilder.literal(typeName))
+        .whereColumn("key").isEqualTo(QueryBuilder.literal(key))
+        .build()
       session.execute(query)
     }
   }
 
   override protected def scanValue(typeName: String, key: String): Option[Array[Byte]] = {
-    val query = QueryBuilder.select("value").from(catalog)
-    query.where(QueryBuilder.eq("sft", typeName)).and(QueryBuilder.eq("key", key))
+    val query = QueryBuilder.selectFrom(catalog).column("value")
+      .whereColumn("sft").isEqualTo(QueryBuilder.literal(typeName))
+      .whereColumn("key").isEqualTo(QueryBuilder.literal(key))
+      .build()
     val rows = session.execute(query).all().asScala
     if (rows.length < 1) { None } else {
       Some(rows.head.getString("value").getBytes(StandardCharsets.UTF_8))
@@ -66,7 +72,9 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
   }
 
   override protected def scanValues(typeName: String, prefix: String): CloseableIterator[(String, Array[Byte])] = {
-    val select = QueryBuilder.select("key", "value").from(catalog).where(QueryBuilder.eq("sft", typeName))
+    val select = QueryBuilder.selectFrom(catalog).columns("key", "value")
+      .whereColumn("sft").isEqualTo(QueryBuilder.literal(typeName))
+      .build()
     val iter = session.execute(select).all().iterator.asScala.map { row =>
       (row.getString("key"), row.getString("value").getBytes(StandardCharsets.UTF_8))
     }
@@ -78,7 +86,7 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
   }
 
   override protected def scanKeys(): CloseableIterator[(String, String)] = {
-    val select = QueryBuilder.select("sft", "key").from(catalog)
+    val select = QueryBuilder.selectFrom(catalog).columns("sft", "key").build()
     val values = session.execute(select).all().iterator.asScala.map(row => (row.getString("sft"), row.getString("key")))
     CloseableIterator(values)
   }

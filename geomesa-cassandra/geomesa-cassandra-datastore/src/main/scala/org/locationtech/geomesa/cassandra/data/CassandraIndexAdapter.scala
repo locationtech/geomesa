@@ -9,9 +9,10 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import com.datastax.driver.core.Row
-import com.datastax.driver.core.exceptions.AlreadyExistsException
-import com.datastax.driver.core.querybuilder.{QueryBuilder, Select}
+import com.datastax.oss.driver.api.core.cql.{Row, SimpleStatement}
+import com.datastax.oss.driver.api.core.servererrors.AlreadyExistsException
+import com.datastax.oss.driver.api.querybuilder.QueryBuilder
+import com.datastax.oss.driver.api.querybuilder.relation.Relation
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -43,10 +44,9 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       index: GeoMesaFeatureIndex[_, _],
       partition: Option[String],
       splits: => Seq[Array[Byte]]): Unit = {
-    val cluster = ds.session.getCluster
     val table = index.configureTableName(partition, tableNameLimit) // writes metadata for table name
 
-    if (cluster.getMetadata.getKeyspace(ds.session.getLoggedKeyspace).getTable(table) == null) {
+    if (ds.session.getKeyspace.flatMap(ds.session.getMetadata.getKeyspace).flatMap(_.getTable(table)).isEmpty) {
       val columns = CassandraColumnMapper(index).columns
       require(columns.last.name == SimpleFeatureColumnName, s"Expected final column to be $SimpleFeatureColumnName")
       val (partitions, pks) = columns.dropRight(1).partition(_.partition) // drop serialized feature col
@@ -93,7 +93,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       val mapper = CassandraColumnMapper(strategy.index)
       val ranges = strategy.keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
-      val ks = ds.session.getLoggedKeyspace
+      val ks = Option(ds.session.getKeyspace.orElse(null)).map(_.asInternal())
       val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))
       val threads = ds.config.queries.threads
       val project = hints.getProjection
@@ -123,39 +123,42 @@ object CassandraIndexAdapter extends LazyLogging {
 
   val TableNameLimit = 48
 
-  def statement(keyspace: String, table: String, criteria: Seq[ColumnSelect]): Select = {
-    val select = QueryBuilder.select.all.from(keyspace, table)
-    criteria.foreach { c =>
-      if (c.start == null) {
-        if (c.end != null) {
-          if (c.endInclusive) {
-            select.where(QueryBuilder.lte(c.column.name, c.end))
+  def statement(keyspace: Option[String], table: String, criteria: Seq[ColumnSelect]): SimpleStatement = {
+    QueryBuilder.selectFrom(keyspace.orNull, table).all().where(
+      criteria.flatMap { c =>
+        val column = Relation.column(c.column.name)
+        if (c.start == null) {
+          if (c.end != null) {
+            if (c.endInclusive) {
+              Seq(column.isLessThanOrEqualTo(QueryBuilder.literal(c.end)))
+            } else {
+              Seq(column.isLessThan(QueryBuilder.literal(c.end)))
+            }
+          } else Seq.empty
+        } else if (c.end == null) {
+          if (c.startInclusive) {
+            Seq(column.isGreaterThanOrEqualTo(QueryBuilder.literal(c.start)))
           } else {
-            select.where(QueryBuilder.lt(c.column.name, c.end))
+            Seq(column.isGreaterThan(QueryBuilder.literal(c.start)))
           }
-        }
-      } else if (c.end == null) {
-        if (c.startInclusive) {
-          select.where(QueryBuilder.gte(c.column.name, c.start))
+        } else if (c.start == c.end) {
+          Seq(column.isEqualTo(QueryBuilder.literal(c.start)))
         } else {
-          select.where(QueryBuilder.gt(c.column.name, c.start))
+          Seq(
+            if (c.startInclusive) {
+              column.isGreaterThanOrEqualTo(QueryBuilder.literal(c.start))
+            } else {
+              column.isGreaterThan(QueryBuilder.literal(c.start))
+            },
+            if (c.endInclusive) {
+              column.isLessThanOrEqualTo(QueryBuilder.literal(c.end))
+            } else {
+              column.isLessThan(QueryBuilder.literal(c.end))
+            }
+          )
         }
-      } else if (c.start == c.end) {
-        select.where(QueryBuilder.eq(c.column.name, c.start))
-      } else {
-        if (c.startInclusive) {
-          select.where(QueryBuilder.gte(c.column.name, c.start))
-        } else {
-          select.where(QueryBuilder.gt(c.column.name, c.start))
-        }
-        if (c.endInclusive) {
-          select.where(QueryBuilder.lte(c.column.name, c.end))
-        } else {
-          select.where(QueryBuilder.lt(c.column.name, c.end))
-        }
-      }
-    }
-    select
+      }: _*
+    ).build()
   }
 
   class CassandraResultsToFeatures(_index: GeoMesaFeatureIndex[_, _], _sft: SimpleFeatureType)
@@ -170,7 +173,7 @@ object CassandraIndexAdapter extends LazyLogging {
         val bytes = result.get(FeatureIdColumnName, classOf[String]).getBytes(StandardCharsets.UTF_8)
         idSerializer.apply(bytes, 0, bytes.length, null)
       }
-      val sf = result.getBytes(SimpleFeatureColumnName)
+      val sf = result.getByteBuffer(SimpleFeatureColumnName)
       val bytes = Array.ofDim[Byte](sf.limit())
       sf.get(bytes)
       serializer.deserialize(fid, bytes)
@@ -207,13 +210,13 @@ object CassandraIndexAdapter extends LazyLogging {
         values(i) match {
           case kv: SingleRowKeyValue[_] =>
             val bindings = mapper.bind(kv)
-            logger.trace(s"${statement.getQueryString} : ${debug(bindings)}")
+            logger.trace(s"${statement.getQuery} : ${debug(bindings)}")
             ds.session.execute(statement.bind(bindings: _*))
 
           case mkv: MultiRowKeyValue[_] =>
             mkv.split.foreach { kv =>
               val bindings = mapper.bind(kv)
-              logger.trace(s"${statement.getQueryString} : ${debug(bindings)}")
+              logger.trace(s"${statement.getQuery} : ${debug(bindings)}")
               ds.session.execute(statement.bind(bindings: _*))
             }
         }
@@ -237,13 +240,13 @@ object CassandraIndexAdapter extends LazyLogging {
         values(i) match {
           case kv: SingleRowKeyValue[_] =>
             val bindings = mapper.bindDelete(kv)
-            logger.trace(s"${statement.getQueryString} : ${debug(bindings)}")
+            logger.trace(s"${statement.getQuery} : ${debug(bindings)}")
             ds.session.execute(statement.bind(bindings: _*))
 
           case mkv: MultiRowKeyValue[_] =>
             mkv.split.foreach { kv =>
               val bindings = mapper.bindDelete(kv)
-              logger.trace(s"${statement.getQueryString} : ${debug(bindings)}")
+              logger.trace(s"${statement.getQuery} : ${debug(bindings)}")
               ds.session.execute(statement.bind(bindings: _*))
             }
         }

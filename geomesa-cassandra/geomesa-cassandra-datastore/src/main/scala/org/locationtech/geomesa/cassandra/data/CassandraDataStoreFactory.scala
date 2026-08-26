@@ -9,8 +9,7 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import com.datastax.driver.core._
-import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, TokenAwarePolicy}
+import com.datastax.oss.driver.api.core._
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.{CassandraDataStoreConfig, CassandraQueryConfig}
@@ -22,6 +21,7 @@ import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import java.awt.RenderingHints
+import java.net.InetSocketAddress
 import java.util
 import scala.util.control.NonFatal
 
@@ -33,8 +33,6 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
   override def createNewDataStore(params: util.Map[String, _]): DataStore = createDataStore(params)
 
   override def createDataStore(params: util.Map[String, _]): DataStore = {
-    import org.locationtech.geomesa.cassandra.CassandraSystemProperties.{ConnectionTimeoutMillis, ReadTimeoutMillis}
-
     val (cp, portString) = ContactPointParam.lookup(params).split(":") match {
       case Array(one, two) => (one, two)
       case parts => throw new IllegalArgumentException(s"Invalid parameter '${ContactPointParam.key}', " +
@@ -44,6 +42,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
       case NonFatal(_) => throw new IllegalArgumentException(s"Invalid parameter '${ContactPointParam.key}', " +
           s"expected '<host>:<port>' but port is not a number: '$cp:$portString'")
     }
+    val localDatacenter = LocalDatacenterParam.lookup(params)
     val ks = KeySpaceParam.lookup(params)
     val generateStats = GenerateStatsParam.lookup(params)
     val audit = if (AuditQueriesParam.lookup(params)) {
@@ -53,36 +52,18 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     }
     val metrics = MetricsRegistryParam.lookupRegistry(params)
 
-    val clusterBuilder =
-      Cluster.builder()
-        .addContactPoint(cp)
-        .withPort(port)
-        .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.ONE))
-        .withRetryPolicy(DefaultRetryPolicy.INSTANCE)
-        .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()))
-
-    val socketOptions = {
-      var options: SocketOptions = null
-      def ensureOptions(): SocketOptions = {
-        if (options == null) {
-          options = new SocketOptions()
-        }
-        options
-      }
-      ReadTimeoutMillis.toDuration.foreach(timeout => ensureOptions().setReadTimeoutMillis(timeout.toMillis.toInt))
-      ConnectionTimeoutMillis.toDuration.foreach(timeout => ensureOptions().setConnectTimeoutMillis(timeout.toMillis.toInt))
-      Option(options)
-    }
-    socketOptions.foreach(clusterBuilder.withSocketOptions)
+    val sessionBuilder = CqlSession.builder()
+      .addContactPoint(new InetSocketAddress(cp, port))
+      .withLocalDatacenter(localDatacenter)
+      .withKeyspace(ks)
 
     val user = UserNameParam.lookup(params)
     val password = PasswordParam.lookup(params)
     if (user != null && password != null) {
-      clusterBuilder.withCredentials(user, password)
+      sessionBuilder.withAuthCredentials(user, password)
     }
 
-    val cluster = clusterBuilder.build()
-    val session = cluster.connect(ks)
+    val session = sessionBuilder.build()
     val catalog = CatalogParam.lookup(params)
 
     val queries = CassandraQueryConfig(
@@ -137,6 +118,7 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       Params.ContactPointParam,
+      Params.LocalDatacenterParam,
       Params.KeySpaceParam,
       Params.CatalogParam,
       Params.UserNameParam,
@@ -164,6 +146,14 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
         "HOST:PORT to Cassandra",
         optional = false,
         deprecatedKeys = Seq("geomesa.cassandra.contact.point"),
+        supportsNiFiExpressions = true)
+
+    val LocalDatacenterParam =
+      new GeoMesaParam[String](
+        "cassandra.local-datacenter",
+        "Cassandra local datacenter",
+        optional = false,
+        deprecatedKeys = Seq.empty,
         supportsNiFiExpressions = true)
 
     val KeySpaceParam =
