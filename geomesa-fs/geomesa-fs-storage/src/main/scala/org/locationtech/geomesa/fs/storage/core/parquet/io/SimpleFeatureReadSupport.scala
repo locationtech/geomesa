@@ -158,8 +158,7 @@ object SimpleFeatureReadSupport {
       bindings.head match {
         case ObjectType.GEOMETRY => geometry(bindings.last)
         case ObjectType.DATE     => new DateMicrosConverter()
-        case ObjectType.STRING if bindings.last == ObjectType.JSON => new VariantConverter(schema.messageType.getType(i).asGroupType())
-        case ObjectType.STRING   => new StringConverter()
+        case ObjectType.STRING   => string(bindings.last, i)
         case ObjectType.INT      => new IntConverter()
         case ObjectType.DOUBLE   => new DoubleConverter()
         case ObjectType.LONG     => new LongConverter()
@@ -170,6 +169,14 @@ object SimpleFeatureReadSupport {
         case ObjectType.MAP      => new MapConverter(attribute(bindings.slice(1, 2), -1), attribute(bindings.slice(2, 3), -1))
         case ObjectType.UUID     => new UuidConverter()
         case _ => throw new IllegalArgumentException(s"Can't deserialize field of type ${bindings.head}")
+      }
+    }
+
+    private def string(binding: ObjectType, i: Int): ValueMaterializer[String] = {
+      if (binding == ObjectType.JSON) {
+        new VariantConverter(schema.messageType.getType(i).asGroupType())
+      } else {
+        new StringConverter()
       }
     }
 

@@ -25,7 +25,7 @@ import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushQuietly, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQuietly, WithClose}
 
 import java.io.{Closeable, Flushable}
 import java.util.Collections
@@ -157,7 +157,7 @@ object IcebergUpdateWriter {
     override def close(): Unit = {
       if (closed.compareAndSet(false, true)) {
         try { super.close() } finally  {
-          CloseWithLogging(writer)
+          CloseQuietly.raise(writer)
         }
         val result = writer.result()
         files.addAll(result.deleteFiles())

@@ -20,9 +20,6 @@ import java.util.Base64
 
 /**
  * Utility object to serialize [[Variant]] values to JSON using Gson.
- *
- * This provides both compact and pretty-printed JSON output,
- * with options for formatting dates/times as ISO-8601 strings.
  */
 object VariantJsonWriter {
 
@@ -94,24 +91,24 @@ object VariantJsonWriter {
       case Type.TIME =>
         // convert microseconds since midnight to ISO time string
         val microsSinceMidnight = variant.getLong
-        val time = LocalTime.ofNanoOfDay(microsSinceMidnight * 1000)
+        val time = LocalTime.ofNanoOfDay(microsSinceMidnight * 1000L)
         writer.value(time.format(DateTimeFormatter.ISO_LOCAL_TIME))
 
       case Type.TIMESTAMP_TZ | Type.TIMESTAMP_NANOS_TZ =>
         val micros = variant.getLong
         val instant = if (variantType == Type.TIMESTAMP_TZ) {
-          Instant.ofEpochSecond(micros / 1000000, (micros % 1000000) * 1000)
+          Instant.ofEpochSecond(micros / 1000000L, (micros % 1000000L) * 1000L)
         } else {
-          Instant.ofEpochSecond(micros / 1000000000, micros % 1000000000)
+          Instant.ofEpochSecond(micros / 1000000000L, micros % 1000000000L)
         }
         writer.value(instant.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
 
       case Type.TIMESTAMP_NTZ | Type.TIMESTAMP_NANOS_NTZ =>
         val micros = variant.getLong
         val instant = if (variantType == Type.TIMESTAMP_NTZ) {
-          Instant.ofEpochSecond(micros / 1000000, (micros % 1000000) * 1000)
+          Instant.ofEpochSecond(micros / 1000000L, (micros % 1000000L) * 1000L)
         } else {
-          Instant.ofEpochSecond(micros / 1000000000, micros % 1000000000)
+          Instant.ofEpochSecond(micros / 1000000000L, micros % 1000000000L)
         }
         writer.value(instant.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
 
