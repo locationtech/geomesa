@@ -46,6 +46,7 @@ The following dependencies have been upgraded:
 * avro ``1.11.4`` -> ``1.12.1``
 * aws-crt ``0.39.4`` -> ``0.46.1``
 * aws-sdk ``2.38.7`` -> ``2.44.14``
+* cassandra-driver ``3.11.5`` -> ``4.17.0``
 * commons-codec ``1.17.1`` -> ``1.22.0``
 * commons-collections4: ``4.4`` -> ``4.5.0``
 * commons-io ``2.19.0`` -> ``2.22.0``

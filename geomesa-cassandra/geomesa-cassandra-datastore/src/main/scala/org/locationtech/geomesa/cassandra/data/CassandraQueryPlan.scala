@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import com.datastax.driver.core.Statement
+import com.datastax.oss.driver.api.core.cql.{SimpleStatement, Statement}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.CassandraResultsToFeatures
@@ -28,7 +28,7 @@ sealed trait CassandraQueryPlan extends QueryStrategyPlan {
   override type Results = SimpleFeature
 
   def tables: Seq[String]
-  def ranges: Seq[Statement]
+  def ranges: Seq[SimpleStatement]
   def numThreads: Int
 
   override def explain(explainer: Explainer): Unit = {
@@ -48,7 +48,7 @@ object CassandraQueryPlan {
   // plan that will not actually scan anything
   case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends CassandraQueryPlan {
     override val tables: Seq[String] = Seq.empty
-    override val ranges: Seq[Statement] = Seq.empty
+    override val ranges: Seq[SimpleStatement] = Seq.empty
     override val numThreads: Int = 0
     override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.empty
     override val sort: Option[Seq[(String, Boolean)]] = None
@@ -61,7 +61,7 @@ object CassandraQueryPlan {
       ds: CassandraDataStore,
       strategy: QueryStrategy,
       tables: Seq[String],
-      ranges: Seq[Statement],
+      ranges: Seq[SimpleStatement],
       numThreads: Int,
       localFilter: Option[Filter],
       processor: LocalProcessor,
