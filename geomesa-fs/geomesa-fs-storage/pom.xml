@@ -50,6 +50,11 @@
             <artifactId>parquet-avro</artifactId>
         </dependency>
         <dependency>
+            <!-- provides the shaded jackson classes referenced by parquet-variant's VariantJsonParser -->
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-jackson</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
         </dependency>
