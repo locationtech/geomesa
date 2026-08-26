@@ -27,25 +27,12 @@ Deploying GeoMesa HBase on Cloudera CDH 5.X
 
 - Copy ``$GEOMESA_HBASE_HOME/dist/hbase/geomesa-hbase-distributed-runtime_{{scala_binary_version}}-{{release}}.jar`` to HDFS under ``hdfs:///hbase/lib``
 
-- Create ``geomesa-site.xml`` under ``$GEOMESA_HBASE_HOME/conf`` and add (changing ``[name_node]`` to your HDFS name
-  node hostname):
+- Edit ``$GEOMESA_HBASE_HOME/conf/geomesa-env.sh`` to set the path to the distributed runtime jar  (changing ``[name_node]`` to
+  your HDFS name node hostname):
 
-.. code-block:: xml
-    
-    <?xml version="1.0" encoding="UTF-8"?>
-    <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+.. code-block:: bash
 
-    <configuration>
-    <property>
-        <name>geomesa.hbase.coprocessor.path</name>
-        <value>hdfs://[name_node]:8020/hbase/lib/geomesa-hbase-distributed-runtime_{{scala_binary_version}}-{{release}}.jar</value>
-        <description>HDFS or local path to GeoMesa-HBase Coprocessor JAR. If a local path is provided it must be
-          the same for all region servers. A path provided through the DataStore parameters will always
-          override this property.
-        </description>
-        <final>false</final>
-    </property>
-    </configuration>
+    export CUSTOM_JAVA_OPTS="${JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=hdfs://[name_node]:8020/hbase/lib/geomesa-hbase-distributed-runtime_{{scala_binary_version}}-{{release}}.jar"
 
 - Symlink ``hbase-site.xml`` to the GeoMesa conf dir:
 

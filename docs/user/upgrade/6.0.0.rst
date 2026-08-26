@@ -35,6 +35,12 @@ When creating attribute indices, the default secondary index will now be a date-
 (e.g. ``attr:foo:dtg`` instead of ``attr:foo:geom:dtg``). The old behavior can still be achieved by configuring secondary
 attributes - see :ref:`specifying_indices` for details.
 
+Removal of ``geomesa-site.xml``
+-------------------------------
+
+The ``geomesa-site.xml`` file is no longer supported. System properties should be configured through standard environment
+variables instead (e.g. ``CUSTOM_JAVA_OPTS`` for the GeoMesa CLI, ``CATALINA_OPTS`` for Tomcat, ``JAVA_TOOL_OPTIONS``, etc).
+
 Dependency Version Upgrades
 ---------------------------
 

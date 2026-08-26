@@ -174,7 +174,7 @@ System Properties
 -----------------
 
 This section details configuration properties specific to the FileSystem data store. For general properties,
-see :ref:`geomesa_site_xml`.
+see :ref:`runtime_configuration`.
 
 geomesa.fs.file.cache.duration
 ++++++++++++++++++++++++++++++

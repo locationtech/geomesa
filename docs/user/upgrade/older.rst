@@ -523,9 +523,8 @@ System Properties
 
 Time-related system properties have been standardized to all use readable durations. Durations can be specified
 as a number followed by a time unit, e.g. ``10 minutes`` or ``30 seconds``. The following properties
-have been changed to accept durations, and some have been renamed. Note that this will affect system properties
-set in the JVM as well as any custom ``geomesa-site.xml`` files. More details can be found under
-:ref:`geomesa_site_xml` or the appropriate data store configuration section.
+have been changed to accept durations, and some have been renamed. More details can be found under
+:ref:`runtime_configuration` or the appropriate data store configuration section.
 
 ==================================== ===========================================
 Property                             Previous name
