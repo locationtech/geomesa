@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.trino.datastore;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.geotools.api.data.FeatureReader;
 import org.geotools.api.feature.IllegalAttributeException;
 import org.geotools.api.feature.simple.SimpleFeature;
@@ -22,9 +24,12 @@ import org.locationtech.jts.io.WKBReader;
 import java.io.IOException;
 import java.sql.*;
 import java.util.Date;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeature> {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final SimpleFeatureType sft;
     private final Connection conn;
@@ -101,7 +106,12 @@ class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeatu
                     Timestamp ts = rs.getTimestamp(col);
                     value = ts != null ? new Date(ts.getTime()) : null;
                 } else {
-                    value = rs.getObject(col);
+                    Object obj = rs.getObject(col);
+                    if (String.class.isAssignableFrom(desc.getType().getBinding()) && obj instanceof Map) {
+                        value = MAPPER.writeValueAsString(obj);
+                    } else {
+                        value = obj;
+                    }
                 }
 
                 builder.set(col, value);
@@ -109,7 +119,7 @@ class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeatu
             if (visColumn != null) {
                 vis = rs.getString(visColumn);
             }
-        } catch (SQLException | ParseException e) {
+        } catch (SQLException | ParseException | JsonProcessingException e) {
             throw new IOException("Failed to read row", e);
         }
 

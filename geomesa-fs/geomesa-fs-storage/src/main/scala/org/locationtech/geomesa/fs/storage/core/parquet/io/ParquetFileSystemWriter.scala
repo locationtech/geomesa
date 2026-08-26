@@ -96,6 +96,21 @@ object ParquetFileSystemWriter extends LazyLogging {
     val version = WriterVersion.fromString(conf.get("parquet.writer.version", WriterVersion.PARQUET_2_0.name()))
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "ZSTD"))
     logger.debug(s"Using Parquet file version $version with compression ${codec.name()}")
+
+    // disable statistics for variant columns to avoid Trino read errors
+    // Trino's reader misinterprets variant type statistics causing ClassCastException
+    import scala.collection.JavaConverters._
+    val schema = SimpleFeatureParquetSchema.apply(conf)
+    schema.foreach { s =>
+      s.messageType.getFields.asScala.filter { field =>
+        field.getLogicalTypeAnnotation != null &&
+        field.getLogicalTypeAnnotation.toString.contains("variant")
+      }.foreach { col =>
+        // disable statistics for this variant column and its nested fields
+        conf.set(s"parquet.statistics.${col.getName}", "false")
+      }
+    }
+
     new Builder(file)
       .withConf(conf)
       .withCompressionCodec(codec)

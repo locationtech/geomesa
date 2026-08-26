@@ -96,7 +96,6 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
     "create a DS" in {
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(sft)
-        ds.getSchema(sft.getTypeName)
 
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
