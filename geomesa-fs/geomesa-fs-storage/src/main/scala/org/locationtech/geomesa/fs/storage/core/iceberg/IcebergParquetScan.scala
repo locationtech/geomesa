@@ -147,7 +147,10 @@ class IcebergParquetScan(
         task.files().iterator().asScala.foreach { file =>
           if (!closed.get()) {
             val deleteFilter = if (file.deletes().isEmpty) { None } else {
-              Some(new GenericDeleteFilter(table.io(), file, table.schema(), schema.schema))
+              val filter = new GenericDeleteFilter(table.io(), file, table.schema(), schema.schema)
+              require(!filter.hasEqDeletes,
+                s"Only positional deletes are supported, but got equality deletes: ${file.deletes().asScala.map(_.location()).mkString(", ")}")
+              Some(filter).filter(_.hasPosDeletes)
             }
             val projection = deleteFilter.fold(schema.schema)(_.requiredSchema())
             WithClose(readFile(file, projection)) { iter =>
