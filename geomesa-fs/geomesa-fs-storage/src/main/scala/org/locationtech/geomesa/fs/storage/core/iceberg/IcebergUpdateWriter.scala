@@ -134,8 +134,7 @@ object IcebergUpdateWriter {
     val files: java.util.Set[DeleteFile] = Collections.newSetFromMap(new ConcurrentHashMap[DeleteFile, java.lang.Boolean]())
 
     private val closed = new AtomicBoolean(false)
-    private val fileSupplier: Supplier[OutputFile] = () =>
-      storage.table.io().newOutputFile(storage.newFilePath().replaceAll("\\.parquet$", ".puffin"))
+    private val fileSupplier: Supplier[OutputFile] = () => storage.table.io().newOutputFile(storage.newFilePath("puffin"))
     // the second parameter is a function to load previous deletes for merging
     private val writer = new BaseDVFileWriter(fileSupplier, _ => null)
 

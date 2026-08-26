@@ -343,8 +343,8 @@ case class FileSystemStorage(
     }
   }
 
-  private[core] def newFilePath(prefix: String = ""): String =
-    s"${LocationUtil.stripTrailingSlash(table.location())}/${FileSystemStorage.newFilePath(sft.getTypeName, prefix)}"
+  private[core] def newFilePath(ext: String = "parquet"): String =
+    s"${LocationUtil.stripTrailingSlash(table.location())}/${FileSystemStorage.newFilePath(sft.getTypeName, ext)}"
 
   /**
    * Reads the parquet metadata for a path and creates a data file
@@ -477,9 +477,8 @@ object FileSystemStorage extends LazyLogging {
    * @param typeName simple feature type name
    * @return
    */
-  def newFilePath(typeName: String, prefix: String = ""): String = {
-    val filename =
-      s"${ColumnName.encode(typeName).take(20)}_$prefix${UUID.randomUUID().toString.replaceAllLiterally("-", "")}.parquet"
+  def newFilePath(typeName: String, ext: String = "parquet"): String = {
+    val filename = s"${ColumnName.encode(typeName).take(20)}_${UUID.randomUUID().toString.replaceAllLiterally("-", "")}.$ext"
     // partitioning logic taken from Apache Iceberg: https://iceberg.apache.org/docs/nightly/aws/#object-store-file-layout
     val hash = {
       val bytes = filename.getBytes(StandardCharsets.UTF_8)

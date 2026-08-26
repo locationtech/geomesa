@@ -116,19 +116,26 @@ object SimpleFeatureWriteSupport {
       val col = ColumnName(name)
       bindings.head match {
         case ObjectType.GEOMETRY => geometry(col, index, bindings.last)
-        case ObjectType.DATE => new DateMicrosWriter(col.column, index)
-        case ObjectType.STRING if bindings.last == ObjectType.JSON => new VariantWriter(col.column, index, schema.messageType.getType(index).asGroupType())
-        case ObjectType.STRING => new StringWriter(col.column, index)
-        case ObjectType.INT => new IntegerWriter(col.column, index)
-        case ObjectType.LONG => new LongWriter(col.column, index)
-        case ObjectType.FLOAT => new FloatWriter(col.column, index)
-        case ObjectType.DOUBLE => new DoubleWriter(col.column, index)
-        case ObjectType.BYTES => new BytesWriter(col.column, index)
-        case ObjectType.LIST => new ListWriter(col.column, index, attribute("element", 0, bindings.drop(1)))
-        case ObjectType.MAP => new MapWriter(col.column, index, attribute("key", 0, bindings.slice(1, 2)), attribute("value", 1, bindings.slice(2, 3)))
-        case ObjectType.BOOLEAN => new BooleanWriter(col.column, index)
-        case ObjectType.UUID => new UuidWriter(col.column, index)
+        case ObjectType.DATE     => new DateMicrosWriter(col.column, index)
+        case ObjectType.STRING   => string(col, index, bindings.last)
+        case ObjectType.INT      => new IntegerWriter(col.column, index)
+        case ObjectType.LONG     => new LongWriter(col.column, index)
+        case ObjectType.FLOAT    => new FloatWriter(col.column, index)
+        case ObjectType.DOUBLE   => new DoubleWriter(col.column, index)
+        case ObjectType.BYTES    => new BytesWriter(col.column, index)
+        case ObjectType.LIST     => new ListWriter(col.column, index, attribute("element", 0, bindings.drop(1)))
+        case ObjectType.MAP      => new MapWriter(col.column, index, attribute("key", 0, bindings.slice(1, 2)), attribute("value", 1, bindings.slice(2, 3)))
+        case ObjectType.BOOLEAN  => new BooleanWriter(col.column, index)
+        case ObjectType.UUID     => new UuidWriter(col.column, index)
         case _ => throw new IllegalArgumentException(s"Can't serialize field '$name' of type ${bindings.head}")
+      }
+    }
+
+    private def string(col: ColumnName, index: Int, binding: ObjectType): AttributeWriter[_] = {
+      if (binding == ObjectType.JSON) {
+        new VariantWriter(col.column, index, schema.messageType.getType(index).asGroupType())
+      } else {
+        new StringWriter(col.column, index)
       }
     }
 
