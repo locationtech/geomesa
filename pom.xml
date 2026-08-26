@@ -215,8 +215,8 @@
         <maven.test.debug/>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>1</test.fork.count>
-        <test.includes>**/*Test.java</test.includes>
-        <test.excludes>**/*IT.java</test.excludes>
+        <test.includes>**/*Test</test.includes>
+        <test.excludes>**/*IT</test.excludes>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
         <test.spark.worker.cores>2</test.spark.worker.cores>
         <test.spark.worker.memory>1g</test.spark.worker.memory>
@@ -2885,7 +2885,7 @@
                         <forkCount>${test.fork.count}</forkCount><!-- note: <parallel> doesn't work with specs2 -->
                         <reuseForks>true</reuseForks>
                         <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
-                        <rerunFailingTestsCount>1</rerunFailingTestsCount> <!-- re-try intermittent failures -->
+                        <rerunFailingTestsCount>0</rerunFailingTestsCount> <!-- disabled because it doesn't work correctly with specs2 -->
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <includes>
                             <include>${test.includes}</include>

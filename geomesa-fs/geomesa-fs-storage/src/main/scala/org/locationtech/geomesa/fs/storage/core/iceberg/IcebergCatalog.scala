@@ -81,7 +81,7 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
         SimpleFeatureTypes.createType(ns.fold(typeName)(n => s"$n:$typeName"), table.properties().get("geomesa.sft.spec"))
       } else {
         val b = new SimpleFeatureTypeBuilder()
-        ns.foreach(b.setNamespaceURI)
+        b.setNamespaceURI(ns.orNull) // important to set this null if not defined so it doesn't default to gml namespace
         b.setName(typeName)
         b.addAll(attributes.asJava)
         attributes.find(d => d.getUserData.get(AttributeOptions.OptDefault) == "true" && d.isInstanceOf[GeometryDescriptor]).foreach { d =>
