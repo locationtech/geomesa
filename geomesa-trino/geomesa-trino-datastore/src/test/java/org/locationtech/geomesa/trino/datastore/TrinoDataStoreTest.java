@@ -128,11 +128,11 @@ public class TrinoDataStoreTest {
             var fs = ds.getFeatureSource(sft.getTypeName());
             Assertions.assertNotNull(fs);
             Assertions.assertEquals(features.size(), fs.getCount(Query.ALL));
-//            var bounds = fs.getBounds();
-//            Assertions.assertTrue(Math.abs(bounds.getMinX() - 10) < 0.01);
-//            Assertions.assertTrue(Math.abs(bounds.getMaxX() - 10) < 0.01);
-//            Assertions.assertTrue(Math.abs(bounds.getMinY() - 10) < 0.01);
-//            Assertions.assertTrue(Math.abs(bounds.getMaxY() - 10.9) < 0.01);
+            var bounds = fs.getBounds();
+            Assertions.assertTrue(Math.abs(bounds.getMinX() - 10) < 0.01);
+            Assertions.assertTrue(Math.abs(bounds.getMaxX() - 10) < 0.01);
+            Assertions.assertTrue(Math.abs(bounds.getMinY() - 10) < 0.01);
+            Assertions.assertTrue(Math.abs(bounds.getMaxY() - 10.9) < 0.01);
 
             var results = new ArrayList<SimpleFeature>(10);
             try (var query = fs.getFeatures(new Query(sft.getTypeName())).features()) {
