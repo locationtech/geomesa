@@ -431,19 +431,26 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
 
           testQuery(storage, sft)("INCLUDE", null, features)
 
-          val updater = storage.getWriter(Filter.INCLUDE, 1)
-
-          updater.hasNext must beTrue
-          while (updater.hasNext) {
-            val feature = updater.next
-            if (feature.getID == "0") {
-              updater.remove()
-            } else if (feature.getID == "1") {
-              feature.setAttribute(1, "name-updated")
-              updater.write()
+          // do this in two passes to validate merging delete vectors
+          WithClose(storage.getWriter(ECQL.toFilter("IN('0', '1')"), 1)) { updater =>
+            updater.hasNext must beTrue
+            while (updater.hasNext) {
+              val feature = updater.next
+              if (feature.getID == "0") {
+                updater.remove()
+              }
             }
           }
-          updater.close()
+          WithClose(storage.getWriter(ECQL.toFilter("IN('1')"), 1)) { updater =>
+            updater.hasNext must beTrue
+            while (updater.hasNext) {
+              val feature = updater.next
+              if (feature.getID == "1") {
+                feature.setAttribute(1, "name-updated")
+                updater.write()
+              }
+            }
+          }
 
           val updates = features.drop(2) :+ {
             val mod = ScalaSimpleFeature.copy(features.drop(1).head)

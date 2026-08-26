@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
-import org.apache.iceberg.deletes.{BaseDVFileWriter, DVFileWriter}
+import org.apache.iceberg.data.{BaseDeleteLoader, DeleteLoader}
+import org.apache.iceberg.deletes.{BaseDVFileWriter, DVFileWriter, PositionDeleteIndex}
 import org.apache.iceberg.io.OutputFile
-import org.apache.iceberg.{DeleteFile, PartitionSpec, StructLike}
+import org.apache.iceberg.util.{CharSequenceMap, DeleteFileSet}
+import org.apache.iceberg.{DeleteFile, ManifestFiles, PartitionSpec, StructLike}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -23,13 +25,13 @@ import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushQuietly}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushQuietly, WithClose}
 
 import java.io.{Closeable, Flushable}
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Supplier
+import java.util.function.{Function, Supplier}
 
 /**
  * Update writer implementation
@@ -95,7 +97,12 @@ class IcebergUpdateWriter(
     CloseWithLogging.raise(Seq(reader, writer, deleter))
     if (!deleter.files.isEmpty) {
       val delta = storage.table.newRowDelta()
+      // guard against concurrent commits that touch the same delete files
+      Option(storage.table.currentSnapshot()).foreach(s => delta.validateFromSnapshot(s.snapshotId()))
       deleter.files.forEach(f => delta.addDeletes(f))
+      // remove any previous DVs whose deletes we merged into the newly written DVs, otherwise
+      // the commit will fail validation with multiple live DVs referencing the same data file
+      deleter.rewritten.forEach(f => delta.removeDeletes(f))
       delta.commit()
     }
   }
@@ -131,12 +138,16 @@ object IcebergUpdateWriter {
   private class MultiPartitionDeleter(storage: FileSystemStorage, maxOpenPartitions: Int)
       extends MultiPartitionAction[DeleteWriter](storage, maxOpenPartitions) {
 
+    // newly written delete files (DVs) to add on commit
     val files: java.util.Set[DeleteFile] = Collections.newSetFromMap(new ConcurrentHashMap[DeleteFile, java.lang.Boolean]())
+    // previous DVs whose deletes we merged into the new DVs - these must be removed on commit
+    val rewritten: java.util.Set[DeleteFile] = Collections.newSetFromMap(new ConcurrentHashMap[DeleteFile, java.lang.Boolean]())
 
     private val closed = new AtomicBoolean(false)
     private val fileSupplier: Supplier[OutputFile] = () => storage.table.io().newOutputFile(storage.newFilePath("puffin"))
-    // the second parameter is a function to load previous deletes for merging
-    private val writer = new BaseDVFileWriter(fileSupplier, _ => null)
+    // loads existing deletes for a data file so they can be merged into the new DV - a data file
+    // can only be referenced by a single DV, so we have to rewrite any existing one
+    private val writer = new BaseDVFileWriter(fileSupplier, new PreviousDeleteLoader(storage))
 
     override protected def createAction(partition: Partition): DeleteWriter =
       new DeleteWriter(writer, storage.table.spec(), storage.metadata.partition(partition))
@@ -148,7 +159,52 @@ object IcebergUpdateWriter {
         try { super.close() } finally  {
           CloseWithLogging(writer)
         }
-        files.addAll(writer.result().deleteFiles())
+        val result = writer.result()
+        files.addAll(result.deleteFiles())
+        rewritten.addAll(result.rewrittenDeleteFiles())
+      }
+    }
+  }
+
+  /**
+   * Loads existing deletes (deletion vectors) for a given data file path, so they can be merged into a
+   * newly written DV. Returns null if there are no existing deletes for the given path.
+   *
+   * @param storage file system storage instance
+   */
+  private class PreviousDeleteLoader(storage: FileSystemStorage) extends Function[String, PositionDeleteIndex] {
+
+    import scala.collection.JavaConverters._
+
+    // map of data-file-path -> set of delete files that reference it, from the current table state
+    private lazy val deletesByPath: CharSequenceMap[DeleteFileSet] = {
+      val map = CharSequenceMap.create[DeleteFileSet]()
+      val snapshot = storage.table.currentSnapshot()
+      if (snapshot != null) {
+        val io = storage.table.io()
+        val specs = storage.table.specs()
+        snapshot.deleteManifests(io).asScala.foreach { manifest =>
+          WithClose(ManifestFiles.readDeleteManifest(manifest, io, specs)) { reader =>
+            reader.iterator().asScala.foreach { deleteFile =>
+              val ref = deleteFile.referencedDataFile()
+              if (ref != null) {
+                // copy() to detach from the manifest reader, which reuses containers
+                map.computeIfAbsent(ref, () => DeleteFileSet.create()).add(deleteFile.copy())
+              }
+            }
+          }
+        }
+      }
+      map
+    }
+
+    private lazy val loader: DeleteLoader =
+      new BaseDeleteLoader(deleteFile => storage.table.io().newInputFile(deleteFile))
+
+    override def apply(path: String): PositionDeleteIndex = {
+      val set = deletesByPath.get(path)
+      if (set == null) { null } else {
+        loader.loadPositionDeletes(set, path)
       }
     }
   }
