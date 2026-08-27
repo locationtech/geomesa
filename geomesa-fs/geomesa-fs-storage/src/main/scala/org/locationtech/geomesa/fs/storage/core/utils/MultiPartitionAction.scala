@@ -30,9 +30,6 @@ import scala.util.control.NonFatal
 abstract class MultiPartitionAction[T <: Closeable with Flushable](storage: FileSystemStorage, maxOpenPartitions: Int)
     extends (SimpleFeature => Unit) with Closeable with Flushable with LazyLogging {
 
-  @volatile
-  private var closed = false
-
   private val perPartition = new ConcurrentHashMap[Partition, ActionHolder[T]]()
   private val oldest = MultiPartitionAction.WriterHolder.oldest[T]
 
@@ -68,7 +65,6 @@ abstract class MultiPartitionAction[T <: Closeable with Flushable](storage: File
   }
 
   override def close(): Unit = {
-    closed = true
     var ex: Throwable = null
     perPartition.forEach { (p, writer) =>
       logger.debug(s"Closing $logId for partition $p")

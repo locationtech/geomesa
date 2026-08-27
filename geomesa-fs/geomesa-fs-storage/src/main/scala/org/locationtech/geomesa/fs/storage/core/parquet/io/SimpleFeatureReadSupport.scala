@@ -14,7 +14,8 @@ import org.apache.parquet.conf.ParquetConfiguration
 import org.apache.parquet.hadoop.api.ReadSupport.ReadContext
 import org.apache.parquet.hadoop.api.{InitContext, ReadSupport}
 import org.apache.parquet.io.api._
-import org.apache.parquet.schema.MessageType
+import org.apache.parquet.schema.{GroupType, MessageType}
+import org.apache.parquet.variant.{ImmutableMetadata, Variant, VariantBuilder, VariantConverters}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -27,6 +28,7 @@ import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 
+import java.util.function.Consumer
 import java.util.{Date, UUID}
 
 class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
@@ -114,7 +116,7 @@ object SimpleFeatureReadSupport {
       var offset = 2 // 0 is fid, 1 is vis
       while (i < schema.sft.getAttributeCount) {
         val types = ObjectType.selectType(schema.sft.getDescriptor(i))
-        val materializer = attribute(types)
+        val materializer = attribute(types, offset)
         builder += materializer
         attributes(i) = materializer
         // note: zValues are excluded from our read schema, they're only used for partitioning
@@ -152,21 +154,29 @@ object SimpleFeatureReadSupport {
 
     def fieldCount: Int = converters.length
 
-    private def attribute(bindings: Seq[ObjectType]): ValueMaterializer[_ <: AnyRef] = {
+    private def attribute(bindings: Seq[ObjectType], i: Int): ValueMaterializer[_ <: AnyRef] = {
       bindings.head match {
         case ObjectType.GEOMETRY => geometry(bindings.last)
         case ObjectType.DATE     => new DateMicrosConverter()
-        case ObjectType.STRING   => new StringConverter()
+        case ObjectType.STRING   => string(bindings.last, i)
         case ObjectType.INT      => new IntConverter()
         case ObjectType.DOUBLE   => new DoubleConverter()
         case ObjectType.LONG     => new LongConverter()
         case ObjectType.FLOAT    => new FloatConverter()
         case ObjectType.BOOLEAN  => new BooleanConverter()
         case ObjectType.BYTES    => new BytesConverter()
-        case ObjectType.LIST     => new ListConverter(attribute(bindings.drop(1)))
-        case ObjectType.MAP      => new MapConverter(attribute(bindings.slice(1, 2)), attribute(bindings.slice(2, 3)))
+        case ObjectType.LIST     => new ListConverter(attribute(bindings.drop(1), -1))
+        case ObjectType.MAP      => new MapConverter(attribute(bindings.slice(1, 2), -1), attribute(bindings.slice(2, 3), -1))
         case ObjectType.UUID     => new UuidConverter()
         case _ => throw new IllegalArgumentException(s"Can't deserialize field of type ${bindings.head}")
+      }
+    }
+
+    private def string(binding: ObjectType, i: Int): ValueMaterializer[String] = {
+      if (binding == ObjectType.JSON) {
+        new VariantConverter(schema.messageType.getType(i).asGroupType())
+      } else {
+        new StringConverter()
       }
     }
 
@@ -214,6 +224,42 @@ object SimpleFeatureReadSupport {
     override def reset(): Unit = value = null
     override def materialize(): String = if (value == null) { null } else { value.toStringUsingUTF8 }
     override def addBinary(value: Binary): Unit = this.value = value
+  }
+
+  class VariantConverter(schema: GroupType)
+      extends GroupConverter with VariantConverters.ParentConverter[VariantBuilder] with ValueMaterializer[String] {
+
+    private var builder: VariantBuilder = _
+    private var metadata: ImmutableMetadata = _
+    private var value: Variant = _
+
+    private val wrapped = VariantConverters.newVariantConverter(schema, m => this.metadata = new ImmutableMetadata(m), this)
+
+    override def reset(): Unit = value = null
+    override def materialize(): String = if (value == null) { null } else { VariantJsonWriter.toJson(value) }
+    override def getConverter(fieldIndex: Int): Converter = wrapped.getConverter(fieldIndex)
+
+    override def start(): Unit = {
+      builder = null
+      metadata = null
+      wrapped.start()
+    }
+
+    override def end(): Unit = {
+      wrapped.end()
+      if (builder == null) {
+        builder = new VariantBuilder(metadata)
+      }
+      builder.appendNullIfEmpty()
+      value = builder.build()
+    }
+
+    override def build(consumer: Consumer[VariantBuilder]): Unit = {
+      if (builder == null) {
+        builder = new VariantBuilder(metadata)
+      }
+      consumer.accept(builder)
+    }
   }
 
   class UuidConverter extends PrimitiveConverter with ValueMaterializer[UUID]  {

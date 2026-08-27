@@ -13,6 +13,8 @@ import org.apache.parquet.conf.{HadoopParquetConfiguration, ParquetConfiguration
 import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.api.WriteSupport.{FinalizedWriteContext, WriteContext}
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
+import org.apache.parquet.schema.GroupType
+import org.apache.parquet.variant.{VariantJsonParser, VariantValueWriter}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
@@ -115,7 +117,7 @@ object SimpleFeatureWriteSupport {
       bindings.head match {
         case ObjectType.GEOMETRY => geometry(col, index, bindings.last)
         case ObjectType.DATE     => new DateMicrosWriter(col.column, index)
-        case ObjectType.STRING   => new StringWriter(col.column, index)
+        case ObjectType.STRING   => string(col, index, bindings.last)
         case ObjectType.INT      => new IntegerWriter(col.column, index)
         case ObjectType.LONG     => new LongWriter(col.column, index)
         case ObjectType.FLOAT    => new FloatWriter(col.column, index)
@@ -126,6 +128,14 @@ object SimpleFeatureWriteSupport {
         case ObjectType.BOOLEAN  => new BooleanWriter(col.column, index)
         case ObjectType.UUID     => new UuidWriter(col.column, index)
         case _ => throw new IllegalArgumentException(s"Can't serialize field '$name' of type ${bindings.head}")
+      }
+    }
+
+    private def string(col: ColumnName, index: Int, binding: ObjectType): AttributeWriter[_] = {
+      if (binding == ObjectType.JSON) {
+        new VariantWriter(col.column, index, schema.messageType.getType(index).asGroupType())
+      } else {
+        new StringWriter(col.column, index)
       }
     }
 
@@ -213,6 +223,11 @@ object SimpleFeatureWriteSupport {
   private class StringWriter(name: String, index: Int) extends AttributeWriter[String](name, index) {
     override def writeFields(consumer: RecordConsumer, value: String): Unit =
       consumer.addBinary(Binary.fromString(value))
+  }
+
+  private class VariantWriter(name: String, index: Int, schema: GroupType) extends AttributeWriter[String](name, index) {
+    override def writeFields(consumer: RecordConsumer, value: String): Unit =
+      VariantValueWriter.write(consumer, schema, VariantJsonParser.parseJson(value))
   }
 
   private class BytesWriter(name: String, index: Int) extends AttributeWriter[Array[Byte]](name, index) {

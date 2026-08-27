@@ -209,6 +209,27 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       case ObjectType.BOOLEAN => Types.primitive(PrimitiveTypeName.BOOLEAN, repetition).id(fieldIds.getAndIncrement())
       case ObjectType.BYTES   => Types.primitive(PrimitiveTypeName.BINARY, repetition).id(fieldIds.getAndIncrement())
 
+      case ObjectType.STRING if bindings.last == ObjectType.JSON =>
+        Types.buildGroup(repetition)
+          .id(fieldIds.getAndIncrement())
+          .as(LogicalTypeAnnotation.variantType(1))
+          // note: the iceberg api does not define nested fields for variants so we don't set id here
+          .required(PrimitiveTypeName.BINARY).named("metadata")
+          .required(PrimitiveTypeName.BINARY).named("value")
+        // TODO can pull out known fields for shredding, but trino doesn't support reading shredded variants yet
+        // val partiallyShredded: GroupType =
+        //   Types.buildGroup(Repetition.REQUIRED).as(LogicalTypeAnnotation.variantType(1.toByte))
+        //   .required(PrimitiveTypeName.BINARY).named("metadata")
+        //   .optional(PrimitiveTypeName.BINARY).named("value") // stores {custom_field_xyz: 123}
+        //   .optionalGroup
+        //     .optionalGroup
+        //       .optional(PrimitiveTypeName.BINARY).as(stringType).named("typed_value") // stores person.name field
+        //     .named("name")
+        //     .optionalGroup
+        //       .optional(PrimitiveTypeName.INT32).named("typed_value").named("age") // stores person.age field
+        //     .named("typed_value")
+        //   .named("person")
+
       case ObjectType.STRING =>
         Types.primitive(PrimitiveTypeName.BINARY, repetition)
           .id(fieldIds.getAndIncrement())

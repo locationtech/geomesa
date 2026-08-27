@@ -96,6 +96,7 @@ object ParquetFileSystemWriter extends LazyLogging {
     val version = WriterVersion.fromString(conf.get("parquet.writer.version", WriterVersion.PARQUET_2_0.name()))
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "ZSTD"))
     logger.debug(s"Using Parquet file version $version with compression ${codec.name()}")
+
     new Builder(file)
       .withConf(conf)
       .withCompressionCodec(codec)
