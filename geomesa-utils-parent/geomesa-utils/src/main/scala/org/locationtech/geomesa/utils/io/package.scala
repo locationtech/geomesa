@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils
 import com.typesafe.scalalogging.LazyLogging
 
 import java.util.concurrent.atomic.AtomicInteger
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 package object io {
 
@@ -62,17 +62,32 @@ package object io {
 
     def apply[C : IsCloseable, T](c: C)(fn: C => T): T = {
       val ev: IsCloseable[C] = implicitly[IsCloseable[C]]
-      Try(fn(c)) match {
-        case Success(t) => close(c, ev).get; t
-        case Failure(e) => close(c, ev).failed.foreach(e.addSuppressed); throw e
+      var toThrow: Throwable = null
+      try {
+        fn(c)
+      } catch {
+        case t: Throwable =>
+          toThrow = t
+          null.asInstanceOf[T] // compiler doesn't know `finally` will throw
+      } finally {
+        if (toThrow eq null) {
+          close(c, ev)
+        } else {
+          try {
+            close(c, ev)
+          } catch {
+            case other: Throwable => toThrow.addSuppressed(other)
+          } finally {
+            throw toThrow
+          }
+        }
       }
     }
 
     def apply[C1 : IsCloseable, C2 : IsCloseable, T](c1: C1, c2: => C2)(fn: (C1, C2) => T): T =
       apply(c1) { c1 => apply(c2) { c2 => fn(c1, c2) } }
 
-    private def close[C](c: C, ev: IsCloseable[C]): Try[Unit] =
-      if (c != null) { ev.close(c) } else { Success() }
+    private def close[C](c: C, ev: IsCloseable[C]): Unit = if (c != null) { ev.close(c).get }
   }
 
   /**
