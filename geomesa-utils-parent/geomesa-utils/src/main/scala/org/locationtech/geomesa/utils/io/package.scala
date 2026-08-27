@@ -61,6 +61,9 @@ package object io {
   object WithClose {
 
     def apply[C : IsCloseable, T](c: C)(fn: C => T): T = {
+      if (c == null) {
+        return fn(c)
+      }
       val ev: IsCloseable[C] = implicitly[IsCloseable[C]]
       var toThrow: Throwable = null
       try {
@@ -71,10 +74,10 @@ package object io {
           null.asInstanceOf[T] // compiler doesn't know `finally` will throw
       } finally {
         if (toThrow eq null) {
-          close(c, ev)
+          ev.close(c).get
         } else {
           try {
-            close(c, ev)
+            ev.close(c).get
           } catch {
             case other: Throwable => toThrow.addSuppressed(other)
           } finally {
@@ -86,8 +89,6 @@ package object io {
 
     def apply[C1 : IsCloseable, C2 : IsCloseable, T](c1: C1, c2: => C2)(fn: (C1, C2) => T): T =
       apply(c1) { c1 => apply(c2) { c2 => fn(c1, c2) } }
-
-    private def close[C](c: C, ev: IsCloseable[C]): Unit = if (c != null) { ev.close(c).get }
   }
 
   /**
