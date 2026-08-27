@@ -118,4 +118,124 @@ class TrinoTypeMapperTest {
         assertThat(TrinoTypeMapper.isHidden("center")).isFalse();
         assertThat(TrinoTypeMapper.isHidden("sensor_id")).isFalse();
     }
+
+    // ── structural types ──────────────────────────────────────────────────────
+    //
+    // The bare java.sql.Types code cannot tell array(varchar) from array(row(...)),
+    // so these all hinge on the parameterized type name being supplied.
+
+    @Test
+    void arrayOfScalarMapsToListWithSubtype() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "provenance_umr_ids", Types.ARRAY, "array(varchar)", false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(java.util.List.class);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_SUBTYPE, "java.lang.String");
+    }
+
+    @Test
+    void arrayElementTypeParametersAreIgnored() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "codes", Types.ARRAY, "array(varchar(64))", false, null, 0);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_SUBTYPE, "java.lang.String");
+    }
+
+    @Test
+    void arrayOfBigintMapsToListOfLong() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "counts", Types.ARRAY, "array(bigint)", false, null, 0);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_SUBTYPE, "java.lang.Long");
+    }
+
+    @Test
+    void mapOfScalarsMapsToMapWithKeyAndValueClasses() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "source_fields", Types.JAVA_OBJECT, "map(varchar,varchar)", false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(java.util.Map.class);
+        assertThat(d.getUserData())
+                .containsEntry(TrinoTypeMapper.OPT_KEY_CLASS, "java.lang.String")
+                .containsEntry(TrinoTypeMapper.OPT_VALUE_CLASS, "java.lang.String");
+    }
+
+    @Test
+    void mapWithSpacesAndValueParametersStillResolves() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "m", Types.JAVA_OBJECT, "map(varchar, double)", false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(java.util.Map.class);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_VALUE_CLASS, "java.lang.Double");
+    }
+
+    @Test
+    void arrayOfRowMapsToJsonString() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "identifiers", Types.ARRAY, "array(row(realm varchar,selector varchar))",
+                false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(String.class);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON, "true");
+    }
+
+    @Test
+    void deeplyNestedArrayOfRowStillMapsToJsonString() {
+        String t = "array(row(weight double, joint_identities "
+                 + "array(row(identifiers array(row(realm varchar, selector varchar))))))";
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "probabilistic_identities", Types.ARRAY, t, false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(String.class);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON, "true");
+    }
+
+    @Test
+    void rowMapsToJsonString() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "bbox", Types.JAVA_OBJECT, "row(xmin real,ymin real)", false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(String.class);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON, "true");
+    }
+
+    @Test
+    void variantMapsToJsonString() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "payload", Types.JAVA_OBJECT, "variant", false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(String.class);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON, "true");
+    }
+
+    @Test
+    void arrayOfMapFallsBackToJsonRatherThanClaimingAnElementType() {
+        // GeoMesa list element types are the primitive set; declaring subtype=Map
+        // would promise a shape it cannot serialize, so the column goes to JSON.
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "a", Types.ARRAY, "array(map(varchar,varchar))", false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(String.class);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON, "true");
+    }
+
+    @Test
+    void mapWithStructuralValueFallsBackToJson() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "m", Types.JAVA_OBJECT, "map(varchar,row(a int))", false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(String.class);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON, "true");
+    }
+
+    @Test
+    void decimalKeepsTheOpaqueFallback() {
+        // decimal has no ObjectType and is not structural; changing it is a separate
+        // judgment call, so the historic behavior is deliberately preserved.
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "amount", Types.DECIMAL, "decimal(10,2)", false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(byte[].class);
+    }
+
+    @Test
+    void structuralTypeWithoutATypeNameKeepsTheOpaqueFallback() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "unknown", Types.ARRAY, null, false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(byte[].class);
+    }
+
+    @Test
+    void fiveArgOverloadStillCompilesAndDefersToTheOpaqueFallback() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor("x", Types.ARRAY, false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(byte[].class);
+    }
 }

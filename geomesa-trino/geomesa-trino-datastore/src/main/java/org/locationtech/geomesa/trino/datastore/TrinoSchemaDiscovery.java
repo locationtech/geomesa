@@ -142,10 +142,10 @@ class TrinoSchemaDiscovery {
 
                 boolean isGeom = geometryColumnNames.contains(name);
                 Class<?> geomBinding = isGeom ? resolveGeometryBinding(name, allNames, sftBindings) : null;
-                // SRID is no longer carried in a table property; default to WGS84.
-                int srid = isGeom ? 4326 : 0;
-                var descriptor =
-                        TrinoTypeMapper.toDescriptor(name, meta.getColumnType(i), isGeom, geomBinding, srid);
+
+                var descriptor = TrinoTypeMapper.toDescriptor(
+                    name, meta.getColumnType(i), meta.getColumnTypeName(i),isGeom, geomBinding, isGeom ? 4326 : 0
+                );
                 tb.add(descriptor);
 
                 if (isGeom && !defaultGeomSet) {

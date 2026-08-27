@@ -56,7 +56,7 @@ package object io {
   }
 
   /**
-   * Similar to java's try-with-resources, allows for using an object then closing in a finally block
+   * Similar to java's try-with-resources, or scala 2.13's Using, allows for using an object then closing in a finally block
    */
   object WithClose {
 
