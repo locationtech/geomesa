@@ -1,0 +1,10 @@
+it.geosolutions.imageio-ext
+it.geosolutions.jgridshift
+org.apache.xml
+org.eclipse.imagen
+org.geotools
+org.geotools.jdbc
+org.geotools.ogc
+org.geotools.xsd
+org.huldra.math
+
