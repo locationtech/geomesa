@@ -55,6 +55,7 @@ The following dependencies have been upgraded:
 * geotools ``33.2`` -> ``35.0``
 * hadoop ``3.4.2`` -> ``3.5.0``
 * jackson ``2.19.0`` -> ``2.21.1``
+* jackson 3 ``tools.jackson`` ``3.2.0`` (new - required by GeoTools 35 JSON filter functions)
 * jcommander ``1.82`` -> ``3.0``
 * kafka ``3.9.0`` -> ``3.9.2``
 * micrometer ``1.15.4`` -> ``1.17.0``
