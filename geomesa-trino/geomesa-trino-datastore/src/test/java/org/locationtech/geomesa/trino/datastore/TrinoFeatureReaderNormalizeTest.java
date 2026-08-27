@@ -33,9 +33,14 @@ class TrinoFeatureReaderNormalizeTest {
         return (Map<String, Object>) o;
     }
 
-    /** Minimal java.sql.Array stand-in; only getArray() is exercised. */
+    /** Minimal java.sql.Array stand-in; only getArray() and getBaseTypeName() are exercised. */
     private static Array array(Object... elements) {
         return new StubArray(elements);
+    }
+
+    /** As above, but for drivers that hand back something other than an Object[]. */
+    private static Array rawArray(Object raw) {
+        return new StubArray(raw);
     }
 
     private static Row row(String n1, Object v1) {
@@ -106,9 +111,30 @@ class TrinoFeatureReaderNormalizeTest {
         assertThat(asMap(out).get("k")).isEqualTo(List.of("v"));
     }
 
+    /**
+     * A primitive array is a legal {@code java.sql.Array} payload in general, but {@code TrinoArray} holds an
+     * {@code Object[]}, so it cannot arrive from this driver. It is out of contract: logged, not converted.
+     */
+    @Test
+    void primitiveArrayPayloadIsOutOfContractAndPassesThrough() throws SQLException {
+        int[] raw = {1, 2, 3};
+        assertThat(TrinoFeatureReader.normalize(rawArray(raw))).isSameAs(raw);
+    }
+
+    @Test
+    void nullArrayPayloadBecomesNull() throws SQLException {
+        assertThat(TrinoFeatureReader.normalize(rawArray(null))).isNull();
+    }
+
+    /** Nothing sensible to convert, so it is logged and passed through rather than silently emptied. */
+    @Test
+    void nonArrayPayloadPassesThrough() throws SQLException {
+        assertThat(TrinoFeatureReader.normalize(rawArray("not an array"))).isEqualTo("not an array");
+    }
+
     private static final class StubArray implements Array {
-        private final Object[] elements;
-        StubArray(Object[] elements) { this.elements = elements; }
+        private final Object elements;
+        StubArray(Object elements) { this.elements = elements; }
         @Override public Object getArray() { return elements; }
         @Override public String getBaseTypeName() { return "unused"; }
         @Override public int getBaseType() { return 0; }
