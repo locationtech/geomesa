@@ -56,13 +56,35 @@ package object io {
   }
 
   /**
-   * Similar to java's try-with-resources, allows for using an object then closing in a finally block
+   * Similar to java's try-with-resources, or scala 2.13's Using, allows for using an object then closing in a finally block
    */
   object WithClose {
 
     def apply[C : IsCloseable, T](c: C)(fn: C => T): T = {
-      val ev = implicitly[IsCloseable[C]]
-      try { fn(c) } finally { if (c != null) { ev.close(c) }}
+      if (c == null) {
+        return fn(c)
+      }
+      val ev: IsCloseable[C] = implicitly[IsCloseable[C]]
+      var toThrow: Throwable = null
+      try {
+        fn(c)
+      } catch {
+        case t: Throwable =>
+          toThrow = t
+          null.asInstanceOf[T] // compiler doesn't know `finally` will throw
+      } finally {
+        if (toThrow eq null) {
+          ev.close(c).get
+        } else {
+          try {
+            ev.close(c).get
+          } catch {
+            case other: Throwable => toThrow.addSuppressed(other)
+          } finally {
+            throw toThrow
+          }
+        }
+      }
     }
 
     def apply[C1 : IsCloseable, C2 : IsCloseable, T](c1: C1, c2: => C2)(fn: (C1, C2) => T): T =

@@ -29,6 +29,7 @@ import org.locationtech.geomesa.utils.io.CopyingInputStream
 
 import java.io.{ByteArrayOutputStream, InputStream}
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.util.control.NonFatal
 
 class AvroConverter(sft: SimpleFeatureType, config: AvroConfig, fields: Seq[BasicField], options: BasicOptions)
@@ -153,8 +154,16 @@ object AvroConverter {
 
   private abstract class GenericRecordIterator(pool: GenericObjectPool[GenericRecordIterator])
       extends CloseableIterator[GenericRecord] {
+
+    private val closed = new AtomicBoolean(false)
+
     def setInstance(is: InputStream, ec: EvaluationContext): Unit
-    override def close(): Unit = pool.returnObject(this)
+
+    override def close(): Unit = {
+      if (closed.compareAndSet(false, true)) {
+        pool.returnObject(this)
+      }
+    }
   }
 
   /**
