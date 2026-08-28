@@ -171,7 +171,10 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
       val name = ColumnName(d.getLocalName)
       val objectType = ObjectType.selectType(d)
       val doc = SimpleFeatureTypes.encodeDescriptor(sft, d)
-      if (objectType.head == ObjectType.GEOMETRY) {
+      if (objectType.head == ObjectType.STRING) {
+        val typed = if (objectType.last == ObjectType.JSON) { VariantType.get() } else { StringType.get() }
+        builder += buildField(name.column, fieldIds.getAndIncrement(), doc, typed)
+      } else if (objectType.head == ObjectType.GEOMETRY) {
         // TODO supports native geometry encoding
         require(geometries == GeometryEncoding.GeoParquetWkb, "Only WKB encoding is supported for Geometry types")
         val geomDoc = doc + SimpleFeatureSpec.encodeAttributeOption(GeometryEncodingKey, geometries.toString)
