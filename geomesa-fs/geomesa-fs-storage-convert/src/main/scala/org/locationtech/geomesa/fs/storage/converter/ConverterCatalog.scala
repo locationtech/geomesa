@@ -16,7 +16,7 @@ import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.{PathFiltering, PathFilteringFactory}
 import org.locationtech.geomesa.fs.storage.converter.schemes.{NamedOptions, PartitionSchemeFactory}
-import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
+import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergCatalog, SimpleFeatureIcebergSchema}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
@@ -94,7 +94,9 @@ class ConverterCatalog(val conf: Map[String, String]) extends StorageCatalog wit
       val ns = Namespace.of("geomesa")
       catalog.createNamespace(ns)
       val table = catalog.createTable(TableIdentifier.of(ns, "converter"), SimpleFeatureIcebergSchema.create(sft, GeoParquetWkb))
-      table.updateProperties().set("geomesa.sft.name", sft.getTypeName).commit()
+      val update = table.updateProperties()
+      IcebergCatalog.sftTableProperties(sft).foreach { case (k, v) => update.set(k, v) }
+      update.commit()
       val schema = SimpleFeatureIcebergSchema(table, conf.get(StorageCatalog.NamespaceConfigKey))
       new ConverterStorage(table, schema, schemes, conf, converterPath, converter, pathFiltering, leafStorage)
     } else {

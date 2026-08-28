@@ -32,8 +32,7 @@ import java.util.concurrent.TimeUnit
  */
 class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with LazyLogging {
 
-  import IcebergCatalog.{RichCatalog, RichConf, UserDataPrefix}
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+  import IcebergCatalog.{RichCatalog, RichConf}
 
   import scala.collection.JavaConverters._
 
@@ -78,21 +77,13 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
     val schema = SimpleFeatureIcebergSchema.create(sft, geoms)
     // load the partition scheme first in case it fails
     val schemes = partitions.map(PartitionSchemeFactory.load(sft, _)).sortBy(_.name)
-    val tableProps = {
-      val typeName = Map("geomesa.sft.name" -> sft.getTypeName)
-      val userData = {
-        val prefixes = sft.getUserDataPrefixes
-        sft.getUserData.asScala.collect {
-          case (k, v) if v != null && prefixes.exists(k.toString.startsWith) => s"$UserDataPrefix$k" -> v.toString
-        }
-      }
+    val tableProps = IcebergCatalog.sftTableProperties(sft) ++ {
       val size = targetFileSize.map(s => s"${Metadata.PropertyPrefix}${Metadata.TargetFileSize}" -> s.toString).toMap
       // file format v3 lets us use variant encoding
        val format =
          Map(TableProperties.FORMAT_VERSION -> "3", TableProperties.DELETE_MODE -> RowLevelOperationMode.MERGE_ON_READ.modeName())
-      typeName ++ userData ++ size ++ format
+      size ++ format
     }
-
     val spec = schemes.foldLeft(PartitionSpec.builderFor(schema))((b, m) => m.spec(b)).build()
     catalog.ensureNamespace(namespace)
     val table = catalog.createTable(tableId(sft.getTypeName), schema, spec, null, tableProps.asJava)
@@ -107,9 +98,28 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
 
 object IcebergCatalog {
 
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   import scala.collection.JavaConverters._
 
   val UserDataPrefix = "geomesa.userdata."
+
+  /**
+   * Table-level properties needed to reconstruct the feature type
+   *
+   * @param sft simple feature type
+   * @return
+   */
+  def sftTableProperties(sft: SimpleFeatureType): Map[String, String] = {
+    val typeName = Map("geomesa.sft.name" -> sft.getTypeName)
+    val userData = {
+      val prefixes = sft.getUserDataPrefixes
+      sft.getUserData.asScala.collect {
+        case (k, v) if v != null && prefixes.exists(k.toString.startsWith) => s"$UserDataPrefix$k" -> v.toString
+      }
+    }
+    typeName ++ userData
+  }
 
   private implicit class RichConf(val conf: Map[String, String]) extends AnyVal {
     def required(k: String): String =
