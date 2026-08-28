@@ -68,8 +68,11 @@ final class TrinoTypeSignature {
      * key/value. Returning null routes the whole column to JSON, which beats declaring
      * an element type GeoMesa could not then serialize.
      *
-     * <p>{@code decimal} deliberately returns null: there is no {@code ObjectType} for
-     * it, {@code Double} would be lossy and {@code String} would lose arithmetic.
+     * <p>{@code decimal} deliberately returns null, which sends the whole column to JSON.
+     * That is better than the alternatives for a nested decimal, because a JSON leaf can be an
+     * unquoted number carrying every digit — {@code Double} as a list element would be lossy, and
+     * {@code String} would quote a number that is not one. A top-level {@code decimal} has no such
+     * option and is mapped to {@code String} instead; see {@link TrinoTypeMapper#toDescriptor}.
      */
     static Class<?> scalarBinding(String typeName) {
         String t = typeName.trim();

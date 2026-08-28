@@ -217,13 +217,36 @@ class TrinoTypeMapperTest {
         assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON, "true");
     }
 
+    /**
+     * A decimal column used to fall through to the opaque {@code byte[]} warning, which made it
+     * unreadable through the DataStore even though it is a scalar. String is the only binding that
+     * keeps its digits: GeoMesa's {@code ObjectType} has no {@code BigDecimal}, and {@code Double}
+     * cannot hold a {@code decimal(38,10)}.
+     */
     @Test
-    void decimalKeepsTheOpaqueFallback() {
-        // decimal has no ObjectType and is not structural; changing it is a separate
-        // judgment call, so the historic behavior is deliberately preserved.
+    void decimalMapsToStringRatherThanTheOpaqueFallback() {
         AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
                 "amount", Types.DECIMAL, "decimal(10,2)", false, null, 0);
-        assertThat(d.getType().getBinding()).isEqualTo(byte[].class);
+        assertThat(d.getType().getBinding()).isEqualTo(String.class);
+        // not a JSON document, unlike a row/array column - just a scalar rendered exactly
+        assertThat(d.getUserData()).doesNotContainKey(TrinoTypeMapper.OPT_JSON);
+    }
+
+    /** The synonym Trino's driver does not currently emit, mapped the same way rather than left opaque. */
+    @Test
+    void numericMapsToStringToo() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "amount", Types.NUMERIC, "decimal(38,10)", false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(String.class);
+    }
+
+    /** A decimal nested in structural data keeps the JSON treatment, where it stays an unquoted number. */
+    @Test
+    void arrayOfDecimalStillBecomesJson() {
+        AttributeDescriptor d = TrinoTypeMapper.toDescriptor(
+                "amounts", Types.ARRAY, "array(decimal(10,2))", false, null, 0);
+        assertThat(d.getType().getBinding()).isEqualTo(String.class);
+        assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON, "true");
     }
 
     @Test

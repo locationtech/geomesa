@@ -10,8 +10,6 @@ package org.locationtech.geomesa.trino.datastore;
 
 import io.trino.jdbc.Row;
 import io.trino.jdbc.RowField;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.geotools.api.data.FeatureReader;
 import org.geotools.api.feature.IllegalAttributeException;
 import org.geotools.api.feature.simple.SimpleFeature;
@@ -26,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -41,9 +40,6 @@ class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeatu
     private final ResultSet rs;
     private final WKBReader wkbReader = new WKBReader();
 
-    /** Renders structural values for {@code json=true} attributes. */
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     private final SimpleFeatureBuilder builder;
     private final String fidColumn;
     private final String visColumn;
@@ -181,6 +177,9 @@ class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeatu
      * values arriving as maps of field name to value. Historically these were declared {@code byte[]} and passed through
      * uncoerced, which happened to work but promised the wrong type to anything reading the schema.
      *
+     * <p>{@code decimal} is the other type with no GeoTools equivalent: it arrives as a {@link BigDecimal} for an
+     * attribute declared {@code String}, and is rendered rather than left to a generic converter.
+     *
      * @param value raw JDBC value
      * @param column the attribute it belongs to
      * @return a value assignable to the declared binding
@@ -195,13 +194,16 @@ class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeatu
         if (column.kind() == Kind.JSON && !(value instanceof String)) {
             Object plain = normalize(value);
             try {
-                return JSON.writeValueAsString(plain);
+                return TrinoJson.render(plain);
             } catch (Exception e) {
                 // One unrenderable value must not abort the scan, but emitting non-JSON into a json=true attribute
                 // would break downstream consumers, so drop it and warn.
                 LOG.warn("Could not render column '{}' as JSON; returning null", column.name(), e);
                 return null;
             }
+        }
+        if (value instanceof BigDecimal decimal) {
+            return decimal.toPlainString();
         }
         return value;
     }
