@@ -22,7 +22,6 @@ import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, Column
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.Transform.{ExpressionTransform, PropertyTransform, RenameTransform, Transforms}
-import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -177,7 +176,12 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
       } else if (objectType.head == ObjectType.GEOMETRY) {
         // TODO supports native geometry encoding
         require(geometries == GeometryEncoding.GeoParquetWkb, "Only WKB encoding is supported for Geometry types")
-        val geomDoc = doc + SimpleFeatureSpec.encodeAttributeOption(GeometryEncodingKey, geometries.toString)
+        val geomDoc = {
+          // note: geotools AttributeTypeBuilder shares the user data map - reparse instead so we don't change the original
+          val descriptor = SimpleFeatureTypes.createDescriptor(doc)
+          descriptor.getUserData.put(GeometryEncodingKey, geometries.toString)
+          SimpleFeatureTypes.encodeDescriptor(sft, d)
+        }
         // not yet supported in spark or trino: GeometryType.crs84()
         builder += buildField(name.column, fieldIds.getAndIncrement(), geomDoc, BinaryType.get())
         builder += BoundingBoxField.icebergSchema(name.column, fieldIds)

@@ -95,7 +95,7 @@ class ConverterCatalog(val conf: Map[String, String]) extends StorageCatalog wit
       catalog.createNamespace(ns)
       val table = catalog.createTable(TableIdentifier.of(ns, "converter"), SimpleFeatureIcebergSchema.create(sft, GeoParquetWkb))
       table.updateProperties().set("geomesa.sft.name", sft.getTypeName).commit()
-      val schema = SimpleFeatureIcebergSchema(table, None)
+      val schema = SimpleFeatureIcebergSchema(table, conf.get(StorageCatalog.NamespaceConfigKey))
       new ConverterStorage(table, schema, schemes, conf, converterPath, converter, pathFiltering, leafStorage)
     } else {
       throw new IllegalArgumentException(s"Schema '$typeName' doesn't exist - available schemas: ${sft.getTypeName}")
