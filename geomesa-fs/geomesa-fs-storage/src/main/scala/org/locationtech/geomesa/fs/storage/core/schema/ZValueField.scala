@@ -47,8 +47,8 @@ object ZValueField {
    * @param geometryType geom type
    * @return
    */
-  def parquetSchema(geom: String, geometryType: ObjectType, fieldIds: AtomicInteger): PrimitiveType =
-    Types.optional(PrimitiveTypeName.BINARY).id(fieldIds.getAndIncrement()).as(LogicalTypeAnnotation.stringType()).named(name(geom, geometryType))
+  def parquetSchema(geom: String, geometryType: ObjectType): PrimitiveType =
+    Types.optional(PrimitiveTypeName.BINARY).as(LogicalTypeAnnotation.stringType()).named(name(geom, geometryType))
 
   /**
    * The iceberg schema for a z-value field

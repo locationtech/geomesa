@@ -181,8 +181,7 @@ case class FileSystemStorage(
    * @return writer
    */
   def getWriter(partition: Partition): FileSystemWriter = {
-    val compression = Option(System.getProperty(ParquetCompressionOpt)).map(ParquetCompressionOpt -> _).toMap
-    val conf = compression ++ this.conf ++ Map(SimpleFeatureSchema.PartitionKey -> partition.toString)
+    val conf = this.conf ++ Map(SimpleFeatureSchema.PartitionKey -> partition.toString)
 
     def newWriter(): FileSystemWriter = {
       val path = newFilePath()
@@ -190,7 +189,7 @@ case class FileSystemStorage(
       val observer = if (observers.isEmpty) { tableObserver } else {
         new CompositeObserver(observers.map(_.apply(path)).+:(tableObserver))
       }
-      new ParquetFileSystemWriter(sft, conf, table.io(), path, observer)
+      ParquetFileSystemWriter(schema, conf, table.io(), path, observer)
     }
 
     sizer.targetSize match {
