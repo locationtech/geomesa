@@ -116,7 +116,7 @@
         <hsql.version>2.7.2</hsql.version>
         <jackson.version>2.21.1</jackson.version> <!-- used by geoserver, spark and arrow -->
         <jackson.annotations.version>2.21</jackson.annotations.version> <!-- note: in most places this is managed through the jackson bom -->
-        <jackson3.version>3.2.0</jackson3.version> <!-- jackson 3 - used by geotools; keep in sync with gt-platform-dependencies -->
+        <jackson3.version>3.2.2</jackson3.version> <!-- jackson 3 - used by geotools; keep in sync with gt-platform-dependencies -->
         <jetty.version>9.4.57.v20241219</jetty.version>
         <json.smart.version>2.5.2</json.smart.version> <!-- used by json-path and hadoop-auth -->
         <netty.version>4.1.121.Final</netty.version>
