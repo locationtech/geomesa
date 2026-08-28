@@ -14,6 +14,7 @@ import org.apache.iceberg.transforms.Transform
 import org.apache.iceberg.types.Types
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.fs.storage.core.schemes.{DateTimeScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.DateParsing
@@ -29,7 +30,7 @@ class IcebergMapperTest extends SpecificationWithJUnit {
   import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-  val schema = SimpleFeatureIcebergSchema(sft, Map.empty).schema
+  val schema = SimpleFeatureIcebergSchema.create(sft, GeoParquetWkb)
   val sf = ScalaSimpleFeature.create(sft, "", "goodbye", "11", "2026-05-06T11:12:13", "POINT (10 10)")
   val dtg = sf.getAttribute("dtg").asInstanceOf[Date].getTime * 1000 // in microseconds
 

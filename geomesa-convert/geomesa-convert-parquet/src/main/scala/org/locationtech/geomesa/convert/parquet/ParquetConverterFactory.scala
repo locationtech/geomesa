@@ -36,7 +36,6 @@ import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.StringSerialization
 
 import java.io.InputStream
-import java.util.concurrent.atomic.AtomicInteger
 import scala.util.{Failure, Success, Try}
 
 class ParquetConverterFactory
@@ -311,7 +310,7 @@ object ParquetConverterFactory extends LazyLogging {
   private def isNativeType(field: Type, objectType: ObjectType): Boolean = {
     if (field.isRepetition(Repetition.REPEATED)) { false } else {
       // custom compare, so we don't consider optional vs required, id, name, logicalTypes, etc
-      compareGeomFields(field, GeoParquetNative.schema(objectType, new AtomicInteger(1), new AtomicInteger(1000)).named(field.getName))
+      compareGeomFields(field, GeoParquetNative.schema(objectType).named(field.getName))
     }
   }
 

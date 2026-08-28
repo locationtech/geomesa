@@ -39,7 +39,7 @@ class GeoParquetExporter(path: String) extends FeatureExporter with LazyLogging 
     // use PathUtils.getUrl to handle local file paths (without a scheme)
     val uri = PathUtils.getUrl(path).toURI
     fs = ObjectStore(uri.getScheme, conf)
-    writer = new ParquetFileSystemWriter(sft, conf, fs, uri.toString)
+    writer = ParquetFileSystemWriter(sft, conf, fs, uri.toString)
   }
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {

@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.storage.core.parquet.io
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.filter2.compat.FilterCompat
-import org.apache.parquet.io.LocalOutputFile
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
@@ -82,7 +81,7 @@ class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
   "SimpleFeatureParquetWriter" should {
 
     "fail if a corrupt parquet file is written" >> {
-      WithClose(ParquetFileSystemWriter.builder(new LocalOutputFile(f), sftConf).build()) { writer =>
+      WithClose(ParquetFileSystemWriter(sft, Map.empty, LocalObjectStore, s"file://${f.toString}")) { writer =>
         features.foreach(writer.write)
       }
 
@@ -101,7 +100,7 @@ class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
     }
 
     "write parquet files" >> {
-      WithClose(ParquetFileSystemWriter.builder(new LocalOutputFile(f), sftConf).build()) { writer =>
+      WithClose(ParquetFileSystemWriter(sft, Map.empty, LocalObjectStore, s"file://${f.toString}")) { writer =>
         features.foreach(writer.write)
       }
       Files.size(f) must beGreaterThan(0L)

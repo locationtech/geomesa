@@ -11,6 +11,7 @@ package org.locationtech.geomesa.fs.storage.core.parquet.io
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.iceberg.io.FileIO
+import org.apache.iceberg.mapping.{MappingUtil, NameMappingParser}
 import org.apache.parquet.column.ParquetProperties.WriterVersion
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.hadoop.api.WriteSupport
@@ -18,13 +19,15 @@ import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
 import org.apache.parquet.io.{LocalOutputFile, OutputFile, PositionOutputStream}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemWriter, ParquetCompressionOpt}
 import org.locationtech.geomesa.fs.storage.core.fs.{LocalObjectStore, ObjectStore, S3ObjectStore}
+import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.NoOpObserver
-import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter.{FileOutput, IcebergOutput, ObjectStoreOutput}
+import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter.FileOutput
 import org.locationtech.geomesa.fs.storage.core.parquet.s3.S3OutputFile
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.utils.io.CloseQuietly
 
 import java.net.URI
@@ -33,40 +36,17 @@ import java.nio.file.Path
 /**
  * Parquet writer
  *
- * @param sft simple feature type
  * @param conf configuration
  * @param output file to write
  * @param observer any observers
  */
-class ParquetFileSystemWriter(
-    sft: SimpleFeatureType,
-    conf: Map[String, String],
-    output: FileOutput,
-    observer: FileSystemObserver
-  ) extends FileSystemWriter {
-
-  import scala.collection.JavaConverters._
-
-  // TODO consolidate this on FileIO instead of ObjectStore
-  def this(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: String, observer: FileSystemObserver) =
-    this(sft, conf, ObjectStoreOutput(fs, URI.create(file)), observer)
-
-  def this(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: String) =
-    this(sft, conf, fs, file, NoOpObserver)
-
-  def this(sft: SimpleFeatureType, conf: Map[String, String], io: FileIO, file: String, observer: FileSystemObserver) =
-    this(sft, conf, IcebergOutput(io, file), observer)
-
-  def this(sft: SimpleFeatureType, conf: Map[String, String], io: FileIO, file: String) =
-    this(sft, conf, io, file, NoOpObserver)
-
-  private val parquetConf = new PlainParquetConfiguration(conf.asJava)
-  SimpleFeatureParquetSchema.setSft(parquetConf, sft)
-
-  private val writer = ParquetFileSystemWriter.builder(output.file, parquetConf).build()
+class ParquetFileSystemWriter private (conf: ParquetConfiguration, output: FileOutput, observer: FileSystemObserver)
+    extends FileSystemWriter {
 
   @volatile
   private var closed = false
+
+  private val writer = ParquetFileSystemWriter.builder(output.file, conf).build()
 
   override def size: Long = if (closed) { output.size }  else { writer.getDataSize }
 
@@ -85,6 +65,59 @@ class ParquetFileSystemWriter(
 
 object ParquetFileSystemWriter extends LazyLogging {
 
+  import scala.collection.JavaConverters._
+
+  /**
+   * Primary iceberg constructor - when writing to iceberg, needs to use this constructor in order to ensure field ids align
+   *
+   * @param schema iceberg schema
+   * @param conf conf
+   * @param io file io
+   * @param file file to write
+   * @param observer observer
+   */
+  def apply(
+      schema: SimpleFeatureIcebergSchema,
+      conf: Map[String, String],
+      io: FileIO,
+      file: String,
+      observer: FileSystemObserver): ParquetFileSystemWriter = {
+    // stamp the written parquet files with the table's iceberg field ids (by name) so reads resolve by id
+    val nameMapping = Map(SimpleFeatureSchema.IcebergNameMappingKey -> NameMappingParser.toJson(MappingUtil.create(schema.schema)))
+    val sft = SimpleFeatureParquetSchema.sftConf(schema.sft)
+    apply(conf ++ nameMapping ++ sft, IcebergOutput(io, file), observer)
+  }
+
+  /**
+   * Secondary constructor - for non-iceberg exports. Note: *will not* align with Iceberg field ids
+   *
+   * TODO consolidate this on FileIO instead of ObjectStore
+   *
+   * @param sft simple feature type
+   * @param conf configuration options
+   * @param fs object store
+   * @param file output file path
+   * @return
+   */
+  def apply(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: String): ParquetFileSystemWriter = {
+    val sftConf = SimpleFeatureParquetSchema.sftConf(sft)
+    apply(conf ++ sftConf, ObjectStoreOutput(fs, URI.create(file)), NoOpObserver)
+  }
+
+  /**
+   * Constructor - requires the sft to be encoded in the conf
+   *
+   * @param conf configuration options
+   * @param output file output
+   * @param observer observer
+   * @return
+   */
+  private def apply(conf: Map[String, String], output: FileOutput, observer: FileSystemObserver): ParquetFileSystemWriter = {
+    val compression = Option(System.getProperty(ParquetCompressionOpt)).map(ParquetCompressionOpt -> _).toMap
+    val parquetConf = new PlainParquetConfiguration((compression ++ conf).asJava)
+    new ParquetFileSystemWriter(parquetConf, output, observer)
+  }
+
   /**
    * Create a new configurable writer
    *
@@ -92,7 +125,7 @@ object ParquetFileSystemWriter extends LazyLogging {
    * @param conf write configuration
    * @return
    */
-  def builder(file: OutputFile, conf: ParquetConfiguration): Builder = {
+  private def builder(file: OutputFile, conf: ParquetConfiguration): Builder = {
     val version = WriterVersion.fromString(conf.get("parquet.writer.version", WriterVersion.PARQUET_2_0.name()))
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "ZSTD"))
     logger.debug(s"Using Parquet file version $version with compression ${codec.name()}")

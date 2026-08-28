@@ -14,8 +14,6 @@ import org.apache.parquet.schema.{Type, Types}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 
-import java.util.concurrent.atomic.AtomicInteger
-
 object GeometrySchema {
 
   val GeometryColumnX = "x"
@@ -30,11 +28,9 @@ object GeometrySchema {
      * Create a builder for a parquet geometry field
      *
      * @param binding geometry type
-     * @param fieldIds field id tracker
-     * @param nestedFieldIds nested field id tracker
      * @return
      */
-    def schema(binding: ObjectType, fieldIds: AtomicInteger, nestedFieldIds: AtomicInteger): Types.Builder[_, _ <: Type]
+    def schema(binding: ObjectType): Types.Builder[_, _ <: Type]
   }
 
   object GeometryEncoding {
@@ -49,60 +45,60 @@ object GeometrySchema {
     }
 
     case object GeoParquetNative extends GeometryEncoding {
-      override def schema(binding: ObjectType, fieldIds: AtomicInteger, nestedFieldIds: AtomicInteger): Types.Builder[_, _ <: Type] = {
+      override def schema(binding: ObjectType): Types.Builder[_, _ <: Type] = {
         binding match {
           case ObjectType.POINT =>
-            Types.optionalGroup().id(fieldIds.getAndIncrement())
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
+            Types.optionalGroup()
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
 
           case ObjectType.LINESTRING =>
             // TODO do we need multiple levels of nesting field ids???
-            Types.optionalList().id(fieldIds.getAndIncrement())
-              .requiredGroupElement().id(nestedFieldIds.getAndIncrement()) // the coordinate
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
+            Types.optionalList()
+              .requiredGroupElement() // the coordinate
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
 
           case ObjectType.MULTIPOINT =>
-            Types.optionalList.id(fieldIds.getAndIncrement())
-              .requiredGroupElement().id(nestedFieldIds.getAndIncrement()) // the coordinate
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
+            Types.optionalList
+              .requiredGroupElement() // the coordinate
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
 
           case ObjectType.POLYGON =>
-            Types.optionalList.id(fieldIds.getAndIncrement())
-              .requiredListElement().id(nestedFieldIds.getAndIncrement()) // the coordinates of one ring
-              .requiredGroupElement().id(nestedFieldIds.getAndIncrement()) // the coordinate
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
+            Types.optionalList
+              .requiredListElement() // the coordinates of one ring
+              .requiredGroupElement() // the coordinate
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
 
           case ObjectType.MULTILINESTRING =>
-            Types.optionalList.id(fieldIds.getAndIncrement())
-              .requiredListElement().id(nestedFieldIds.getAndIncrement()) // the coordinates of one line string
-              .requiredGroupElement().id(nestedFieldIds.getAndIncrement()) // the coordinate
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
+            Types.optionalList
+              .requiredListElement() // the coordinates of one line string
+              .requiredGroupElement() // the coordinate
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
 
           case ObjectType.MULTIPOLYGON =>
-            Types.optionalList.id(fieldIds.getAndIncrement())
-              .requiredListElement().id(nestedFieldIds.getAndIncrement()) // the rings of the MultiPolygon
-              .requiredListElement().id(nestedFieldIds.getAndIncrement()) // the coordinates of one ring
-              .requiredGroupElement().id(nestedFieldIds.getAndIncrement()) // the coordinate
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnX)
-              .required(PrimitiveTypeName.DOUBLE).id(nestedFieldIds.getAndIncrement()).named(GeometryColumnY)
+            Types.optionalList
+              .requiredListElement() // the rings of the MultiPolygon
+              .requiredListElement() // the coordinates of one ring
+              .requiredGroupElement() // the coordinate
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
+              .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
 
           case ObjectType.GEOMETRY_COLLECTION =>
-            Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL).id(fieldIds.getAndIncrement())
+            Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
 
           case ObjectType.GEOMETRY =>
-            Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL).id(fieldIds.getAndIncrement())
+            Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
         }
       }
     }
 
     case object GeoParquetWkb extends GeometryEncoding {
-      override def schema(binding: ObjectType, fieldIds: AtomicInteger, nestedFieldIds: AtomicInteger): Types.Builder[_, _ <: Type] =
-        Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL).id(fieldIds.getAndIncrement())
+      override def schema(binding: ObjectType): Types.Builder[_, _ <: Type] =
+        Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
     }
   }
 }

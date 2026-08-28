@@ -42,14 +42,13 @@ object BoundingBoxField {
    * @param geom geometry column name
    * @return
    */
-  def parquetSchema(geom: String, fieldIds: AtomicInteger, nestedFieldIds: AtomicInteger): GroupType = {
+  def parquetSchema(geom: String): GroupType = {
     val bbox = groupName(geom)
     Types.optionalGroup()
-      .id(fieldIds.getAndIncrement())
-      .required(PrimitiveTypeName.FLOAT).id(nestedFieldIds.getAndIncrement()).named(BoundingBoxField.XMin)
-      .required(PrimitiveTypeName.FLOAT).id(nestedFieldIds.getAndIncrement()).named(BoundingBoxField.YMin)
-      .required(PrimitiveTypeName.FLOAT).id(nestedFieldIds.getAndIncrement()).named(BoundingBoxField.XMax)
-      .required(PrimitiveTypeName.FLOAT).id(nestedFieldIds.getAndIncrement()).named(BoundingBoxField.YMax)
+      .required(PrimitiveTypeName.FLOAT).named(BoundingBoxField.XMin)
+      .required(PrimitiveTypeName.FLOAT).named(BoundingBoxField.YMin)
+      .required(PrimitiveTypeName.FLOAT).named(BoundingBoxField.XMax)
+      .required(PrimitiveTypeName.FLOAT).named(BoundingBoxField.YMax)
       .named(bbox)
   }
 
@@ -59,13 +58,13 @@ object BoundingBoxField {
    * @param geom geometry column name
    * @return
    */
-  def icebergSchema(geom: String, fieldIds: AtomicInteger, nestedFieldIds: AtomicInteger): NestedField = {
+  def icebergSchema(geom: String, fieldIds: AtomicInteger): NestedField = {
     val bbox = groupName(geom)
     NestedField.optional(bbox).withId(fieldIds.getAndIncrement()).ofType(StructType.of(
-      NestedField.required(BoundingBoxField.XMin).withId(nestedFieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
-      NestedField.required(BoundingBoxField.YMin).withId(nestedFieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
-      NestedField.required(BoundingBoxField.XMax).withId(nestedFieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
-      NestedField.required(BoundingBoxField.YMax).withId(nestedFieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
+      NestedField.required(BoundingBoxField.XMin).withId(fieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
+      NestedField.required(BoundingBoxField.YMin).withId(fieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
+      NestedField.required(BoundingBoxField.XMax).withId(fieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
+      NestedField.required(BoundingBoxField.YMax).withId(fieldIds.getAndIncrement()).ofType(FloatType.get()).build(),
     )).build()
   }
 

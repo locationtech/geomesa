@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import org.apache.iceberg.{Accessor, MetadataColumns, StructLike}
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.identity.FeatureId
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractMutableSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.iceberg.StructSimpleFeature.ColumnAccessor
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.{GeoParquetNative, GeoParquetWkb}
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.fs.storage.core.schema.{ColumnName, SimpleFeatureSchema}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
@@ -122,8 +124,7 @@ object StructSimpleFeature {
     val hasId = cols.headOption.exists(_.name() == SimpleFeatureSchema.FeatureIdField)
     while (i < accessors.length) {
       val descriptor = schema.sft.getDescriptor(i)
-      val types = ObjectType.selectType(descriptor)
-      val converter = Converter(types, schema)
+      val converter = Converter(descriptor)
       val col = ColumnName.encode(descriptor.getLocalName)
       val offset = cols.indexWhere(_.name() == col)
       accessors(i) = converter match {
@@ -156,14 +157,36 @@ object StructSimpleFeature {
   private sealed trait Converter extends (AnyRef => AnyRef)
 
   private object Converter {
-    def apply(types: Seq[ObjectType], schema: SimpleFeatureIcebergSchema): Option[Converter] = types.head match {
-      case ObjectType.GEOMETRY if schema.geometries == GeoParquetWkb => Some(FromWkbConverter)
-      case ObjectType.GEOMETRY if schema.geometries == GeoParquetNative => throw new UnsupportedOperationException()
-      case ObjectType.GEOMETRY => throw new UnsupportedOperationException("An implementation is missing")
-      case ObjectType.DATE     => Some(FromDateConverter)
-      case ObjectType.BYTES    => Some(FromBytesConverter)
-      case ObjectType.LIST     => ListConverter(types.last, schema)
-      case ObjectType.MAP      => MapConverter(types(1), types(2), schema)
+    def apply(descriptor: AttributeDescriptor): Option[Converter] = {
+      val types = ObjectType.selectType(descriptor)
+      if (types.head == ObjectType.GEOMETRY) {
+        val encoding = descriptor.getUserData.get(SimpleFeatureIcebergSchema.GeometryEncodingKey) match {
+          case e: String => GeometryEncoding(e)
+          case _ => GeometryEncoding.GeoParquetWkb
+        }
+        encoding match {
+          case GeoParquetWkb => Some(FromWkbConverter)
+          case _ => throw new UnsupportedOperationException(encoding.toString)
+        }
+      } else if (types.head == ObjectType.LIST) {
+        primitive(types.last).map(new ListConverter(_))
+      } else if (types.head == ObjectType.MAP) {
+        val keyConverter = primitive(types(1))
+        val valueConverter = primitive(types(2))
+        (keyConverter, valueConverter) match {
+          case (None, None) => None
+          case (Some(k), None) => Some(new MapKeyConverter(k))
+          case (None, Some(v)) => Some(new MapValueConverter(v))
+          case (Some(k), Some(v)) => Some(new MapConverter(k, v))
+        }
+      } else {
+        primitive(types.head)
+      }
+    }
+
+    private def primitive(types: ObjectType): Option[Converter] = types match {
+      case ObjectType.DATE  => Some(FromDateConverter)
+      case ObjectType.BYTES => Some(FromBytesConverter)
       case _ => None
     }
   }
@@ -183,13 +206,6 @@ object StructSimpleFeature {
     }
   }
 
-  private object ListConverter extends Converter {
-    def apply(subtype: ObjectType, schema: SimpleFeatureIcebergSchema): Option[Converter] =
-      Converter(Seq(subtype), schema).map(new ListConverter(_))
-
-    override def apply(value: AnyRef): AnyRef = java.util.List.copyOf(value.asInstanceOf[java.util.List[AnyRef]])
-  }
-
   private class ListConverter(subtype: Converter) extends Converter {
     override def apply(value: AnyRef): AnyRef = {
       val list = value.asInstanceOf[java.util.List[AnyRef]]
@@ -197,22 +213,6 @@ object StructSimpleFeature {
       list.forEach(v => result.add(subtype(v)))
       result
     }
-  }
-
-  private object MapConverter extends Converter {
-    def apply(keyType: ObjectType, valueType: ObjectType, schema: SimpleFeatureIcebergSchema): Option[Converter] = {
-      val keyConverter = Converter(Seq(keyType), schema)
-      val valueConverter = Converter(Seq(valueType), schema)
-      (keyConverter, valueConverter) match {
-        case (None, None) => None
-        case (Some(k), None) => Some(new MapKeyConverter(k))
-        case (None, Some(v)) => Some(new MapValueConverter(v))
-        case (Some(k), Some(v)) => Some(new MapConverter(k, v))
-      }
-    }
-
-    override def apply(value: AnyRef): AnyRef =
-      java.util.Map.copyOf[AnyRef, AnyRef](value.asInstanceOf[java.util.Map[AnyRef, AnyRef]])
   }
 
   private class MapConverter(keyType: Converter, valueType: Converter) extends Converter {

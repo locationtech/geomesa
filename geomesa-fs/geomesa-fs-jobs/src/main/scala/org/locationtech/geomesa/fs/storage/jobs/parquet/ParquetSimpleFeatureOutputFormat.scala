@@ -44,9 +44,9 @@ object ParquetSimpleFeatureOutputFormat {
     override def commitJob(jobContext: JobContext): Unit = {
       super.commitJob(jobContext)
       val conf = ContextUtil.getConfiguration(jobContext)
-      listFiles(outputPath, conf).map(_.getParent).distinct.foreach { path =>
+      listFiles(outputPath, conf).map(_.getParent).groupBy(p => p).foreach { case (path, count) =>
         ParquetOutputCommitter.writeMetaDataFile(conf, path)
-        logger.info(s"Wrote metadata file for path $path")
+        logger.info(s"Wrote metadata file for ${count.size} file(s) under directory $path")
       }
     }
   }
