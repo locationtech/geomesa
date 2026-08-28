@@ -116,6 +116,7 @@
         <hsql.version>2.7.2</hsql.version>
         <jackson.version>2.21.1</jackson.version> <!-- used by geoserver, spark and arrow -->
         <jackson.annotations.version>2.21</jackson.annotations.version> <!-- note: in most places this is managed through the jackson bom -->
+        <jackson3.version>3.2.2</jackson3.version> <!-- jackson 3 - used by geotools; keep in sync with gt-platform-dependencies -->
         <jetty.version>9.4.57.v20241219</jetty.version>
         <json.smart.version>2.5.2</json.smart.version> <!-- used by json-path and hadoop-auth -->
         <netty.version>4.1.121.Final</netty.version>
@@ -1145,13 +1146,6 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-main</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <!-- exclude jackson 3 modules -->
-                    <exclusion>
-                        <groupId>tools.jackson.core</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
@@ -1732,6 +1726,13 @@
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
                 <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson3.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
