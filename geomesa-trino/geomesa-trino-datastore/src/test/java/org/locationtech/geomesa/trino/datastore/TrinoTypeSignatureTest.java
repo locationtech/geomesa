@@ -103,7 +103,7 @@ class TrinoTypeSignatureTest {
 
     @Test
     void scalarBindingRefusesWhatGeoMesaCannotCarry() {
-        assertThat(scalarBinding("decimal(10,2)")).isNull();   // no ObjectType for it
+        assertThat(scalarBinding("decimal(10,2)")).isNull();   // routed to JSON as a number
         assertThat(scalarBinding("row(a int)")).isNull();
         assertThat(scalarBinding("array(varchar)")).isNull();
         assertThat(scalarBinding("map(varchar,varchar)")).isNull();

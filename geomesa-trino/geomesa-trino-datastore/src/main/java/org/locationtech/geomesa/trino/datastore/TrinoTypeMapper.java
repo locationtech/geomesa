@@ -68,6 +68,11 @@ class TrinoTypeMapper {
      *       and {@link TrinoFeatureReader} renders the value as JSON.</li>
      * </ul>
      *
+     * <p>{@code decimal} becomes a plain {@link String}, having no GeoTools equivalent- {@code ObjectType} has
+     * no entry for {@link java.math.BigDecimal}, and {@code Double} only supports 17 significant digits —
+     * {@code decimal(38,10)} addresses that. Note that a {@code decimal} nested inside structural data is treated differently,
+     * staying an unquoted JSON number; see {@link TrinoTypeSignature#scalarBinding}.
+     *
      * <p>Any other unmapped SQL type keeps falls back to byte[].
      *
      * @param name column name
@@ -106,6 +111,7 @@ class TrinoTypeMapper {
             case Types.BIGINT                                       -> Long.class;
             case Types.INTEGER, Types.SMALLINT, Types.TINYINT       -> Integer.class;
             case Types.DOUBLE, Types.FLOAT, Types.REAL              -> Double.class;
+            case Types.DECIMAL, Types.NUMERIC                       -> String.class;
             case Types.BOOLEAN, Types.BIT                           -> Boolean.class;
             case Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE     -> Date.class;
             case Types.BINARY, Types.VARBINARY, Types.LONGVARBINARY -> byte[].class;

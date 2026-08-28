@@ -110,12 +110,25 @@ class TrinoTypeMapperGeoMesaSpecTest {
         assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON, "true");
     }
 
-    /** The historic opaque fallback is a supported GeoMesa binding too (Bytes). */
+    /** The remaining opaque fallback is a supported GeoMesa binding too (Bytes). */
     @Test
     void opaqueFallbackAlsoRoundTrips() {
-        SimpleFeatureType in = sftOf("amount", Types.DECIMAL, "decimal(10,2)");
+        SimpleFeatureType in = sftOf("unknown", Types.JAVA_OBJECT, "ipaddress");
         assertThat(SimpleFeatureTypes.encodeType(in)).contains("Bytes");
-        assertThat(roundTrip(in).getDescriptor("amount").getType().getBinding())
+        assertThat(roundTrip(in).getDescriptor("unknown").getType().getBinding())
                 .isEqualTo(byte[].class);
+    }
+
+    /**
+     * A decimal column round-trips as String. BigDecimal is what GeoTools would use here, but it has no
+     * {@code ObjectType}, so {@code encodeType} would throw on it — the reason the mapping is String and
+     * the reason this test exists.
+     */
+    @Test
+    void decimalRoundTripsAsString() {
+        SimpleFeatureType in = sftOf("amount", Types.DECIMAL, "decimal(38,10)");
+        assertThat(SimpleFeatureTypes.encodeType(in)).contains("String");
+        assertThat(roundTrip(in).getDescriptor("amount").getType().getBinding())
+                .isEqualTo(String.class);
     }
 }
