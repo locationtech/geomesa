@@ -63,9 +63,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
   //  postDropTable
 
   // state for checking when we want to use the write_ahead table in place of the main view
-  private val dropping = new ThreadLocal[Boolean]() {
-    override def initialValue(): Boolean = false
-  }
+  private val dropping = new ThreadLocal[TypeInfo]()
+  private val creating = new ThreadLocal[String]()
 
   private val interceptors = {
     val factory = QueryInterceptorFactory(store)
@@ -103,10 +102,11 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     sql.append("CREATE TABLE IF NOT EXISTS ")
 
   override def encodeTableName(raw: String, sql: StringBuffer): Unit = {
-    if (dropping.get) {
+    val typeInfo = dropping.get
+    if (typeInfo != null) {
       // redirect from the view as DROP TABLE is hard-coded by the JDBC data store,
       // and cascade the drop to delete any write ahead partitions
-      sql.append(escape(raw + WriteAheadTableSuffix.raw)).append(" CASCADE")
+      sql.append(typeInfo.tables.writeAhead.name.quoted).append(" CASCADE")
       dropping.remove()
     } else {
       sql.append(escape(raw))
@@ -123,6 +123,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     if (tableName.length > 63) {
       throw new IllegalArgumentException("Can't create schema: type name exceeds max supported Postgres identifier length of 63")
     }
+    creating.set(tableName)
   }
 
   override def postCreateTable(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit = {
@@ -130,11 +131,13 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     // note: we skip the call to `super`, which creates a spatial index (that we don't want), and which
     // alters the geometry column types (which we handle in the create statement)
 
+    val sftWithUserData = SimpleFeatureTypes.copy(sft)
+
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
       // if the sft name is longer than 31 characters, use an alias for delegate tables to avoid character limits
       // 31 is the max length, based on the current length of our sql identifiers (tables, etc)
-      val typeId = if (sft.getTypeName.length() < 32) { None } else {
+      if (sft.getTypeName.length() >= 32) {
         ex.execute(
           s"CREATE SEQUENCE IF NOT EXISTS ${escape(schemaName)}.${PartitionedPostgisDialect.SftSeqName} " +
             s"AS integer MINVALUE 0 MAXVALUE 65535")
@@ -149,14 +152,21 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
           throw new IllegalStateException(
             s"Sequence ${PartitionedPostgisDialect.SftSeqName} has exceeded maximum supported value of 65535 unique feature types")
         }
-        Some(sft.getTypeName.substring(0, 26) + f"_$nextVal%04x") // 4-character hex-encoded padded string
+        val id = sft.getTypeName.substring(0, 26) + f"_$nextVal%04x" // 4-character hex-encoded padded string
+        sftWithUserData.getUserData.put(SftUserData.IdentAlias.key, id)
       }
-
-      val info = TypeInfo(schemaName, typeId.fold(sft) { id =>
-        val copy = SimpleFeatureTypes.copy(sft)
-        copy.getUserData.put(SftUserData.IdentAlias.key, id)
-        copy
-      })
+      // get the first column as the fid col, which may or may not be called 'fid'
+      Option(creating.get()).foreach { tableName =>
+        WithClose(cx.getMetaData.getColumns(null, schemaName, tableName, null)) { cols =>
+          if (cols.next()) {
+            val name = cols.getString("COLUMN_NAME")
+            if (name != null) {
+              sftWithUserData.getUserData.put(SftUserData.FidColumn.key, name)
+            }
+          }
+        }
+      }
+      val info = TypeInfo(schemaName, sftWithUserData)
       PartitionedPostgisDialect.Commands.foreach(_.create(info))
       if (grants.nonEmpty) {
         val roles = grants.map(_.quoted).mkString(", ")
@@ -175,6 +185,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
         }
       }
     } finally {
+      creating.remove()
       ex.close()
     }
   }
@@ -232,17 +243,15 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     UserDataTable.read(cx, schemaName, sft.getTypeName).foreach { case (k, v) => sft.getUserData.put(k, v) }
 
     // populate flags on indexed attributes
-    getIndexedColumns(cx, TypeInfo(schemaName, sft).tables.mainPartitions.name) match {
+    getIndexedColumns(cx, TypeInfo(schemaName, sft)) match {
       case Success(cols) =>
         cols.foreach { col =>
-          if (col != "fid") {
-            val i = sft.indexOf(col)
-            if (i == -1) {
-              logger.debug(
-                s"Found unexpected indexed column not in feature type: $col for ${sft.getTypeName}=${SimpleFeatureTypes.encodeType(sft)}")
-            } else {
-              sft.getDescriptor(i).getUserData.put(AttributeOptions.OptIndex, "true")
-            }
+          val i = sft.indexOf(col)
+          if (i == -1) {
+            logger.debug(
+              s"Found unexpected indexed column not in feature type: $col for ${sft.getTypeName}=${SimpleFeatureTypes.encodeType(sft)}")
+          } else {
+            sft.getDescriptor(i).getUserData.put(AttributeOptions.OptIndex, "true")
           }
         }
 
@@ -253,8 +262,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
   override def preDropTable(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit = {
     // due to the JDBCDataStore hard-coding "DROP TABLE" we have to redirect it away from the main view,
     // and we can't drop the write ahead table so that it has something to drop
-    dropping.set(true)
     val info = TypeInfo(schemaName, sft)
+    dropping.set(info)
 
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
@@ -468,6 +477,8 @@ object PartitionedPostgisDialect extends StrictLogging {
     val WalLogEnabled: SftUserData[Boolean] = SftUserData("pg.wal.enabled", mutable = false, default = true)
     // unique alias to use for identifiers so that we don't exceed the max postgres identifier length
     val IdentAlias: SftUserData[Option[String]] = SftUserData("pg.ident.alias", mutable = false, None)
+    // unique alias to use for identifiers so that we don't exceed the max postgres identifier length
+    val FidColumn: SftUserData[String] = SftUserData("pg.fid.col", mutable = false, "fid")
 
     // tablespace configurations - can be updated freely after the schema is created
     val WriteAheadTableSpace: SftUserData[Option[String]] = SftUserData("pg.partitions.tablespace.wa", mutable = true, None)
@@ -496,21 +507,21 @@ object PartitionedPostgisDialect extends StrictLogging {
    * Get a list of indexed columns for the given SimpleFeatureType
    *
    * @param cx connection
-   * @param table table identifier
+   * @param info type info
    * @return a sequence of SimpleFeatureType attribute names which have an index
    */
-  private def getIndexedColumns(cx: Connection, table: TableIdentifier): Try[List[String]] = {
+  private def getIndexedColumns(cx: Connection, info: TypeInfo): Try[List[String]] = {
     val sql =
       s"""select distinct(att.attname) as indexed_attribute_name
          |from pg_class obj
          |join pg_index idx on idx.indrelid = obj.oid
          |join pg_attribute att on att.attrelid = obj.oid and att.attnum = any(idx.indkey)
-         |where obj.relname = ${literal(table.raw)}
+         |where obj.relname = ${literal(info.tables.mainPartitions.name.raw)}
          |order by att.attname;""".stripMargin
     Try {
       WithClose(cx.createStatement()) { st =>
         WithClose(st.executeQuery(sql)) { rs =>
-          Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1)).toList
+          Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1)).filter(_ != info.cols.fid.raw).toList
         }
       }
     }

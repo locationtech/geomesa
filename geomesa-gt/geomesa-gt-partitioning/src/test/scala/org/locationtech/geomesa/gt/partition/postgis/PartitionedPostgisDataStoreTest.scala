@@ -23,6 +23,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
@@ -703,10 +704,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           getFunctions must haveLength(11)
           // log_cleaner, analyze_partitions, roll_wa, partition_maintenance
           getCrons must haveLength(4)
-          // 3 user data, 1 seq count, 1 primary key
+          // 4 user data, 1 seq count, 1 primary key
           val meta = getMeta
           meta must haveSize(3)
-          meta.get(UserDataTable.Name.raw) must beSome(haveLength[Seq[String]](3))
+          meta.get(UserDataTable.Name.raw) must beSome(haveLength[Seq[String]](4))
           meta.get(SequenceTable.Name.raw) must beSome(haveLength[Seq[String]](1))
           meta.get(PrimaryKeyTable.Name.raw) must beSome(haveLength[Seq[String]](1))
 
@@ -1131,6 +1132,41 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           metrics must contain(beMatching(s"""^commons_pool2_created_objects_total$tagsRegex 1\\.0$$"""))
           metrics must contain(beMatching(s"""^postgres_rows_inserted_total\\{application="geomesa",database="postgres"\\} \\d+\\.0$$"""))
         }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "support attributes named 'fid'" in {
+      val sft = SimpleFeatureTypes.createType("fid_test", "fid:String,dtg:Date,*geom:Point:srid=4326")
+      val features = this.features.map { sf =>
+        val retyped = ScalaSimpleFeature.create(sft, sf.getID)
+        retyped.setAttribute("fid", sf.getAttribute("age"))
+        retyped.setAttribute("dtg", sf.getAttribute("dtg"))
+        retyped.setAttribute("geom", sf.getAttribute("geom"))
+        retyped
+      }
+
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+        ds.getSchema(sft.getTypeName).getAttributeDescriptors.get(0).getLocalName mustEqual "fid"
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+        val result = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        result.sortBy(_.getID).map(compFromDb) mustEqual features.map(compWithFid(_, sft))
+
+        val byId =
+          CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("IN ('fid0')")), Transaction.AUTO_COMMIT)).toList
+        byId.map(compFromDb) mustEqual features.take(1).map(compWithFid(_, sft))
+
+        val byAttribute =
+          CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("fid = '0'")), Transaction.AUTO_COMMIT)).toList
+        byAttribute.map(compFromDb) mustEqual features.take(1).map(compWithFid(_, sft))
       } finally {
         ds.dispose()
       }

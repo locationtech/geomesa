@@ -25,7 +25,7 @@ object DeleteTrigger extends SqlTriggerFunction {
 
   private def function(info: TypeInfo): String = {
     def delete(table: TableConfig): String =
-      s"DELETE FROM ${table.name.qualified} WHERE fid = OLD.fid AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}"
+      s"DELETE FROM ${table.name.qualified} WHERE ${info.cols.fid.quoted} = OLD.${info.cols.fid.quoted} AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}"
 
     s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$

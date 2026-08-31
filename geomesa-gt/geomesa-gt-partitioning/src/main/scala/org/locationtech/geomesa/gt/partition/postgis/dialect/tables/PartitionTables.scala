@@ -38,7 +38,7 @@ object PartitionTables extends SqlStatements {
     val create =
       s"""CREATE $logging TABLE IF NOT EXISTS ${table.name.qualified} (
          |  LIKE ${info.tables.writeAhead.name.qualified} INCLUDING DEFAULTS INCLUDING CONSTRAINTS,
-         |  CONSTRAINT ${escape(table.name.raw, "pkey")} PRIMARY KEY (fid, ${info.cols.dtg.quoted})$indexTs
+         |  CONSTRAINT ${escape(table.name.raw, "pkey")} PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})$indexTs
          |) PARTITION BY RANGE(${info.cols.dtg.quoted})$tableTs;""".stripMargin
     val pagesPerRange =
       if (indexType == "brin") { s" with (pages_per_range = ${info.partitions.pagesPerRange})" } else { "" }

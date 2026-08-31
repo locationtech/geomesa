@@ -107,7 +107,7 @@ object CompactPartitions extends SqlProcedure {
        |
        |      EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
        |        ' ADD CONSTRAINT ' || quote_ident(partition_name || '_pkey_tmp_sort') ||
-       |        ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})' || index_tablespace;
+       |        ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})' || index_tablespace;
        |      -- creating a constraint allows it to be attached to the parent without any additional checks
        |      EXECUTE 'ALTER TABLE  ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
        |        ' ADD CONSTRAINT ' || quote_ident(partition_name || '_constraint_tmp_sort') ||
