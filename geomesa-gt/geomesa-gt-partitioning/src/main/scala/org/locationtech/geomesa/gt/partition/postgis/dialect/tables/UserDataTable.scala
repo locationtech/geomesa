@@ -57,6 +57,7 @@ class UserDataTable extends Sql {
     if (info.typeIdentifier != info.typeName) {
       insert(SftUserData.IdentAlias, info.typeIdentifier)
     }
+    insert(SftUserData.FidColumn, info.cols.fid.raw)
     insert(SftUserData.DtgField, info.cols.dtg.raw)
     insert(SftUserData.IntervalHours, String.valueOf(info.partitions.hoursPerPartition))
     if (info.partitions.pagesPerRange != SftUserData.PagesPerRange.default) {
