@@ -8,6 +8,10 @@
 
 package org.locationtech.geomesa.trino.datastore;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.geotools.api.data.DataStoreFinder;
 import org.geotools.api.data.Query;
 import org.geotools.api.data.Transaction;
@@ -76,6 +80,87 @@ public class TrinoDataStoreTest {
         return (SimpleFeature) sf;
     }).toList();
 
+    // avro schema describing the structural shape of the json=true 'props' attribute - stored as an
+    // iceberg struct, which trino reads back as a row and renders as a json document
+    private static final String jsonAvro =
+            "{" +
+            "  \"type\": \"record\"," +
+            "  \"name\": \"props\"," +
+            "  \"fields\": [" +
+            "    { \"name\": \"name\", \"type\": [\"null\", \"string\"], \"default\": null }," +
+            "    { \"name\": \"age\", \"type\": \"int\" }," +
+            "    { \"name\": \"tags\", \"type\": { \"type\": \"array\", \"items\": \"string\" } }," +
+            "    { \"name\": \"scores\", \"type\": { \"type\": \"map\", \"values\": \"long\" } }," +
+            "    { \"name\": \"nested\", \"type\": [\"null\", {" +
+            "        \"type\": \"record\"," +
+            "        \"name\": \"nested\"," +
+            "        \"fields\": [ { \"name\": \"flag\", \"type\": \"boolean\" } ]" +
+            "    }], \"default\": null }" +
+            "  ]" +
+            "}";
+
+    private static final SimpleFeatureType jsonSft =
+            SimpleFeatureTypes.createType("json-test", "props:String:json=true,dtg:Date,*geom:Point:srid=4326;geomesa.fs.scheme='daily,z2:bits=4'");
+    static {
+        // "json-schema" mirrors SimpleFeatureTypes.AttributeOptions.OptJsonSchema
+        jsonSft.getDescriptor("props").getUserData().put("json-schema", jsonAvro);
+    }
+
+    private static final List<String> jsonValues = Arrays.asList(
+            "{\"name\":\"alice\",\"age\":30,\"tags\":[\"a\",\"b\"],\"scores\":{\"x\":1,\"y\":2},\"nested\":{\"flag\":true}}",
+            // omitted optional fields (name, nested), empty array and map
+            "{\"age\":7,\"tags\":[],\"scores\":{}}",
+            // explicit nulls for optional fields
+            "{\"name\":null,\"age\":99,\"tags\":[\"z\"],\"scores\":{\"k\":42},\"nested\":null}",
+            "{\"name\":\"dave\",\"age\":11,\"tags\":[\"p\",\"q\",\"r\"],\"scores\":{\"a\":10},\"nested\":{\"flag\":false}}",
+            null // null json value -> null attribute
+    );
+
+    private static final List<SimpleFeature> jsonFeatures = IntStream.range(0, jsonValues.size()).boxed().map(i -> {
+        var sf = new ScalaSimpleFeature(jsonSft, Integer.toString(i), null, null);
+        sf.setAttribute(0, jsonValues.get(i));
+        sf.setAttribute(1, "2014-01-0" + (i + 1) + "T00:00:01.000Z");
+        sf.setAttribute(2, "POINT(4" + i + " 5" + i + ")");
+        return (SimpleFeature) sf;
+    }).toList();
+
+    // avro schema for a json=true attribute whose top-level value is an array of records - stored as an
+    // iceberg list of structs, which trino reads back and renders as a json array
+    private static final String jsonArrayAvro =
+            "{" +
+            "  \"type\": \"array\"," +
+            "  \"items\": {" +
+            "    \"type\": \"record\"," +
+            "    \"name\": \"item\"," +
+            "    \"fields\": [" +
+            "      { \"name\": \"id\", \"type\": \"int\" }," +
+            "      { \"name\": \"label\", \"type\": [\"null\", \"string\"], \"default\": null }" +
+            "    ]" +
+            "  }" +
+            "}";
+
+    private static final SimpleFeatureType jsonArraySft =
+            SimpleFeatureTypes.createType("json-array-test", "props:String:json=true,dtg:Date,*geom:Point:srid=4326;geomesa.fs.scheme='daily,z2:bits=4'");
+    static {
+        jsonArraySft.getDescriptor("props").getUserData().put("json-schema", jsonArrayAvro);
+    }
+
+    private static final List<String> jsonArrayValues = Arrays.asList(
+            "[{\"id\":1,\"label\":\"a\"},{\"id\":2,\"label\":\"b\"}]",
+            "[]", // empty array
+            // omitted optional field on the record
+            "[{\"id\":42}]",
+            null // null json value -> null attribute
+    );
+
+    private static final List<SimpleFeature> jsonArrayFeatures = IntStream.range(0, jsonArrayValues.size()).boxed().map(i -> {
+        var sf = new ScalaSimpleFeature(jsonArraySft, Integer.toString(i), null, null);
+        sf.setAttribute(0, jsonArrayValues.get(i));
+        sf.setAttribute(1, "2014-01-0" + (i + 1) + "T00:00:01.000Z");
+        sf.setAttribute(2, "POINT(4" + i + " 5" + i + ")");
+        return (SimpleFeature) sf;
+    }).toList();
+
     @BeforeAll
     public static void beforeAll() throws Exception {
         minio.start();
@@ -99,6 +184,14 @@ public class TrinoDataStoreTest {
             fsds.createSchema(sft);
             try (var writer = fsds.getFeatureWriterAppend(sft.getTypeName(), Transaction.AUTO_COMMIT)) {
                 features.forEach(f -> FeatureUtils.write(writer, f, true));
+            }
+            fsds.createSchema(jsonSft);
+            try (var writer = fsds.getFeatureWriterAppend(jsonSft.getTypeName(), Transaction.AUTO_COMMIT)) {
+                jsonFeatures.forEach(f -> FeatureUtils.write(writer, f, true));
+            }
+            fsds.createSchema(jsonArraySft);
+            try (var writer = fsds.getFeatureWriterAppend(jsonArraySft.getTypeName(), Transaction.AUTO_COMMIT)) {
+                jsonArrayFeatures.forEach(f -> FeatureUtils.write(writer, f, true));
             }
         } finally {
             fsds.dispose();
@@ -124,7 +217,7 @@ public class TrinoDataStoreTest {
         var ds = DataStoreFinder.getDataStore(params);
         Assertions.assertNotNull(ds);
         try {
-            Assertions.assertArrayEquals(new String[]{ sft.getTypeName() }, ds.getTypeNames());
+            Assertions.assertTrue(Arrays.asList(ds.getTypeNames()).contains(sft.getTypeName()));
             var fs = ds.getFeatureSource(sft.getTypeName());
             Assertions.assertNotNull(fs);
             Assertions.assertEquals(features.size(), fs.getCount(Query.ALL));
@@ -184,6 +277,117 @@ public class TrinoDataStoreTest {
         } finally {
             ds.dispose();
         }
+    }
+
+    @Test
+    public void testStructuralJson() throws IOException, CQLException {
+        var params = Map.of(
+                TrinoDataStoreFactory.HOST.key, trino.getHost(),
+                TrinoDataStoreFactory.PORT.key, trino.getFirstMappedPort(),
+                TrinoDataStoreFactory.SCHEMA.key, "geomesa"
+        );
+        var ds = DataStoreFinder.getDataStore(params);
+        Assertions.assertNotNull(ds);
+        try {
+            Assertions.assertTrue(Arrays.asList(ds.getTypeNames()).contains(jsonSft.getTypeName()));
+            var fs = ds.getFeatureSource(jsonSft.getTypeName());
+            Assertions.assertNotNull(fs);
+            Assertions.assertEquals(jsonFeatures.size(), fs.getCount(Query.ALL));
+
+            var results = new ArrayList<SimpleFeature>(jsonFeatures.size());
+            try (var query = fs.getFeatures(new Query(jsonSft.getTypeName())).features()) {
+                while (query.hasNext()) {
+                    results.add(query.next());
+                }
+                results.sort(Comparator.comparing(SimpleFeature::getID));
+            }
+            Assertions.assertEquals(jsonFeatures.size(), results.size());
+
+            var mapper = new ObjectMapper();
+            for (var i = 0; i < jsonFeatures.size(); i++) {
+                var expected = jsonFeatures.get(i);
+                var actual = results.get(i);
+                Assertions.assertEquals(expected.getID(), actual.getID());
+                var expectedJson = (String) expected.getAttribute("props");
+                var actualJson = (String) actual.getAttribute("props");
+                if (expectedJson == null) {
+                    Assertions.assertNull(actualJson);
+                } else {
+                    // compare parsed trees so key ordering / whitespace don't matter, normalizing away
+                    // explicit nulls for optional fields, which the structural round-trip drops
+                    Assertions.assertEquals(normalize(mapper, expectedJson), normalize(mapper, actualJson));
+                }
+            }
+        } finally {
+            ds.dispose();
+        }
+    }
+
+    @Test
+    public void testStructuralJsonArray() throws IOException, CQLException {
+        var params = Map.of(
+                TrinoDataStoreFactory.HOST.key, trino.getHost(),
+                TrinoDataStoreFactory.PORT.key, trino.getFirstMappedPort(),
+                TrinoDataStoreFactory.SCHEMA.key, "geomesa"
+        );
+        var ds = DataStoreFinder.getDataStore(params);
+        Assertions.assertNotNull(ds);
+        try {
+            Assertions.assertTrue(Arrays.asList(ds.getTypeNames()).contains(jsonArraySft.getTypeName()));
+            var fs = ds.getFeatureSource(jsonArraySft.getTypeName());
+            Assertions.assertNotNull(fs);
+            Assertions.assertEquals(jsonArrayFeatures.size(), fs.getCount(Query.ALL));
+
+            var results = new ArrayList<SimpleFeature>(jsonArrayFeatures.size());
+            try (var query = fs.getFeatures(new Query(jsonArraySft.getTypeName())).features()) {
+                while (query.hasNext()) {
+                    results.add(query.next());
+                }
+                results.sort(Comparator.comparing(SimpleFeature::getID));
+            }
+            Assertions.assertEquals(jsonArrayFeatures.size(), results.size());
+
+            var mapper = new ObjectMapper();
+            for (var i = 0; i < jsonArrayFeatures.size(); i++) {
+                var expected = jsonArrayFeatures.get(i);
+                var actual = results.get(i);
+                Assertions.assertEquals(expected.getID(), actual.getID());
+                var expectedJson = (String) expected.getAttribute("props");
+                var actualJson = (String) actual.getAttribute("props");
+                if (expectedJson == null) {
+                    Assertions.assertNull(actualJson);
+                } else {
+                    // compare parsed trees so key ordering / whitespace don't matter, normalizing away
+                    // explicit nulls for optional fields, which the structural round-trip drops
+                    Assertions.assertEquals(normalize(mapper, expectedJson), normalize(mapper, actualJson));
+                }
+            }
+        } finally {
+            ds.dispose();
+        }
+    }
+
+    // parses json and recursively removes any object keys whose value is null, so features that omit an
+    // optional field and features that set it explicitly null compare equal. trino renders a struct with
+    // all of its fields, including omitted-optional fields as explicit nulls, at any nesting depth.
+    private static JsonNode normalize(ObjectMapper mapper, String json) throws IOException {
+        return normalize(mapper.readTree(json));
+    }
+
+    private static JsonNode normalize(JsonNode node) {
+        if (node instanceof ObjectNode object) {
+            var nullFields = new ArrayList<String>();
+            object.fieldNames().forEachRemaining(name -> {
+                if (object.get(name).isNull()) {
+                    nullFields.add(name);
+                }
+            });
+            nullFields.forEach(object::remove);
+            object.fields().forEachRemaining(e -> normalize(e.getValue()));
+        } else if (node instanceof ArrayNode array) {
+            array.forEach(TrinoDataStoreTest::normalize);
+        }
+        return node;
     }
 
 }

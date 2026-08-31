@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.core.parquet.io
 
+import com.google.gson.{JsonElement, JsonParser}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.filter2.compat.FilterCompat
@@ -20,7 +21,9 @@ import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.core.parquet.ParquetFilterConverter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.io.WithClose
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.SpecificationWithJUnit
 
 import java.io.RandomAccessFile
@@ -166,6 +169,198 @@ class ParquetReadWriteTest extends SpecificationWithJUnit with LazyLogging {
     "perform filtering on one month duration" >> {
       val result = readFile(ECQL.toFilter("dtg BETWEEN '2017-01-01T12:00:00Z' AND '2017-01-31T00:00:00Z'"), sft)
       result mustEqual features.drop(1)
+    }
+
+    "read and write structural json" >> {
+      val avro =
+        """{
+          |  "type": "record",
+          |  "name": "props",
+          |  "fields": [
+          |    { "name": "name", "type": ["null", "string"], "default": null },
+          |    { "name": "age", "type": "int" },
+          |    { "name": "tags", "type": { "type": "array", "items": "string" } },
+          |    { "name": "scores", "type": { "type": "map", "values": "long" } },
+          |    { "name": "nested", "type": ["null", {
+          |        "type": "record",
+          |        "name": "nested",
+          |        "fields": [ { "name": "flag", "type": "boolean" } ]
+          |    }], "default": null }
+          |  ]
+          |}""".stripMargin
+
+      val jsonSft = SimpleFeatureTypes.createType("json-test", "props:String:json=true,*position:Point:srid=4326")
+      jsonSft.getDescriptor("props").getUserData.put(AttributeOptions.OptJsonSchema, avro)
+
+      val jsonValues = Seq(
+        """{"name":"alice","age":30,"tags":["a","b"],"scores":{"x":1,"y":2},"nested":{"flag":true}}""",
+        // omitted optional fields (name, nested), empty array and map
+        """{"age":7,"tags":[],"scores":{}}""",
+        // explicit nulls for optional fields
+        """{"name":null,"age":99,"tags":["z"],"scores":{"k":42},"nested":null}""",
+        null // null json value -> null attribute
+      )
+
+      val jsonFeatures = jsonValues.zipWithIndex.map { case (json, i) =>
+        ScalaSimpleFeature.create(jsonSft, (i + 1).toString, json, s"POINT (${i} ${i})")
+      }
+
+      // objects drop explicit nulls for optional fields on the structural round-trip
+      def normalize(json: String): JsonElement = {
+        val tree = JsonParser.parseString(json).getAsJsonObject
+        val nullKeys = tree.entrySet().asScala.collect { case e if e.getValue.isJsonNull => e.getKey }.toSeq
+        nullKeys.foreach(tree.remove)
+        tree
+      }
+
+      checkStructuralJsonRoundTrip(jsonSft, jsonFeatures, normalize)
+    }
+
+    "read and write structural json with a top-level array of records" >> {
+      val avro =
+        """{
+          |  "type": "array",
+          |  "items": {
+          |    "type": "record",
+          |    "name": "item",
+          |    "fields": [
+          |      { "name": "id", "type": "int" },
+          |      { "name": "label", "type": ["null", "string"], "default": null }
+          |    ]
+          |  }
+          |}""".stripMargin
+
+      val jsonSft = SimpleFeatureTypes.createType("json-array-test", "props:String:json=true,*position:Point:srid=4326")
+      jsonSft.getDescriptor("props").getUserData.put(AttributeOptions.OptJsonSchema, avro)
+
+      val jsonValues = Seq(
+        """[{"id":1,"label":"a"},{"id":2,"label":"b"}]""",
+        "[]", // empty array
+        // omitted optional field on the record
+        """[{"id":42}]""",
+        null // null json value -> null attribute
+      )
+
+      val jsonFeatures = jsonValues.zipWithIndex.map { case (json, i) =>
+        ScalaSimpleFeature.create(jsonSft, (i + 1).toString, json, s"POINT (${i} ${i})")
+      }
+
+      checkStructuralJsonRoundTrip(jsonSft, jsonFeatures, JsonParser.parseString)
+    }
+
+    "read and write structural json with a top-level map of records" >> {
+      val avro =
+        """{
+          |  "type": "map",
+          |  "values": {
+          |    "type": "record",
+          |    "name": "value",
+          |    "fields": [
+          |      { "name": "count", "type": "long" },
+          |      { "name": "label", "type": ["null", "string"], "default": null }
+          |    ]
+          |  }
+          |}""".stripMargin
+
+      val jsonSft = SimpleFeatureTypes.createType("json-map-test", "props:String:json=true,*position:Point:srid=4326")
+      jsonSft.getDescriptor("props").getUserData.put(AttributeOptions.OptJsonSchema, avro)
+
+      val jsonValues = Seq(
+        """{"x":{"count":1,"label":"a"},"y":{"count":2,"label":"b"}}""",
+        "{}", // empty map
+        // omitted optional field on the record
+        """{"k":{"count":42}}""",
+        null // null json value -> null attribute
+      )
+
+      val jsonFeatures = jsonValues.zipWithIndex.map { case (json, i) =>
+        ScalaSimpleFeature.create(jsonSft, (i + 1).toString, json, s"POINT (${i} ${i})")
+      }
+
+      checkStructuralJsonRoundTrip(jsonSft, jsonFeatures, JsonParser.parseString)
+    }
+
+    "read and write structural json with decimals" >> {
+      // precision <= 9 stores as int32, <= 18 as int64, > 18 as fixed-length bytes - cover all three,
+      // including negatives to exercise the sign-extended fixed-length padding
+      val avro =
+        """{
+          |  "type": "record",
+          |  "name": "props",
+          |  "fields": [
+          |    { "name": "small", "type": { "type": "bytes", "logicalType": "decimal", "precision": 9, "scale": 2 } },
+          |    { "name": "medium", "type": { "type": "bytes", "logicalType": "decimal", "precision": 18, "scale": 4 } },
+          |    { "name": "large", "type": { "type": "bytes", "logicalType": "decimal", "precision": 38, "scale": 6 } }
+          |  ]
+          |}""".stripMargin
+
+      val jsonSft = SimpleFeatureTypes.createType("json-decimal-test", "props:String:json=true,*position:Point:srid=4326")
+      jsonSft.getDescriptor("props").getUserData.put(AttributeOptions.OptJsonSchema, avro)
+
+      val jsonValues = Seq(
+        """{"small":123.45,"medium":1234.5678,"large":123456789012345.678901}""",
+        """{"small":-1.20,"medium":-0.0001,"large":-98765432109876.543210}""",
+        null // null json value -> null attribute
+      )
+
+      val jsonFeatures = jsonValues.zipWithIndex.map { case (json, i) =>
+        ScalaSimpleFeature.create(jsonSft, (i + 1).toString, json, s"POINT (${i} ${i})")
+      }
+
+      // gson compares numeric primitives by value, so trailing zeros from rescaling don't matter
+      checkStructuralJsonRoundTrip(jsonSft, jsonFeatures, JsonParser.parseString)
+    }
+
+    "reject a top-level scalar structural json schema" >> {
+      val jsonSft = SimpleFeatureTypes.createType("json-scalar-test", "props:String:json=true,*position:Point:srid=4326")
+      jsonSft.getDescriptor("props").getUserData.put(AttributeOptions.OptJsonSchema, """"string"""")
+      SimpleFeatureParquetSchema(jsonSft, Map.empty[String, String]) must throwAn[IllegalArgumentException]
+    }
+  }
+
+  // writes the features to a parquet file, reads them back, and asserts the json attribute round-trips.
+  // `expect` maps an original json string to the tree it should equal after the round-trip.
+  private def checkStructuralJsonRoundTrip(
+      sft: SimpleFeatureType,
+      features: Seq[SimpleFeature],
+      expect: String => JsonElement): MatchResult[Any] = {
+    val jsonFile = Files.createTempFile("geomesa-json", ".parquet")
+    try {
+      WithClose(ParquetFileSystemWriter(sft, Map.empty, LocalObjectStore, jsonFile.toUri.toString)) { writer =>
+        features.foreach(writer.write)
+      }
+
+      val readConf = new PlainParquetConfiguration()
+      SimpleFeatureParquetSchema.setSft(readConf, sft)
+      val result = {
+        val builder = ParquetFileSystemReader.builder(LocalObjectStore, jsonFile.toUri)
+        val buffer = ArrayBuffer.empty[SimpleFeature]
+        WithClose(builder.withFilter(FilterCompat.NOOP).withConf(readConf).build()) { reader =>
+          var sf = reader.read()
+          while (sf != null) {
+            buffer += ScalaSimpleFeature.copy(sf)
+            sf = reader.read()
+          }
+        }
+        buffer.toSeq
+      }
+
+      result must haveSize(features.size)
+      val byId = result.map(f => f.getID -> f).toMap
+      foreach(features) { expected =>
+        val actual = byId.get(expected.getID)
+        actual must beSome
+        val expectedJson = expected.getAttribute("props").asInstanceOf[String]
+        val actualJson = actual.get.getAttribute("props").asInstanceOf[String]
+        if (expectedJson == null) {
+          actualJson must beNull
+        } else {
+          // compare parsed trees so key ordering / whitespace don't matter
+          JsonParser.parseString(actualJson) mustEqual expect(expectedJson)
+        }
+      }
+    } finally {
+      Files.deleteIfExists(jsonFile)
     }
   }
 

@@ -23,5 +23,4 @@ directory structures.
     index_config
     partition_schemes
     metadata
-    modify_features
     converter_fsds

@@ -163,6 +163,7 @@ object RichAttributeDescriptors extends Conversions {
           .flatMap(c => Try(Cardinality.withName(c)).toOption).getOrElse(Cardinality.UNKNOWN)
 
     def isJson(): Boolean = boolean(ad.getUserData.get(OptJson))
+    def getJsonSchema(): Option[String] = Option(ad.getUserData.get(OptJsonSchema).asInstanceOf[String])
 
     def getListType(): Class[_] = tryClass(ad.getUserData.get(UserDataListType).asInstanceOf[String])
 

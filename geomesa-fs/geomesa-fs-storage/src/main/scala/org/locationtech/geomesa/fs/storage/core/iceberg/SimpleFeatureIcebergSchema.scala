@@ -9,8 +9,9 @@
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.iceberg.avro.AvroSchemaUtil
 import org.apache.iceberg.types.Types._
-import org.apache.iceberg.types.{Type, Types}
+import org.apache.iceberg.types.{Type, TypeUtil, Types}
 import org.apache.iceberg.{MetadataColumns, Schema, Table}
 import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -109,6 +110,7 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
 object SimpleFeatureIcebergSchema extends LazyLogging {
 
   import SimpleFeatureSchema._
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   import scala.collection.JavaConverters._
 
@@ -170,10 +172,7 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
       val name = ColumnName(d.getLocalName)
       val objectType = ObjectType.selectType(d)
       val doc = SimpleFeatureTypes.encodeDescriptor(sft, d)
-      if (objectType.head == ObjectType.STRING) {
-        val typed = if (objectType.last == ObjectType.JSON) { VariantType.get() } else { StringType.get() }
-        builder += buildField(name.column, fieldIds.getAndIncrement(), doc, typed)
-      } else if (objectType.head == ObjectType.GEOMETRY) {
+      if (objectType.head == ObjectType.GEOMETRY) {
         // TODO supports native geometry encoding
         require(geometries == GeometryEncoding.GeoParquetWkb, "Only WKB encoding is supported for Geometry types")
         val geomDoc = {
@@ -186,6 +185,10 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
         builder += buildField(name.column, fieldIds.getAndIncrement(), geomDoc, BinaryType.get())
         builder += BoundingBoxField.icebergSchema(name.column, fieldIds)
         builder += ZValueField.icebergSchema(name.column, objectType(1), fieldIds)
+      } else if (objectType.last == ObjectType.JSON) {
+        builder +=
+          buildField(name.column, fieldIds.getAndIncrement(), doc,
+            d.getJsonSchema().fold[Type](VariantType.get())(buildStructuralType(_, () => fieldIds.getAndIncrement())))
       } else {
         builder += buildField(name.column, fieldIds.getAndIncrement(), doc, getType(objectType, fieldIds))
       }
@@ -237,5 +240,22 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
       case binding =>
         throw new UnsupportedOperationException(s"No mapping defined for type: $binding")
     }
+  }
+
+  private[core] def buildStructuralType(schemaDef: String, fieldIds: TypeUtil.NextID): Type = {
+    val avroSchema = new org.apache.avro.Schema.Parser().parse(schemaDef)
+    // wrap in a record so that we handle non-record schemas (arrays, maps), convert, then extract the single field.
+    // this mirrors the parquet conversion - a record schema just becomes a struct-typed field.
+    val wrapped =
+      org.apache.avro.SchemaBuilder.record("wrapper").namespace("tmp")
+        .fields().name("value").`type`(avroSchema).noDefault().endRecord()
+    val typed = AvroSchemaUtil.convert(wrapped).asStructType().fields().get(0).`type`()
+    // top-level scalars are not supported - just use a regular attribute in that case
+    if (typed.isPrimitiveType) {
+      throw new IllegalArgumentException(
+        s"Structural JSON schema must be a record, array, or map, but was a scalar type: $typed")
+    }
+    // re-stamp the field ids so that they don't overlap our other fields
+    TypeUtil.assignFreshIds(typed, fieldIds)
   }
 }

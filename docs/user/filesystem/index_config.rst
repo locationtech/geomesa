@@ -44,6 +44,77 @@ Different schemes are separated with a comma (``,``), while scheme options are s
 value for each option is separated by an equals sign (``=``). For example:
 ``first_scheme_name:option.1.key=option1value:option.2.key=option2value,second_scheme_name``
 
+Configuring Structural Types
+----------------------------
+
+The FileSystem data store supports the concept of "structural types" - these are JSON fields with a defined schema, which means
+they can be efficiently persisted and queried on disk. Structural types help bridge the gap between GeoTools simple feature types
+and complex feature types that support nested and repeated structures.
+
+To specify an attribute as a structural types, use ``json=true`` along with the ``json-schema`` option, which must be an
+`Avro schema definition <https://avro.apache.org/docs/1.12.0/specification/#schema-declaration>`__:
+
+.. tabs::
+
+    .. code-tab:: java
+
+        DataStore ds = ...
+        SimpleFeatureType sft = SimpleFeatureTypes.createType("test", "ids:String:json=true,dtg:Date,*geom:Point:srid=4326");
+        String schema = """
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "record",
+                            "name": "item",
+                            "fields": [
+                              { "name": "id", "type": "int" },
+                              { "name": "label", "type": ["null", "string"], "default": null }
+                            ]
+                          }
+                        }""".replaceAll("[\n ]", "");
+        sft.getDescriptor("ids").getUserData().put("json-schema", schema);
+        ds.createSchema(sft);
+
+        try (var writer = ds.getFeatureWriterAppend(sft.getTypeName(), Transaction.AUTO_COMMIT)) {
+            var feature = writer.next();
+            feature.setAttribute("ids", "[{\"id\":1,\"label\":\"a\"},{\"id\":2,\"label\":\"b\"}]");
+            feature.setAttribute("dtg", "2026-01-01T00:00:01.000Z");
+            feature.setAttribute("geom", "POINT(40 50)");
+            writer.write();
+        }
+
+    .. code-tab:: scala
+
+        val ds: DataStore = ???
+        val sft = SimpleFeatureTypes.createType("test", "ids:String:json=true,dtg:Date,*geom:Point:srid=4326")
+        val schema =
+          """{
+            |  "type": "array",
+            |  "items": {
+            |    "type": "record",
+            |    "name": "item",
+            |    "fields": [
+            |      { "name": "id", "type": "int" },
+            |      { "name": "label", "type": ["null", "string"], "default": null }
+            |    ]
+            |  }
+            |}""".stripMargin.replaceAll("[\n ]", "")
+        sft.getDescriptor("ids").getUserData.put("json-schema", schema)
+        ds.createSchema(sft)
+
+        val writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
+        try {
+          val feature = writer.next()
+          feature.setAttribute("ids", """[{"id":1,"label":"a"},{"id":2,"label":"b"}]""")
+          feature.setAttribute("dtg", "2026-01-01T00:00:01.000Z")
+          feature.setAttribute("geom", "POINT(40 50)")
+          writer.write()
+        } finally {
+          writer.close()
+        }
+
+The top-level element in the Avro schema must be a record, array or map type.
+
 .. _fsds_file_size_config:
 
 Configuring Target File Size

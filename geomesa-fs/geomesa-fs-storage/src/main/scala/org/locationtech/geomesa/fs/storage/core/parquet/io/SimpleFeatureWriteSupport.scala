@@ -8,12 +8,15 @@
 
 package org.locationtech.geomesa.fs.storage.core.parquet.io
 
+import com.google.gson._
 import org.apache.hadoop.conf.Configuration
 import org.apache.parquet.conf.{HadoopParquetConfiguration, ParquetConfiguration}
 import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.api.WriteSupport.{FinalizedWriteContext, WriteContext}
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
-import org.apache.parquet.schema.GroupType
+import org.apache.parquet.schema.LogicalTypeAnnotation._
+import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
+import org.apache.parquet.schema.{GroupType, PrimitiveType, Type}
 import org.apache.parquet.variant.{VariantJsonParser, VariantValueWriter}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeature
@@ -24,6 +27,7 @@ import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParq
 import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName, SimpleFeatureSchema, ZValueField}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
@@ -109,33 +113,37 @@ object SimpleFeatureWriteSupport {
       consumer.endMessage()
     }
 
-    private def attribute(descriptor: AttributeDescriptor, index: Int): AttributeWriter[_] =
-      attribute(descriptor.getLocalName, index, ObjectType.selectType(descriptor))
-
-    private def attribute(name: String, index: Int, bindings: Seq[ObjectType]): AttributeWriter[_] = {
-      val col = ColumnName(name)
-      bindings.head match {
-        case ObjectType.GEOMETRY => geometry(col, index, bindings.last)
-        case ObjectType.DATE     => new DateMicrosWriter(col.column, index)
-        case ObjectType.STRING   => string(col, index, bindings.last)
-        case ObjectType.INT      => new IntegerWriter(col.column, index)
-        case ObjectType.LONG     => new LongWriter(col.column, index)
-        case ObjectType.FLOAT    => new FloatWriter(col.column, index)
-        case ObjectType.DOUBLE   => new DoubleWriter(col.column, index)
-        case ObjectType.BYTES    => new BytesWriter(col.column, index)
-        case ObjectType.LIST     => new ListWriter(col.column, index, attribute("element", 0, bindings.drop(1)))
-        case ObjectType.MAP      => new MapWriter(col.column, index, attribute("key", 0, bindings.slice(1, 2)), attribute("value", 1, bindings.slice(2, 3)))
-        case ObjectType.BOOLEAN  => new BooleanWriter(col.column, index)
-        case ObjectType.UUID     => new UuidWriter(col.column, index)
-        case _ => throw new IllegalArgumentException(s"Can't serialize field '$name' of type ${bindings.head}")
+    private def attribute(descriptor: AttributeDescriptor, index: Int): AttributeWriter[_] = {
+      val bindings = ObjectType.selectType(descriptor)
+      val col = ColumnName(descriptor.getLocalName)
+      if (bindings.head == ObjectType.GEOMETRY) {
+        geometry(col, index, bindings.last)
+      } else if (bindings.last == ObjectType.JSON) {
+        val groupType = schema.messageType.getType(index).asGroupType()
+        if (descriptor.getJsonSchema().isDefined) {
+          new StructuralJsonWriter(col.column, index, groupType)
+        } else {
+          new VariantWriter(col.column, index, groupType)
+        }
+      } else {
+        attribute(col.column, index, bindings)
       }
     }
 
-    private def string(col: ColumnName, index: Int, binding: ObjectType): AttributeWriter[_] = {
-      if (binding == ObjectType.JSON) {
-        new VariantWriter(col.column, index, schema.messageType.getType(index).asGroupType())
-      } else {
-        new StringWriter(col.column, index)
+    private def attribute(name: String, index: Int, bindings: Seq[ObjectType]): AttributeWriter[_] = {
+      bindings.head match {
+        case ObjectType.DATE     => new DateMicrosWriter(name, index)
+        case ObjectType.STRING   => new StringWriter(name, index)
+        case ObjectType.INT      => new IntegerWriter(name, index)
+        case ObjectType.LONG     => new LongWriter(name, index)
+        case ObjectType.FLOAT    => new FloatWriter(name, index)
+        case ObjectType.DOUBLE   => new DoubleWriter(name, index)
+        case ObjectType.BYTES    => new BytesWriter(name, index)
+        case ObjectType.LIST     => new ListWriter(name, index, attribute("element", 0, bindings.drop(1)))
+        case ObjectType.MAP      => new MapWriter(name, index, attribute("key", 0, bindings.slice(1, 2)), attribute("value", 1, bindings.slice(2, 3)))
+        case ObjectType.BOOLEAN  => new BooleanWriter(name, index)
+        case ObjectType.UUID     => new UuidWriter(name, index)
+        case _ => throw new IllegalArgumentException(s"Can't serialize field '$name' of type ${bindings.head}")
       }
     }
 
@@ -228,6 +236,170 @@ object SimpleFeatureWriteSupport {
   private class VariantWriter(name: String, index: Int, schema: GroupType) extends AttributeWriter[String](name, index) {
     override def writeFields(consumer: RecordConsumer, value: String): Unit =
       VariantValueWriter.write(consumer, schema, VariantJsonParser.parseJson(value))
+  }
+
+  /**
+   * Writes a JSON string structurally, according to the parquet schema generated from the attribute's avro schema.
+   * The schema uses standard 3-level lists and string-keyed maps (see SimpleFeatureParquetSchema.buildStructuralType).
+   */
+  private class StructuralJsonWriter(name: String, index: Int, schema: GroupType)
+      extends AttributeWriter[String](name, index) {
+
+    override def writeFields(consumer: RecordConsumer, value: String): Unit = {
+      val element = JsonParser.parseString(value)
+      if (!element.isJsonNull) {
+        StructuralJsonWriter.writeValue(consumer, schema, element)
+      }
+    }
+  }
+
+  private object StructuralJsonWriter {
+
+    private def writeValue(consumer: RecordConsumer, tpe: Type, element: JsonElement): Unit = {
+      if (tpe.isPrimitive) {
+        writePrimitive(consumer, tpe.asPrimitiveType(), element.getAsJsonPrimitive)
+      } else {
+        val group = tpe.asGroupType()
+        group.getLogicalTypeAnnotation match {
+          case _: ListLogicalTypeAnnotation => writeList(consumer, group, element.getAsJsonArray)
+          case _: MapLogicalTypeAnnotation  => writeMap(consumer, group, element.getAsJsonObject)
+          case _                            => writeRecord(consumer, group, element.getAsJsonObject)
+        }
+      }
+    }
+
+    private def writeRecord(consumer: RecordConsumer, group: GroupType, obj: JsonObject): Unit = {
+      consumer.startGroup()
+      var i = 0
+      val fields = group.getFields
+      while (i < fields.size()) {
+        val field = fields.get(i)
+        val fieldName = field.getName
+        val value = obj.get(fieldName)
+        if (value == null || value.isJsonNull) {
+          if (field.isRepetition(Type.Repetition.REQUIRED)) {
+            throw new IllegalArgumentException(s"JSON is missing required field '$fieldName'")
+          }
+        } else {
+          consumer.startField(fieldName, i)
+          writeValue(consumer, field, value)
+          consumer.endField(fieldName, i)
+        }
+        i += 1
+      }
+      consumer.endGroup()
+    }
+
+    // standard 3-level list: <name> (LIST) { repeated group list { <element>; } }
+    private def writeList(consumer: RecordConsumer, group: GroupType, array: JsonArray): Unit = {
+      consumer.startGroup()
+      if (array.size() > 0) {
+        val list = group.getType(0).asGroupType() // repeated 'list' group
+        val listName = group.getFieldName(0)
+        val element = list.getType(0)
+        val elementName = list.getFieldName(0)
+        consumer.startField(listName, 0)
+        val iter = array.iterator()
+        while (iter.hasNext) {
+          val item = iter.next()
+          consumer.startGroup()
+          if (!item.isJsonNull) {
+            consumer.startField(elementName, 0)
+            writeValue(consumer, element, item)
+            consumer.endField(elementName, 0)
+          }
+          consumer.endGroup()
+        }
+        consumer.endField(listName, 0)
+      }
+      consumer.endGroup()
+    }
+
+    // string-keyed map: <name> (MAP) { repeated group key_value { required key; value; } }
+    private def writeMap(consumer: RecordConsumer, group: GroupType, obj: JsonObject): Unit = {
+      consumer.startGroup()
+      if (obj.size() > 0) {
+        val keyValue = group.getType(0).asGroupType()
+        val keyValueName = group.getFieldName(0)
+        val keyType = keyValue.getType(0)
+        val valueType = keyValue.getType(1)
+        consumer.startField(keyValueName, 0)
+        val iter = obj.entrySet().iterator()
+        while (iter.hasNext) {
+          val entry = iter.next()
+          consumer.startGroup()
+          consumer.startField("key", 0)
+          writeValue(consumer, keyType, new JsonPrimitive(entry.getKey))
+          consumer.endField("key", 0)
+          val v = entry.getValue
+          if (v != null && !v.isJsonNull) {
+            consumer.startField("value", 1)
+            writeValue(consumer, valueType, v)
+            consumer.endField("value", 1)
+          }
+          consumer.endGroup()
+        }
+        consumer.endField(keyValueName, 0)
+      }
+      consumer.endGroup()
+    }
+
+    private def writePrimitive(consumer: RecordConsumer, tpe: PrimitiveType, value: JsonPrimitive): Unit = {
+      val logical = Option(tpe.getLogicalTypeAnnotation)
+      tpe.getPrimitiveTypeName match {
+        case PrimitiveTypeName.BOOLEAN => consumer.addBoolean(value.getAsBoolean)
+        case PrimitiveTypeName.FLOAT   => consumer.addFloat(value.getAsFloat)
+        case PrimitiveTypeName.DOUBLE  => consumer.addDouble(value.getAsDouble)
+
+        case PrimitiveTypeName.INT32 =>
+          logical match {
+            case Some(_: DateLogicalTypeAnnotation) =>
+              consumer.addInteger(StructuralJson.jsonToEpochDay(value.getAsString))
+            case Some(t: TimeLogicalTypeAnnotation) =>
+              consumer.addInteger(StructuralJson.jsonToTime(value.getAsString, t.getUnit).toInt)
+            case Some(d: DecimalLogicalTypeAnnotation) =>
+              consumer.addInteger(value.getAsBigDecimal.setScale(d.getScale).unscaledValue().intValueExact())
+            case _ =>
+              consumer.addInteger(value.getAsInt)
+          }
+
+        case PrimitiveTypeName.INT64 =>
+          logical match {
+            case Some(t: TimestampLogicalTypeAnnotation) =>
+              consumer.addLong(StructuralJson.jsonToTimestamp(value.getAsString, t.getUnit, t.isAdjustedToUTC))
+            case Some(t: TimeLogicalTypeAnnotation) =>
+              consumer.addLong(StructuralJson.jsonToTime(value.getAsString, t.getUnit))
+            case Some(d: DecimalLogicalTypeAnnotation) =>
+              consumer.addLong(value.getAsBigDecimal.setScale(d.getScale).unscaledValue().longValueExact())
+            case _ =>
+              consumer.addLong(value.getAsLong)
+          }
+
+        case PrimitiveTypeName.BINARY =>
+          logical match {
+            case Some(_: StringLogicalTypeAnnotation) =>
+              consumer.addBinary(Binary.fromString(value.getAsString))
+            case Some(_: EnumLogicalTypeAnnotation) =>
+              consumer.addBinary(Binary.fromString(value.getAsString))
+            case _ =>
+              consumer.addBinary(Binary.fromConstantByteArray(StructuralJson.jsonToBytes(value.getAsString)))
+          }
+
+        case PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY =>
+          logical match {
+            case Some(_: UUIDLogicalTypeAnnotation) =>
+              consumer.addBinary(Binary.fromConstantByteArray(StructuralJson.uuidToBytes(UUID.fromString(value.getAsString))))
+            case Some(d: DecimalLogicalTypeAnnotation) =>
+              val bytes = StructuralJson.decimalToFixedBytes(value.getAsBigDecimal, d.getScale, tpe.getTypeLength)
+              consumer.addBinary(Binary.fromConstantByteArray(bytes))
+            case _ =>
+              consumer.addBinary(Binary.fromConstantByteArray(StructuralJson.jsonToBytes(value.getAsString)))
+          }
+
+        case PrimitiveTypeName.INT96 =>
+          consumer.addBinary(Binary.fromConstantByteArray(StructuralJson.jsonToBytes(value.getAsString)))
+      }
+    }
   }
 
   private class BytesWriter(name: String, index: Int) extends AttributeWriter[Array[Byte]](name, index) {
