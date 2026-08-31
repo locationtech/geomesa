@@ -704,10 +704,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           getFunctions must haveLength(11)
           // log_cleaner, analyze_partitions, roll_wa, partition_maintenance
           getCrons must haveLength(4)
-          // 3 user data, 1 seq count, 1 primary key
+          // 4 user data, 1 seq count, 1 primary key
           val meta = getMeta
           meta must haveSize(3)
-          meta.get(UserDataTable.Name.raw) must beSome(haveLength[Seq[String]](3))
+          meta.get(UserDataTable.Name.raw) must beSome(haveLength[Seq[String]](4))
           meta.get(SequenceTable.Name.raw) must beSome(haveLength[Seq[String]](1))
           meta.get(PrimaryKeyTable.Name.raw) must beSome(haveLength[Seq[String]](1))
 
