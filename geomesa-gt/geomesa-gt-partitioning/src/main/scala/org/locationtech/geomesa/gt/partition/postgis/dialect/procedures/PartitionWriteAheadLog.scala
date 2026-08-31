@@ -176,7 +176,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              GET DIAGNOSTICS unsorted_count := ROW_COUNT;
        |              EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |                ' ADD CONSTRAINT ' || quote_ident(partition_name || '_pkey') ||
-       |                ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})' || index_tablespace;
+       |                ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})' || index_tablespace;
        |              -- creating a constraint allows it to be attached to the parent without any additional checks
        |              EXECUTE 'ALTER TABLE  ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |                ' ADD CONSTRAINT ' || quote_ident(partition_name || '_constraint') ||

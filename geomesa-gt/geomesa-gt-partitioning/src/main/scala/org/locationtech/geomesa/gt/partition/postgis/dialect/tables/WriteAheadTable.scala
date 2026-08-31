@@ -70,7 +70,7 @@ object WriteAheadTable extends SqlStatements {
          |
          |  EXECUTE 'CREATE $logging TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(partition) || '(' ||
          |    'CONSTRAINT ' || quote_ident(partition || '_pkey') ||
-         |    ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})$indexTs ' ||
+         |    ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})$indexTs ' ||
          |    ') INHERITS (${table.name.qualified})${table.storage.opts}$tableTs';
          |  EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition || '_' || ${info.cols.dtg.asLiteral}) ||
          |    ' ON ${info.schema.quoted}.' || quote_ident(partition) || ' (${info.cols.dtg.quoted})$tableTs';

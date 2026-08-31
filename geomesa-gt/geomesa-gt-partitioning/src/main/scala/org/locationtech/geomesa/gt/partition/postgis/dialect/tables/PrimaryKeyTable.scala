@@ -40,7 +40,7 @@ class PrimaryKeyTable extends Sql {
     val entry = s"INSERT INTO $table(table_schema, table_name, pk_column_idx, pk_column) VALUES (?, ?, ?, ?);"
     ex.execute(create)
     ex.executeUpdate(cleanup, Seq(info.schema.raw, info.tables.view.name.raw))
-    ex.executeUpdate(entry, Seq(info.schema.raw, info.tables.view.name.raw, 0, "fid"))
+    ex.executeUpdate(entry, Seq(info.schema.raw, info.tables.view.name.raw, 0, info.cols.fid.raw))
   }
 
   override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {

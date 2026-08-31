@@ -88,7 +88,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |        -- requires SHARE UPDATE EXCLUSIVE
        |        EXECUTE 'CREATE ' || table_wa_logging || 'TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(next_partition) || '(' ||
        |          'CONSTRAINT ' || quote_ident(next_partition || '_pkey') ||
-       |          ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})' || index_space || ')' ||
+       |          ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})' || index_space || ')' ||
        |          ' INHERITS (${info.tables.writeAhead.name.qualified})${info.tables.writeAhead.storage.opts}' || partition_tablespace;
        |        EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(next_partition || '_' || ${info.cols.dtg.asLiteral}) ||
        |          ' ON ${info.schema.quoted}.' || quote_ident(next_partition) || ' (${info.cols.dtg.quoted})' ||

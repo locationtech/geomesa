@@ -137,12 +137,12 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |          -- create the partition table with a 'create as' for improved performance
        |          EXECUTE 'CREATE ' || table_wa_logging || 'TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            partition_tablespace || ' AS SELECT DISTINCT ON' ||
-       |            ' (_st_sortablehash(${info.cols.geom.quoted}), fid, ${info.cols.dtg.quoted}) * FROM ' ||
+       |            ' (_st_sortablehash(${info.cols.geom.quoted}), ${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) * FROM ' ||
        |            quote_ident(partition_name || '_tmp_migrate') || ' ORDER BY _st_sortablehash(${info.cols.geom.quoted})';
        |          GET DIAGNOSTICS unsorted_count := ROW_COUNT;
        |          EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            ' ADD CONSTRAINT ' || quote_ident(partition_name || '_pkey') ||
-       |            ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})' || index_tablespace;
+       |            ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})' || index_tablespace;
        |          -- creating a constraint allows it to be attached to the parent without any additional checks
        |          EXECUTE 'ALTER TABLE  ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            ' ADD CONSTRAINT ' || quote_ident(partition_name || '_constraint') ||

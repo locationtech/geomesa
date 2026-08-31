@@ -309,6 +309,7 @@ package object dialect {
    * @param all all columns
    */
   case class Columns(
+      fid: ColumnName,
       dtg: ColumnName,
       geom: ColumnName,
       geoms: Seq[ColumnName],
@@ -325,6 +326,7 @@ package object dialect {
     def apply(original: SimpleFeatureType): Columns = {
       val sft = SimpleFeatureTypes.copy(original)
       TemporalIndexCheck.validateDtgField(sft)
+      val fid = ColumnName(SftUserData.FidColumn.get(sft))
       val dtg = sft.getDtgField.map(ColumnName.apply).getOrElse {
         throw new IllegalArgumentException("Must include a date-type attribute when using a partitioned store")
       }
@@ -345,7 +347,7 @@ package object dialect {
 
       val indices = sft.getAttributeDescriptors.asScala.collect { case d if indexed(d) => ColumnName(d) }
       val all = sft.getAttributeDescriptors.asScala.map(ColumnName.apply)
-      Columns(dtg, geom, geoms.toSeq, indices.toSeq, all.toSeq)
+      Columns(fid, dtg, geom, geoms.toSeq, indices.toSeq, all.toSeq)
     }
   }
 
