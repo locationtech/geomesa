@@ -245,6 +245,19 @@ object SimpleFeatureWriteSupport {
   private class StructuralJsonWriter(name: String, index: Int, schema: GroupType)
       extends AttributeWriter[String](name, index) {
 
+    override def apply(consumer: RecordConsumer, value: String): Unit = {
+      if (value != null) {
+        val element = JsonParser.parseString(value)
+        // need to guard against json null here before calling startField
+        if (!element.isJsonNull) {
+          consumer.startField(name, index)
+          StructuralJsonWriter.writeValue(consumer, schema, element)
+          consumer.endField(name, index)
+        }
+      }
+    }
+
+    // note: not used due to override of apply, but included for completeness
     override def writeFields(consumer: RecordConsumer, value: String): Unit = {
       val element = JsonParser.parseString(value)
       if (!element.isJsonNull) {

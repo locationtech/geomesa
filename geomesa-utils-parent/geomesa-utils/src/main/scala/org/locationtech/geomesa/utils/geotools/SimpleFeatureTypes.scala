@@ -309,7 +309,7 @@ object SimpleFeatureTypes {
     }
   }
 
-  def encodeUserData(key: AnyRef, value: AnyRef): String = s"$key='${StringEscapeUtils.escapeJava(value.toString)}'"
+  def encodeUserData(key: AnyRef, value: AnyRef): String = s"""$key="${StringEscapeUtils.escapeJava(value.toString)}""""
 
   def toConfig(sft: SimpleFeatureType, includeUserData: Boolean = true, includePrefix: Boolean = true): Config =
     SimpleFeatureSpecConfig.toConfig(sft, includeUserData, includePrefix)

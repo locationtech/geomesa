@@ -115,6 +115,10 @@ To specify an attribute as a structural types, use ``json=true`` along with the 
 
 The top-level element in the Avro schema must be a record, array or map type.
 
+.. warning::
+
+    Any values that do not match the structural type schema will not be persisted.
+
 .. _fsds_file_size_config:
 
 Configuring Target File Size
