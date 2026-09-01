@@ -1,25 +1,9 @@
-.. _geomesa_site_xml:
+.. _runtime_configuration:
 
 Runtime Configuration
 =====================
 
-GeoMesa uses system properties for various runtime configuration options. As a convenience, properties
-can be specified in an XML file instead of the command line. When run, GeoMesa will load
-the file ``geomesa-site.xml`` from the classpath (if available), and use any properties configured there.
-
-Ensure the file is available at the root level of the classpath. In the GeoMesa command-line tools,
-place it in the ``conf`` folder. For GeoServer, place it under ``geoserver/WEB-INF/classes``.
-
-Each tools distribution contains a template file at ``conf/geomesa-site.xml.template`` that can be used
-as a starting point. Do not modify this file directly as it is never read;
-instead copy the desired configurations into ``geomesa-site.xml``.
-
-By default, system properties set through command line parameters will take precedence over the
-configuration file. If you wish a configuration item to always take precedence, even over command
-line parameters, change the ``<final>`` tag to true.
-
-Configuration properties with empty values will not be applied, you can change this by marking a
-property as final.
+GeoMesa uses system properties for various runtime configuration options, which are described here.
 
 Common Properties
 -----------------

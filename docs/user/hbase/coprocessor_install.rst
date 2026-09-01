@@ -59,15 +59,6 @@ Alternatively, it may be set in the ``geomesa-env.sh`` script:
 
     export CUSTOM_JAVA_OPTS="${JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=hdfs://path/to/geomesa-runtime.jar"
 
-A third option is to use the ``geomesa-site.xml`` configuration file:
-
-.. code-block:: xml
-
-    <property>
-        <name>geomesa.hbase.coprocessor.path</name>
-        <value>hdfs://path/to/geomesa-runtime.jar</value>
-    </property>
-
 Register Per-Table Through the HBase Shell
 ------------------------------------------
 

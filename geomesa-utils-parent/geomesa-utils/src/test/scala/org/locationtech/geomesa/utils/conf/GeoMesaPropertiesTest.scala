@@ -25,15 +25,11 @@ class GeoMesaPropertiesTest extends Specification with LazyLogging {
   val TEST_PROP_2 = "test.system.properties.2"
   val TEST_PROP_3 = "test.system.properties.3"
   val TEST_PROP_4 = "test.system.properties.4"
-  val REAL_PROP = "geomesa.stats.compact.interval"
   val REAL_PROP_VAL = "1 hour"
 
   def testProp1 = SystemProperty(TEST_PROP_1)
   def testProp2 = SystemProperty(TEST_PROP_2, "default")
   def testProp4 = SystemProperty(TEST_PROP_4, "10s")
-
-  // This is loaded from embedded config
-  def realProp = SystemProperty(REAL_PROP)
 
   "props" should {
     "contain system properties" in {
@@ -55,10 +51,6 @@ class GeoMesaPropertiesTest extends Specification with LazyLogging {
       testProp2.option must beEqualTo(Option("test"))
       System.clearProperty(testProp2.property)
       testProp2.get must beEqualTo("default")
-
-      realProp.default must beNull
-      realProp.get must beEqualTo(REAL_PROP_VAL)
-      realProp.option must beEqualTo(Option(REAL_PROP_VAL))
     }
     "parse durations" in {
       foreach(Seq("5 SECONDS", "5 seconds")) { prop =>

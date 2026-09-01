@@ -4,7 +4,7 @@ Redis Data Store Configuration
 ==============================
 
 This section details Redis-specific configuration properties. For general properties,
-see :ref:`geomesa_site_xml`.
+see :ref:`runtime_configuration`.
 
 geomesa.redis.age.off.interval
 ++++++++++++++++++++++++++++++

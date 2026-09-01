@@ -269,6 +269,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <!-- this module uses JUnit 5 (Jupiter), which requires the surefire-junit-platform
+                     provider. Elsewhere in the build surefire auto-detects the JUnit 4 provider
+                     for specs2 (which reports its example names correctly under JUnit 4); here we
+                     configure the platform provider explicitly since only JUnit 5 is on the classpath. -->
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.maven.surefire</groupId>
