@@ -19,6 +19,7 @@ import static org.locationtech.geomesa.trino.datastore.TrinoTypeSignature.isRowO
 import static org.locationtech.geomesa.trino.datastore.TrinoTypeSignature.isStructural;
 import static org.locationtech.geomesa.trino.datastore.TrinoTypeSignature.mapKeyValue;
 import static org.locationtech.geomesa.trino.datastore.TrinoTypeSignature.normalize;
+import static org.locationtech.geomesa.trino.datastore.TrinoTypeSignature.rowFields;
 import static org.locationtech.geomesa.trino.datastore.TrinoTypeSignature.scalarBinding;
 
 /**
@@ -151,5 +152,59 @@ class TrinoTypeSignatureTest {
         // However the split lands, a row side is not scalar, so the column goes to JSON.
         assertThat(scalarBinding("row(\"a)b\" int)")).isNull();
         assertThat(scalarBinding(arrayElement("array(row(\"weird(name\" int))"))).isNull();
+    }
+
+    // ---- row fields ----
+
+    @Test
+    void rowFieldsSplitsNameFromType() {
+        assertThat(rowFields("row(realm varchar, selector varchar)"))
+            .extracting(TrinoTypeSignature.Field::name).containsExactly("realm", "selector");
+        assertThat(rowFields("row(realm varchar, selector varchar)"))
+            .extracting(TrinoTypeSignature.Field::type).containsExactly("varchar", "varchar");
+    }
+
+    /** A trino type may contain spaces, so the name is the first token, never the last split. */
+    @Test
+    void rowFieldsKeepsAMultiWordType() {
+        assertThat(rowFields("row(first_observed timestamp(6) with time zone)"))
+            .containsExactly(new TrinoTypeSignature.Field("first_observed", "timestamp(6) with time zone"));
+        assertThat(rowFields("row(t timestamp with time zone)"))
+            .containsExactly(new TrinoTypeSignature.Field("t", "timestamp with time zone"));
+    }
+
+    /** Commas inside a nested type are not field separators. */
+    @Test
+    void rowFieldsSplitsOnlyTopLevelCommas() {
+        assertThat(rowFields("row(a map(varchar, varchar), b array(row(c varchar, d varchar)), e integer)"))
+            .extracting(TrinoTypeSignature.Field::name).containsExactly("a", "b", "e");
+    }
+
+    @Test
+    void rowFieldsUnquotesIdentifiers() {
+        assertThat(rowFields("row(\"valueType\" varchar)"))
+            .containsExactly(new TrinoTypeSignature.Field("valueType", "varchar"));
+        // a doubled quote escapes one inside the identifier
+        assertThat(rowFields("row(\"a\"\"b\" varchar)"))
+            .containsExactly(new TrinoTypeSignature.Field("a\"b", "varchar"));
+        // a comma inside an identifier is not a separator
+        assertThat(rowFields("row(\"a,b\" varchar, c integer)"))
+            .extracting(TrinoTypeSignature.Field::name).containsExactly("a,b", "c");
+    }
+
+    @Test
+    void rowFieldsRejectsWhatItCannotName() {
+        assertThat(rowFields("row(varchar, integer)")).isNull();     // anonymous
+        assertThat(rowFields("row()")).isNull();                     // empty
+        assertThat(rowFields("array(varchar)")).isNull();            // not a row
+        assertThat(rowFields("row(\"unterminated varchar)")).isNull();
+    }
+
+    /** The keyword matches case-insensitively so callers can parse the raw signature, which is
+     *  the only form that preserves the case of a quoted field name. */
+    @Test
+    void rowFieldsAcceptsAnUppercasedKeyword() {
+        assertThat(rowFields("ROW(realm varchar)"))
+            .containsExactly(new TrinoTypeSignature.Field("realm", "varchar"));
     }
 }

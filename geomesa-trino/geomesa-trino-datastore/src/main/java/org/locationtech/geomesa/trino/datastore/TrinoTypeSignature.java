@@ -8,7 +8,9 @@
 
 package org.locationtech.geomesa.trino.datastore;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -50,6 +52,61 @@ final class TrinoTypeSignature {
             return null;
         }
         return new String[] { args.substring(0, comma), args.substring(comma + 1) };
+    }
+
+    /** One field of a {@code row(...)} signature: its declared name and its raw type text. */
+    record Field(String name, String type) {}
+
+    /**
+     * The fields of {@code row(...)}, or null when {@code t} is not a row, is empty, or has any
+     * field this cannot name.
+     *
+     * <p>The name is the leading token and the type is everything after it. Splitting on the
+     * <em>last</em> space would be wrong: a Trino type may itself contain spaces, so
+     * {@code first_observed timestamp(6) with time zone} would yield a field named
+     * {@code first_observed timestamp(6) with time} of type {@code zone}.
+     *
+     * <p>Trino also permits anonymous fields ({@code row(varchar, integer)}). Those are rejected
+     * rather than given a positional name, because the caller addresses fields by name and an
+     * invented one would silently match nothing.
+     *
+     * <p>Callers that care about the case of quoted identifiers must pass the raw signature:
+     * {@link #normalize} lower-cases field names along with everything else.
+     */
+    static List<Field> rowFields(String t) {
+        String args = argsOf(t, "row");
+        if (args == null || args.isEmpty()) {
+            return null;
+        }
+        List<Field> fields = new ArrayList<>();
+        for (String arg : splitTopLevel(args)) {
+            String s = arg.trim();
+            if (s.isEmpty()) {
+                return null;
+            }
+            String name;
+            String type;
+            if (s.charAt(0) == '"') {
+                int end = closingQuote(s);
+                if (end < 0) {
+                    return null;                    // unterminated identifier
+                }
+                name = s.substring(1, end).replace("\"\"", "\"");
+                type = s.substring(end + 1).trim();
+            } else {
+                int space = firstWhitespace(s);
+                if (space < 0) {
+                    return null;                    // anonymous field
+                }
+                name = s.substring(0, space);
+                type = s.substring(space + 1).trim();
+            }
+            if (name.isEmpty() || type.isEmpty()) {
+                return null;
+            }
+            fields.add(new Field(name, type));
+        }
+        return fields;
     }
 
     /** Whether {@code t} is a structural type with no flat GeoTools equivalent. */
@@ -98,7 +155,10 @@ final class TrinoTypeSignature {
     /** The argument list of {@code <kind>(...)}, or null when {@code t} is not that kind. */
     private static String argsOf(String t, String kind) {
         String prefix = kind + "(";
-        if (!t.startsWith(prefix) || !t.endsWith(")")) {
+        // the keyword is matched case-insensitively so that callers needing the raw signature -
+        // any that surface field names - are not forced through normalize(), which would
+        // lower-case those names too
+        if (!t.regionMatches(true, 0, prefix, 0, prefix.length()) || !t.endsWith(")")) {
             return null;                            // includes unterminated input
         }
         return t.substring(prefix.length(), t.length() - 1).trim();
@@ -119,6 +179,54 @@ final class TrinoTypeSignature {
             else if (c == '(') depth++;
             else if (c == ')') depth--;
             else if (c == ',' && depth == 0) return i;
+        }
+        return -1;
+    }
+
+    /** Splits on every top-level comma, with the same paren and quote rules as
+     *  {@link #topLevelComma}. */
+    private static List<String> splitTopLevel(String s) {
+        List<String> out = new ArrayList<>();
+        int depth = 0;
+        int start = 0;
+        boolean inQuotes = false;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '"') inQuotes = !inQuotes;
+            else if (inQuotes) continue;
+            else if (c == '(') depth++;
+            else if (c == ')') depth--;
+            else if (c == ',' && depth == 0) {
+                out.add(s.substring(start, i));
+                start = i + 1;
+            }
+        }
+        out.add(s.substring(start));
+        return out;
+    }
+
+    /** Index of the quote closing the identifier starting at index 0, skipping the doubled
+     *  quotes that escape one within it. -1 when unterminated. */
+    private static int closingQuote(String s) {
+        int i = 1;
+        while (i < s.length()) {
+            if (s.charAt(i) == '"') {
+                if (i + 1 < s.length() && s.charAt(i + 1) == '"') {
+                    i += 2;                         // escaped quote, keep going
+                    continue;
+                }
+                return i;
+            }
+            i++;
+        }
+        return -1;
+    }
+
+    private static int firstWhitespace(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isWhitespace(s.charAt(i))) {
+                return i;
+            }
         }
         return -1;
     }
