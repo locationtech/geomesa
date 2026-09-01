@@ -163,7 +163,7 @@ object SimpleFeatureSpec {
     if (simpleOptionPattern.matcher(value).matches()) {
       s":$key=$value"
     } else {
-      s":$key='${StringEscapeUtils.escapeJava(value)}'"
+      s""":$key="${StringEscapeUtils.escapeJava(value)}""""
     }
   }
 

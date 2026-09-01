@@ -115,6 +115,7 @@ object SimpleFeatureTypes {
     val OptIndex        = "index"
     val OptIndexValue   = "index-value"
     val OptJson         = "json"
+    val OptJsonSchema   = "json-schema"
     val OptPrecision    = "precision"
     val OptSrid         = "srid"
     val OptStats        = "keep-stats"
@@ -148,6 +149,7 @@ object SimpleFeatureTypes {
     Seq(
       _.getUserData.get(AttributeOptions.OptIndexValue),
       _.getUserData.get(AttributeOptions.OptJson),
+      _.getUserData.get(AttributeOptions.OptJsonSchema),
       _.getUserData.get(AttributeOptions.OptPrecision),
       _.getUserData.get(AttributeOptions.OptColumnGroups),
     )
@@ -307,7 +309,7 @@ object SimpleFeatureTypes {
     }
   }
 
-  def encodeUserData(key: AnyRef, value: AnyRef): String = s"$key='${StringEscapeUtils.escapeJava(value.toString)}'"
+  def encodeUserData(key: AnyRef, value: AnyRef): String = s"""$key="${StringEscapeUtils.escapeJava(value.toString)}""""
 
   def toConfig(sft: SimpleFeatureType, includeUserData: Boolean = true, includePrefix: Boolean = true): Config =
     SimpleFeatureSpecConfig.toConfig(sft, includeUserData, includePrefix)

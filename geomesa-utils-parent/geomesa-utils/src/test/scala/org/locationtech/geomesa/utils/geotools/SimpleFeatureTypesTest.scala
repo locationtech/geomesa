@@ -61,14 +61,14 @@ class SimpleFeatureTypesTest extends Specification {
       }
       "encode an sft properly with geomesa user data" >> {
         val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
-        encoded mustEqual "id:Integer,dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true'"
+        encoded mustEqual "id:Integer,dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg=\"dtg\",geomesa.table.sharing=\"true\""
       }
       "encode an sft properly with specified user data" >> {
         import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
         sft.setUserDataPrefixes(Seq("hello"))
         val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
         encoded mustEqual "id:Integer,dtg:Date,*geom:Point:srid=4326;" +
-          "geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.user-data.prefix='hello',hello='goodbye'"
+          """geomesa.index.dtg="dtg",geomesa.table.sharing="true",geomesa.user-data.prefix="hello",hello="goodbye""""
       }
       "encode an sft and preserve spaces in user data" >> {
         val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.foo='1 day'")
@@ -76,6 +76,22 @@ class SimpleFeatureTypesTest extends Specification {
         val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
         SimpleFeatureTypes.createType("test", encoded).getUserData.get("geomesa.foo") mustEqual "1 day"
       }
+    }
+
+    "round trip user data with quotes" >> {
+      val string = """my it's "hot" outside"""
+      val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
+      sft.getUserData.put("geomesa.foo", string)
+      val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+      SimpleFeatureTypes.createType("test", encoded).getUserData.get("geomesa.foo") mustEqual string
+    }
+
+    "round trip attribute user data with quotes" >> {
+      val string = """my it's "hot" outside"""
+      val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
+      sft.getDescriptor("name").getUserData.put("temp", string)
+      val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+      SimpleFeatureTypes.createType("test", encoded).getDescriptor("name").getUserData.get("temp") mustEqual string
     }
 
     "create an empty type" >> {

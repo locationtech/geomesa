@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.core
 
+import com.google.gson.JsonParser
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.parquet.hadoop.ParquetFileReader
@@ -32,6 +33,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.security.{AuthsParam, DefaultAuthorizationsProvider, SecurityUtils, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.MatchResult
@@ -331,6 +333,154 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
             }
           } finally {
             Files.delete(tmpFile)
+          }
+        }
+      }
+    }
+
+    "read and write structural json features" in {
+      val avro =
+        """{
+          |  "type": "record",
+          |  "name": "props",
+          |  "fields": [
+          |    { "name": "name", "type": ["null", "string"], "default": null },
+          |    { "name": "age", "type": "int" },
+          |    { "name": "tags", "type": { "type": "array", "items": "string" } },
+          |    { "name": "scores", "type": { "type": "map", "values": "long" } },
+          |    { "name": "nested", "type": ["null", {
+          |        "type": "record",
+          |        "name": "nested",
+          |        "fields": [ { "name": "flag", "type": "boolean" } ]
+          |    }], "default": null }
+          |  ]
+          |}""".stripMargin
+
+      val sft = SimpleFeatureTypes.createType("json-test", "props:String:json=true,dtg:Date,*geom:Point:srid=4326")
+      sft.getDescriptor("props").getUserData.put(AttributeOptions.OptJsonSchema, avro)
+
+      val jsonValues = Seq(
+        """{"name":"alice","age":30,"tags":["a","b"],"scores":{"x":1,"y":2},"nested":{"flag":true}}""",
+        // omitted optional fields (name, nested), empty array and map
+        """{"age":7,"tags":[],"scores":{}}""",
+        // explicit nulls for optional fields
+        """{"name":null,"age":99,"tags":["z"],"scores":{"k":42},"nested":null}""",
+        """{"name":"dave","age":11,"tags":["p","q","r"],"scores":{"a":10},"nested":{"flag":false}}""",
+        null // null json value -> null attribute
+      )
+
+      val features = jsonValues.zipWithIndex.map { case (json, i) =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute("props", json)
+        sf.setAttribute("dtg", f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute("geom", s"POINT(4$i 5$i)")
+        sf
+      }
+
+      // structural round-trip drops explicit nulls for optional fields, so normalize the expected json
+      def normalize(json: String): String = {
+        if (json == null) { null } else {
+          val tree = JsonParser.parseString(json).getAsJsonObject
+          val nullKeys = tree.entrySet().asScala.collect { case e if e.getValue.isJsonNull => e.getKey }.toSeq
+          nullKeys.foreach(tree.remove)
+          tree.toString
+        }
+      }
+
+      WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, schemes)) { storage =>
+          storage must not(beNull)
+
+          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
+          features.foreach { f =>
+            val partition = Partition(storage.schemes.map(_.getPartition(f)))
+            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+            writer.write(f)
+          }
+          writers.foreach(_._2.close())
+
+          val query = new Query(sft.getTypeName, Filter.INCLUDE)
+          val result = CloseableIterator(storage.getReader(query, 1)).map(ScalaSimpleFeature.copy).toList
+          result must haveSize(features.size)
+          val byId = result.map(f => f.getID -> f).toMap
+          foreach(features) { expected =>
+            val actual = byId.get(expected.getID)
+            actual must beSome
+            val expectedJson = expected.getAttribute("props").asInstanceOf[String]
+            val actualJson = actual.get.getAttribute("props").asInstanceOf[String]
+            if (expectedJson == null) {
+              actualJson must beNull
+            } else {
+              // compare parsed trees so key ordering / whitespace don't matter
+              JsonParser.parseString(actualJson) mustEqual JsonParser.parseString(normalize(expectedJson))
+            }
+          }
+        }
+      }
+    }
+
+    "read and write structural json with a top-level array of records" in {
+      val avro =
+        """{
+          |  "type": "array",
+          |  "items": {
+          |    "type": "record",
+          |    "name": "item",
+          |    "fields": [
+          |      { "name": "id", "type": "int" },
+          |      { "name": "label", "type": ["null", "string"], "default": null }
+          |    ]
+          |  }
+          |}""".stripMargin
+
+      val sft = SimpleFeatureTypes.createType("json-array-test", "props:String:json=true,dtg:Date,*geom:Point:srid=4326")
+      sft.getDescriptor("props").getUserData.put(AttributeOptions.OptJsonSchema, avro)
+
+      val jsonValues = Seq(
+        """[{"id":1,"label":"a"},{"id":2,"label":"b"}]""",
+        "[]", // empty array
+        // omitted optional field on the record
+        """[{"id":42}]""",
+        null // null json value -> null attribute
+      )
+
+      val features = jsonValues.zipWithIndex.map { case (json, i) =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute("props", json)
+        sf.setAttribute("dtg", f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute("geom", s"POINT(4$i 5$i)")
+        sf
+      }
+
+      WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, schemes)) { storage =>
+          storage must not(beNull)
+
+          val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
+          features.foreach { f =>
+            val partition = Partition(storage.schemes.map(_.getPartition(f)))
+            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+            writer.write(f)
+          }
+          writers.foreach(_._2.close())
+
+          val query = new Query(sft.getTypeName, Filter.INCLUDE)
+          val result = CloseableIterator(storage.getReader(query, 1)).map(ScalaSimpleFeature.copy).toList
+          result must haveSize(features.size)
+          val byId = result.map(f => f.getID -> f).toMap
+          foreach(features) { expected =>
+            val actual = byId.get(expected.getID)
+            actual must beSome
+            val expectedJson = expected.getAttribute("props").asInstanceOf[String]
+            val actualJson = actual.get.getAttribute("props").asInstanceOf[String]
+            if (expectedJson == null) {
+              actualJson must beNull
+            } else {
+              // compare parsed trees so key ordering / whitespace don't matter
+              JsonParser.parseString(actualJson) mustEqual JsonParser.parseString(expectedJson)
+            }
           }
         }
       }

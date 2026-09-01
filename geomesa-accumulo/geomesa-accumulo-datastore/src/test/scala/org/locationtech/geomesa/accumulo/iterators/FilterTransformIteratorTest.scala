@@ -39,7 +39,7 @@ class FilterTransformIteratorTest extends Specification {
       // expected values taken from a 1.3 install
       config.getOptions.asScala mustEqual
           Map(
-            "sft"   -> "name:String,dtg:Date,*geom:LineString:srid=4326;geomesa.index.dtg='dtg'",
+            "sft"   -> "name:String,dtg:Date,*geom:LineString:srid=4326;geomesa.index.dtg=\"dtg\"",
             "index" -> "xz3:1",
             "cql"   -> "dtg DURING 2020-01-01T00:00:00+00:00/2020-01-01T01:00:00+00:00"
           )

@@ -56,7 +56,7 @@ class SchemaBuilderTest extends Specification {
           .disableIdIndex() // disables the ID index
           .spec
       spec mustEqual
-        "name:String:index='attr:dtg',age:Int:index=true,dtg:Date,*geom:Point:srid=4326:index='z3:dtg,z2';id.index.enabled='false'"
+        """name:String:index="attr:dtg",age:Int:index=true,dtg:Date,*geom:Point:srid=4326:index="z3:dtg,z2";id.index.enabled="false""""
     }
 
     // Example of fold...also can do more complex things like zipping to automatically build SFTs

@@ -110,6 +110,35 @@ class TrinoTypeMapperGeoMesaSpecTest {
         assertThat(d.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON, "true");
     }
 
+    /**
+     * The shape is declared alongside {@code json=true} and survives the spec round-trip, which
+     * is the point of deriving it here: an SFT discovered from Trino can be written back out
+     * through a store that supports structural fields without losing its nesting.
+     *
+     * <p>The spec encoder quotes and escapes any value that is not a simple token, so the JSON
+     * needs no special handling to survive - but nothing else pins that, so this does.
+     */
+    @Test
+    void aStructuralColumnDeclaresItsShapeAndTheSchemaSurvivesTheSpec() {
+        SimpleFeatureType in = sftOf("identifiers", Types.ARRAY,
+                "array(row(realm varchar, selector varchar))");
+        String schema = (String) in.getDescriptor("identifiers").getUserData()
+                .get(TrinoTypeMapper.OPT_JSON_SCHEMA);
+        assertThat(schema).isNotNull().contains("\"realm\"").contains("\"selector\"");
+
+        AttributeDescriptor out = roundTrip(in).getDescriptor("identifiers");
+        assertThat(out.getUserData()).containsEntry(TrinoTypeMapper.OPT_JSON_SCHEMA, schema);
+    }
+
+    /** A column whose shape cannot be derived is left exactly as it was before: json, no schema. */
+    @Test
+    void aVariantColumnDeclaresNoShape() {
+        SimpleFeatureType in = sftOf("v", Types.JAVA_OBJECT, "variant");
+        assertThat(in.getDescriptor("v").getUserData())
+                .containsEntry(TrinoTypeMapper.OPT_JSON, "true")
+                .doesNotContainKey(TrinoTypeMapper.OPT_JSON_SCHEMA);
+    }
+
     /** The remaining opaque fallback is a supported GeoMesa binding too (Bytes). */
     @Test
     void opaqueFallbackAlsoRoundTrips() {

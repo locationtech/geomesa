@@ -9,12 +9,14 @@
 
 package org.locationtech.geomesa.fs.storage.core.parquet.io
 
+import com.google.gson._
 import org.apache.hadoop.conf.Configuration
 import org.apache.parquet.conf.ParquetConfiguration
 import org.apache.parquet.hadoop.api.ReadSupport.ReadContext
 import org.apache.parquet.hadoop.api.{InitContext, ReadSupport}
 import org.apache.parquet.io.api._
-import org.apache.parquet.schema.{GroupType, MessageType}
+import org.apache.parquet.schema.LogicalTypeAnnotation._
+import org.apache.parquet.schema.{GroupType, MessageType, PrimitiveType, Type}
 import org.apache.parquet.variant.{ImmutableMetadata, Variant, VariantBuilder, VariantConverters}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -25,6 +27,7 @@ import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParq
 import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 
@@ -113,21 +116,34 @@ object SimpleFeatureReadSupport {
       builder += idConverter
       builder += visConverter
       var i = 0
-      var offset = 2 // 0 is fid, 1 is vis
+      var fieldOffset = 2 // 0 is fid, 1 is vis
       while (i < schema.sft.getAttributeCount) {
-        val types = ObjectType.selectType(schema.sft.getDescriptor(i))
-        val materializer = attribute(types, offset)
+        val descriptor = schema.sft.getDescriptor(i)
+        val types = ObjectType.selectType(descriptor)
+        val materializer =
+          if (types.head == ObjectType.GEOMETRY) {
+            geometry(types.last)
+          } else if (types.last == ObjectType.JSON) {
+            val groupType = schema.messageType.getType(fieldOffset).asGroupType()
+            if (descriptor.getJsonSchema().isDefined) {
+              new StructuralJsonConverter(groupType)
+            } else {
+              new VariantConverter(groupType)
+            }
+          } else {
+            attribute(types)
+          }
         builder += materializer
         attributes(i) = materializer
         // note: zValues are excluded from our read schema, they're only used for partitioning
         // note: bboxes have to be present for filtering, but we don't do anything with them on read
-        if (types.head == ObjectType.GEOMETRY && offset + 1 < schema.messageType.getFieldCount &&
-            schema.messageType.getFields.get(offset + 1).getName.startsWith(SimpleFeatureSchema.InternalFieldDelimiter)) {
+        if (types.head == ObjectType.GEOMETRY && fieldOffset + 1 < schema.messageType.getFieldCount &&
+            schema.messageType.getFields.get(fieldOffset + 1).getName.startsWith(SimpleFeatureSchema.InternalFieldDelimiter)) {
           builder += new BoundingBoxConverter()
-          offset += 1
+          fieldOffset += 1
         }
         i += 1
-        offset += 1
+        fieldOffset += 1
       }
       builder.result()
     }
@@ -154,29 +170,20 @@ object SimpleFeatureReadSupport {
 
     def fieldCount: Int = converters.length
 
-    private def attribute(bindings: Seq[ObjectType], i: Int): ValueMaterializer[_ <: AnyRef] = {
+    private def attribute(bindings: Seq[ObjectType]): ValueMaterializer[_ <: AnyRef] = {
       bindings.head match {
-        case ObjectType.GEOMETRY => geometry(bindings.last)
         case ObjectType.DATE     => new DateMicrosConverter()
-        case ObjectType.STRING   => string(bindings.last, i)
+        case ObjectType.STRING   => new StringConverter()
         case ObjectType.INT      => new IntConverter()
         case ObjectType.DOUBLE   => new DoubleConverter()
         case ObjectType.LONG     => new LongConverter()
         case ObjectType.FLOAT    => new FloatConverter()
         case ObjectType.BOOLEAN  => new BooleanConverter()
         case ObjectType.BYTES    => new BytesConverter()
-        case ObjectType.LIST     => new ListConverter(attribute(bindings.drop(1), -1))
-        case ObjectType.MAP      => new MapConverter(attribute(bindings.slice(1, 2), -1), attribute(bindings.slice(2, 3), -1))
+        case ObjectType.LIST     => new ListConverter(attribute(bindings.drop(1)))
+        case ObjectType.MAP      => new MapConverter(attribute(bindings.slice(1, 2)), attribute(bindings.slice(2, 3)))
         case ObjectType.UUID     => new UuidConverter()
         case _ => throw new IllegalArgumentException(s"Can't deserialize field of type ${bindings.head}")
-      }
-    }
-
-    private def string(binding: ObjectType, i: Int): ValueMaterializer[String] = {
-      if (binding == ObjectType.JSON) {
-        new VariantConverter(schema.messageType.getType(i).asGroupType())
-      } else {
-        new StringConverter()
       }
     }
 
@@ -226,7 +233,7 @@ object SimpleFeatureReadSupport {
     override def addBinary(value: Binary): Unit = this.value = value
   }
 
-  class VariantConverter(schema: GroupType)
+  private class VariantConverter(schema: GroupType)
       extends GroupConverter with VariantConverters.ParentConverter[VariantBuilder] with ValueMaterializer[String] {
 
     private var builder: VariantBuilder = _
@@ -375,6 +382,155 @@ object SimpleFeatureReadSupport {
     override def end(): Unit = {}
     override def reset(): Unit = map = null
     override def materialize(): java.util.Map[AnyRef, AnyRef] = map
+  }
+
+  /**
+   * Converter for a structural-JSON attribute. Builds a gson tree from the nested parquet group and
+   * serializes it back to a compact JSON string, so the value round-trips as a JSON attribute.
+   */
+  private class StructuralJsonConverter(schema: GroupType)
+      extends GroupConverter with ValueMaterializer[String] {
+
+    private val delegate: GroupConverter with JsonElementConverter = jsonGroupConverter(schema)
+
+    override def getConverter(fieldIndex: Int): Converter = delegate.getConverter(fieldIndex)
+    override def start(): Unit = delegate.start()
+    override def end(): Unit = delegate.end()
+    override def reset(): Unit = delegate.reset()
+    override def materialize(): String = if (delegate.isSet) { StructuralJson.compact(delegate.element()) } else { null }
+  }
+
+  /**
+   * A converter that builds up a single gson [[JsonElement]] as its parquet fields are read.
+   * `isSet` distinguishes an absent (never-visited) optional field from one that was present.
+   */
+  private trait JsonElementConverter extends Converter {
+    def reset(): Unit
+    def isSet: Boolean
+    def element(): JsonElement
+  }
+
+  private def jsonGroupConverter(tpe: GroupType): GroupConverter with JsonElementConverter = {
+    tpe.getLogicalTypeAnnotation match {
+      case _: ListLogicalTypeAnnotation => new JsonListConverter(tpe)
+      case _: MapLogicalTypeAnnotation  => new JsonMapConverter(tpe)
+      case _                            => new JsonRecordConverter(tpe)
+    }
+  }
+
+  private def jsonConverter(tpe: Type): Converter with JsonElementConverter =
+    if (tpe.isPrimitive) { new PrimitiveJsonConverter(tpe.asPrimitiveType()) } else { jsonGroupConverter(tpe.asGroupType()) }
+
+  private class JsonRecordConverter(schema: GroupType) extends GroupConverter with JsonElementConverter {
+    private val count = schema.getFieldCount
+    private val names = Array.tabulate(count)(i => schema.getFieldName(i))
+    private val converters = Array.tabulate(count)(i => jsonConverter(schema.getType(i)))
+    private var obj: JsonObject = _
+    private var set = false
+
+    override def getConverter(fieldIndex: Int): Converter = converters(fieldIndex)
+    override def start(): Unit = {
+      set = true
+      obj = new JsonObject()
+      converters.foreach(_.reset())
+    }
+    override def end(): Unit = {
+      var i = 0
+      while (i < count) {
+        if (converters(i).isSet) {
+          obj.add(names(i), converters(i).element())
+        }
+        i += 1
+      }
+    }
+    override def reset(): Unit = { set = false; obj = null }
+    override def isSet: Boolean = set
+    override def element(): JsonElement = obj
+  }
+
+  private class JsonListConverter(schema: GroupType) extends GroupConverter with JsonElementConverter {
+    // standard 3-level list: group (LIST) { repeated group list { <element> } }
+    private val elementConverter = jsonConverter(schema.getType(0).asGroupType().getType(0))
+    private var array: JsonArray = _
+    private var set = false
+
+    private val repeated: GroupConverter = new GroupConverter {
+      override def getConverter(fieldIndex: Int): Converter = elementConverter
+      override def start(): Unit = elementConverter.reset()
+      override def end(): Unit = array.add(if (elementConverter.isSet) { elementConverter.element() } else { JsonNull.INSTANCE })
+    }
+
+    override def getConverter(fieldIndex: Int): Converter = repeated
+    override def start(): Unit = { set = true; array = new JsonArray() }
+    override def end(): Unit = {}
+    override def reset(): Unit = { set = false; array = null }
+    override def isSet: Boolean = set
+    override def element(): JsonElement = array
+  }
+
+  private class JsonMapConverter(schema: GroupType) extends GroupConverter with JsonElementConverter {
+    // standard map: group (MAP) { repeated group key_value { required <key>; <value> } }
+    private val keyValue = schema.getType(0).asGroupType()
+    private val keyConverter = jsonConverter(keyValue.getType(0))
+    private val valueConverter = jsonConverter(keyValue.getType(1))
+    private var obj: JsonObject = _
+    private var set = false
+
+    private val entry: GroupConverter = new GroupConverter {
+      override def getConverter(fieldIndex: Int): Converter = if (fieldIndex == 0) { keyConverter } else { valueConverter }
+      override def start(): Unit = { keyConverter.reset(); valueConverter.reset() }
+      override def end(): Unit = {
+        val key = keyConverter.element() match {
+          case p: JsonPrimitive => p.getAsString
+          case e => e.toString
+        }
+        obj.add(key, if (valueConverter.isSet) { valueConverter.element() } else { JsonNull.INSTANCE })
+      }
+    }
+
+    override def getConverter(fieldIndex: Int): Converter = entry
+    override def start(): Unit = { set = true; obj = new JsonObject() }
+    override def end(): Unit = {}
+    override def reset(): Unit = { set = false; obj = null }
+    override def isSet: Boolean = set
+    override def element(): JsonElement = obj
+  }
+
+  private class PrimitiveJsonConverter(schema: PrimitiveType) extends PrimitiveConverter with JsonElementConverter {
+    private val annotation = Option(schema.getLogicalTypeAnnotation)
+    private var value: JsonElement = _
+
+    override def isSet: Boolean = value != null
+    override def reset(): Unit = value = null
+    override def element(): JsonElement = value
+
+    override def addBoolean(v: Boolean): Unit = value = new JsonPrimitive(Boolean.box(v))
+    override def addFloat(v: Float): Unit = value = new JsonPrimitive(Float.box(v))
+    override def addDouble(v: Double): Unit = value = new JsonPrimitive(Double.box(v))
+
+    override def addInt(v: Int): Unit = value = annotation match {
+      case Some(_: DateLogicalTypeAnnotation) => new JsonPrimitive(StructuralJson.dateToJson(v.toLong))
+      case Some(t: TimeLogicalTypeAnnotation) => new JsonPrimitive(StructuralJson.timeToJson(v.toLong, t.getUnit))
+      case Some(d: DecimalLogicalTypeAnnotation) => new JsonPrimitive(BigDecimal(BigInt(v), d.getScale).bigDecimal)
+      case _ => new JsonPrimitive(Int.box(v))
+    }
+
+    override def addLong(v: Long): Unit = value = annotation match {
+      case Some(t: TimestampLogicalTypeAnnotation) => new JsonPrimitive(StructuralJson.timestampToJson(v, t.getUnit, t.isAdjustedToUTC))
+      case Some(t: TimeLogicalTypeAnnotation) => new JsonPrimitive(StructuralJson.timeToJson(v, t.getUnit))
+      case Some(d: DecimalLogicalTypeAnnotation) => new JsonPrimitive(BigDecimal(BigInt(v), d.getScale).bigDecimal)
+      case _ => new JsonPrimitive(Long.box(v))
+    }
+
+    override def addBinary(v: Binary): Unit = value = annotation match {
+      case Some(_: StringLogicalTypeAnnotation) => new JsonPrimitive(v.toStringUsingUTF8)
+      case Some(_: EnumLogicalTypeAnnotation) => new JsonPrimitive(v.toStringUsingUTF8)
+      case Some(d: DecimalLogicalTypeAnnotation) => new JsonPrimitive(BigDecimal(BigInt(v.getBytes), d.getScale).bigDecimal)
+      case Some(_: UUIDLogicalTypeAnnotation) =>
+        val bb = v.toByteBuffer
+        new JsonPrimitive(new UUID(bb.getLong, bb.getLong).toString)
+      case _ => new JsonPrimitive(StructuralJson.bytesToJson(v.getBytes))
+    }
   }
 
   private class PointConverter extends GroupConverter with ValueMaterializer[Point] {

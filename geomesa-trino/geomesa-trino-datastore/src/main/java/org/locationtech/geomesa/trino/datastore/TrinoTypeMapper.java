@@ -27,12 +27,14 @@ class TrinoTypeMapper {
     /** GeoMesa attribute-option keys. Mirrors {@code SimpleFeatureTypes.AttributeOptions}:
      *  {@code List} attribute declares its element type under {@code subtype},
      *  {@code Map} declares its key and value types under {@code keyclass}/{@code valueclass},
-     *  {@code String} holding JSON sets {@code json=true}
+     *  {@code String} holding JSON sets {@code json=true}, and declares its shape under
+     *  {@code json-schema} when one can be derived from the Trino type signature
      */
     static final String OPT_SUBTYPE     = "subtype";
     static final String OPT_KEY_CLASS   = "keyclass";
     static final String OPT_VALUE_CLASS = "valueclass";
     static final String OPT_JSON        = "json";
+    static final String OPT_JSON_SCHEMA = "json-schema";
 
     /**
      * Columns hidden from the GeoTools schema: the spatial extension's
@@ -139,7 +141,7 @@ class TrinoTypeMapper {
                 b.userData(OPT_SUBTYPE, binding.getName());
                 return b.buildDescriptor(name);
             }
-            return jsonDescriptor(b, name);            // array of row/array/map
+            return jsonDescriptor(b, name, typeName);  // array of row/array/map
         }
 
         String[] kv = TrinoTypeSignature.mapKeyValue(t);
@@ -152,11 +154,11 @@ class TrinoTypeMapper {
                 b.userData(OPT_VALUE_CLASS, value.getName());
                 return b.buildDescriptor(name);
             }
-            return jsonDescriptor(b, name);            // map with a structural side
+            return jsonDescriptor(b, name, typeName);  // map with a structural side
         }
 
         if (TrinoTypeSignature.isRowOrVariant(t)) {
-            return jsonDescriptor(b, name);
+            return jsonDescriptor(b, name, typeName);
         }
 
         // Unrecognized type fallback.
@@ -166,10 +168,20 @@ class TrinoTypeMapper {
         return b.buildDescriptor(name);
     }
 
-    /** A String attribute flagged {@code json=true}; the reader renders the value as JSON. */
-    private static AttributeDescriptor jsonDescriptor(AttributeTypeBuilder b, String name) {
+    /**
+     * A String attribute flagged {@code json=true}; the reader renders the value as JSON.
+     *
+     * <p>When the shape can be derived from the type signature it is also declared under
+     * {@code json-schema}, so that a schema discovered here survives being written back out
+     * through a store that supports structural fields. {@code typeName} is passed raw:
+     * {@link TrinoTypeSignature#normalize} would lower-case quoted field names, and the JSON
+     * keys matched against them are case-sensitive.
+     */
+    private static AttributeDescriptor jsonDescriptor(AttributeTypeBuilder b, String name,
+                                                      String typeName) {
         b.setBinding(String.class);
         b.userData(OPT_JSON, "true");
+        TrinoAvroSchema.of(name, typeName).ifPresent(schema -> b.userData(OPT_JSON_SCHEMA, schema));
         return b.buildDescriptor(name);
     }
 }
