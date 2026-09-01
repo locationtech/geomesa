@@ -61,14 +61,14 @@ Provided Query Guards
 
 GeoMesa provides some basic query guards that will block overly broad queries (which can overwhelm the system).
 For additional controls, see ``geomesa.query.timeout`` and ``geomesa.scan.block-full-table`` in
-:ref:`geomesa_site_xml`.
+:ref:`runtime_configuration`.
 
 Full Table Scan Query Guard
 +++++++++++++++++++++++++++
 
 The full table scan query guard will block queries which would cause a full table scan to be performed.
 The query guard will be loaded in all environments. Alternatively, one can use the ``geomesa.scan.block-full-table``
-system property to disable full table scans per environment (see :ref:`geomesa_site_xml`).
+system property to disable full table scans per environment (see :ref:`runtime_configuration`).
 
 Just like the ``geomesa.scan.block-full-table`` property, this guard respects the ``geomesa.scan.block-full-table.threshold``
 system property.  This allows for preview queries which can be helpful to show a system is working.

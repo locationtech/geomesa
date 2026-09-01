@@ -4,7 +4,7 @@ Accumulo Configuration
 ======================
 
 This section details Accumulo specific configuration properties. For general properties,
-see :ref:`geomesa_site_xml`.
+see :ref:`runtime_configuration`.
 
 General Properties
 ------------------

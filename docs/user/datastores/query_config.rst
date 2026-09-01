@@ -222,7 +222,7 @@ planning can be used, based on data statistics gathered during ingestion. ``Stat
 Accumulo and Redis data stores - for other stores, heuristic-based planning will always be used.
 
 Query planning can also be controlled through the system property ``geomesa.query.cost.type``. See
-:ref:`geomesa_site_xml` for details. If both a query hint and a system property are set, the query hint will
+:ref:`runtime_configuration` for details. If both a query hint and a system property are set, the query hint will
 take precedence.
 
 ========================== ================== ======================

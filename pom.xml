@@ -525,13 +525,6 @@
             <groupId>ch.qos.reload4j</groupId>
             <artifactId>reload4j</artifactId>
         </dependency>
-        <!-- JUnit Platform engine supporting JUnit 4 / specs2 (@RunWith JUnitRunner) specs,
-             replacing the surefire-junit47 provider. -->
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -2524,12 +2517,6 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.junit.vintage</groupId>
-                <artifactId>junit-vintage-engine</artifactId>
-                <version>${junit.jupiter.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj.version}</version>
@@ -2880,18 +2867,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.plugin.version}</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.apache.maven.surefire</groupId>
-                            <artifactId>surefire-junit-platform</artifactId>
-                            <version>${maven.surefire.plugin.version}</version>
-                        </dependency>
-                    </dependencies>
                     <configuration>
                         <forkCount>${test.fork.count}</forkCount><!-- note: <parallel> doesn't work with specs2 -->
                         <reuseForks>true</reuseForks>
                         <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
-                        <rerunFailingTestsCount>0</rerunFailingTestsCount> <!-- disabled because it doesn't work correctly with specs2 -->
+                        <rerunFailingTestsCount>1</rerunFailingTestsCount>
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <includes>
                             <include>${test.includes}</include>

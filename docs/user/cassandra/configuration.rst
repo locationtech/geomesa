@@ -2,7 +2,7 @@ Cassandra Configuration
 =======================
 
 This section details Cassandra-specific configuration properties. For general properties,
-see :ref:`geomesa_site_xml`.
+see :ref:`runtime_configuration`.
 
 Connection Properties
 ---------------------

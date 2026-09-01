@@ -39,7 +39,7 @@ class LocalFileHandleTest extends Specification {
         buffer
       }
 
-      val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("geomesa-fake.xml")) { in =>
+      val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("fakejars/notjar.txt")) { in =>
         IOUtils.toByteArray(in)
       }
 

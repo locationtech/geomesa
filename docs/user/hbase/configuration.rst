@@ -4,7 +4,7 @@ HBase Configuration
 ===================
 
 This section details HBase specific configuration properties. For general properties,
-see :ref:`geomesa_site_xml`.
+see :ref:`runtime_configuration`.
 
 geomesa.hbase.client.scanner.caching.size
 +++++++++++++++++++++++++++++++++++++++++
