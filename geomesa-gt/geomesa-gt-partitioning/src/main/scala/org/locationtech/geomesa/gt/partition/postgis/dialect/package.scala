@@ -506,14 +506,6 @@ package object dialect {
       dropStatements(info).foreach(ex.execute)
 
     /**
-     * The create sql defined by this class - exposed for testing
-     *
-     * @param info type info
-     * @return
-     */
-    private[dialect] def statements(info: TypeInfo): Seq[String] = createStatements(info)
-
-    /**
      * The sql defined by this class
      *
      * @param info type info
@@ -699,6 +691,5 @@ package object dialect {
         ex.execute(unlock)
       }
     }
-
   }
 }

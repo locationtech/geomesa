@@ -44,7 +44,7 @@ class SessionDataSource(delegate: DataSource, provider: AuthorizationsProvider) 
     try {
       val auths = provider.getAuthorizations.asScala.sorted.mkString(",")
       // current_setting('geomesa.auths', true)
-      WithClose(cx.prepareStatement(s"SELECT set_config('${SessionDataSource.AuthConfigName}', ?, false)")) { st =>
+      WithClose(cx.prepareStatement(SessionDataSource.SetSessionSql)) { st =>
         st.setString(1, auths)
         st.executeQuery().close()
       }
@@ -87,5 +87,8 @@ class SessionDataSource(delegate: DataSource, provider: AuthorizationsProvider) 
 }
 
 object SessionDataSource {
+
   val AuthConfigName = "geomesa.auths"
+
+  private val SetSessionSql = s"SELECT set_config('$AuthConfigName', ?, false)"
 }

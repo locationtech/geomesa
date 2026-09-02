@@ -16,16 +16,15 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.auths.SessionDataSo
  */
 object MainView extends SqlStatements {
 
+  import SessionDataSource.AuthConfigName
+
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     // if visibilities are enabled, filter each branch by evaluating the hidden '_vis' column against the
     // caller's authorizations, stamped into the 'geomesa.auths' session variable by SessionDataSource.
     // the auths array is built in an uncorrelated sub-select so that it's evaluated once per query (as an
     // init plan) rather than re-running current_setting/string_to_array for every row
-    val filter = info.cols.vis match {
-      case None => ""
-      case Some(vis) =>
-        s" WHERE pg_vis(${vis.quoted}, (SELECT string_to_array(current_setting('${SessionDataSource.AuthConfigName}', true), ',')))"
-    }
+    val filter =
+      info.cols.vis.fold("")(vis => s" WHERE pg_vis(${vis.quoted}, (SELECT string_to_array(current_setting('$AuthConfigName', true), ',')))")
     Seq(
       s"""CREATE OR REPLACE VIEW ${info.tables.view.name.qualified} AS
          |  SELECT * FROM ${info.tables.writeAhead.name.qualified}$filter UNION ALL

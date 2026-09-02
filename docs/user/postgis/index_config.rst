@@ -99,7 +99,7 @@ The partitioned PostGIS store supports per-row visibility labels, which can be u
 users can see which records. See :ref:`data_security` for an overview of visibility labels and
 authorizations.
 
-.. info::
+.. note::
 
   Visibility filtering is disabled by default.
 

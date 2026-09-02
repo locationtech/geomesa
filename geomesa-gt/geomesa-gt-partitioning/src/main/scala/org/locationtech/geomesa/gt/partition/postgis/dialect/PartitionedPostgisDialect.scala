@@ -479,8 +479,7 @@ object PartitionedPostgisDialect extends StrictLogging {
     val QueryInterceptors: SftUserData[Option[String]] = SftUserData(SimpleFeatureTypes.Configs.QueryInterceptors, mutable = true, None)
     // set postgres table wal logging
     val WalLogEnabled: SftUserData[Boolean] = SftUserData("pg.wal.enabled", mutable = false, default = true)
-    // enable per-row visibility enforcement via a hidden '_vis' column - consulted only at create schema time,
-    // as the presence of the physical column is the source of truth thereafter
+    // enable per-row visibility enforcement via a hidden '_vis' column
     val VisEnabled: SftUserData[Boolean] = SftUserData("pg.vis.enabled", mutable = false, default = false)
     // unique alias to use for identifiers so that we don't exceed the max postgres identifier length
     val IdentAlias: SftUserData[Option[String]] = SftUserData("pg.ident.alias", mutable = false, None)

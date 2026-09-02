@@ -286,16 +286,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         }
 
         runQueries()
-//        // features 3 and 7 have no visibility - visible to everyone
-//        val nullVis = Seq("fid3", "fid7")
-//        // admin auths: null-vis + those requiring only 'admin' (0, 4, 8), not the 'user&admin' rows
-//        ids(Some("admin")).toSet mustEqual (nullVis ++ Seq("fid0", "fid4", "fid8")).toSet
-//        // user auths: null-vis + those requiring only 'user' (1, 5, 9)
-//        ids(Some("user")).toSet mustEqual (nullVis ++ Seq("fid1", "fid5", "fid9")).toSet
-//        // both auths: everything, since 'user&admin' rows (2, 6) are now satisfied too
-//        ids(Some("user,admin")).toSet mustEqual features.map(_.getID).toSet
-//        // no auths: only the null-vis rows
-//        ids(None).toSet mustEqual nullVis.toSet
 
         // verify vis still work through maintenance scripts
         val typeInfo = TypeInfo(this.schema, sft)
