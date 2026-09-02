@@ -22,6 +22,8 @@ Parameter                               Type     Description
                                                  format after a statement has been server-prepared, so one-shot queries are always decoded as the slower text format. Set to
                                                  ``-1`` to force the binary format on the first execution. Leave unset to use the pgjdbc default. See the
                                                  `pgjdbc documentation <https://jdbc.postgresql.org/documentation/use/>`__ for more information.
+``geomesa.security.auths``              String   Comma-delimited superset of authorizations that will be used for queries. See :ref:`reading_vis_labels` for details
+``geomesa.security.auth-provider``      String   Class name for an ``AuthorizationsProvider`` implementation
 ``geomesa.metrics.registry``            String   Specify the type of registry used to publish metrics. Must be one of ``none``,
                                                  ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.
 ``geomesa.metrics.registry.config``     String   Override the default registry config. See :ref:`geomesa_metrics` for configuration details.

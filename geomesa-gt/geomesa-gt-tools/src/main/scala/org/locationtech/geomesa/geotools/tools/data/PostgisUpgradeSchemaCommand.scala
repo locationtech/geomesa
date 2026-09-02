@@ -11,10 +11,11 @@ package org.locationtech.geomesa.geotools.tools.data
 import com.beust.jcommander.Parameters
 import org.geotools.api.data.Transaction
 import org.geotools.data.postgis.PostGISPSDialect
-import org.geotools.jdbc.{JDBCDataStore, JDBCDataStoreFactory}
+import org.geotools.jdbc.JDBCDataStoreFactory
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.GeoToolsDataStoreParams
 import org.locationtech.geomesa.geotools.tools.data.PostgisUpgradeSchemaCommand.PostgisUpgradeSchemaParams
+import org.locationtech.geomesa.gt.partition.postgis.PartitionedPostgisDataStore
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -27,7 +28,7 @@ class PostgisUpgradeSchemaCommand extends GeoToolsDataStoreCommand {
 
   override val name: String = "partition-upgrade"
 
-  override def execute(): Unit = withDataStore { case ds: JDBCDataStore =>
+  override def execute(): Unit = withDataStore { case ds: PartitionedPostgisDataStore =>
     Command.user.info(s"Running upgrade on schema: ${params.featureName}")
     val sft = ds.getSchema(params.featureName)
     WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>

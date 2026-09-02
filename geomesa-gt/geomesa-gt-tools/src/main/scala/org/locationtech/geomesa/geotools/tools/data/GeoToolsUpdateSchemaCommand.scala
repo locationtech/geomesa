@@ -12,10 +12,10 @@ import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.geotools.api.data.DataStore
 import org.geotools.data.DefaultTransaction
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.jdbc.JDBCDataStore
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.GeoToolsDataStoreParams
 import org.locationtech.geomesa.geotools.tools.data.GeoToolsUpdateSchemaCommand.GeoToolsUpdateSchemaParams
+import org.locationtech.geomesa.gt.partition.postgis.PartitionedPostgisDataStore
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 import org.locationtech.geomesa.tools.utils.{NoopParameterSplitter, Prompt}
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, OptionalForceParam, RequiredTypeNameParam}
@@ -71,17 +71,11 @@ class GeoToolsUpdateSchemaCommand extends DataStoreCommand[DataStore] with GeoTo
     if (params.force || Prompt.confirm("Continue (y/n)? ")) {
       Command.user.info("Updating, please wait...")
       ds match {
-        case jdbc: JDBCDataStore =>
-          // update schema is not implemented for JDBC stores
-          val partitioning =
-            Option(jdbc.dialect).collect {
-              case d: PartitionedPostgisDialect => d
-              case d: PartitionedPostgisPsDialect => d
-            }
-
-          val dialect = partitioning.getOrElse {
-            throw new RuntimeException(
-              "JDBCDataStore does not support schema updates unless using 'dbtype=postgis-partitioned'")
+        case jdbc: PartitionedPostgisDataStore =>
+          val dialect = jdbc.dialect match {
+            case d: PartitionedPostgisDialect => d
+            case d: PartitionedPostgisPsDialect => d
+            case _ => throw new RuntimeException(s"Unexpected dialect: ${jdbc.dialect}")
           }
 
           WithClose(new DefaultTransaction()) { tx =>

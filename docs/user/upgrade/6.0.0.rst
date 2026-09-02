@@ -35,6 +35,14 @@ When creating attribute indices, the default secondary index will now be a date-
 (e.g. ``attr:foo:dtg`` instead of ``attr:foo:geom:dtg``). The old behavior can still be achieved by configuring secondary
 attributes - see :ref:`specifying_indices` for details.
 
+Partitioned PostGIS Data Store Class Change
+-------------------------------------------
+
+In order to support visibilities, the partitioned PostGIS data store is no longer an instance of ``JDBCDataStore``. This
+prevents GeoServer from providing SQL views and SQL virtual tables against the store. It may also affect any code that checks
+runtime instance types. If necessary, the underlying data store can be accessed by checking for
+``org.geotools.data.store.DecoratingDataStore`` and using the ``isWrapperFor`` / ``unwrap`` methods.
+
 Removal of ``geomesa-site.xml``
 -------------------------------
 

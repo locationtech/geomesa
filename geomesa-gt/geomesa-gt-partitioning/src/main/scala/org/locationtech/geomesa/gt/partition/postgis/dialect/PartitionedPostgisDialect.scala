@@ -20,7 +20,7 @@ import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, getIndexedColumns}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
-import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, TruncateToPartition, TruncateToTenMinutes}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, PgVis, TruncateToPartition, TruncateToTenMinutes}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTrigger, InsertTrigger, UpdateTrigger, WriteAheadTrigger}
@@ -126,12 +126,12 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     creating.set(tableName)
   }
 
-  override def postCreateTable(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit = {
+  override def postCreateTable(schemaName: String, original: SimpleFeatureType, cx: Connection): Unit = {
 
     // note: we skip the call to `super`, which creates a spatial index (that we don't want), and which
     // alters the geometry column types (which we handle in the create statement)
 
-    val sftWithUserData = SimpleFeatureTypes.copy(sft)
+    val sft = SimpleFeatureTypes.copy(original)
 
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
@@ -153,7 +153,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
             s"Sequence ${PartitionedPostgisDialect.SftSeqName} has exceeded maximum supported value of 65535 unique feature types")
         }
         val id = sft.getTypeName.substring(0, 26) + f"_$nextVal%04x" // 4-character hex-encoded padded string
-        sftWithUserData.getUserData.put(SftUserData.IdentAlias.key, id)
+        sft.getUserData.put(SftUserData.IdentAlias.key, id)
       }
       // get the first column as the fid col, which may or may not be called 'fid'
       Option(creating.get()).foreach { tableName =>
@@ -161,12 +161,12 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
           if (cols.next()) {
             val name = cols.getString("COLUMN_NAME")
             if (name != null) {
-              sftWithUserData.getUserData.put(SftUserData.FidColumn.key, name)
+              sft.getUserData.put(SftUserData.FidColumn.key, name)
             }
           }
         }
       }
-      val info = TypeInfo(schemaName, sftWithUserData)
+      val info = TypeInfo(schemaName, sft)
       PartitionedPostgisDialect.Commands.foreach(_.create(info))
       if (grants.nonEmpty) {
         val roles = grants.map(_.quoted).mkString(", ")
@@ -397,6 +397,9 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
 
 object PartitionedPostgisDialect extends StrictLogging {
 
+  // name of the hidden physical column used to store per-row visibility labels
+  val VisCol: String = "_vis"
+
   private val SftSeqName = "geomesa_sft_seq"
 
   private val IgnoredTables = Seq("pg_stat_statements", "pg_stat_statements_info")
@@ -422,6 +425,7 @@ object PartitionedPostgisDialect extends StrictLogging {
     WriteAheadTable,
     WriteAheadTrigger,
     PartitionTables,
+    PgVis, // must be created before the main view, which references it
     MainView,
     InsertTrigger,
     UpdateTrigger,
@@ -439,7 +443,7 @@ object PartitionedPostgisDialect extends StrictLogging {
     PartitionMaintenance,
     AnalyzePartitions,
     CompactPartitions,
-    LogCleaner
+    LogCleaner,
   )
 
   /**
@@ -475,6 +479,9 @@ object PartitionedPostgisDialect extends StrictLogging {
     val QueryInterceptors: SftUserData[Option[String]] = SftUserData(SimpleFeatureTypes.Configs.QueryInterceptors, mutable = true, None)
     // set postgres table wal logging
     val WalLogEnabled: SftUserData[Boolean] = SftUserData("pg.wal.enabled", mutable = false, default = true)
+    // enable per-row visibility enforcement via a hidden '_vis' column - consulted only at create schema time,
+    // as the presence of the physical column is the source of truth thereafter
+    val VisEnabled: SftUserData[Boolean] = SftUserData("pg.vis.enabled", mutable = false, default = false)
     // unique alias to use for identifiers so that we don't exceed the max postgres identifier length
     val IdentAlias: SftUserData[Option[String]] = SftUserData("pg.ident.alias", mutable = false, None)
     // unique alias to use for identifiers so that we don't exceed the max postgres identifier length

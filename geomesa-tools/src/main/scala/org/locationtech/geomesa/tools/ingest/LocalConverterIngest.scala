@@ -95,7 +95,7 @@ class LocalConverterIngest(
   private val converters = CloseablePool(SimpleFeatureConverter(sft, converterConfig), threads)
   private val writers = {
     def factory: FeatureWriter[SimpleFeatureType, SimpleFeature] =
-      if (threads > 1 && ds.getClass.getSimpleName.equals("JDBCDataStore")) {
+      if (threads > 1 && Seq("JDBCDataStore", "PartitionedPostgisDataStore").contains(ds.getClass.getSimpleName)) {
         // creates a new data store for each writer to avoid synchronized blocks in JDBCDataStore.
         // the synchronization is to allow for generated fids from the database.
         // generally, this shouldn't be an issue since we use provided fids,

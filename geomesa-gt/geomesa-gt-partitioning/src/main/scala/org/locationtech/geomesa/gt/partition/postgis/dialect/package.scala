@@ -306,6 +306,7 @@ package object dialect {
    * @param geom primary geometry column
    * @param geoms all geometry cols (including primary)
    * @param indexed any indexed columns
+   * @param vis hidden visibility column, if present
    * @param all all columns
    */
   case class Columns(
@@ -314,6 +315,7 @@ package object dialect {
       geom: ColumnName,
       geoms: Seq[ColumnName],
       indexed: Seq[ColumnName],
+      vis: Option[ColumnName],
       all: Seq[ColumnName]
     )
 
@@ -346,8 +348,11 @@ package object dialect {
           }
 
       val indices = sft.getAttributeDescriptors.asScala.collect { case d if indexed(d) => ColumnName(d) }
+      val vis = sft.getAttributeDescriptors.asScala.collectFirst {
+        case d if d.getLocalName == PartitionedPostgisDialect.VisCol => ColumnName(d)
+      }
       val all = sft.getAttributeDescriptors.asScala.map(ColumnName.apply)
-      Columns(fid, dtg, geom, geoms.toSeq, indices.toSeq, all.toSeq)
+      Columns(fid, dtg, geom, geoms.toSeq, indices.toSeq, vis, all.toSeq)
     }
   }
 
@@ -499,6 +504,14 @@ package object dialect {
 
     override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
       dropStatements(info).foreach(ex.execute)
+
+    /**
+     * The create sql defined by this class - exposed for testing
+     *
+     * @param info type info
+     * @return
+     */
+    private[dialect] def statements(info: TypeInfo): Seq[String] = createStatements(info)
 
     /**
      * The sql defined by this class

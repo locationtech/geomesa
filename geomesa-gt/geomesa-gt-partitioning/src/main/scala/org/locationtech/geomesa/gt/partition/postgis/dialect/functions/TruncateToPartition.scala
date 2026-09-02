@@ -26,7 +26,7 @@ class TruncateToPartition extends SqlStatements {
          |    SELECT date_trunc('day', dtg) +
          |      (hours * INTERVAL '1 HOUR' * floor(date_part('hour', dtg) / hours));
          |  $$BODY$$
-         |LANGUAGE sql;""".stripMargin
+         |LANGUAGE sql IMMUTABLE PARALLEL SAFE;""".stripMargin
     )
   }
 

@@ -92,6 +92,36 @@ After the schema has been created, changes to the age-off can be made through th
 :ref:`postgis_cli_update_schema` command, or by directly updating the ``geomesa_userdata`` table in Postgres.
 Changes will take effect within the next 10 minutes.
 
+Configuring Visibility Filtering
+--------------------------------
+
+The partitioned PostGIS store supports per-row visibility labels, which can be used to govern which
+users can see which records. See :ref:`data_security` for an overview of visibility labels and
+authorizations.
+
+.. info::
+
+  Visibility filtering is disabled by default.
+
+When enabled, a hidden ``_vis`` column is added to the partition tables to store each row's visibility label, and the main
+view filters rows based on the caller's authorizations. The hidden column is not exposed through the feature type, so it does not
+affect the schema seen by clients.
+
+Visibility filtering can be enabled at schema-creation time by setting the key ``pg.vis.enabled`` to
+``true``. If not enabled, no ``_vis`` column is added and no filtering is performed.
+
+.. code-block:: java
+
+    SimpleFeatureType sft = ....;
+    sft.getUserData().put("pg.vis.enabled", "true");
+
+Visibility filtering cannot be changed after the schema has been created.
+
+.. warning::
+
+    Visibility filtering is configured at the application level. Any user able to query the underlying database directly will
+    be able to read all rows.
+
 .. _postgis_filter_world:
 
 Configuring Filter Optimizations

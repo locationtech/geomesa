@@ -11,13 +11,12 @@ package org.locationtech.geomesa.geotools.tools.data
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.SimpleFeature
-import org.geotools.jdbc.JDBCDataStore
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.gt.partition.postgis.PartitionedPostgisDataStoreParams
 import org.locationtech.geomesa.gt.partition.postgis.dialect.TypeInfo
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.{PartitionedPostgisDataStore, PartitionedPostgisDataStoreParams}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -88,7 +87,7 @@ class GeoToolsUpdateSchemaCommandTest extends Specification with BeforeAfterAll 
 
   "GeoToolsUpdateSchemaCommand" should {
     "support schema updates" in {
-      WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { case ds: JDBCDataStore =>
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava)) { case ds: PartitionedPostgisDataStore =>
         ds must not(beNull)
         ds.getSchema(sft.getTypeName) must throwAn[Exception]
         ds.createSchema(sft)

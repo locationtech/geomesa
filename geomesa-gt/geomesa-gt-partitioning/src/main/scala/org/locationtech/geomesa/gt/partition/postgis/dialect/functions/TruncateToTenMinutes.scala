@@ -25,7 +25,7 @@ class TruncateToTenMinutes extends SqlStatements {
          |  $$BODY$$
          |    SELECT date_trunc('hour', dtg) + INTERVAL '10 MINUTES' * floor(date_part('minute', dtg) / 10);
          |  $$BODY$$
-         |LANGUAGE sql;""".stripMargin
+         |LANGUAGE sql IMMUTABLE PARALLEL SAFE;""".stripMargin
     )
   }
 
