@@ -209,10 +209,13 @@ object PartitionedPostgisDataStore {
    * @return same query, with updated property transform
    */
   private def addVisToTransform(query: Query): Query = {
-    if (!query.retrieveAllProperties()) {
-      query.setPropertyNames(query.getPropertyNames :+ PartitionedPostgisDialect.VisCol: _*)
+    if (query.retrieveAllProperties()) {
+      query
+    } else {
+      val updated = new Query(query)
+      updated.setPropertyNames(query.getPropertyNames :+ PartitionedPostgisDialect.VisCol: _*)
+      updated
     }
-    query
   }
 
   /**
