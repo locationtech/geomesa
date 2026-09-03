@@ -130,7 +130,7 @@ case class FileSystemStorage(
 
     val configured = QueryRunner.configureQuery(sft, query)
     val filter = Option(configured.getFilter).getOrElse(Filter.INCLUDE)
-    val icebergFilter = IcebergFilterConverter(sft, schemes, filter)
+    val icebergFilter = IcebergFilterConverter(schema, schemes, filter)
     val visFilter = VisibilityUtils.visible(authProvider)
     val transform = configured.getHints.getTransform
     val includeFids = configured.getHints.isIncludeFid
@@ -233,7 +233,7 @@ case class FileSystemStorage(
      *
      * @return
      */
-    def files(): FluentScan = FileScan(table, sft, schemes)
+    def files(): FluentScan = FileScan(table, schema, schemes)
 
     /**
      * Gets all partitions in this storage instance

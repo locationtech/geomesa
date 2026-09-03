@@ -10,10 +10,9 @@ package org.locationtech.geomesa.fs.storage.core.utils
 
 import org.apache.iceberg.expressions.Expressions
 import org.apache.iceberg.{DataFile, Table, TableScan}
-import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.storage.core.Partition
-import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergFilterConverter
+import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, SimpleFeatureIcebergSchema}
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionScheme
 import org.locationtech.geomesa.utils.io.WithClose
 
@@ -59,7 +58,7 @@ object FileScan {
   trait FilterScan[T <: FileScan] extends FileScan {
 
     protected def tableScan: TableScan
-    protected def sft: SimpleFeatureType
+    protected def schema: SimpleFeatureIcebergSchema
     protected def schemes: Seq[PartitionScheme]
     protected def filterStep(scan: TableScan): T
 
@@ -70,7 +69,7 @@ object FileScan {
      * @return
      */
     def forFilter(filter: Filter): FileScan =
-      filterStep(tableScan.filter(IcebergFilterConverter(sft, schemes, filter).expression))
+      filterStep(tableScan.filter(IcebergFilterConverter(schema, schemes, filter).expression))
 
     /**
      * Filter results based on a partition
@@ -88,24 +87,24 @@ object FileScan {
    * Create a new fluent file scan builder
    *
    * @param table table
-   * @param sft simple feature type
+   * @param schema table schema
    * @param schemes partition schemes
    * @return
    */
-  def apply(table: Table, sft: SimpleFeatureType, schemes: Seq[PartitionScheme]): FluentScan =
-    new InitialScan(table.newScan().caseSensitive(false), sft, schemes)
+  def apply(table: Table, schema: SimpleFeatureIcebergSchema, schemes: Seq[PartitionScheme]): FluentScan =
+    new InitialScan(table.newScan().caseSensitive(false), schema, schemes)
 
   // fluent class implementations to enforce scan building steps
 
-  private class InitialScan(scan: TableScan, protected val sft: SimpleFeatureType, protected val schemes: Seq[PartitionScheme])
+  private class InitialScan(scan: TableScan, protected val schema: SimpleFeatureIcebergSchema, protected val schemes: Seq[PartitionScheme])
       extends FileScan(scan)
         with RetrieveMetadata[FilterScan[FileScan]]
         with FilterScan[RetrieveMetadata[FileScan]] {
-    override protected def metadataStep(scan: TableScan): FilterableScan = new FilterableScan(scan, sft, schemes)
+    override protected def metadataStep(scan: TableScan): FilterableScan = new FilterableScan(scan, schema, schemes)
     override protected def filterStep(scan: TableScan): OptionalMetadataScan = new OptionalMetadataScan(scan)
   }
 
-  private class FilterableScan(scan: TableScan, protected val sft: SimpleFeatureType, protected val schemes: Seq[PartitionScheme])
+  private class FilterableScan(scan: TableScan, protected val schema: SimpleFeatureIcebergSchema, protected val schemes: Seq[PartitionScheme])
       extends FileScan(scan) with FilterScan[FileScan] {
     override protected def filterStep(scan: TableScan): FileScan = new FileScan(scan)
   }

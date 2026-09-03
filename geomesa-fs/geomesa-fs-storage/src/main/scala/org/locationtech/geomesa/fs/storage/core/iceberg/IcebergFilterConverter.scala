@@ -15,6 +15,8 @@ import org.apache.iceberg.expressions._
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.features.kryo.json.JsonPathParser
+import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathAttribute
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.{FilterExtractingVisitor, IdExtractingVisitor}
 import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName, SimpleFeatureSchema}
@@ -25,17 +27,20 @@ import org.locationtech.jts.geom.Point
 
 import java.util.Date
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 object IcebergFilterConverter extends LazyLogging {
+
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   /**
    * Returns an iceberg expression and a residual GeoTools filter that isn't captured by the expression (if any)
    *
-   * @param sft simple feature type
+   * @param schema table schema
    * @param filter geotools filter
    * @return
    */
-  def apply(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], filter: Filter): ReadFilter = {
+  def apply(schema: SimpleFeatureIcebergSchema, schemes: Seq[PartitionScheme], filter: Filter): ReadFilter = {
     if (filter == Filter.INCLUDE) {
       ReadFilter(Expressions.alwaysTrue(), None, Set.empty)
     } else if (filter == Filter.EXCLUDE) {
@@ -43,11 +48,11 @@ object IcebergFilterConverter extends LazyLogging {
     } else {
       val fid = if (FilterHelper.hasIdFilter(filter)) { Seq(SimpleFeatureSchema.FeatureIdField) } else { Seq.empty }
       val names = (fid ++ FilterHelper.propertyNames(filter)).map(ColumnName.apply)
-      names.foldLeft(ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty))(reduce(sft, schemes))
+      names.foldLeft(ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty))(reduce(schema, schemes))
     }
   }
 
-  private def reduce(sft: SimpleFeatureType, schemes: Seq[PartitionScheme])(result: ReadFilter, name: ColumnName): ReadFilter = {
+  private def reduce(schema: SimpleFeatureIcebergSchema, schemes: Seq[PartitionScheme])(result: ReadFilter, name: ColumnName): ReadFilter = {
     val filter = result.remainder.orNull
     if (filter == null) {
       return result // no more filter to evaluate
@@ -56,18 +61,25 @@ object IcebergFilterConverter extends LazyLogging {
       if (name.column == SimpleFeatureSchema.FeatureIdField) {
         fid(result)
       } else {
-        val bindings = ObjectType.selectType(sft.getDescriptor(name.attribute))
-        bindings.head match {
-          // note: non-points use repeated values, which aren't supported in parquet predicates
-          case ObjectType.GEOMETRY => spatial(sft, schemes, name, filter)
-          case ObjectType.DATE     => attribute[Date](sft, name, filter, Some(dateToMicros))
-          case ObjectType.STRING   => attribute[String](sft, name, filter)
-          case ObjectType.INT      => attribute[Integer](sft, name, filter)
-          case ObjectType.LONG     => attribute[java.lang.Long](sft, name, filter)
-          case ObjectType.FLOAT    => attribute[java.lang.Float](sft, name, filter)
-          case ObjectType.DOUBLE   => attribute[java.lang.Double](sft, name, filter)
-          case ObjectType.BOOLEAN  => attribute[java.lang.Boolean](sft, name, filter)
-          case _ => ReadFilter(Expressions.alwaysTrue(), result.remainder, Set(name.column))
+        val descriptor = schema.sft.getDescriptor(name.attribute)
+        if (descriptor != null) {
+          val bindings = ObjectType.selectType(schema.sft.getDescriptor(name.attribute))
+          bindings.head match {
+            // note: non-points use repeated values, which aren't supported in parquet predicates
+            case ObjectType.GEOMETRY => spatial(schema.sft, schemes, name, filter)
+            case ObjectType.DATE     => attribute[Date](schema.sft, name, filter, Some(dateToMicros))
+            case ObjectType.STRING   => attribute[String](schema.sft, name, filter)
+            case ObjectType.INT      => attribute[Integer](schema.sft, name, filter)
+            case ObjectType.LONG     => attribute[java.lang.Long](schema.sft, name, filter)
+            case ObjectType.FLOAT    => attribute[java.lang.Float](schema.sft, name, filter)
+            case ObjectType.DOUBLE   => attribute[java.lang.Double](schema.sft, name, filter)
+            case ObjectType.BOOLEAN  => attribute[java.lang.Boolean](schema.sft, name, filter)
+            case _ => ReadFilter(Expressions.alwaysTrue(), result.remainder, Set(name.column))
+          }
+        } else if (name.attribute.startsWith("$")) {
+          jsonPath(schema, name.attribute, filter)
+        } else {
+          throw new IllegalArgumentException(s"Unknown attribute: ${name.attribute}")
         }
       }
     ReadFilter(Expressions.and(predicate.expression, result.expression), predicate.remainder, predicate.columns ++ result.columns)
@@ -169,6 +181,40 @@ object IcebergFilterConverter extends LazyLogging {
     val predicate = merge(filters)
     val remaining = if (bounds.precise) { nonAttribute } else { Some(filter) }
     ReadFilter(predicate, remaining, Set(name.column))
+  }
+
+  private def jsonPath(schema: SimpleFeatureIcebergSchema, pathString: String, filter: Filter): ReadFilter = {
+    val path = try { JsonPathParser.parse(pathString) } catch {
+      case NonFatal(e) => throw new IllegalArgumentException(s"Could not evaluate attribute as a JSON path: $pathString", e)
+    }
+    if (path.isEmpty) {
+      throw new IllegalArgumentException(s"Invalid JSON path - empty: $pathString")
+    }
+    val descriptor = path.head match {
+      case PathAttribute(name, _) =>
+        val descriptor = schema.sft.getDescriptor(name)
+        if (descriptor == null) {
+          throw new IllegalArgumentException(s"Invalid JSON path - does not point at an attribute: $pathString")
+        } else if (!classOf[String].isAssignableFrom(descriptor.getType.getBinding)) {
+          throw new IllegalArgumentException(
+            s"Invalid JSON path - points at an invalid attribute of type ${descriptor.getType.getBinding.getSimpleName}: $pathString")
+        } else if (!descriptor.isJson()) {
+          throw new IllegalArgumentException(s"Invalid JSON path - points at a non-JSON attribute: $pathString")
+        }
+        descriptor
+
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid JSON path - first element must point at an attribute: $pathString")
+    }
+    if (descriptor.getJsonSchema().isEmpty) {
+      // not a structural type
+      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty)
+    }
+    val fieldName = ColumnName.encode(descriptor.getLocalName)
+    val typed = schema.schema.findField(fieldName)
+
+    path.tail
+    ???
   }
 
   /**
