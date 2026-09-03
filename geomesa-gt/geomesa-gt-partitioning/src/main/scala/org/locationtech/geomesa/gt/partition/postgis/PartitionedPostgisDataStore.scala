@@ -26,7 +26,7 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.security.SecurityUtils
 
@@ -65,15 +65,15 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
           val underlying = delegate.getSchema(typeName)
           if (underlying == null) {
             null
-          } else if (underlying.indexOf(VisCol) == -1) {
-            SchemaWithoutVis(underlying)
           } else {
-            val builder = new SimpleFeatureTypeBuilder()
-            builder.init(underlying)
-            builder.remove(VisCol)
-            val userFacing = builder.buildFeatureType()
-            userFacing.getUserData.putAll(underlying.getUserData)
-            SchemaWithVis(userFacing)
+            val visCol = underlying.indexOf(VisCol)
+            if (visCol == -1) {
+              SchemaWithoutVis(underlying)
+            } else {
+              // verify vis is the last attribute, logic in other places depends on that
+              require(visCol == underlying.getAttributeCount - 1, s"Expected $VisCol to be last attribute, but it was not")
+              SchemaWithVis(removeVisFromSchema(underlying))
+            }
           }
         }
       })
@@ -85,31 +85,33 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
   def getDataSource: DataSource = delegate.getDataSource
 
   override def createSchema(featureType: SimpleFeatureType): Unit = {
-    val sft = if (!SftUserData.VisEnabled.get(featureType)) { featureType } else {
-      require(featureType.indexOf(VisCol) == -1, s"'$VisCol' is a reserved attribute name")
-      // add the _vis column into the underlying table
-      val builder = new SimpleFeatureTypeBuilder()
-      builder.init(featureType)
-      builder.nillable(true)
-      builder.add(PartitionedPostgisDialect.VisCol, classOf[String])
-      val result = builder.buildFeatureType()
-      result.getUserData.putAll(featureType.getUserData)
-      result
-    }
+    val sft = if (!SftUserData.VisEnabled.get(featureType)) { featureType } else { addVisToSchema(featureType) }
     delegate.createSchema(sft)
   }
 
-  override def getSchema(typeName: String): SimpleFeatureType = {
-    try { Option(schemas.get(typeName)).fold[SimpleFeatureType](null)(_.sft) } catch {
-      case e: CompletionException => throw e.getCause
-    }
-  }
+  override def getSchema(typeName: String): SimpleFeatureType =
+    Option(loadSchema(typeName)).fold[SimpleFeatureType](null)(_.sft)
 
   override def getSchema(name: Name): SimpleFeatureType = getSchema(name.getLocalPart)
 
+  override def updateSchema(typeName: Name, featureType: SimpleFeatureType): Unit =
+    updateSchema(typeName.getLocalPart, featureType)
+
+  override def updateSchema(typeName: String, featureType: SimpleFeatureType): Unit = {
+    super.updateSchema(typeName, featureType)
+    schemas.invalidate(typeName)
+  }
+
+  override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
+
+  override def removeSchema(typeName: String): Unit = {
+    delegate.removeSchema(typeName)
+    schemas.invalidate(typeName)
+  }
+
   override def getFeatureSource(typeName: String): SimpleFeatureSource = {
     val source = delegate.getFeatureSource(typeName)
-    schemas.get(typeName) match {
+    loadSchema(typeName) match {
       case _: SchemaWithoutVis => source
       case SchemaWithVis(userFacing) =>
         source match {
@@ -121,43 +123,97 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
 
   override def getFeatureSource(typeName: Name): SimpleFeatureSource = getFeatureSource(typeName.getLocalPart)
 
-  override def getFeatureReader(query: Query, transaction: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val reader = delegate.getFeatureReader(query, transaction)
-    schemas.get(query.getTypeName) match {
-      case _: SchemaWithoutVis => reader
-      case SchemaWithVis(userFacing) => new VisFeatureReader(reader, userFacing)
+  override def getFeatureReader(query: Query, tx: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] = {
+    loadSchema(query.getTypeName) match {
+      case _: SchemaWithoutVis => delegate.getFeatureReader(query, tx)
+      case _: SchemaWithVis => new VisFeatureReader(delegate.getFeatureReader(addVisToTransform(query), tx))
     }
   }
 
-  override def getFeatureWriter(
-      typeName: String,
-      filter: Filter,
-      transaction: Transaction): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
-    val writer = delegate.getFeatureWriter(typeName, filter, transaction)
-    schemas.get(typeName) match {
+  override def getFeatureWriter(typeName: String, filter: Filter, tx: Transaction): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
+    val writer = delegate.getFeatureWriter(typeName, filter, tx)
+    loadSchema(typeName) match {
       case _: SchemaWithoutVis => writer
       case SchemaWithVis(userFacing) => new VisFeatureWriter(writer, userFacing)
     }
   }
 
-  override def getFeatureWriter(typeName: String, transaction: Transaction): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
-    val writer = delegate.getFeatureWriter(typeName, transaction)
-    schemas.get(typeName) match {
+  override def getFeatureWriter(typeName: String, tx: Transaction): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
+    val writer = delegate.getFeatureWriter(typeName, tx)
+    loadSchema(typeName) match {
       case _: SchemaWithoutVis => writer
       case SchemaWithVis(userFacing) => new VisFeatureWriter(writer, userFacing)
     }
   }
 
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
-    val writer = delegate.getFeatureWriterAppend(typeName, transaction)
-    schemas.get(typeName) match {
+  override def getFeatureWriterAppend(typeName: String, tx: Transaction): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
+    val writer = delegate.getFeatureWriterAppend(typeName, tx)
+    loadSchema(typeName) match {
       case _: SchemaWithoutVis => writer
       case SchemaWithVis(userFacing) => new VisFeatureWriter(writer, userFacing)
+    }
+  }
+
+  /**
+   * Helper to re-route cache completion exceptions to the underlying cause
+   *
+   * @param typeName feature type name
+   * @return
+   */
+  private def loadSchema(typeName: String): SchemaType = {
+    try { schemas.get(typeName) } catch {
+      case e: CompletionException => throw e.getCause
     }
   }
 }
 
 object PartitionedPostgisDataStore {
+
+  /**
+   * Remove visibility from a schema, for user-facing types
+   *
+   * @param sft underlying feature type
+   * @return
+   */
+  private def removeVisFromSchema(sft: SimpleFeatureType): SimpleFeatureType = {
+    val builder = new SimpleFeatureTypeBuilder()
+    builder.init(sft)
+    builder.remove(PartitionedPostgisDialect.VisCol)
+    val result = builder.buildFeatureType()
+    result.getUserData.putAll(sft.getUserData)
+    result
+  }
+
+  /**
+   * Adds visibility to a schema, for underlying types
+   *
+   * @param sft user-facing feature type
+   * @return
+   */
+  private def addVisToSchema(sft: SimpleFeatureType): SimpleFeatureType = {
+    require(sft.indexOf(VisCol) == -1, s"'$VisCol' is a reserved attribute name")
+    // add the _vis column into the underlying table
+    val builder = new SimpleFeatureTypeBuilder()
+    builder.init(sft)
+    builder.nillable(true)
+    builder.add(PartitionedPostgisDialect.VisCol, classOf[String])
+    val result = builder.buildFeatureType()
+    result.getUserData.putAll(sft.getUserData)
+    result
+  }
+
+  /**
+   * Add the _vis col to any transforms so that it is always retrieved
+   *
+   * @param query query
+   * @return same query, with updated property transform
+   */
+  private def addVisToTransform(query: Query): Query = {
+    if (!query.retrieveAllProperties()) {
+      query.setPropertyNames(query.getPropertyNames :+ PartitionedPostgisDialect.VisCol: _*)
+    }
+    query
+  }
 
   /**
    * Project a user-facing feature onto the underlying schema, mapping the user-data visibility into `_vis`.
@@ -213,12 +269,30 @@ object PartitionedPostgisDataStore {
    * Feature reader that re-types features to the user schema, dropping `_vis` (but surfacing its
    * value into the feature's user data as the visibility)
    */
-  private class VisFeatureReader(delegate: FeatureReader[SimpleFeatureType, SimpleFeature], userFacingType: SimpleFeatureType)
+  private class VisFeatureReader(delegate: FeatureReader[SimpleFeatureType, SimpleFeature])
       extends FeatureReader[SimpleFeatureType, SimpleFeature] {
+    private lazy val userFacingType = removeVisFromSchema(delegate.getFeatureType)
     override def getFeatureType: SimpleFeatureType = userFacingType
     override def hasNext: Boolean = delegate.hasNext
     override def next(): SimpleFeature = toUserFacing(delegate.next(), userFacingType)
     override def close(): Unit = delegate.close()
+  }
+
+  /**
+   * Wraps a feature collection so its features are re-typed to the user schema, dropping `_vis`
+   */
+  private class VisFeatureCollection(delegate: SimpleFeatureCollection) extends DecoratingSimpleFeatureCollection(delegate) {
+
+    private lazy val userFacingType = removeVisFromSchema(delegate.getSchema)
+
+    override def getSchema: SimpleFeatureType = userFacingType
+
+    override def features(): SimpleFeatureIterator = new SimpleFeatureIterator {
+      private val iter = delegate.features()
+      override def hasNext: Boolean = iter.hasNext
+      override def next(): SimpleFeature = toUserFacing(iter.next(), userFacingType)
+      override def close(): Unit = iter.close()
+    }
   }
 
   /**
@@ -268,22 +342,6 @@ object PartitionedPostgisDataStore {
     override def remove(): Unit = delegate.remove()
 
     override def close(): Unit = delegate.close()
-  }
-
-  /**
-   * Wraps a feature collection so its features are re-typed to the user schema, dropping `_vis`
-   */
-  private class VisFeatureCollection(delegate: SimpleFeatureCollection, userFacingType: SimpleFeatureType)
-      extends DecoratingSimpleFeatureCollection(delegate) {
-
-    override def getSchema: SimpleFeatureType = userFacingType
-
-    override def features(): SimpleFeatureIterator = new SimpleFeatureIterator {
-      private val iter = delegate.features()
-      override def hasNext: Boolean = iter.hasNext
-      override def next(): SimpleFeature = toUserFacing(iter.next(), userFacingType)
-      override def close(): Unit = iter.close()
-    }
   }
 
   /**
@@ -337,7 +395,7 @@ object PartitionedPostgisDataStore {
       source.modifyFeatures(name, attributeValue, filter)
     override def modifyFeatures(names: Array[String], attributeValues: Array[AnyRef], filter: Filter): Unit =
       source.modifyFeatures(names, attributeValues, filter)
-    override def setTransaction(transaction: Transaction): Unit = source.setTransaction(transaction)
+    override def setTransaction(tx: Transaction): Unit = source.setTransaction(tx)
     override def getTransaction: Transaction = source.getTransaction
   }
 
@@ -349,11 +407,9 @@ object PartitionedPostgisDataStore {
       extends SimpleFeatureSource {
     override def getSchema: SimpleFeatureType = userFacingType
     override def getName: Name = userFacingType.getName
-    override def getFeatures: SimpleFeatureCollection = new VisFeatureCollection(source.getFeatures, userFacingType)
-    override def getFeatures(filter: Filter): SimpleFeatureCollection =
-      new VisFeatureCollection(source.getFeatures(filter), userFacingType)
-    override def getFeatures(query: Query): SimpleFeatureCollection =
-      new VisFeatureCollection(source.getFeatures(query), userFacingType)
+    override def getFeatures: SimpleFeatureCollection = new VisFeatureCollection(source.getFeatures)
+    override def getFeatures(filter: Filter): SimpleFeatureCollection = new VisFeatureCollection(source.getFeatures(filter))
+    override def getFeatures(query: Query): SimpleFeatureCollection = new VisFeatureCollection(source.getFeatures(addVisToTransform(query)))
     override def getInfo: ResourceInfo = source.getInfo
     override def getQueryCapabilities: QueryCapabilities = source.getQueryCapabilities
     override def getSupportedHints: java.util.Set[RenderingHints.Key] = source.getSupportedHints

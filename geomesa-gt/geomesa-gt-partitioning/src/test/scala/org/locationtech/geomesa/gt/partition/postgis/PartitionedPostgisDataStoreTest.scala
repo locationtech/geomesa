@@ -134,7 +134,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       ds must not(beNull)
 
       try {
-        // This sft name exceeds 31 characters, so it should fail
+        // This sft name exceeds 63 characters, so it should fail
         val sft = SimpleFeatureTypes.renameSft(this.sft, "abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz")
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft) must throwAn[java.io.IOException].like {
@@ -271,17 +271,19 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         }
 
         def runQueries(): MatchResult[_] = {
-          foreach(Seq(/*Seq.empty, Seq("admin"), Seq("user"), */Seq("user", "admin"))) { auths =>
+          foreach(Seq(Seq.empty, Seq("admin"), Seq("user"), Seq("user", "admin"))) { auths =>
             provider.auths = auths
             val expected = features.filter { f =>
               val vis = SecurityUtils.getVisibility(f)
               // note: not a very robust check but works for our test data here
               vis == null || auths.contains(vis) || vis == auths.mkString("&")
             }
-            val visible =
-              CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
-            visible.map(compFromDb) mustEqual expected.map(compWithFid(_, sft))
-            visible.map(SecurityUtils.getVisibility) mustEqual expected.map(SecurityUtils.getVisibility)
+            foreach(Seq(null, Array("name", "dtg", "geom"), Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
+              val query = new Query(sft.getTypeName, Filter.INCLUDE, transforms: _*)
+              val visible = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+              visible.map(compFromDb) mustEqual expected.map(compWithFid(_, sft, Option(transforms)))
+              visible.map(SecurityUtils.getVisibility) mustEqual expected.map(SecurityUtils.getVisibility)
+            }
           }
         }
 
@@ -387,7 +389,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
         }
       } catch {
-        case NonFatal(e) => logger.error("", e); ko
+        case NonFatal(e) => logger.error("", e); ko(e.getMessage)
       } finally {
         ds.dispose()
       }
@@ -1244,8 +1246,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   }
 
   // note: jdbc data store adds the type name into the fid, so we add it here for the comparison
-  def compWithFid(sf: SimpleFeature, sft: SimpleFeatureType): Seq[Any] =
-    Seq(s"${sft.getTypeName}.${sf.getID}") ++ sf.getAttributes.asScala
+  def compWithFid(sf: SimpleFeature, sft: SimpleFeatureType, transforms: Option[Array[String]] = None): Seq[Any] =
+    Seq(s"${sft.getTypeName}.${sf.getID}") ++
+      transforms.getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray).map(sf.getAttribute)
 
   def count(cx: Connection, table: TableConfig): Int = {
     WithClose(cx.prepareStatement(s"select count(*) from ${table.name.qualified};")) { statement =>
