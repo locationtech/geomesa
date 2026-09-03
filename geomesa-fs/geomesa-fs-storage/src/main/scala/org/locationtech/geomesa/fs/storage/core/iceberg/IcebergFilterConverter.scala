@@ -12,6 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg.expressions.Expression.Operation
 import org.apache.iceberg.expressions.ExpressionVisitors.ExpressionVisitor
 import org.apache.iceberg.expressions._
+import org.apache.iceberg.types.Type
+import org.apache.iceberg.types.Type.TypeID
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
@@ -146,12 +148,38 @@ object IcebergFilterConverter extends LazyLogging {
     }
 
     val binding = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
-    val bounds = FilterHelper.extractAttributeBounds(attribute.get, name.attribute, binding)
+    predicate(filter, attribute.get, nonAttribute, name.attribute, name.column, binding, transform)
+  }
+
+  /**
+   * Builds an iceberg predicate for a scalar attribute or nested field reference
+   *
+   * @param filter the full filter being reduced (used as the client-side residual when we can't fully push down)
+   * @param attribute the portion of the filter that references our attribute
+   * @param nonAttribute the portion of the filter that doesn't reference our attribute
+   * @param attributeName the attribute name used in the geotools filter
+   * @param reference the iceberg reference name (dotted for nested struct fields), including the encoded column
+   * @param binding the java type binding of the referenced field
+   * @param transform optional transform to convert extracted values into the iceberg storage representation
+   * @tparam T value type
+   * @return
+   */
+  private def predicate[T](
+      filter: Filter,
+      attribute: Filter,
+      nonAttribute: Option[Filter],
+      attributeName: String,
+      reference: String,
+      binding: Class[T],
+      transform: Option[T => Any]): ReadFilter = {
+    // the encoded top-level column, used for the read schema (nested references share the top-level column)
+    val column = { val sep = reference.indexOf('.'); if (sep == -1) { reference } else { reference.substring(0, sep) } }
+    val bounds = FilterHelper.extractAttributeBounds(attribute, attributeName, binding)
     if (bounds.disjoint) {
       return ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
     } else if (bounds.isEmpty || bounds.exists(b => !b.isBounded)) {
       // couldn't extract anything, all evaluation will be client-side against the raw filter
-      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(name.column))
+      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(column))
     }
     val values = transform match {
       case None => bounds.values
@@ -162,13 +190,13 @@ object IcebergFilterConverter extends LazyLogging {
     }
     val filters = values.map { bounds =>
       if (bounds.isEquals) {
-        Expressions.equal(name.column, bounds.lower.value.get)
+        Expressions.equal(reference, bounds.lower.value.get)
       } else {
         val lower = bounds.lower.value.map { value =>
-          if (bounds.lower.inclusive) { Expressions.greaterThanOrEqual(name.column, value) } else { Expressions.greaterThan(name.column, value) }
+          if (bounds.lower.inclusive) { Expressions.greaterThanOrEqual(reference, value) } else { Expressions.greaterThan(reference, value) }
         }
         val upper = bounds.upper.value.map { value =>
-          if (bounds.upper.inclusive) { Expressions.lessThanOrEqual(name.column, value) } else { Expressions.lessThan(name.column, value) }
+          if (bounds.upper.inclusive) { Expressions.lessThanOrEqual(reference, value) } else { Expressions.lessThan(reference, value) }
         }
         (lower, upper) match {
           case (Some(lo), Some(hi)) => Expressions.and(lo, hi)
@@ -178,9 +206,9 @@ object IcebergFilterConverter extends LazyLogging {
         }
       }
     }
-    val predicate = merge(filters)
+    val result = merge(filters)
     val remaining = if (bounds.precise) { nonAttribute } else { Some(filter) }
-    ReadFilter(predicate, remaining, Set(name.column))
+    ReadFilter(result, remaining, Set(column))
   }
 
   private def jsonPath(schema: SimpleFeatureIcebergSchema, pathString: String, filter: Filter): ReadFilter = {
@@ -207,14 +235,103 @@ object IcebergFilterConverter extends LazyLogging {
         throw new IllegalArgumentException(s"Invalid JSON path - first element must point at an attribute: $pathString")
     }
     if (descriptor.getJsonSchema().isEmpty) {
-      // not a structural type
+      // not a structural type - the field is stored as an opaque variant, so we can't push down against it
       return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty)
     }
-    val fieldName = ColumnName.encode(descriptor.getLocalName)
-    val typed = schema.schema.findField(fieldName)
+    val column = ColumnName.encode(descriptor.getLocalName)
+    val field = schema.schema.findField(column)
+    if (field == null) {
+      // shouldn't happen, but fall back to client-side evaluation just in case
+      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(column))
+    }
 
-    path.tail
-    ???
+    // navigate the remaining path elements through the nested struct type to find the leaf field we're filtering on
+    navigate(field.`type`(), path.tail) match {
+      case Some((refs, leaf)) =>
+        // extract just the part of the filter that references our json path - no sft as it won't recognize the path
+        val (attribute, nonAttribute) = FilterExtractingVisitor(filter, pathString, null: SimpleFeatureType)
+        if (attribute.isEmpty) {
+          ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty)
+        } else {
+          // build the dotted iceberg reference, e.g. `props.name`, using the top-level (encoded) column plus nested field names
+          val reference = (column +: refs).mkString(".")
+          // note: we read the full top-level column so that any residual filter can be evaluated client-side
+          jsonPredicate(filter, attribute.get, nonAttribute, pathString, reference, column, leaf)
+        }
+
+      case None =>
+        // path can't be resolved to a scalar field (wildcards, indices, functions, non-scalar leaf, etc) -
+        // read the full column and evaluate client-side against the raw filter
+        ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(column))
+    }
+  }
+
+  /**
+   * Navigates a nested struct type following a json path, returning the nested field reference names and the
+   * leaf type if the path points at a scalar field, or None if the path can't be pushed down
+   *
+   * @param fieldType the type of the field the path currently points at
+   * @param path the remaining path to navigate
+   * @return the nested field names (matching the stored schema) and the leaf primitive type, or None
+   */
+  private def navigate(fieldType: Type, path: JsonPathParser.JsonPath): Option[(Seq[String], Type)] = {
+    if (path.function.isDefined) {
+      return None // path functions (.min(), .length(), etc) can't be evaluated as an iceberg predicate
+    }
+    val refs = Seq.newBuilder[String]
+    var current = fieldType
+    val elements = path.elements.iterator
+    while (elements.hasNext) {
+      elements.next() match {
+        case PathAttribute(name, _) if current.isStructType =>
+          val nested = current.asStructType().caseInsensitiveField(name)
+          if (nested == null) {
+            return None // path references a field that isn't in our schema
+          }
+          refs += nested.name()
+          current = nested.`type`()
+
+        case _ =>
+          return None // wildcards, array indices, deep scans, and non-struct navigation aren't supported
+      }
+    }
+    if (current.isPrimitiveType) { Some((refs.result(), current)) } else { None }
+  }
+
+  /**
+   * Builds an iceberg predicate against a nested json field, dispatching on the leaf field's type
+   *
+   * @param filter the full filter being reduced
+   * @param attribute the portion of the filter that references our json path
+   * @param nonAttribute the portion of the filter that doesn't reference our json path
+   * @param pathString the json path used in the geotools filter
+   * @param reference the dotted iceberg reference name for the nested field
+   * @param column the top-level (encoded) column, needed for the read schema
+   * @param leaf the leaf field type
+   * @return
+   */
+  private def jsonPredicate(
+      filter: Filter,
+      attribute: Filter,
+      nonAttribute: Option[Filter],
+      pathString: String,
+      reference: String,
+      column: String,
+      leaf: Type): ReadFilter = {
+    def build[T](binding: Class[T], transform: Option[T => Any] = None): ReadFilter =
+      predicate(filter, attribute, nonAttribute, pathString, reference, binding, transform)
+    leaf.typeId() match {
+      case TypeID.STRING  => build(classOf[String])
+      case TypeID.INTEGER => build(classOf[Integer])
+      case TypeID.LONG    => build(classOf[java.lang.Long])
+      case TypeID.FLOAT   => build(classOf[java.lang.Float])
+      case TypeID.DOUBLE  => build(classOf[java.lang.Double])
+      case TypeID.BOOLEAN => build(classOf[java.lang.Boolean])
+      case _ =>
+        // unsupported leaf type (dates, times, uuids, decimals, binary, etc) - evaluate client-side
+        // TODO seems like we should be able to support at least dates here?
+        ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(column))
+    }
   }
 
   /**
