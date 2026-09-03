@@ -76,8 +76,8 @@ class PgVis extends SqlStatements {
         |        i := j - 1;
         |        expect_value := false;
         |      -- match quoted string
-        |      -- " [34], ' [39]
-        |      ELSIF c = 34 OR c = 39 THEN
+        |      -- " [34]
+        |      ELSIF c = 34 THEN
         |        -- an operand may only appear where a value is expected
         |        IF NOT expect_value THEN
         |          RAISE WARNING 'Invalid visibility expression at index %: %', i, vis;

@@ -58,10 +58,10 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
         StandaloneTestCase("(user&admin)|test", Array("user", "admin"), visible = true),
         StandaloneTestCase("(user&admin)|test", Array("admin"), visible = false),
         StandaloneTestCase("(user&admin)|test", Array.empty, visible = false),
-        StandaloneTestCase("'user'&admin", Array("user", "admin"), visible = true),
-        StandaloneTestCase("'u\\'ser'&admin", Array("user", "admin"), visible = false),
-        StandaloneTestCase("'u\\'ser'&admin", Array("u'ser", "admin"), visible = true),
-        StandaloneTestCase("'u\\\\\\\\ser'&admin", Array("u\\\\ser", "admin"), visible = true),
+        StandaloneTestCase(""""user"&admin""", Array("user", "admin"), visible = true),
+        StandaloneTestCase(""""u\"ser"&admin""", Array("user", "admin"), visible = false),
+        StandaloneTestCase(""""u\"ser"&admin""", Array("u\"ser", "admin"), visible = true),
+        StandaloneTestCase(""""u\\\\ser"&admin""", Array("u\\\\ser", "admin"), visible = true),
         StandaloneTestCase("A.B-C+D", Array("A", "B", "C", "D"), visible = false),
         // invalid syntax tests
         StandaloneTestCase("A|B&C", Array("A", "B", "C"), visible = false),
@@ -74,6 +74,7 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
         StandaloneTestCase("()", Array("A", "B", "C"), visible = false),
         StandaloneTestCase(")", Array("A", "B", "C"), visible = false),
         StandaloneTestCase("A|!B", Array("A", "B", "C"), visible = false),
+        StandaloneTestCase("'A'", Array("A", "B", "C"), visible = false),
       )
       WithClose(ds.getConnection) { cx =>
         WithClose(cx.prepareStatement("select pg_vis(?,?);")) { ps =>
