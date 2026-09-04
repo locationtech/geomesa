@@ -38,8 +38,8 @@ jobs:
           - name: hbase
             list: geomesa-hbase/geomesa-hbase-spark
           - name: pyspark
-            # note: we're sneaking in a profile to the project list arg here
-            list: geomesa-spark/geomesa_pyspark -Ppython
+            list: geomesa-spark/geomesa_pyspark
+            args: -Ppython
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -85,7 +85,7 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          mvn $MAVEN_COMPILE_SPARK_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} | tee -a build.log
+          mvn $MAVEN_COMPILE_SPARK_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }} | tee -a build.log
       - name: Compile (retry)
         if: steps.changes.outputs.affected != 'false' && steps.compile.outcome=='failure'
         run: |
@@ -93,10 +93,10 @@ jobs:
           # retry if the failure was due to transient download errors from maven central
           if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' -e 'Could not resolve artifact' build.log; then
             RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-            mvn $MAVEN_COMPILE_SPARK_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a build.log
+            mvn $MAVEN_COMPILE_SPARK_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }} $RESUME_FROM | tee -a build.log
           else
             exit 1
           fi
       - name: Run Spark tests
         if: steps.changes.outputs.affected != 'false'
-        run: mvn $MAVEN_TEST_SPARK_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
+        run: mvn $MAVEN_TEST_SPARK_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }}
