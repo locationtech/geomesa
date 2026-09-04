@@ -48,16 +48,28 @@ jobs:
             main-${{ matrix.scala-version }}-
             main-
           path: ~/.m2/repository/
+      - name: Detect affected modules
+        id: changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PROJECT_LIST: ${{ matrix.projects.list }}
+        run: |
+          affected="$(build/scripts/detect-affected-modules.sh "$BASE_SHA" "$HEAD_SHA" "$PROJECT_LIST")"
+          echo "affected=$affected" >> "$GITHUB_OUTPUT"
       - name: Set Scala version
+        if: steps.changes.outputs.affected != 'false'
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Compile
         id: compile
+        if: steps.changes.outputs.affected != 'false'
         continue-on-error: true
         run: |
           set -o pipefail
           mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} | tee -a build.log
       - name: Compile (retry)
-        if: steps.compile.outcome=='failure'
+        if: steps.changes.outputs.affected != 'false' && steps.compile.outcome=='failure'
         run: |
           set -o pipefail
           # retry if the failure was due to transient download errors from maven central
@@ -68,6 +80,8 @@ jobs:
             exit 1
           fi
       - name: Compile integration tests
+        if: steps.changes.outputs.affected != 'false'
         run: mvn $MAVEN_IT_COMPILE_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
       - name: Run integration tests
+        if: steps.changes.outputs.affected != 'false'
         run: mvn $MAVEN_IT_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
