@@ -57,6 +57,16 @@ jobs:
             main-${{ matrix.scala-version }}-
             main-
           path: ~/.m2/repository/
+      - name: Detect affected modules
+        id: changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PROJECT_LIST: ${{ matrix.projects.list }}
+        run: |
+          affected="$(build/scripts/detect-affected-modules.sh "$BASE_SHA" "$HEAD_SHA" "$PROJECT_LIST")"
+          echo "affected=$affected" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         if: matrix.projects.name=='pyspark'
         with:
@@ -67,15 +77,17 @@ jobs:
         if: matrix.projects.name=='pyspark'
         run: pip install -r geomesa-spark/geomesa_pyspark/src/test/python/requirements.txt
       - name: Set Scala version
+        if: steps.changes.outputs.affected != 'false'
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Compile
         id: compile
+        if: steps.changes.outputs.affected != 'false'
         continue-on-error: true
         run: |
           set -o pipefail
           mvn $MAVEN_COMPILE_SPARK_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} | tee -a build.log
       - name: Compile (retry)
-        if: steps.compile.outcome=='failure'
+        if: steps.changes.outputs.affected != 'false' && steps.compile.outcome=='failure'
         run: |
           set -o pipefail
           # retry if the failure was due to transient download errors from maven central
@@ -86,4 +98,5 @@ jobs:
             exit 1
           fi
       - name: Run Spark tests
+        if: steps.changes.outputs.affected != 'false'
         run: mvn $MAVEN_TEST_SPARK_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
