@@ -29,11 +29,14 @@ jobs:
         scala-version: [ "2.12", "2.13" ]
         projects:
           - name: accumulo-ds-1
-            list: geomesa-accumulo/geomesa-accumulo-datastore -Dtest="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest"
+            list: geomesa-accumulo/geomesa-accumulo-datastore
+            args: -Dtest="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest"
           - name: accumulo-ds-2
-            list: geomesa-accumulo/geomesa-accumulo-datastore -Dtest="AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
+            list: geomesa-accumulo/geomesa-accumulo-datastore
+            args: -Dtest="AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
           - name: accumulo-ds-3
-            list: geomesa-accumulo/geomesa-accumulo-datastore -Dtest.excludes="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest,AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
+            list: geomesa-accumulo/geomesa-accumulo-datastore
+            args: -Dtest.excludes="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest,AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
           - name: accumulo-other
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
             list: geomesa-accumulo/geomesa-accumulo-dist,geomesa-accumulo/geomesa-accumulo-gs-plugin,geomesa-accumulo/geomesa-accumulo-indices,geomesa-accumulo/geomesa-accumulo-iterators,geomesa-accumulo/geomesa-accumulo-jobs,geomesa-accumulo/geomesa-accumulo-spark,geomesa-accumulo/geomesa-accumulo-tools
@@ -50,11 +53,14 @@ jobs:
           - name: fs-storage
             list: geomesa-fs/geomesa-fs-storage,geomesa-fs/geomesa-fs-storage-convert,geomesa-fs/geomesa-fs-jobs,geomesa-fs/geomesa-fs-spark
           - name: gt-pg15
-            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools -Dtest.postgis.docker.tag=15-3.4
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools
+            args: -Dtest.postgis.docker.tag=15-3.4
           - name: gt-pg16
-            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools -Dtest.postgis.docker.tag=16-3.5
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools
+            args: -Dtest.postgis.docker.tag=16-3.5
           - name: gt-pg17
-            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools -Dtest.postgis.docker.tag=17-3.5
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools
+            args: -Dtest.postgis.docker.tag=17-3.5
           - name: hbase-ds
             list: geomesa-hbase/geomesa-hbase-datastore
           - name: hbase-other
@@ -112,7 +118,7 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} | tee -a build.log
+          mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }} | tee -a build.log
       - name: Compile (retry)
         if: steps.changes.outputs.affected != 'false' && steps.compile.outcome=='failure'
         run: |
@@ -120,7 +126,7 @@ jobs:
           # retry if the failure was due to transient download errors from maven central
           if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' -e 'Could not resolve artifact' build.log; then
             RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-            mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a build.log
+            mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }} $RESUME_FROM | tee -a build.log
           else
             exit 1
           fi
@@ -130,11 +136,11 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} | tee -a test.log
+          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }} | tee -a test.log
       - name: Run unit tests (retry)
         id: test-retry
         if: steps.changes.outputs.affected != 'false' && steps.test.outcome=='failure'
         run: |
           set -o pipefail
           RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a test.log
+          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }} $RESUME_FROM | tee -a test.log
