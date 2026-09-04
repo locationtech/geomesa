@@ -40,6 +40,16 @@ public class SpatialConnectorFactory implements ConnectorFactory {
     private static final String AUTH_RESOLVER   = SECURITY_PREFIX + "auth-resolver";
     private static final String AUTH_MAPPING    = SECURITY_PREFIX + "auth-mapping-file";
 
+    /** Opt-in visibility-column domain pushdown for Iceberg manifest/file pruning.
+     *  The unconditional empty-auths tier (see {@code VisibilityDomainPruning#emptyAuthsDomain})
+     *  is always attempted once a resolver is configured, regardless of this flag: it is sound
+     *  for any visibility expression grammar. This flag additionally enables the token-domain
+     *  tier ({@code VisibilityDomainPruning#tokenDomain}), which is NOT sound when the table's
+     *  visibility values include compound ({@code &}/{@code |}) expressions — only enable it for
+     *  deployments using a flat classification ladder of single-token visibility values.
+     *  OFF by default. */
+    private static final String VISIBILITY_TOKEN_PRUNING = SECURITY_PREFIX + "enable-visibility-token-pruning";
+
 
     /** Enables connector-side bbox filtering (see {@link BboxFilteringPageSource}).
      *  - For a rectangle {@code ST_Intersects} on a Z2/point geometry column the connector claims
@@ -79,6 +89,8 @@ public class SpatialConnectorFactory implements ConnectorFactory {
                             ConnectorContext context) {
         AuthorizationResolver resolver = buildResolver(config);
         boolean bboxShortCircuit = Boolean.parseBoolean(config.getOrDefault(BBOX_PAGE_FILTER, "true"));
+        boolean enableVisibilityTokenPruning =
+            Boolean.parseBoolean(config.getOrDefault(VISIBILITY_TOKEN_PRUNING, "false"));
 
         // Iceberg uses strict config validation; strip our keys so it doesn't reject them as unused.
         Map<String, String> icebergConfig = new LinkedHashMap<>();
@@ -88,7 +100,8 @@ public class SpatialConnectorFactory implements ConnectorFactory {
 
         ConnectorFactory icebergFactory = new IcebergPlugin().getConnectorFactories().iterator().next();
         Connector icebergConnector = icebergFactory.create(catalogName, icebergConfig, context);
-        return new SpatialConnector(icebergConnector, catalogName, resolver, bboxShortCircuit);
+        return new SpatialConnector(icebergConnector, catalogName, resolver, bboxShortCircuit,
+            enableVisibilityTokenPruning);
     }
 
     /** Builds the identity→auths resolver from catalog config, or null when no

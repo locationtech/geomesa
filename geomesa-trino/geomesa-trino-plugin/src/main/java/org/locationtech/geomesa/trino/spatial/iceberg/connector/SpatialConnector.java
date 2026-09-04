@@ -35,6 +35,8 @@ public class SpatialConnector implements Connector {
     private final GeoMesaColumnCatalog geomCatalog;
     private final ConnectorAccessControl accessControl;
     private final boolean bboxShortCircuit;
+    private final AuthorizationResolver resolver;
+    private final boolean enableVisibilityTokenPruning;
 
     /**
      * Wraps a delegate connector with no Trino-layer visibility enforcement.
@@ -71,11 +73,34 @@ public class SpatialConnector implements Connector {
      */
     public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
                             boolean bboxShortCircuit) {
+        this(delegate, catalogName, resolver, bboxShortCircuit, false);
+    }
+
+    /**
+     * Wraps a delegate connector, optionally installing Trino-layer row-visibility enforcement,
+     * the page-source bbox cheap-reject, and visibility-column domain pushdown for Iceberg
+     * manifest/file pruning (see {@link org.locationtech.geomesa.trino.security.VisibilityDomainPruning}).
+     *
+     * @param delegate       the underlying iceberg connector
+     * @param catalogName    the Trino catalog name; may be null when no resolver.
+     * @param resolver       identity→auths resolver; null disables Trino-layer enforcement
+     *                       AND visibility-domain pushdown.
+     * @param bboxShortCircuit when true, wrap the page source with the bbox cheap-reject
+     *                       ({@link SpatialPageSourceProvider}).
+     * @param enableVisibilityTokenPruning opt-in, unsound-for-compound-expressions pushdown
+     *                       tier; see {@code VisibilityDomainPruning#tokenDomain}. The
+     *                       unconditional empty-auths tier is always attempted when
+     *                       {@code resolver} is non-null, regardless of this flag.
+     */
+    public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
+                            boolean bboxShortCircuit, boolean enableVisibilityTokenPruning) {
         this.delegate = delegate;
         this.geomCatalog = new GeoMesaColumnCatalog();
         this.accessControl = resolver == null ? null
             : new VisibilityAccessControl(catalogName, geomCatalog, resolver);
         this.bboxShortCircuit = bboxShortCircuit;
+        this.resolver = resolver;
+        this.enableVisibilityTokenPruning = enableVisibilityTokenPruning;
     }
 
     /**
@@ -124,7 +149,9 @@ public class SpatialConnector implements Connector {
         return new SpatialConnectorMetadata(
             delegate.getMetadata(session, transactionHandle),
             geomCatalog,
-            bboxShortCircuit
+            bboxShortCircuit,
+            resolver,
+            enableVisibilityTokenPruning
         );
     }
 

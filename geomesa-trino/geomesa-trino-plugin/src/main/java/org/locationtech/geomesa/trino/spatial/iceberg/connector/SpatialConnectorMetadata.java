@@ -39,6 +39,8 @@ import org.locationtech.geomesa.trino.spatial.iceberg.GeoMesaColumnCatalog;
 import org.locationtech.geomesa.trino.spatial.GeometryColumn;
 import org.locationtech.geomesa.trino.spatial.SpatialIndexKind;
 import org.locationtech.geomesa.trino.spatial.iceberg.SpatialPartitionHandle;
+import org.locationtech.geomesa.trino.security.AuthorizationResolver;
+import org.locationtech.geomesa.trino.security.VisibilityDomainPruning;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKTReader;
@@ -106,6 +108,14 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private final GeoMesaColumnCatalog geomCatalog;
     /** When true, claim eligible rectangle ST_Intersects predicates enforced. */
     private final boolean bboxShortCircuit;
+    /** Identity→auths resolver; null when Trino-layer visibility enforcement isn't
+     *  configured, in which case no visibility-domain pruning is attempted. */
+    private final AuthorizationResolver resolver;
+    /** Opt-in, unsound-for-compound-expressions tier of visibility pruning; see
+     *  {@link VisibilityDomainPruning#tokenDomain}. The unconditional empty-auths
+     *  tier ({@link VisibilityDomainPruning#emptyAuthsDomain}) is always attempted
+     *  when {@link #resolver} is non-null, regardless of this flag. */
+    private final boolean enableVisibilityTokenPruning;
 
     /** Result of locating a spatial constraint in a constraint expression: the
      *  query envelope(s), the spatial function's name (lowercased ASCII; {@code
@@ -137,9 +147,31 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public SpatialConnectorMetadata(ConnectorMetadata delegate,
                                     GeoMesaColumnCatalog geomCatalog,
                                     boolean bboxShortCircuit) {
+        this(delegate, geomCatalog, bboxShortCircuit, null, false);
+    }
+
+    /**
+     * Wraps a delegate metadata with spatial-predicate pushdown and, when a
+     * resolver is supplied, visibility-column domain pushdown (see
+     * {@link VisibilityDomainPruning}).
+     *
+     * @param delegate the underlying iceberg metadata
+     * @param geomCatalog the shared geometry-column catalog
+     * @param bboxShortCircuit when true, claim eligible rectangle ST_Intersects enforced
+     * @param resolver identity→auths resolver; null disables visibility-domain pushdown
+     * @param enableVisibilityTokenPruning opt-in token-domain tier; see
+     *                                     {@link VisibilityDomainPruning#tokenDomain}
+     */
+    public SpatialConnectorMetadata(ConnectorMetadata delegate,
+                                    GeoMesaColumnCatalog geomCatalog,
+                                    boolean bboxShortCircuit,
+                                    AuthorizationResolver resolver,
+                                    boolean enableVisibilityTokenPruning) {
         this.delegate = delegate;
         this.geomCatalog = geomCatalog;
         this.bboxShortCircuit = bboxShortCircuit;
+        this.resolver = resolver;
+        this.enableVisibilityTokenPruning = enableVisibilityTokenPruning;
     }
 
     /** Resolve the per-geom-column descriptor map for the given table handle.
@@ -168,6 +200,12 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             return Optional.empty();
         }
 
+        // Visibility-column pushdown candidate: independent of any spatial predicate,
+        // so it's computed up front and seeded into `domains` below regardless of which
+        // branch the spatial logic takes. See visibilityDomain() / VisibilityDomainPruning
+        // for what's injected and why it's sound (or, for the opt-in tier, documented-unsound).
+        Optional<Map.Entry<ColumnHandle, Domain>> visDomain = visibilityDomain(session, handle, constraint);
+
         // Walk the filter expression for ALL ST_* spatial calls (not just the first).
         // Per-geom routing: each ST_* on column X uses X's bbox + partition companions.
         List<SpatialMatch> matches = findAllSpatialMatches(constraint.getExpression());
@@ -178,16 +216,25 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         // envelope is anchored to whichever geom's bbox struct the comparisons reference.
         if (matches.isEmpty()) {
             List<BboxPatternMatch> bboxes = tryExtractBboxPatternMatches(constraint.getExpression());
-            if (bboxes.isEmpty()) return delegate.applyFilter(session, handle, constraint);
+            if (bboxes.isEmpty()) {
+                return visDomain.isEmpty()
+                    ? delegate.applyFilter(session, handle, constraint)
+                    : applyVisibilityOnlyDomain(session, handle, constraint, visDomain.get());
+            }
             matches = bboxes.stream()
                 .map(bp -> new SpatialMatch(bp.envelope(), BBOX_PATTERN, bp.geomName()))
                 .toList();
         }
 
         Map<String, GeometryColumn> geoms = geomsFor(session, handle);
-        if (geoms.isEmpty()) return delegate.applyFilter(session, handle, constraint);
+        if (geoms.isEmpty()) {
+            return visDomain.isEmpty()
+                ? delegate.applyFilter(session, handle, constraint)
+                : applyVisibilityOnlyDomain(session, handle, constraint, visDomain.get());
+        }
 
         Map<ColumnHandle, Domain> domains = new HashMap<>();
+        visDomain.ifPresent(e -> domains.put(e.getKey(), e.getValue()));
         List<BboxHandles> injectedBboxes = new ArrayList<>();
         List<SpatialPartitionHandle> injectedPartitions = new ArrayList<>();
 
@@ -304,6 +351,65 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
 
         return Optional.of(new ConstraintApplicationResult<>(
             resultHandle, cleanedRemaining, remainingExpr, dr.isPrecalculateStatistics()));
+    }
+
+    /**
+     * Builds a visibility-column pushdown domain when Trino-layer visibility
+     * enforcement is configured ({@link #resolver} non-null) and the table
+     * carries a visibility column observed by {@code getColumnHandles}. See
+     * {@link VisibilityDomainPruning} for what's injected and why the
+     * unconditional tier is sound while the token tier is opt-in only.
+     *
+     * @param session the connector session
+     * @param handle the table handle
+     * @param constraint the filter constraint (checked so we don't re-inject a
+     *                   domain the planner already round-tripped onto this column)
+     * @return the visibility column's handle paired with the domain to intersect
+     *         in, or empty when no pushdown applies
+     */
+    private Optional<Map.Entry<ColumnHandle, Domain>> visibilityDomain(
+            ConnectorSession session, ConnectorTableHandle handle, Constraint constraint) {
+        if (resolver == null) {
+            return Optional.empty();
+        }
+        SchemaTableName tn = delegate.getTableName(session, handle);
+        Optional<String> visColumnName = geomCatalog.visibilityColumn(tn)
+            .flatMap(GeoMesaColumnCatalog.ObservedVisibility::column);
+        if (visColumnName.isEmpty()) {
+            return Optional.empty();
+        }
+
+        ColumnHandle visHandle = delegate.getColumnHandles(session, handle).get(visColumnName.get());
+        if (!(visHandle instanceof IcebergColumnHandle ich) || !(ich.getType() instanceof VarcharType vt)) {
+            return Optional.empty();
+        }
+        // Skip if the planner already carries a domain for this column (round-trip).
+        if (constraint.getSummary().getDomains().map(d -> d.containsKey(visHandle)).orElse(false)) {
+            return Optional.empty();
+        }
+
+        Set<String> auths = resolver.authorizationsFor(session.getIdentity());
+        Optional<Domain> domain = VisibilityDomainPruning.emptyAuthsDomain(vt, auths);
+        if (domain.isEmpty() && enableVisibilityTokenPruning) {
+            domain = VisibilityDomainPruning.tokenDomain(vt, auths);
+        }
+        return domain.map(d -> Map.entry(visHandle, d));
+    }
+
+    /**
+     * Applies a visibility-only domain (no spatial predicate present) by
+     * intersecting it into the constraint summary and delegating — the simple
+     * counterpart of the full spatial path's domain merge/delegate/short-circuit
+     * sequence, minus the bbox short-circuit (which requires a spatial match).
+     */
+    private Optional<ConstraintApplicationResult<ConnectorTableHandle>> applyVisibilityOnlyDomain(
+            ConnectorSession session, ConnectorTableHandle handle, Constraint constraint,
+            Map.Entry<ColumnHandle, Domain> visDomain) {
+        TupleDomain<ColumnHandle> augmentedSummary = constraint.getSummary()
+            .intersect(TupleDomain.withColumnDomains(Map.of(visDomain.getKey(), visDomain.getValue())));
+        Constraint augmented = new Constraint(augmentedSummary, constraint.getExpression(),
+            constraint.getAssignments());
+        return delegate.applyFilter(session, handle, augmented);
     }
 
     /**
