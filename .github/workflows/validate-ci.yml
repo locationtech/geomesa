@@ -44,6 +44,23 @@ jobs:
             fi
           done < <(find . -name '*IT.scala' -print0)
           echo "done"
+  validate-assemblies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate project list
+        run: |
+          while IFS= read -r -d '' pom; do
+            grep -q '<artifactId>maven-assembly-plugin</artifactId>' "$pom" && {
+              module="${pom%/pom.xml}"
+              module="${module#./}"
+              echo "Checking $module"
+              yq -e '.jobs.assembly.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/assembly.yml >/dev/null 2>&1 || exit 1
+            }
+          done < <(find geomesa-* -name pom.xml -not -path '*archetype*' -print0)
+          echo "done"
   validate-javadocs:
     runs-on: ubuntu-latest
     steps:

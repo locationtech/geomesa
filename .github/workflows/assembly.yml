@@ -16,18 +16,41 @@ env:
   JAVA_VERSION: 25
   JAVA_RUNTIME_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
-  MAVEN_COMPILE_NO_OP_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip -Dmaven.main.skip -pl !geomesa-trino/geomesa-trino-plugin
-  MAVEN_COMPILE_TRINO_PLUGIN_ARGS: clean install -Dmaven.test.skip -Dmaven.source.skip -pl geomesa-trino/geomesa-trino-plugin -am
+  MAVEN_COMPILE_NO_OP_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip -Dmaven.main.skip
+  MAVEN_COMPILE_TRINO_PLUGIN_ARGS: clean install -Dmaven.test.skip -Dmaven.source.skip
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true
 
 jobs:
   assembly:
-    name: build-assembly / ${{ matrix.scala-version }}
+    name: build-assembly / ${{ matrix.projects.name }} / ${{ matrix.scala-version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         scala-version: [ "2.12", "2.13" ]
+        projects:
+          - name: accumulo
+            list: geomesa-accumulo/geomesa-accumulo-dist,geomesa-accumulo/geomesa-accumulo-gs-plugin
+          - name: arrow
+            list: geomesa-arrow/geomesa-arrow-dist
+          - name: cassandra
+            list: geomesa-cassandra/geomesa-cassandra-dist,geomesa-cassandra/geomesa-cassandra-gs-plugin
+          - name: fs
+            list: geomesa-fs/geomesa-fs-dist,geomesa-fs/geomesa-fs-gs-plugin
+          - name: gt
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin
+          - name: hbase
+            list: geomesa-hbase/geomesa-hbase-dist,geomesa-hbase/geomesa-hbase-gs-plugin
+          - name: kafka
+            list: geomesa-kafka/geomesa-kafka-dist,geomesa-kafka/geomesa-kafka-gs-plugin
+          - name: lambda
+            list: geomesa-lambda/geomesa-lambda-dist,geomesa-lambda/geomesa-lambda-gs-plugin
+          - name: redis
+            list: geomesa-redis/geomesa-redis-dist,geomesa-redis/geomesa-redis-gs-plugin
+          - name: trino
+            list: geomesa-trino/geomesa-trino-dist,geomesa-trino/geomesa-trino-gs-plugin
+            # the trino-plugin is built separately
+            compile_list: geomesa-trino/geomesa-trino-dist,geomesa-trino/geomesa-trino-gs-plugin,!geomesa-trino/geomesa-trino-plugin
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -45,28 +68,42 @@ jobs:
             main-${{ matrix.scala-version }}-
             main-
           path: ~/.m2/repository/
+      - name: Detect affected modules
+        id: changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PROJECT_LIST: ${{ matrix.projects.list }}
+        run: |
+          affected="$(build/scripts/detect-affected-modules.sh "$BASE_SHA" "$HEAD_SHA" "$PROJECT_LIST")"
+          echo "affected=$affected" >> "$GITHUB_OUTPUT"
       - name: Set Scala version
+        if: steps.changes.outputs.affected != 'false'
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Compile Trino plugin
+        if: matrix.projects.name=='trino' && steps.changes.outputs.affected != 'false'
         run: |
           set -o pipefail
-          mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS | tee -a build.log
+          mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS -pl geomesa-trino/geomesa-trino-plugin -am | tee -a build.log
       - name: Compile
         id: compile
+        if: steps.changes.outputs.affected != 'false'
         continue-on-error: true
         run: |
           set -o pipefail
-          mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS | tee -a build.log
+          mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.compile_list || matrix.projects.list }} | tee -a build.log
       - name: Compile (retry)
-        if: steps.compile.outcome=='failure'
+        if: steps.changes.outputs.affected != 'false' && steps.compile.outcome=='failure'
         run: |
           set -o pipefail
           # retry if the failure was due to transient download errors from maven central
           if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' -e 'Could not resolve artifact' build.log; then
             RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-            mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS $RESUME_FROM | tee -a build.log
+            mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.compile_list || matrix.projects.list }} $RESUME_FROM | tee -a build.log
           else
             exit 1
           fi
       - name: Build assemblies
-        run: mvn $MAVEN_ASSEMBLY_ARGS $MAVEN_CLI_OPTS
+        if: steps.changes.outputs.affected != 'false'
+        run: mvn $MAVEN_ASSEMBLY_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
