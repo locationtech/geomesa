@@ -40,7 +40,7 @@ mapfile -t ALLMODS < <(find . -name pom.xml -not -path '*/target/*' -not -path '
 # we use the 'validate' phase and parse the "  from <dir>/pom.xml" lines maven prints for each
 # reactor module - unlike exec:exec, this does not resolve dependencies, so it avoids downloading
 # (or failing to find) the unbuilt inter-module geomesa snapshot jars, which aren't in the cache.
-CLOSURE="$(mvn $MAVEN_CLI_OPTS -pl $LIST -am validate 2>/dev/null \
+CLOSURE="$(mvn $MAVEN_CLI_OPTS -pl $LIST -am validate -o 2>/dev/null \
   | sed -n 's|^\[INFO\]   from \(.*\)pom\.xml$|\1|p' | sed 's|/$||' | sort -u)"
 
 # resolve a file to its owning module: the longest module dir that prefixes the file path
