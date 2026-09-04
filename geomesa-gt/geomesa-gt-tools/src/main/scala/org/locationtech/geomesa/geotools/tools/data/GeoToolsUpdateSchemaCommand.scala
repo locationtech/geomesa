@@ -10,16 +10,13 @@ package org.locationtech.geomesa.geotools.tools.data
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.geotools.api.data.DataStore
-import org.geotools.data.DefaultTransaction
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.GeoToolsDataStoreParams
 import org.locationtech.geomesa.geotools.tools.data.GeoToolsUpdateSchemaCommand.GeoToolsUpdateSchemaParams
 import org.locationtech.geomesa.gt.partition.postgis.PartitionedPostgisDataStore
-import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 import org.locationtech.geomesa.tools.utils.{NoopParameterSplitter, Prompt}
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, OptionalForceParam, RequiredTypeNameParam}
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import java.io.IOException
 import java.util.Collections
@@ -48,11 +45,7 @@ class GeoToolsUpdateSchemaCommand extends DataStoreCommand[DataStore] with GeoTo
     def number: Int = { n += 1; n }
     val prompts = new StringBuilder()
 
-    val builder = new SimpleFeatureTypeBuilder()
-    builder.init(sft)
-
-    val updated = builder.buildFeatureType()
-    updated.getUserData.putAll(sft.getUserData)
+    val updated = SimpleFeatureTypes.copy(sft)
 
     if (!params.userData.isEmpty) {
       params.userData.asScala.foreach { ud =>
@@ -71,19 +64,7 @@ class GeoToolsUpdateSchemaCommand extends DataStoreCommand[DataStore] with GeoTo
     if (params.force || Prompt.confirm("Continue (y/n)? ")) {
       Command.user.info("Updating, please wait...")
       ds match {
-        case jdbc: PartitionedPostgisDataStore =>
-          val dialect = jdbc.dialect match {
-            case d: PartitionedPostgisDialect => d
-            case d: PartitionedPostgisPsDialect => d
-            case _ => throw new RuntimeException(s"Unexpected dialect: ${jdbc.dialect}")
-          }
-
-          WithClose(new DefaultTransaction()) { tx =>
-            WithClose(jdbc.getConnection(tx)) { cx =>
-              dialect.postCreateTable(jdbc.getDatabaseSchema, updated, cx)
-            }
-          }
-
+        case jdbc: PartitionedPostgisDataStore => jdbc.upgrade(updated)
         case _ =>
           try { ds.updateSchema(sft.getTypeName, updated) } catch {
             case _: UnsupportedOperationException =>

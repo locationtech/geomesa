@@ -23,7 +23,7 @@ import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
 
-class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPostgisDialect)
+class PartitionedPostgisPsDialect(store: JDBCDataStore, val delegate: PartitionedPostgisDialect)
     extends PostGISPSDialect(store, delegate){
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor

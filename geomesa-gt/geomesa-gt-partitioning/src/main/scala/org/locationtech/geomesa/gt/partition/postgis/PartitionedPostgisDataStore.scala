@@ -14,9 +14,9 @@ import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.identity.FeatureId
-import org.geotools.data.DataUtilities
 import org.geotools.data.simple._
 import org.geotools.data.store.DecoratingDataStore
+import org.geotools.data.{DataUtilities, DefaultTransaction}
 import org.geotools.feature.FeatureCollection
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -25,10 +25,12 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 
 import java.awt.RenderingHints
 import java.sql.Connection
@@ -72,7 +74,7 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
             } else {
               // verify vis is the last attribute, logic in other places depends on that
               require(visCol == underlying.getAttributeCount - 1, s"Expected $VisCol to be last attribute, but it was not")
-              SchemaWithVis(removeVisFromSchema(underlying))
+              SchemaWithVis(removeVisFromSchema(underlying), underlying)
             }
           }
         }
@@ -84,13 +86,49 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
   def getConnection(t: Transaction): Connection = delegate.getConnection(t)
   def getDataSource: DataSource = delegate.getDataSource
 
+  /**
+   * Re-create the PLPG/SQL procedures associated with a feature type. This can be used
+   * to 'upgrade in place' if the code is changed.
+   *
+   * This can be used to alter mutable user data settings, but *cannot* be used to modify the attributes
+   * of the feature type
+   *
+   * @param sft updated feature type
+   */
+  def upgrade(sft: SimpleFeatureType): Unit = {
+    val existing = loadSchema(sft.getTypeName)
+    if (existing == null) {
+      throw new IllegalArgumentException(s"Schema does not exist: ${sft.getTypeName}")
+    }
+    val dialect = this.dialect match {
+      case d: PartitionedPostgisDialect => d
+      case d: PartitionedPostgisPsDialect => d.delegate
+    }
+    val upgrade = existing match {
+      case _: SchemaWithoutVis => sft
+      case s: SchemaWithVis =>
+        val copy = SimpleFeatureTypes.copy(s.underling)
+        copy.getUserData.putAll(sft.getUserData)
+        copy
+    }
+    WithClose(new DefaultTransaction()) { tx =>
+      WithClose(getConnection(tx)) { cx =>
+        dialect.postCreateTable(getDatabaseSchema, upgrade, cx)
+        tx.commit()
+      }
+    }
+  }
+
   override def createSchema(featureType: SimpleFeatureType): Unit = {
     val sft = if (!SftUserData.VisEnabled.get(featureType)) { featureType } else { addVisToSchema(featureType) }
     delegate.createSchema(sft)
   }
 
   override def getSchema(typeName: String): SimpleFeatureType =
-    Option(loadSchema(typeName)).fold[SimpleFeatureType](null)(_.sft)
+    Option(loadSchema(typeName)).fold[SimpleFeatureType](null) {
+      case s: SchemaWithoutVis => s.sft
+      case s: SchemaWithVis => s.userFacing
+    }
 
   override def getSchema(name: Name): SimpleFeatureType = getSchema(name.getLocalPart)
 
@@ -113,10 +151,10 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
     val source = delegate.getFeatureSource(typeName)
     loadSchema(typeName) match {
       case _: SchemaWithoutVis => source
-      case SchemaWithVis(userFacing) =>
+      case s: SchemaWithVis =>
         source match {
-          case s: SimpleFeatureStore => new VisSimpleFeatureStore(s, userFacing)
-          case s => new VisSimpleFeatureSource(s, userFacing)
+          case store: SimpleFeatureStore => new VisSimpleFeatureStore(store, s.userFacing)
+          case _ => new VisSimpleFeatureSource(source, s.userFacing)
         }
     }
   }
@@ -134,7 +172,7 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
     val writer = delegate.getFeatureWriter(typeName, filter, tx)
     loadSchema(typeName) match {
       case _: SchemaWithoutVis => writer
-      case SchemaWithVis(userFacing) => new VisFeatureWriter(writer, userFacing)
+      case s: SchemaWithVis => new VisFeatureWriter(writer, s.userFacing)
     }
   }
 
@@ -142,7 +180,7 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
     val writer = delegate.getFeatureWriter(typeName, tx)
     loadSchema(typeName) match {
       case _: SchemaWithoutVis => writer
-      case SchemaWithVis(userFacing) => new VisFeatureWriter(writer, userFacing)
+      case s: SchemaWithVis => new VisFeatureWriter(writer, s.userFacing)
     }
   }
 
@@ -150,7 +188,7 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
     val writer = delegate.getFeatureWriterAppend(typeName, tx)
     loadSchema(typeName) match {
       case _: SchemaWithoutVis => writer
-      case SchemaWithVis(userFacing) => new VisFeatureWriter(writer, userFacing)
+      case s: SchemaWithVis => new VisFeatureWriter(writer, s.userFacing)
     }
   }
 
@@ -261,11 +299,9 @@ object PartitionedPostgisDataStore {
   /**
    * Types for cached schemas
    */
-  private sealed trait SchemaType {
-    def sft: SimpleFeatureType
-  }
+  private sealed trait SchemaType
 
-  private case class SchemaWithVis(sft: SimpleFeatureType) extends SchemaType
+  private case class SchemaWithVis(userFacing: SimpleFeatureType, underling: SimpleFeatureType) extends SchemaType
   private case class SchemaWithoutVis(sft: SimpleFeatureType) extends SchemaType
 
   /**

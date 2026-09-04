@@ -64,24 +64,12 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
 
   // state for checking when we want to use the write_ahead table in place of the main view
   private val dropping = new ThreadLocal[TypeInfo]()
-  private val creating = new ThreadLocal[String]()
 
   private val interceptors = {
     val factory = QueryInterceptorFactory(store)
     sys.addShutdownHook(CloseWithLogging(factory)) // we don't have any API hooks to dispose of things...
     factory
   }
-
-  /**
-   * Re-create the PLPG/SQL procedures associated with a feature type. This can be used
-   * to 'upgrade in place' if the code is changed.
-   *
-   * @param schemaName database schema, e.g. "public"
-   * @param sft feature type
-   * @param cx connection
-   */
-  def upgrade(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit =
-    postCreateTable(schemaName, sft, cx)
 
   override def getDesiredTablesType: Array[String] = Array("VIEW", "TABLE")
 
@@ -123,7 +111,6 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     if (tableName.length > 63) {
       throw new IllegalArgumentException("Can't create schema: type name exceeds max supported Postgres identifier length of 63")
     }
-    creating.set(tableName)
   }
 
   override def postCreateTable(schemaName: String, original: SimpleFeatureType, cx: Connection): Unit = {
@@ -156,13 +143,11 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
         sft.getUserData.put(SftUserData.IdentAlias.key, id)
       }
       // get the first column as the fid col, which may or may not be called 'fid'
-      Option(creating.get()).foreach { tableName =>
-        WithClose(cx.getMetaData.getColumns(null, schemaName, tableName, null)) { cols =>
-          if (cols.next()) {
-            val name = cols.getString("COLUMN_NAME")
-            if (name != null) {
-              sft.getUserData.put(SftUserData.FidColumn.key, name)
-            }
+      WithClose(cx.getMetaData.getColumns(null, schemaName, sft.getTypeName, null)) { cols =>
+        if (cols.next()) {
+          val name = cols.getString("COLUMN_NAME")
+          if (name != null) {
+            sft.getUserData.put(SftUserData.FidColumn.key, name)
           }
         }
       }
@@ -185,7 +170,6 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
         }
       }
     } finally {
-      creating.remove()
       ex.close()
     }
   }

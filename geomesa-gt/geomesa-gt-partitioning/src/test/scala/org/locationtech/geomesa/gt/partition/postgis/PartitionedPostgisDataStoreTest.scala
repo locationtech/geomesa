@@ -305,6 +305,12 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         }
 
         runQueries()
+
+        // run an upgrade command and verify vis are still enforced
+        sft.getUserData.put(SftUserData.FilterWholeWorld.key, "false")
+        ds.upgrade(sft)
+
+        runQueries()
       } finally {
         ds.dispose()
       }
