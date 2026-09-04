@@ -675,21 +675,18 @@ package object dialect {
      */
     protected def lockId: Long
 
-    private def lock: String = s"SELECT pg_advisory_lock($lockId);"
-    private def unlock: String = s"SELECT pg_advisory_unlock($lockId);"
+    // use a transaction-scoped lock so that it is held until the enclosing transaction commits or rolls back.
+    // note that the connection must *not* be in auto-commit mode for this to work correctly
+    private def lock: String = s"SELECT pg_advisory_xact_lock($lockId);"
 
     abstract override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
       ex.execute(lock)
-      try { super.create(info) } finally {
-        ex.execute(unlock)
-      }
+      super.create(info)
     }
 
     abstract override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
       ex.execute(lock)
-      try { super.drop(info) } finally {
-        ex.execute(unlock)
-      }
+      super.drop(info)
     }
   }
 }
