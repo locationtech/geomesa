@@ -31,11 +31,13 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTa
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
 import org.locationtech.geomesa.index.process.ArrowVisitor
 import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource
+import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
@@ -128,13 +130,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   "PartitionedPostgisDataStore" should {
 
     "fail with a useful error message if type name is too long" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
-        // This sft name exceeds 31 characters, so it should fail
+        // This sft name exceeds 63 characters, so it should fail
         val sft = SimpleFeatureTypes.renameSft(this.sft, "abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz")
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft) must throwAn[java.io.IOException].like {
@@ -147,12 +147,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "work" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         val sftNames: Seq[String] = Seq("test", "test-abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz")
 
         foreach(sftNames) { name =>
@@ -180,7 +178,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
 
           // verify data is being partitioned as expected
-          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
             val typeInfo = TypeInfo(this.schema, sft)
             // initially everything is in the write ahead log
             foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
@@ -220,17 +218,114 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       }
     }
 
+    "read and write rows with visibilities" in {
+      // noinspection TypeAnnotation
+      val provider = new AuthorizationsProvider {
+        var auths: Seq[String] = Seq.empty
+        override def getAuthorizations: java.util.List[String] = auths.asJava
+        override def configure(params: java.util.Map[String, _]): Unit = {}
+      }
+      val ds =
+        DataStoreFinder.getDataStore((params ++ Map(AuthProviderParam.key -> provider)).asJava).asInstanceOf[PartitionedPostgisDataStore]
+      try {
+        val schema = SimpleFeatureTypes.renameSft(this.sft, "vis_hidden")
+        schema.getUserData.put("pg.vis.enabled", "true")
+        ds.getTypeNames.toSeq must not(contain(schema.getTypeName))
+        ds.createSchema(schema)
+
+        // the exposed schema must not include the hidden column
+        val sft = Try(ds.getSchema(schema.getTypeName)).getOrElse(null)
+        sft must not(beNull)
+        sft.indexOf(PartitionedPostgisDialect.VisCol) mustEqual -1
+
+        // verify the underlying tables have the vis col
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.getMetaData.getColumns(null, this.schema, s"${sft.getTypeName}_wa", null)) { rs =>
+            Iterator.continually(rs).takeWhile(_.next()).map(_.getString("COLUMN_NAME")).toList must
+              contain(PartitionedPostgisDialect.VisCol)
+          }
+          // and that the view filters on it
+          WithClose(cx.prepareStatement(s"""select pg_get_viewdef('${this.schema}."${sft.getTypeName}"'::regclass, true);""")) { st =>
+            WithClose(st.executeQuery()) { rs =>
+              rs.next() must beTrue
+              rs.getString(1).toLowerCase(Locale.US).split("pg_vis") must haveLength(5) // 4 tables
+            }
+          }
+        }
+
+        // visibility label to assign to each feature (null == visible to all)
+        val visibilities = Seq("admin", "user", "user&admin", null, "admin", "user", "user&admin", null, "admin", "user")
+        val features = this.features.zip(visibilities).map { case (sf, vis) =>
+          val retyped = ScalaSimpleFeature.retype(sft, sf)
+          SecurityUtils.setFeatureVisibility(retyped, vis)
+        }
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        def runQueries(): MatchResult[_] = {
+          foreach(Seq(Seq.empty, Seq("admin"), Seq("user"), Seq("user", "admin"))) { auths =>
+            provider.auths = auths
+            val expected = features.filter { f =>
+              val vis = SecurityUtils.getVisibility(f)
+              // note: not a very robust check but works for our test data here
+              vis == null || auths.contains(vis) || vis == auths.mkString("&")
+            }
+            foreach(Seq(null, Array("name", "dtg", "geom"), Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
+              val query = new Query(sft.getTypeName, Filter.INCLUDE, transforms: _*)
+              val visible = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
+              visible.map(compFromDb) mustEqual expected.map(compWithFid(_, sft, Option(transforms)))
+              visible.map(SecurityUtils.getVisibility) mustEqual expected.map(SecurityUtils.getVisibility)
+            }
+          }
+        }
+
+        runQueries()
+
+        // verify vis still work through maintenance scripts
+        val typeInfo = TypeInfo(this.schema, sft)
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          // everything starts in the write ahead log
+          count(cx, typeInfo.tables.writeAhead) mustEqual 10
+          WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
+          WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
+          // all rows must have moved out of the write ahead table into partitions - none dropped
+          count(cx, typeInfo.tables.writeAhead) mustEqual 0
+          val partitioned =
+            count(cx, typeInfo.tables.writeAheadPartitions) + count(cx, typeInfo.tables.mainPartitions) +
+              count(cx, typeInfo.tables.spillPartitions)
+          partitioned mustEqual 10
+        }
+
+        runQueries()
+
+        // run an upgrade command and verify vis are still enforced
+        sft.getUserData.put(SftUserData.FilterWholeWorld.key, "false")
+        ds.upgrade(sft)
+
+        runQueries()
+      } finally {
+        ds.dispose()
+      }
+    }
+
     "support read-only roles" in {
       val readOnlyUser = "readme"
       val noAccessUser = "noread"
 
-      val ds = DataStoreFinder.getDataStore((params ++ Map(PartitionedPostgisDataStoreParams.ReadAccessRoles.key -> readOnlyUser)).asJava)
+      val testParams = (params ++ Map(PartitionedPostgisDataStoreParams.ReadAccessRoles.key -> readOnlyUser)).asJava
+      val ds = DataStoreFinder.getDataStore(testParams).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
-        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
           WithClose(cx.createStatement()) { st =>
             st.execute(s"CREATE ROLE $readOnlyUser WITH LOGIN PASSWORD '$readOnlyUser';")
             st.execute(s"CREATE ROLE $noAccessUser WITH LOGIN PASSWORD '$noAccessUser';")
@@ -278,7 +373,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
           }
           // verify data is being partitioned as expected
-          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
             val typeInfo = TypeInfo(this.schema, sft)
             // initially everything is in the write ahead log
             foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
@@ -300,19 +395,17 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
         }
       } catch {
-        case NonFatal(e) => logger.error("", e); ko
+        case NonFatal(e) => logger.error("", e); ko(e.getMessage)
       } finally {
         ds.dispose()
       }
     }
 
     "filter on list elements" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         val sft = SimpleFeatureTypes.renameSft(this.sft, "list-filters")
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft)
@@ -378,12 +471,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "run arrow queries with dictionary encoded list attributes" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         val sft = SimpleFeatureTypes.renameSft(this.sft, "list-arrow")
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft)
@@ -425,8 +516,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         val sft = SimpleFeatureTypes.createType("jai", "name:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326")
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft)
@@ -451,12 +540,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "age-off" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         foreach(Seq("age-off", "ageoff")) { name =>
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
           sft.getUserData.put("pg.partitions.max", "2")
@@ -480,7 +567,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
 
           // verify data is being partitioned as expected
-          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
             val typeInfo = TypeInfo(this.schema, sft)
             // initially everything is in the write ahead log
             foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
@@ -500,12 +587,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "re-create functions" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         foreach(Seq("re-create", "recreate")) { name =>
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
 
@@ -548,7 +633,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
                |  $$BODY$$;
                |""".stripMargin
 
-          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
             WithClose(cx.prepareStatement(sql))(_.executeUpdate())
             WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
               WithClose(st.executeQuery()) { rs =>
@@ -566,7 +651,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           // re-create the schema, adding some extra user data
           sft.getUserData.put("pg.partitions.max", "2")
           // we have to get a new data store so that it doesn't use the cached entry...
-          WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+          WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]) { ds =>
             ds.createSchema(sft)
             val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
             schema must not(beNull)
@@ -580,7 +665,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
 
           // verify that the age-off function was re-created
-          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
             WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
               WithClose(st.executeQuery()) { rs =>
                 rs.next() must beTrue
@@ -595,12 +680,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "drop all associated tables on removeSchema" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         foreach(Seq("dropme-test", "dropmetest")) { name =>
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
 
@@ -625,7 +708,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           // get all the tables associated with the schema
           def getTablesAndIndices: Seq[String] = {
             val tables = ArrayBuffer.empty[String]
-            WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
               WithClose(cx.getMetaData.getTables(null, null, "dropme%", null)) { rs =>
                 while (rs.next()) {
                   tables += rs.getString(3)
@@ -638,7 +721,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           // get all the procedures and functions associated with the schema
           def getFunctions: Seq[String] = {
             val fns = ArrayBuffer.empty[String]
-            WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
               WithClose(cx.getMetaData.getProcedures(null, null, "%dropme%")) { rs =>
                 while (rs.next()) {
                   fns += rs.getString(3)
@@ -656,7 +739,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           // get all the scheduled cron jobs associated with the schema
           def getCrons: Seq[String] = {
             val crons = ArrayBuffer.empty[String]
-            WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
               WithClose(cx.prepareStatement("SELECT command from cron.job where command like '%dropme%';")) { st =>
                 WithClose(st.executeQuery()) { rs =>
                   while (rs.next()) {
@@ -671,7 +754,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           // get all the user data and other associated metadata
           def getMeta: Map[String, Seq[String]] = {
             val meta = Map.newBuilder[String, Seq[String]]
-            WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
               Seq(
                 (UserDataTable.Name, "type_name", "key"),
                 (SequenceTable.Name, "type_name", "value"),
@@ -724,12 +807,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "remove whole-world filters" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         val wholeWorldFilters = {
           import FilterHelper.ff
           import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
@@ -767,7 +848,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
 
           foreach(wholeWorldFilters) { filter =>
-            val Array(left, right) = ds.asInstanceOf[JDBCDataStore].getSQLDialect.splitFilter(filter, schema)
+            val Array(left, right) = ds.dialect.splitFilter(filter, schema)
             if (ignoreFilters) {
               left mustEqual Filter.INCLUDE
             } else {
@@ -784,7 +865,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
               override def flush(): Unit = {}
               override def close(): Unit = {}
             }
-            val logger = ds.asInstanceOf[JDBCDataStore].getLogger
+            val logger = ds.unwrap(classOf[JDBCDataStore]).getLogger
             logger.setLevel(Level.FINE)
             logger.addHandler(handler)
             WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
@@ -808,21 +889,19 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
     "default to using prepared statements" in {
       foreach(Seq(params, params + ("preparedStatements" -> "true"), params - "preparedStatements")) { params =>
-        val ds = DataStoreFinder.getDataStore(params.asJava)
+        val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
         ds must not(beNull)
         try {
-          ds must beAnInstanceOf[JDBCDataStore]
-          ds.asInstanceOf[JDBCDataStore].getSQLDialect must beAnInstanceOf[PartitionedPostgisPsDialect]
+          ds.dialect must beAnInstanceOf[PartitionedPostgisPsDialect]
         } finally {
           ds.dispose()
         }
       }
       foreach(Seq(params + ("preparedStatements" -> "false"))) { params =>
-        val ds = DataStoreFinder.getDataStore(params.asJava)
+        val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
         ds must not(beNull)
         try {
-          ds must beAnInstanceOf[JDBCDataStore]
-          ds.asInstanceOf[JDBCDataStore].getSQLDialect must beAnInstanceOf[PartitionedPostgisDialect] // not partitioned
+          ds.dialect must beAnInstanceOf[PartitionedPostgisDialect] // not partitioned
         } finally {
           ds.dispose()
         }
@@ -830,12 +909,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "set appropriate user data for list and json attributes" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         val sft = SimpleFeatureTypes.renameSft(this.sft, "attrtest")
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft)
@@ -858,12 +935,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       val sft = SimpleFeatureTypes.renameSft(this.sft, "interceptor")
       sft.getUserData.put(SimpleFeatureTypes.Configs.QueryInterceptors, classOf[TestQueryInterceptor].getName)
 
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft)
 
@@ -872,7 +947,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
         logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 
-        val Array(left, right) = ds.asInstanceOf[JDBCDataStore].getSQLDialect.splitFilter(Filter.EXCLUDE, schema)
+        val Array(left, right) = ds.dialect.splitFilter(Filter.EXCLUDE, schema)
         left mustEqual Filter.INCLUDE
         right mustEqual Filter.INCLUDE
 
@@ -897,12 +972,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "support partition size change through user_data table" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         val sft = SimpleFeatureTypes.renameSft(this.sft, "partition-size")
         sft.getUserData.put(SftUserData.IntervalHours.key, "6")
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
@@ -924,7 +997,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         }
 
         // verify data is being partitioned as expected
-        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
           val typeInfo = TypeInfo(this.schema, sft)
           // initially everything is in the write ahead log
           foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
@@ -962,7 +1035,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "create logged tables" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
@@ -983,7 +1056,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         forall(tables) { tableName =>
           val sql = isTableLoggedQuery(tableName, "public")
           // verify that the table is logged
-          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
             WithClose(cx.createStatement()) { st =>
               WithClose(st.executeQuery(sql)) { rs =>
                 rs.next() must beTrue
@@ -1000,7 +1073,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "create unlogged tables" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
@@ -1028,7 +1101,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         forall(tables) { tableName =>
           val sql = isTableLoggedQuery(tableName, "public")
           // verify that the table is unlogged
-          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
             WithClose(cx.createStatement()) { st =>
               WithClose(st.executeQuery(sql)) { rs =>
                 rs.next() must beTrue
@@ -1051,8 +1124,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       ds must not(beNull)
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft)
 
@@ -1086,7 +1157,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "support metrics" in {
       val sft = SimpleFeatureTypes.renameSft(this.sft, "metrics")
 
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       def readMetrics(): Seq[String] = {
@@ -1096,8 +1167,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       }
 
       try {
-        ds must beAnInstanceOf[JDBCDataStore]
-        val dataSource = ds.asInstanceOf[JDBCDataStore].getDataSource.unwrap(classOf[DataSource])
+        val dataSource = ds.getDataSource.unwrap(classOf[DataSource])
         dataSource must beAnInstanceOf[MetricsDataSource]
         val jmxName = dataSource.asInstanceOf[MetricsDataSource].jmxName
 
@@ -1147,7 +1217,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         retyped
       }
 
-      val ds = DataStoreFinder.getDataStore(params.asJava)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
 
       try {
@@ -1182,8 +1252,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   }
 
   // note: jdbc data store adds the type name into the fid, so we add it here for the comparison
-  def compWithFid(sf: SimpleFeature, sft: SimpleFeatureType): Seq[Any] =
-    Seq(s"${sft.getTypeName}.${sf.getID}") ++ sf.getAttributes.asScala
+  def compWithFid(sf: SimpleFeature, sft: SimpleFeatureType, transforms: Option[Array[String]] = None): Seq[Any] =
+    Seq(s"${sft.getTypeName}.${sf.getID}") ++
+      transforms.getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray).map(sf.getAttribute)
 
   def count(cx: Connection, table: TableConfig): Int = {
     WithClose(cx.prepareStatement(s"select count(*) from ${table.name.qualified};")) { statement =>

@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package tables
 
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
-
 /**
  * The main and write ahead partitioned tables
  */

@@ -72,6 +72,9 @@ class UserDataTable extends Sql {
     if (!info.tables.mainPartitions.logged) {
       insert(SftUserData.WalLogEnabled, "false")
     }
+    if (info.cols.vis.isDefined) {
+      insert(SftUserData.VisEnabled, "true")
+    }
     Seq(SftUserData.FilterWholeWorld, SftUserData.QueryInterceptors).foreach { config =>
       info.userData.get(config.key).foreach(v => insert(config, v))
     }

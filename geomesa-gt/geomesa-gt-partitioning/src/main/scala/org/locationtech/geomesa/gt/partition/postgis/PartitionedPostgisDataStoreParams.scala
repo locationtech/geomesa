@@ -10,11 +10,12 @@ package org.locationtech.geomesa.gt.partition.postgis
 
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.Parameter
+import org.locationtech.geomesa.security.SecurityParams
 
 import java.util.Collections
 import scala.concurrent.duration.Duration
 
-object PartitionedPostgisDataStoreParams {
+object PartitionedPostgisDataStoreParams extends SecurityParams {
 
   val DbType =
     new Param(
