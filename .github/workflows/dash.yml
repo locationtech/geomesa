@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: temurin
@@ -38,13 +40,15 @@ jobs:
           path: ~/.m2/repository/
       - name: Check for dependency changes
         id: dependency_changes
+        env:
+          GIT_REF: ${{ github.base_ref }}
         run: |
           changed=""
           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
             echo "Checking for dependency changes"
             # get the changed files
-            git fetch --depth=1 origin ${{ github.base_ref }}
-            IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only origin/${{ github.base_ref }} && printf '\0' )
+            git fetch --depth=1 origin "${GIT_REF}"
+            IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only "origin/${GIT_REF}" && printf '\0' )
             echo "Changed files:"
             for file in "${changedFiles[@]}"; do
               echo "  $file"
