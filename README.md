@@ -206,8 +206,6 @@ Toolchains plugin for Java 17. A compatible `toolchains.xml` can be generated us
 ./build/scripts/update-maven-toolchains.sh
 ```
 
-
-
 ### Build with Bloop Compile Server
 
 GeoMesa also provides experimental support for the [Bloop](https://scalacenter.github.io/bloop/) compile server,

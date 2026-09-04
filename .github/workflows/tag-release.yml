@@ -21,6 +21,8 @@ env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_PREPARE_ARGS: release:prepare -DdryRun=true -DautoVersionSubmodules=true
   MAVEN_BUILD_ARGS: -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip -Dmaven.javadoc.skip=true
+  RELEASE_VERSION: ${{ github.event.inputs.version }}
+  DEV_VERSION: ${{ github.event.inputs.next_version }}
 
 jobs:
   tag-release:
@@ -30,6 +32,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Configure git user
         run: |
           git config --global user.name 'GitHub Actions'
@@ -51,8 +55,8 @@ jobs:
         run: |
           # use the maven release plugin to prep the pom changes but use dryRun to skip commit and tag
           mvn $MAVEN_PREPARE_ARGS -Darguments="$MAVEN_BUILD_ARGS" $MAVEN_CLI_OPTS \
-            -DreleaseVersion="${{ github.event.inputs.version }}" \
-            -DdevelopmentVersion="${{ github.event.inputs.next_version }}"
+            -DreleaseVersion="${RELEASE_VERSION}" \
+            -DdevelopmentVersion="${DEV_VERSION}"
       - name: Read release properties
         run: |
           # read the tag from release.properties
@@ -62,7 +66,7 @@ jobs:
         run: |
           # update README versions and commit
           for pom in pom.xml pom.xml.tag pom.xml.next; do
-            sed -i "s|<geomesa\.release\.version>.*|<geomesa.release.version>${{ github.event.inputs.version }}</geomesa.release.version>|" "$pom"
+            sed -i "s|<geomesa\.release\.version>.*|<geomesa.release.version>${RELEASE_VERSION}</geomesa.release.version>|" "$pom"
           done
           # regenerates the README
           mvn clean install $MAVEN_CLI_OPTS -pl .

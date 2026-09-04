@@ -84,6 +84,25 @@ headers. This plugin runs as part of the default build, and will fail if any fil
 To add a new copyright owner, a template file can be placed under `build/copyright/` and added to the
 `<validHeaders>` block in the root pom.xml.
 
+Releasing this Project
+----------------------
+
+Project maintainers can cut a release using the script `./build/scripts/do-release.sh`, which will perform the following steps:
+
+* Trigger and monitor GitHub actions to tag and build the release
+* Download the release artifacts and sign them with the user's gpg key
+* Publish the Maven artifacts to Maven central
+* Publish the binary distribution bundles to a GitHub release
+* Trigger and monitor a GitHub action to publish the release docs to geomesa.org
+
+The following prerequisites are required for running the script:
+
+* `gh` (the GitHub CLI tool) must be installed and configured with the correct credentials for this repo
+* `gpg` must be installed and configured with an appropriate key
+* Sonatype credentials for publishing to Maven central must be available in the user's `~/.m2/settings.xml` under `<id>sonatype</id>`
+
+See https://central.sonatype.org/register/central-portal/ for full details on preparing to publish to Maven central.
+
 Contact
 -------
 

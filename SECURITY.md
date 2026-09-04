@@ -11,6 +11,11 @@ If you think you have found a vulnerability in this repository, please report it
 * [Create a confidential issue](https://gitlab.eclipse.org/security/vulnerability-reports/-/issues/new?issuable_template=new_vulnerability)
   in the Eclipse Foundation Vulnerability Reporting Tracker
 
+or
+
+* [Report it privately](https://github.com/locationtech/geomesa/security/advisories) on GitHub (click the green "Report a
+  vulnerability" button)
+
 **Please do not report security vulnerabilities through public issues, discussions, or change requests.**
 
 You can find more information about reporting and disclosure at the [Eclipse Foundation Security page](https://www.eclipse.org/security/).
