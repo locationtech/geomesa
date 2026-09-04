@@ -119,30 +119,33 @@ class IcebergVisibilityPruningMechanismTest {
     }
 
     @Test
-    void tokenDomainPrunesFilesHoldingOnlyDisjointTokens() throws IOException {
+    void expressionDomainPrunesFilesHoldingOnlyDisjointExpressions() throws IOException {
         appendFile("admin", 1000, false);
         appendFile("ops", 1000, false);
         appendFile("finance", 1000, false);
         appendFile(null, 1000, true);
 
-        Domain domain = VisibilityDomainPruning.tokenDomain(VarcharType.VARCHAR, Set.of("ops")).orElseThrow();
+        // Declared universe of every non-null value present; caller holds only "ops".
+        Domain domain = VisibilityDomainPruning.expressionDomain(
+            VarcharType.VARCHAR, Set.of("admin", "ops", "finance"), Set.of("ops")).orElseThrow();
         Expression expr = toIcebergExpression(domain);
 
         // The "ops" file and the all-NULL (unrestricted) file survive; "admin" and "finance"
-        // files hold only tokens disjoint from the caller's, so they're pruned.
+        // hold only values the caller's auths cannot satisfy, so they're pruned.
         assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(2);
     }
 
     @Test
-    void tokenDomainDoesNotPruneMixedFile() throws IOException {
-        // A single file whose min/max span both an in-set and an out-of-set token: Iceberg's
-        // manifest evaluator can only compare against [min, max], so it cannot exclude this file
-        // even though the caller's token is only one of several present. Demonstrates the
-        // "narrows, never widens" safety property from VisibilityDomainPruning's javadoc:
-        // pruning misses this file (a missed optimization) rather than wrongly dropping it.
+    void expressionDomainDoesNotPruneMixedFile() throws IOException {
+        // A single file whose min/max span both an admissible and an inadmissible value:
+        // Iceberg's manifest evaluator can only compare against [min, max], so it cannot exclude
+        // this file even though only one of the values present is visible to the caller.
+        // Demonstrates the "narrows, never widens" safety property from VisibilityDomainPruning's
+        // javadoc: pruning misses this file (a missed optimization) rather than wrongly dropping it.
         appendFileWithBounds("admin", "ops", 1000);
 
-        Domain domain = VisibilityDomainPruning.tokenDomain(VarcharType.VARCHAR, Set.of("ops")).orElseThrow();
+        Domain domain = VisibilityDomainPruning.expressionDomain(
+            VarcharType.VARCHAR, Set.of("admin", "ops"), Set.of("ops")).orElseThrow();
         Expression expr = toIcebergExpression(domain);
 
         assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(1);

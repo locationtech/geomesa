@@ -61,45 +61,6 @@ class VisibilityDomainPruningTest {
         }
     }
 
-    // -- tokenDomain ---------------------------------------------------------
-
-    @Test
-    void emptyAuthsProducesNoTokenDomain() {
-        assertThat(VisibilityDomainPruning.tokenDomain(VARCHAR, Set.of())).isEmpty();
-    }
-
-    @Test
-    void tokenDomainIncludesEachAuthAndNull() {
-        Domain domain = VisibilityDomainPruning.tokenDomain(VARCHAR, Set.of("user", "privileged"))
-            .orElseThrow();
-        assertThat(domain.includesNullableValue(Slices.utf8Slice("user"))).isTrue();
-        assertThat(domain.includesNullableValue(Slices.utf8Slice("privileged"))).isTrue();
-        assertThat(domain.includesNullableValue(null)).isTrue();
-    }
-
-    @Test
-    void tokenDomainExcludesUnrelatedToken() {
-        Domain domain = VisibilityDomainPruning.tokenDomain(VARCHAR, Set.of("user")).orElseThrow();
-        assertThat(domain.includesNullableValue(Slices.utf8Slice("admin"))).isFalse();
-    }
-
-    @Test
-    void tokenDomainDocumentedLimitationForCompoundExpressions() {
-        // Demonstrates (rather than merely asserting) the documented unsoundness for
-        // compound expressions: a user with BOTH "admin" and "ops" is entitled to see
-        // "admin&ops" per AccessEvaluator, but the literal string "admin&ops" is not
-        // admitted by the token domain built from {"admin","ops"} — a file containing
-        // only that value could be wrongly pruned. This is why tokenDomain is opt-in.
-        AccessEvaluator eval = AccessEvaluator.of(Authorizations.of(List.of("admin", "ops")));
-        assertThat(eval.canAccess("admin&ops")).isTrue();
-
-        Domain domain = VisibilityDomainPruning.tokenDomain(VARCHAR, Set.of("admin", "ops"))
-            .orElseThrow();
-        assertThat(domain.includesNullableValue(Slices.utf8Slice("admin&ops"))).isFalse();
-    }
-
-    // -- expressionDomain ----------------------------------------------------
-
     @Test
     void expressionDomainEmptyAuthsOrEmptyCandidatesYieldsNoDomain() {
         assertThat(VisibilityDomainPruning.expressionDomain(VARCHAR, Set.of("U"), Set.of()))
@@ -109,12 +70,14 @@ class VisibilityDomainPruningTest {
     }
 
     @Test
-    void expressionDomainFixesTokenDomainsCompoundExpressionGap() {
-        // The exact scenario tokenDomainDocumentedLimitationForCompoundExpressions shows is
-        // broken for tokenDomain: a caller holding both "admin" and "ops" IS entitled to
-        // "admin&ops" per AccessEvaluator. expressionDomain gets this right because it checks
-        // the literal candidate expression through the real is_visible() decision instead of
-        // decomposing into tokens.
+    void expressionDomainAdmitsCompoundExpressionCallerCanSatisfy() {
+        // A caller holding both "admin" and "ops" IS entitled to the compound value
+        // "admin&ops" per AccessEvaluator, and expressionDomain admits it: it checks the
+        // literal candidate expression through the real is_visible() decision rather than
+        // decomposing into tokens, so compound (&/|) values are handled correctly.
+        AccessEvaluator eval = AccessEvaluator.of(Authorizations.of(List.of("admin", "ops")));
+        assertThat(eval.canAccess("admin&ops")).isTrue();
+
         Domain domain = VisibilityDomainPruning
             .expressionDomain(VARCHAR, Set.of("admin&ops"), Set.of("admin", "ops"))
             .orElseThrow();

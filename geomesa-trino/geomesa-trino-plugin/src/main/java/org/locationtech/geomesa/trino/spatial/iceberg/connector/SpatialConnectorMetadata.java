@@ -111,15 +111,15 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     /** Identity→auths resolver; null when Trino-layer visibility enforcement isn't
      *  configured, in which case no visibility-domain pruning is attempted. */
     private final AuthorizationResolver resolver;
-    /** Opt-in, unsound-for-compound-expressions tier of visibility pruning; see
-     *  {@link VisibilityDomainPruning#tokenDomain}. The unconditional empty-auths
-     *  tier ({@link VisibilityDomainPruning#emptyAuthsDomain}) is always attempted
-     *  when {@link #resolver} is non-null, regardless of this flag. */
-    private final boolean enableVisibilityTokenPruning;
+    /** Master gate for the entire visibility-column file-pruning feature (both the
+     *  empty-auths and expression tiers). When false, {@link #visibilityDomain} injects
+     *  no domain at all, restoring pre-feature behavior (only the always-on
+     *  {@code is_visible()} row filter runs). */
+    private final boolean visibilityPruningEnabled;
     /** Declared closed universe of every distinct non-null visibility value the
-     *  column can hold; when non-empty, enables the sound-for-compound-expressions
-     *  {@link VisibilityDomainPruning#expressionDomain} tier, tried before the
-     *  token-domain fallback above. Empty disables this tier entirely. */
+     *  column can hold; when {@link #visibilityPruningEnabled} and non-empty, enables the
+     *  sound-for-compound-expressions {@link VisibilityDomainPruning#expressionDomain} tier.
+     *  Empty disables that tier (leaving only the empty-auths tier). */
     private final Set<String> visibilityExpressions;
 
     /** Result of locating a spatial constraint in a constraint expression: the
@@ -152,56 +152,35 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public SpatialConnectorMetadata(ConnectorMetadata delegate,
                                     GeoMesaColumnCatalog geomCatalog,
                                     boolean bboxShortCircuit) {
-        this(delegate, geomCatalog, bboxShortCircuit, null, false);
+        this(delegate, geomCatalog, bboxShortCircuit, null, false, Set.of());
     }
 
     /**
      * Wraps a delegate metadata with spatial-predicate pushdown and, when a
-     * resolver is supplied, visibility-column domain pushdown (see
-     * {@link VisibilityDomainPruning}).
+     * resolver is supplied and pruning is enabled, visibility-column domain
+     * pushdown (see {@link VisibilityDomainPruning}).
      *
      * @param delegate the underlying iceberg metadata
      * @param geomCatalog the shared geometry-column catalog
      * @param bboxShortCircuit when true, claim eligible rectangle ST_Intersects enforced
      * @param resolver identity→auths resolver; null disables visibility-domain pushdown
-     * @param enableVisibilityTokenPruning opt-in token-domain tier; see
-     *                                     {@link VisibilityDomainPruning#tokenDomain}
-     */
-    public SpatialConnectorMetadata(ConnectorMetadata delegate,
-                                    GeoMesaColumnCatalog geomCatalog,
-                                    boolean bboxShortCircuit,
-                                    AuthorizationResolver resolver,
-                                    boolean enableVisibilityTokenPruning) {
-        this(delegate, geomCatalog, bboxShortCircuit, resolver, enableVisibilityTokenPruning, Set.of());
-    }
-
-    /**
-     * Wraps a delegate metadata with spatial-predicate pushdown and, when a
-     * resolver is supplied, visibility-column domain pushdown (see
-     * {@link VisibilityDomainPruning}).
-     *
-     * @param delegate the underlying iceberg metadata
-     * @param geomCatalog the shared geometry-column catalog
-     * @param bboxShortCircuit when true, claim eligible rectangle ST_Intersects enforced
-     * @param resolver identity→auths resolver; null disables visibility-domain pushdown
-     * @param enableVisibilityTokenPruning opt-in token-domain tier; see
-     *                                     {@link VisibilityDomainPruning#tokenDomain}
+     * @param visibilityPruningEnabled master gate for visibility-domain pushdown; when false,
+     *                              no domain is injected regardless of the other arguments
      * @param visibilityExpressions declared closed universe of every distinct non-null
      *                              visibility value the column can hold; when non-empty,
-     *                              enables {@link VisibilityDomainPruning#expressionDomain},
-     *                              tried before the token-domain fallback above
+     *                              enables {@link VisibilityDomainPruning#expressionDomain}
      */
     public SpatialConnectorMetadata(ConnectorMetadata delegate,
                                     GeoMesaColumnCatalog geomCatalog,
                                     boolean bboxShortCircuit,
                                     AuthorizationResolver resolver,
-                                    boolean enableVisibilityTokenPruning,
+                                    boolean visibilityPruningEnabled,
                                     Set<String> visibilityExpressions) {
         this.delegate = delegate;
         this.geomCatalog = geomCatalog;
         this.bboxShortCircuit = bboxShortCircuit;
         this.resolver = resolver;
-        this.enableVisibilityTokenPruning = enableVisibilityTokenPruning;
+        this.visibilityPruningEnabled = visibilityPruningEnabled;
         this.visibilityExpressions = visibilityExpressions;
     }
 
@@ -385,11 +364,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     }
 
     /**
-     * Builds a visibility-column pushdown domain when Trino-layer visibility
-     * enforcement is configured ({@link #resolver} non-null) and the table
-     * carries a visibility column observed by {@code getColumnHandles}. See
-     * {@link VisibilityDomainPruning} for what's injected and why the
-     * unconditional tier is sound while the token tier is opt-in only.
+     * Builds a visibility-column pushdown domain when file pruning is enabled
+     * ({@link #visibilityPruningEnabled}), Trino-layer visibility enforcement is
+     * configured ({@link #resolver} non-null), and the table carries a visibility
+     * column observed by {@code getColumnHandles}. See {@link VisibilityDomainPruning}
+     * for what's injected and why both the empty-auths and expression tiers are sound.
      *
      * @param session the connector session
      * @param handle the table handle
@@ -400,7 +379,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      */
     private Optional<Map.Entry<ColumnHandle, Domain>> visibilityDomain(
             ConnectorSession session, ConnectorTableHandle handle, Constraint constraint) {
-        if (resolver == null) {
+        if (resolver == null || !visibilityPruningEnabled) {
             return Optional.empty();
         }
         SchemaTableName tn = delegate.getTableName(session, handle);
@@ -423,9 +402,6 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         Optional<Domain> domain = VisibilityDomainPruning.emptyAuthsDomain(vt, auths);
         if (domain.isEmpty() && !visibilityExpressions.isEmpty()) {
             domain = VisibilityDomainPruning.expressionDomain(vt, visibilityExpressions, auths);
-        }
-        if (domain.isEmpty() && enableVisibilityTokenPruning) {
-            domain = VisibilityDomainPruning.tokenDomain(vt, auths);
         }
         return domain.map(d -> Map.entry(visHandle, d));
     }

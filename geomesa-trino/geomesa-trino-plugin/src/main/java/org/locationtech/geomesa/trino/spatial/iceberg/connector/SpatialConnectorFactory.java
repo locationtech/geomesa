@@ -43,25 +43,40 @@ public class SpatialConnectorFactory implements ConnectorFactory {
     private static final String AUTH_RESOLVER   = SECURITY_PREFIX + "auth-resolver";
     private static final String AUTH_MAPPING    = SECURITY_PREFIX + "auth-mapping-file";
 
-    /** Opt-in visibility-column domain pushdown for Iceberg manifest/file pruning.
-     *  The unconditional empty-auths tier (see {@code VisibilityDomainPruning#emptyAuthsDomain})
-     *  is always attempted once a resolver is configured, regardless of this flag: it is sound
-     *  for any visibility expression grammar. This flag additionally enables the token-domain
-     *  tier ({@code VisibilityDomainPruning#tokenDomain}), which is NOT sound when the table's
-     *  visibility values include compound ({@code &}/{@code |}) expressions — only enable it for
-     *  deployments using a flat classification ladder of single-token visibility values.
-     *  OFF by default. */
-    private static final String VISIBILITY_TOKEN_PRUNING = SECURITY_PREFIX + "enable-visibility-token-pruning";
-
     /** Declared closed universe of every distinct non-null visibility value the column can
      *  hold, comma-separated (e.g. {@code "U,U&FOUO,U&FOUO&NOFORN"}). When set, enables the
      *  sound-for-compound-expressions {@code VisibilityDomainPruning#expressionDomain} tier —
-     *  unlike {@link #VISIBILITY_TOKEN_PRUNING}, safe to enable even when visibility values are
-     *  compound ({@code &}/{@code |}) expressions, since it prunes on literal expression values
-     *  rather than decomposed tokens. Soundness depends on completeness: an omitted value just
-     *  makes its files un-prunable, never a leak. Empty (default) disables this tier; tried
-     *  before the token-domain fallback above. */
+     *  safe to enable even when visibility values are compound ({@code &}/{@code |}) expressions,
+     *  since it prunes on literal expression values via the real {@code is_visible()} decision
+     *  rather than decomposed tokens. Empty (default) disables this tier, leaving only the
+     *  unconditional empty-auths tier ({@code VisibilityDomainPruning#emptyAuthsDomain}), which
+     *  is sound for any grammar. Both tiers are gated by {@link #VISIBILITY_EXPRESSION_PRUNING};
+     *  neither runs unless that property is enabled.
+     *
+     *  <p><strong>This universe must be COMPLETE.</strong> The tier prunes any file whose
+     *  visibility value is not in this list, so a value that actually occurs in the data but is
+     *  omitted here gets its files over-pruned: a caller whose authorizations would admit that
+     *  value silently loses those rows (a correctness/availability bug — never a leak, since the
+     *  always-on {@code is_visible()} row filter still enforces confidentiality). Over-declaring
+     *  is safe: a declared value that never occurs simply never matches and never prunes. When in
+     *  doubt, declare more, never fewer.
+     *
+     *  <p>This property is catalog-wide, not per-table: the same declared universe applies to
+     *  every table in the catalog. When tables in the catalog use different visibility
+     *  universes, declare the <em>union</em> of all their distinct values here — a value that
+     *  belongs to one table but not another is harmless to the others (no file there ever holds
+     *  it, so it simply never matches), which is just the over-declaring-is-safe rule applied
+     *  across tables. */
     private static final String VISIBILITY_EXPRESSIONS = SECURITY_PREFIX + "visibility-expressions";
+
+    /** Master gate for visibility-column file pruning (see {@link
+     *  org.locationtech.geomesa.trino.security.VisibilityDomainPruning}). Default {@code false}
+     *  (opt-in): when unset or false, the connector injects no visibility domain at all — behavior
+     *  is exactly as it was before the feature existed, with only the always-on {@code is_visible()}
+     *  row filter enforcing confidentiality. Set {@code true} to enable both the unconditional
+     *  empty-auths tier and (when {@link #VISIBILITY_EXPRESSIONS} is declared) the expression tier. */
+    private static final String VISIBILITY_EXPRESSION_PRUNING =
+        SECURITY_PREFIX + "enable-visibility-expression-pruning";
 
     /** Enables connector-side bbox filtering (see {@link BboxFilteringPageSource}).
      *  - For a rectangle {@code ST_Intersects} on a Z2/point geometry column the connector claims
@@ -101,8 +116,8 @@ public class SpatialConnectorFactory implements ConnectorFactory {
                             ConnectorContext context) {
         AuthorizationResolver resolver = buildResolver(config);
         boolean bboxShortCircuit = Boolean.parseBoolean(config.getOrDefault(BBOX_PAGE_FILTER, "true"));
-        boolean enableVisibilityTokenPruning =
-            Boolean.parseBoolean(config.getOrDefault(VISIBILITY_TOKEN_PRUNING, "false"));
+        boolean visibilityPruningEnabled =
+            Boolean.parseBoolean(config.getOrDefault(VISIBILITY_EXPRESSION_PRUNING, "false"));
         Set<String> visibilityExpressions = parseVisibilityExpressions(config.get(VISIBILITY_EXPRESSIONS));
 
         // Iceberg uses strict config validation; strip our keys so it doesn't reject them as unused.
@@ -114,7 +129,7 @@ public class SpatialConnectorFactory implements ConnectorFactory {
         ConnectorFactory icebergFactory = new IcebergPlugin().getConnectorFactories().iterator().next();
         Connector icebergConnector = icebergFactory.create(catalogName, icebergConfig, context);
         return new SpatialConnector(icebergConnector, catalogName, resolver, bboxShortCircuit,
-            enableVisibilityTokenPruning, visibilityExpressions);
+            visibilityPruningEnabled, visibilityExpressions);
     }
 
     /** Parses the comma-separated {@link #VISIBILITY_EXPRESSIONS} property; null/blank yields

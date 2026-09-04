@@ -32,11 +32,18 @@ import java.util.TreeSet;
  * can only make a query wrongly omit rows the caller was entitled to see (a
  * correctness/availability bug) — it can never cause a row the row filter would
  * have hidden to be returned (never a security/leak bug). That asymmetry is
- * what makes the token-based tier below safe to offer as an explicit,
- * documented opt-in rather than something that must be proven sound for every
- * deployment before it can ship — and it's also why an incomplete {@link
- * #expressionDomain} candidate set degrades to "prunes less" rather than
- * "prunes incorrectly."
+ * what bounds the blast radius of an incomplete {@link #expressionDomain}
+ * candidate universe (see below) to a correctness bug rather than a leak.
+ *
+ * <p><strong>Which way "wrong" cuts for {@link #expressionDomain}.</strong> Its
+ * declared candidate universe must be COMPLETE to be sound. Over-declaring is
+ * harmless: a declared value that never occurs simply never matches, so pruning
+ * is merely weaker. Under-declaring is the dangerous direction: because the
+ * domain is a positive IN-list, a value that actually occurs but is omitted is
+ * never admitted, so a file holding only that value is over-pruned — a caller
+ * whose auths actually admit it silently loses those rows (a correctness/
+ * availability bug). Still never a leak, per the invariant above; but an
+ * incomplete universe prunes too MUCH, not too little.
  */
 public final class VisibilityDomainPruning {
 
@@ -55,7 +62,7 @@ public final class VisibilityDomainPruning {
      * @param auths the resolved authorizations for the querying identity
      * @return a NULL-only domain when {@code auths} is empty; empty otherwise
      *         (an empty result is not a signal to fall back — see
-     *         {@link #tokenDomain} for the opt-in non-empty-auths case)
+     *         {@link #expressionDomain} for the non-empty-auths case)
      */
     public static Optional<Domain> emptyAuthsDomain(VarcharType visColumnType, Set<String> auths) {
         if (!auths.isEmpty()) {
@@ -65,38 +72,9 @@ public final class VisibilityDomainPruning {
     }
 
     /**
-     * Opt-in: builds an IN-list domain of the caller's individual auth tokens
-     * plus NULL. <strong>Not sound for compound visibility expressions.</strong>
-     * Correct only when every value ever stored in the visibility column is a
-     * single literal token (no {@code &}, no {@code |}) — e.g. a coarse
-     * classification ladder such as {@code "public"}/{@code "internal"}/
-     * {@code "secret"}. A file holding a compound expression such as
-     * {@code "admin&ops"} can be wrongly pruned even though a caller with both
-     * tokens is entitled to it: the string {@code "admin&ops"} doesn't equal
-     * either injected token and may fall outside the file's [min, max] range
-     * for them. Per the class javadoc this can only hide rows, never leak them
-     * — but callers must still gate this behind an explicit, documented
-     * configuration flag rather than enabling it unconditionally.
-     *
-     * @param visColumnType the visibility column's type (always VARCHAR)
-     * @param auths the resolved authorizations for the querying identity
-     * @return an IN-list-plus-null domain over the given tokens; empty when
-     *         {@code auths} is empty (use {@link #emptyAuthsDomain} for that case)
-     */
-    public static Optional<Domain> tokenDomain(VarcharType visColumnType, Set<String> auths) {
-        if (auths.isEmpty()) {
-            return Optional.empty();
-        }
-        List<Range> ranges = auths.stream()
-            .map(token -> Range.equal(visColumnType, Slices.utf8Slice(token)))
-            .toList();
-        return Optional.of(Domain.create(SortedRangeSet.copyOf(visColumnType, ranges), true));
-    }
-
-    /**
-     * Sound for ANY visibility expression grammar, compound included — unlike
-     * {@link #tokenDomain}, this prunes on literal expression VALUES rather than
-     * decomposed tokens. {@code candidateExpressions} is the closed universe of
+     * Sound for ANY visibility expression grammar, compound included: this prunes
+     * on literal expression VALUES via the real {@code is_visible()} decision
+     * rather than on decomposed tokens. {@code candidateExpressions} is the closed universe of
      * every distinct non-null value the visibility column can ever hold (e.g. a
      * declared clearance ladder: {@code "U"}, {@code "U&FOUO"}, ...); each one is
      * run through the real {@link GeoMesaSecurityFunctions#isVisible} decision —
@@ -105,10 +83,15 @@ public final class VisibilityDomainPruning {
      * mismatch for {@code &}/{@code |} to fall through.
      *
      * <p>Soundness therefore reduces to completeness of {@code
-     * candidateExpressions}: an omitted value just makes its files un-prunable
-     * (same narrows-never-widens direction as the rest of this class), never a
-     * leak. Scales to tens-to-low-hundreds of distinct values; not intended for
-     * effectively-unique per-row visibility strings.
+     * candidateExpressions}, and completeness is REQUIRED, not best-effort: a
+     * value present in the column but omitted here is never added to the admitted
+     * set, so a file holding only that value is pruned even for a caller whose
+     * auths would admit it — silently dropping rows they were entitled to (a
+     * correctness/availability bug). This never leaks (the domain only narrows the
+     * file set; the {@code is_visible()} row filter still runs), but under-declaring
+     * prunes too MUCH, not too little. Over-declaring is safe: a declared value that
+     * never occurs simply never matches. Scales to tens-to-low-hundreds of distinct
+     * values; not intended for effectively-unique per-row visibility strings.
      *
      * @param visColumnType the visibility column's type (always VARCHAR)
      * @param candidateExpressions every distinct non-null value the column can hold

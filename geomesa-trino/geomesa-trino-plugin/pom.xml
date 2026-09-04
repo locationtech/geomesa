@@ -18,6 +18,13 @@
     <properties>
         <skipITs>true</skipITs>
         <opentelemetry.version>1.65.0</opentelemetry.version> <!-- note: trino bundles 1.61.0, but that triggers a CVE in our scanning -->
+        <!-- The geomesa parent pins jetty to 9.4 for its own server stack, but Trino 483's
+             embedded test HTTP server (DistributedQueryRunner, used only by the end-to-end
+             visibility-pruning IT) requires jetty 12 — 9.4 lacks UriCompliance.Violation and
+             fails at server startup. Redirect the parent's jetty-bom import to the version Trino
+             pulls. Safe here: this module's main (plugin) code has no jetty dependency, so this
+             only realigns the test classpath. -->
+        <jetty.version>12.1.11</jetty.version>
     </properties>
 
     <dependencyManagement>
@@ -85,6 +92,17 @@
                 <version>${junit.jupiter.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- The geomesa parent pins commons-math3 to 'provided' (license reasons). It is
+                 pulled in here only transitively through the test-scoped trino-testing engine, so
+                 override it to 'test': it must stay on the test classpath, and the trino-plugin
+                 packaging check rejects any non-SPI 'provided' dependency. -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>3.6.1</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -226,6 +244,26 @@
             <version>${trino.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- Full Trino query engine (DistributedQueryRunner + TESTING_FILE_METASTORE iceberg
+             catalog) for the tier-2 end-to-end visibility-pruning IT. Test scope only: it is
+             not bundled into the trino-plugin shaded jar. Heavy to spin up, so the IT is a
+             *IT class (Failsafe, -DskipITs=false) and tagged @Tag("integration") so the fast
+             surefire lane skips it (see this module's excludedGroups=integration). -->
+        <dependency>
+            <groupId>io.trino</groupId>
+            <artifactId>trino-testing</artifactId>
+            <version>${trino.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Hadoop filesystem support (io.trino.filesystem.hdfs.HdfsFileSystemManager), required on
+             the test classpath when the in-process iceberg catalog runs with fs.hadoop.enabled=true
+             — Hadoop's LocalFileSystem serves the file:// warehouse the IT writes to. Test scope. -->
+        <dependency>
+            <groupId>io.trino</groupId>
+            <artifactId>trino-hdfs</artifactId>
+            <version>${trino.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -265,6 +303,36 @@
                 <artifactId>trino-maven-plugin</artifactId>
                 <version>24</version>
                 <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <!-- this module uses JUnit 5 (Jupiter), which requires the surefire-junit-platform
+                     provider. Elsewhere in the build surefire auto-detects the JUnit 4 provider
+                     for specs2 (which reports its example names correctly under JUnit 4); here we
+                     configure the platform provider explicitly since only JUnit 5 is on the classpath. -->
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit-platform</artifactId>
+                        <version>${maven.surefire.plugin.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <!-- Declared active here (not just pluginManagement, which doesn't bind executions)
+                 so both child modules run their *IT classes under -DskipITs=false without
+                 re-declaring the plugin themselves. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <!-- The end-to-end IT forks a real Trino engine (DistributedQueryRunner), which
+                         requires the same JVM options Trino's own tests run with: the incubator
+                         Vector module (BlockEncodingSimdSupport fails to initialize without it) and,
+                         on JDK 24+, explicit sun.misc.Unsafe memory-access. Mirrors Trino's
+                         air.test.jvm.additional-arguments. Only failsafe (the IT) needs these. -->
+                    <argLine>--add-modules=jdk.incubator.vector --sun-misc-unsafe-memory-access=allow -XX:+UnlockDiagnosticVMOptions</argLine>
+                </configuration>
             </plugin>
         </plugins>
 

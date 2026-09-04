@@ -137,7 +137,7 @@ class VisibilityPruningIntegrationTest {
     void emptyAuthsInjectsNullOnlyDomainOnVisColumn() {
         VisDelegate delegate = new VisDelegate();
         SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
-            delegate, new GeoMesaColumnCatalog(), false, EMPTY_RESOLVER, false);
+            delegate, new GeoMesaColumnCatalog(), false, EMPTY_RESOLVER, true, Set.of());
         ConnectorSession session = sessionFor("nobody");
         ConnectorTableHandle handle = fakeHandle();
 
@@ -151,37 +151,72 @@ class VisibilityPruningIntegrationTest {
     }
 
     @Test
-    void nonEmptyAuthsWithoutTokenPruningInjectsNoDomain() {
+    void nonEmptyAuthsWithoutDeclaredExpressionsInjectsNoDomain() {
         VisDelegate delegate = new VisDelegate();
         SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
-            delegate, new GeoMesaColumnCatalog(), false, USER_RESOLVER, false);
+            delegate, new GeoMesaColumnCatalog(), false, USER_RESOLVER, true, Set.of());
         ConnectorSession session = sessionFor("alice");
         ConnectorTableHandle handle = fakeHandle();
 
         meta.getColumnHandles(session, handle);
         meta.applyFilter(session, handle, allConstraint());
 
-        // Token pruning is opt-in and off here; a non-empty auth set gets no
-        // unconditional domain (only the empty-auths tier is unconditional).
+        // expressionDomain needs a declared candidate universe; with none, a non-empty
+        // auth set gets no domain (only the empty-auths tier is unconditional).
         assertThat(hasVisDomain(delegate)).isFalse();
     }
 
     @Test
-    void nonEmptyAuthsWithTokenPruningInjectsTokenDomain() {
+    void nonEmptyAuthsWithDeclaredExpressionsInjectsExpressionDomain() {
         VisDelegate delegate = new VisDelegate();
         SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
-            delegate, new GeoMesaColumnCatalog(), false, USER_RESOLVER, true);
+            delegate, new GeoMesaColumnCatalog(), false, USER_RESOLVER, true, Set.of("user", "admin"));
         ConnectorSession session = sessionFor("alice");
         ConnectorTableHandle handle = fakeHandle();
 
         meta.getColumnHandles(session, handle);
         meta.applyFilter(session, handle, allConstraint());
 
+        // USER_RESOLVER grants {"user"}: expressionDomain admits the declared "user" value
+        // (and NULL) but not "admin", which the caller's auths cannot satisfy.
         assertThat(hasVisDomain(delegate)).isTrue();
         Domain injected = delegate.lastConstraint.getSummary().getDomains().orElseThrow().get(delegate.visHandle);
         assertThat(injected.includesNullableValue(Slices.utf8Slice("user"))).isTrue();
         assertThat(injected.includesNullableValue(null)).isTrue();
         assertThat(injected.includesNullableValue(Slices.utf8Slice("admin"))).isFalse();
+    }
+
+    @Test
+    void pruningDisabledInjectsNoDomainEvenForEmptyAuths() {
+        // Master gate off: the always-on empty-auths tier (which would otherwise inject
+        // vis IS NULL for a caller with no auths) must not fire. Behavior reverts to
+        // pre-feature — only the is_visible() row filter runs, no domain is pushed down.
+        VisDelegate delegate = new VisDelegate();
+        SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
+            delegate, new GeoMesaColumnCatalog(), false, EMPTY_RESOLVER, false, Set.of());
+        ConnectorSession session = sessionFor("nobody");
+        ConnectorTableHandle handle = fakeHandle();
+
+        meta.getColumnHandles(session, handle);
+        meta.applyFilter(session, handle, allConstraint());
+
+        assertThat(hasVisDomain(delegate)).isFalse();
+    }
+
+    @Test
+    void pruningDisabledInjectsNoDomainEvenWithDeclaredExpressions() {
+        // Master gate off overrides a declared expression universe: the expression tier
+        // is skipped despite USER_RESOLVER + candidates that would otherwise prune.
+        VisDelegate delegate = new VisDelegate();
+        SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
+            delegate, new GeoMesaColumnCatalog(), false, USER_RESOLVER, false, Set.of("user", "admin"));
+        ConnectorSession session = sessionFor("alice");
+        ConnectorTableHandle handle = fakeHandle();
+
+        meta.getColumnHandles(session, handle);
+        meta.applyFilter(session, handle, allConstraint());
+
+        assertThat(hasVisDomain(delegate)).isFalse();
     }
 
     @Test
@@ -203,7 +238,7 @@ class VisibilityPruningIntegrationTest {
     void alreadyRoundTrippedVisDomainIsNotReinjected() {
         VisDelegate delegate = new VisDelegate();
         SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
-            delegate, new GeoMesaColumnCatalog(), false, EMPTY_RESOLVER, false);
+            delegate, new GeoMesaColumnCatalog(), false, EMPTY_RESOLVER, true, Set.of());
         ConnectorSession session = sessionFor("nobody");
         ConnectorTableHandle handle = fakeHandle();
         meta.getColumnHandles(session, handle);
