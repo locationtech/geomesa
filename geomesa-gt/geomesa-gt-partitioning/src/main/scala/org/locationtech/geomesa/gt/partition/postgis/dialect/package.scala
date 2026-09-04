@@ -675,18 +675,38 @@ package object dialect {
      */
     protected def lockId: Long
 
-    // use a transaction-scoped lock so that it is held until the enclosing transaction commits or rolls back.
-    // note that the connection must *not* be in auto-commit mode for this to work correctly
-    private def lock: String = s"SELECT pg_advisory_xact_lock($lockId);"
+    // session-scoped locks
+    private def sessionLock: String = s"SELECT pg_advisory_lock($lockId);"
+    private def sessionUnlock: String = s"SELECT pg_advisory_unlock($lockId);"
+    // transaction-scoped lock, automatically released when the enclosing transaction commits or rolls back
+    private def xactLock: String = s"SELECT pg_advisory_xact_lock($lockId);"
 
-    abstract override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
-      ex.execute(lock)
-      super.create(info)
+    /**
+     * Acquire the advisory lock and run the given operation, releasing the lock afterward.
+     *
+     * The catalog changes made by `op` are not committed until the enclosing command sequence finishes. When the
+     * connection is in a transaction (auto-commit off), we use a transaction-scoped lock so that the lock is held
+     * until commit/rollback - a session-scoped lock would be released as soon as `op` returns, allowing a concurrent
+     * transaction to modify the same catalog tuples before this one commits, resulting in 'tuple concurrently
+     * updated' errors. When auto-commit is on, each statement commits immediately so there is no open transaction to
+     * scope the lock to, and we fall back to a session-scoped lock with an explicit unlock.
+     */
+    private def locked(op: => Unit)(implicit ex: ExecutionContext): Unit = {
+      if (ex.cx.getAutoCommit) {
+        ex.execute(sessionLock)
+        try { op } finally {
+          ex.execute(sessionUnlock)
+        }
+      } else {
+        ex.execute(xactLock)
+        op
+      }
     }
 
-    abstract override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
-      ex.execute(lock)
-      super.drop(info)
-    }
+    abstract override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
+      locked(super.create(info))
+
+    abstract override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
+      locked(super.drop(info))
   }
 }
