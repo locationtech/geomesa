@@ -48,11 +48,9 @@ jobs:
           - name: redis
             list: geomesa-redis/geomesa-redis-dist,geomesa-redis/geomesa-redis-gs-plugin
           - name: trino
-            list: geomesa-trino/geomesa-trino-dist,geomesa-trino/geomesa-trino-gs-plugin,!geomesa-trino/geomesa-trino-plugin
-            # the trino-plugin is excluded from the compile list (it's built separately), but the
-            # trino-dist assembly depends on it, so drop the exclusion when detecting affected
-            # modules - -am then pulls the plugin into the closure as an upstream dependency
-            detect_list: geomesa-trino/geomesa-trino-dist,geomesa-trino/geomesa-trino-gs-plugin
+            list: geomesa-trino/geomesa-trino-dist,geomesa-trino/geomesa-trino-gs-plugin
+            # the trino-plugin is built separately
+            compile_list: geomesa-trino/geomesa-trino-dist,geomesa-trino/geomesa-trino-gs-plugin,!geomesa-trino/geomesa-trino-plugin
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -76,7 +74,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PROJECT_LIST: ${{ matrix.projects.detect_list || matrix.projects.list }}
+          PROJECT_LIST: ${{ matrix.projects.list }}
         run: |
           affected="$(build/scripts/detect-affected-modules.sh "$BASE_SHA" "$HEAD_SHA" "$PROJECT_LIST")"
           echo "affected=$affected" >> "$GITHUB_OUTPUT"
@@ -94,7 +92,7 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} | tee -a build.log
+          mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.compile_list || matrix.projects.list }} | tee -a build.log
       - name: Compile (retry)
         if: steps.changes.outputs.affected != 'false' && steps.compile.outcome=='failure'
         run: |
@@ -102,7 +100,7 @@ jobs:
           # retry if the failure was due to transient download errors from maven central
           if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' -e 'Could not resolve artifact' build.log; then
             RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-            mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} $RESUME_FROM | tee -a build.log
+            mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.compile_list || matrix.projects.list }} $RESUME_FROM | tee -a build.log
           else
             exit 1
           fi
