@@ -265,6 +265,16 @@
                 <artifactId>trino-maven-plugin</artifactId>
                 <version>24</version>
                 <extensions>true</extensions>
+                <executions>
+                    <!-- the trino-plugin packaging binds check-spi-dependencies to the validate
+                         phase, which resolves dependencies; rebind it to process-sources so that a
+                         bare 'validate' (used by CI module-change detection) doesn't require the
+                         reactor's not-yet-built artifacts to be resolvable -->
+                    <execution>
+                        <id>default-check-spi-dependencies</id>
+                        <phase>process-sources</phase>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
