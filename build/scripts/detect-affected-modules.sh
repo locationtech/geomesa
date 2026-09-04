@@ -10,8 +10,7 @@
 # Prints "true" if the job is affected (or if we can't tell, to fail safe), otherwise "false".
 #
 # Usage: detect-affected-modules.sh <base-sha> <head-sha> <module-list>
-# where <module-list> is the matrix 'list' value, e.g. "geomesa-fs/geomesa-fs-spark" - it may
-# include trailing maven flags (-Dtest=..., -Ppython), which are harmless to the exec plugin.
+# where <module-list> is the matrix 'list' value, e.g. "geomesa-fs/geomesa-fs-spark".
 
 set -e
 
@@ -37,9 +36,12 @@ fi
 # all reactor module directories, relative to the repo root (root pom -> empty string)
 mapfile -t ALLMODS < <(find . -name pom.xml -not -path '*/target/*' -not -path '*/src/*' -printf '%h\n' | sed 's|^\./\?||' | sort)
 
-# the -am build closure for this job, as repo-relative directories, one per line
-CLOSURE="$(mvn -q $MAVEN_CLI_OPTS -pl $LIST -am exec:exec -Dexec.executable=pwd 2>/dev/null \
-  | grep "^$PWD" | sed "s|^$PWD/\?||" | sort -u)"
+# the -am build closure for this job, as repo-relative directories, one per line.
+# we use the 'validate' phase and parse the "  from <dir>/pom.xml" lines maven prints for each
+# reactor module - unlike exec:exec, this does not resolve dependencies, so it avoids downloading
+# (or failing to find) the unbuilt inter-module geomesa snapshot jars, which aren't in the cache.
+CLOSURE="$(mvn $MAVEN_CLI_OPTS -pl $LIST -am validate 2>/dev/null \
+  | sed -n 's|^\[INFO\]   from \(.*\)pom\.xml$|\1|p' | sed 's|/$||' | sort -u)"
 
 # resolve a file to its owning module: the longest module dir that prefixes the file path
 owning_module() {
