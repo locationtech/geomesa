@@ -34,6 +34,21 @@ class TrinoSchemaDiscovery {
     /** Iceberg table property holding the GeoMesa type name. */
     static final String SFT_NAME_PROPERTY = "geomesa.sft.name";
 
+    /** Prefix for Iceberg table properties describing a single column. */
+    static final String COLUMN_PREFIX = "geomesa.col.";
+
+    /**
+     * Iceberg table property holding the full attribute spec for one column, written for every
+     * column with a structural type definition. Mirrors {@code IcebergCatalog.columnSpecProperty},
+     * which is what writes it.
+     *
+     * @param column storage column name
+     * @return property key
+     */
+    static String columnSpecProperty(String column) {
+        return COLUMN_PREFIX + column + ".spec";
+    }
+
     private final TrinoDataStore store;
 
     TrinoSchemaDiscovery(TrinoDataStore store) {
@@ -57,13 +72,16 @@ class TrinoSchemaDiscovery {
                     if (VIS_COLUMN.equals(columnName)) {
                         visColumn = columnName;
                     } else if (columnName != null && !columnName.startsWith("__")) {
-                        // attribute descriptors are encoded in the column "doc" which maps to REMARKS in sql
+                        // attribute descriptors are encoded in the column "doc" which maps to REMARKS in sql,
+                        // except for a structural type definition - an avro schema does not fit in a column
+                        // comment, so a column carrying one keeps its whole spec in a table property instead
                         String columnDoc = rs.getString("REMARKS");
-                        if (columnDoc != null) {
+                        String spec = sftProps.getOrDefault(columnSpecProperty(columnName), columnDoc);
+                        if (spec != null) {
                             try {
-                                descriptors.add(SimpleFeatureTypes.createDescriptor(columnDoc));
+                                descriptors.add(SimpleFeatureTypes.createDescriptor(spec));
                             } catch (Exception e) {
-                                LOG.warn("Error parsing column doc as descriptor: {}", columnDoc, e);
+                                LOG.warn("Error parsing column spec as descriptor: {}", spec, e);
                             }
                         }
                     }

@@ -21,6 +21,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TrinoSchemaDiscoveryTest {
 
     @Test
+    void columnSpecPropertyHasTheExpectedShape() {
+        // pinned literally on purpose: IcebergCatalog.columnSpecProperty writes this key and is
+        // not on this module's classpath, so drift between the two would otherwise be silent -
+        // a structural column would lose its schema, the doc deliberately no longer carrying one
+        assertThat(TrinoSchemaDiscovery.COLUMN_PREFIX).isEqualTo("geomesa.col.");
+        assertThat(TrinoSchemaDiscovery.columnSpecProperty("identifiers"))
+            .isEqualTo("geomesa.col.identifiers.spec");
+    }
+
+    @Test
     void discoversCompanionStyleVisColumn() {
         assertThat(TrinoSchemaDiscovery.discoverVisibilityColumn(
             Set.of("__fid__", "geom", "__vis__"))).isEqualTo("__vis__");
