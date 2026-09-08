@@ -119,7 +119,7 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
   def apply(table: Table, namespace: Option[String] = None): SimpleFeatureIcebergSchema = {
     val sft = {
       val typeName = table.properties().get("geomesa.sft.name")
-      val attributes = table.schema().columns().asScala.flatMap(deriveDescriptor)
+      val attributes = table.schema().columns().asScala.flatMap(deriveDescriptor(_, table.properties()))
       if (attributes.isEmpty) {
         // back compatibility check
         SimpleFeatureTypes.createType(namespace.fold(typeName)(n => s"$n:$typeName"), table.properties().get("geomesa.sft.spec"))
@@ -143,11 +143,13 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
     new SimpleFeatureIcebergSchema(sft, table.schema())
   }
 
-  private def deriveDescriptor(f: NestedField): Option[AttributeDescriptor] = {
+  private def deriveDescriptor(f: NestedField, properties: java.util.Map[String, String]): Option[AttributeDescriptor] = {
     if (f.name().startsWith(InternalFieldDelimiter) && f.name().endsWith(InternalFieldDelimiter)) { None } else {
-      Option(f.doc()).flatMap { d =>
+      // a column with a structural type definition keeps its spec in a table property
+      val spec = Option(properties.get(IcebergCatalog.columnSpecProperty(f.name()))).orElse(Option(f.doc()))
+      spec.flatMap { d =>
         try { Some(SimpleFeatureTypes.createDescriptor(d)) } catch {
-          case NonFatal(e) => logger.warn(s"Error parsing column doc as descriptor: $d", e); None
+          case NonFatal(e) => logger.warn(s"Error parsing column spec as descriptor: $d", e); None
         }
       }
     }
@@ -171,7 +173,7 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
     sft.getAttributeDescriptors.asScala.foreach { d =>
       val name = ColumnName(d.getLocalName)
       val objectType = ObjectType.selectType(d)
-      val doc = SimpleFeatureTypes.encodeDescriptor(sft, d)
+      val doc = encodeDoc(sft, d)
       if (objectType.head == ObjectType.GEOMETRY) {
         // TODO supports native geometry encoding
         require(geometries == GeometryEncoding.GeoParquetWkb, "Only WKB encoding is supported for Geometry types")
@@ -208,6 +210,43 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
    */
   private def buildField(name: String, fieldId: Int, doc: String, fieldType: Type): NestedField =
     NestedField.optional(name).withId(fieldId).withDoc(doc).ofType(fieldType).build()
+
+  /**
+   * The columns carrying a structural type definition, mapped to their full attribute spec.
+   *
+   * Every one of them round-trips through a table property rather than a column doc - see
+   * `IcebergCatalog.columnSpecProperty` - so the two halves of this are deliberately keyed the
+   * same way and neither depends on how long any particular schema turns out to be.
+   *
+   * @param sft simple feature type
+   * @return storage column name to attribute spec
+   */
+  private[iceberg] def structuralColumnSpecs(sft: SimpleFeatureType): Map[String, String] = {
+    val specs = sft.getAttributeDescriptors.asScala.flatMap { d =>
+      d.getJsonSchema().map(_ => ColumnName(d.getLocalName).column -> SimpleFeatureTypes.encodeDescriptor(sft, d))
+    }
+    specs.toMap
+  }
+
+  /**
+   * Encodes an attribute descriptor for use as a column doc, without any structural type
+   * definition it carries.
+   *
+   * A `json-schema` option is a whole avro schema- described through a table property.
+   *
+   * @param sft simple feature type
+   * @param d attribute descriptor
+   * @return column doc
+   */
+  private def encodeDoc(sft: SimpleFeatureType, d: AttributeDescriptor): String = {
+    val encoded = SimpleFeatureTypes.encodeDescriptor(sft, d)
+    if (d.getJsonSchema().isEmpty) { encoded } else {
+      // note: geotools AttributeTypeBuilder shares the user data map - reparse instead so we don't change the original
+      val descriptor = SimpleFeatureTypes.createDescriptor(encoded)
+      descriptor.getUserData.remove(AttributeOptions.OptJsonSchema)
+      SimpleFeatureTypes.encodeDescriptor(sft, descriptor)
+    }
+  }
 
   /**
    * Builds the schema type for an attribute

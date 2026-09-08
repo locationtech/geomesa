@@ -105,6 +105,20 @@ object IcebergCatalog {
   val UserDataPrefix = "geomesa.userdata."
 
   /**
+   * Prefix for properties describing a single column.
+   */
+  val ColumnPrefix = "geomesa.col."
+
+  /**
+   * Property carrying the full attribute spec for one column. Written for every column with a
+   * structural type definition - see `SimpleFeatureIcebergSchema.encodeDoc`.
+   *
+   * @param column storage column name, as encoded by `ColumnName`
+   * @return property key
+   */
+  def columnSpecProperty(column: String): String = s"$ColumnPrefix$column.spec"
+
+  /**
    * Table-level properties needed to reconstruct the feature type
    *
    * @param sft simple feature type
@@ -118,7 +132,10 @@ object IcebergCatalog {
         case (k, v) if v != null && prefixes.exists(k.toString.startsWith) => s"$UserDataPrefix$k" -> v.toString
       }
     }
-    typeName ++ userData
+    val columnSpecs = SimpleFeatureIcebergSchema.structuralColumnSpecs(sft).map {
+      case (column, spec) => columnSpecProperty(column) -> spec
+    }
+    typeName ++ userData ++ columnSpecs
   }
 
   private implicit class RichConf(val conf: Map[String, String]) extends AnyVal {
