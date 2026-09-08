@@ -109,6 +109,53 @@ class TrinoFeatureSource extends ContentFeatureSource {
     }
 
     /**
+     * Resolves filter property names against the schema, but preserves JSON paths.
+     *
+     * <p>The base class runs {@code DataUtilities.resolvePropertyNames}, whose
+     * {@link org.geotools.filter.visitor.PropertyNameResolvingVisitor} evaluates each property
+     * name against the feature type and rewrites it to the resolved attribute's local name. A
+     * JSON path like {@code $.props.name} evaluates (via GeoMesa's JSON property accessor) to
+     * the {@code props} descriptor, so the default would collapse the whole path to {@code
+     * "props"} — losing the nested field {@code TrinoFilterToSQL} needs to emit a ROW
+     * dereference. We keep {@code $}-prefixed names verbatim and resolve everything else as
+     * usual.
+     *
+     * @param query the query being planned
+     * @return the query with non-JSON-path property names resolved
+     */
+    @Override
+    protected Query resolvePropertyNames(Query query) {
+        Filter filter = query.getFilter();
+        if (filter == null || filter == Filter.INCLUDE || filter == Filter.EXCLUDE) {
+            return query;
+        }
+        Filter resolved = (Filter) filter.accept(new JsonPathPreservingResolver(getSchema()), null);
+        if (resolved == filter) {
+            return query;
+        }
+        Query newQuery = new Query(query);
+        newQuery.setFilter(resolved);
+        return newQuery;
+    }
+
+    /** Resolves property names against the schema, but leaves {@code $}-prefixed JSON paths
+     *  untouched so {@code TrinoFilterToSQL} can translate them into ROW dereferences. */
+    private static final class JsonPathPreservingResolver
+        extends org.geotools.filter.visitor.PropertyNameResolvingVisitor {
+        JsonPathPreservingResolver(SimpleFeatureType featureType) {
+            super(featureType);
+        }
+        @Override
+        public Object visit(PropertyName expression, Object extraData) {
+            String name = expression.getPropertyName();
+            if (name != null && name.startsWith("$")) {
+                return getFactory(extraData).property(name);
+            }
+            return super.visit(expression, extraData);
+        }
+    }
+
+    /**
      * Builds the feature type by discovering the Trino table's schema.
      *
      * @return the discovered simple feature type

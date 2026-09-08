@@ -324,6 +324,55 @@ public class TrinoDataStoreTest {
     }
 
     @Test
+    public void testStructuralJsonQuery() throws IOException, CQLException {
+        var params = Map.of(
+                TrinoDataStoreFactory.HOST.key, trino.getHost(),
+                TrinoDataStoreFactory.PORT.key, trino.getFirstMappedPort(),
+                TrinoDataStoreFactory.SCHEMA.key, "geomesa"
+        );
+        var ds = DataStoreFinder.getDataStore(params);
+        Assertions.assertNotNull(ds);
+        try {
+            // json-path filters into the structural 'props' attribute are pushed down as trino ROW
+            // dereferences (e.g. "props"."name" = 'alice'); verify each returns the expected features.
+            // features: 0=alice/age30/nested.flag=true, 1=age7/no-name, 2=name-null/age99, 3=dave/age11/flag=false, 4=null
+            var filters = new LinkedHashMap<String, List<Integer>>();
+            filters.put("INCLUDE", List.of(0, 1, 2, 3, 4));
+            filters.put("\"$.props.name\" = 'alice'", List.of(0));
+            filters.put("\"$.props.age\" > 20", List.of(0, 2));
+            filters.put("\"$.props.age\" = 7", List.of(1));
+            filters.put("\"$.props.nested.flag\" = true", List.of(0));
+
+            var mapper = new ObjectMapper();
+            for (var entry : filters.entrySet()) {
+                var expectedIds = entry.getValue().stream().map(String::valueOf).collect(Collectors.toSet());
+                var results = new ArrayList<SimpleFeature>();
+                var query = new Query(jsonSft.getTypeName(), ECQL.toFilter(entry.getKey()));
+                try (var reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) {
+                    while (reader.hasNext()) {
+                        results.add(reader.next());
+                    }
+                }
+                var actualIds = results.stream().map(SimpleFeature::getID).collect(Collectors.toSet());
+                Assertions.assertEquals(expectedIds, actualIds, "filter: " + entry.getKey());
+                // the returned json still round-trips to the original structural value
+                var byId = results.stream().collect(Collectors.toMap(SimpleFeature::getID, f -> f));
+                for (var i : entry.getValue()) {
+                    var expectedJson = jsonValues.get(i);
+                    var actualJson = (String) byId.get(Integer.toString(i)).getAttribute("props");
+                    if (expectedJson == null) {
+                        Assertions.assertNull(actualJson);
+                    } else {
+                        Assertions.assertEquals(normalize(mapper, expectedJson), normalize(mapper, actualJson));
+                    }
+                }
+            }
+        } finally {
+            ds.dispose();
+        }
+    }
+
+    @Test
     public void testStructuralJsonArray() throws IOException, CQLException {
         var params = Map.of(
                 TrinoDataStoreFactory.HOST.key, trino.getHost(),

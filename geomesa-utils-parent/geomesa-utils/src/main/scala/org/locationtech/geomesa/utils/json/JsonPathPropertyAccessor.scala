@@ -6,22 +6,21 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.kryo.json
+package org.locationtech.geomesa.utils.json
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
+import com.google.gson.GsonBuilder
 import com.jayway.jsonpath.Configuration
 import com.jayway.jsonpath.Option.{ALWAYS_RETURN_LIST, SUPPRESS_EXCEPTIONS}
 import com.typesafe.scalalogging.LazyLogging
-import net.minidev.json.JSONObject
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser._
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.geomesa.utils.json.JsonPathParser._
 
 import java.util.concurrent.TimeUnit
 import scala.util.control.NonFatal
@@ -78,10 +77,10 @@ trait JsonPathPropertyAccessor extends PropertyAccessor with LazyLogging {
     val path = JsonPathPropertyAccessor.paths.get(xpath)
 
     val result = obj match {
-      case s: KryoBufferSimpleFeature =>
+      case s: JsonAwareFeature =>
         val i = attribute(s.getFeatureType, path.head)
         if (s.getFeatureType.getDescriptor(i).isJson()) {
-          s.getInput(i).map(KryoJsonSerialization.deserialize(_, path.tail)).orNull
+          s.readJsonPath(i, path.tail)
         } else {
           JsonPathPropertyAccessor.evaluateJsonPath(s.getAttribute(i).asInstanceOf[String], path.tail)
         }
@@ -142,6 +141,8 @@ object JsonPathPropertyAccessor extends JsonPathPropertyAccessor {
 
   private val pathConfig: Configuration = Configuration.builder.options(ALWAYS_RETURN_LIST, SUPPRESS_EXCEPTIONS).build()
 
+  private val gson =  new GsonBuilder().disableHtmlEscaping().create()
+
   class JsonPropertyAccessorFactory extends PropertyAccessorFactory {
 
     override def createPropertyAccessor(
@@ -169,7 +170,7 @@ object JsonPathPropertyAccessor extends JsonPathPropertyAccessor {
    * @param path json path
    * @return
    */
-  private[json] def evaluateJsonPath(json: String, path: JsonPath): AnyRef = {
+  private def evaluateJsonPath(json: String, path: JsonPath): AnyRef = {
     val parsed = com.jayway.jsonpath.JsonPath.using(pathConfig).parse(json)
     val list = parsed.read[java.util.List[AnyRef]](JsonPathParser.print(path))
     if (list == null || list.isEmpty) {
@@ -180,7 +181,7 @@ object JsonPathPropertyAccessor extends JsonPathPropertyAccessor {
       }
     } else {
       val transformed = list.asScala.map {
-        case o: java.util.Map[String, AnyRef] => JSONObject.toJSONString(o)
+        case o: java.util.Map[String, AnyRef] => gson.toJson(o)
         case a: java.util.List[AnyRef] => unwrapArray(a)
         case p => p
       }
@@ -190,7 +191,7 @@ object JsonPathPropertyAccessor extends JsonPathPropertyAccessor {
 
   private def unwrapArray(array: java.util.List[AnyRef]): java.util.List[AnyRef] = {
     array.asScala.map {
-      case o: java.util.Map[String, AnyRef] => JSONObject.toJSONString(o)
+      case o: java.util.Map[String, AnyRef] => gson.toJson(o)
       case a: java.util.List[AnyRef] => unwrapArray(a)
       case p => p
     }.asJava

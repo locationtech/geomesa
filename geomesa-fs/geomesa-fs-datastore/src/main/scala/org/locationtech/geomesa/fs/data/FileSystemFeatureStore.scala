@@ -13,9 +13,11 @@ import org.apache.iceberg.types.{Conversions, Types}
 import org.geotools.api.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
+import org.geotools.api.filter.expression.PropertyName
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
+import org.geotools.filter.visitor.PropertyNameResolvingVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -100,6 +102,31 @@ class FileSystemFeatureStore(
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
   }
 
+  /**
+   * Resolves filter property names against the schema, but preserves JSON paths.
+   *
+   * The base class runs `DataUtilities.resolvePropertyNames`, whose `PropertyNameResolvingVisitor`
+   * evaluates each property name against the feature type and rewrites it to the resolved attribute's
+   * local name. A JSON path like `$.props.name` evaluates (via GeoMesa's JSON property accessor) to
+   * the `props` descriptor, so the default would collapse the whole path to `props` - losing the nested
+   * field that IcebergFilterConverter needs to push down. We keep `$`-prefixed names verbatim and
+   * resolve everything else as usual.
+   *
+   * @param query the query being planned
+   * @return the query with non-JSON-path property names resolved
+   */
+  override protected def resolvePropertyNames(query: Query): Query = {
+    val filter = query.getFilter
+    if (filter == null || filter == Filter.INCLUDE || filter == Filter.EXCLUDE) { query } else {
+      val resolved = filter.accept(new JsonPathPreservingResolver(getSchema), null).asInstanceOf[Filter]
+      if (resolved == filter) { query } else {
+        val newQuery = new Query(query)
+        newQuery.setFilter(resolved)
+        newQuery
+      }
+    }
+  }
+
   override def canTransact: Boolean = false
   override def canEvent: Boolean = false
   override def canReproject: Boolean = false
@@ -116,6 +143,24 @@ object FileSystemFeatureStore {
   private val capabilities: QueryCapabilities = new QueryCapabilities() {
     override def isReliableFIDSupported: Boolean = true
     override def isUseProvidedFIDSupported: Boolean = true
+  }
+
+  /**
+   * Resolves property names against the schema, but leaves `$`-prefixed JSON paths untouched so that
+   * IcebergFilterConverter can translate them into pushed-down predicates on nested struct fields.
+   *
+   * @param featureType feature type
+   */
+  private class JsonPathPreservingResolver(featureType: SimpleFeatureType)
+      extends PropertyNameResolvingVisitor(featureType) {
+    override def visit(expression: PropertyName, extraData: AnyRef): AnyRef = {
+      val name = expression.getPropertyName
+      if (name != null && name.startsWith("$")) {
+        getFactory(extraData).property(name)
+      } else {
+        super.visit(expression, extraData)
+      }
+    }
   }
 
   /**

@@ -23,9 +23,9 @@ import java.util.Collections
  */
 class KryoJsonPath(in: Input, root: ValuePointer) extends LazyLogging {
 
-  import JsonPathParser._
   import KryoJsonPath._
   import KryoJsonSerialization._
+  import org.locationtech.geomesa.utils.json.JsonPathParser._
 
   import scala.collection.JavaConverters._
 

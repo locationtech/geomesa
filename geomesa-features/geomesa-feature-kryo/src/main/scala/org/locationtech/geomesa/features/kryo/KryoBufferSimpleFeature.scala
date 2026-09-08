@@ -21,12 +21,15 @@ import org.locationtech.geomesa.features.geotools.ImmutableFeatureId
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature._
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.KryoLongReader
 import org.locationtech.geomesa.features.kryo.impl.{IntBitSet, KryoFeatureDeserialization, KryoFeatureDeserializationV2, NonMutatingInput}
+import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
 import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.geomesa.utils.geotools.Transform.{PropertyTransform, RenameTransform, Transforms}
+import org.locationtech.geomesa.utils.json.JsonAwareFeature
+import org.locationtech.geomesa.utils.json.JsonPathParser.JsonPath
 import org.locationtech.jts.geom.Geometry
 
-class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends SimpleFeature {
+class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends SimpleFeature with JsonAwareFeature {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -168,6 +171,9 @@ class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends Si
     * @return input, if the attribute is not null
     */
   def getInput(index: Int): Option[Input] = delegate.getInput(index)
+
+  override def readJsonPath(attribute: Int, path: JsonPath): Any =
+    getInput(attribute).map(KryoJsonSerialization.deserialize(_, path)).orNull
 
   override def getAttribute(index: Int): AnyRef = delegate.getAttribute(index)
 

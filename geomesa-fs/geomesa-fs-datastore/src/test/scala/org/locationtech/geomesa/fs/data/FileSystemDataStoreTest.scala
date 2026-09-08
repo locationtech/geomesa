@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.data
 
+import com.google.gson.JsonParser
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -22,6 +23,7 @@ import org.locationtech.geomesa.fs.storage.core.StorageKeys
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.{MatchResult, Matcher}
@@ -363,6 +365,93 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
               s"dtg:Date,*geom:${sft.getGeometryDescriptor.getType.getBinding.getSimpleName}")
             CloseableIterator(fs.getFeatures(transform).features()).map(ScalaSimpleFeature.copy).toList.sortBy(_.getID) mustEqual
               features.map(ScalaSimpleFeature.retype(transformSft, _))
+          }
+        }
+      }
+    }
+
+    "query structural json features with json-path filters" in {
+      import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
+
+      val avro =
+        """{
+          |  "type": "record",
+          |  "name": "props",
+          |  "fields": [
+          |    { "name": "name", "type": ["null", "string"], "default": null },
+          |    { "name": "age", "type": "int" },
+          |    { "name": "tags", "type": { "type": "array", "items": "string" } },
+          |    { "name": "scores", "type": { "type": "map", "values": "long" } },
+          |    { "name": "nested", "type": ["null", {
+          |        "type": "record",
+          |        "name": "nested",
+          |        "fields": [ { "name": "flag", "type": "boolean" } ]
+          |    }], "default": null }
+          |  ]
+          |}""".stripMargin
+
+      val jsonSft = SimpleFeatureTypes.createType("json-query", "props:String:json=true,dtg:Date,*geom:Point:srid=4326")
+      jsonSft.getDescriptor("props").getUserData.put(AttributeOptions.OptJsonSchema, avro)
+      jsonSft.setScheme("daily")
+
+      val jsonValues = Seq(
+        """{"name":"alice","age":30,"tags":["a","b"],"scores":{"x":1,"y":2},"nested":{"flag":true}}""",
+        """{"age":7,"tags":[],"scores":{}}""",
+        """{"name":null,"age":99,"tags":["z"],"scores":{"k":42},"nested":null}""",
+        """{"name":"dave","age":11,"tags":["p","q","r"],"scores":{"a":10},"nested":{"flag":false}}""",
+        null // null json value -> null attribute
+      )
+
+      val jsonFeatures = jsonValues.zipWithIndex.map { case (json, i) =>
+        val sf = new ScalaSimpleFeature(jsonSft, i.toString)
+        sf.getUserData.put(org.geotools.util.factory.Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.getUserData.put("geomesa.feature.visibility", "user")
+        sf.setAttribute("props", json)
+        sf.setAttribute("dtg", f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute("geom", s"POINT(4$i 5$i)")
+        sf
+      }
+
+      // structural round-trip drops explicit nulls for optional fields, so normalize the expected json
+      def normalize(json: String): String = {
+        if (json == null) { null } else {
+          val tree = JsonParser.parseString(json).getAsJsonObject
+          val nullKeys = tree.entrySet().asScala.collect { case e if e.getValue.isJsonNull => e.getKey }.toSeq
+          nullKeys.foreach(tree.remove)
+          tree.toString
+        }
+      }
+
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+        ds.createSchema(jsonSft)
+        WithClose(ds.getFeatureWriterAppend(jsonSft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          jsonFeatures.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+
+        val filters = Seq(
+          ECQL.toFilter("INCLUDE") -> Seq(0, 1, 2, 3, 4),
+          ECQL.toFilter(""""$.props.name" = 'alice'""") -> Seq(0),
+          ECQL.toFilter(""""$.props.age" > 20""") -> Seq(0, 2),
+          ECQL.toFilter(""""$.props.age" = 7""") -> Seq(1),
+          ECQL.toFilter(""""$.props.nested.flag" = true""") -> Seq(0)
+        )
+
+        foreach(filters) { case (filter, expectedIds) =>
+          val query = new Query(jsonSft.getTypeName, filter)
+          val results =
+            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
+          results.map(_.getID.toInt).sorted mustEqual expectedIds
+          val byId = results.map(f => f.getID -> f).toMap
+          foreach(expectedIds) { id =>
+            val actual = byId.get(id.toString)
+            actual must beSome
+            val expectedJson = jsonFeatures(id).getAttribute("props").asInstanceOf[String]
+            val actualJson = actual.get.getAttribute("props").asInstanceOf[String]
+            if (expectedJson == null) {
+              actualJson must beNull
+            } else {
+              JsonParser.parseString(actualJson) mustEqual JsonParser.parseString(normalize(expectedJson))
+            }
           }
         }
       }

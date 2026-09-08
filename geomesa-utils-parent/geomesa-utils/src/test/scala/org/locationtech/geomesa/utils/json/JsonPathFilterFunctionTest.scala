@@ -7,12 +7,12 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.kryo.json
+package org.locationtech.geomesa.utils.json
 
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.FilterAttributeExtractor
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -62,7 +62,7 @@ class JsonPathFilterFunctionTest extends Specification {
       | }
     """.stripMargin
   val sft = SimpleFeatureTypes.createType("json", "json:String:json=true,s:String,dtg:Date,*geom:Point:srid=4326")
-  val sf = new ScalaSimpleFeature(sft, "")
+  val sf = new SimpleFeatureBuilder(sft).buildFeature("")
   sf.setAttribute(0, json)
 
   "JsonPathFilterFunction" should {
@@ -252,7 +252,7 @@ class JsonPathFilterFunctionTest extends Specification {
       |   }
       | ]
     """.stripMargin
-  val sfArray = new ScalaSimpleFeature(sft, "")
+  val sfArray = new SimpleFeatureBuilder(sft).buildFeature("")
   sfArray.setAttribute(0, jsonArray)
 
   "JsonPathFilterFunction" should {

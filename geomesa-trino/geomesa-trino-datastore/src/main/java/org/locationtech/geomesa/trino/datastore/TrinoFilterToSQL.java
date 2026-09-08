@@ -9,41 +9,34 @@
 package org.locationtech.geomesa.trino.datastore;
 
 import org.geotools.api.filter.Id;
-import org.geotools.api.filter.identity.Identifier;
-import org.geotools.api.filter.spatial.BBOX;
-import org.geotools.api.filter.spatial.Beyond;
-import org.geotools.api.filter.spatial.BinarySpatialOperator;
-import org.geotools.api.filter.spatial.Contains;
-import org.geotools.api.filter.spatial.Crosses;
-import org.geotools.api.filter.spatial.Disjoint;
-import org.geotools.api.filter.spatial.DWithin;
-import org.geotools.api.filter.spatial.Equals;
-import org.geotools.api.filter.spatial.Intersects;
-import org.geotools.api.filter.spatial.Overlaps;
-import org.geotools.api.filter.spatial.Touches;
-import org.geotools.api.filter.spatial.Within;
-import org.geotools.api.filter.temporal.During;
 import org.geotools.api.filter.expression.Expression;
 import org.geotools.api.filter.expression.Literal;
 import org.geotools.api.filter.expression.PropertyName;
+import org.geotools.api.filter.identity.Identifier;
+import org.geotools.api.filter.spatial.*;
+import org.geotools.api.filter.temporal.During;
 import org.geotools.api.geometry.BoundingBox;
 import org.geotools.api.temporal.Period;
 import org.geotools.data.jdbc.FilterToSQL;
 import org.geotools.data.jdbc.FilterToSQLException;
+import org.locationtech.geomesa.utils.json.JsonPathParser;
+import org.locationtech.geomesa.utils.json.JsonPathParser.PathAttribute;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.WKTWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import scala.collection.JavaConverters;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.stream.Collectors;
 
 /**
@@ -317,6 +310,111 @@ public class TrinoFilterToSQL extends FilterToSQL {
             .collect(Collectors.joining(", "));
         write("\"__fid__\" IN (" + ids + ")");
         return extraData;
+    }
+
+    // ── JSON path ─────────────────────────────────────────────────────────────
+
+    /**
+     * Emits a property reference. A property name that starts with {@code $} is a JSON path
+     * into a structural ({@code json=true} with a {@code json-schema}) attribute; it is
+     * translated to a Trino ROW dereference — {@code "$.props.name"} becomes
+     * {@code "props"."name"}. Everything else delegates to the base class, which resolves the
+     * name against the feature type and writes it as a quoted identifier.
+     *
+     * <p>Mirrors {@code IcebergFilterConverter.jsonPath}/{@code navigate} on the FileSystem
+     * read path, but without a client-side residual: the Trino datastore pushes all filtering
+     * to SQL, so a path that can't be translated throws {@link IllegalArgumentException}
+     * (wrapped as an unsupported-filter {@code IOException} by {@code
+     * TrinoFeatureSource.encodeFilterSql}) rather than falling back.
+     *
+     * @param expression the property name
+     * @param extraData caller-supplied context, returned unchanged
+     * @return extraData
+     */
+    @Override
+    public Object visit(PropertyName expression, Object extraData) {
+        String name = expression.getPropertyName();
+        if (name == null || !name.startsWith("$")) {
+            return super.visit(expression, extraData);
+        }
+        writeJsonPath(name);
+        return extraData;
+    }
+
+    /**
+     * Type used to coerce the literal on the other side of a comparison. For a JSON-path
+     * property the base class would resolve the name through GeoMesa's JSON property accessor
+     * to the {@code json=true} String attribute, then quote every literal as a string — so
+     * {@code "$.props.age" > 30} would emit {@code > '30'}, which Trino won't compare to a
+     * {@code bigint} ROW field. Returning null lets each literal encode by its own Java type
+     * (a number stays unquoted, a string stays quoted), matching the real nested field type.
+     */
+    @Override
+    public Class getExpressionType(Expression expression) {
+        if (expression instanceof PropertyName pn) {
+            String name = pn.getPropertyName();
+            if (name != null && name.startsWith("$")) {
+                return null;
+            }
+        }
+        return super.getExpressionType(expression);
+    }
+
+    /**
+     * Translates a structural JSON path into a Trino ROW dereference and writes it out.
+     *
+     * <p>Only plain field navigation is pushable: the head must point at a {@code json=true}
+     * attribute that carries a {@code json-schema} (a real {@code ROW}, not an opaque
+     * variant), and every remaining element must be a {@link PathAttribute}. Wildcards,
+     * array indices/ranges, deep scans, filter expressions, and path functions ({@code
+     * .min()} etc.) are rejected. Field existence and the leaf type are left for Trino to
+     * validate at query time (structural check only — no Avro schema navigation here).
+     */
+    private void writeJsonPath(String pathString) {
+        JsonPathParser.JsonPath path;
+        try {
+            path = JsonPathParser.parse(pathString, true);
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException("Could not evaluate attribute as a JSON path: " + pathString, e);
+        }
+        if (path.isEmpty()) {
+            throw new IllegalArgumentException("Invalid JSON path - empty: " + pathString);
+        }
+        if (path.function().isDefined()) {
+            throw new IllegalArgumentException(
+                "Invalid JSON path - path functions (.min(), .length(), etc) cannot be pushed to SQL: " + pathString);
+        }
+        List<JsonPathParser.PathElement> elements =
+            JavaConverters.seqAsJavaList(path.elements());
+        if (!(elements.get(0) instanceof PathAttribute head)) {
+            throw new IllegalArgumentException("Invalid JSON path - first element must point at an attribute: " + pathString);
+        }
+        org.geotools.api.feature.type.AttributeDescriptor descriptor =
+            featureType == null ? null : featureType.getDescriptor(head.name());
+        if (descriptor == null) {
+            throw new IllegalArgumentException("Invalid JSON path - does not point at an attribute: " + pathString);
+        } else if (!String.class.isAssignableFrom(descriptor.getType().getBinding())) {
+            throw new IllegalArgumentException("Invalid JSON path - points at an invalid attribute of type "
+                + descriptor.getType().getBinding().getSimpleName() + ": " + pathString);
+        }
+        java.util.Map<Object, Object> userData = descriptor.getUserData();
+        if (!"true".equals(userData.get(TrinoTypeMapper.OPT_JSON))) {
+            throw new IllegalArgumentException("Invalid JSON path - points at a non-JSON attribute: " + pathString);
+        } else if (userData.get(TrinoTypeMapper.OPT_JSON_SCHEMA) == null) {
+            // json=true but no json-schema: stored as an opaque variant, with no ROW fields to dereference
+            throw new IllegalArgumentException(
+                "Invalid JSON path - points at an opaque JSON attribute with no structural schema: " + pathString);
+        }
+        // top-level column plus each nested field, all quoted: "props"."name"
+        StringBuilder ref = new StringBuilder(quoteIdent(head.name()));
+        for (JsonPathParser.PathElement element : elements.subList(1, elements.size())) {
+            if (!(element instanceof PathAttribute attribute)) {
+                throw new IllegalArgumentException("Invalid JSON path - only plain field references can be pushed to SQL "
+                    + "(no wildcards, array indices, or filters): " + pathString);
+            }
+            ref.append('.').append(quoteIdent(attribute.name()));
+        }
+        write(ref.toString());
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

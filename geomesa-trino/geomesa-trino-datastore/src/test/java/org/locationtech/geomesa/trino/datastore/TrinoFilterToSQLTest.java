@@ -23,6 +23,7 @@ import org.locationtech.jts.io.WKTReader;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The translator must emit PURE row-level ST_* predicates: no bbox-struct
@@ -353,6 +354,94 @@ class TrinoFilterToSQLTest {
         assertThat(sql).startsWith("\"__fid__\" IN (");
         assertThat(sql).contains("'abc-123'");
         assertThat(sql).contains("'def-456'");
+    }
+
+    // ── JSON path (structural types) ──────────────────────────────────────────
+    //
+    // A property name that starts with `$` is a JSON path into a structural (json=true +
+    // json-schema) attribute; it translates to a Trino ROW dereference "props"."name". The
+    // base class still writes the operator and literal. Non-pushable paths (opaque variant,
+    // wildcards, indices, functions, unknown attribute) throw — the Trino datastore is
+    // all-pushdown with no client-side residual.
+
+    /** A schema with a structural `props` attribute and an opaque `blob` (json=true, no
+     *  json-schema), plus a geometry for the AND-composition case. */
+    private void setStructuralSchema() {
+        SimpleFeatureTypeBuilder b = new SimpleFeatureTypeBuilder();
+        b.setName("test");
+        b.add("geom", Point.class);
+        b.userData("json", "true").userData("json-schema", "record");
+        b.add("props", String.class);
+        b.userData("json", "true");  // opaque variant: no json-schema
+        b.add("blob", String.class);
+        translator.setFeatureType(b.buildFeatureType());
+    }
+
+    @Test
+    void jsonPathTranslatesToRowDereference() throws Exception {
+        setStructuralSchema();
+        String sql = translator.encodeToString(ECQL.toFilter("\"$.props.name\" = 'alice'"));
+        assertThat(sql).isEqualTo("\"props\".\"name\" = 'alice'");
+    }
+
+    @Test
+    void jsonPathDeepDereference() throws Exception {
+        setStructuralSchema();
+        String sql = translator.encodeToString(ECQL.toFilter("\"$.props.nested.city\" = 'ny'"));
+        assertThat(sql).isEqualTo("\"props\".\"nested\".\"city\" = 'ny'");
+    }
+
+    @Test
+    void jsonPathNumericLeafKeepsLiteralUnquoted() throws Exception {
+        setStructuralSchema();
+        String sql = translator.encodeToString(ECQL.toFilter("\"$.props.age\" > 30"));
+        assertThat(sql).isEqualTo("\"props\".\"age\" > 30");
+    }
+
+    @Test
+    void jsonPathComposesWithSpatialPredicate() throws Exception {
+        setStructuralSchema();
+        String sql = translator.encodeToString(ECQL.toFilter(
+            "INTERSECTS(geom, POLYGON((-80 37, -70 37, -70 45, -80 45, -80 37)))"
+            + " AND \"$.props.name\" = 'alice'"));
+        assertThat(sql).contains("ST_Intersects(ST_GeomFromBinary(\"geom\"),");
+        assertThat(sql).contains("\"props\".\"name\" = 'alice'");
+        assertThat(sql).contains(" AND ");
+    }
+
+    @Test
+    void jsonPathOnOpaqueVariantThrows() {
+        setStructuralSchema();
+        assertThatThrownBy(() -> translator.encodeToString(ECQL.toFilter("\"$.blob.name\" = 'alice'")))
+            .hasMessageContaining("opaque");
+    }
+
+    @Test
+    void jsonPathWildcardThrows() {
+        setStructuralSchema();
+        assertThatThrownBy(() -> translator.encodeToString(ECQL.toFilter("\"$.props.*\" = 'alice'")))
+            .isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    void jsonPathArrayIndexThrows() {
+        setStructuralSchema();
+        assertThatThrownBy(() -> translator.encodeToString(ECQL.toFilter("\"$.props.tags[0]\" = 'x'")))
+            .isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    void jsonPathFunctionThrows() {
+        setStructuralSchema();
+        assertThatThrownBy(() -> translator.encodeToString(ECQL.toFilter("\"$.props.scores.max()\" > 5")))
+            .hasMessageContaining("path functions");
+    }
+
+    @Test
+    void jsonPathUnknownAttributeThrows() {
+        setStructuralSchema();
+        assertThatThrownBy(() -> translator.encodeToString(ECQL.toFilter("\"$.missing.name\" = 'x'")))
+            .hasMessageContaining("does not point at an attribute");
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

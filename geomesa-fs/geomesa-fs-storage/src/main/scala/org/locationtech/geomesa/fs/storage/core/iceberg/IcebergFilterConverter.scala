@@ -17,14 +17,14 @@ import org.apache.iceberg.types.Type.TypeID
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathAttribute
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.{FilterExtractingVisitor, IdExtractingVisitor}
 import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName, SimpleFeatureSchema}
 import org.locationtech.geomesa.fs.storage.core.schemes.{PartitionScheme, SpatialScheme}
 import org.locationtech.geomesa.index.strategies.{IdFilterStrategy, SpatialFilterStrategy}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
+import org.locationtech.geomesa.utils.json.JsonPathParser
+import org.locationtech.geomesa.utils.json.JsonPathParser.PathAttribute
 import org.locationtech.jts.geom.Point
 
 import java.util.Date
