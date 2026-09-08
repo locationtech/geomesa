@@ -13,8 +13,6 @@ import org.geotools.api.feature.type.AttributeDescriptor;
 import org.geotools.api.feature.type.GeometryDescriptor;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,19 +26,22 @@ class TrinoSchemaDiscovery {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrinoSchemaDiscovery.class);
 
-    /** Iceberg table property holding the GeoMesa-encoded SimpleFeatureType spec. */
-    static final String SFT_SPEC_PROPERTY = "geomesa.sft.spec";
-
     /** Iceberg table property holding the GeoMesa type name. */
     static final String SFT_NAME_PROPERTY = "geomesa.sft.name";
+
+    /** User-data key on the discovered SimpleFeatureType holding the table's
+     *  visibility column name (absent when the table has none). */
+    static final String VIS_COLUMN_KEY = "trino.visibility.column";
+
+    /** The per-row visibility column name — {@code __vis__} */
+    static final String VIS_COLUMN = "__vis__";
 
     /** Prefix for Iceberg table properties describing a single column. */
     static final String COLUMN_PREFIX = "geomesa.col.";
 
     /**
      * Iceberg table property holding the full attribute spec for one column, written for every
-     * column with a structural type definition. Mirrors {@code IcebergCatalog.columnSpecProperty},
-     * which is what writes it.
+     * column. Mirrors {@code IcebergCatalog.columnSpecProperty}, which is what writes it.
      *
      * @param column storage column name
      * @return property key
@@ -72,11 +73,8 @@ class TrinoSchemaDiscovery {
                     if (VIS_COLUMN.equals(columnName)) {
                         visColumn = columnName;
                     } else if (columnName != null && !columnName.startsWith("__")) {
-                        // attribute descriptors are encoded in the column "doc" which maps to REMARKS in sql,
-                        // except for a structural type definition - an avro schema does not fit in a column
-                        // comment, so a column carrying one keeps its whole spec in a table property instead
-                        String columnDoc = rs.getString("REMARKS");
-                        String spec = sftProps.getOrDefault(columnSpecProperty(columnName), columnDoc);
+                        // descriptor is a table property
+                        String spec = sftProps.get(columnSpecProperty(columnName));
                         if (spec != null) {
                             try {
                                 descriptors.add(SimpleFeatureTypes.createDescriptor(spec));
@@ -91,16 +89,11 @@ class TrinoSchemaDiscovery {
             throw new IOException("Failed to discover schema for " + typeName, e);
         }
 
-        if (descriptors.isEmpty()) {
-            // back-compatible fall-back
-            discoverFromPlainCols(tb, typeName, tableName, sftProps);
-        } else {
-            descriptors.forEach(tb::add);
-            descriptors.stream()
-                    .filter(d -> "true".equals(d.getUserData().get("default")) && d instanceof GeometryDescriptor)
-                    .findFirst()
-                    .ifPresent(d -> tb.setDefaultGeometry(d.getLocalName()));
-        }
+        descriptors.forEach(tb::add);
+        descriptors.stream()
+                .filter(d -> "true".equals(d.getUserData().get("default")) && d instanceof GeometryDescriptor)
+                .findFirst()
+                .ifPresent(d -> tb.setDefaultGeometry(d.getLocalName()));
 
         SimpleFeatureType sft = tb.buildFeatureType();
         if (visColumn != null) {
@@ -119,98 +112,10 @@ class TrinoSchemaDiscovery {
         return sft;
     }
 
-    private void discoverFromPlainCols(SimpleFeatureTypeBuilder tb, String typeName, String tableName, Map<String, String> sftProps)
-            throws IOException {
-
-        String sql = String.format(
-                "SELECT * FROM %s.%s.%s LIMIT 0",
-                escapeQuotes(store.catalog()),
-                escapeQuotes(store.trinoSchema()),
-                escapeQuotes(tableName)
-        );
-
-        String sftSpec = sftProps.get(SFT_SPEC_PROPERTY);
-        Map<String, Class<?>> sftBindings = (sftSpec == null || sftSpec.isBlank())
-                ? Map.of() : geometryBindingsFromSpec(typeName, sftSpec);
-
-        String visColumn;
-        try (Connection conn = store.connect();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            ResultSetMetaData meta = rs.getMetaData();
-
-            // First pass: collect all column names so we can detect geometry columns
-            // via the naming convention used by the spatial_iceberg connector — a
-            // VARBINARY column X is a geometry column iff at least one of
-            // __X_bbox__/__X_z2__/__X_xz2__ exists. Same rule the connector uses; no
-            // table-property dependency.
-            Set<String> allNames = new HashSet<>();
-            for (int i = 1; i <= meta.getColumnCount(); i++) {
-                allNames.add(meta.getColumnName(i));
-            }
-            Set<String> geometryColumnNames = discoverGeometryColumnNames(allNames);
-            visColumn = discoverVisibilityColumn(allNames);
-
-            boolean defaultGeomSet = false;
-            for (int i = 1; i <= meta.getColumnCount(); i++) {
-                String name = meta.getColumnName(i);
-                if (TrinoTypeMapper.isHidden(name)) continue;
-                if (name.equals(visColumn)) continue;  // vis column is metadata, not an SFT attribute
-
-                boolean isGeom = geometryColumnNames.contains(name);
-                Class<?> geomBinding = isGeom ? resolveGeometryBinding(name, allNames, sftBindings) : null;
-
-                var descriptor = TrinoTypeMapper.toDescriptor(
-                    name, meta.getColumnType(i), meta.getColumnTypeName(i),isGeom, geomBinding, isGeom ? 4326 : 0
-                );
-                tb.add(descriptor);
-
-                if (isGeom && !defaultGeomSet) {
-                    tb.setDefaultGeometry(name);
-                    defaultGeomSet = true;
-                }
-            }
-        } catch (SQLException e) {
-            throw new IOException("Failed to discover schema for " + typeName, e);
-        }
-    }
-
-    /** The JTS geometry binding for a geometry column: the subtype declared by the stored SFT
-     *  when it names this attribute, else {@link Point} for a {@code __<name>_z2__} companion,
-     *  generic {@link Geometry} otherwise. */
-    static Class<?> resolveGeometryBinding(String name, Set<String> allNames,
-                                           Map<String, Class<?>> sftBindings) {
-        Class<?> fromSft = sftBindings.get(name);
-        if (fromSft != null) {
-            return fromSft;
-        }
-        return isPointColumn(name, allNames) ? Point.class : Geometry.class;
-    }
-
-    /** Parses a GeoMesa SFT spec into geometry-attribute-name → JTS subtype. */
-    static Map<String, Class<?>> geometryBindingsFromSpec(String typeName, String spec) {
-        try {
-            SimpleFeatureType sft = SimpleFeatureTypes.createType(typeName, spec);
-            Map<String, Class<?>> bindings = new LinkedHashMap<>();
-            for (AttributeDescriptor d : sft.getAttributeDescriptors()) {
-                if (d instanceof GeometryDescriptor) {
-                    bindings.put(d.getLocalName(), d.getType().getBinding());
-                }
-            }
-            return bindings;
-        } catch (RuntimeException e) {
-            LOG.warn("Could not parse stored GeoMesa SFT for '{}' ({}='{}'): {}; "
-                + "falling back to heuristic geometry binding",
-                typeName, SFT_SPEC_PROPERTY, spec, e.getMessage());
-            return Map.of();
-        }
-    }
-
-    /** Reads the {@code geomesa.sft.*} properties (spec + name) from the Iceberg
-     *  {@code <table>$properties} metadata table in one query; empty when the table carries none
-     *  or doesn't expose {@code $properties}. Non-fatal: any failure just disables SFT-driven
-     *  binding/name for this table. */
+    /** Reads the {@code geomesa.*} properties - the type name, its user data, and a spec per
+     *  column - from the Iceberg {@code <table>$properties} metadata table in one query; empty
+     *  when the table carries none or doesn't expose {@code $properties}. Non-fatal, but a table
+     *  with no column specs discovers no attributes, there being nothing else to read them from. */
     private Map<String, String> readSftProperties(String tableName) {
         String sql = String.format(
             "SELECT key, value FROM %s.%s.%s",
@@ -230,43 +135,6 @@ class TrinoSchemaDiscovery {
                 tableName, e.getMessage());
         }
         return props;
-    }
-
-    /** Returns the set of column names that are geometry columns under the
-     *  naming convention: a base name {@code X} is a geometry column iff at least
-     *  one of {@code __X_bbox__}, {@code __X_z2__}, {@code __X_xz2__} appears in
-     *  the table's column list. Companions themselves (names starting and ending
-     *  with {@code __}) are skipped. */
-    static Set<String> discoverGeometryColumnNames(Set<String> allNames) {
-        Set<String> result = new LinkedHashSet<>();
-        for (String name : allNames) {
-            if (name.startsWith("__") && name.endsWith("__")) continue;
-            if (allNames.contains("__" + name + "_bbox__")
-                    || allNames.contains("__" + name + "_z2__")
-                    || allNames.contains("__" + name + "_xz2__")) {
-                result.add(name);
-            }
-        }
-        return result;
-    }
-
-    /** True when the geometry column carries a {@code __<name>_z2__} companion —
-     *  point-only by the spatial-column convention (non-point data uses XZ2). */
-    static boolean isPointColumn(String name, Set<String> allNames) {
-        return allNames.contains("__" + name + "_z2__");
-    }
-
-    /** User-data key on the discovered SimpleFeatureType holding the table's
-     *  visibility column name (absent when the table has none). */
-    static final String VIS_COLUMN_KEY = "trino.visibility.column";
-
-    /** The per-row visibility column name — {@code __vis__} */
-    static final String VIS_COLUMN = "__vis__";
-
-    /** Returns the table's visibility column name ({@code __vis__}), or null if
-     *  the table has none. */
-    static String discoverVisibilityColumn(Set<String> allNames) {
-        return allNames.contains(VIS_COLUMN) ? VIS_COLUMN : null;
     }
 
 }

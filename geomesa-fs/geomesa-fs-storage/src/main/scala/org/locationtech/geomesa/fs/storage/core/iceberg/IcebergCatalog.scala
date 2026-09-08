@@ -110,8 +110,8 @@ object IcebergCatalog {
   val ColumnPrefix = "geomesa.col."
 
   /**
-   * Property carrying the full attribute spec for one column. Written for every column with a
-   * structural type definition - see `SimpleFeatureIcebergSchema.encodeDoc`.
+   * Property carrying the full attribute spec for one column, written for every column and read
+   * back by `SimpleFeatureIcebergSchema.apply`.
    *
    * @param column storage column name, as encoded by `ColumnName`
    * @return property key
@@ -132,7 +132,7 @@ object IcebergCatalog {
         case (k, v) if v != null && prefixes.exists(k.toString.startsWith) => s"$UserDataPrefix$k" -> v.toString
       }
     }
-    val columnSpecs = SimpleFeatureIcebergSchema.structuralColumnSpecs(sft).map {
+    val columnSpecs = SimpleFeatureIcebergSchema.columnSpecs(sft).map {
       case (column, spec) => columnSpecProperty(column) -> spec
     }
     typeName ++ userData ++ columnSpecs
