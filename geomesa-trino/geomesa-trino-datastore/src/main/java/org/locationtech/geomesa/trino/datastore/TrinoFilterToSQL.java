@@ -322,10 +322,9 @@ public class TrinoFilterToSQL extends FilterToSQL {
      * name against the feature type and writes it as a quoted identifier.
      *
      * <p>Mirrors {@code IcebergFilterConverter.jsonPath}/{@code navigate} on the FileSystem
-     * read path, but without a client-side residual: the Trino datastore pushes all filtering
-     * to SQL, so a path that can't be translated throws {@link IllegalArgumentException}
-     * (wrapped as an unsupported-filter {@code IOException} by {@code
-     * TrinoFeatureSource.encodeFilterSql}) rather than falling back.
+     * read path. A path that can't be translated throws {@link IllegalArgumentException};
+     * {@code TrinoFeatureSource.splitFilter} catches it per-conjunct and falls back to
+     * client-side evaluation of that conjunct rather than failing the whole query.
      *
      * @param expression the property name
      * @param extraData caller-supplied context, returned unchanged

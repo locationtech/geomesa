@@ -373,6 +373,76 @@ public class TrinoDataStoreTest {
     }
 
     @Test
+    public void testStructuralJsonQueryClientSideFallback() throws IOException, CQLException {
+        var params = Map.of(
+                TrinoDataStoreFactory.HOST.key, trino.getHost(),
+                TrinoDataStoreFactory.PORT.key, trino.getFirstMappedPort(),
+                TrinoDataStoreFactory.SCHEMA.key, "geomesa"
+        );
+        var ds = DataStoreFinder.getDataStore(params);
+        Assertions.assertNotNull(ds);
+        // json-path filters with array indices can't be pushed down to trino SQL. how the
+        // non-pushable ("residual") conjunct is handled depends on the client-side filtering mode.
+        // features: 0=alice/tags:["a","b"], 1=age7/tags:[], 3=dave/tags:["p","q","r"]
+        // a fully non-pushable filter (nothing extracted to SQL)
+        var fullResidual = "\"$.props.tags[0]\" = 'a'";
+        // a partly pushable filter: name pushes down, tags[0] is the residual
+        var partialResidual = "\"$.props.name\" = 'alice' AND \"$.props.tags[0]\" = 'a'";
+        try {
+            // default mode (partial): allow client-side filtering only when some sql was pushed down
+            Assertions.assertNull(TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().get());
+            assertQueryIds(ds, partialResidual, List.of(0));
+            // fully non-pushable -> nothing to push down -> query fails
+            Assertions.assertThrows(RuntimeException.class, () -> readAll(ds, fullResidual));
+
+            // all mode: allow any client-side filtering, even with no sql pushdown
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
+                    TrinoFeatureSource.ClientSideFiltering.ALL.value);
+            assertQueryIds(ds, fullResidual, List.of(0));
+            assertQueryIds(ds, partialResidual, List.of(0));
+
+            // none mode: never filter client-side -> both fail
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
+                    TrinoFeatureSource.ClientSideFiltering.NONE.value);
+            Assertions.assertThrows(RuntimeException.class, () -> readAll(ds, fullResidual));
+            Assertions.assertThrows(RuntimeException.class, () -> readAll(ds, partialResidual));
+        } finally {
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().remove();
+            ds.dispose();
+        }
+    }
+
+    /** Read all features matching the given ECQL filter. */
+    private static List<SimpleFeature> readAll(org.geotools.api.data.DataStore ds, String ecql)
+            throws IOException, CQLException {
+        var results = new ArrayList<SimpleFeature>();
+        var query = new Query(jsonSft.getTypeName(), ECQL.toFilter(ecql));
+        try (var reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) {
+            while (reader.hasNext()) {
+                results.add(reader.next());
+            }
+        }
+        return results;
+    }
+
+    /** Assert the given ECQL filter returns exactly the expected feature ids, and that the
+     *  returned json round-trips to the original structural value. */
+    private static void assertQueryIds(org.geotools.api.data.DataStore ds, String ecql, List<Integer> expected)
+            throws IOException, CQLException {
+        var mapper = new ObjectMapper();
+        var results = readAll(ds, ecql);
+        var expectedIds = expected.stream().map(String::valueOf).collect(Collectors.toSet());
+        var actualIds = results.stream().map(SimpleFeature::getID).collect(Collectors.toSet());
+        Assertions.assertEquals(expectedIds, actualIds, "filter: " + ecql);
+        var byId = results.stream().collect(Collectors.toMap(SimpleFeature::getID, f -> f));
+        for (var i : expected) {
+            var expectedJson = jsonValues.get(i);
+            var actualJson = (String) byId.get(Integer.toString(i)).getAttribute("props");
+            Assertions.assertEquals(normalize(mapper, expectedJson), normalize(mapper, actualJson));
+        }
+    }
+
+    @Test
     public void testStructuralJsonArray() throws IOException, CQLException {
         var params = Map.of(
                 TrinoDataStoreFactory.HOST.key, trino.getHost(),
