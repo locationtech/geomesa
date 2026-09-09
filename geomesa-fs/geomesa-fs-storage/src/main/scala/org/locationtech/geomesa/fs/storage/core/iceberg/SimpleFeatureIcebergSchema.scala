@@ -56,7 +56,11 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
     val (readCols, readSft) = transform match {
       case None =>
         val featureCols = baseCols ++ sft.getAttributeDescriptors.asScala.map(d => ColumnName.encode(d.getLocalName))
-        val readCols = featureCols ++ filtered.filterNot(featureCols.contains)
+        val readCols =
+          featureCols ++ filtered.filterNot { f =>
+            val i = f.indexOf('.')
+            if (i == -1) { featureCols.contains(f) } else { featureCols.contains(f.substring(0, i)) }
+          }
         (readCols, sft)
       case Some(defs) =>
         val fromTransform = Transforms(sft, defs).flatMap {
@@ -67,7 +71,10 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
         }
         val attributes = fromTransform.distinct
         val featureCols = baseCols ++ attributes.map(ColumnName.encode)
-        val readCols = featureCols ++ filtered.filterNot(featureCols.contains)
+        val readCols = featureCols ++ filtered.filterNot { f =>
+          val i = f.indexOf('.')
+          if (i == -1) { featureCols.contains(f) } else { featureCols.contains(f.substring(0, i)) }
+        }
         val readSft = {
           val sftBuilder = new SimpleFeatureTypeBuilder()
           attributes.foreach(name => sftBuilder.add(sft.getDescriptor(name)))

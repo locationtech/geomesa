@@ -19,7 +19,6 @@ import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.filter.visitor.PropertyNameResolvingVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
@@ -151,8 +150,7 @@ object FileSystemFeatureStore {
    *
    * @param featureType feature type
    */
-  private class JsonPathPreservingResolver(featureType: SimpleFeatureType)
-      extends PropertyNameResolvingVisitor(featureType) {
+  private class JsonPathPreservingResolver(featureType: SimpleFeatureType) extends PropertyNameResolvingVisitor(featureType) {
     override def visit(expression: PropertyName, extraData: AnyRef): AnyRef = {
       val name = expression.getPropertyName
       if (name != null && name.startsWith("$")) {
