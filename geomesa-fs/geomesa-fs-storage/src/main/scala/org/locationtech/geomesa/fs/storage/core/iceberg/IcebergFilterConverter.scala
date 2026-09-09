@@ -254,29 +254,31 @@ object IcebergFilterConverter extends LazyLogging {
 
     // navigate the remaining path elements through the nested struct type to find the leaf fields we're filtering on
     navigate(topLevelColumn, field.`type`(), path.tail) match {
-      // json path expression is not supported in iceberg predicates, evaluate it client-side instead
+      // can't express the json path as an iceberg predicates, evaluate it client-side instead
       case None => ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(topLevelColumn))
-      // the path didn't match any fields
-      case Some(matchingFields) if matchingFields.isEmpty => ReadFilter(Expressions.alwaysFalse(), nonAttribute, Set.empty)
-
       case Some(matchingFields) =>
+        if (matchingFields.isEmpty) {
+          // the path was evaluated but didn't match any fields
+          throw new IllegalArgumentException(
+            s"Invalid JSON path - does not match any elements of the structural type $topLevelColumn: $pathString")
+        }
         val filters = matchingFields.map { case (column, leafType) =>
-          def build[T](binding: Class[T], transform: Option[T => Any] = None): ReadFilter =
-            predicate(filter, attribute.get, nonAttribute, pathString, column, binding, transform)
-          leafType.typeId() match {
-            case TypeID.STRING  => build(classOf[String])
-            case TypeID.INTEGER => build(classOf[Integer])
-            case TypeID.LONG    => build(classOf[java.lang.Long])
-            case TypeID.FLOAT   => build(classOf[java.lang.Float])
-            case TypeID.DOUBLE  => build(classOf[java.lang.Double])
-            case TypeID.BOOLEAN => build(classOf[java.lang.Boolean])
-            case _ =>
-              // unsupported leaf type (dates, times, uuids, decimals, binary, etc) - evaluate client-side
-              // TODO seems like we should be able to support at least dates here?
-              ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(topLevelColumn))
+          val binding = leafType.typeId() match {
+            case TypeID.STRING  => Some(classOf[String])
+            case TypeID.INTEGER => Some(classOf[Integer])
+            case TypeID.LONG    => Some(classOf[java.lang.Long])
+            case TypeID.FLOAT   => Some(classOf[java.lang.Float])
+            case TypeID.DOUBLE  => Some(classOf[java.lang.Double])
+            case TypeID.BOOLEAN => Some(classOf[java.lang.Boolean])
+            // unsupported leaf type (dates, times, uuids, decimals, binary, etc) - evaluate client-side
+            // TODO seems like we should be able to support at least dates here?
+            case _ => None
+          }
+          binding match {
+            case None => ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(topLevelColumn))
+            case Some(b) => predicate(filter, attribute.get, nonAttribute, pathString, column, b, None)
           }
         }
-
         // if the path matches more than 1 leaf node, combine the filter expressions with ORs
         filters.reduceLeft[ReadFilter] { case (left, right) =>
           // predicate will always return either the full filter or the non-attribute part
@@ -290,6 +292,7 @@ object IcebergFilterConverter extends LazyLogging {
    * Navigates a nested struct type following a json path, returning the nested field reference names and the
    * leaf type if the path points at a scalar field, or None if the path can't be pushed down
    *
+   * @param fieldPath dot-delimited path to the current field being evaluated
    * @param fieldType the type of the field the path currently points at
    * @param path the remaining path to navigate
    * @return pairs of nested field names (matching the stored schema) and the leaf primitive type, or None if the path is not supported
