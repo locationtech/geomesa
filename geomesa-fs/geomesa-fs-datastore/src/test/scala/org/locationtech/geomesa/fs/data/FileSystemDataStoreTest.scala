@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.data
 
-import com.google.gson.JsonParser
+import com.google.gson.{JsonObject, JsonParser}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -370,7 +370,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
       }
     }
 
-    "query structural json features with json-path filters" in {
+    "query structural json features with json-path filters and projections" in {
       import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
 
       val avro =
@@ -390,9 +390,9 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
           |  ]
           |}""".stripMargin
 
-      val jsonSft = SimpleFeatureTypes.createType("json-query", "props:String:json=true,dtg:Date,*geom:Point:srid=4326")
-      jsonSft.getDescriptor("props").getUserData.put(AttributeOptions.OptJsonSchema, avro)
-      jsonSft.setScheme("daily")
+      val sft = SimpleFeatureTypes.createType("json-query", "props:String:json=true,dtg:Date,*geom:Point:srid=4326")
+      sft.getDescriptor("props").getUserData.put(AttributeOptions.OptJsonSchema, avro)
+      sft.setScheme("daily")
 
       val jsonValues = Seq(
         """{"name":"alice","age":30,"tags":["a","b"],"scores":{"x":1,"y":2},"nested":{"flag":true}}""",
@@ -402,8 +402,8 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
         null // null json value -> null attribute
       )
 
-      val jsonFeatures = jsonValues.zipWithIndex.map { case (json, i) =>
-        val sf = new ScalaSimpleFeature(jsonSft, i.toString)
+      val features = jsonValues.zipWithIndex.map { case (json, i) =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.getUserData.put(org.geotools.util.factory.Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.getUserData.put("geomesa.feature.visibility", "user")
         sf.setAttribute("props", json)
@@ -423,34 +423,59 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
       }
 
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
-        ds.createSchema(jsonSft)
-        WithClose(ds.getFeatureWriterAppend(jsonSft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          jsonFeatures.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        ds.createSchema(sft)
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
 
         val filters = Seq(
-          ECQL.toFilter("INCLUDE") -> Seq(0, 1, 2, 3, 4),
-          ECQL.toFilter(""""$.props.name" = 'alice'""") -> Seq(0),
-          ECQL.toFilter(""""$.props.age" > 20""") -> Seq(0, 2),
-          ECQL.toFilter(""""$.props.age" = 7""") -> Seq(1),
-          ECQL.toFilter(""""$.props.nested.flag" = true""") -> Seq(0)
+          ECQL.toFilter("INCLUDE") -> features,
+          ECQL.toFilter(""""$.props.name" = 'alice'""") -> features.take(1),
+          ECQL.toFilter(""""$.props.age" > 20""") -> (features.take(1) ++ features.slice(2, 3)),
+          ECQL.toFilter(""""$.props.age" = 7""") -> features.slice(1, 2),
+          ECQL.toFilter(""""$.props.nested.flag" = true""") -> features.take(1),
         )
+        val pathTransform = """"$.props.name""""
+        val transforms = Seq(null, Array("props", "geom"), Array(pathTransform, "dtg", "geom"))
 
-        foreach(filters) { case (filter, expectedIds) =>
-          val query = new Query(jsonSft.getTypeName, filter)
-          val results =
-            CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
-          results.map(_.getID.toInt).sorted mustEqual expectedIds
-          val byId = results.map(f => f.getID -> f).toMap
-          foreach(expectedIds) { id =>
-            val actual = byId.get(id.toString)
-            actual must beSome
-            val expectedJson = jsonFeatures(id).getAttribute("props").asInstanceOf[String]
-            val actualJson = actual.get.getAttribute("props").asInstanceOf[String]
-            if (expectedJson == null) {
-              actualJson must beNull
-            } else {
-              JsonParser.parseString(actualJson) mustEqual JsonParser.parseString(normalize(expectedJson))
+        foreach(filters) { case (filter, expected) =>
+          foreach(transforms) { transform =>
+            val query = new Query(sft.getTypeName, filter, transform: _*)
+            val results =
+              CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
+            results.map(_.getID).sorted mustEqual expected.map(_.getID)
+            val byId = results.map(f => f.getID -> f).toMap
+            foreach(expected) { expected =>
+              val actual = byId.get(expected.getID)
+              actual must beSome
+              if (transform == null || transform.contains("props")) {
+                val expectedJson = expected.getAttribute("props").asInstanceOf[String]
+                val actualJson = actual.get.getAttribute("props").asInstanceOf[String]
+                if (expectedJson == null) {
+                  actualJson must beNull
+                } else {
+                  // compare parsed trees so key ordering / whitespace don't matter
+                  JsonParser.parseString(actualJson) mustEqual JsonParser.parseString(normalize(expectedJson))
+                }
+              } else if (transform.contains(pathTransform)) {
+                val expectedJson = expected.getAttribute("props").asInstanceOf[String]
+                val actualJson = actual.get.getAttribute(pathTransform).asInstanceOf[String]
+                if (expectedJson == null) {
+                  actualJson must beNull
+                } else {
+                  val name = JsonParser.parseString(normalize(expectedJson)).getAsJsonObject.get("name")
+                  if (name == null || name.isJsonNull) {
+                    actualJson must beNull
+                  } else {
+                    val obj = new JsonObject()
+                    obj.add("name", name)
+                    // compare parsed trees so key ordering / whitespace don't matter
+                    JsonParser.parseString(actualJson) mustEqual obj
+                  }
+                }
+              } else {
+                ko("Unexpected transform")
+              }
             }
           }
         }

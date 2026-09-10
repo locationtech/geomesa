@@ -230,7 +230,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         sf
       }
 
-      val encoding = GeometryEncoding.GeoParquetWkb
+      val encoding: GeometryEncoding = GeometryEncoding.GeoParquetWkb
       WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
           storage must not(beNull)
@@ -391,9 +391,10 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       val filters = Seq(
         Filter.INCLUDE -> features,
         ECQL.toFilter(""""$.props.name" = 'alice'""") -> features.take(1),
+        ECQL.toFilter(""""$.props.age" > 20""") -> (features.take(1) ++ features.slice(2, 3)),
       )
       val pathTransform = """"$.props.name""""
-      val transforms = Seq(/*null, Array("props", "geom"),*/ Array(pathTransform, "dtg", "geom"))
+      val transforms = Seq(null, Array("props", "geom"), Array(pathTransform, "dtg", "geom"))
 
       WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
