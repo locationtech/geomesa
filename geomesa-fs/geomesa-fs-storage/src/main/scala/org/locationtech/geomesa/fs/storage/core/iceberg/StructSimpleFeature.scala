@@ -25,6 +25,8 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.json.JsonPathParser.{JsonPath, PathAttribute}
+import org.locationtech.geomesa.utils.json.{JsonPathParser, JsonPathPropertyAccessor}
 import org.locationtech.geomesa.utils.text.WKBUtils
 
 import java.nio.ByteBuffer
@@ -129,11 +131,25 @@ object StructSimpleFeature {
     val hasId = cols.headOption.exists(_.name() == SimpleFeatureSchema.FeatureIdField)
     while (i < accessors.length) {
       val descriptor = schema.sft.getDescriptor(i)
-      val col = ColumnName.encode(descriptor.getLocalName)
-      val offset = cols.indexWhere(_.name() == col)
-      accessors(i) = Converter(descriptor, col, schema) match {
-        case None => new DirectAccessor(offset)
-        case Some(c) => new ConverterAccessor(offset, c)
+      accessors(i) = if (descriptor.getLocalName.startsWith("$")) {
+        val path = JsonPathParser.parse(descriptor.getLocalName)
+        val col = ColumnName.encode(path.head.asInstanceOf[PathAttribute].name)
+        val offset = cols.indexWhere(_.name() == col)
+        val typed = cols(offset).`type`()
+        if (typed.isStructType) {
+          new ConverterAccessor(offset, new StructJsonConverter(typed))
+        } else if (typed.isVariantType) {
+          new VariantPathAccessor(offset, path.tail)
+        } else {
+          throw new IllegalStateException(s"Unexpected column for json path expression: ${cols(offset)}")
+        }
+      } else {
+        val col = ColumnName.encode(descriptor.getLocalName)
+        val offset = cols.indexWhere(_.name() == col)
+        Converter(descriptor, col, schema) match {
+          case None => new DirectAccessor(offset)
+          case Some(c) => new ConverterAccessor(offset, c)
+        }
       }
       i += 1
     }
@@ -155,6 +171,13 @@ object StructSimpleFeature {
     override def apply(row: StructLike): AnyRef = {
       val value = row.get(i, classOf[AnyRef])
       if (value == null) { null } else { converter(value) }
+    }
+  }
+
+  private class VariantPathAccessor(i: Int, path: JsonPath) extends ColumnAccessor {
+    override def apply(row: StructLike): AnyRef = {
+      val json = row.get(i, classOf[String])
+      if (json == null) { null } else { JsonPathPropertyAccessor.evaluateJsonPath(json, path) }
     }
   }
 
@@ -264,6 +287,7 @@ object StructSimpleFeature {
    * against its iceberg type and rebuilds a compact JSON string, so the value round-trips as a JSON attribute.
    */
   private class StructJsonConverter(t: org.apache.iceberg.types.Type) extends Converter {
+
     override def apply(value: AnyRef): AnyRef = StructuralJson.compact(toJson(t, value))
 
     private def toJson(t: org.apache.iceberg.types.Type, value: AnyRef): JsonElement = {
@@ -282,7 +306,7 @@ object StructSimpleFeature {
               }
               i += 1
             }
-            obj
+            if (obj.isEmpty) { JsonNull.INSTANCE } else { obj }
 
           case TypeID.LIST =>
             val array = new JsonArray()

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.core
 
-import com.google.gson.JsonParser
+import com.google.gson.{JsonObject, JsonParser}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.parquet.hadoop.ParquetFileReader
@@ -392,7 +392,8 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         Filter.INCLUDE -> features,
         ECQL.toFilter(""""$.props.name" = 'alice'""") -> features.take(1),
       )
-      val transforms = Seq(null, Array("props", "geom")/*, Array("$.props.name", "dtg", "geom")*/) // TODO test retrieval
+      val pathTransform = """"$.props.name""""
+      val transforms = Seq(/*null, Array("props", "geom"),*/ Array(pathTransform, "dtg", "geom"))
 
       WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
@@ -415,7 +416,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
               foreach(expected) { expected =>
                 val actual = byId.get(expected.getID)
                 actual must beSome
-//                if (transform == null || transform.contains("props")) {
+                if (transform == null || transform.contains("props")) {
                   val expectedJson = expected.getAttribute("props").asInstanceOf[String]
                   val actualJson = actual.get.getAttribute("props").asInstanceOf[String]
                   if (expectedJson == null) {
@@ -424,9 +425,26 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
                     // compare parsed trees so key ordering / whitespace don't matter
                     JsonParser.parseString(actualJson) mustEqual JsonParser.parseString(normalize(expectedJson))
                   }
-//                } else {
-//
-//                }
+                } else if (transform.contains(pathTransform)) {
+                  val expectedJson = expected.getAttribute("props").asInstanceOf[String]
+                  val actualJson = actual.get.getAttribute(pathTransform).asInstanceOf[String]
+                  if (expectedJson == null) {
+                    actualJson must beNull
+                  } else {
+                    val name = JsonParser.parseString(normalize(expectedJson)).getAsJsonObject.get("name")
+                    if (name == null || name.isJsonNull) {
+                      actualJson must beNull
+                    } else {
+                      val obj = new JsonObject()
+                      obj.add("name", name)
+                      // compare parsed trees so key ordering / whitespace don't matter
+                      JsonParser.parseString(actualJson) mustEqual obj
+                    }
+
+                  }
+                } else {
+                  ko("Unexpected transform")
+                }
               }
             }
           }

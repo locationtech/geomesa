@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.features.kryo.json
 
 import com.esotericsoftware.kryo.io.{Input, Output}
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.json.{JsonPathParser, JsonPathPropertyAccessor}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.SpecificationWithJUnit
@@ -251,12 +249,11 @@ class KryoJsonSerializationTest extends SpecificationWithJUnit {
       val out = new Output(1024)
       KryoJsonSerialization.serialize(out, bookJson)
       val bytes = out.toBytes
-      val sft = SimpleFeatureTypes.createType("test", "json:String:json=true")
 
       def test(path: String, expected: Any): MatchResult[Any] = {
         val parsed = JsonPathParser.parse(path)
         KryoJsonSerialization.deserialize(new Input(bytes), parsed) mustEqual expected
-        JsonPathPropertyAccessor.get(ScalaSimpleFeature.create(sft, "", bookJson), "$.json" + path.substring(1), classOf[AnyRef]) mustEqual expected
+        JsonPathPropertyAccessor.evaluateJsonPath(bookJson, parsed) mustEqual expected
       }
 
       test("$.store.book[?(@.price == 8.95 && @.category == 'reference')]", books(0))
@@ -281,7 +278,6 @@ class KryoJsonSerializationTest extends SpecificationWithJUnit {
       val out = new Output(1024)
       KryoJsonSerialization.serialize(out, bookJson)
       val bytes = out.toBytes
-      val sft = SimpleFeatureTypes.createType("test", "json:String:json=true")
 
       val tests = Seq(
         "$.store.book[*].author",
@@ -306,7 +302,7 @@ class KryoJsonSerializationTest extends SpecificationWithJUnit {
       )
       foreach(tests) { test =>
         val path = JsonPathParser.parse(test)
-        val expected = JsonPathPropertyAccessor.get(ScalaSimpleFeature.create(sft, "", bookJson), "$.json" + test.substring(1), classOf[AnyRef])
+        val expected = JsonPathPropertyAccessor.evaluateJsonPath(bookJson, path)
         val actual = KryoJsonSerialization.deserialize(new Input(bytes), path)
         actual mustEqual expected
       }
@@ -318,7 +314,7 @@ class KryoJsonSerializationTest extends SpecificationWithJUnit {
       foreach(unexpected) { case (test, expected) =>
         val path = JsonPathParser.parse(test)
         // TODO if jayway starts working correctly, update this test
-        JsonPathPropertyAccessor.get(ScalaSimpleFeature.create(sft, "", bookJson), "$.json" + test.substring(1), classOf[AnyRef]) must not(beEqualTo(expected))
+        JsonPathPropertyAccessor.evaluateJsonPath(bookJson, path) must not(beEqualTo(expected))
         KryoJsonSerialization.deserialize(new Input(bytes), path) mustEqual expected
       }
     }

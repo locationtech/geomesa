@@ -23,13 +23,11 @@ import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, Column
 import org.locationtech.geomesa.fs.storage.core.schemes.{PartitionScheme, SpatialScheme}
 import org.locationtech.geomesa.index.strategies.{IdFilterStrategy, SpatialFilterStrategy}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
-import org.locationtech.geomesa.utils.json.JsonPathParser
 import org.locationtech.geomesa.utils.json.JsonPathParser._
 import org.locationtech.jts.geom.Point
 
 import java.util.Date
 import scala.reflect.ClassTag
-import scala.util.control.NonFatal
 
 object IcebergFilterConverter extends LazyLogging {
 
@@ -212,28 +210,7 @@ object IcebergFilterConverter extends LazyLogging {
   }
 
   private def jsonPath(schema: SimpleFeatureIcebergSchema, pathString: String, filter: Filter): ReadFilter = {
-    val path = try { JsonPathParser.parse(pathString) } catch {
-      case NonFatal(e) => throw new IllegalArgumentException(s"Could not evaluate attribute as a JSON path: $pathString", e)
-    }
-    if (path.isEmpty) {
-      throw new IllegalArgumentException(s"Invalid JSON path - empty: $pathString")
-    }
-    val descriptor = path.head match {
-      case PathAttribute(name, _) =>
-        val descriptor = schema.sft.getDescriptor(name)
-        if (descriptor == null) {
-          throw new IllegalArgumentException(s"Invalid JSON path - does not point at an attribute: $pathString")
-        } else if (!classOf[String].isAssignableFrom(descriptor.getType.getBinding)) {
-          throw new IllegalArgumentException(
-            s"Invalid JSON path - points at an invalid attribute of type ${descriptor.getType.getBinding.getSimpleName}: $pathString")
-        } else if (!descriptor.isJson()) {
-          throw new IllegalArgumentException(s"Invalid JSON path - points at a non-JSON attribute: $pathString")
-        }
-        descriptor
-
-      case _ =>
-        throw new IllegalArgumentException(s"Invalid JSON path - first element must point at an attribute: $pathString")
-    }
+    val (descriptor, path) = parseJsonPath(pathString, schema.sft)
     val topLevelColumn = ColumnName.encode(descriptor.getLocalName)
     if (descriptor.getJsonSchema().isEmpty) {
       // not a structural type - the field is stored as an opaque variant, so we can't push down against it
@@ -253,7 +230,7 @@ object IcebergFilterConverter extends LazyLogging {
     }
 
     // navigate the remaining path elements through the nested struct type to find the leaf fields we're filtering on
-    navigate(topLevelColumn, field.`type`(), path.tail) match {
+    navigate(topLevelColumn, field.`type`(), path) match {
       // can't express the json path as an iceberg predicates, evaluate it client-side instead
       case None => ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(topLevelColumn))
       case Some(matchingFields) =>
