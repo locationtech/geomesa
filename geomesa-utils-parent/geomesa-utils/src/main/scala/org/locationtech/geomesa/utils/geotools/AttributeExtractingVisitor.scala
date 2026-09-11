@@ -6,11 +6,10 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.filter.visitor
+package org.locationtech.geomesa.utils.geotools
 
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.filter.FilterAttributeExtractor
-import org.locationtech.geomesa.utils.geotools.AttributeAwareExpression
 
 /**
  * Helper class that can extract attributes from non-standard expressions

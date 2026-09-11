@@ -223,10 +223,13 @@ class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeatu
             Map<Object, Object> out = new LinkedHashMap<>();
             List<RowField> fields = row.getFields();
             for (RowField f : fields) {
-                out.put(f.getName().orElseGet(() -> "field" + f.getOrdinal()),
-                        normalize(f.getValue()));
+                var val = normalize(f.getValue());
+                if (val != null) {
+                    out.put(f.getName().orElseGet(() -> "field" + f.getOrdinal()), val);
+                }
+
             }
-            return out;
+            return out.isEmpty() ? null : out;
         }
         if (value instanceof Array array) {
             Object raw = array.getArray();
@@ -254,9 +257,12 @@ class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeatu
         if (value instanceof Map<?, ?> map) {
             Map<Object, Object> out = new LinkedHashMap<>();
             for (Map.Entry<?, ?> e : map.entrySet()) {
-                out.put(e.getKey(), normalize(e.getValue()));
+                var val = normalize(e.getValue());
+                if (val != null) {
+                    out.put(e.getKey(), val);
+                }
             }
-            return out;
+            return out.isEmpty() ? null : out;
         }
         return value;
     }

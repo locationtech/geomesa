@@ -26,18 +26,15 @@ import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.filter.visitor.DefaultFilterVisitor;
-import org.geotools.filter.visitor.PropertyNameResolvingVisitor;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.geomesa.index.conf.QueryHints;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty;
-import org.locationtech.geomesa.utils.json.JsonPathParser;
-import org.locationtech.geomesa.utils.json.JsonPathParser.PathAttribute;
+import org.locationtech.geomesa.utils.geotools.AttributeExtractingVisitor;
+import org.locationtech.geomesa.utils.json.JsonPathPropertyNameResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.collection.JavaConverters;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -89,8 +86,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
                     return mode;
                 }
             }
-            LOG.warn("Unrecognized value '" + configured + "' for " + CLIENT_SIDE_FILTERING.property()
-                + "; defaulting to '" + PARTIAL.value + "'");
+            LOG.warn("Unrecognized value '{}' for {}; defaulting to '{}'",
+                    configured, CLIENT_SIDE_FILTERING.property(), PARTIAL.value);
             return PARTIAL;
         }
     }
@@ -198,29 +195,13 @@ class TrinoFeatureSource extends ContentFeatureSource {
         if (filter == null || filter == Filter.INCLUDE || filter == Filter.EXCLUDE) {
             return query;
         }
-        Filter resolved = (Filter) filter.accept(new JsonPathPreservingResolver(getSchema()), null);
+        Filter resolved = (Filter) filter.accept(new JsonPathPropertyNameResolver(getSchema()), null);
         if (resolved == filter) {
             return query;
         }
         Query newQuery = new Query(query);
         newQuery.setFilter(resolved);
         return newQuery;
-    }
-
-    /** Resolves property names against the schema, but leaves {@code $}-prefixed JSON paths
-     *  untouched so {@code TrinoFilterToSQL} can translate them into ROW dereferences. */
-    private static final class JsonPathPreservingResolver extends PropertyNameResolvingVisitor {
-        JsonPathPreservingResolver(SimpleFeatureType featureType) {
-            super(featureType);
-        }
-        @Override
-        public Object visit(PropertyName expression, Object extraData) {
-            String name = expression.getPropertyName();
-            if (name != null && name.startsWith("$")) {
-                return getFactory(extraData).property(name);
-            }
-            return super.visit(expression, extraData);
-        }
     }
 
     /**
@@ -243,16 +224,17 @@ class TrinoFeatureSource extends ContentFeatureSource {
      */
     @Override
     protected int getCountInternal(Query query) throws IOException {
-        if (splitFilter(query.getFilter()).residual != null) {
+        var split = splitFilter(query.getFilter());
+        if (split.residual != null) {
             // part of the filter is evaluated client-side, so SQL COUNT(*) would over-count; return unknown
             return -1;
         }
         try {
-            return countOnce(query);
+            return countOnce(query, split);
         } catch (SQLException e) {
             if (refreshSchemaIfDrifted()) {
                 try {
-                    return countOnce(query);
+                    return countOnce(query, split);
                 } catch (SQLException retry) {
                     LOG.warn("Failed to execute count query after schema refresh: " + retry.getMessage());
                     return -1;
@@ -263,11 +245,10 @@ class TrinoFeatureSource extends ContentFeatureSource {
         }
     }
 
-    private int countOnce(Query query) throws IOException, SQLException {
+    private int countOnce(Query query, FilterSplit split) throws IOException, SQLException {
         String typeName = entry.getName().getLocalPart();
         VisibilityContext vis = visibility();
-        String where = combineWhere(encodeFilterSql(query.getFilter()),
-            vis == null ? null : vis.conjunct());
+        String where = combineWhere(split.pushableSql, vis == null ? null : vis.conjunct());
         String sql = String.format("SELECT COUNT(*) FROM %s.%s.%s%s",
             escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(trinoStore.getTableName(typeName)), where);
         try (Connection conn = trinoStore.connect(vis == null ? null : vis.auths());
@@ -324,9 +305,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
         String geomName = getSchema().getGeometryDescriptor().getLocalName();
         String bboxCol = "__" + geomName + "_bbox__";
         VisibilityContext vis = visibility();
-        // note: this may give a larger bounds due to not taking client-side filters into account
-        String where = combineWhere(encodeFilterSql(query.getFilter()),
-            vis == null ? null : vis.conjunct());
+        // note: this may give a larger bounds due to not taking client-side filters into account, but should still be valid
+        String where = combineWhere(splitFilter(query.getFilter()).pushableSql, vis == null ? null : vis.conjunct());
         String sql = String.format(
             "SELECT MIN(%1$s.xmin), MIN(%1$s.ymin)," +
             " MAX(%1$s.xmax), MAX(%1$s.ymax)" +
@@ -437,7 +417,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
         try {
             Statement stmt = conn.createStatement();
             stmt.setFetchSize(10_000);  // hint; reduces client page round trips
-            ResultSet rs   = stmt.executeQuery(sql);
+            ResultSet rs = stmt.executeQuery(sql);
             reader = new TrinoFeatureReader(sft, conn, stmt, rs, fidColumn, visColumn);
         } catch (Exception e) {
             try { conn.close(); } catch (SQLException suppressed) { e.addSuppressed(suppressed); }
@@ -507,14 +487,6 @@ class TrinoFeatureSource extends ContentFeatureSource {
         return " WHERE (" + filterSql + ") AND " + visConjunct;
     }
 
-    /** Translate the pushable conjuncts of a GeoTools filter to a SQL expression string, or
-     *  null when nothing is pushable (null/INCLUDE, or every conjunct is a residual). Any
-     *  non-pushable conjunct is omitted here and re-applied client-side (see {@link
-     *  #canFilter(Query)}). */
-    private String encodeFilterSql(Filter filter) {
-        return splitFilter(filter).pushableSql();
-    }
-
     /**
      * Splits a filter into the part that can be pushed to Trino SQL and a client-side
      * residual. The top-level filter is decomposed into AND conjuncts; each is trial-encoded
@@ -574,7 +546,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
                 + "filtering requires a partial pushdown (" + CLIENT_SIDE_FILTERING.property() + "=" + mode.value
                 + "): " + residual);
         }
-        LOG.warn("Cannot push the following filter(s) to Trino SQL, evaluating client-side: " + residual);
+        LOG.warn("Cannot push the following filter(s) to Trino SQL, evaluating client-side: {}", residual);
         Filter residualAnd = residual.size() == 1 ? residual.get(0) : filterFactory.and(residual);
         Set<String> residualAttributes = residualAttributeNames(residualAnd);
         return new FilterSplit(pushableSql, residualAnd, residualAttributes);
@@ -592,44 +564,9 @@ class TrinoFeatureSource extends ContentFeatureSource {
      * @return the set of backing attribute names the conjunct reads
      */
     private Set<String> residualAttributeNames(Filter conjunct) {
-        Set<String> names = new LinkedHashSet<>();
-        conjunct.accept(new DefaultFilterVisitor() {
-            @Override
-            public Object visit(PropertyName expression, Object data) {
-                String name = expression.getPropertyName();
-                if (name != null && name.startsWith("$")) {
-                    names.add(jsonPathHeadAttribute(name));
-                } else if (name != null && !name.isEmpty()) {
-                    names.add(name);
-                }
-                return data;
-            }
-        }, null);
-        return names;
-    }
-
-    /**
-     * Resolves the head attribute of a JSON path (the element that selects the SFT attribute),
-     * throwing if it is anything other than a concrete, existing attribute name.
-     *
-     * @param pathString a {@code $}-prefixed JSON path
-     * @return the backing attribute name the path reads from
-     */
-    private String jsonPathHeadAttribute(String pathString) {
-        JsonPathParser.JsonPath path;
-        try {
-            path = JsonPathParser.parse(pathString, false);
-        } catch (RuntimeException e) {
-            throw new IllegalArgumentException("Could not evaluate attribute as a JSON path: " + pathString, e);
-        }
-        if (path.isEmpty() || !(JavaConverters.seqAsJavaList(path.elements()).get(0) instanceof PathAttribute head)) {
-            throw new IllegalArgumentException("Invalid JSON path - first element must point at a named attribute "
-                + "(top-level wildcards and deep scans are ambiguous): " + pathString);
-        }
-        if (getSchema().getDescriptor(head.name()) == null) {
-            throw new IllegalArgumentException("Invalid JSON path - does not point at an attribute: " + pathString);
-        }
-        return head.name();
+        var visitor = new AttributeExtractingVisitor(getSchema());
+        conjunct.accept(visitor, null);
+        return new LinkedHashSet<>(Arrays.asList(visitor.getAttributeNames()));
     }
 
     /** The result of splitting a filter into a pushed-down SQL fragment and a client-side

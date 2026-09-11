@@ -11,6 +11,7 @@ package org.locationtech.geomesa.trino.datastore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.geotools.api.data.DataStoreFinder;
 import org.geotools.api.data.Query;
@@ -342,16 +343,20 @@ public class TrinoDataStoreTest {
             filters.put("\"$.props.age\" > 20", List.of(0, 2));
             filters.put("\"$.props.age\" = 7", List.of(1));
             filters.put("\"$.props.nested.flag\" = true", List.of(0));
+            filters.put("jsonPath('$.props.nested[?(@.flag == true)].flag') = true", List.of(0));
 
             var mapper = new ObjectMapper();
             for (var entry : filters.entrySet()) {
                 var expectedIds = entry.getValue().stream().map(String::valueOf).collect(Collectors.toSet());
                 var results = new ArrayList<SimpleFeature>();
                 var query = new Query(jsonSft.getTypeName(), ECQL.toFilter(entry.getKey()));
+                TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(TrinoFeatureSource.ClientSideFiltering.ALL.value);
                 try (var reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) {
                     while (reader.hasNext()) {
                         results.add(reader.next());
                     }
+                } finally {
+                    TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().remove();
                 }
                 var actualIds = results.stream().map(SimpleFeature::getID).collect(Collectors.toSet());
                 Assertions.assertEquals(expectedIds, actualIds, "filter: " + entry.getKey());
@@ -487,14 +492,17 @@ public class TrinoDataStoreTest {
     }
 
     // parses json and recursively removes any object keys whose value is null, so features that omit an
-    // optional field and features that set it explicitly null compare equal. trino renders a struct with
-    // all of its fields, including omitted-optional fields as explicit nulls, at any nesting depth.
+    // optional field and features that set it explicitly null compare equal
     private static JsonNode normalize(ObjectMapper mapper, String json) throws IOException {
         return normalize(mapper.readTree(json));
     }
 
     private static JsonNode normalize(JsonNode node) {
         if (node instanceof ObjectNode object) {
+            object.properties().forEach(e -> {
+                var val = normalize(e.getValue());
+                e.setValue(val == null ? NullNode.instance : val);
+            });
             var nullFields = new ArrayList<String>();
             object.fieldNames().forEachRemaining(name -> {
                 if (object.get(name).isNull()) {
@@ -502,7 +510,7 @@ public class TrinoDataStoreTest {
                 }
             });
             nullFields.forEach(object::remove);
-            object.fields().forEachRemaining(e -> normalize(e.getValue()));
+            return object.isEmpty() ? null : object;
         } else if (node instanceof ArrayNode array) {
             array.forEach(TrinoDataStoreTest::normalize);
         }

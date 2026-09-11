@@ -35,12 +35,12 @@ trait FsContainerTest extends BeforeAfterAll with LazyLogging {
        |fs.s3.secret-access-key=${minio.getPassword}
        |fs.s3.force-path-style=true""".stripMargin
 
-  protected lazy val dsParams = Map(
+  protected def dsParams(namespace: String = "geomesa") = Map(
     "geomesa.security.auths" -> "user",
     "fs.config.properties" ->
       s"""type=rest
          |uri=http://${iceberg.getHost}:${iceberg.getFirstMappedPort}/
-         |iceberg.namespace=geomesa
+         |iceberg.namespace=$namespace
          |# note: s3 analytics/crt throws dns errors with the minio endpoint, either due to localhost or the use of a port
          |#s3.analytics-accelerator.enabled=true
          |#s3.crt.enabled=true

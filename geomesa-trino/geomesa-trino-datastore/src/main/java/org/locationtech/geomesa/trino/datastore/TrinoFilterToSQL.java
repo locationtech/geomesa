@@ -10,6 +10,7 @@ package org.locationtech.geomesa.trino.datastore;
 
 import org.geotools.api.filter.Id;
 import org.geotools.api.filter.expression.Expression;
+import org.geotools.api.filter.expression.Function;
 import org.geotools.api.filter.expression.Literal;
 import org.geotools.api.filter.expression.PropertyName;
 import org.geotools.api.filter.identity.Identifier;
@@ -19,6 +20,7 @@ import org.geotools.api.geometry.BoundingBox;
 import org.geotools.api.temporal.Period;
 import org.geotools.data.jdbc.FilterToSQL;
 import org.geotools.data.jdbc.FilterToSQLException;
+import org.locationtech.geomesa.utils.json.JsonPathFilterFunction;
 import org.locationtech.geomesa.utils.json.JsonPathParser;
 import org.locationtech.geomesa.utils.json.JsonPathParser.PathAttribute;
 import org.locationtech.jts.geom.Envelope;
@@ -338,6 +340,14 @@ public class TrinoFilterToSQL extends FilterToSQL {
         }
         writeJsonPath(name);
         return extraData;
+    }
+
+    @Override
+    public Object visit(Function function, Object extraData) throws RuntimeException {
+        if (function instanceof JsonPathFilterFunction) {
+            throw new UnsupportedOperationException("Can't push down JsonPathFilterFunction");
+        }
+        return super.visit(function, extraData);
     }
 
     /**

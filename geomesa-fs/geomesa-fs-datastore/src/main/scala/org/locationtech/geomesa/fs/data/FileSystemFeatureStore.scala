@@ -13,11 +13,9 @@ import org.apache.iceberg.types.{Conversions, Types}
 import org.geotools.api.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.geotools.api.filter.expression.PropertyName
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
-import org.geotools.filter.visitor.PropertyNameResolvingVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
@@ -27,6 +25,7 @@ import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, Column
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.json.JsonPathPropertyNameResolver
 
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicLong
@@ -117,7 +116,7 @@ class FileSystemFeatureStore(
   override protected def resolvePropertyNames(query: Query): Query = {
     val filter = query.getFilter
     if (filter == null || filter == Filter.INCLUDE || filter == Filter.EXCLUDE) { query } else {
-      val resolved = filter.accept(new JsonPathPreservingResolver(getSchema), null).asInstanceOf[Filter]
+      val resolved = filter.accept(new JsonPathPropertyNameResolver(getSchema), null).asInstanceOf[Filter]
       if (resolved == filter) { query } else {
         val newQuery = new Query(query)
         newQuery.setFilter(resolved)
@@ -142,23 +141,6 @@ object FileSystemFeatureStore {
   private val capabilities: QueryCapabilities = new QueryCapabilities() {
     override def isReliableFIDSupported: Boolean = true
     override def isUseProvidedFIDSupported: Boolean = true
-  }
-
-  /**
-   * Resolves property names against the schema, but leaves `$`-prefixed JSON paths untouched so that
-   * IcebergFilterConverter can translate them into pushed-down predicates on nested struct fields.
-   *
-   * @param featureType feature type
-   */
-  private class JsonPathPreservingResolver(featureType: SimpleFeatureType) extends PropertyNameResolvingVisitor(featureType) {
-    override def visit(expression: PropertyName, extraData: AnyRef): AnyRef = {
-      val name = expression.getPropertyName
-      if (name != null && name.startsWith("$")) {
-        getFactory(extraData).property(name)
-      } else {
-        super.visit(expression, extraData)
-      }
-    }
   }
 
   /**

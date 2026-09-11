@@ -18,9 +18,9 @@ import org.geotools.api.temporal.Period
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
-import org.locationtech.geomesa.filter.visitor.{AttributeExtractingVisitor, IdDetectingFilterVisitor}
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.geomesa.utils.geotools.{AttributeExtractingVisitor, GeometryUtils}
 import org.locationtech.jts.geom._
 
 import java.time.{ZoneOffset, ZonedDateTime}
