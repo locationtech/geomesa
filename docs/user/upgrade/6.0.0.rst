@@ -169,8 +169,12 @@ but are not meant to be publicly available.
 Relocated Classes
 ^^^^^^^^^^^^^^^^^
 
+
 * ``org.locationtech.geomesa.features.exporters.FileSystemExporter.ParquetFileSystemExporter`` ->
   ``org.locationtech.geomesa.features.exporters.GeoParquetExporter``
+* ``org.locationtech.geomesa.features.kryo.json.JsonPathFilterFunction`` -> ``org.locationtech.geomesa.utils.json``
+* ``org.locationtech.geomesa.features.kryo.json.JsonPathParser`` -> ``org.locationtech.geomesa.utils.json``
+* ``org.locationtech.geomesa.features.kryo.json.JsonPathPropertyAccessor`` -> ``org.locationtech.geomesa.utils.json``
 * ``org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation`` -> ``org.locationtech.geomesa.index.planning.StrategyDecider.CostEvaluation``
 * ``org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``
 * ``org.locationtech.geomesa.utils.index.BucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``

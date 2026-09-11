@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.trino.datastore;
 
+import org.geotools.api.feature.type.AttributeDescriptor;
 import org.geotools.api.filter.Id;
 import org.geotools.api.filter.expression.Expression;
 import org.geotools.api.filter.expression.Function;
@@ -35,10 +36,7 @@ import scala.collection.JavaConverters;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -323,8 +321,7 @@ public class TrinoFilterToSQL extends FilterToSQL {
      * {@code "props"."name"}. Everything else delegates to the base class, which resolves the
      * name against the feature type and writes it as a quoted identifier.
      *
-     * <p>Mirrors {@code IcebergFilterConverter.jsonPath}/{@code navigate} on the FileSystem
-     * read path. A path that can't be translated throws {@link IllegalArgumentException};
+     * <p>A path that can't be translated throws {@link IllegalArgumentException};
      * {@code TrinoFeatureSource.splitFilter} catches it per-conjunct and falls back to
      * client-side evaluation of that conjunct rather than failing the whole query.
      *
@@ -398,15 +395,14 @@ public class TrinoFilterToSQL extends FilterToSQL {
         if (!(elements.get(0) instanceof PathAttribute head)) {
             throw new IllegalArgumentException("Invalid JSON path - first element must point at an attribute: " + pathString);
         }
-        org.geotools.api.feature.type.AttributeDescriptor descriptor =
-            featureType == null ? null : featureType.getDescriptor(head.name());
+        AttributeDescriptor descriptor = featureType == null ? null : featureType.getDescriptor(head.name());
         if (descriptor == null) {
             throw new IllegalArgumentException("Invalid JSON path - does not point at an attribute: " + pathString);
         } else if (!String.class.isAssignableFrom(descriptor.getType().getBinding())) {
             throw new IllegalArgumentException("Invalid JSON path - points at an invalid attribute of type "
                 + descriptor.getType().getBinding().getSimpleName() + ": " + pathString);
         }
-        java.util.Map<Object, Object> userData = descriptor.getUserData();
+        Map<Object, Object> userData = descriptor.getUserData();
         if (!"true".equals(userData.get(TrinoTypeMapper.OPT_JSON))) {
             throw new IllegalArgumentException("Invalid JSON path - points at a non-JSON attribute: " + pathString);
         } else if (userData.get(TrinoTypeMapper.OPT_JSON_SCHEMA) == null) {
