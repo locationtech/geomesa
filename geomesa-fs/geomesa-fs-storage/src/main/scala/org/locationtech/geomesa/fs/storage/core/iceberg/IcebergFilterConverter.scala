@@ -304,7 +304,6 @@ object IcebergFilterConverter extends LazyLogging {
     }
   }
 
-
   /**
    * Merge OR'd filters
    *
@@ -367,5 +366,4 @@ object IcebergFilterConverter extends LazyLogging {
       case _ => Set.empty
     }
   }
-
 }

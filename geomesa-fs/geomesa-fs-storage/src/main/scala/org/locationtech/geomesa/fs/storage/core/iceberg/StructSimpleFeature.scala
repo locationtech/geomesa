@@ -138,11 +138,11 @@ object StructSimpleFeature {
         val typed = cols(offset).`type`()
         if (typed.isStructType) {
           // note: we might have to extract only a subset of the struct if some fields were added for filtering
-          new ConverterAccessor(offset, new StructJsonConverter(typed, Some(path.tail)))
+          new ConverterAccessor(offset, new StructJsonPathConverter(typed, path.tail))
         } else if (typed.isVariantType) {
           new VariantPathAccessor(offset, path.tail)
         } else {
-          throw new IllegalStateException(s"Unexpected column for json path expression: ${cols(offset)}")
+          throw new IllegalArgumentException(s"Unexpected column for json path expression: ${cols(offset)}")
         }
       } else {
         val col = ColumnName.encode(descriptor.getLocalName)
@@ -176,10 +176,8 @@ object StructSimpleFeature {
   }
 
   private class VariantPathAccessor(i: Int, path: JsonPath) extends ColumnAccessor {
-    override def apply(row: StructLike): AnyRef = {
-      val json = row.get(i, classOf[String])
-      if (json == null) { null } else { JsonPathPropertyAccessor.evaluateJsonPath(json, path) }
-    }
+    override def apply(row: StructLike): AnyRef =
+      JsonPathPropertyAccessor.evaluateJsonPath(row.get(i, classOf[String]), path)
   }
 
   private sealed trait Converter extends (AnyRef => AnyRef)
@@ -197,7 +195,7 @@ object StructSimpleFeature {
         }
         Some(FromWkbConverter)
       } else if (types.last == ObjectType.JSON && descriptor.getJsonSchema().isDefined) {
-        Some(new StructJsonConverter(schema.schema.findType(col), None))
+        Some(new StructJsonConverter(schema.schema.findType(col)))
       } else if (types.head == ObjectType.LIST) {
         primitive(types.last).map(new ListConverter(_))
       } else if (types.head == ObjectType.MAP) {
@@ -287,20 +285,11 @@ object StructSimpleFeature {
    * Converter for a structural-JSON attribute. Walks the materialized iceberg value (struct/list/map/leaf)
    * against its iceberg type and rebuilds a compact JSON string, so the value round-trips as a JSON attribute.
    */
-  private class StructJsonConverter(t: org.apache.iceberg.types.Type, path: Option[JsonPath]) extends Converter {
+  private class StructJsonConverter(t: org.apache.iceberg.types.Type) extends Converter {
 
-    private val simplePath =
-      path.filter(p => p.function.isEmpty && p.elements.forall(_.isInstanceOf[PathAttribute]))
-        .map(_.elements.map(_.asInstanceOf[PathAttribute].name))
+    override def apply(value: AnyRef): AnyRef = StructuralJson.compact(toJson(t, value))
 
-    override def apply(value: AnyRef): AnyRef = {
-      val json = StructuralJson.compact(toJson(t, value, simplePath))
-      if (simplePath.isDefined) { json } else {
-        path.fold[AnyRef](json)(JsonPathPropertyAccessor.evaluateJsonPath(json, _))
-      }
-    }
-
-    private def toJson(t: org.apache.iceberg.types.Type, value: AnyRef, path: Option[Seq[String]]): JsonElement = {
+    protected def toJson(t: org.apache.iceberg.types.Type, value: AnyRef): JsonElement = {
       if (value == null) {
         return JsonNull.INSTANCE
       }
@@ -311,12 +300,10 @@ object StructSimpleFeature {
         var i = 0
         while (i < fields.size()) {
           val field = fields.get(i)
-          if (path.forall(_.head == field.name())) {
             val fieldValue = row.get(i, classOf[AnyRef])
             if (fieldValue != null) {
-              obj.add(field.name(), toJson(field.`type`(), fieldValue, path.map(_.tail)))
+              obj.add(field.name(), toJson(field.`type`(), fieldValue))
             }
-          }
           i += 1
         }
         if (obj.isEmpty) { JsonNull.INSTANCE } else { obj }
@@ -325,21 +312,16 @@ object StructSimpleFeature {
         val valueType = t.asMapType().valueType()
         value.asInstanceOf[java.util.Map[AnyRef, AnyRef]].forEach { (k, v) =>
           val key = String.valueOf(k)
-          if (path.forall(_.head == key)) {
-            obj.add(key, toJson(valueType, v, path.map(_.tail)))
-          }
+          obj.add(key, toJson(valueType, v))
         }
         obj
-      } else if (path.exists(_.nonEmpty)) {
-        null
+      } else if (t.typeId() == TypeID.LIST) {
+        val array = new JsonArray()
+        val elementType = t.asListType().elementType()
+        value.asInstanceOf[java.util.List[AnyRef]].forEach(v => array.add(toJson(elementType, v)))
+        array
       } else {
         t.typeId() match {
-          case TypeID.LIST =>
-            val array = new JsonArray()
-            val elementType = t.asListType().elementType()
-            value.asInstanceOf[java.util.List[AnyRef]].forEach(v => array.add(toJson(elementType, v, None)))
-            array
-
           case TypeID.BOOLEAN => new JsonPrimitive(value.asInstanceOf[java.lang.Boolean])
           case TypeID.INTEGER => new JsonPrimitive(value.asInstanceOf[java.lang.Integer])
           case TypeID.LONG    => new JsonPrimitive(value.asInstanceOf[java.lang.Long])
@@ -364,6 +346,56 @@ object StructSimpleFeature {
           case id =>
             throw new UnsupportedOperationException(s"No structural JSON mapping defined for iceberg type: $id")
         }
+      }
+    }
+  }
+
+  /**
+   * Converter for a structural-JSON attribute that only returns values matching the json path
+   */
+  private class StructJsonPathConverter(t: org.apache.iceberg.types.Type, path: JsonPath) extends StructJsonConverter(t) {
+
+    private val simplePath =
+      Option(path).filter(p => p.function.isEmpty && p.elements.forall(_.isInstanceOf[PathAttribute]))
+        .map(_.elements.map(_.asInstanceOf[PathAttribute].name))
+
+    override def apply(value: AnyRef): AnyRef = {
+      simplePath match {
+        case None => JsonPathPropertyAccessor.evaluateJsonPath(super.apply(value).asInstanceOf[String], path)
+        case Some(p) => StructuralJson.compact(toJson(t, value, p))
+      }
+    }
+
+    private def toJson(t: org.apache.iceberg.types.Type, value: AnyRef, path: Seq[String]): JsonElement = {
+      if (path.isEmpty) {
+        toJson(t, value)
+      } else if (value == null) {
+        JsonNull.INSTANCE
+      } else if (t.typeId() == TypeID.STRUCT) {
+        val fields = t.asStructType().fields()
+        val i = fields.asScala.indexWhere(_.name() == path.head)
+        if (i == -1) {
+          JsonNull.INSTANCE
+        } else {
+          val field = fields.get(i)
+          val json = toJson(field.`type`(), value.asInstanceOf[StructLike].get(i, classOf[AnyRef]), path.tail)
+          if (json == null || json.isJsonNull) {
+            JsonNull.INSTANCE
+          } else {
+            val obj = new JsonObject()
+            obj.add(field.name(), json)
+            obj
+          }
+        }
+      } else if (t.typeId() == TypeID.MAP) {
+        val obj = new JsonObject()
+        val json = toJson(t.asMapType().valueType(), value.asInstanceOf[java.util.Map[AnyRef, AnyRef]].get(path.head), path.tail)
+        if (json != null && !json.isJsonNull) {
+          obj.add(path.head, json)
+        }
+        obj
+      } else {
+        JsonNull.INSTANCE
       }
     }
   }
