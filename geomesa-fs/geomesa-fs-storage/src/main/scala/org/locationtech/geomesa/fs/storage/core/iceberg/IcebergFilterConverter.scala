@@ -298,6 +298,7 @@ object IcebergFilterConverter extends LazyLogging {
       case _: PathIndexRange if fieldType.isListType => None
       case _: PathIndices if fieldType.isListType => None
       case PathIndexWildCard if fieldType.isListType => None
+      case _: PathFilter => None
 
       case _ => Some(Seq.empty) // doesn't match the field type
     }

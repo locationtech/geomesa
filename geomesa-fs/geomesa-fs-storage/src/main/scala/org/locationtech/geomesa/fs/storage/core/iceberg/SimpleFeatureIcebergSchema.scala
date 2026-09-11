@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.lang3.StringUtils
 import org.apache.iceberg.avro.AvroSchemaUtil
 import org.apache.iceberg.types.Types._
 import org.apache.iceberg.types.{Type, TypeUtil}
@@ -63,7 +62,10 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
     def addReadPath(field: String): Unit = {
       val i = field.indexOf('.')
       if (i == -1) {
-        readCols.putIfAbsent(field, Seq.empty)
+        val existing = readCols.get(field)
+        if (existing == null || existing.nonEmpty) {
+          readCols.put(field, Seq.empty)
+        }
       } else {
         val topLevelCol = field.substring(0, i)
         val existing = readCols.get(topLevelCol)
@@ -96,31 +98,42 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
 
           case t: RenameTransform =>
             val descriptor = sft.getDescriptor(t.i)
-            readSftBuilder.add(t.name, t.binding)
+            readSftBuilder.add(descriptor)
             addReadPath(ColumnName.encode(descriptor.getLocalName))
 
           case t: ExpressionTransform =>
-            readSftBuilder.add(StringUtils.strip(t.name, "\""), t.binding)
-            val structuralTypeCols = Option(t.expression).collect { case p: PropertyName if p.getPropertyName.startsWith("$") =>
-              try {
-                val (descriptor, path) = parseJsonPath(p.getPropertyName, sft)
-                if (descriptor.getJsonSchema().isEmpty) {
-                  None
-                } else {
-                  val nested = path.elements.takeWhile(_.isInstanceOf[PathAttribute]).map(_.asInstanceOf[PathAttribute].name)
-                  if (nested.nonEmpty) {
-                    val dotted = Seq(ColumnName.encode(descriptor.getLocalName)) ++ nested
-                    Some(Seq(dotted.mkString(".")))
-                  } else {
-                    None
-                  }
+            t.expression match {
+              case p: PropertyName if p.getPropertyName.startsWith("$") =>
+                try {
+                  val (descriptor, path) = parseJsonPath(p.getPropertyName, sft)
+                  val readPath =
+                    if (descriptor.getJsonSchema().isEmpty) {
+                      ColumnName.encode(descriptor.getLocalName)
+                    } else {
+                      val nested = path.elements.takeWhile(_.isInstanceOf[PathAttribute]).map(_.asInstanceOf[PathAttribute].name)
+                      if (nested.nonEmpty) {
+                        (Seq(ColumnName.encode(descriptor.getLocalName)) ++ nested).mkString(".")
+                      } else {
+                        ColumnName.encode(descriptor.getLocalName)
+                      }
+                    }
+                  readSftBuilder.add(descriptor)
+                  addReadPath(readPath)
+                } catch {
+                  case NonFatal(e) =>
+                    logger.warn("Error parsing json-path for evaluating read columns:", e)
+                    FilterHelper.propertyNames(t.expression, sft).map(sft.getDescriptor).foreach { descriptor =>
+                      readSftBuilder.add(descriptor)
+                      addReadPath(ColumnName.encode(descriptor.getLocalName))
+                    }
                 }
-              } catch {
-                case NonFatal(e) => logger.warn("Error parsing json-path for evaluating read columns:", e); None
-              }
-            }.flatten
-            val cols = structuralTypeCols.getOrElse(FilterHelper.propertyNames(t.expression, sft).map(ColumnName.encode))
-            cols.foreach(addReadPath)
+
+              case _ =>
+                FilterHelper.propertyNames(t.expression, sft).map(sft.getDescriptor).foreach { descriptor =>
+                  readSftBuilder.add(descriptor)
+                  addReadPath(ColumnName.encode(descriptor.getLocalName))
+                }
+            }
 
           case t => throw new UnsupportedOperationException(s"An implementation is missing: ${t.getClass}")
         }

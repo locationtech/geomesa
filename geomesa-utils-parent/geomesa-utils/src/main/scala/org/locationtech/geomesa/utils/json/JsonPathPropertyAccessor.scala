@@ -171,6 +171,9 @@ object JsonPathPropertyAccessor extends JsonPathPropertyAccessor {
    * @return
    */
   def evaluateJsonPath(json: String, path: JsonPath): AnyRef = {
+    if (json == null) {
+      return null
+    }
     val parsed = com.jayway.jsonpath.JsonPath.using(pathConfig).parse(json)
     val list = parsed.read[java.util.List[AnyRef]](JsonPathParser.print(path))
     if (list == null || list.isEmpty) {

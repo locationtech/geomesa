@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.core
 
-import com.google.gson.{JsonObject, JsonParser}
+import com.google.gson.JsonParser
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.parquet.hadoop.ParquetFileReader
@@ -365,7 +365,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         """{"age":7,"tags":[],"scores":{}}""",
         // explicit nulls for optional fields
         """{"name":null,"age":99,"tags":["z"],"scores":{"k":42},"nested":null}""",
-        """{"name":"dave","age":11,"tags":["p","q","r"],"scores":{"a":10},"nested":{"flag":false}}""",
+        """{"name":"dave","age":11,"tags":["p","q","r"],"scores":{"a":10,"x":1},"nested":{"flag":false}}""",
         null // null json value -> null attribute
       )
 
@@ -392,6 +392,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         Filter.INCLUDE -> features,
         ECQL.toFilter(""""$.props.name" = 'alice'""") -> features.take(1),
         ECQL.toFilter(""""$.props.age" > 20""") -> (features.take(1) ++ features.slice(2, 3)),
+        ECQL.toFilter("""jsonPath('$.props.nested[?(@.flag == true)].flag') = true""") -> features.take(1),
       )
       val pathTransform = """"$.props.name""""
       val transforms = Seq(null, Array("props", "geom"), Array(pathTransform, "dtg", "geom"))
@@ -436,12 +437,9 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
                     if (name == null || name.isJsonNull) {
                       actualJson must beNull
                     } else {
-                      val obj = new JsonObject()
-                      obj.add("name", name)
                       // compare parsed trees so key ordering / whitespace don't matter
-                      JsonParser.parseString(actualJson) mustEqual obj
+                      JsonParser.parseString(actualJson) mustEqual name
                     }
-
                   }
                 } else {
                   ko("Unexpected transform")

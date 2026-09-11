@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.data
 
-import com.google.gson.{JsonObject, JsonParser}
+import com.google.gson.JsonParser
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -22,8 +22,8 @@ import org.locationtech.geomesa.fs.data.container.FsContainerTest
 import org.locationtech.geomesa.fs.storage.core.StorageKeys
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.{MatchResult, Matcher}
@@ -467,10 +467,8 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
                   if (name == null || name.isJsonNull) {
                     actualJson must beNull
                   } else {
-                    val obj = new JsonObject()
-                    obj.add("name", name)
                     // compare parsed trees so key ordering / whitespace don't matter
-                    JsonParser.parseString(actualJson) mustEqual obj
+                    JsonParser.parseString(actualJson) mustEqual name
                   }
                 }
               } else {
