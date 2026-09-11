@@ -262,7 +262,7 @@ class TrinoFeatureReader implements FeatureReader<SimpleFeatureType, SimpleFeatu
                     out.put(e.getKey(), val);
                 }
             }
-            return out.isEmpty() ? null : out;
+            return out;
         }
         return value;
     }

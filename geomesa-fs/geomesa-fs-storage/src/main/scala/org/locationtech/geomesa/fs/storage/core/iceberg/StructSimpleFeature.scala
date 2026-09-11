@@ -139,8 +139,8 @@ object StructSimpleFeature {
         if (typed.isStructType) {
           // note: we might have to extract only a subset of the struct if some fields were added for filtering
           new ConverterAccessor(offset, new StructJsonPathConverter(typed, path.tail))
-        } else if (typed.isVariantType) {
-          new VariantPathAccessor(offset, path.tail)
+        } else if (typed.isVariantType || typed.typeId() == TypeID.STRING) {
+          new VariantPathAccessor(offset, path.tail) // note: also works with string types
         } else {
           throw new IllegalArgumentException(s"Unexpected column for json path expression: ${cols(offset)}")
         }

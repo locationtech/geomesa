@@ -100,15 +100,11 @@ class TrinoFeatureSource extends ContentFeatureSource {
     }
 
     /**
-     * Filtering is pushed down to Trino SQL via TrinoFilterToSQL. When every conjunct is
-     * pushable this returns {@code true} and the framework applies no second Java-level
-     * post-filter. When the filter has a non-pushable conjunct (a "residual"), it returns
-     * {@code false} so the framework wraps a {@code FilteringFeatureReader} that re-applies
-     * the <em>whole</em> filter client-side on top of the partial SQL pushdown (re-applying
-     * the already-pushed conjuncts is harmless and keeps the result correct).
+     * All filter evaluation is handled in this class, either pushed down to Trino SQL via TrinoFilterToSQL, so the framework
+     * or applied as a secondary client-side filter reader.
      *
      * @param query the query being planned
-     * @return {@code true} when the entire filter pushes to SQL, {@code false} otherwise
+     * @return {@code true}; all filtering is handled in this class
      */
     @Override
     protected boolean canFilter(Query query) {
@@ -118,11 +114,10 @@ class TrinoFeatureSource extends ContentFeatureSource {
     /**
      * Attributes are projected directly in the SQL SELECT (see getReaderInternal). When the
      * filter has a residual, the projection is expanded to include the columns the residual
-     * references, so retyping back down to the requested attributes must happen client-side
-     * ({@code false}); otherwise the SQL projection already matches ({@code true}).
+     * references, and then retyped back down to the requested attributes by this class.
      *
      * @param query the query being planned
-     * @return {@code false} when the filter has a residual, else {@code true}
+     * @return {@code true}; attribute projection is handled in this class
      */
     @Override
     protected boolean canRetype(Query query) {
@@ -130,9 +125,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
     }
 
     /**
-     * Sorting is pushed down as an ORDER BY in the SQL (see getReaderInternal). The SQL sort
-     * order is preserved by the streaming {@code FilteringFeatureReader}, so this stays
-     * {@code true} even when the filter has a residual.
+     * Sorting is pushed down as an ORDER BY in the SQL (see getReaderInternal).
      *
      * @param query the query being planned
      * @return {@code true}; sorting is handled in SQL
@@ -150,11 +143,11 @@ class TrinoFeatureSource extends ContentFeatureSource {
      * {@link #effectiveLimit(Query)}.
      *
      * <p>When the filter has a residual, the LIMIT cannot be pushed down (it would truncate
-     * rows before the client-side filter runs, dropping valid matches), so this returns
-     * {@code false} and the framework applies the limit after filtering.
+     * rows before the client-side filter runs, dropping valid matches), so the limit
+     * is handled with a limiting feature reader instead
      *
      * @param query the query being planned
-     * @return {@code false} when the filter has a residual, else {@code true}
+     * @return {@code true}; limiting is handled in this class
      */
     @Override
     protected boolean canLimit(Query query) {
@@ -230,11 +223,11 @@ class TrinoFeatureSource extends ContentFeatureSource {
             return -1;
         }
         try {
-            return countOnce(query, split);
+            return countOnce(query, split.pushableSql);
         } catch (SQLException e) {
             if (refreshSchemaIfDrifted()) {
                 try {
-                    return countOnce(query, split);
+                    return countOnce(query, split.pushableSql);
                 } catch (SQLException retry) {
                     LOG.warn("Failed to execute count query after schema refresh: " + retry.getMessage());
                     return -1;
@@ -245,12 +238,12 @@ class TrinoFeatureSource extends ContentFeatureSource {
         }
     }
 
-    private int countOnce(Query query, FilterSplit split) throws IOException, SQLException {
+    private int countOnce(Query query, String where) throws IOException, SQLException {
         String typeName = entry.getName().getLocalPart();
         VisibilityContext vis = visibility();
-        String where = combineWhere(split.pushableSql, vis == null ? null : vis.conjunct());
+        String whereWithVis = combineWhere(where, vis == null ? null : vis.conjunct());
         String sql = String.format("SELECT COUNT(*) FROM %s.%s.%s%s",
-            escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(trinoStore.getTableName(typeName)), where);
+            escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(trinoStore.getTableName(typeName)), whereWithVis);
         try (Connection conn = trinoStore.connect(vis == null ? null : vis.auths());
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -267,7 +260,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
                 total = cap;
             }
             if (total > Integer.MAX_VALUE) {
-                LOG.debug("Count " + total + " exceeds Integer.MAX_VALUE; reporting -1 (unknown).");
+                LOG.debug("Count {} exceeds Integer.MAX_VALUE; reporting -1 (unknown).", total);
                 return -1;
             }
             return (int) total;
@@ -289,7 +282,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
                 try {
                     return boundsOnce(query);
                 } catch (SQLException retry) {
-                    LOG.warn("Failed to compute bounds after schema refresh: " + retry.getMessage());
+                    LOG.warn("Failed to compute bounds after schema refresh: {}", retry.getMessage());
                     return null;
                 }
             }
@@ -435,7 +428,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
             reader = new ReTypeFeatureReader(reader, target, false);
         }
         if (cap >= 0 && cap < Integer.MAX_VALUE && split.residual != null) {
-            reader = new MaxFeatureReader<>(reader, (int) cap); // TODO is this a safe cast?
+            reader = new MaxFeatureReader<>(reader, (int) cap);
         }
         return reader;
     }
