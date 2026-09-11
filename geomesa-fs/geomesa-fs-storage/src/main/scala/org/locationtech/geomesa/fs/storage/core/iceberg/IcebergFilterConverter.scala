@@ -291,7 +291,7 @@ object IcebergFilterConverter extends LazyLogging {
         val children = fieldType.asStructType().fields().asScala.map { nested =>
           navigate(s"$fieldPath.${nested.name()}", nested.`type`(), path.tail)
         }
-        if (children.exists(_.isEmpty)) { None } else { Some(children.flatMap(_.get)) }
+        if (children.exists(_.isEmpty)) { None } else { Some(children.flatMap(_.get).toSeq) }
 
       // predicates we can't evaluate as iceberg expressions
       case PathDeepScan => None
