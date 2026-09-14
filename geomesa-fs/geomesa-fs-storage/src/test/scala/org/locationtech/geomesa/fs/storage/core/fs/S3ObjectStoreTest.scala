@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.fs.storage.core.fs
 
 import org.apache.commons.io.IOUtils
+import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStoreTest.SeaweedFsContainer
 import org.locationtech.geomesa.utils.io.WithClose
-import org.slf4j.LoggerFactory
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.MinIOContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 
 import java.net.URI
@@ -22,31 +22,19 @@ import java.nio.charset.StandardCharsets
 
 class S3ObjectStoreTest extends SpecificationWithJUnit with BeforeAfterAll {
 
-  var minio: MinIOContainer = _
+  val s3 = new SeaweedFsContainer()
 
   lazy val conf = Map(
     "fs.s3.region" -> "us-east-1",
-    "fs.s3.endpoint" -> minio.getS3URL,
-    "fs.s3.access-key-id" -> minio.getUserName,
-    "fs.s3.secret-access-key" -> minio.getPassword,
+    "fs.s3.endpoint" -> s3.getS3URL,
+    "fs.s3.access-key-id" -> "admin",
+    "fs.s3.secret-access-key" -> "admin",
     "fs.s3.force-path-style" -> "true",
   )
 
-  override def beforeAll(): Unit = {
-    minio =
-      new MinIOContainer(
-        DockerImageName.parse("minio/minio").withTag(sys.props.getOrElse("minio.docker.tag", "RELEASE.2024-10-29T16-01-48Z")))
-    minio.start()
-    minio.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("minio")))
-    minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName, minio.getPassword)
-    minio.execInContainer("mc", "mb", "localhost/geomesa")
-  }
+  override def beforeAll(): Unit = s3.start()
 
-  override def afterAll(): Unit = {
-    if (minio != null) {
-      minio.close()
-    }
-  }
+  override def afterAll(): Unit = s3.close()
 
   "S3ObjectStore" should {
     "prevent overwriting existing files in create" in {
@@ -67,5 +55,22 @@ class S3ObjectStoreTest extends SpecificationWithJUnit with BeforeAfterAll {
         fs.create(file) must beNone
       }
     }
+  }
+}
+
+object S3ObjectStoreTest {
+
+  val SeaweedFsImage = DockerImageName.parse("chrislusf/seaweedfs").withTag(sys.props("seaweed.docker.tag"))
+
+  class SeaweedFsContainer extends GenericContainer[SeaweedFsContainer](SeaweedFsImage) {
+    withExposedPorts(8333)
+    withCommand("mini", "-dir=/tmp/data")
+    withEnv("AWS_ACCESS_KEY_ID", "admin")
+    withEnv("AWS_SECRET_ACCESS_KEY", "admin")
+    withEnv("S3_BUCKET", "geomesa")
+    waitingFor(Wait.forHttp("/status").forPort(8333).forStatusCode(200))
+    withNetworkAliases("seaweed")
+
+    def getS3URL: String = s"http://$getHost:$getFirstMappedPort/"
   }
 }
