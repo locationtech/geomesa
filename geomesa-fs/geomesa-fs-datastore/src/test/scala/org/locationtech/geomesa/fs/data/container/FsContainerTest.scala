@@ -9,19 +9,20 @@
 package org.locationtech.geomesa.fs.data.container
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.fs.data.container.FsContainerTest.IcebergRestContainer
+import org.locationtech.geomesa.fs.data.container.FsContainerTest.{IcebergRestContainer, SeaweedFsContainer}
 import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.{GenericContainer, MinIOContainer, Network}
+import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.containers.{GenericContainer, Network}
 import org.testcontainers.utility.DockerImageName
 
 trait FsContainerTest extends BeforeAfterAll with LazyLogging {
 
   protected val network = Network.newNetwork()
 
-  protected val minio =
-    new MinIOContainer(DockerImageName.parse("minio/minio").withTag(sys.props("minio.docker.tag")))
+  protected val s3 =
+    new SeaweedFsContainer()
       .withNetwork(network)
-      .withNetworkAliases("minio")
+      .withNetworkAliases("seaweed")
 
   protected val iceberg =
     new IcebergRestContainer()
@@ -30,9 +31,9 @@ trait FsContainerTest extends BeforeAfterAll with LazyLogging {
 
   protected lazy val s3Configs =
     s"""fs.s3.region=us-east-1
-       |fs.s3.endpoint=${minio.getS3URL}
-       |fs.s3.access-key-id=${minio.getUserName}
-       |fs.s3.secret-access-key=${minio.getPassword}
+       |fs.s3.endpoint=${s3.getS3URL}
+       |fs.s3.access-key-id=admin
+       |fs.s3.secret-access-key=admin
        |fs.s3.force-path-style=true""".stripMargin
 
   protected def dsParams(namespace: String = "geomesa") = Map(
@@ -49,15 +50,13 @@ trait FsContainerTest extends BeforeAfterAll with LazyLogging {
   )
 
   override def beforeAll(): Unit = {
-    minio.start()
-    minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName, minio.getPassword)
-    minio.execInContainer("mc", "mb", "localhost/geomesa")
+    s3.start()
     iceberg.start()
   }
 
   override def afterAll(): Unit = {
     iceberg.stop()
-    minio.stop()
+    s3.stop()
     network.close()
   }
 }
@@ -70,10 +69,24 @@ object FsContainerTest {
     withExposedPorts(8181)
     withEnv("CATALOG_WAREHOUSE", "s3://geomesa/iceberg/")
     withEnv("CATALOG_IO__IMPL", "org.apache.iceberg.aws.s3.S3FileIO")
-    withEnv("CATALOG_S3_ENDPOINT", "http://minio:9000")
+    withEnv("CATALOG_S3_ENDPOINT", "http://seaweed:8333")
     withEnv("CATALOG_S3_PATH__STYLE__ACCESS", "true")
     withEnv("AWS_REGION", "us-east-1")
-    withEnv("AWS_ACCESS_KEY_ID", "minioadmin")
-    withEnv("AWS_SECRET_ACCESS_KEY", "minioadmin")
+    withEnv("AWS_ACCESS_KEY_ID", "admin")
+    withEnv("AWS_SECRET_ACCESS_KEY", "admin")
+  }
+
+  val SeaweedFsImage = DockerImageName.parse("chrislusf/seaweedfs").withTag(sys.props("seaweed.docker.tag"))
+
+  class SeaweedFsContainer extends GenericContainer[SeaweedFsContainer](SeaweedFsImage) {
+    withExposedPorts(8333)
+    withCommand("mini", "-dir=/tmp/data")
+    withEnv("AWS_ACCESS_KEY_ID", "admin")
+    withEnv("AWS_SECRET_ACCESS_KEY", "admin")
+    withEnv("S3_BUCKET", "geomesa")
+    waitingFor(Wait.forHttp("/status").forPort(8333).forStatusCode(200))
+    withNetworkAliases("seaweed")
+
+    def getS3URL: String = s"http://$getHost:$getFirstMappedPort/"
   }
 }

@@ -14,12 +14,14 @@ import org.geomesa.testcontainers.spark.SparkCluster
 import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.spark.FileSystemRDDProviderIT.SeaweedFsContainer
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.{MinIOContainer, Network}
+import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.containers.{GenericContainer, Network}
 import org.testcontainers.utility.DockerImageName
 
 import java.nio.file.{Files, Path}
@@ -46,10 +48,7 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
   val network = Network.newNetwork()
   val cluster = new SparkCluster(Collections.singleton(sparkRuntimeJar)).withNetwork(network)
 
-  val minio =
-    new MinIOContainer(DockerImageName.parse("minio/minio").withTag(sys.props("minio.docker.tag")))
-      .withNetwork(network)
-      .withNetworkAliases("minio")
+  val s3 = new SeaweedFsContainer().withNetwork(network)
 
   // TODO enforce only a single instance at once
   lazy val spark: SparkSession = cluster.getOrCreateSession().withJTS
@@ -64,9 +63,9 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
       "fs.config.properties" ->
         s"""fs.metadata.type=file
            |fs.s3.region=us-east-1
-           |fs.s3.endpoint=${minio.getS3URL}
-           |fs.s3.access-key-id=${minio.getUserName}
-           |fs.s3.secret-access-key=${minio.getPassword}
+           |fs.s3.endpoint=${s3.getS3URL}
+           |fs.s3.access-key-id=admin
+           |fs.s3.secret-access-key=admin
            |fs.s3.force-path-style=true
            |""".stripMargin
     )
@@ -78,9 +77,9 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
       "fs.config.properties" ->
         s"""fs.metadata.type=file
            |fs.s3.region=us-east-1
-           |fs.s3.endpoint=${minio.getS3URL}
-           |fs.s3.access-key-id=${minio.getUserName}
-           |fs.s3.secret-access-key=${minio.getPassword}
+           |fs.s3.endpoint=${s3.getS3URL}
+           |fs.s3.access-key-id=admin
+           |fs.s3.secret-access-key=admin
            |fs.s3.force-path-style=true
            |""".stripMargin
     )
@@ -92,10 +91,7 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
   sft.getUserData.put("geomesa.fs.scheme", """{"name":"z2-8bits"}""")
 
   override def beforeAll(): Unit = {
-    minio.start()
-    minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName, minio.getPassword)
-    minio.execInContainer("mc", "mb", "localhost/geomesa")
-
+    s3.start()
     cluster.start()
 
     // note: have to create all data up front to avoid caching issues in the spark executor
@@ -181,7 +177,7 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
 
   override def afterAll(): Unit = {
     CloseWithLogging(ds)
-    CloseWithLogging(minio, cluster)
+    CloseWithLogging(s3, cluster)
   }
 
   "FileSystemRDDProvider" should {
@@ -258,5 +254,22 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
       res.map(_.get(0)).toSeq must containTheSameElementsAs(Seq("1", "3"))
       res.collectFirst { case r if r.get(0) == "1" => r.get(4) } must beSome[Any](WKTUtils.read("POINT (76.5 38.5)"))
     }
+  }
+}
+
+object FileSystemRDDProviderIT {
+
+  val SeaweedFsImage = DockerImageName.parse("chrislusf/seaweedfs").withTag(sys.props("seaweed.docker.tag"))
+
+  class SeaweedFsContainer extends GenericContainer[SeaweedFsContainer](SeaweedFsImage) {
+    withExposedPorts(8333)
+    withCommand("mini", "-dir=/tmp/data")
+    withEnv("AWS_ACCESS_KEY_ID", "admin")
+    withEnv("AWS_SECRET_ACCESS_KEY", "admin")
+    withEnv("S3_BUCKET", "geomesa")
+    waitingFor(Wait.forHttp("/status").forPort(8333).forStatusCode(200))
+    withNetworkAliases("seaweed")
+
+    def getS3URL: String = s"http://$getHost:$getFirstMappedPort/"
   }
 }

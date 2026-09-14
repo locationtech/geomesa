@@ -27,13 +27,12 @@ import org.junit.jupiter.api.Test;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;
 import org.locationtech.geomesa.trino.datastore.testcontainers.GeoMesaTrinoContainer;
 import org.locationtech.geomesa.trino.datastore.testcontainers.IcebergRestContainer;
+import org.locationtech.geomesa.trino.datastore.testcontainers.SeaweedFsContainer;
 import org.locationtech.geomesa.utils.geotools.FeatureUtils;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.testcontainers.containers.BindMode;
-import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.trino.TrinoContainer;
-import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.IOException;
@@ -55,15 +54,13 @@ public class TrinoDataStoreTest {
                             "/etc/trino/catalog/spatial_iceberg.properties",
                             BindMode.READ_ONLY);
 
-    public static final MinIOContainer minio =
-            new MinIOContainer(DockerImageName.parse("minio/minio").withTag(System.getProperty("minio.docker.tag")))
-                    .withUserName("minioadmin")
-                    .withPassword("minioadmin")
+    public static final SeaweedFsContainer s3 =
+            new SeaweedFsContainer("admin", "admin")
                     .withNetwork(network)
-                    .withNetworkAliases("minio");
+                    .withNetworkAliases("seaweed");
 
     public static final IcebergRestContainer iceberg =
-            new IcebergRestContainer(minio.getUserName(), minio.getPassword())
+            new IcebergRestContainer("admin", "admin")
                     .withNetwork(network)
                     .withNetworkAliases("rest-catalog");
 
@@ -164,9 +161,7 @@ public class TrinoDataStoreTest {
 
     @BeforeAll
     public static void beforeAll() throws Exception {
-        minio.start();
-        minio.execInContainer("mc", "alias", "set", "localhost", "http://localhost:9000", minio.getUserName(), minio.getPassword());
-        minio.execInContainer("mc", "mb", "localhost/geomesa");
+        s3.start();
         iceberg.start();
 
         var fsProps =
@@ -175,9 +170,9 @@ public class TrinoDataStoreTest {
                         "uri=http://" + iceberg.getHost() + ":" + iceberg.getFirstMappedPort() + "/",
                         "iceberg.namespace=geomesa",
                         "fs.s3.region=us-east-1",
-                        "fs.s3.endpoint=" + minio.getS3URL(),
-                        "fs.s3.access-key-id=" + minio.getUserName(),
-                        "fs.s3.secret-access-key=" + minio.getPassword(),
+                        "fs.s3.endpoint=" + s3.getS3URL(),
+                        "fs.s3.access-key-id=admin",
+                        "fs.s3.secret-access-key=admin",
                         "fs.s3.force-path-style=true");
 
         var fsds = DataStoreFinder.getDataStore(Map.of("fs.config.properties", fsProps));
@@ -205,7 +200,7 @@ public class TrinoDataStoreTest {
     public static void afterAll() {
         trino.stop();
         iceberg.stop();
-        minio.stop();
+        s3.stop();
     }
 
     @Test

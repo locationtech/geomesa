@@ -30,7 +30,7 @@
 
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers-minio</artifactId>
+            <artifactId>testcontainers</artifactId>
         </dependency>
     </dependencies>
 
