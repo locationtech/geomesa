@@ -88,17 +88,18 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
         sft
 
       case Some(defs) =>
-        val readSftBuilder = new SimpleFeatureTypeBuilder()
+        // use a hash set so we don't add a descriptor twice
+        val readDescriptors = new java.util.LinkedHashSet[AttributeDescriptor]()
 
         Transforms(sft, defs).foreach {
           case t: PropertyTransform =>
             val descriptor = sft.getDescriptor(t.i)
-            readSftBuilder.add(descriptor)
+            readDescriptors.add(descriptor)
             addReadPath(ColumnName.encode(descriptor.getLocalName))
 
           case t: RenameTransform =>
             val descriptor = sft.getDescriptor(t.i)
-            readSftBuilder.add(descriptor)
+            readDescriptors.add(descriptor)
             addReadPath(ColumnName.encode(descriptor.getLocalName))
 
           case t: ExpressionTransform =>
@@ -117,20 +118,20 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
                         ColumnName.encode(descriptor.getLocalName)
                       }
                     }
-                  readSftBuilder.add(descriptor)
+                  readDescriptors.add(descriptor)
                   addReadPath(readPath)
                 } catch {
                   case NonFatal(e) =>
                     logger.warn("Error parsing json-path for evaluating read columns:", e)
                     FilterHelper.propertyNames(t.expression, sft).map(sft.getDescriptor).foreach { descriptor =>
-                      readSftBuilder.add(descriptor)
+                      readDescriptors.add(descriptor)
                       addReadPath(ColumnName.encode(descriptor.getLocalName))
                     }
                 }
 
               case _ =>
                 FilterHelper.propertyNames(t.expression, sft).map(sft.getDescriptor).foreach { descriptor =>
-                  readSftBuilder.add(descriptor)
+                  readDescriptors.add(descriptor)
                   addReadPath(ColumnName.encode(descriptor.getLocalName))
                 }
             }
@@ -138,7 +139,9 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
           case t => throw new UnsupportedOperationException(s"An implementation is missing: ${t.getClass}")
         }
 
+        val readSftBuilder = new SimpleFeatureTypeBuilder()
         readSftBuilder.setName(sft.getName)
+        readDescriptors.forEach(d => readSftBuilder.add(d))
         val readSft = readSftBuilder.buildFeatureType()
         readSft.getUserData.putAll(sft.getUserData)
         readSft
