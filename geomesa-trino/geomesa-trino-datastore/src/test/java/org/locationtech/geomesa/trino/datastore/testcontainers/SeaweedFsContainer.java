@@ -14,21 +14,22 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.util.List;
 
-public class IcebergRestContainer extends GenericContainer<IcebergRestContainer> {
-    public IcebergRestContainer(String s3AccessKeyId, String s3SecretAccessKey) {
-        super(DockerImageName.parse("apache/iceberg-rest-fixture").withTag(System.getProperty("iceberg.rest.docker.tag")));
-        setExposedPorts(List.of(8181));
+public class SeaweedFsContainer extends GenericContainer<SeaweedFsContainer> {
+    public SeaweedFsContainer(String s3AccessKeyId, String s3SecretAccessKey) {
+        super(DockerImageName.parse("chrislusf/seaweedfs").withTag(System.getProperty("seaweed.docker.tag")));
+         setCommand("mini", "-dir=/tmp/data");
+        setExposedPorts(List.of(8333));
         setWaitStrategy(
-            Wait.forHttp("/v1/config")
-                   .forPort(8181)
+            Wait.forHttp("/status")
+                   .forPort(8333)
                    .forStatusCode(200)
         );
-        addEnv("CATALOG_WAREHOUSE", "s3://geomesa/iceberg/");
-        addEnv("CATALOG_IO__IMPL", "org.apache.iceberg.aws.s3.S3FileIO");
-        addEnv("CATALOG_S3_ENDPOINT", "http://seaweed:8333");
-        addEnv("CATALOG_S3_PATH__STYLE__ACCESS", "true");
-        addEnv("AWS_REGION", "us-east-1");
+        addEnv("S3_BUCKET", "geomesa");
         addEnv("AWS_ACCESS_KEY_ID", s3AccessKeyId);
         addEnv("AWS_SECRET_ACCESS_KEY", s3SecretAccessKey);
+    }
+
+    public String getS3URL() {
+        return "http://" + getHost() + ":" + getFirstMappedPort() + "/";
     }
 }

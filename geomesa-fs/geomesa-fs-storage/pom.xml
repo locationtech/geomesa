@@ -166,10 +166,6 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers-minio</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-postgresql</artifactId>
         </dependency>
         <dependency>

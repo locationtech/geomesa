@@ -227,7 +227,7 @@
         <test.hbase.docker.tag>2.6.3-jdk17</test.hbase.docker.tag>
         <test.iceberg.rest.docker.tag>1.10.1</test.iceberg.rest.docker.tag>
         <test.kafka.docker.tag>3.9.1</test.kafka.docker.tag>
-        <test.minio.docker.tag>RELEASE.2024-10-29T16-01-48Z</test.minio.docker.tag>
+        <test.seaweed.docker.tag>4.47</test.seaweed.docker.tag>
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
@@ -2673,12 +2673,6 @@
             </dependency>
             <dependency>
                 <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers-minio</artifactId>
-                <version>${testcontainers.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers-cassandra</artifactId>
                 <version>${testcontainers.version}</version>
                 <scope>test</scope>
@@ -2900,7 +2894,7 @@
                             <kafka.docker.tag>${test.kafka.docker.tag}</kafka.docker.tag>
                             <hbase.docker.tag>${test.hbase.docker.tag}</hbase.docker.tag>
                             <iceberg.rest.docker.tag>${test.iceberg.rest.docker.tag}</iceberg.rest.docker.tag>
-                            <minio.docker.tag>${test.minio.docker.tag}</minio.docker.tag>
+                            <seaweed.docker.tag>${test.seaweed.docker.tag}</seaweed.docker.tag>
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
                             <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
                             <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>
@@ -2937,7 +2931,7 @@
                             <kafka.docker.tag>${test.kafka.docker.tag}</kafka.docker.tag>
                             <hbase.docker.tag>${test.hbase.docker.tag}</hbase.docker.tag>
                             <iceberg.rest.docker.tag>${test.iceberg.rest.docker.tag}</iceberg.rest.docker.tag>
-                            <minio.docker.tag>${test.minio.docker.tag}</minio.docker.tag>
+                            <seaweed.docker.tag>${test.seaweed.docker.tag}</seaweed.docker.tag>
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
                             <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
                             <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>
