@@ -796,7 +796,7 @@ object FileSystemStorageTest {
     withEnv("CATALOG_S3_PATH__STYLE__ACCESS", "true")
     withEnv("AWS_REGION", "us-east-1")
     withEnv("AWS_ACCESS_KEY_ID", "admin")
-    withEnv("AWS_SECRET_ACCESS_KEY", "key")
+    withEnv("AWS_SECRET_ACCESS_KEY", "admin")
   }
 
   val SeaweedFsImage = DockerImageName.parse("chrislusf/seaweedfs").withTag(sys.props("seaweed.docker.tag"))
