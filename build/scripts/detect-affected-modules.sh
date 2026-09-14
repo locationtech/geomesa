@@ -12,7 +12,7 @@
 # Usage: detect-affected-modules.sh <base-sha> <head-sha> <module-list>
 # where <module-list> is the matrix 'list' value, e.g. "geomesa-fs/geomesa-fs-spark".
 
-set -e
+set -eo pipefail
 
 if [[ $# -ne 3 ]]; then
   echo "Usage: $(basename "$0") <base-sha> <head-sha> <module-list>" 1>&2
