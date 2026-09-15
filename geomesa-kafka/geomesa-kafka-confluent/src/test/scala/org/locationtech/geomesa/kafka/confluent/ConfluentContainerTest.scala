@@ -19,7 +19,7 @@ import org.testcontainers.containers.{GenericContainer, Network}
 import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.utility.DockerImageName
 
-class ConfluentContainerTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
+trait ConfluentContainerTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
   private val network = Network.newNetwork()
 
@@ -31,17 +31,19 @@ class ConfluentContainerTest extends SpecificationWithJUnit with BeforeAfterAll 
       .withNetwork(network)
       .withNetworkAliases("kafka")
       .withListener(dockerNetworkBrokers)
-      .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("kafka")))
 
   private val registry =
     new SchemaRegistryContainer(dockerNetworkBrokers)
       .withNetwork(network)
-      .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("schema-registry")))
 
   lazy val brokers = kafka.getBootstrapServers
   lazy val schemaRegistryUrl: String = s"http://${registry.getHost}:${registry.getFirstMappedPort}"
 
   override def beforeAll(): Unit = {
+    if (logger.underlying.isDebugEnabled) {
+      kafka.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("kafka")))
+      registry.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("schema-registry")))
+    }
     kafka.start()
     registry.start()
   }

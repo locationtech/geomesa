@@ -18,7 +18,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.utility.DockerImageName
 
-class KafkaContainerTest extends Specification with BeforeAfterAll with LazyLogging {
+trait KafkaContainerTest extends Specification with BeforeAfterAll with LazyLogging {
 
   protected val network = Network.newNetwork()
 
@@ -30,11 +30,15 @@ class KafkaContainerTest extends Specification with BeforeAfterAll with LazyLogg
       .withNetwork(network)
       .withNetworkAliases("kafka")
       .withListener(dockerNetworkBrokers)
-      .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("kafka")))
 
   lazy val brokers = kafka.getBootstrapServers
 
-  override def beforeAll(): Unit = kafka.start()
+  override def beforeAll(): Unit = {
+    if (logger.underlying.isDebugEnabled) {
+      kafka.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("kafka")))
+    }
+    kafka.start()
+  }
 
   override def afterAll(): Unit = CloseWithLogging(kafka)
 }
