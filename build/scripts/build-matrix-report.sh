@@ -81,14 +81,14 @@ report_workflow() {
   # names come from the workflow's own .name fields (not from PR content), so they are safe to put
   # in an annotation. keep it single-line - "::warning::" does not render raw newlines.
   if (( n_skipped > 0 )); then
-    echo "::warning title=Build matrix report::${label}: skipped ${n_skipped} of ${count} matrix jobs (${skipped_names}). If a skip looks wrong, check the ${n_changed} changed file(s) in this PR."
+    echo "::warning title=Build matrix report::${label}: skipped ${n_skipped} of ${count} matrix jobs (${skipped_names})."
   fi
 }
 
 {
   echo "### Build Matrix Report"
   echo ""
-  echo "Which matrix jobs this PR builds vs skips. Skipped jobs are not run; if one looks wrong, check it against the ${n_changed} changed file(s) in this PR."
+  echo "Which matrix jobs this PR builds vs skips, based on which files are changed in the PR."
   echo ""
 } >> "$SUMMARY"
 
