@@ -18,6 +18,11 @@
 #
 # Usage: detect-affected-modules.sh <base-sha> <head-sha> <module-list>
 # where <module-list> is the matrix 'list' value, e.g. "geomesa-fs/geomesa-fs-spark".
+#
+# SECURITY: this runs against untrusted input. The base/head shas come from a pull request, and
+# via build-matrix-report.sh this executes under pull_request_target (with a write-scoped token).
+# Be careful editing: keep the sha validation below, quote every expansion, and never eval, glob,
+# or shell-interpolate the shas or the changed filenames derived from them.
 
 # -f disables filename globbing: we word-split space-separated artifactId lists below and never
 # rely on globbing, so this prevents a stray token (e.g. an exclusion '*') from expanding to paths.
@@ -32,8 +37,20 @@ BASE="$1"
 HEAD="$2"
 LIST="$3"
 
-# make sure both commits are present, then diff them (two-dot, only needs the two tree objects)
-git fetch --no-tags --depth=1 origin "$BASE" "$HEAD" 1>&2
+# both shas come from an untrusted PR (this may run under pull_request_target). require plain hex
+# so they can't be a dashed string that git would parse as an option (argument injection) - the
+# git commands below take them as positional revision/refspec args.
+if [[ ! "$BASE" =~ ^[0-9a-fA-F]{7,40}$ ]] || [[ ! "$HEAD" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+  echo "$(basename "$0"): base and head must be commit shas" 1>&2
+  exit 1
+fi
+
+# make sure both commits are present, then diff them (two-dot, only needs the two tree objects).
+# fetch only if we don't already have them, so a caller that invokes this repeatedly (e.g. the
+# affected-report over every matrix project) can fetch once up front and skip 20+ redundant fetches.
+if ! git cat-file -e "$BASE^{commit}" 2>/dev/null || ! git cat-file -e "$HEAD^{commit}" 2>/dev/null; then
+  git fetch --no-tags --depth=1 origin "$BASE" "$HEAD" 1>&2
+fi
 CHANGED="$(git diff --name-only "$BASE" "$HEAD")"
 
 # if we can't determine what changed, run everything

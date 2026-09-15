@@ -1,0 +1,61 @@
+name: build-matrix-report
+
+# Posts (and updates) a single PR comment summarizing which matrix jobs a PR affects vs skips
+# across the build workflows, with the changed files that drove the decision. This is purely
+# informational: it gates nothing and is independent of the build workflows. Its purpose is to
+# make an incorrect skip obvious to reviewers.
+
+on:
+  pull_request_target:
+
+# pull_request_target is used (not pull_request) so the token has pull-requests: write even for
+# PRs from forks, where pull_request would give a read-only token and the comment couldn't post.
+# SECURITY: pull_request_target runs in the BASE repo context with a write token. This job must
+# never check out or execute PR-authored code - it checks out the base sha and runs only
+# repo-owned scripts against a diff. Keep it that way.
+permissions:
+  contents: read
+  pull-requests: write
+
+# one report per PR at a time; a newer push supersedes an in-flight run
+concurrency:
+  group: build-matrix-report-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    name: build matrix report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # base ref only - never check out PR head code under pull_request_target
+          ref: ${{ github.event.pull_request.base.sha }}
+      - name: Build report
+        id: report
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          build/scripts/build-matrix-report.sh \
+            .github/workflows/build-and-test.yml \
+            .github/workflows/integration-tests.yml \
+            .github/workflows/assembly.yml \
+            .github/workflows/spark.yml \
+            > report.md
+      - name: Upsert PR comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          MARKER: '<!-- build-matrix-report -->'
+        run: |
+          # find an existing comment carrying our marker; update it if present, else create one
+          existing="$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+            --jq "map(select(.body | contains(\"$MARKER\"))) | .[0].id // empty")"
+          if [[ -n "$existing" ]]; then
+            gh api --method PATCH "repos/$REPO/issues/comments/$existing" -F body=@report.md
+          else
+            gh api --method POST "repos/$REPO/issues/$PR/comments" -F body=@report.md
+          fi
