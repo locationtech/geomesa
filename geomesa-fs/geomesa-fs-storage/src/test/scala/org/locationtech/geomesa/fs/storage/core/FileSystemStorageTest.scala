@@ -389,9 +389,10 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         ECQL.toFilter(""""$.props.name" = 'alice'""") -> features.take(1),
         ECQL.toFilter(""""$.props.age" > 20""") -> (features.take(1) ++ features.slice(2, 3)),
         ECQL.toFilter("""jsonPath('$.props.nested[?(@.flag == true)].flag') = true""") -> features.take(1),
+        ECQL.toFilter(""""$.props.scores.x" = 1""") -> (features.take(1) ++ features.slice(3, 4)),
       )
       val pathTransform = """"$.props.name""""
-      val transforms = Seq(null, Array("props", "geom"), Array(pathTransform, "dtg", "geom"))
+      val transforms = Seq(null: Array[String], Array("props", "geom"), Array(pathTransform, "dtg", "geom"))
 
       WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
@@ -443,6 +444,9 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
               }
             }
           }
+
+          storage.getReader(new Query(sft.getTypeName, ECQL.toFilter(""""$.props.scores" = '{"x":1,"y":2}'""")), 1) must
+            throwAn[UnsupportedOperationException]
         }
       }
     }

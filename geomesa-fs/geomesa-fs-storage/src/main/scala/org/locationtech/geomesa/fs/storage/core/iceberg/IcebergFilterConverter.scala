@@ -276,7 +276,12 @@ object IcebergFilterConverter extends LazyLogging {
    */
   private def navigate(fieldPath: String, fieldType: Type, path: JsonPath): Option[Seq[(String, Type)]] = {
     if (path.isEmpty) {
-      return Some(Seq(fieldPath -> fieldType).filter(_._2.isPrimitiveType))
+      if (fieldType.isPrimitiveType) {
+        return Some(Seq(fieldPath -> fieldType))
+      } else {
+        throw new UnsupportedOperationException(
+          s"Invalid JSON path - filters on non-leaf nodes are not supported: $$.$fieldPath")
+      }
     }
     path.head match {
       case PathAttribute(name, _) if fieldType.isStructType =>
@@ -294,10 +299,12 @@ object IcebergFilterConverter extends LazyLogging {
         if (children.exists(_.isEmpty)) { None } else { Some(children.flatMap(_.get).toSeq) }
 
       // predicates we can't evaluate as iceberg expressions
-      case PathDeepScan => None
+      case _: PathAttribute if fieldType.isMapType => None
+      case PathAttributeWildCard if fieldType.isMapType => None
       case _: PathIndexRange if fieldType.isListType => None
       case _: PathIndices if fieldType.isListType => None
       case PathIndexWildCard if fieldType.isListType => None
+      case PathDeepScan => None
       case _: PathFilter => None
 
       case _ => Some(Seq.empty) // doesn't match the field type
