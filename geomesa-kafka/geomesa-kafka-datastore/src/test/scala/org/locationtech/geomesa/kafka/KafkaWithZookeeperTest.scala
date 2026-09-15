@@ -14,7 +14,7 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
 
 // note: kafka is not actually using zookeeper (it's still in kraft mode), but we spin up a zookeeper for persisting geomesa schemas
-class KafkaWithZookeeperTest extends KafkaContainerTest {
+trait KafkaWithZookeeperTest extends KafkaContainerTest {
 
   private val zookeeper =
     new ZookeeperContainer(KafkaWithZookeeperTest.ZookeeperImage)
