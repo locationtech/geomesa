@@ -32,11 +32,8 @@ SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
 
 # fetch the two commits once up front: this satisfies every per-project detect-affected-modules.sh
 # call below (it re-fetches only if the commits are missing), so we pay one fetch, not one per
-# project. we count the diff to show how many files drove the decisions.
+# project.
 git fetch --no-tags --depth=1 origin "$BASE_SHA" "$HEAD_SHA" 1>&2
-CHANGED="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")"
-n_changed=0
-[[ -n "$CHANGED" ]] && n_changed="$(wc -l <<< "$CHANGED")"
 
 # report one workflow: append its section to the summary, and emit a warning if it skipped jobs
 report_workflow() {

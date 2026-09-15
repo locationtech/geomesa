@@ -18,11 +18,6 @@
 #
 # Usage: detect-affected-modules.sh <base-sha> <head-sha> <module-list>
 # where <module-list> is the matrix 'list' value, e.g. "geomesa-fs/geomesa-fs-spark".
-#
-# SECURITY: this runs against untrusted input - the base/head shas come from a pull request, and
-# the changed filenames are derived from PR-authored commits. Be careful editing: keep the sha
-# validation below, quote every expansion, and never eval, glob, or shell-interpolate the shas or
-# the changed filenames derived from them.
 
 # -f disables filename globbing: we word-split space-separated artifactId lists below and never
 # rely on globbing, so this prevents a stray token (e.g. an exclusion '*') from expanding to paths.
