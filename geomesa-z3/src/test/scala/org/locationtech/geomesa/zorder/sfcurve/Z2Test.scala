@@ -24,7 +24,6 @@ class Z2Test extends Specification {
       Z2(0,1).z mustEqual 2
       Z2(0,2).z mustEqual 8
       Z2(0,3).z mustEqual 10
-
     }
 
     "deinterlaces bits" in {
