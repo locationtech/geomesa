@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-# Builds a markdown report of which matrix jobs a PR affects, for posting as a single sticky PR
-# comment. It reads each workflow's project matrix out of the workflow file, and for each project runs
-# detect-affected-modules.sh and records built vs skipped. The report has one section per
-# workflow plus the changed files that drove the decisions - so a reviewer can eyeball a
-# "skipped" job against the diff and catch a wrong skip.
+# Reports which matrix jobs a PR affects vs skips, across the build workflows. It reads each
+# workflow's project matrix out of the workflow file, and for each project runs
+# detect-affected-modules.sh to record built vs skipped.
 #
-# This only reports; it gates nothing. Output goes to stdout.
+# Output is two things, both from this single job (not one annotation per skipped job):
+#   - a markdown table written to the GitHub step summary (or stdout when run locally), one
+#     section per workflow, so a reviewer can see the full built/skipped picture
+#   - a "::warning::" annotation for each workflow that skipped any job, naming the skipped jobs,
+#     so an incorrect skip is easy to spot from the PR's checks
+#
+# This only reports; it gates nothing.
 #
 # Usage: build-matrix-report.sh <workflow.yml> [<workflow.yml> ...]
 #   each <workflow.yml> must have exactly one job with a .strategy.matrix.projects list whose
@@ -21,13 +25,20 @@ if [[ $# -lt 1 ]]; then
   exit 1
 fi
 
+# the full table goes to the step summary (rendered markdown, no token needed - works for forks);
+# fall back to stdout when run locally. "::warning::" annotations always go to stdout so the
+# GitHub runner picks them up.
+SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
+
 # fetch the two commits once up front: this satisfies every per-project detect-affected-modules.sh
 # call below (it re-fetches only if the commits are missing), so we pay one fetch, not one per
-# project. we count the diff here to show how many files drove the decisions.
+# project. we count the diff to show how many files drove the decisions.
 git fetch --no-tags --depth=1 origin "$BASE_SHA" "$HEAD_SHA" 1>&2
 CHANGED="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")"
+n_changed=0
+[[ -n "$CHANGED" ]] && n_changed="$(wc -l <<< "$CHANGED")"
 
-# emit the built/skipped table for a single workflow file to stdout
+# report one workflow: append its section to the summary, and emit a warning if it skipped jobs
 report_workflow() {
   local wf="$1" label projects count i name list affected
   label="$(basename "$wf" .yml)"
@@ -41,7 +52,7 @@ report_workflow() {
     exit 1
   fi
 
-  local built_rows="" skipped_rows="" n_built=0 n_skipped=0
+  local built_rows="" skipped_rows="" skipped_names="" n_built=0 n_skipped=0
   count="$(jq 'length' <<< "$projects")"
   for ((i = 0; i < count; i++)); do
     name="$(jq -r ".[$i].name" <<< "$projects")"
@@ -52,31 +63,35 @@ report_workflow() {
       n_built=$((n_built + 1))
     else
       skipped_rows+="| \`$name\` | ⏭️ skipped |"$'\n'
+      skipped_names+="${skipped_names:+, }$name"
       n_skipped=$((n_skipped + 1))
     fi
   done
 
-  echo "#### \`$label\` — $n_built built, $n_skipped skipped"
-  echo ""
-  echo "| Job | Decision |"
-  echo "| --- | --- |"
-  printf '%s' "$built_rows"
-  printf '%s' "$skipped_rows"
-  echo ""
+  {
+    echo "#### \`$label\` — $n_built built, $n_skipped skipped"
+    echo ""
+    echo "| Job | Decision |"
+    echo "| --- | --- |"
+    printf '%s' "$built_rows"
+    printf '%s' "$skipped_rows"
+    echo ""
+  } >> "$SUMMARY"
+
+  # names come from the workflow's own .name fields (not from PR content), so they are safe to put
+  # in an annotation. keep it single-line - "::warning::" does not render raw newlines.
+  if (( n_skipped > 0 )); then
+    echo "::warning title=Build matrix report::${label}: skipped ${n_skipped} of ${count} matrix jobs (${skipped_names}). If a skip looks wrong, check the ${n_changed} changed file(s) in this PR."
+  fi
 }
 
-n_changed=0
-[[ -n "$CHANGED" ]] && n_changed="$(wc -l <<< "$CHANGED")"
+{
+  echo "### Build Matrix Report"
+  echo ""
+  echo "Which matrix jobs this PR builds vs skips. Skipped jobs are not run; if one looks wrong, check it against the ${n_changed} changed file(s) in this PR."
+  echo ""
+} >> "$SUMMARY"
 
-# the marker lets the workflow find and replace this exact comment instead of posting a new one
-echo "<!-- build-matrix-report -->"
-echo "### Build Matrix Report"
-echo ""
 for wf in "$@"; do
   report_workflow "$wf"
 done
-# report only the count, not the filenames: under pull_request_target this comment is posted with
-# a write token, and PR-authored filenames are attacker-controlled - echoing them into markdown
-# would allow comment injection (e.g. a filename that breaks out of a code fence). the count is
-# a plain integer and safe.
-echo "_Based on $n_changed changed file(s)._"
