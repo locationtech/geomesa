@@ -108,6 +108,11 @@ case class FileSystemStorage(
 
   private lazy val metricsConfig: MetricsConfig = MetricsConfig.forTable(table)
 
+  private lazy val baseWritePath =
+    Option(table.properties().get(TableProperties.WRITE_DATA_LOCATION))
+      .map(LocationUtil.stripTrailingSlash)
+      .getOrElse(s"${LocationUtil.stripTrailingSlash(table.location())}/data")
+
   /**
    * Get a reader for all relevant partitions
    *
@@ -343,7 +348,7 @@ case class FileSystemStorage(
   }
 
   private[core] def newFilePath(ext: String = "parquet"): String =
-    s"${LocationUtil.stripTrailingSlash(table.location())}/${FileSystemStorage.newFilePath(sft.getTypeName, ext)}"
+    s"$baseWritePath/${FileSystemStorage.newFilePath(sft.getTypeName, ext)}"
 
   /**
    * Reads the parquet metadata for a path and creates a data file
