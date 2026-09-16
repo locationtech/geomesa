@@ -97,4 +97,54 @@ class VisibilityDomainPruningTest {
             .orElseThrow();
         assertThat(domain.includesNullableValue(Slices.utf8Slice("admin&ops"))).isFalse();
     }
+
+    // -- expressionDomain ----------------------------------------------------
+
+    @Test
+    void expressionDomainEmptyAuthsOrEmptyCandidatesYieldsNoDomain() {
+        assertThat(VisibilityDomainPruning.expressionDomain(VARCHAR, Set.of("U"), Set.of()))
+            .isEmpty();
+        assertThat(VisibilityDomainPruning.expressionDomain(VARCHAR, Set.of(), Set.of("U")))
+            .isEmpty();
+    }
+
+    @Test
+    void expressionDomainFixesTokenDomainsCompoundExpressionGap() {
+        // The exact scenario tokenDomainDocumentedLimitationForCompoundExpressions shows is
+        // broken for tokenDomain: a caller holding both "admin" and "ops" IS entitled to
+        // "admin&ops" per AccessEvaluator. expressionDomain gets this right because it checks
+        // the literal candidate expression through the real is_visible() decision instead of
+        // decomposing into tokens.
+        Domain domain = VisibilityDomainPruning
+            .expressionDomain(VARCHAR, Set.of("admin&ops"), Set.of("admin", "ops"))
+            .orElseThrow();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice("admin&ops"))).isTrue();
+    }
+
+    @Test
+    void expressionDomainExcludesCompoundExpressionCallerCannotSatisfy() {
+        Domain domain = VisibilityDomainPruning
+            .expressionDomain(VARCHAR, Set.of("admin&ops"), Set.of("admin"))
+            .orElseThrow();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice("admin&ops"))).isFalse();
+        assertThat(domain.includesNullableValue(null)).isTrue();
+    }
+
+    @Test
+    void expressionDomainOnlyIncludesCandidatesActuallyVisible() {
+        Domain domain = VisibilityDomainPruning.expressionDomain(
+            VARCHAR, Set.of("U", "U&FOUO", "TS&SCI"), Set.of("U", "FOUO")).orElseThrow();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice("U"))).isTrue();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice("U&FOUO"))).isTrue();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice("TS&SCI"))).isFalse();
+        assertThat(domain.includesNullableValue(null)).isTrue();
+    }
+
+    @Test
+    void expressionDomainFallsBackToOnlyNullWhenNoCandidateIsVisible() {
+        Domain domain = VisibilityDomainPruning
+            .expressionDomain(VARCHAR, Set.of("TS&SCI"), Set.of("U"))
+            .orElseThrow();
+        assertThat(domain.isOnlyNull()).isTrue();
+    }
 }

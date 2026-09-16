@@ -14,9 +14,11 @@ import io.trino.spi.predicate.Range;
 import io.trino.spi.predicate.SortedRangeSet;
 import io.trino.spi.type.VarcharType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Builds {@code Domain} constraints on the visibility column that Iceberg's own
@@ -32,7 +34,9 @@ import java.util.Set;
  * have hidden to be returned (never a security/leak bug). That asymmetry is
  * what makes the token-based tier below safe to offer as an explicit,
  * documented opt-in rather than something that must be proven sound for every
- * deployment before it can ship.
+ * deployment before it can ship — and it's also why an incomplete {@link
+ * #expressionDomain} candidate set degrades to "prunes less" rather than
+ * "prunes incorrectly."
  */
 public final class VisibilityDomainPruning {
 
@@ -86,6 +90,50 @@ public final class VisibilityDomainPruning {
         List<Range> ranges = auths.stream()
             .map(token -> Range.equal(visColumnType, Slices.utf8Slice(token)))
             .toList();
+        return Optional.of(Domain.create(SortedRangeSet.copyOf(visColumnType, ranges), true));
+    }
+
+    /**
+     * Sound for ANY visibility expression grammar, compound included — unlike
+     * {@link #tokenDomain}, this prunes on literal expression VALUES rather than
+     * decomposed tokens. {@code candidateExpressions} is the closed universe of
+     * every distinct non-null value the visibility column can ever hold (e.g. a
+     * declared clearance ladder: {@code "U"}, {@code "U&FOUO"}, ...); each one is
+     * run through the real {@link GeoMesaSecurityFunctions#isVisible} decision —
+     * the identical engine the row filter uses — so "does the caller's auth set
+     * admit this literal string" is answered exactly, with no token-vs-expression
+     * mismatch for {@code &}/{@code |} to fall through.
+     *
+     * <p>Soundness therefore reduces to completeness of {@code
+     * candidateExpressions}: an omitted value just makes its files un-prunable
+     * (same narrows-never-widens direction as the rest of this class), never a
+     * leak. Scales to tens-to-low-hundreds of distinct values; not intended for
+     * effectively-unique per-row visibility strings.
+     *
+     * @param visColumnType the visibility column's type (always VARCHAR)
+     * @param candidateExpressions every distinct non-null value the column can hold
+     * @param auths the resolved authorizations for the querying identity
+     * @return an IN-list-plus-null domain over the expressions {@code auths} can
+     *         access; empty when {@code auths} or {@code candidateExpressions} is
+     *         empty (use {@link #emptyAuthsDomain} for the former)
+     */
+    public static Optional<Domain> expressionDomain(VarcharType visColumnType,
+                                                      Set<String> candidateExpressions,
+                                                      Set<String> auths) {
+        if (auths.isEmpty() || candidateExpressions.isEmpty()) {
+            return Optional.empty();
+        }
+        String authsCsv = String.join(",", new ArrayList<>(new TreeSet<>(auths)));
+        List<Range> ranges = candidateExpressions.stream()
+            .filter(expr -> GeoMesaSecurityFunctions.isVisible(
+                Slices.utf8Slice(expr), Slices.utf8Slice(authsCsv)))
+            .map(expr -> Range.equal(visColumnType, Slices.utf8Slice(expr)))
+            .toList();
+        if (ranges.isEmpty()) {
+            // None of the declared expressions are visible: only NULL is admissible,
+            // same as the empty-auths case.
+            return Optional.of(Domain.onlyNull(visColumnType));
+        }
         return Optional.of(Domain.create(SortedRangeSet.copyOf(visColumnType, ranges), true));
     }
 }

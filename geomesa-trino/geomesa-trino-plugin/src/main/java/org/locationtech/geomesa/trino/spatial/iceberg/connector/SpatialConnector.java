@@ -37,6 +37,7 @@ public class SpatialConnector implements Connector {
     private final boolean bboxShortCircuit;
     private final AuthorizationResolver resolver;
     private final boolean enableVisibilityTokenPruning;
+    private final Set<String> visibilityExpressions;
 
     /**
      * Wraps a delegate connector with no Trino-layer visibility enforcement.
@@ -94,6 +95,33 @@ public class SpatialConnector implements Connector {
      */
     public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
                             boolean bboxShortCircuit, boolean enableVisibilityTokenPruning) {
+        this(delegate, catalogName, resolver, bboxShortCircuit, enableVisibilityTokenPruning, Set.of());
+    }
+
+    /**
+     * Wraps a delegate connector, optionally installing Trino-layer row-visibility enforcement,
+     * the page-source bbox cheap-reject, and visibility-column domain pushdown for Iceberg
+     * manifest/file pruning (see {@link org.locationtech.geomesa.trino.security.VisibilityDomainPruning}).
+     *
+     * @param delegate       the underlying iceberg connector
+     * @param catalogName    the Trino catalog name; may be null when no resolver.
+     * @param resolver       identity→auths resolver; null disables Trino-layer enforcement
+     *                       AND visibility-domain pushdown.
+     * @param bboxShortCircuit when true, wrap the page source with the bbox cheap-reject
+     *                       ({@link SpatialPageSourceProvider}).
+     * @param enableVisibilityTokenPruning opt-in, unsound-for-compound-expressions pushdown
+     *                       tier; see {@code VisibilityDomainPruning#tokenDomain}. The
+     *                       unconditional empty-auths tier is always attempted when
+     *                       {@code resolver} is non-null, regardless of this flag.
+     * @param visibilityExpressions declared closed universe of every distinct non-null
+     *                       visibility value the column can hold; when non-empty, enables the
+     *                       sound-for-compound-expressions {@code
+     *                       VisibilityDomainPruning#expressionDomain} tier, tried before the
+     *                       token-domain fallback above.
+     */
+    public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
+                            boolean bboxShortCircuit, boolean enableVisibilityTokenPruning,
+                            Set<String> visibilityExpressions) {
         this.delegate = delegate;
         this.geomCatalog = new GeoMesaColumnCatalog();
         this.accessControl = resolver == null ? null
@@ -101,6 +129,7 @@ public class SpatialConnector implements Connector {
         this.bboxShortCircuit = bboxShortCircuit;
         this.resolver = resolver;
         this.enableVisibilityTokenPruning = enableVisibilityTokenPruning;
+        this.visibilityExpressions = visibilityExpressions;
     }
 
     /**
@@ -151,7 +180,8 @@ public class SpatialConnector implements Connector {
             geomCatalog,
             bboxShortCircuit,
             resolver,
-            enableVisibilityTokenPruning
+            enableVisibilityTokenPruning,
+            visibilityExpressions
         );
     }
 

@@ -17,8 +17,11 @@ import io.trino.spi.connector.ConnectorFactory;
 import org.locationtech.geomesa.trino.spatial.SpatialIcebergPlugin;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * ConnectorFactory for the spatial_iceberg connector. Bootstraps Trino's
@@ -50,6 +53,15 @@ public class SpatialConnectorFactory implements ConnectorFactory {
      *  OFF by default. */
     private static final String VISIBILITY_TOKEN_PRUNING = SECURITY_PREFIX + "enable-visibility-token-pruning";
 
+    /** Declared closed universe of every distinct non-null visibility value the column can
+     *  hold, comma-separated (e.g. {@code "U,U&FOUO,U&FOUO&NOFORN"}). When set, enables the
+     *  sound-for-compound-expressions {@code VisibilityDomainPruning#expressionDomain} tier —
+     *  unlike {@link #VISIBILITY_TOKEN_PRUNING}, safe to enable even when visibility values are
+     *  compound ({@code &}/{@code |}) expressions, since it prunes on literal expression values
+     *  rather than decomposed tokens. Soundness depends on completeness: an omitted value just
+     *  makes its files un-prunable, never a leak. Empty (default) disables this tier; tried
+     *  before the token-domain fallback above. */
+    private static final String VISIBILITY_EXPRESSIONS = SECURITY_PREFIX + "visibility-expressions";
 
     /** Enables connector-side bbox filtering (see {@link BboxFilteringPageSource}).
      *  - For a rectangle {@code ST_Intersects} on a Z2/point geometry column the connector claims
@@ -91,6 +103,7 @@ public class SpatialConnectorFactory implements ConnectorFactory {
         boolean bboxShortCircuit = Boolean.parseBoolean(config.getOrDefault(BBOX_PAGE_FILTER, "true"));
         boolean enableVisibilityTokenPruning =
             Boolean.parseBoolean(config.getOrDefault(VISIBILITY_TOKEN_PRUNING, "false"));
+        Set<String> visibilityExpressions = parseVisibilityExpressions(config.get(VISIBILITY_EXPRESSIONS));
 
         // Iceberg uses strict config validation; strip our keys so it doesn't reject them as unused.
         Map<String, String> icebergConfig = new LinkedHashMap<>();
@@ -101,7 +114,19 @@ public class SpatialConnectorFactory implements ConnectorFactory {
         ConnectorFactory icebergFactory = new IcebergPlugin().getConnectorFactories().iterator().next();
         Connector icebergConnector = icebergFactory.create(catalogName, icebergConfig, context);
         return new SpatialConnector(icebergConnector, catalogName, resolver, bboxShortCircuit,
-            enableVisibilityTokenPruning);
+            enableVisibilityTokenPruning, visibilityExpressions);
+    }
+
+    /** Parses the comma-separated {@link #VISIBILITY_EXPRESSIONS} property; null/blank yields
+     *  an empty set (the tier stays disabled). Entries are trimmed; blank entries are dropped. */
+    private static Set<String> parseVisibilityExpressions(String csv) {
+        if (csv == null || csv.isBlank()) {
+            return Set.of();
+        }
+        return Arrays.stream(csv.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .collect(Collectors.toUnmodifiableSet());
     }
 
     /** Builds the identity→auths resolver from catalog config, or null when no

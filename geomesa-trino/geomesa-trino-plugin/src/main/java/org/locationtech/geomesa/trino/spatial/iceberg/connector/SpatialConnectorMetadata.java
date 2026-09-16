@@ -116,6 +116,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      *  tier ({@link VisibilityDomainPruning#emptyAuthsDomain}) is always attempted
      *  when {@link #resolver} is non-null, regardless of this flag. */
     private final boolean enableVisibilityTokenPruning;
+    /** Declared closed universe of every distinct non-null visibility value the
+     *  column can hold; when non-empty, enables the sound-for-compound-expressions
+     *  {@link VisibilityDomainPruning#expressionDomain} tier, tried before the
+     *  token-domain fallback above. Empty disables this tier entirely. */
+    private final Set<String> visibilityExpressions;
 
     /** Result of locating a spatial constraint in a constraint expression: the
      *  query envelope(s), the spatial function's name (lowercased ASCII; {@code
@@ -167,11 +172,37 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
                                     boolean bboxShortCircuit,
                                     AuthorizationResolver resolver,
                                     boolean enableVisibilityTokenPruning) {
+        this(delegate, geomCatalog, bboxShortCircuit, resolver, enableVisibilityTokenPruning, Set.of());
+    }
+
+    /**
+     * Wraps a delegate metadata with spatial-predicate pushdown and, when a
+     * resolver is supplied, visibility-column domain pushdown (see
+     * {@link VisibilityDomainPruning}).
+     *
+     * @param delegate the underlying iceberg metadata
+     * @param geomCatalog the shared geometry-column catalog
+     * @param bboxShortCircuit when true, claim eligible rectangle ST_Intersects enforced
+     * @param resolver identity→auths resolver; null disables visibility-domain pushdown
+     * @param enableVisibilityTokenPruning opt-in token-domain tier; see
+     *                                     {@link VisibilityDomainPruning#tokenDomain}
+     * @param visibilityExpressions declared closed universe of every distinct non-null
+     *                              visibility value the column can hold; when non-empty,
+     *                              enables {@link VisibilityDomainPruning#expressionDomain},
+     *                              tried before the token-domain fallback above
+     */
+    public SpatialConnectorMetadata(ConnectorMetadata delegate,
+                                    GeoMesaColumnCatalog geomCatalog,
+                                    boolean bboxShortCircuit,
+                                    AuthorizationResolver resolver,
+                                    boolean enableVisibilityTokenPruning,
+                                    Set<String> visibilityExpressions) {
         this.delegate = delegate;
         this.geomCatalog = geomCatalog;
         this.bboxShortCircuit = bboxShortCircuit;
         this.resolver = resolver;
         this.enableVisibilityTokenPruning = enableVisibilityTokenPruning;
+        this.visibilityExpressions = visibilityExpressions;
     }
 
     /** Resolve the per-geom-column descriptor map for the given table handle.
@@ -390,6 +421,9 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
 
         Set<String> auths = resolver.authorizationsFor(session.getIdentity());
         Optional<Domain> domain = VisibilityDomainPruning.emptyAuthsDomain(vt, auths);
+        if (domain.isEmpty() && !visibilityExpressions.isEmpty()) {
+            domain = VisibilityDomainPruning.expressionDomain(vt, visibilityExpressions, auths);
+        }
         if (domain.isEmpty() && enableVisibilityTokenPruning) {
             domain = VisibilityDomainPruning.tokenDomain(vt, auths);
         }
