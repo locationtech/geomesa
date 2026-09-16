@@ -35,27 +35,63 @@ SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
 # project.
 git fetch --no-tags --depth=1 origin "$BASE_SHA" "$HEAD_SHA" 1>&2
 
-# report one workflow: append its section to the summary, and emit a warning if it skipped jobs
-report_workflow() {
-  local wf="$1" label projects count i name list affected
-  label="$(basename "$wf" .yml)"
-
-  # the matrix job's name varies per workflow (build, assembly, integration-tests, ...), so find
-  # the one job that has a projects matrix rather than hard-coding a job name. reading it from the
-  # workflow means this report and the job it describes can never disagree about the project list.
+# read a workflow's project matrix as compact json. the matrix job's name varies per workflow
+# (build, assembly, integration-tests, ...), so find the one job that has a projects matrix rather
+# than hard-coding a job name. reading it from the workflow means this report and the job it
+# describes can never disagree about the project list.
+workflow_projects() {
+  local wf="$1" projects
   projects="$(yq -o=json -I=0 '.jobs[] | select(.strategy.matrix.projects != null) | .strategy.matrix.projects' "$wf")"
   if [[ -z "$projects" || "$projects" == "null" ]]; then
     echo "$(basename "$0"): no projects matrix found in $wf" 1>&2
     exit 1
   fi
+  printf '%s' "$projects"
+}
 
-  local built_rows="" skipped_rows="" skipped_names="" n_built=0 n_skipped=0
+# pass 1: collect every matrix project's list across all workflows, in order. we evaluate them all
+# in a single detect-affected-modules.sh --batch call below, which builds the pom dependency graph
+# and diffs the commits once and reuses that for every list - instead of paying for it once per
+# list (~40x for our matrices).
+WF_LABELS=()             # per-workflow label ("build-and-test", ...), one per workflow arg
+WF_PROJECTS=()           # per-workflow projects json, index-aligned with WF_LABELS
+ALL_LISTS=()             # every project's list, flattened in workflow-then-index order
+for wf in "$@"; do
+  projects="$(workflow_projects "$wf")"
+  WF_LABELS+=("$(basename "$wf" .yml)")
+  WF_PROJECTS+=("$projects")
   count="$(jq 'length' <<< "$projects")"
   for ((i = 0; i < count; i++)); do
+    ALL_LISTS+=("$(jq -r ".[$i].list" <<< "$projects")")
+  done
+done
+
+# one batch call: one "true"/"false" per list, in the same order we fed them in.
+mapfile -t DECISIONS < <(printf '%s\n' "${ALL_LISTS[@]}" | .github/detect-affected-modules.sh --batch "$BASE_SHA" "$HEAD_SHA")
+if [[ "${#DECISIONS[@]}" -ne "${#ALL_LISTS[@]}" ]]; then
+  echo "$(basename "$0"): expected ${#ALL_LISTS[@]} decisions from detect, got ${#DECISIONS[@]}" 1>&2
+  exit 1
+fi
+
+{
+  echo "### Build Matrix Report"
+  echo ""
+  echo "Which matrix jobs this PR builds vs skips, based on which files are changed in the PR."
+  echo ""
+} >> "$SUMMARY"
+
+# pass 2: render one section per workflow from the precomputed decisions, and emit a warning for
+# any workflow that skipped jobs.
+d=0   # running index into DECISIONS, consumed in the same order lists were collected
+for w in "${!WF_PROJECTS[@]}"; do
+  label="${WF_LABELS[w]}"
+  projects="${WF_PROJECTS[w]}"
+  count="$(jq 'length' <<< "$projects")"
+
+  built_rows="" skipped_rows="" skipped_names="" n_built=0 n_skipped=0
+  for ((i = 0; i < count; i++)); do
     name="$(jq -r ".[$i].name" <<< "$projects")"
-    list="$(jq -r ".[$i].list" <<< "$projects")"
-    affected="$(build/scripts/detect-affected-modules.sh "$BASE_SHA" "$HEAD_SHA" "$list")"
-    if [[ "$affected" == "true" ]]; then
+    if [[ "${DECISIONS[d]}" == "true" ]]; then
       built_rows+="| \`$name\` | ✅ built |"$'\n'
       n_built=$((n_built + 1))
     else
@@ -63,6 +99,7 @@ report_workflow() {
       skipped_names+="${skipped_names:+, }$name"
       n_skipped=$((n_skipped + 1))
     fi
+    d=$((d + 1))
   done
 
   {
@@ -80,15 +117,4 @@ report_workflow() {
   if (( n_skipped > 0 )); then
     echo "::warning title=Build matrix report::${label}: skipped ${n_skipped} of ${count} matrix jobs (${skipped_names})."
   fi
-}
-
-{
-  echo "### Build Matrix Report"
-  echo ""
-  echo "Which matrix jobs this PR builds vs skips, based on which files are changed in the PR."
-  echo ""
-} >> "$SUMMARY"
-
-for wf in "$@"; do
-  report_workflow "$wf"
 done

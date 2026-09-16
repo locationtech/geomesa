@@ -56,7 +56,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PROJECT_LIST: ${{ matrix.projects.list }}
         run: |
-          affected="$(build/scripts/detect-affected-modules.sh "$BASE_SHA" "$HEAD_SHA" "$PROJECT_LIST")"
+          affected="$(.github/detect-affected-modules.sh "$BASE_SHA" "$HEAD_SHA" "$PROJECT_LIST")"
           echo "affected=$affected" >> "$GITHUB_OUTPUT"
       - name: Set Scala version
         if: steps.changes.outputs.affected != 'false'
