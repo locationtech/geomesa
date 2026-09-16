@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import org.apache.commons.lang3.StringUtils
 import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.expression.{Expression, Function, PropertyName}
@@ -121,10 +122,11 @@ object Transform {
     private def definition(sft: SimpleFeatureType, transform: String): Transform = {
       val equals = transform.indexOf('=')
       if (equals == -1) {
-        val name = transform.trim()
+        val expression = transform.trim()
+        val name = StringUtils.strip(expression, "\"")
         val i = sft.indexOf(name)
         if (i == -1) {
-          attributeExpression(sft, name, name)
+          attributeExpression(sft, name, expression)
         } else {
           PropertyTransform(name, sft.getDescriptor(i).getType.getBinding, i)
         }

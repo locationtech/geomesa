@@ -512,7 +512,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
                 }
               } else if (transform.contains(pathTransform)) {
                 val expectedJson = expected.getAttribute("props").asInstanceOf[String]
-                val actualJson = actual.get.getAttribute(pathTransform).asInstanceOf[String]
+                val actualJson = actual.get.getAttribute(pathTransform.replace("\"", "")).asInstanceOf[String]
                 if (expectedJson == null) {
                   actualJson must beNull
                 } else {

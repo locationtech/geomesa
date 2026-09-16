@@ -27,7 +27,7 @@ import org.locationtech.geomesa.filter.expression.OrHashEquality.OrHashListEqual
 import org.locationtech.geomesa.filter.expression.OrSequentialEquality.OrSequentialListEquality
 import org.locationtech.geomesa.filter.expression._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
-import org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor
+import org.locationtech.geomesa.utils.geotools.{SimpleFeaturePropertyAccessor, SimpleFeatureTypes}
 import org.locationtech.jts.geom.Geometry
 import org.xml.sax.helpers.NamespaceSupport
 
@@ -260,7 +260,8 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
     } else {
       val sf = new SimpleFeatureBuilder(sft).buildFeature("")
       val accessor = SimpleFeaturePropertyAccessor.getAccessor(sf, name).getOrElse {
-        throw new IllegalArgumentException(s"Property '$name' does not exist in feature type ${sft.getTypeName}")
+        throw new IllegalArgumentException(
+          s"Property '$name' does not exist in feature type ${sft.getTypeName} ${SimpleFeatureTypes.encodeType(sft)}")
       }
       new FastPropertyNameAccessor(name, accessor)
     }

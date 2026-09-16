@@ -15,19 +15,23 @@ import org.apache.iceberg.types.{Type, TypeUtil}
 import org.apache.iceberg.{MetadataColumns, Schema, Table}
 import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.api.filter.expression.PropertyName
+import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema.ReadSchema
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema.{FeatureIdField, VisibilitiesField}
 import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName, SimpleFeatureSchema, ZValueField}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.Transform.{ExpressionTransform, PropertyTransform, RenameTransform, Transforms}
-import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes, Transform}
 import org.locationtech.geomesa.utils.json.JsonPathParser.PathAttribute
 
 import java.util.concurrent.atomic.AtomicInteger
+import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 /**
@@ -46,19 +50,26 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
    * Gets the schema needed for reading a file
    *
    * @param transform query transform definition
-   * @param filtered columns that have filters against them
+   * @param postReadFilter filter that will be applied to the results after reading from iceberg
+   * @param filterCols columns that have iceberg filters against them
    * @param includeFids include __fid__ column for accurate feature IDs
    * @param includeRowPositions include _file and _pos columns necessary for handling updates/deletes
    * @return
    */
   def read(
-      transform: Option[String],
-      filtered: Set[String],
+      transform: Option[(String, SimpleFeatureType)],
+      postReadFilter: Option[Filter],
+      filterCols: Set[String],
       includeFids: Boolean = true,
-      includeRowPositions: Boolean = false): SimpleFeatureIcebergSchema = {
+      includeRowPositions: Boolean = false): ReadSchema = {
     // map of top-level columns to nested fields that we're reading - an empty value means read all nested fields
     val readCols = new java.util.LinkedHashMap[String, Seq[String]]()
+    // descriptors for our read sft
+    val readDescriptors = ArrayBuffer.empty[AttributeDescriptor]
+    // secondary transform we have to apply after running the client-side filter
+    var postReadTransform: Option[(SimpleFeatureType, Array[Transform])] = None
 
+    // add a dot-delimited field to read
     def addReadPath(field: String): Unit = {
       val i = field.indexOf('.')
       if (i == -1) {
@@ -77,29 +88,34 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
       }
     }
 
-    if (includeFids) {
+    if (includeFids || postReadFilter.exists(FilterHelper.hasIdFilter)) {
       addReadPath(FeatureIdField)
     }
     addReadPath(VisibilitiesField)
 
-    val readSft = transform match {
+    transform match {
       case None =>
-        sft.getAttributeDescriptors.asScala.foreach(d => addReadPath(ColumnName.encode(d.getLocalName)))
-        sft
+        sft.getAttributeDescriptors.asScala.foreach { descriptor =>
+          addReadPath(ColumnName.encode(descriptor.getLocalName))
+          readDescriptors += descriptor
+        }
 
-      case Some(defs) =>
-        // use a hash set so we don't add a descriptor twice
-        val readDescriptors = new java.util.LinkedHashSet[AttributeDescriptor]()
+      case Some((defs, tsft)) =>
+        val postReadTransforms = ArrayBuffer.empty[Transform]
+        var requiresRetype = false
 
         Transforms(sft, defs).foreach {
           case t: PropertyTransform =>
             val descriptor = sft.getDescriptor(t.i)
-            readDescriptors.add(descriptor)
+            readDescriptors += descriptor
+            postReadTransforms += t.copy(i = readDescriptors.size - 1)
             addReadPath(ColumnName.encode(descriptor.getLocalName))
 
           case t: RenameTransform =>
+            requiresRetype = true // to rename the sft attribute
             val descriptor = sft.getDescriptor(t.i)
-            readDescriptors.add(descriptor)
+            readDescriptors += descriptor
+            postReadTransforms += PropertyTransform(t.name, t.binding, readDescriptors.size - 1)
             addReadPath(ColumnName.encode(descriptor.getLocalName))
 
           case t: ExpressionTransform =>
@@ -107,49 +123,60 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
               case p: PropertyName if p.getPropertyName.startsWith("$") =>
                 try {
                   val (descriptor, path) = parseJsonPath(p.getPropertyName, sft)
-                  val readPath =
-                    if (descriptor.getJsonSchema().isEmpty) {
-                      ColumnName.encode(descriptor.getLocalName)
-                    } else {
-                      val nested = path.elements.takeWhile(_.isInstanceOf[PathAttribute]).map(_.asInstanceOf[PathAttribute].name)
-                      if (nested.nonEmpty) {
-                        (Seq(ColumnName.encode(descriptor.getLocalName)) ++ nested).mkString(".")
-                      } else {
-                        ColumnName.encode(descriptor.getLocalName)
-                      }
-                    }
-                  readDescriptors.add(descriptor)
-                  addReadPath(readPath)
+                  val td = new AttributeTypeBuilder().binding(classOf[AnyRef]).nillable(true).buildDescriptor(p.getPropertyName)
+                  readDescriptors += td
+                  // can just read the property directly as the read path accounts for it
+                  postReadTransforms += PropertyTransform(t.name, t.binding, readDescriptors.size - 1)
+                  val topLevelCol = ColumnName.encode(descriptor.getLocalName)
+                  if (descriptor.getJsonSchema().isEmpty) {
+                    addReadPath(topLevelCol)
+                  } else {
+                    val nested = path.elements.takeWhile(_.isInstanceOf[PathAttribute]).map(_.asInstanceOf[PathAttribute].name)
+                    addReadPath((Seq(topLevelCol) ++ nested).mkString("."))
+                  }
                 } catch {
                   case NonFatal(e) =>
-                    logger.warn("Error parsing json-path for evaluating read columns:", e)
+                    logger.warn("Error parsing json-path and evaluating read columns:", e)
+                    requiresRetype = true
                     FilterHelper.propertyNames(t.expression, sft).map(sft.getDescriptor).foreach { descriptor =>
-                      readDescriptors.add(descriptor)
+                      readDescriptors += descriptor
                       addReadPath(ColumnName.encode(descriptor.getLocalName))
                     }
+                    postReadTransforms += t
                 }
 
               case _ =>
+                requiresRetype = true
                 FilterHelper.propertyNames(t.expression, sft).map(sft.getDescriptor).foreach { descriptor =>
-                  readDescriptors.add(descriptor)
+                  readDescriptors += descriptor
                   addReadPath(ColumnName.encode(descriptor.getLocalName))
                 }
+                postReadTransforms += t
             }
 
-          case t => throw new UnsupportedOperationException(s"An implementation is missing: ${t.getClass}")
+          case t =>
+            throw new UnsupportedOperationException(s"An implementation is missing: ${t.getClass}")
         }
 
-        val readSftBuilder = new SimpleFeatureTypeBuilder()
-        readSftBuilder.setName(sft.getName)
-        readDescriptors.forEach(d => readSftBuilder.add(d))
-        val readSft = readSftBuilder.buildFeatureType()
-        readSft.getUserData.putAll(sft.getUserData)
-        readSft
+        postReadFilter.foreach { filter =>
+          FilterHelper.propertyNames(filter, sft).foreach { p =>
+            val descriptor = if (p.startsWith("$")) { parseJsonPath(p, sft)._1 } else { sft.getDescriptor(p) }
+            if (!readDescriptors.exists(_.getLocalName == descriptor.getLocalName)) {
+              requiresRetype = true
+              readDescriptors += descriptor
+              addReadPath(ColumnName.encode(descriptor.getLocalName))
+            }
+          }
+        }
+
+        if (requiresRetype) {
+          postReadTransform = Some(tsft -> postReadTransforms.toArray)
+        }
     }
 
-    filtered.foreach(addReadPath)
+    filterCols.foreach(addReadPath)
 
-    val projection = {
+    val readSchema = {
       val fields = readCols.asScala.toSeq.map { case (name, children) =>
         val field = schema.findField(name)
         if (field == null) {
@@ -169,14 +196,22 @@ class SimpleFeatureIcebergSchema private (val sft: SimpleFeatureType, val schema
           buildProjectedType(field, subFields)
         }
       }
-      if (includeRowPositions) { fields ++ Seq(MetadataColumns.FILE_PATH, MetadataColumns.ROW_POSITION) } else { fields }
+      val projection =
+        if (includeRowPositions) { fields ++ Seq(MetadataColumns.FILE_PATH, MetadataColumns.ROW_POSITION) } else { fields }
+      val ids = fields.collectFirst { case f if f.name() == FeatureIdField => Int.box(f.fieldId()) }
+      new Schema(projection.asJava, schema.getAliases, ids.toSet.asJava)
     }
 
-    val ids = projection.collectFirst { case f if f.name() == FeatureIdField => Int.box(f.fieldId()) }
+    val readSft = {
+      val readSftBuilder = new SimpleFeatureTypeBuilder()
+      readSftBuilder.setName(sft.getName)
+      readDescriptors.foreach(readSftBuilder.add)
+      val readSft = readSftBuilder.buildFeatureType()
+      readSft.getUserData.putAll(sft.getUserData)
+      readSft
+    }
 
-    val readSchema = new Schema(projection.asJava, schema.getAliases, ids.toSet.asJava)
-
-    new SimpleFeatureIcebergSchema(readSft, readSchema)
+    ReadSchema(new SimpleFeatureIcebergSchema(readSft, readSchema), postReadTransform)
   }
 
   /**
@@ -373,4 +408,12 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
     // re-stamp the field ids so that they don't overlap our other fields
     TypeUtil.assignFreshIds(typed, fieldIds)
   }
+
+  /**
+   * Read schema
+   *
+   * @param schema schema
+   * @param transforms any post-read transforms
+   */
+  case class ReadSchema(schema: SimpleFeatureIcebergSchema, transforms: Option[(SimpleFeatureType, Array[Transform])])
 }

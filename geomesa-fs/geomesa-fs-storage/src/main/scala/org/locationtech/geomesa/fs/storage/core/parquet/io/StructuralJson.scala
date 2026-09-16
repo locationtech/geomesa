@@ -29,7 +29,24 @@ object StructuralJson {
   /**
    * Serializes a gson element to a compact JSON string
    */
-  def compact(element: JsonElement): String = if (element.isJsonNull) { null } else { element.toString }
+  def compact(element: JsonElement): AnyRef = {
+    if (element.isJsonNull) {
+      null
+    } else if (element.isJsonPrimitive) {
+      val primitive = element.getAsJsonPrimitive
+      if (primitive.isString) {
+        primitive.getAsString
+      } else if (primitive.isNumber) {
+        primitive.getAsNumber
+      } else if (primitive.isBoolean) {
+        Boolean.box(primitive.getAsBoolean)
+      } else {
+        primitive.toString
+      }
+    } else {
+      element.toString
+    }
+  }
 
   // ---- binary ----
 

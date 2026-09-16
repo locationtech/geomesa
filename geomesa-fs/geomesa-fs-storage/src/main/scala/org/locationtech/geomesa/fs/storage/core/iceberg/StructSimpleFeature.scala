@@ -377,23 +377,10 @@ object StructSimpleFeature {
         if (i == -1) {
           JsonNull.INSTANCE
         } else {
-          val field = fields.get(i)
-          val json = toJson(field.`type`(), value.asInstanceOf[StructLike].get(i, classOf[AnyRef]), path.tail)
-          if (json == null || json.isJsonNull) {
-            JsonNull.INSTANCE
-          } else {
-            val obj = new JsonObject()
-            obj.add(field.name(), json)
-            obj
-          }
+          toJson(fields.get(i).`type`(), value.asInstanceOf[StructLike].get(i, classOf[AnyRef]), path.tail)
         }
       } else if (t.typeId() == TypeID.MAP) {
-        val obj = new JsonObject()
-        val json = toJson(t.asMapType().valueType(), value.asInstanceOf[java.util.Map[AnyRef, AnyRef]].get(path.head), path.tail)
-        if (json != null && !json.isJsonNull) {
-          obj.add(path.head, json)
-        }
-        obj
+        toJson(t.asMapType().valueType(), value.asInstanceOf[java.util.Map[AnyRef, AnyRef]].get(path.head), path.tail)
       } else {
         JsonNull.INSTANCE
       }

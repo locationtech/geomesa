@@ -388,8 +388,8 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         Filter.INCLUDE -> features,
         ECQL.toFilter(""""$.props.name" = 'alice'""") -> features.take(1),
         ECQL.toFilter(""""$.props.age" > 20""") -> (features.take(1) ++ features.slice(2, 3)),
-        ECQL.toFilter("""jsonPath('$.props.nested[?(@.flag == true)].flag') = true""") -> features.take(1),
         ECQL.toFilter(""""$.props.scores.x" = 1""") -> (features.take(1) ++ features.slice(3, 4)),
+        ECQL.toFilter("""jsonPath('$.props.nested[?(@.flag == true)].flag') = true""") -> features.take(1),
       )
       val pathTransform = """"$.props.name""""
       val transforms = Seq(null: Array[String], Array("props", "geom"), Array(pathTransform, "dtg", "geom"))
@@ -426,7 +426,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
                   }
                 } else if (transform.contains(pathTransform)) {
                   val expectedJson = expected.getAttribute("props").asInstanceOf[String]
-                  val actualJson = actual.get.getAttribute(pathTransform).asInstanceOf[String]
+                  val actualJson = actual.get.getAttribute(pathTransform.replace("\"", "")).asInstanceOf[String]
                   if (expectedJson == null) {
                     actualJson must beNull
                   } else {
