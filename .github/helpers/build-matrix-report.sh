@@ -67,7 +67,7 @@ for wf in "$@"; do
 done
 
 # one batch call: one "true"/"false" per list, in the same order we fed them in.
-mapfile -t DECISIONS < <(printf '%s\n' "${ALL_LISTS[@]}" | .github/detect-affected-modules.sh --batch "$BASE_SHA" "$HEAD_SHA")
+mapfile -t DECISIONS < <(printf '%s\n' "${ALL_LISTS[@]}" | .github/helpers/detect-affected-modules.sh --batch "$BASE_SHA" "$HEAD_SHA")
 if [[ "${#DECISIONS[@]}" -ne "${#ALL_LISTS[@]}" ]]; then
   echo "$(basename "$0"): expected ${#ALL_LISTS[@]} decisions from detect, got ${#DECISIONS[@]}" 1>&2
   exit 1
