@@ -106,7 +106,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          .github/build-matrix-report.sh \
+          .github/helpers/build-matrix-report.sh \
             .github/workflows/build-and-test.yml \
             .github/workflows/integration-tests.yml \
             .github/workflows/assembly.yml \
