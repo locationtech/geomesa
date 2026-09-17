@@ -178,8 +178,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
+                    <!--
+                      note: we previously set reuseForks=false here (spark contexts interfere across reused forks),
+                      but failsafe/surefire 3.6.0 regressed such that reuseForks=false discovers 0 tests under the
+                      auto-selected junit-platform provider. we rely on separate CI jobs to isolate spark contexts instead.
+                    -->
                     <configuration>
-                        <reuseForks>false</reuseForks> <!-- spark contexts interfere with each other if re-using forks -->
                         <systemPropertyVariables>
                             <spark.serializer>org.apache.spark.serializer.KryoSerializer</spark.serializer>
                             <spark.kryo.registrator>org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator</spark.kryo.registrator>
@@ -191,8 +195,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
+                    <!--
+                      note: we previously set reuseForks=false here (spark contexts interfere across reused forks),
+                      but failsafe/surefire 3.6.0 regressed such that reuseForks=false discovers 0 tests under the
+                      auto-selected junit-platform provider. we rely on separate CI jobs to isolate spark contexts instead.
+                    -->
                     <configuration>
-                        <reuseForks>false</reuseForks> <!-- spark contexts interfere with each other if re-using forks -->
                         <systemPropertyVariables>
                             <spark.serializer>org.apache.spark.serializer.KryoSerializer</spark.serializer>
                             <spark.kryo.registrator>org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator</spark.kryo.registrator>
