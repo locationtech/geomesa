@@ -20,7 +20,7 @@
 set -e
 
 VALID_VERSIONS=("2.12" "2.13")
-FULL_VERSIONS=("2.12.21" "2.13.18")
+PATCH_VERSIONS=("21" "18")
 
 usage() {
   echo "Usage: $(basename "$0") [-h|--help] <version>
@@ -37,15 +37,15 @@ fi
 
 BASEDIR="$(dirname "$0")/../.."
 TO_VERSION=$1
-FULL_VERSION=""
+TO_PATCH_VERSION=""
 
 for i in "${!VALID_VERSIONS[@]}"; do
   if [[ $TO_VERSION == "${VALID_VERSIONS[$i]}" ]]; then
-    FULL_VERSION="${FULL_VERSIONS[$i]}"
+    TO_PATCH_VERSION="${PATCH_VERSIONS[$i]}"
   fi
 done
 
-if [[ -z "$FULL_VERSION" ]]; then
+if [[ -z "$TO_PATCH_VERSION" ]]; then
   echo "Invalid Scala version: $1. Valid versions: ${VALID_VERSIONS[*]}" 1>&2
   exit 1
 fi
@@ -68,14 +68,12 @@ find "$BASEDIR" -name 'pom.xml' -not -path '*target*' | while read -r file; do
   sed "${sed_no_backup[@]}" "s/\(artifactId.*\)_$FROM_VERSION/\1_$TO_VERSION/g" "$file"
 done
 
-# update <scala.binary.version> in parent POM
+# update scala.binary.version and scala.patch.version in .mvn/maven.config
 # match any scala binary version to ensure idempotency
-sed "${sed_no_backup[@]}" "1,/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</s/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</<scala.binary.version>$TO_VERSION</" \
-  "$BASEDIR/pom.xml"
-
-# update <scala.version> in parent POM
-sed "${sed_no_backup[@]}" "1,/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</s/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</<scala.version>$FULL_VERSION</" \
-  "$BASEDIR/pom.xml"
+sed "${sed_no_backup[@]}" "s/-Dscala\.binary\.version=[0-9]\.[0-9][0-9]*/-Dscala.binary.version=$TO_VERSION/" \
+  "$BASEDIR/.mvn/maven.config"
+sed "${sed_no_backup[@]}" "s/-Dscala\.patch\.version=[0-9][0-9]*/-Dscala.patch.version=$TO_PATCH_VERSION/" \
+  "$BASEDIR/.mvn/maven.config"
 
 # Update enforcer rules
 sed "${sed_no_backup[@]}" "s|<exclude>\*:\*_$TO_VERSION</exclude>|<exclude>*:*_$FROM_VERSION</exclude>|" "$BASEDIR/pom.xml"
