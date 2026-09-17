@@ -65,7 +65,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PROJECT_LIST: ${{ matrix.projects.list }}
         run: |
-          affected="$(.github/detect-affected-modules.sh "$BASE_SHA" "$HEAD_SHA" "$PROJECT_LIST")"
+          affected="$(.github/helpers/detect-affected-modules.sh "$BASE_SHA" "$HEAD_SHA" "$PROJECT_LIST")"
           echo "affected=$affected" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         if: matrix.projects.name=='pyspark'
