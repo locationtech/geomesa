@@ -12,6 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg.expressions.Expression.Operation
 import org.apache.iceberg.expressions.ExpressionVisitors.ExpressionVisitor
 import org.apache.iceberg.expressions._
+import org.apache.iceberg.types.Type
+import org.apache.iceberg.types.Type.TypeID
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
@@ -21,6 +23,7 @@ import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, Column
 import org.locationtech.geomesa.fs.storage.core.schemes.{PartitionScheme, SpatialScheme}
 import org.locationtech.geomesa.index.strategies.{IdFilterStrategy, SpatialFilterStrategy}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
+import org.locationtech.geomesa.utils.json.JsonPathParser._
 import org.locationtech.jts.geom.Point
 
 import java.util.Date
@@ -28,26 +31,30 @@ import scala.reflect.ClassTag
 
 object IcebergFilterConverter extends LazyLogging {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+  import scala.collection.JavaConverters._
+
   /**
    * Returns an iceberg expression and a residual GeoTools filter that isn't captured by the expression (if any)
    *
-   * @param sft simple feature type
+   * @param schema table schema
    * @param filter geotools filter
    * @return
    */
-  def apply(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], filter: Filter): ReadFilter = {
+  def apply(schema: SimpleFeatureIcebergSchema, schemes: Seq[PartitionScheme], filter: Filter): ReadFilter = {
     if (filter == Filter.INCLUDE) {
-      ReadFilter(Expressions.alwaysTrue(), None, Set.empty)
+      ReadFilter.clientSide(None)
     } else if (filter == Filter.EXCLUDE) {
-      ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
+      ReadFilter.exclude()
     } else {
       val fid = if (FilterHelper.hasIdFilter(filter)) { Seq(SimpleFeatureSchema.FeatureIdField) } else { Seq.empty }
       val names = (fid ++ FilterHelper.propertyNames(filter)).map(ColumnName.apply)
-      names.foldLeft(ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty))(reduce(sft, schemes))
+      names.foldLeft(ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty))(reduce(schema, schemes))
     }
   }
 
-  private def reduce(sft: SimpleFeatureType, schemes: Seq[PartitionScheme])(result: ReadFilter, name: ColumnName): ReadFilter = {
+  private def reduce(schema: SimpleFeatureIcebergSchema, schemes: Seq[PartitionScheme])(result: ReadFilter, name: ColumnName): ReadFilter = {
     val filter = result.remainder.orNull
     if (filter == null) {
       return result // no more filter to evaluate
@@ -56,18 +63,24 @@ object IcebergFilterConverter extends LazyLogging {
       if (name.column == SimpleFeatureSchema.FeatureIdField) {
         fid(result)
       } else {
-        val bindings = ObjectType.selectType(sft.getDescriptor(name.attribute))
-        bindings.head match {
-          // note: non-points use repeated values, which aren't supported in parquet predicates
-          case ObjectType.GEOMETRY => spatial(sft, schemes, name, filter)
-          case ObjectType.DATE     => attribute[Date](sft, name, filter, Some(dateToMicros))
-          case ObjectType.STRING   => attribute[String](sft, name, filter)
-          case ObjectType.INT      => attribute[Integer](sft, name, filter)
-          case ObjectType.LONG     => attribute[java.lang.Long](sft, name, filter)
-          case ObjectType.FLOAT    => attribute[java.lang.Float](sft, name, filter)
-          case ObjectType.DOUBLE   => attribute[java.lang.Double](sft, name, filter)
-          case ObjectType.BOOLEAN  => attribute[java.lang.Boolean](sft, name, filter)
-          case _ => ReadFilter(Expressions.alwaysTrue(), result.remainder, Set(name.column))
+        val descriptor = schema.sft.getDescriptor(name.attribute)
+        if (descriptor != null) {
+          val bindings = ObjectType.selectType(schema.sft.getDescriptor(name.attribute))
+          bindings.head match {
+            case ObjectType.GEOMETRY => spatial(schema.sft, schemes, name, filter)
+            case ObjectType.DATE     => attribute[Date](schema.sft, name, filter, Some(dateToMicros))
+            case ObjectType.STRING   => attribute[String](schema.sft, name, filter)
+            case ObjectType.INT      => attribute[Integer](schema.sft, name, filter)
+            case ObjectType.LONG     => attribute[java.lang.Long](schema.sft, name, filter)
+            case ObjectType.FLOAT    => attribute[java.lang.Float](schema.sft, name, filter)
+            case ObjectType.DOUBLE   => attribute[java.lang.Double](schema.sft, name, filter)
+            case ObjectType.BOOLEAN  => attribute[java.lang.Boolean](schema.sft, name, filter)
+            case _                   => ReadFilter.clientSide(result.remainder)
+          }
+        } else if (name.attribute.startsWith("$")) {
+          jsonPath(schema, name.attribute, filter)
+        } else {
+          throw new IllegalArgumentException(s"Unknown attribute: ${name.attribute}")
         }
       }
     ReadFilter(Expressions.and(predicate.expression, result.expression), predicate.remainder, predicate.columns ++ result.columns)
@@ -80,7 +93,7 @@ object IcebergFilterConverter extends LazyLogging {
     val ids = idFilters.fold(Set.empty[String])(IdFilterStrategy.intersectIdFilters)
     if (ids.isEmpty) {
       logger.warn(s"Detected an ID filter, but could not extract it: ${ECQL.toCQL(filter)}")
-      ReadFilter(Expressions.alwaysTrue(), result.remainder, fidCol)
+      ReadFilter.clientSide(result.remainder)
     } else {
       ReadFilter(ids.map(Expressions.equal(SimpleFeatureSchema.FeatureIdField, _)).reduce(Expressions.or), notIds, fidCol)
     }
@@ -89,17 +102,18 @@ object IcebergFilterConverter extends LazyLogging {
   private def spatial(sft: SimpleFeatureType, schemes: Seq[PartitionScheme], name: ColumnName, filter: Filter): ReadFilter = {
     val (spatial, nonSpatial) = FilterExtractingVisitor(filter, name.attribute, sft, SpatialFilterStrategy.spatialCheck)
     if (spatial.isEmpty) {
-      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty)
+      // couldn't extract anything, fall back to client-side evaluation
+      return ReadFilter.clientSide(filter)
     }
 
     val bounds = FilterHelper.extractGeometries(spatial.get, name.attribute)
     if (bounds.disjoint) {
-      return ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
+      return ReadFilter.exclude()
     }
     val xyBounds = bounds.values.map(GeometryUtils.bounds)
     if (xyBounds.isEmpty) {
-      // couldn't extract anything, all evaluation will be client-side against the raw filter
-      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(name.column))
+      // couldn't extract anything, fall back to client-side evaluation
+      return ReadFilter.clientSide(filter)
     }
 
     // row/group level filter against the bbox field
@@ -117,10 +131,9 @@ object IcebergFilterConverter extends LazyLogging {
     val spatialScheme = schemes.collectFirst { case s: SpatialScheme if s.attribute == name.attribute => s }
     val partitionPredicate = spatialScheme.fold[Expression](Expressions.alwaysTrue())(_.getCoveringExpression(xyBounds))
 
-    val (remaining, geomCol) = if (bounds.precise) { (nonSpatial, None) } else { (Some(filter), Some(name.column)) }
-    val filterCols = bboxCols ++ geomCol
+    val remaining = if (bounds.precise) { nonSpatial } else { Some(filter) }
 
-    ReadFilter(Expressions.and(bboxPredicate, partitionPredicate), remaining, filterCols)
+    ReadFilter(Expressions.and(bboxPredicate, partitionPredicate), remaining, bboxCols)
   }
 
   private def attribute[T : ClassTag](
@@ -130,16 +143,42 @@ object IcebergFilterConverter extends LazyLogging {
       transform: Option[T => Any] = None): ReadFilter = {
     val (attribute, nonAttribute) = FilterExtractingVisitor(filter, name.attribute, sft)
     if (attribute.isEmpty) {
-      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set.empty)
+      // couldn't extract anything, fall back to client-side evaluation
+      return ReadFilter.clientSide(filter)
     }
 
     val binding = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
-    val bounds = FilterHelper.extractAttributeBounds(attribute.get, name.attribute, binding)
+    predicate(filter, attribute.get, nonAttribute, name.attribute, name.column, binding, transform)
+  }
+
+  /**
+   * Builds an iceberg predicate for a scalar attribute or nested field reference
+   *
+   * @param filter the full filter being reduced (used as the client-side residual when we can't fully push down)
+   * @param attributePart the portion of the filter that references our attribute
+   * @param nonAttributePart the portion of the filter that doesn't reference our attribute
+   * @param attribute the attribute name used in the geotools filter
+   * @param column the iceberg reference name (dotted for nested struct fields), including the encoded column
+   * @param binding the java type binding of the referenced field
+   * @param transform optional transform to convert extracted values into the iceberg storage representation
+   * @tparam T value type
+   * @return
+   */
+  private def predicate[T](
+      filter: Filter,
+      attributePart: Filter,
+      nonAttributePart: Option[Filter],
+      attribute: String,
+      column: String,
+      binding: Class[T],
+      transform: Option[T => Any]): ReadFilter = {
+    val bounds = FilterHelper.extractAttributeBounds(attributePart, attribute, binding)
     if (bounds.disjoint) {
-      return ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
+      return ReadFilter.exclude()
     } else if (bounds.isEmpty || bounds.exists(b => !b.isBounded)) {
-      // couldn't extract anything, all evaluation will be client-side against the raw filter
-      return ReadFilter(Expressions.alwaysTrue(), Some(filter), Set(name.column))
+      // TODO detect the case where bounds were extracted, but are the wrong type (i.e. MyIntVar = 'alice') and return exclude
+      // couldn't extract anything, fall back to client-side evaluation
+      return ReadFilter.clientSide(filter)
     }
     val values = transform match {
       case None => bounds.values
@@ -150,13 +189,13 @@ object IcebergFilterConverter extends LazyLogging {
     }
     val filters = values.map { bounds =>
       if (bounds.isEquals) {
-        Expressions.equal(name.column, bounds.lower.value.get)
+        Expressions.equal(column, bounds.lower.value.get)
       } else {
         val lower = bounds.lower.value.map { value =>
-          if (bounds.lower.inclusive) { Expressions.greaterThanOrEqual(name.column, value) } else { Expressions.greaterThan(name.column, value) }
+          if (bounds.lower.inclusive) { Expressions.greaterThanOrEqual(column, value) } else { Expressions.greaterThan(column, value) }
         }
         val upper = bounds.upper.value.map { value =>
-          if (bounds.upper.inclusive) { Expressions.lessThanOrEqual(name.column, value) } else { Expressions.lessThan(name.column, value) }
+          if (bounds.upper.inclusive) { Expressions.lessThanOrEqual(column, value) } else { Expressions.lessThan(column, value) }
         }
         (lower, upper) match {
           case (Some(lo), Some(hi)) => Expressions.and(lo, hi)
@@ -166,9 +205,126 @@ object IcebergFilterConverter extends LazyLogging {
         }
       }
     }
-    val predicate = merge(filters)
-    val remaining = if (bounds.precise) { nonAttribute } else { Some(filter) }
-    ReadFilter(predicate, remaining, Set(name.column))
+    val result = merge(filters)
+    val remaining = if (bounds.precise) { nonAttributePart } else { Some(filter) }
+    ReadFilter(result, remaining, Set(column))
+  }
+
+  private def jsonPath(schema: SimpleFeatureIcebergSchema, pathString: String, filter: Filter): ReadFilter = {
+    val (descriptor, path) = parseJsonPath(pathString, schema.sft)
+    if (descriptor.getJsonSchema().isEmpty) {
+      // not a structural type - the field is stored as an opaque variant, so we can't push down against it
+      return ReadFilter.clientSide(filter)
+    }
+    val topLevelColumn = ColumnName.encode(descriptor.getLocalName)
+    val field = schema.schema.findField(topLevelColumn)
+    if (field == null || path.function.isDefined) {
+      // field shouldn't ever be null, but guard as a sanity check
+      // path functions (.min(), .length(), etc) can't be evaluated as an iceberg predicate
+      return ReadFilter.clientSide(filter)
+    }
+    // extract just the part of the filter that references our json path - no sft as it won't recognize the path as an attribute
+    val (attribute, nonAttribute) = FilterExtractingVisitor(filter, pathString, null: SimpleFeatureType)
+    if (attribute.isEmpty) {
+      // couldn't extract anything, fall back to client-side evaluation
+      return ReadFilter.clientSide(filter)
+    }
+
+    // navigate the remaining path elements through the nested struct type to find the leaf fields we're filtering on
+    navigate(topLevelColumn, field.`type`(), path) match {
+      // can't express the json path as an iceberg predicates, evaluate it client-side instead
+      case None => ReadFilter.clientSide(filter)
+      case Some(matchingFields) =>
+        if (matchingFields.isEmpty) {
+          // the path was evaluated but didn't match any fields
+          throw new IllegalArgumentException(
+            s"Invalid JSON path - does not match any elements of the structural type $topLevelColumn: $pathString")
+        }
+        val filters = matchingFields.map { case (column, leafType) =>
+          val binding = leafType.typeId() match {
+            case TypeID.STRING  => Some(classOf[String])
+            case TypeID.INTEGER => Some(classOf[Integer])
+            case TypeID.LONG    => Some(classOf[java.lang.Long])
+            case TypeID.FLOAT   => Some(classOf[java.lang.Float])
+            case TypeID.DOUBLE  => Some(classOf[java.lang.Double])
+            case TypeID.BOOLEAN => Some(classOf[java.lang.Boolean])
+            // unsupported leaf type (dates, times, uuids, decimals, binary, etc) - evaluate client-side
+            // TODO seems like we should be able to support at least dates here?
+            case _ => None
+          }
+          binding match {
+            case None => ReadFilter.clientSide(filter)
+            case Some(b) => predicate(filter, attribute.get, nonAttribute, pathString, column, b, None)
+          }
+        }
+        // if the path matches more than 1 leaf node, combine the filter expressions with ORs
+        filters.reduceLeft[ReadFilter] { case (left, right) =>
+          // if we have a client-side evaluation, then just do that
+          Seq(left, right).find(_.expression == Expressions.alwaysTrue()).getOrElse {
+            // predicate will always return either the full filter or the non-attribute part
+            val f = if (left.remainder.contains(filter) || right.remainder.contains(filter)) { Some(filter) } else { nonAttribute }
+            ReadFilter(Expressions.or(left.expression, right.expression), f, left.columns ++ right.columns)
+          }
+        }
+    }
+  }
+
+  /**
+   * Navigates a nested struct type following a json path, returning the nested field reference names and the
+   * leaf type if the path points at a scalar field, or None if the path can't be pushed down
+   *
+   * @param fieldPath dot-delimited path to the current field being evaluated
+   * @param fieldType the type of the field the path currently points at
+   * @param path the remaining path to navigate
+   * @return pairs of nested field names (matching the stored schema) and the leaf primitive type, or None if the path is not supported
+   */
+  private def navigate(fieldPath: String, fieldType: Type, path: JsonPath): Option[Seq[(String, Type)]] = {
+    if (path.isEmpty) {
+      if (fieldType.isPrimitiveType) {
+        return Some(Seq(fieldPath -> fieldType))
+      } else {
+        throw new UnsupportedOperationException(
+          s"Invalid JSON path - filters on non-leaf nodes are not supported: $$.$fieldPath")
+      }
+    }
+    path.head match {
+      case PathAttribute(name, _) if fieldType.isStructType =>
+        val nested = fieldType.asStructType().caseInsensitiveField(name)
+        if (nested == null) {
+          Some(Seq.empty) // path references a field that isn't in our schema
+        } else {
+          navigate(s"$fieldPath.${nested.name()}", nested.`type`(), path.tail)
+        }
+
+      case PathAttributeWildCard if fieldType.isStructType =>
+        val tail = path.tail
+        val children = fieldType.asStructType().fields().asScala.map { nested =>
+          val nestedPath = s"$fieldPath.${nested.name()}"
+          if (tail.isEmpty) {
+            if (nested.`type`().isPrimitiveType) {
+              Some(Seq(nestedPath -> nested.`type`()))
+            } else {
+              Some(Seq.empty)
+            }
+          } else {
+            navigate(nestedPath, nested.`type`(), tail)
+          }
+        }
+        // if any children can't be evaluated, the whole expression can't be evaluated
+        if (children.exists(_.isEmpty)) { None } else { Some(children.flatMap(_.get).toSeq) }
+
+      // valid predicate, but we can't evaluate it as an iceberg expression
+      case _: PathAttribute if fieldType.isMapType => None
+      case PathAttributeWildCard if fieldType.isMapType => None
+      case _: PathIndexRange if fieldType.isListType => None
+      case _: PathIndices if fieldType.isListType => None
+      case PathIndexWildCard if fieldType.isListType => None
+      case PathDeepScan => None
+      case _: PathFilter => None
+
+      // anything else doesn't match the schema
+      case _ => Some(Seq.empty)
+    }
   }
 
   /**
@@ -203,27 +359,26 @@ object IcebergFilterConverter extends LazyLogging {
    *
    * @param expression expression to apply to the scan
    * @param remainder remaining cql filter that isn't captured by the expression
-   * @param columns column names (encoded) needed for evaluating both the expression and filter
+   * @param columns column names (encoded) needed for evaluating the expression (but *not* the remaining filter)
    */
   case class ReadFilter(expression: Expression, remainder: Option[Filter], columns: Set[String])
+
+  object ReadFilter {
+    def exclude(): ReadFilter = ReadFilter(Expressions.alwaysFalse(), None, Set.empty)
+    def clientSide(filter: Filter): ReadFilter = clientSide(Option(filter))
+    def clientSide(filter: Option[Filter]): ReadFilter = ReadFilter(Expressions.alwaysTrue(), filter, Set.empty)
+  }
 
   /**
    * Visitor to extract column references (names) from an expression
    */
   private object ReferenceVisitor extends ExpressionVisitor[Set[String]] {
-
     override def alwaysTrue: Set[String] = Set.empty
-
     override def alwaysFalse: Set[String] = Set.empty
-
     override def not(result: Set[String]): Set[String] = result
-
     override def and(leftResult: Set[String], rightResult: Set[String]): Set[String] = leftResult ++ rightResult
-
     override def or(leftResult: Set[String], rightResult: Set[String]): Set[String] = leftResult ++ rightResult
-
     override def predicate[T](pred: UnboundPredicate[T]): Set[String] = unwrapTerm(pred.term())
-
     override def predicate[T](pred: BoundPredicate[T]): Set[String] = unwrapTerm(pred.term())
 
     private def unwrapTerm(term: Term): Set[String] = term match {
@@ -233,5 +388,4 @@ object IcebergFilterConverter extends LazyLogging {
       case _ => Set.empty
     }
   }
-
 }

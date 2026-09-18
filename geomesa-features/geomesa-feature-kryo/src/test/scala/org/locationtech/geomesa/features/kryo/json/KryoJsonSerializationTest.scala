@@ -9,13 +9,11 @@
 package org.locationtech.geomesa.features.kryo.json
 
 import com.esotericsoftware.kryo.io.{Input, Output}
-import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.json.{JsonPathParser, JsonPathPropertyAccessor}
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 
-@RunWith(classOf[JUnitRunner])
-class KryoJsonSerializationTest extends Specification {
+class KryoJsonSerializationTest extends SpecificationWithJUnit {
 
   import scala.collection.JavaConverters._
 

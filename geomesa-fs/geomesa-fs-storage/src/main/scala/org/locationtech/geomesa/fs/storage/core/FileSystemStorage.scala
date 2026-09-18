@@ -39,7 +39,6 @@ import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.Transform.{PropertyTransform, Transforms}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, WithClose}
 
 import java.io.{Closeable, Flushable}
@@ -135,36 +134,27 @@ case class FileSystemStorage(
 
     val configured = QueryRunner.configureQuery(sft, query)
     val filter = Option(configured.getFilter).getOrElse(Filter.INCLUDE)
-    val icebergFilter = IcebergFilterConverter(sft, schemes, filter)
+    val icebergFilter = IcebergFilterConverter(schema, schemes, filter)
     val visFilter = VisibilityUtils.visible(authProvider)
     val transform = configured.getHints.getTransform
     val includeFids = configured.getHints.isIncludeFid
     val sort = configured.getHints.getSortFields
     val max = configured.getHints.getMaxFeatures
-    val readSchema = schema.read(transform.map(_._1), icebergFilter.columns, includeFids, forUpdate)
+    val readSchema = schema.read(transform, icebergFilter.remainder, icebergFilter.columns, includeFids, forUpdate)
 
     logger.debug(s"Running query '${query.getTypeName}' ${ECQL.toCQL(filter)}")
     logger.debug(s"  Original filter: ${ECQL.toCQL(query.getFilter)}")
     logger.debug(s"  Push-down filter: ${icebergFilter.expression}")
     logger.debug(s"  Client-side filter: ${icebergFilter.remainder.fold("none")(ECQL.toCQL)}")
     logger.debug(s"  Transforms: ${transform.fold("none") { case (t, _) => if (t.isEmpty) { "empty" } else { t }}}, with${if (includeFids) { "" } else { "out" }} FIDs")
-    logger.debug(s"  Read schema: ${readSchema.schema}")
+    logger.debug(s"  Read schema: ${readSchema.schema.schema}")
     logger.debug(s"  Sort: ${sort.fold("none") { fields => fields.map { case (f, rev) => s"$f ${if (rev) "descending" else ""}"}.mkString(", ")}}")
     logger.debug(s"  Max features: ${max.getOrElse("none")}")
 
-    val remainingFilter = icebergFilter.remainder.map(FastFilterFactory.optimize(readSchema.sft, _))
-    val transformer = transform.flatMap { case (tdefs, tsft) =>
-      val transforms = Transforms(readSchema.sft, tdefs).toArray
-      if (tsft == readSchema.sft && transforms.forall(_.isInstanceOf[PropertyTransform])) {
-        // simple case where transform is handled by the iceberg scan
-        None
-      } else {
-        // need to evaluate transform expressions
-        Some(new TransformSimpleFeature(tsft, transforms))
-      }
-    }
+    val remainingFilter = icebergFilter.remainder.map(FastFilterFactory.optimize(readSchema.schema.sft, _))
+    val transformer = readSchema.transforms.map { case (tsft, transforms) => new TransformSimpleFeature(tsft, transforms) }
 
-    val scan = new IcebergParquetScan(table, readSchema, icebergFilter.expression, threads)
+    val scan = new IcebergParquetScan(table, readSchema.schema, icebergFilter.expression, threads)
     try {
       val visible = scan.filter(visFilter.apply)
       val filtered = remainingFilter.fold(visible)(f => visible.filter(f.evaluate))
@@ -238,7 +228,7 @@ case class FileSystemStorage(
      *
      * @return
      */
-    def files(): FluentScan = FileScan(table, sft, schemes)
+    def files(): FluentScan = FileScan(table, schema, schemes)
 
     /**
      * Gets all partitions in this storage instance

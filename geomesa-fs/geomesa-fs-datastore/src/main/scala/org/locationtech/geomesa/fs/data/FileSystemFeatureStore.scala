@@ -17,7 +17,6 @@ import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
@@ -26,6 +25,7 @@ import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, Column
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.json.JsonPathPropertyNameResolver
 
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicLong
@@ -98,6 +98,31 @@ class FileSystemFeatureStore(
 
     // note: DelegateSimpleFeatureIterator will close the iterator by checking that it implements Closeable
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
+  }
+
+  /**
+   * Resolves filter property names against the schema, but preserves JSON paths.
+   *
+   * The base class runs `DataUtilities.resolvePropertyNames`, whose `PropertyNameResolvingVisitor`
+   * evaluates each property name against the feature type and rewrites it to the resolved attribute's
+   * local name. A JSON path like `$.props.name` evaluates (via GeoMesa's JSON property accessor) to
+   * the `props` descriptor, so the default would collapse the whole path to `props` - losing the nested
+   * field that IcebergFilterConverter needs to push down. We keep `$`-prefixed names verbatim and
+   * resolve everything else as usual.
+   *
+   * @param query the query being planned
+   * @return the query with non-JSON-path property names resolved
+   */
+  override protected def resolvePropertyNames(query: Query): Query = {
+    val filter = query.getFilter
+    if (filter == null || filter == Filter.INCLUDE || filter == Filter.EXCLUDE) { query } else {
+      val resolved = filter.accept(new JsonPathPropertyNameResolver(getSchema), null).asInstanceOf[Filter]
+      if (resolved == filter) { query } else {
+        val newQuery = new Query(query)
+        newQuery.setFilter(resolved)
+        newQuery
+      }
+    }
   }
 
   override def canTransact: Boolean = false

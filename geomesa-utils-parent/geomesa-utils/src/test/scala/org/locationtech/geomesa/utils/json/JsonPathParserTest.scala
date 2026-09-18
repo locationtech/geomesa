@@ -6,10 +6,10 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.kryo.json
+package org.locationtech.geomesa.utils.json
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser._
+import org.locationtech.geomesa.utils.json.JsonPathParser._
 import org.parboiled.errors.ParsingException
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

@@ -6,10 +6,9 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.kryo.json
+package org.locationtech.geomesa.utils.json
 
 import org.apache.commons.text.StringEscapeUtils
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser._
 import org.locationtech.geomesa.utils.text.BasicParser
 import org.parboiled.Context
 import org.parboiled.errors.{ErrorUtils, ParsingException}
@@ -347,7 +346,8 @@ object JsonPathParser {
 
 private class JsonPathParser extends BasicParser {
 
-  import PathFilter._
+  import JsonPathParser.PathFilter._
+  import JsonPathParser._
 
   // main parsing rule
   def Path: Rule1[JsonPath] =

@@ -128,7 +128,7 @@ object ParquetPartitionInputFormat {
       catalog = StorageCatalog(conf)
       storage = catalog.load(typeName)
 
-      val readSchema = storage.schema.read(None, Set.empty)
+      val readSchema = storage.schema.read(None, None, Set.empty).schema
       reader = new IcebergParquetScan(storage.table, readSchema, Expressions.alwaysTrue(), math.min(8, files.size), Some(filterFiles))
     }
 

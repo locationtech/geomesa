@@ -147,6 +147,9 @@ object SimpleFeatureSpec {
       val keyClass = Option(keyBinding).getOrElse(classOf[String])
       val valueClass = Option(valueBinding).getOrElse(classOf[String])
       MapAttributeSpec(name, keyClass, valueClass, options)
+    } else if (binding == classOf[Object]) {
+      // treat it as a string
+      SimpleAttributeSpec(name, classOf[String], options)
     } else {
       throw new IllegalArgumentException(s"Unknown type binding $binding")
     }

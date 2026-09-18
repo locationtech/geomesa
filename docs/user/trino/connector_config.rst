@@ -32,3 +32,4 @@ filter can eliminate rows based on fast bounding box comparisons, without having
 value. But when disabled, the bounding box columns can be skipped, resulting in higher throughput. Thus, the filter is most
 useful when it eliminates many rows, for example when data is coarsely partitioned. Otherwise, regular manifest and
 file-level pruning may be sufficient. See :ref:`trino_design` for more details on query pruning.
+

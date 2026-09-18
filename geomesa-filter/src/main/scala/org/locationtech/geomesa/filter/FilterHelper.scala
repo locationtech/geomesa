@@ -15,13 +15,12 @@ import org.geotools.api.filter.expression.{Expression, PropertyName}
 import org.geotools.api.filter.spatial._
 import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
 import org.geotools.api.temporal.Period
-import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.geomesa.utils.geotools.{AttributeExtractingVisitor, GeometryUtils}
 import org.locationtech.jts.geom._
 
 import java.time.{ZoneOffset, ZonedDateTime}
@@ -492,11 +491,23 @@ object FilterHelper {
     * @param sft simple feature type
     * @return unique property names referenced in the filter, in sorted order
     */
-  def propertyNames(filter: Filter, sft: SimpleFeatureType): Seq[String] =
-    DataUtilities.attributeNames(filter, sft).toSeq.distinct.sorted
+  def propertyNames(filter: Filter, sft: SimpleFeatureType): Seq[String] = {
+    if (filter == null) {
+      return Seq.empty
+    }
+    val visitor = new AttributeExtractingVisitor(sft)
+    filter.accept(visitor, null)
+    visitor.getAttributeNames.toSeq.distinct.sorted
+  }
 
-  def propertyNames(expression: Expression, sft: SimpleFeatureType): Seq[String] =
-    DataUtilities.attributeNames(expression, sft).toSeq.distinct.sorted
+  def propertyNames(expression: Expression, sft: SimpleFeatureType): Seq[String] = {
+    if (expression == null) {
+      return Seq.empty
+    }
+    val visitor = new AttributeExtractingVisitor(sft)
+    expression.accept(visitor, null)
+    visitor.getAttributeNames.toSeq.distinct.sorted
+  }
 
   def hasIdFilter(filter: Filter): Boolean =
     filter.accept(new IdDetectingFilterVisitor, false).asInstanceOf[Boolean]

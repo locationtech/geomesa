@@ -11,6 +11,7 @@ package org.locationtech.geomesa.trino.datastore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.geotools.api.data.DataStoreFinder;
 import org.geotools.api.data.Query;
@@ -319,6 +320,129 @@ public class TrinoDataStoreTest {
     }
 
     @Test
+    public void testStructuralJsonQuery() throws IOException, CQLException {
+        var params = Map.of(
+                TrinoDataStoreFactory.HOST.key, trino.getHost(),
+                TrinoDataStoreFactory.PORT.key, trino.getFirstMappedPort(),
+                TrinoDataStoreFactory.SCHEMA.key, "geomesa"
+        );
+        var ds = DataStoreFinder.getDataStore(params);
+        Assertions.assertNotNull(ds);
+        try {
+            // json-path filters into the structural 'props' attribute are pushed down as trino ROW
+            // dereferences (e.g. "props"."name" = 'alice'); verify each returns the expected features.
+            // features: 0=alice/age30/nested.flag=true, 1=age7/no-name, 2=name-null/age99, 3=dave/age11/flag=false, 4=null
+            var filters = new LinkedHashMap<String, List<Integer>>();
+            filters.put("INCLUDE", List.of(0, 1, 2, 3, 4));
+            filters.put("\"$.props.name\" = 'alice'", List.of(0));
+            filters.put("\"$.props.age\" > 20", List.of(0, 2));
+            filters.put("\"$.props.age\" = 7", List.of(1));
+            filters.put("\"$.props.nested.flag\" = true", List.of(0));
+            filters.put("jsonPath('$.props.nested[?(@.flag == true)].flag') = true", List.of(0));
+
+            var mapper = new ObjectMapper();
+            for (var entry : filters.entrySet()) {
+                var expectedIds = entry.getValue().stream().map(String::valueOf).collect(Collectors.toSet());
+                var results = new ArrayList<SimpleFeature>();
+                var query = new Query(jsonSft.getTypeName(), ECQL.toFilter(entry.getKey()));
+                TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(TrinoFeatureSource.ClientSideFiltering.ALL.value);
+                try (var reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) {
+                    while (reader.hasNext()) {
+                        results.add(reader.next());
+                    }
+                } finally {
+                    TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().remove();
+                }
+                var actualIds = results.stream().map(SimpleFeature::getID).collect(Collectors.toSet());
+                Assertions.assertEquals(expectedIds, actualIds, "filter: " + entry.getKey());
+                // the returned json still round-trips to the original structural value
+                var byId = results.stream().collect(Collectors.toMap(SimpleFeature::getID, f -> f));
+                for (var i : entry.getValue()) {
+                    var expectedJson = jsonValues.get(i);
+                    var actualJson = (String) byId.get(Integer.toString(i)).getAttribute("props");
+                    if (expectedJson == null) {
+                        Assertions.assertNull(actualJson);
+                    } else {
+                        Assertions.assertEquals(normalize(mapper, expectedJson), normalize(mapper, actualJson));
+                    }
+                }
+            }
+        } finally {
+            ds.dispose();
+        }
+    }
+
+    @Test
+    public void testStructuralJsonQueryClientSideFallback() throws IOException, CQLException {
+        var params = Map.of(
+                TrinoDataStoreFactory.HOST.key, trino.getHost(),
+                TrinoDataStoreFactory.PORT.key, trino.getFirstMappedPort(),
+                TrinoDataStoreFactory.SCHEMA.key, "geomesa"
+        );
+        var ds = DataStoreFinder.getDataStore(params);
+        Assertions.assertNotNull(ds);
+        // json-path filters with array indices can't be pushed down to trino SQL. how the
+        // non-pushable ("residual") conjunct is handled depends on the client-side filtering mode.
+        // features: 0=alice/tags:["a","b"], 1=age7/tags:[], 3=dave/tags:["p","q","r"]
+        // a fully non-pushable filter (nothing extracted to SQL)
+        var fullResidual = "\"$.props.tags[0]\" = 'a'";
+        // a partly pushable filter: name pushes down, tags[0] is the residual
+        var partialResidual = "\"$.props.name\" = 'alice' AND \"$.props.tags[0]\" = 'a'";
+        try {
+            // default mode (partial): allow client-side filtering only when some sql was pushed down
+            Assertions.assertNull(TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().get());
+            assertQueryIds(ds, partialResidual, List.of(0));
+            // fully non-pushable -> nothing to push down -> query fails
+            Assertions.assertThrows(RuntimeException.class, () -> readAll(ds, fullResidual));
+
+            // all mode: allow any client-side filtering, even with no sql pushdown
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
+                    TrinoFeatureSource.ClientSideFiltering.ALL.value);
+            assertQueryIds(ds, fullResidual, List.of(0));
+            assertQueryIds(ds, partialResidual, List.of(0));
+
+            // none mode: never filter client-side -> both fail
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
+                    TrinoFeatureSource.ClientSideFiltering.NONE.value);
+            Assertions.assertThrows(RuntimeException.class, () -> readAll(ds, fullResidual));
+            Assertions.assertThrows(RuntimeException.class, () -> readAll(ds, partialResidual));
+        } finally {
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().remove();
+            ds.dispose();
+        }
+    }
+
+    /** Read all features matching the given ECQL filter. */
+    private static List<SimpleFeature> readAll(org.geotools.api.data.DataStore ds, String ecql)
+            throws IOException, CQLException {
+        var results = new ArrayList<SimpleFeature>();
+        var query = new Query(jsonSft.getTypeName(), ECQL.toFilter(ecql));
+        try (var reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) {
+            while (reader.hasNext()) {
+                results.add(reader.next());
+            }
+        }
+        return results;
+    }
+
+    /** Assert the given ECQL filter returns exactly the expected feature ids, and that the
+     *  returned json round-trips to the original structural value. */
+    private static void assertQueryIds(org.geotools.api.data.DataStore ds, String ecql, List<Integer> expected)
+            throws IOException, CQLException {
+        var mapper = new ObjectMapper();
+        var results = readAll(ds, ecql);
+        var expectedIds = expected.stream().map(String::valueOf).collect(Collectors.toSet());
+        var actualIds = results.stream().map(SimpleFeature::getID).collect(Collectors.toSet());
+        Assertions.assertEquals(expectedIds, actualIds, "filter: " + ecql);
+        var byId = results.stream().collect(Collectors.toMap(SimpleFeature::getID, f -> f));
+        for (var i : expected) {
+            var expectedJson = jsonValues.get(i);
+            var actualJson = (String) byId.get(Integer.toString(i)).getAttribute("props");
+            Assertions.assertEquals(normalize(mapper, expectedJson), normalize(mapper, actualJson));
+        }
+    }
+
+    @Test
     public void testStructuralJsonArray() throws IOException, CQLException {
         var params = Map.of(
                 TrinoDataStoreFactory.HOST.key, trino.getHost(),
@@ -363,14 +487,17 @@ public class TrinoDataStoreTest {
     }
 
     // parses json and recursively removes any object keys whose value is null, so features that omit an
-    // optional field and features that set it explicitly null compare equal. trino renders a struct with
-    // all of its fields, including omitted-optional fields as explicit nulls, at any nesting depth.
+    // optional field and features that set it explicitly null compare equal
     private static JsonNode normalize(ObjectMapper mapper, String json) throws IOException {
         return normalize(mapper.readTree(json));
     }
 
     private static JsonNode normalize(JsonNode node) {
         if (node instanceof ObjectNode object) {
+            object.properties().forEach(e -> {
+                var val = normalize(e.getValue());
+                e.setValue(val == null ? NullNode.instance : val);
+            });
             var nullFields = new ArrayList<String>();
             object.fieldNames().forEachRemaining(name -> {
                 if (object.get(name).isNull()) {
@@ -378,7 +505,7 @@ public class TrinoDataStoreTest {
                 }
             });
             nullFields.forEach(object::remove);
-            object.fields().forEachRemaining(e -> normalize(e.getValue()));
+            return object.isEmpty() ? null : object;
         } else if (node instanceof ArrayNode array) {
             array.forEach(TrinoDataStoreTest::normalize);
         }

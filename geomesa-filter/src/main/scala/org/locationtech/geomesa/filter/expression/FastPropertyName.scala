@@ -68,7 +68,7 @@ object FastPropertyName extends LazyLogging {
     override def evaluate(obj: AnyRef): AnyRef = {
       // usually obj is a simple feature, but this is also expected to return descriptors for SimpleFeatureTypes
       obj match {
-        case s: SimpleFeature => accessor.get(obj, name, classOf[AnyRef])
+        case _: SimpleFeature => accessor.get(obj, name, classOf[AnyRef])
         case s: SimpleFeatureType => s.getDescriptor(name)
         case _ => logger.error(s"Unable to evaluate property name against '$obj'"); null
       }

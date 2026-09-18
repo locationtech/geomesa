@@ -21,13 +21,13 @@ import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.filter.expression.FastDWithin.DWithinLiteral
-import org.locationtech.geomesa.filter.expression.FastPropertyIsEqualTo.{FastIsEqualTo, FastIsEqualToIgnoreCase, FastListIsEqualToAny}
+import org.locationtech.geomesa.filter.expression.FastPropertyIsEqualTo.{FastIsEqualTo, FastIsEqualToIgnoreCase, FastListIsEqualToAny, FastListOrSingletonIsEqualTo}
 import org.locationtech.geomesa.filter.expression.FastPropertyName.{FastPropertyNameAccessor, FastPropertyNameAttribute}
 import org.locationtech.geomesa.filter.expression.OrHashEquality.OrHashListEquality
 import org.locationtech.geomesa.filter.expression.OrSequentialEquality.OrSequentialListEquality
 import org.locationtech.geomesa.filter.expression._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
-import org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor
+import org.locationtech.geomesa.utils.geotools.{SimpleFeaturePropertyAccessor, SimpleFeatureTypes}
 import org.locationtech.jts.geom.Geometry
 import org.xml.sax.helpers.NamespaceSupport
 
@@ -260,7 +260,8 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
     } else {
       val sf = new SimpleFeatureBuilder(sft).buildFeature("")
       val accessor = SimpleFeaturePropertyAccessor.getAccessor(sf, name).getOrElse {
-        throw new IllegalArgumentException(s"Property '$name' does not exist in feature type ${sft.getTypeName}")
+        throw new IllegalArgumentException(
+          s"Property '$name' does not exist in feature type ${sft.getTypeName} ${SimpleFeatureTypes.encodeType(sft)}")
       }
       new FastPropertyNameAccessor(name, accessor)
     }
@@ -336,6 +337,9 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
           val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
           if (descriptor != null && descriptor.isList) {
             new FastListIsEqualToAny(exp1, prop.literal)
+          } else if (prop.name.startsWith("$")) {
+            // json path can return either one or many results
+            new FastListOrSingletonIsEqualTo(exp1, prop.literal)
           } else if (matchCase) {
             new FastIsEqualTo(exp1, prop.literal)
           } else {

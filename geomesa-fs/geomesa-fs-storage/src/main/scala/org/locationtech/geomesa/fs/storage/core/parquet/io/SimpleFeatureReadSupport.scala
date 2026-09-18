@@ -389,7 +389,7 @@ object SimpleFeatureReadSupport {
    * serializes it back to a compact JSON string, so the value round-trips as a JSON attribute.
    */
   private class StructuralJsonConverter(schema: GroupType)
-      extends GroupConverter with ValueMaterializer[String] {
+      extends GroupConverter with ValueMaterializer[AnyRef] {
 
     private val delegate: GroupConverter with JsonElementConverter = jsonGroupConverter(schema)
 
@@ -397,7 +397,7 @@ object SimpleFeatureReadSupport {
     override def start(): Unit = delegate.start()
     override def end(): Unit = delegate.end()
     override def reset(): Unit = delegate.reset()
-    override def materialize(): String = if (delegate.isSet) { StructuralJson.compact(delegate.element()) } else { null }
+    override def materialize(): AnyRef = if (delegate.isSet) { StructuralJson.compact(delegate.element()) } else { null }
   }
 
   /**

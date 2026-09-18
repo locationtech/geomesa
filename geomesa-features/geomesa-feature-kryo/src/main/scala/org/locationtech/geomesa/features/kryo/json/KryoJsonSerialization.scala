@@ -12,7 +12,7 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser._
+import org.locationtech.geomesa.utils.json.JsonPathParser.JsonPath
 
 import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal

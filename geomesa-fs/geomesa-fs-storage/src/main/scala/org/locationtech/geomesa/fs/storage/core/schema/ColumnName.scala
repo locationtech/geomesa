@@ -44,4 +44,15 @@ object ColumnName {
    * @return
    */
   def apply(name: String): ColumnName = ColumnName(name, encode(name))
+
+  /**
+   * Gets the top-level column that corresponds to a nested column (dot-delimited) path
+   *
+   * @param column column path
+   * @return
+   */
+  def topLevelColumn(column: String): String = {
+    val i = column.indexOf('.')
+    if (i == -1) { column } else { column.substring(0, i) }
+  }
 }

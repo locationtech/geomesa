@@ -9,15 +9,16 @@
 package org.locationtech.geomesa.features.kryo.json
 
 import com.esotericsoftware.kryo.io.Input
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathFilter._
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{JsonPath, PathFilter}
 import org.locationtech.geomesa.features.kryo.json.KryoJsonPath.ValuePointer
+import org.locationtech.geomesa.utils.json.JsonPathParser.{JsonPath, PathFilter}
 
 import java.util.regex.Pattern
 
 trait KryoJsonPathFilter extends (ValuePointer => Boolean)
 
 object KryoJsonPathFilter {
+
+  import org.locationtech.geomesa.utils.json.JsonPathParser.PathFilter._
 
   /**
    * Create a filter

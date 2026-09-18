@@ -23,7 +23,7 @@ object SimpleFeaturePropertyAccessor extends LazyLogging {
   def initialize(): Unit = invoke(null, "")
 
   /**
-   * Get a property accessor, using the context classloader to ensure out accessors are picked up
+   * Get a property accessor, using the context classloader to ensure our accessors are picked up
    *
    * @param sf feature
    * @param name property name

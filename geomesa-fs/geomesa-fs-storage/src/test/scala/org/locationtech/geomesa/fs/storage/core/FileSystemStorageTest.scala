@@ -226,7 +226,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         sf
       }
 
-      val encoding = GeometryEncoding.GeoParquetWkb
+      val encoding: GeometryEncoding = GeometryEncoding.GeoParquetWkb
       WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
           storage must not(beNull)
@@ -361,7 +361,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         """{"age":7,"tags":[],"scores":{}}""",
         // explicit nulls for optional fields
         """{"name":null,"age":99,"tags":["z"],"scores":{"k":42},"nested":null}""",
-        """{"name":"dave","age":11,"tags":["p","q","r"],"scores":{"a":10},"nested":{"flag":false}}""",
+        """{"name":"dave","age":11,"tags":["p","q","r"],"scores":{"a":10,"x":1},"nested":{"flag":false}}""",
         null // null json value -> null attribute
       )
 
@@ -384,6 +384,18 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         }
       }
 
+      val filters = Seq(
+        Filter.INCLUDE -> features,
+        ECQL.toFilter(""""$.props.name" = 'alice'""") -> features.take(1),
+        ECQL.toFilter(""""$.props.age" > 20""") -> (features.take(1) ++ features.slice(2, 3)),
+        ECQL.toFilter(""""$.props.scores.x" = 1""") -> (features.take(1) ++ features.slice(3, 4)),
+        ECQL.toFilter(""""$.props.*" = 'alice'""") -> features.take(1),
+        ECQL.toFilter(""""$.props.*.flag" = true""") -> features.take(1),
+        ECQL.toFilter("""jsonPath('$.props.nested[?(@.flag == true)].flag') = true""") -> features.take(1),
+      )
+      val pathTransform = """"$.props.name""""
+      val transforms = Seq(null: Array[String], Array("props", "geom"), Array(pathTransform, "dtg", "geom"))
+
       WithClose(StorageCatalog(newPath())) { catalog =>
         WithClose(catalog.create(sft, schemes)) { storage =>
           storage must not(beNull)
@@ -396,22 +408,47 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           }
           writers.foreach(_._2.close())
 
-          val query = new Query(sft.getTypeName, Filter.INCLUDE)
-          val result = CloseableIterator(storage.getReader(query, 1)).map(ScalaSimpleFeature.copy).toList
-          result must haveSize(features.size)
-          val byId = result.map(f => f.getID -> f).toMap
-          foreach(features) { expected =>
-            val actual = byId.get(expected.getID)
-            actual must beSome
-            val expectedJson = expected.getAttribute("props").asInstanceOf[String]
-            val actualJson = actual.get.getAttribute("props").asInstanceOf[String]
-            if (expectedJson == null) {
-              actualJson must beNull
-            } else {
-              // compare parsed trees so key ordering / whitespace don't matter
-              JsonParser.parseString(actualJson) mustEqual JsonParser.parseString(normalize(expectedJson))
+          foreach(filters) { case (filter, expected) =>
+            foreach(transforms) { transform =>
+              val query = new Query(sft.getTypeName, filter, transform: _*)
+              val result = CloseableIterator(storage.getReader(query, 1)).map(ScalaSimpleFeature.copy).toList
+              result must haveSize(expected.size)
+              val byId = result.map(f => f.getID -> f).toMap
+              foreach(expected) { expected =>
+                val actual = byId.get(expected.getID)
+                actual must beSome
+                if (transform == null || transform.contains("props")) {
+                  val expectedJson = expected.getAttribute("props").asInstanceOf[String]
+                  val actualJson = actual.get.getAttribute("props").asInstanceOf[String]
+                  if (expectedJson == null) {
+                    actualJson must beNull
+                  } else {
+                    // compare parsed trees so key ordering / whitespace don't matter
+                    JsonParser.parseString(actualJson) mustEqual JsonParser.parseString(normalize(expectedJson))
+                  }
+                } else if (transform.contains(pathTransform)) {
+                  val expectedJson = expected.getAttribute("props").asInstanceOf[String]
+                  val actualJson = actual.get.getAttribute(pathTransform.replace("\"", "")).asInstanceOf[String]
+                  if (expectedJson == null) {
+                    actualJson must beNull
+                  } else {
+                    val name = JsonParser.parseString(normalize(expectedJson)).getAsJsonObject.get("name")
+                    if (name == null || name.isJsonNull) {
+                      actualJson must beNull
+                    } else {
+                      // compare parsed trees so key ordering / whitespace don't matter
+                      JsonParser.parseString(actualJson) mustEqual name
+                    }
+                  }
+                } else {
+                  ko("Unexpected transform")
+                }
+              }
             }
           }
+
+          storage.getReader(new Query(sft.getTypeName, ECQL.toFilter(""""$.props.scores" = '{"x":1,"y":2}'""")), 1) must
+            throwAn[UnsupportedOperationException]
         }
       }
     }

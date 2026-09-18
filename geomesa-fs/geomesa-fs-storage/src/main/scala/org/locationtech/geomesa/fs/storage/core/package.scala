@@ -34,17 +34,6 @@ package object core {
       .disableHtmlEscaping()
       .create()
 
-  /**
-   * Creates a new simple feature type with the namespace in the simple feature type name
-   *
-   * @param sft simple feature type
-   * @param namespace optional namespace
-   * @return
-   */
-  def namespaced(sft: SimpleFeatureType, namespace: Option[String]): SimpleFeatureType =
-    namespace.map(ns => SimpleFeatureTypes.renameSft(sft, s"$ns:${sft.getTypeName}")).getOrElse(sft)
-
-
   implicit class RichConf(val conf: Map[String, String]) extends AnyRef {
     def getWriterMaxOpenPartitions: Int =
       conf.get(FileSystemStorage.WriterMaxOpenPartitions).fold(FileSystemStorage.WriterMaxOpenPartitionsDefault)(_.toInt)
