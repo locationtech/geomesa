@@ -389,6 +389,8 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
         ECQL.toFilter(""""$.props.name" = 'alice'""") -> features.take(1),
         ECQL.toFilter(""""$.props.age" > 20""") -> (features.take(1) ++ features.slice(2, 3)),
         ECQL.toFilter(""""$.props.scores.x" = 1""") -> (features.take(1) ++ features.slice(3, 4)),
+        ECQL.toFilter(""""$.props.*" = 'alice'""") -> features.take(1),
+        ECQL.toFilter(""""$.props.*.flag" = true""") -> features.take(1),
         ECQL.toFilter("""jsonPath('$.props.nested[?(@.flag == true)].flag') = true""") -> features.take(1),
       )
       val pathTransform = """"$.props.name""""

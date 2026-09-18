@@ -176,6 +176,7 @@ object IcebergFilterConverter extends LazyLogging {
     if (bounds.disjoint) {
       return ReadFilter.exclude()
     } else if (bounds.isEmpty || bounds.exists(b => !b.isBounded)) {
+      // TODO detect the case where bounds were extracted, but are the wrong type (i.e. MyIntVar = 'alice') and return exclude
       // couldn't extract anything, fall back to client-side evaluation
       return ReadFilter.clientSide(filter)
     }
@@ -258,9 +259,12 @@ object IcebergFilterConverter extends LazyLogging {
         }
         // if the path matches more than 1 leaf node, combine the filter expressions with ORs
         filters.reduceLeft[ReadFilter] { case (left, right) =>
-          // predicate will always return either the full filter or the non-attribute part
-          val f = if (left.remainder.contains(filter) || right.remainder.contains(filter)) { Some(filter) } else { nonAttribute }
-          ReadFilter(Expressions.or(left.expression, right.expression), f, left.columns ++ right.columns)
+          // if we have a client-side evaluation, then just do that
+          Seq(left, right).find(_.expression == Expressions.alwaysTrue()).getOrElse {
+            // predicate will always return either the full filter or the non-attribute part
+            val f = if (left.remainder.contains(filter) || right.remainder.contains(filter)) { Some(filter) } else { nonAttribute }
+            ReadFilter(Expressions.or(left.expression, right.expression), f, left.columns ++ right.columns)
+          }
         }
     }
   }
@@ -293,12 +297,23 @@ object IcebergFilterConverter extends LazyLogging {
         }
 
       case PathAttributeWildCard if fieldType.isStructType =>
+        val tail = path.tail
         val children = fieldType.asStructType().fields().asScala.map { nested =>
-          navigate(s"$fieldPath.${nested.name()}", nested.`type`(), path.tail)
+          val nestedPath = s"$fieldPath.${nested.name()}"
+          if (tail.isEmpty) {
+            if (nested.`type`().isPrimitiveType) {
+              Some(Seq(nestedPath -> nested.`type`()))
+            } else {
+              Some(Seq.empty)
+            }
+          } else {
+            navigate(nestedPath, nested.`type`(), tail)
+          }
         }
+        // if any children can't be evaluated, the whole expression can't be evaluated
         if (children.exists(_.isEmpty)) { None } else { Some(children.flatMap(_.get).toSeq) }
 
-      // predicates we can't evaluate as iceberg expressions
+      // valid predicate, but we can't evaluate it as an iceberg expression
       case _: PathAttribute if fieldType.isMapType => None
       case PathAttributeWildCard if fieldType.isMapType => None
       case _: PathIndexRange if fieldType.isListType => None
@@ -307,7 +322,8 @@ object IcebergFilterConverter extends LazyLogging {
       case PathDeepScan => None
       case _: PathFilter => None
 
-      case _ => Some(Seq.empty) // doesn't match the field type
+      // anything else doesn't match the schema
+      case _ => Some(Seq.empty)
     }
   }
 

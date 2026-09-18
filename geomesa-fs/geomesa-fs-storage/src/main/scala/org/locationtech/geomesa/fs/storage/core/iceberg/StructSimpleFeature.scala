@@ -33,6 +33,7 @@ import java.nio.ByteBuffer
 import java.time.{LocalDate, LocalDateTime, LocalTime, OffsetDateTime}
 import java.util.concurrent.atomic.AtomicLong
 import java.util.{Date, UUID}
+import scala.annotation.tailrec
 
 /**
  * A simple feature implementation that wraps an iceberg record
@@ -366,6 +367,7 @@ object StructSimpleFeature {
       }
     }
 
+    @tailrec
     private def toJson(t: org.apache.iceberg.types.Type, value: AnyRef, path: Seq[String]): JsonElement = {
       if (path.isEmpty) {
         toJson(t, value)

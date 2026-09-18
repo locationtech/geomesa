@@ -21,7 +21,7 @@ import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.filter.expression.FastDWithin.DWithinLiteral
-import org.locationtech.geomesa.filter.expression.FastPropertyIsEqualTo.{FastIsEqualTo, FastIsEqualToIgnoreCase, FastListIsEqualToAny}
+import org.locationtech.geomesa.filter.expression.FastPropertyIsEqualTo.{FastIsEqualTo, FastIsEqualToIgnoreCase, FastListIsEqualToAny, FastListOrSingletonIsEqualTo}
 import org.locationtech.geomesa.filter.expression.FastPropertyName.{FastPropertyNameAccessor, FastPropertyNameAttribute}
 import org.locationtech.geomesa.filter.expression.OrHashEquality.OrHashListEquality
 import org.locationtech.geomesa.filter.expression.OrSequentialEquality.OrSequentialListEquality
@@ -337,6 +337,9 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
           val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
           if (descriptor != null && descriptor.isList) {
             new FastListIsEqualToAny(exp1, prop.literal)
+          } else if (prop.name.startsWith("$")) {
+            // json path can return either one or many results
+            new FastListOrSingletonIsEqualTo(exp1, prop.literal)
           } else if (matchCase) {
             new FastIsEqualTo(exp1, prop.literal)
           } else {

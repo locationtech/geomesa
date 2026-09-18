@@ -60,4 +60,17 @@ object FastPropertyIsEqualTo {
     }
     override def isMatchingCase: Boolean = false
   }
+
+  // exp1 may evaluate to a list or a single value, exp2 is expected to evaluate to a single value
+  class FastListOrSingletonIsEqualTo(exp1: Expression, exp2: Literal) extends FastPropertyIsEqualTo(exp1, exp2) {
+    private val lit = exp2.evaluate(null)
+    override def evaluate(obj: Any): Boolean = {
+      exp1.evaluate(obj) match {
+        case null => lit == null
+        case list: java.util.List[Any] => list.contains(lit)
+        case v => lit == v
+      }
+    }
+    override def isMatchingCase: Boolean = false
+  }
 }
