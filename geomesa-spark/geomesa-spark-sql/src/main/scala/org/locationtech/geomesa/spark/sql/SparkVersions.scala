@@ -23,17 +23,24 @@ object SparkVersions {
 
   private val _copyLogicalRelation: Try[(LogicalRelation, BaseRelation, Seq[AttributeReference]) => LogicalRelation] = Try {
     val methods = classOf[LogicalRelation].getMethods
-    val m = methods.find(m => m.getName == "copy" && Seq(3, 4).contains(m.getParameterCount)).getOrElse {
+    val m = methods.find(m => m.getName == "copy" && Seq(3, 4, 5).contains(m.getParameterCount)).getOrElse {
       throw new NoSuchMethodError(s"Could not find method named 'copy' in class ${classOf[LogicalRelation].getName}")
     }
-    if (m.getParameterCount == 4) {
-      val streaming = methods.find(_.getName == "isStreaming").getOrElse {
-        throw new NoSuchMethodError("Could not find method named 'isStreaming' in class " +
-            classOf[LogicalRelation].getName)
-      }
-      (r, b, o) => m.invoke(r, b, o, r.catalogTable, streaming.invoke(r)).asInstanceOf[LogicalRelation]
-    } else {
-      (r, b, o) => m.invoke(r, b, o, r.catalogTable).asInstanceOf[LogicalRelation]
+    lazy val streaming = methods.find(_.getName == "isStreaming").getOrElse {
+      throw new NoSuchMethodError("Could not find method named 'isStreaming' in class " +
+          classOf[LogicalRelation].getName)
+    }
+    m.getParameterCount match {
+      case 5 =>
+        // spark 4.2 adds a trailing `stream: Option[SparkDataStream]` param after `isStreaming`
+        val stream = methods.find(_.getName == "stream").getOrElse {
+          throw new NoSuchMethodError(s"Could not find method named 'stream' in class ${classOf[LogicalRelation].getName}")
+        }
+        (r, b, o) => m.invoke(r, b, o, r.catalogTable, streaming.invoke(r), stream.invoke(r)).asInstanceOf[LogicalRelation]
+      case 4 =>
+        (r, b, o) => m.invoke(r, b, o, r.catalogTable, streaming.invoke(r)).asInstanceOf[LogicalRelation]
+      case _ =>
+        (r, b, o) => m.invoke(r, b, o, r.catalogTable).asInstanceOf[LogicalRelation]
     }
   }
 

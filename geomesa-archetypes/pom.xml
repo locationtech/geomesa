@@ -14,7 +14,21 @@
     <modules>
         <module>geomesa-archetypes-binary-dist</module>
         <module>geomesa-archetypes-gs-plugin</module>
-        <module>geomesa-archetypes-spark-runtime</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>spark</id>
+            <activation>
+                <property>
+                    <name>scala.binary.version</name>
+                    <value>2.13</value>
+                </property>
+            </activation>
+            <modules>
+                <module>geomesa-archetypes-spark-runtime</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>

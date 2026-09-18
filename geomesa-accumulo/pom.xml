@@ -23,8 +23,22 @@
         <module>geomesa-accumulo-indices</module>
         <module>geomesa-accumulo-iterators</module>
         <module>geomesa-accumulo-jobs</module>
-        <module>geomesa-accumulo-spark</module>
         <module>geomesa-accumulo-tools</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>spark</id>
+            <activation>
+                <property>
+                    <name>scala.binary.version</name>
+                    <value>2.13</value>
+                </property>
+            </activation>
+            <modules>
+                <module>geomesa-accumulo-spark</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>

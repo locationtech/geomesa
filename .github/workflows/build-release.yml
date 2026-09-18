@@ -10,7 +10,7 @@ env:
   JAVA_VERSION: 25
   JAVA_RUNTIME_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
-  MAVEN_RELEASE_ARGS: clean deploy -Prelease,docs,python -Dmaven.test.skip -Daether.checksums.algorithms=MD5,SHA-1,SHA-256
+  MAVEN_RELEASE_ARGS: clean deploy -Prelease,docs -Dmaven.test.skip -Daether.checksums.algorithms=MD5,SHA-1,SHA-256
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -59,12 +59,20 @@ jobs:
         run: pip install -r docs/requirements.txt
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
+      - name: Set profile args
+        run: |
+          # pyspark requires the spark profile, which is only active for scala 2.13
+          if [ "${{ matrix.scala-version }}" = "2.13" ]; then
+            echo "PROFILE_ARGS=-Ppython" >> "$GITHUB_ENV"
+          else
+            echo "PROFILE_ARGS=" >> "$GITHUB_ENV"
+          fi
       - name: Build
         id: build
         continue-on-error: true
         run: |
           set -o pipefail
-          mvn $MAVEN_RELEASE_ARGS $MAVEN_CLI_OPTS -DaltDeploymentRepository=local::file:./staging-repo | tee -a build_${{ matrix.scala-version }}.log
+          mvn $MAVEN_RELEASE_ARGS $PROFILE_ARGS $MAVEN_CLI_OPTS -DaltDeploymentRepository=local::file:./staging-repo | tee -a build_${{ matrix.scala-version }}.log
       - name: Build (retry)
         if: steps.build.outcome=='failure'
         run: |
@@ -72,7 +80,7 @@ jobs:
           # retry if the failure was due to transient download errors from maven central
           if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' -e 'Could not resolve artifact' build_${{ matrix.scala-version }}.log; then
             RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build_${{ matrix.scala-version }}.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-            mvn $MAVEN_RELEASE_ARGS $MAVEN_CLI_OPTS -DaltDeploymentRepository=local::file:./staging-repo $RESUME_FROM | tee -a build_${{ matrix.scala-version }}.log
+            mvn $MAVEN_RELEASE_ARGS $PROFILE_ARGS $MAVEN_CLI_OPTS -DaltDeploymentRepository=local::file:./staging-repo $RESUME_FROM | tee -a build_${{ matrix.scala-version }}.log
           else
             exit 1
           fi

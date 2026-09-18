@@ -54,9 +54,10 @@
         <!-- java/scala -->
         <jdk.version>25</jdk.version> <!-- we use java 25 for trino compatibility, but set release to 17 -->
         <jdk.release.version>17</jdk.release.version>
-        <scala.version>2.12.21</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
+        <scala.binary.version>${scala.binary.version}</scala.binary.version> <!-- from .mvn/maven.config -->
+        <scala.patch.version>${scala.patch.version}</scala.patch.version> <!-- from .mvn/maven.config -->
+        <scala.version>${scala.binary.version}.${scala.patch.version}</scala.version>
 
-        <scala.binary.version>2.12</scala.binary.version>
         <scala.xml.version>2.2.0</scala.xml.version>
         <scala.parsers.version>2.3.0</scala.parsers.version>
 
@@ -119,7 +120,7 @@
         <jackson3.version>3.2.2</jackson3.version> <!-- jackson 3 - used by geotools; keep in sync with gt-platform-dependencies -->
         <jetty.version>9.4.57.v20241219</jetty.version>
         <json.smart.version>2.5.2</json.smart.version> <!-- used by json-path and hadoop-auth -->
-        <netty.version>4.1.121.Final</netty.version>
+        <netty.version>4.2.18.Final</netty.version>
         <commons.cli.version>1.6.0</commons.cli.version>
         <commons.collections.version>3.2.2</commons.collections.version>
         <commons.collections4.version>4.5.0</commons.collections4.version>
@@ -140,7 +141,7 @@
         <thrift.version>0.17.0</thrift.version>
         <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
         <hadoop.version>3.5.0</hadoop.version>
-        <spark.version>3.5.8</spark.version>
+        <spark.version>4.2.0</spark.version>
         <hbase.version>2.6.3-hadoop3</hbase.version>
         <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
         <hbase.protobuf.version>2.5.0</hbase.protobuf.version>
@@ -151,8 +152,8 @@
         <kafka.version>3.9.2</kafka.version> <!-- needs to align with confluent version -->
         <confluent.version>7.8.0</confluent.version> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
         <confluent.protobuf.version>3.25.6</confluent.protobuf.version>
-        <sedona.version>1.8.1</sedona.version>
-        <sedona.spark.version>3.5</sedona.spark.version>
+        <sedona.version>1.9.1</sedona.version>
+        <sedona.spark.version>4.1</sedona.spark.version>
         <sedona.h3.version>4.1.1</sedona.h3.version>
         <jts2geojson.version>0.16.1</jts2geojson.version> <!-- for testing sedona integration -->
         <snappy.java.version>1.1.10.5</snappy.java.version>
@@ -176,6 +177,7 @@
         <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
         <cyclonedx.maven.plugin.version>2.9.3</cyclonedx.maven.plugin.version>
         <exec.maven.plugin.version>3.5.0</exec.maven.plugin.version>
+        <flatten.maven.plugin.version>1.7.3</flatten.maven.plugin.version> <!-- note: 1.8.0 has a that breaks interpolation -->
         <git.commit.id.plugin.version>9.0.2</git.commit.id.plugin.version>
         <jacoco.maven.plugin.version>0.8.14</jacoco.maven.plugin.version>
         <license.maven.plugin.version>5.1.2</license.maven.plugin.version>
@@ -3120,10 +3122,39 @@
                     <artifactId>maven-antrun-plugin</artifactId>
                     <version>${maven.antrun.plugin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>${flatten.maven.plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <!-- resolve scala version properties from .mvn/maven.config into the pom we publish, so that
+                     downstream consumers don't see unresolved properties -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <inherited>false</inherited>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                    <pomElements>
+                        <properties>resolve</properties>
+                    </pomElements>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>

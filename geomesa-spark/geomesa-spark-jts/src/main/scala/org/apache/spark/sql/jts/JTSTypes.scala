@@ -8,8 +8,7 @@
 
 package org.apache.spark.sql.jts
 
-import org.apache.spark.sql.types._
-import org.locationtech.jts.geom._
+import org.apache.spark.sql.types.{DataType, UserDefinedType}
 
 object JTSTypes {
   val GeometryTypeInstance           = new GeometryUDT
@@ -32,36 +31,36 @@ object JTSTypes {
   val GeometryCollectionType = 7
 
   val typeMap: Map[Class[_], Class[_ <: UserDefinedType[_]]] = Map(
-    classOf[Geometry]            -> classOf[GeometryUDT],
-    classOf[Point]               -> classOf[PointUDT],
-    classOf[LineString]          -> classOf[LineStringUDT],
-    classOf[Polygon]             -> classOf[PolygonUDT],
-    classOf[MultiPoint]          -> classOf[MultiPointUDT],
-    classOf[MultiLineString]     -> classOf[MultiLineStringUDT],
-    classOf[MultiPolygon]        -> classOf[MultiPolygonUDT],
-    classOf[GeometryCollection]  -> classOf[GeometryCollectionUDT]
+    classOf[org.locationtech.jts.geom.Geometry]            -> classOf[GeometryUDT],
+    classOf[org.locationtech.jts.geom.Point]               -> classOf[PointUDT],
+    classOf[org.locationtech.jts.geom.LineString]          -> classOf[LineStringUDT],
+    classOf[org.locationtech.jts.geom.Polygon]             -> classOf[PolygonUDT],
+    classOf[org.locationtech.jts.geom.MultiPoint]          -> classOf[MultiPointUDT],
+    classOf[org.locationtech.jts.geom.MultiLineString]     -> classOf[MultiLineStringUDT],
+    classOf[org.locationtech.jts.geom.MultiPolygon]        -> classOf[MultiPolygonUDT],
+    classOf[org.locationtech.jts.geom.GeometryCollection]  -> classOf[GeometryCollectionUDT]
   )
 }
 
-private [spark] class PointUDT extends AbstractGeometryUDT[Point]("point")
+private [spark] class PointUDT extends AbstractGeometryUDT[org.locationtech.jts.geom.Point]("point")
 object PointUDT extends PointUDT
 
-private [spark] class MultiPointUDT extends AbstractGeometryUDT[MultiPoint]("multipoint")
+private [spark] class MultiPointUDT extends AbstractGeometryUDT[org.locationtech.jts.geom.MultiPoint]("multipoint")
 object MultiPointUDT extends MultiPointUDT
 
-private [spark] class LineStringUDT extends AbstractGeometryUDT[LineString]("linestring")
+private [spark] class LineStringUDT extends AbstractGeometryUDT[org.locationtech.jts.geom.LineString]("linestring")
 object LineStringUDT extends LineStringUDT
 
-private [spark] class MultiLineStringUDT extends AbstractGeometryUDT[MultiLineString]("multilinestring")
+private [spark] class MultiLineStringUDT extends AbstractGeometryUDT[org.locationtech.jts.geom.MultiLineString]("multilinestring")
 object MultiLineStringUDT extends MultiLineStringUDT
 
-private [spark] class PolygonUDT extends AbstractGeometryUDT[Polygon]("polygon")
+private [spark] class PolygonUDT extends AbstractGeometryUDT[org.locationtech.jts.geom.Polygon]("polygon")
 object PolygonUDT extends PolygonUDT
 
-private [spark] class MultiPolygonUDT extends AbstractGeometryUDT[MultiPolygon]("multipolygon")
+private [spark] class MultiPolygonUDT extends AbstractGeometryUDT[org.locationtech.jts.geom.MultiPolygon]("multipolygon")
 object MultiPolygonUDT extends MultiPolygonUDT
 
-private [spark] class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometry") {
+private [spark] class GeometryUDT extends AbstractGeometryUDT[org.locationtech.jts.geom.Geometry]("geometry") {
   private[sql] override def acceptsType(dataType: DataType): Boolean = {
     super.acceptsType(dataType) ||
       dataType.getClass == JTSTypes.GeometryTypeInstance.getClass ||
@@ -78,7 +77,6 @@ private [spark] class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometr
 case object GeometryUDT extends GeometryUDT
 
 private [spark] class GeometryCollectionUDT
-  extends AbstractGeometryUDT[GeometryCollection]("geometrycollection")
+  extends AbstractGeometryUDT[org.locationtech.jts.geom.GeometryCollection]("geometrycollection")
 
 object GeometryCollectionUDT extends GeometryCollectionUDT
-

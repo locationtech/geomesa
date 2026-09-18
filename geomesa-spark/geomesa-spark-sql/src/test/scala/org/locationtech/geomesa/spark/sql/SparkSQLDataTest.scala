@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.spark.sql
 
-import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.catalyst.plans.logical.Filter
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.functions.lit
@@ -353,7 +352,7 @@ class SparkSQLDataTest extends TestWithSpark with BeforeAfterAll {
     "preserve feature ID through dataframe ops" in {
       val sql = "select * from chicago where __fid__ = '1'"
       sc.sql(sql).collect().map(_.getAs[String]("__fid__")) mustEqual Array("1")
-      sc.sql(sql).withColumn("label", new Column(Literal(1))).collect().map(_.getAs[String]("__fid__")) mustEqual Array("1")
+      sc.sql(sql).withColumn("label", lit(1)).collect().map(_.getAs[String]("__fid__")) mustEqual Array("1")
     }
 
     "st_translate null" in {
