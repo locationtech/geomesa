@@ -17,7 +17,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 jobs:
-  report:
+  build-matrix-report:
     runs-on: ubuntu-latest
     permissions:
       contents: read

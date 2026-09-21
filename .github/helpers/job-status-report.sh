@@ -6,9 +6,11 @@
 # with a long duration - or a "built" job that finished in seconds - points at a bug in the skip
 # logic.
 #
-# The skip decision is read from the run itself: the build steps (Compile / Run unit tests) carry
+# The decision is read from the run itself: the build steps (e.g. Set Scala version / Compile) carry
 # `if: ... affected != 'false'`, so when a job is skipped the jobs API reports those steps with
-# conclusion "skipped", and when it built they are success/failure.
+# conclusion "skipped", and when it built they are success/failure. A job with an empty project
+# list (build-and-test's spark/2.12, where spark modules don't exist for scala 2.12) is reported
+# as "empty" rather than "skipped" - it never had anything to build.
 #
 # It is meant to run as a final job (needs: <matrix job>, if: always()) via workflow_call, reading
 # its own run's jobs. The report job itself is still in_progress at that point, so we consider only
@@ -61,18 +63,26 @@ if [[ "$count" -eq 0 ]]; then
   exit 1
 fi
 
-# a job "built" if one of its affected-gated steps actually ran (conclusion success or failure); if
-# they were all skipped (or absent) the affected-detection skipped the job. "Set Scala version" and
-# "Compile" are gated on `affected != 'false'` in every workflow this report covers (build,
-# integration-tests, assembly, spark), so keying on them works uniformly regardless of what each
-# workflow calls its later test/build step.
-built_decision() {  # $1 = job index; echoes "built" or "skipped"
-  local ran
+# classify a job as built / skipped / empty:
+#   built   - an affected-gated step actually ran (conclusion success or failure). "Set Scala
+#             version" and "Compile" are gated on `affected != 'false'` in every workflow this
+#             report covers (build, integration-tests, assembly, spark), so keying on them works
+#             uniformly regardless of what each workflow calls its later test/build step.
+#   empty   - the job's project list was empty, so it never had anything to build (build-and-test's
+#             spark/2.12, where spark modules don't exist for scala 2.12). that case gates even
+#             "Detect affected modules" off (on `list != ''`), so it is distinguished from a normal
+#             skip by detection having been skipped rather than having run and returned affected=false.
+#   skipped - detection ran and determined the PR doesn't touch this job's modules.
+job_decision() {  # $1 = job index; echoes "built" | "skipped" | "empty"
+  local ran detect
   ran="$(jq -r ".[$1].steps[]
     | select(.name == \"Set Scala version\" or .name == \"Compile\")
     | select(.conclusion == \"success\" or .conclusion == \"failure\")
     | .name" <<< "$JOBS")"
-  [[ -n "$ran" ]] && echo "built" || echo "skipped"
+  if [[ -n "$ran" ]]; then echo "built"; return; fi
+  detect="$(jq -r ".[$1].steps[]
+    | select(.name == \"Detect affected modules\") | .conclusion" <<< "$JOBS")"
+  [[ "$detect" == "skipped" ]] && echo "empty" || echo "skipped"
 }
 
 # duration in whole seconds between two ISO timestamps; empty if either is missing.
@@ -103,7 +113,7 @@ conclusion_icon() {  # $1 = conclusion (or status for in-progress)
 # collect one tab-separated record per job, then sort by job name so related jobs (e.g. a matrix
 # entry's 2.12 and 2.13 variants) sit next to each other and the table order is stable across runs.
 records=""
-n_built=0 n_skipped=0 total_secs=0
+n_built=0 n_skipped=0 n_empty=0 total_secs=0
 for ((i = 0; i < count; i++)); do
   name="$(jq -r ".[$i].name" <<< "$JOBS")"
   status="$(jq -r ".[$i].status" <<< "$JOBS")"
@@ -111,31 +121,29 @@ for ((i = 0; i < count; i++)); do
   started="$(jq -r ".[$i].started_at // \"\"" <<< "$JOBS")"
   completed="$(jq -r ".[$i].completed_at // \"\"" <<< "$JOBS")"
 
-  decision="$(built_decision "$i")"
+  decision="$(job_decision "$i")"
   secs="$(duration_secs "$started" "$completed")"
   [[ -n "$secs" ]] && total_secs=$(( total_secs + secs ))
 
-  if [[ "$decision" == "built" ]]; then
-    n_built=$(( n_built + 1 ))
-    decision_cell="🔨 built"
-  else
-    n_skipped=$(( n_skipped + 1 ))
-    decision_cell="⏭️ skipped"
-  fi
+  case "$decision" in
+    built)   n_built=$(( n_built + 1 ));   decision_cell="🔨 built" ;;
+    empty)   n_empty=$(( n_empty + 1 ));   decision_cell="🚧 empty" ;;
+    *)       n_skipped=$(( n_skipped + 1 )); decision_cell="⏭️ skipped" ;;
+  esac
 
   mark="$(conclusion_icon "${conclusion:-$status}")"
   records+="${name}\t${decision_cell}\t${mark} ${conclusion:-$status}\t$(fmt_duration "$secs")"$'\n'
 done
 
 {
-  echo "### Job Status Report${WORKFLOW_NAME:+ — $WORKFLOW_NAME}"
+  echo "### Job Status Report${WORKFLOW_NAME:+ - $WORKFLOW_NAME}"
   echo ""
-  echo "Job status for [run ${RUN_ID}](${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}):"
+  echo "Job status for run [${RUN_ID}](${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID})"
   echo ""
   echo "| Job | Decision | Status | Duration |"
   echo "| --- | --- | --- | --- |"
   printf '%b' "$records" | sort -t$'\t' -k1,1 \
     | awk -F'\t' 'NF >= 4 { printf "| `%s` | %s | %s | %s |\n", $1, $2, $3, $4 }'
   echo ""
-  echo "_${count} jobs, ${n_built} built, ${n_skipped} skipped, cumulative runtime $(( total_secs / 60 ))m $(( total_secs % 60 ))s._"
+  echo "_${count} jobs, ${n_built} built, ${n_skipped} skipped, ${n_empty} empty, cumulative runtime $(( total_secs / 60 ))m $(( total_secs % 60 ))s._"
 } >> "$SUMMARY"
