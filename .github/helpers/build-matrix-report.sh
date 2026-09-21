@@ -62,7 +62,9 @@ for wf in "$@"; do
   WF_PROJECTS+=("$projects")
   count="$(jq 'length' <<< "$projects")"
   for ((i = 0; i < count; i++)); do
-    ALL_LISTS+=("$(jq -r ".[$i].list" <<< "$projects")")
+    # spark modules only build for scala 2.13 and live in a separate list-2.13 element; join it
+    # with the main list so both are reported (an entry may have only one of the two)
+    ALL_LISTS+=("$(jq -r ".[$i] | [.list, .[\"list-2.13\"]] | map(select(. != null)) | join(\",\")" <<< "$projects")")
   done
 done
 
