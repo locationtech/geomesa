@@ -97,19 +97,3 @@ jobs:
             fi
           done < <(find . -name '*IT.scala' -print0)
           echo "done"
-  build-matrix-report:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Build report
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          .github/helpers/build-matrix-report.sh \
-            .github/workflows/build-and-test.yml \
-            .github/workflows/integration-tests.yml \
-            .github/workflows/assembly.yml \
-            .github/workflows/spark.yml
