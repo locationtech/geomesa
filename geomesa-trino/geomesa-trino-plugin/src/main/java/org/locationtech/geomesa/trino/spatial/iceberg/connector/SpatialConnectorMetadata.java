@@ -210,11 +210,17 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             return Optional.empty();
         }
 
-        // Visibility-column pushdown candidate: independent of any spatial predicate,
-        // so it's computed up front and seeded into `domains` below regardless of which
-        // branch the spatial logic takes. See visibilityDomain() / VisibilityDomainPruning
-        // for what's injected and why it's sound (or, for the opt-in tier, documented-unsound).
-        Optional<Map.Entry<ColumnHandle, Domain>> visDomain = visibilityDomain(session, handle, constraint);
+        // Visibility-column pushdown is independent of any spatial predicate. Seed it into the
+        // domains map up front so there is a SINGLE site that applies it — the merge-and-delegate
+        // tail below — rather than repeating it at every early return. A non-spatial query then
+        // needs no special case: it simply contributes no spatial domains and flows through the
+        // same tail. See visibilityDomain() / VisibilityDomainPruning for what's injected and why
+        // it's sound.
+        Map<ColumnHandle, Domain> domains = new HashMap<>();
+        visibilityDomain(session, handle, constraint)
+            .ifPresent(e -> domains.put(e.getKey(), e.getValue()));
+        List<BboxHandles> injectedBboxes = new ArrayList<>();
+        List<SpatialPartitionHandle> injectedPartitions = new ArrayList<>();
 
         // Walk the filter expression for ALL ST_* spatial calls (not just the first).
         // Per-geom routing: each ST_* on column X uses X's bbox + partition companions.
@@ -225,28 +231,14 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         // struct comparisons (re-entry on a second planning iteration). The reconstructed
         // envelope is anchored to whichever geom's bbox struct the comparisons reference.
         if (matches.isEmpty()) {
-            List<BboxPatternMatch> bboxes = tryExtractBboxPatternMatches(constraint.getExpression());
-            if (bboxes.isEmpty()) {
-                return visDomain.isEmpty()
-                    ? delegate.applyFilter(session, handle, constraint)
-                    : applyVisibilityOnlyDomain(session, handle, constraint, visDomain.get());
-            }
-            matches = bboxes.stream()
+            matches = tryExtractBboxPatternMatches(constraint.getExpression()).stream()
                 .map(bp -> new SpatialMatch(bp.envelope(), BBOX_PATTERN, bp.geomName()))
                 .toList();
         }
 
-        Map<String, GeometryColumn> geoms = geomsFor(session, handle);
-        if (geoms.isEmpty()) {
-            return visDomain.isEmpty()
-                ? delegate.applyFilter(session, handle, constraint)
-                : applyVisibilityOnlyDomain(session, handle, constraint, visDomain.get());
-        }
-
-        Map<ColumnHandle, Domain> domains = new HashMap<>();
-        visDomain.ifPresent(e -> domains.put(e.getKey(), e.getValue()));
-        List<BboxHandles> injectedBboxes = new ArrayList<>();
-        List<SpatialPartitionHandle> injectedPartitions = new ArrayList<>();
+        // Resolve geometry columns only when there's a spatial match to route; a pure
+        // (non-spatial) query still reaches the tail below to apply any visibility domain.
+        Map<String, GeometryColumn> geoms = matches.isEmpty() ? Map.of() : geomsFor(session, handle);
 
         for (SpatialMatch match : matches) {
             GeometryColumn geom = geoms.get(match.geomName());
@@ -291,6 +283,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             });
         }
 
+        // Fallback
         if (domains.isEmpty()) {
             return delegate.applyFilter(session, handle, constraint);
         }
@@ -404,22 +397,6 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             domain = VisibilityDomainPruning.expressionDomain(vt, visibilityExpressions, auths);
         }
         return domain.map(d -> Map.entry(visHandle, d));
-    }
-
-    /**
-     * Applies a visibility-only domain (no spatial predicate present) by
-     * intersecting it into the constraint summary and delegating — the simple
-     * counterpart of the full spatial path's domain merge/delegate/short-circuit
-     * sequence, minus the bbox short-circuit (which requires a spatial match).
-     */
-    private Optional<ConstraintApplicationResult<ConnectorTableHandle>> applyVisibilityOnlyDomain(
-            ConnectorSession session, ConnectorTableHandle handle, Constraint constraint,
-            Map.Entry<ColumnHandle, Domain> visDomain) {
-        TupleDomain<ColumnHandle> augmentedSummary = constraint.getSummary()
-            .intersect(TupleDomain.withColumnDomains(Map.of(visDomain.getKey(), visDomain.getValue())));
-        Constraint augmented = new Constraint(augmentedSummary, constraint.getExpression(),
-            constraint.getAssignments());
-        return delegate.applyFilter(session, handle, augmented);
     }
 
     /**
