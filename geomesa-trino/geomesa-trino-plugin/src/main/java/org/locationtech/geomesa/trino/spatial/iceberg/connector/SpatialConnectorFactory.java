@@ -44,7 +44,7 @@ public class SpatialConnectorFactory implements ConnectorFactory {
     private static final String AUTH_MAPPING    = SECURITY_PREFIX + "auth-mapping-file";
 
     /** Declared closed universe of every distinct non-null visibility value the column can
-     *  hold, comma-separated (e.g. {@code "U,U&FOUO,U&FOUO&NOFORN"}). When set, enables the
+     *  hold, comma-separated (e.g. {@code "basic,basic&privileged"}). When set, enables the
      *  sound-for-compound-expressions {@code VisibilityDomainPruning#expressionDomain} tier —
      *  safe to enable even when visibility values are compound ({@code &}/{@code |}) expressions,
      *  since it prunes on literal expression values via the real {@code is_visible()} decision

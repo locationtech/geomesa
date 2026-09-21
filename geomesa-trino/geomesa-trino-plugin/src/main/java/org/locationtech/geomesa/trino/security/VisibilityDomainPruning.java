@@ -76,7 +76,7 @@ public final class VisibilityDomainPruning {
      * on literal expression VALUES via the real {@code is_visible()} decision
      * rather than on decomposed tokens. {@code candidateExpressions} is the closed universe of
      * every distinct non-null value the visibility column can ever hold (e.g. a
-     * declared clearance ladder: {@code "U"}, {@code "U&FOUO"}, ...); each one is
+     * declared ladder: {@code "basic"}, {@code "basic&privileged"}, ...); each one is
      * run through the real {@link GeoMesaSecurityFunctions#isVisible} decision —
      * the identical engine the row filter uses — so "does the caller's auth set
      * admit this literal string" is answered exactly, with no token-vs-expression

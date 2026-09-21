@@ -63,9 +63,9 @@ class VisibilityDomainPruningTest {
 
     @Test
     void expressionDomainEmptyAuthsOrEmptyCandidatesYieldsNoDomain() {
-        assertThat(VisibilityDomainPruning.expressionDomain(VARCHAR, Set.of("U"), Set.of()))
+        assertThat(VisibilityDomainPruning.expressionDomain(VARCHAR, Set.of("basic"), Set.of()))
             .isEmpty();
-        assertThat(VisibilityDomainPruning.expressionDomain(VARCHAR, Set.of(), Set.of("U")))
+        assertThat(VisibilityDomainPruning.expressionDomain(VARCHAR, Set.of(), Set.of("basic")))
             .isEmpty();
     }
 
@@ -96,17 +96,17 @@ class VisibilityDomainPruningTest {
     @Test
     void expressionDomainOnlyIncludesCandidatesActuallyVisible() {
         Domain domain = VisibilityDomainPruning.expressionDomain(
-            VARCHAR, Set.of("U", "U&FOUO", "TS&SCI"), Set.of("U", "FOUO")).orElseThrow();
-        assertThat(domain.includesNullableValue(Slices.utf8Slice("U"))).isTrue();
-        assertThat(domain.includesNullableValue(Slices.utf8Slice("U&FOUO"))).isTrue();
-        assertThat(domain.includesNullableValue(Slices.utf8Slice("TS&SCI"))).isFalse();
+            VARCHAR, Set.of("basic", "basic&privileged", "admin"), Set.of("basic", "privileged")).orElseThrow();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice("basic"))).isTrue();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice("basic&privileged"))).isTrue();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice("admin"))).isFalse();
         assertThat(domain.includesNullableValue(null)).isTrue();
     }
 
     @Test
     void expressionDomainFallsBackToOnlyNullWhenNoCandidateIsVisible() {
         Domain domain = VisibilityDomainPruning
-            .expressionDomain(VARCHAR, Set.of("TS&SCI"), Set.of("U"))
+            .expressionDomain(VARCHAR, Set.of("privileged"), Set.of("basic"))
             .orElseThrow();
         assertThat(domain.isOnlyNull()).isTrue();
     }
