@@ -1,26 +1,27 @@
-# reports the actual skip decision and duration of each job, to validate the affected-module skip
-# logic (skipped jobs should be fast, built jobs slow). runs after each covered workflow finishes,
-# since it reads real results - unlike validate-ci's build-matrix-report, which predicts skips from
-# the diff before the build runs. fires once per completed run, reporting whichever workflow
-# triggered it.
+# reports the skip decision and duration of each job in the calling workflow's run, to validate the
+# affected-module skip logic (skipped jobs should be fast, built jobs slow). implemented as a
+# reusable workflow (workflow_call) invoked as a final job by each covered workflow, so it reads its
+# own run's real results without a 'workflow_run' trigger (which zizmor flags as dangerous and which
+# runs cross-run with elevated context).
 name: job-status-report
 
 on:
-  workflow_run:
-    workflows: [ "build", "integration-tests", "assembly", "spark" ]
-    types: [ completed ]
+  workflow_call:
+    inputs:
+      workflow-name:
+        description: name of the calling workflow, used only as the report heading
+        required: false
+        type: string
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 jobs:
   report:
-    # only for build runs triggered by a pull request - the report is a PR-review aid
-    if: github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: read  # to read the completed run's jobs via the api
+      actions: read  # to read the run's jobs via the api
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -28,6 +29,6 @@ jobs:
       - name: Job status report
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          RUN_ID: ${{ github.run_id }}
+          WORKFLOW_NAME: ${{ inputs.workflow-name }}
         run: .github/helpers/job-status-report.sh "$RUN_ID"

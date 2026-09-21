@@ -100,3 +100,12 @@ jobs:
       - name: Run Spark tests
         if: steps.changes.outputs.affected != 'false'
         run: mvn $MAVEN_TEST_SPARK_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }}
+  report:
+    needs: integration-tests
+    if: always()
+    uses: ./.github/workflows/job-status-report.yml
+    with:
+      workflow-name: spark
+    permissions:
+      contents: read
+      actions: read

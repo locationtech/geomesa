@@ -173,3 +173,12 @@ jobs:
           set -o pipefail
           RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
           mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl "${PROJECT_LIST}" ${{ matrix.projects.args }} $RESUME_FROM | tee -a test.log
+  report:
+    needs: build
+    if: always()
+    uses: ./.github/workflows/job-status-report.yml
+    with:
+      workflow-name: build
+    permissions:
+      contents: read
+      actions: read

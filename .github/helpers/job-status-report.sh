@@ -10,8 +10,9 @@
 # `if: ... affected != 'false'`, so when a job is skipped the jobs API reports those steps with
 # conclusion "skipped", and when it built they are success/failure.
 #
-# Because it reads results after the fact, it must be invoked from a workflow that triggers on
-# 'workflow_run' (after the build workflow completes), not alongside the build.
+# It is meant to run as a final job (needs: <matrix job>, if: always()) via workflow_call, reading
+# its own run's jobs. The report job itself is still in_progress at that point, so we consider only
+# jobs whose status is "completed" - which also drops the report job from its own table.
 #
 # Output is a markdown table written to the GitHub step summary (or stdout when run locally).
 #
@@ -48,8 +49,10 @@ SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
 # pull every job for the run, including its steps. --paginate handles runs with more than one page
 # of matrix jobs (our build matrix is well over the 30-per-page default). we keep name/status/
 # conclusion/timestamps plus the per-step conclusions, which is where the real skip decision lives.
+# we keep only completed jobs: the report job that invokes this is itself still in_progress, so
+# filtering on status drops it from its own table (and any other not-yet-finished job).
 JOBS="$(gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs" \
-  -q '.jobs[] | {name, status, conclusion, started_at, completed_at, steps: [.steps[] | {name, conclusion}]}' \
+  -q '.jobs[] | select(.status == "completed") | {name, status, conclusion, started_at, completed_at, steps: [.steps[] | {name, conclusion}]}' \
   | jq -s '.')"
 
 count="$(jq 'length' <<< "$JOBS")"
