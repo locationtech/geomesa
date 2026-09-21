@@ -107,3 +107,12 @@ jobs:
       - name: Build assemblies
         if: steps.changes.outputs.affected != 'false'
         run: mvn $MAVEN_ASSEMBLY_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
+  report:
+    needs: assembly
+    if: always()
+    uses: $/.github/workflows/job-status-report.yml
+    with:
+      workflow-name: assembly
+    permissions:
+      contents: read
+      actions: read

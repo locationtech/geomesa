@@ -11,14 +11,25 @@
     <artifactId>geomesa-spark_2.12</artifactId>
     <packaging>pom</packaging>
 
-    <modules>
-        <module>geomesa-spark-converter</module>
-        <module>geomesa-spark-core</module>
-        <module>geomesa-spark-jts</module>
-        <module>geomesa-spark-jupyter-leaflet</module>
-        <module>geomesa-spark-sql</module>
-        <module>geomesa-spark-test-with-sedona</module>
-        <module>geomesa_pyspark</module>
-    </modules>
+    <profiles>
+        <profile>
+            <id>spark</id>
+            <activation>
+                <property>
+                    <name>scala.binary.version</name>
+                    <value>2.13</value>
+                </property>
+            </activation>
+            <modules>
+                <module>geomesa-spark-converter</module>
+                <module>geomesa-spark-core</module>
+                <module>geomesa-spark-jts</module>
+                <module>geomesa-spark-jupyter-leaflet</module>
+                <module>geomesa-spark-sql</module>
+                <module>geomesa-spark-test-with-sedona</module>
+                <module>geomesa_pyspark</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>

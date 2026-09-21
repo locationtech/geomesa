@@ -33,9 +33,9 @@ jobs:
             ${{ env.JAVA_VERSION }}
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: main-2.12-${{ hashFiles('**/pom.xml') }}
+          key: main-2.13-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            main-2.12-
+            main-2.13-
             main-
           path: ~/.m2/repository/
       - name: Check for dependency changes
@@ -43,7 +43,7 @@ jobs:
         env:
           GIT_REF: ${{ github.base_ref }}
         run: |
-          changed=""
+          changed="false"
           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
             echo "Checking for dependency changes"
             # get the changed files
@@ -52,41 +52,30 @@ jobs:
             echo "Changed files:"
             for file in "${changedFiles[@]}"; do
               echo "  $file"
-              if [[ -z "$changed" ]] && [[ $file =~ .*pom.xml ]]; then
-                changed="pom"
-              elif [[ "$file" == "build/dependencies.txt" ]]; then
+              if [[ "$file" == "build/dependencies.txt" ]]; then
                 echo "Detected dependency change"
                 changed="true"
+              elif [[ "$changed" = "false" ]] && [[ $file =~ .*pom.xml ]]; then
+                changed="pom"
               fi
             done
-            if [[ -n "$changed" ]]; then
-              echo "Detected dependency change, double-checking dependencies.txt"
-              mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS
-              mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
-              ./build/scripts/calculate-cqs.sh
-              git diff --exit-code --quiet build/dependencies.txt || {
-                echo 'Detected dependency changes - please run `./build/scripts/calculate-cqs.sh` and commit the results'
-                git diff build/dependencies.txt
-                exit 1
-              }
-              if [[ "$changed" == "pom" ]]; then
-                echo "Dependencies are ok, skipping dash check"
-                changed="false"
-              fi
-            fi
           else
             # weekly or dispatch requests
             echo "Always running dash check for scheduled jobs"
             changed="true"
           fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
+      - name: Set Scala version
+        if: steps.dependency_changes.outputs.changed != 'false'
+        # check against 2.13 as 2.12 doesn't include spark
+        run: ./build/scripts/change-scala-version.sh 2.13
       - name: Compile Trino plugin
-        if: steps.dependency_changes.outputs.changed == 'true'
+        if: steps.dependency_changes.outputs.changed != 'false'
         run: |
           set -o pipefail
           mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS | tee -a build.log
       - name: Compile
-        if: steps.dependency_changes.outputs.changed == 'true'
+        if: steps.dependency_changes.outputs.changed != 'false'
         id: compile
         continue-on-error: true
         run: |
@@ -103,6 +92,17 @@ jobs:
           else
             exit 1
           fi
+      - name: Check for untracked changes
+        if: steps.dependency_changes.outputs.changed == 'pom'
+        run: |
+          echo "Detected pom changes, double-checking dependencies.txt"
+          ./build/scripts/calculate-cqs.sh
+          git diff --exit-code --quiet build/dependencies.txt || {
+            echo 'Detected dependency changes - please run `./build/scripts/calculate-cqs.sh` and commit the results'
+            git diff build/dependencies.txt
+            exit 1
+          }
+          echo "Dependencies are ok, skipping dash check"
       - name: License check
         if: steps.dependency_changes.outputs.changed == 'true'
         run: mvn $MAVEN_DASH_ARGS $MAVEN_CLI_OPTS

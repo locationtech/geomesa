@@ -16,6 +16,12 @@ NiFi Version Support
 
 GeoMesa no longer supports NiFi 1.x. Users should upgrade to the latest NiFi 2.x.
 
+Spark Version Support
+---------------------
+
+GeoMesa no longer supports Spark 3.x. Users should upgrade to Spark 4. Note that only ``_2.13`` Spark artifacts
+are published, as Spark 4 does not support Scala 2.12.
+
 Kafka Zookeeper Deprecation
 ---------------------------
 
@@ -83,7 +89,7 @@ The following dependencies have been upgraded:
 * sedona ``1.8.0`` -> ``1.8.1``
 * sizeof ``0.4.3`` -> ``0.4.4``
 * slf4j ``1.7.36`` -> ``2.0.18``
-* spark ``3.5.5`` -> ``3.5.7``
+* spark ``3.5.5`` -> ``4.2.0``
 * spring ``5.3.39`` -> ``7.0.8``
 * spring-security ``5.8.16`` -> ``7.1.0``
 * typesafe-config ``1.4.3`` -> ``1.4.9``
@@ -100,10 +106,10 @@ Spark Runtime JAR Changes
 
 The various GeoMesa Spark runtime JARs have changed Maven coordinates, and now use a ``runtime`` classifier:
 
-* ``org.locationtech.geomesa:geomesa-accumulo-spark-runtime-accumulo21_2.12:jar`` -> ``org.locationtech.geomesa:geomesa-accumulo-spark_2.12:jar:runtime``
-* ``org.locationtech.geomesa:geomesa-fs-spark-runtime_2.12:jar`` -> ``org.locationtech.geomesa:geomesa-fs-spark_2.12:jar:runtime``
-* ``org.locationtech.geomesa:geomesa-gt-spark-runtime_2.12:jar`` -> ``org.locationtech.geomesa:geomesa-gt-spark_2.12:jar:runtime``
-* ``org.locationtech.geomesa:geomesa-hbase-spark-runtime-hbase2_2.12:jar`` -> ``org.locationtech.geomesa:geomesa-hbase-spark_2.12:jar:runtime``
+* ``org.locationtech.geomesa:geomesa-accumulo-spark-runtime-accumulo21_2.13:jar`` -> ``org.locationtech.geomesa:geomesa-accumulo-spark_2.13:jar:runtime``
+* ``org.locationtech.geomesa:geomesa-fs-spark-runtime_2.13:jar`` -> ``org.locationtech.geomesa:geomesa-fs-spark_2.13:jar:runtime``
+* ``org.locationtech.geomesa:geomesa-gt-spark-runtime_2.13:jar`` -> ``org.locationtech.geomesa:geomesa-gt-spark_2.13:jar:runtime``
+* ``org.locationtech.geomesa:geomesa-hbase-spark-runtime-hbase2_2.13:jar`` -> ``org.locationtech.geomesa:geomesa-hbase-spark_2.13:jar:runtime``
 
 Removed Modules
 ---------------

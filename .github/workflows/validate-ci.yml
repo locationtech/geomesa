@@ -22,7 +22,9 @@ jobs:
               module="${module#./}"
               if [[ $module != *distributed-runtime* ]]; then
                 echo "Checking $module"
-                yq -e '.jobs.build.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/build-and-test.yml >/dev/null 2>&1 || exit 1
+                # spark modules are only built for scala 2.13, so they live in a separate list-2.13
+                # element - check both it and the main list
+                yq -e '.jobs.build.strategy.matrix.projects[] | (.list, .["list-2.13"]) | select(. != null) | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/build-and-test.yml >/dev/null 2>&1 || exit 1
               fi
             }
           done < <(find . -name pom.xml -print0)
@@ -95,19 +97,3 @@ jobs:
             fi
           done < <(find . -name '*IT.scala' -print0)
           echo "done"
-  build-matrix-report:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Build report
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          .github/helpers/build-matrix-report.sh \
-            .github/workflows/build-and-test.yml \
-            .github/workflows/integration-tests.yml \
-            .github/workflows/assembly.yml \
-            .github/workflows/spark.yml

@@ -8,9 +8,8 @@
 
 package org.locationtech.geomesa.spark.jts.util
 
-import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
-import org.apache.spark.sql.catalyst.expressions.{Alias, AttributeReference}
 import org.apache.spark.sql.functions.udf
+import org.apache.spark.sql.jts.ColumnUtils
 import org.apache.spark.sql.{Column, Encoder, TypedColumn}
 
 import scala.reflect.runtime.universe._
@@ -72,14 +71,7 @@ import scala.reflect.runtime.universe._
     withAlias(namer(f), colA, colB, colC)(udf(f).apply(colA, colB, colC, colD)).as[RT]
   }
 
-  def columnName(column: Column): String = {
-    column.expr match {
-      case ua: UnresolvedAttribute ⇒ ua.name
-      case ar: AttributeReference ⇒ ar.name
-      case as: Alias ⇒ as.name
-      case o ⇒ o.prettyName
-    }
-  }
+  def columnName(column: Column): String = ColumnUtils.columnName(column)
 
   def withAlias(name: String, inputs: Column*)(output: Column): Column = {
     val paramNames = inputs.map(columnName).mkString(",")

@@ -85,3 +85,12 @@ jobs:
       - name: Run integration tests
         if: steps.changes.outputs.affected != 'false'
         run: mvn $MAVEN_IT_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
+  report:
+    needs: integration-tests
+    if: always()
+    uses: $/.github/workflows/job-status-report.yml
+    with:
+      workflow-name: integration-tests
+    permissions:
+      contents: read
+      actions: read
