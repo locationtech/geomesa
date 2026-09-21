@@ -136,6 +136,30 @@ class IcebergVisibilityPruningMechanismTest {
     }
 
     @Test
+    void expressionDomainKeepsCompoundFileForEntitledCallerButPrunesForUnentitled() throws IOException {
+        // The entire justification for the PR, proven through Iceberg's real manifest evaluator
+        // rather than only at the Domain level (VisibilityDomainPruningTest#
+        // expressionDomainAdmitsCompoundExpressionCallerCanSatisfy). A file whose only visibility
+        // value is the compound expression "admin&ops": because expressionDomain runs that literal
+        // through the real is_visible() decision, a caller holding BOTH "admin" and "ops" keeps the
+        // file, while a caller holding only "admin" prunes it. A token-decomposition approach could
+        // not distinguish these — it would wrongly keep the file for the "admin"-only caller.
+        appendFile("admin&ops", 1000, false);
+
+        // Caller satisfies the compound expression -> file survives.
+        Domain entitled = VisibilityDomainPruning.expressionDomain(
+            VarcharType.VARCHAR, Set.of("admin&ops"), Set.of("admin", "ops")).orElseThrow();
+        assertThat(scannedFileCount(Optional.of(toIcebergExpression(entitled)))).isEqualTo(1);
+
+        // Caller holds only one token of the compound expression -> no candidate value is visible,
+        // expressionDomain collapses to only-NULL, and the file (zero NULLs) is pruned.
+        Domain unentitled = VisibilityDomainPruning.expressionDomain(
+            VarcharType.VARCHAR, Set.of("admin&ops"), Set.of("admin")).orElseThrow();
+        assertThat(scannedFileCount(Optional.of(toIcebergExpression(unentitled)))).isEqualTo(0);
+    }
+
+
+    @Test
     void expressionDomainDoesNotPruneMixedFile() throws IOException {
         // A single file whose min/max span both an admissible and an inadmissible value:
         // Iceberg's manifest evaluator can only compare against [min, max], so it cannot exclude
