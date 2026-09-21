@@ -103,7 +103,7 @@ jobs:
   report:
     needs: integration-tests
     if: always()
-    uses: ./.github/workflows/job-status-report.yml
+    uses: $/.github/workflows/job-status-report.yml
     with:
       workflow-name: spark
     permissions:

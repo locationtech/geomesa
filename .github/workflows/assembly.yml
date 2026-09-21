@@ -110,7 +110,7 @@ jobs:
   report:
     needs: assembly
     if: always()
-    uses: ./.github/workflows/job-status-report.yml
+    uses: $/.github/workflows/job-status-report.yml
     with:
       workflow-name: assembly
     permissions:

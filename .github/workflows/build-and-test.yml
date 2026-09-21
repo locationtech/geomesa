@@ -176,7 +176,7 @@ jobs:
   report:
     needs: build
     if: always()
-    uses: ./.github/workflows/job-status-report.yml
+    uses: $/.github/workflows/job-status-report.yml
     with:
       workflow-name: build
     permissions:
