@@ -106,6 +106,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private final GeoMesaColumnCatalog geomCatalog;
     /** When true, claim eligible rectangle ST_Intersects predicates enforced. */
     private final boolean bboxShortCircuit;
+    /** When true, rewrite DEFINER views to run as the invoker; see {@link #observeView}. */
+    private final boolean useInvokerAuths;
 
     /** Result of locating a spatial constraint in a constraint expression: the
      *  query envelope(s), the spatial function's name (lowercased ASCII; {@code
@@ -137,9 +139,23 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public SpatialConnectorMetadata(ConnectorMetadata delegate,
                                     GeoMesaColumnCatalog geomCatalog,
                                     boolean bboxShortCircuit) {
+        this(delegate, geomCatalog, bboxShortCircuit, false);
+    }
+
+    /**
+     * @param delegate the underlying iceberg metadata
+     * @param geomCatalog the shared geometry-column catalog
+     * @param bboxShortCircuit whether to claim rectangle ST_Intersects predicates enforced
+     * @param useInvokerAuths whether to rewrite DEFINER views to run as the invoker
+     */
+    public SpatialConnectorMetadata(ConnectorMetadata delegate,
+                                    GeoMesaColumnCatalog geomCatalog,
+                                    boolean bboxShortCircuit,
+                                    boolean useInvokerAuths) {
         this.delegate = delegate;
         this.geomCatalog = geomCatalog;
         this.bboxShortCircuit = bboxShortCircuit;
+        this.useInvokerAuths = useInvokerAuths;
     }
 
     /** Resolve the per-geom-column descriptor map for the given table handle.
@@ -1266,7 +1282,10 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     @Override
     public Map<SchemaTableName, ConnectorViewDefinition> getViews(ConnectorSession session,
                                                                   Optional<String> schemaName) {
-        return delegate.getViews(session, schemaName);
+        Map<SchemaTableName, ConnectorViewDefinition> views = delegate.getViews(session, schemaName);
+        Map<SchemaTableName, ConnectorViewDefinition> observed = new LinkedHashMap<>();
+        views.forEach((name, definition) -> observed.put(name, observeView(name, definition)));
+        return observed;
     }
 
     /**
@@ -1291,7 +1310,54 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     @Override
     public Optional<ConnectorViewDefinition> getView(ConnectorSession session,
                                                      SchemaTableName viewName) {
-        return delegate.getView(session, viewName);
+        return delegate.getView(session, viewName)
+            .map(definition -> observeView(viewName, definition));
+    }
+
+    /**
+     * Records a view's output columns so the Trino-layer
+     * {@link org.locationtech.geomesa.trino.security.VisibilityAccessControl} does not
+     * fail closed on it, and — when {@code useInvokerAuths} is set — rewrites the
+     * definition to run as the invoker.
+     *
+     * <p><strong>Why the recording.</strong> A view never reaches
+     * {@link #getColumnHandles}: Trino resolves it here and expands its stored SQL, so
+     * the view's own name is never observed. The access control, which sees only a
+     * {@link SchemaTableName}, then treats it as an unobserved data table and hides
+     * every row. Recording the view's columns lets it behave exactly as it does for a
+     * table: filter on {@code __vis__} when the view exposes one, otherwise leave the
+     * view unfiltered and let the base tables enforce their own visibility.
+     *
+     * <p><strong>Why the rewrite.</strong> Leaving a view unfiltered is only sound if
+     * its base scans run as the querying user. Under Trino's default DEFINER security
+     * the base tables are read as the view OWNER, so both enforcement paths — the
+     * iceberg row filter and the postgis {@code geomesa.auths} connection stamp —
+     * would resolve the owner's authorizations, letting a view launder entitlements.
+     * Running as the invoker makes each base connector filter for the actual caller.
+     */
+    private ConnectorViewDefinition observeView(SchemaTableName viewName, ConnectorViewDefinition definition) {
+        try {
+            Set<String> columns = new LinkedHashSet<>();
+            for (ConnectorViewDefinition.ViewColumn column : definition.getColumns()) {
+                columns.add(column.getName());
+            }
+            geomCatalog.recordVisibilityColumn(viewName, columns);
+        } catch (RuntimeException e) {
+            LOG.debug("Could not record visibility column for view {}: {}", viewName, e.getMessage());
+        }
+        if (!useInvokerAuths || definition.isRunAsInvoker()) {
+            return definition;
+        }
+        // ConnectorViewDefinition rejects an owner together with runAsInvoker
+        return new ConnectorViewDefinition(
+            definition.getOriginalSql(),
+            definition.getCatalog(),
+            definition.getSchema(),
+            definition.getColumns(),
+            definition.getComment(),
+            Optional.empty(),
+            true,
+            definition.getPath());
     }
 
     /**

@@ -35,6 +35,7 @@ public class SpatialConnector implements Connector {
     private final GeoMesaColumnCatalog geomCatalog;
     private final ConnectorAccessControl accessControl;
     private final boolean bboxShortCircuit;
+    private final boolean useInvokerAuths;
 
     /**
      * Wraps a delegate connector with no Trino-layer visibility enforcement.
@@ -71,11 +72,26 @@ public class SpatialConnector implements Connector {
      */
     public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
                             boolean bboxShortCircuit) {
+        this(delegate, catalogName, resolver, bboxShortCircuit, true);
+    }
+
+    /**
+     * @param delegate       the underlying iceberg connector
+     * @param catalogName    the Trino catalog name; may be null when no resolver.
+     * @param resolver       identity→auths resolver; null disables Trino-layer enforcement.
+     * @param bboxShortCircuit when true, wrap the page source with the bbox cheap-reject
+     * @param useInvokerAuths when true, views in this catalog are rewritten to run as the
+     *                       invoker so base-table visibility resolves the caller's auths
+     *                       rather than the view owner's. Ignored when no resolver is set.
+     */
+    public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
+                            boolean bboxShortCircuit, boolean useInvokerAuths) {
         this.delegate = delegate;
         this.geomCatalog = new GeoMesaColumnCatalog();
         this.accessControl = resolver == null ? null
             : new VisibilityAccessControl(catalogName, geomCatalog, resolver);
         this.bboxShortCircuit = bboxShortCircuit;
+        this.useInvokerAuths = useInvokerAuths && resolver != null;
     }
 
     /**
@@ -124,7 +140,8 @@ public class SpatialConnector implements Connector {
         return new SpatialConnectorMetadata(
             delegate.getMetadata(session, transactionHandle),
             geomCatalog,
-            bboxShortCircuit
+            bboxShortCircuit,
+            useInvokerAuths
         );
     }
 
