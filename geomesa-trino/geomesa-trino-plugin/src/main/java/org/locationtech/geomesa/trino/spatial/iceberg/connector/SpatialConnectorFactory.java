@@ -66,6 +66,11 @@ public class SpatialConnectorFactory implements ConnectorFactory {
      *  is safe: a declared value that never occurs simply never matches and never prunes. When in
      *  doubt, declare more, never fewer.
      *
+     *  <p>NULL and empty ({@code ""}) are the one thing you must NOT rely on declaring: they carry
+     *  no real visibility expression, so {@code is_visible()} treats them as anomalies hidden from
+     *  everyone and pruning never admits them. Declaring {@code ""} here has no effect (it is
+     *  dropped); there is no way to make a NULL/empty-visibility row visible through this catalog.
+     *
      *  <p>This property is catalog-wide, not per-table: the same declared universe applies to
      *  every table in the catalog. When tables in the catalog use different visibility
      *  universes, declare the <em>union</em> of all their distinct values here — a value that

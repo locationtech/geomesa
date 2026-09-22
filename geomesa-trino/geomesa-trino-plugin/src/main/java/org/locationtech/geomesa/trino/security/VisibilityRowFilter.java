@@ -26,7 +26,9 @@ final class VisibilityRowFilter {
      * {@code is_visible("<col>", '<auths-csv>')}. The column identifier is
      * double-quoted (embedded {@code "} doubled) and the auths literal is
      * single-quote-escaped (embedded {@code '} doubled). Empty auths emit
-     * {@code ''} — fail-closed (only unrestricted rows pass).
+     * {@code ''} — fail-closed, so no rows pass (a NULL/empty visibility is an
+     * anomaly {@code is_visible} hides from everyone, and no real expression is
+     * satisfiable by an empty auth set).
      *
      * @throws IllegalArgumentException if a token contains a transport delimiter —
      *         the UDF would re-split it into auths that were never issued (see

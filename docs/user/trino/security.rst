@@ -69,13 +69,24 @@ properties:
 The feature has two tiers:
 
 * **Empty-authorizations tier** — active whenever pruning is enabled. A user with no
-  authorizations can only ever see rows with a NULL visibility, so files that contain no NULLs
-  are pruned. This tier is sound for any visibility grammar and needs no configuration.
+  authorizations can satisfy no visibility expression, and NULL/empty visibilities are hidden
+  from everyone (see the note below), so such a user can see no rows at all and every file is
+  pruned. This tier is sound for any visibility grammar and needs no configuration.
 
 * **Expression tier** — active when ``geomesa.security.visibility-expressions`` is non-empty.
   Each declared value is evaluated through the same ``is_visible()`` decision the row filter
   uses, so files whose visibility values are not admissible for the user are pruned. This tier
   correctly handles compound (``&`` / ``|``) visibility expressions.
+
+.. note::
+
+    A NULL or empty (``''``) ``__vis__`` value carries no real visibility expression. The
+    ``spatial_iceberg`` connector treats such a value as an anomaly and hides the row from
+    **every** user (the ``is_visible()`` row filter returns false for it), and file pruning
+    likewise never admits it. You therefore never need to declare ``''`` in
+    ``geomesa.security.visibility-expressions``. This is intentionally stricter than the native
+    geomesa-security ``VisibilityUtils`` semantics used by GeoTools clients, which treat
+    NULL/empty as unrestricted.
 
 .. warning::
 

@@ -45,15 +45,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p><strong>Layout.</strong> The table is written one visibility value per data file (each
  * {@code INSERT} is its own Iceberg commit → its own file), 100 rows each, so every file's
  * {@code __vis__} min == max — the skew that makes manifest min/max pruning observable. Four
- * files: {@code admin}, {@code ops}, {@code finance}, and one all-{@code NULL} (unrestricted).
+ * files: {@code admin}, {@code ops}, {@code finance}, and one all-{@code NULL} file. A NULL (or
+ * empty) visibility carries no real expression, so it is an anomaly hidden from everyone and its
+ * file is pruned for <em>every</em> caller.
  *
  * <p><strong>Differential.</strong> A single catalog and table, varying only the session
  * identity, so the reduction is attributable to pruning and nothing else:
  * <ul>
- *   <li>all-auths user → {@code expressionDomain} admits every value → all 4 files → 400 rows
- *       (the un-pruned baseline);</li>
- *   <li>ops-only user → admits {@code ops} + NULL → 2 files → 200 rows;</li>
- *   <li>no-auths user → {@code emptyAuthsDomain} admits only NULL → 1 file → 100 rows.</li>
+ *   <li>all-auths user → {@code expressionDomain} admits admin/ops/finance (never NULL) → 3
+ *       files → 300 rows (the widest a caller can read);</li>
+ *   <li>ops-only user → admits {@code ops} only (NULL never admitted) → 1 file → 100 rows;</li>
+ *   <li>no-auths user → {@code emptyAuthsDomain} is {@code Domain.none} → every file pruned →
+ *       0 rows.</li>
  * </ul>
  *
  * <p>Tagged {@code integration} and named {@code *IT} so the fast surefire lane skips it (see this
@@ -140,21 +143,24 @@ class VisibilityPruningEndToEndIT {
     }
 
     @Test
-    void allAuthsUserReadsEveryFile() {
-        // Baseline: expressionDomain admits admin/ops/finance/NULL, so no file is pruned.
-        assertThat(physicalRowsRead("allauths")).isEqualTo(4L * ROWS_PER_FILE);
+    void allAuthsUserReadsEveryNonNullFile() {
+        // Widest read: expressionDomain admits admin/ops/finance but never NULL, so the three
+        // real-expression files survive and the all-NULL file is pruned.
+        assertThat(physicalRowsRead("allauths")).isEqualTo(3L * ROWS_PER_FILE);
     }
 
     @Test
-    void opsOnlyUserReadsOnlyOpsAndNullFiles() {
-        // admin & finance files (min==max, no NULLs) are pruned; ops + NULL files survive.
-        assertThat(physicalRowsRead("opsuser")).isEqualTo(2L * ROWS_PER_FILE);
+    void opsOnlyUserReadsOnlyOpsFile() {
+        // admin & finance files hold unsatisfiable values; the all-NULL file is a hidden anomaly.
+        // Only the ops file survives.
+        assertThat(physicalRowsRead("opsuser")).isEqualTo(ROWS_PER_FILE);
     }
 
     @Test
-    void noAuthsUserReadsOnlyNullFile() {
-        // emptyAuthsDomain (onlyNull): every file whose vis null-count is zero is pruned.
-        assertThat(physicalRowsRead("nobody")).isEqualTo(ROWS_PER_FILE);
+    void noAuthsUserReadsNothing() {
+        // emptyAuthsDomain is Domain.none: a no-auth caller can see no rows (NULL/empty are hidden
+        // anomalies and no expression is satisfiable), so every file is pruned.
+        assertThat(physicalRowsRead("nobody")).isEqualTo(0L);
     }
 
     @Test

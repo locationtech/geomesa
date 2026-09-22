@@ -25,9 +25,19 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Row-entitlement UDF: same semantics as geomesa-security's
- * VisibilityUtils — NULL/empty visibility unrestricted, invalid expressions
- * are hidden (fail-closed).
+ * Row-entitlement UDF. A row is visible only when it carries a real visibility
+ * expression that the caller's auths satisfy: a NULL or empty-string
+ * visibility is treated as an anomaly (a row with no real expression) and is
+ * hidden from everyone, and invalid expressions are hidden too (fail-closed).
+ *
+ * <p><strong>Intentional divergence from geomesa-security.</strong> The native
+ * geomesa-security {@code VisibilityUtils} path treats NULL/empty as
+ * unrestricted (visible to all). This Trino-layer UDF is deliberately stricter —
+ * it fails closed on anomalous NULL/empty values — so that a row lacking any
+ * real visibility expression is never surfaced through Trino. Both Trino
+ * enforcement paths resolve to this single UDF (the plugin row filter and the
+ * datastore's {@code is_visible(...)} pushdown), so the stricter rule applies
+ * uniformly across Trino.
  */
 public final class GeoMesaSecurityFunctions {
 
@@ -54,22 +64,23 @@ public final class GeoMesaSecurityFunctions {
     private GeoMesaSecurityFunctions() {}
 
     /**
-     * True if the auths satisfy the visibility expression; NULL/empty visibility
-     * is unrestricted and invalid expressions are hidden (fail-closed).
+     * True if the auths satisfy the visibility expression. A NULL or empty
+     * visibility has no real expression and is hidden from everyone (fail-closed),
+     * as are invalid expressions.
      *
-     * @param visibility the row's visibility expression (NULL/empty is unrestricted)
+     * @param visibility the row's visibility expression (NULL/empty is hidden)
      * @param auths comma-delimited authorization tokens held by the caller
-     * @return true if the auths satisfy the visibility expression
+     * @return true only if the visibility is a real expression the auths satisfy
      */
     @ScalarFunction("is_visible")
     @Description("True if the comma-delimited auths satisfy the geomesa-security-style "
-        + "visibility expression; NULL/empty visibility is unrestricted")
+        + "visibility expression; NULL/empty visibility is hidden from everyone")
     @SqlType(StandardTypes.BOOLEAN)
     public static boolean isVisible(
             @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice visibility,
             @SqlType(StandardTypes.VARCHAR) Slice auths) {
         if (visibility == null || visibility.length() == 0) {
-            return true;
+            return false;  // no real visibility expression -> anomaly, hidden from all
         }
         return DECISIONS.getUnchecked(
             new Decision(auths.toStringUtf8(), visibility.toStringUtf8()));

@@ -103,8 +103,9 @@ class IcebergVisibilityPruningMechanismTest {
     }
 
     @Test
-    void emptyAuthsDomainPrunesEveryFileWithoutNulls() throws IOException {
-        // Restricted files (no NULL visibility values) + one unrestricted (all-NULL) file.
+    void emptyAuthsDomainPrunesEveryFile() throws IOException {
+        // Restricted files + one all-NULL file. A NULL visibility carries no real expression,
+        // so it is an anomaly hidden from everyone (see GeoMesaSecurityFunctions.isVisible).
         appendFile("admin", 1000, false);
         appendFile("admin", 1000, false);
         appendFile("ops", 1000, false);
@@ -113,9 +114,9 @@ class IcebergVisibilityPruningMechanismTest {
         Domain domain = VisibilityDomainPruning.emptyAuthsDomain(VarcharType.VARCHAR, Set.of()).orElseThrow();
         Expression expr = toIcebergExpression(domain);
 
-        // A caller with no authorizations can only ever see NULL visibility rows (see
-        // VisibilityDomainPruning javadoc); only the all-NULL file has any candidate rows.
-        assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(1);
+        // A caller with no authorizations can see no rows at all — not even the all-NULL file —
+        // so Domain.none prunes every file.
+        assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(0);
     }
 
     @Test
@@ -130,9 +131,9 @@ class IcebergVisibilityPruningMechanismTest {
             VarcharType.VARCHAR, Set.of("admin", "ops", "finance"), Set.of("ops")).orElseThrow();
         Expression expr = toIcebergExpression(domain);
 
-        // The "ops" file and the all-NULL (unrestricted) file survive; "admin" and "finance"
-        // hold only values the caller's auths cannot satisfy, so they're pruned.
-        assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(2);
+        // Only the "ops" file survives. "admin" and "finance" hold values the caller cannot
+        // satisfy, and the all-NULL file is a hidden anomaly (domain excludes NULL) — all pruned.
+        assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(1);
     }
 
     @Test
@@ -152,7 +153,7 @@ class IcebergVisibilityPruningMechanismTest {
         assertThat(scannedFileCount(Optional.of(toIcebergExpression(entitled)))).isEqualTo(1);
 
         // Caller holds only one token of the compound expression -> no candidate value is visible,
-        // expressionDomain collapses to only-NULL, and the file (zero NULLs) is pruned.
+        // expressionDomain collapses to Domain.none, and the file is pruned.
         Domain unentitled = VisibilityDomainPruning.expressionDomain(
             VarcharType.VARCHAR, Set.of("admin&ops"), Set.of("admin")).orElseThrow();
         assertThat(scannedFileCount(Optional.of(toIcebergExpression(unentitled)))).isEqualTo(0);

@@ -51,24 +51,23 @@ public final class VisibilityDomainPruning {
 
     /**
      * Sound unconditionally, for any visibility expression grammar: an identity
-     * with no authorizations can only ever be granted access to a NULL/empty
-     * visibility (see {@link GeoMesaSecurityFunctions} — {@code AccessEvaluator}
-     * never grants a non-empty expression to an empty auth set, no matter how
-     * simple or compound that expression is). So when {@code auths} is empty,
-     * the only rows the caller could ever see are NULL, and Iceberg can prune
-     * any file whose null-count for the column is zero.
+     * with no authorizations can satisfy nothing. {@code AccessEvaluator} never
+     * grants a non-empty expression to an empty auth set (no matter how simple or
+     * compound), and NULL/empty visibilities are anomalies hidden from everyone
+     * (see {@link GeoMesaSecurityFunctions#isVisible}). So when {@code auths} is
+     * empty the caller can see no rows at all, and Iceberg can prune EVERY file.
      *
      * @param visColumnType the visibility column's type (always VARCHAR)
      * @param auths the resolved authorizations for the querying identity
-     * @return a NULL-only domain when {@code auths} is empty; empty otherwise
-     *         (an empty result is not a signal to fall back — see
-     *         {@link #expressionDomain} for the non-empty-auths case)
+     * @return {@link Domain#none} when {@code auths} is empty (prune all files);
+     *         empty {@code Optional} otherwise (an empty result is not a signal to
+     *         fall back — see {@link #expressionDomain} for the non-empty case)
      */
     public static Optional<Domain> emptyAuthsDomain(VarcharType visColumnType, Set<String> auths) {
         if (!auths.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(Domain.onlyNull(visColumnType));
+        return Optional.of(Domain.none(visColumnType));
     }
 
     /**
@@ -93,12 +92,19 @@ public final class VisibilityDomainPruning {
      * never occurs simply never matches. Scales to tens-to-low-hundreds of distinct
      * values; not intended for effectively-unique per-row visibility strings.
      *
+     * <p>NULL and the empty string are never admitted: they carry no real
+     * expression and are hidden from everyone (see
+     * {@link GeoMesaSecurityFunctions#isVisible}). The domain therefore excludes
+     * NULL ({@code nullAllowed = false}) and any empty candidate string.
+     *
      * @param visColumnType the visibility column's type (always VARCHAR)
      * @param candidateExpressions every distinct non-null value the column can hold
      * @param auths the resolved authorizations for the querying identity
-     * @return an IN-list-plus-null domain over the expressions {@code auths} can
-     *         access; empty when {@code auths} or {@code candidateExpressions} is
-     *         empty (use {@link #emptyAuthsDomain} for the former)
+     * @return an IN-list domain (no NULL) over the expressions {@code auths} can
+     *         access; {@link Domain#none} when none are visible (prune all files);
+     *         empty {@code Optional} when {@code auths} or {@code
+     *         candidateExpressions} is empty (use {@link #emptyAuthsDomain} for the
+     *         former)
      */
     public static Optional<Domain> expressionDomain(VarcharType visColumnType,
                                                       Set<String> candidateExpressions,
@@ -108,15 +114,16 @@ public final class VisibilityDomainPruning {
         }
         String authsCsv = String.join(",", new ArrayList<>(new TreeSet<>(auths)));
         List<Range> ranges = candidateExpressions.stream()
+            .filter(expr -> expr != null && !expr.isEmpty())
             .filter(expr -> GeoMesaSecurityFunctions.isVisible(
                 Slices.utf8Slice(expr), Slices.utf8Slice(authsCsv)))
             .map(expr -> Range.equal(visColumnType, Slices.utf8Slice(expr)))
             .toList();
         if (ranges.isEmpty()) {
-            // None of the declared expressions are visible: only NULL is admissible,
-            // same as the empty-auths case.
-            return Optional.of(Domain.onlyNull(visColumnType));
+            // None of the declared expressions are visible and NULL/empty are hidden:
+            // the caller can see no rows, so every file is prunable.
+            return Optional.of(Domain.none(visColumnType));
         }
-        return Optional.of(Domain.create(SortedRangeSet.copyOf(visColumnType, ranges), true));
+        return Optional.of(Domain.create(SortedRangeSet.copyOf(visColumnType, ranges), false));
     }
 }

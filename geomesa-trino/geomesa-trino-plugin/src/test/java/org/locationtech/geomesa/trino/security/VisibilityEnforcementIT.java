@@ -76,13 +76,15 @@ class VisibilityEnforcementIT {
     // "public" gets the partial-tier auths; "testuser" gets a strict superset.
     @Test
     void directSqlIsRowFilteredByClearanceOnSpatialCatalog() throws SQLException {
-        long nobody   = count(SPATIAL, "nobody",   "observations"); // unmapped → unrestricted only
+        long nobody   = count(SPATIAL, "nobody",   "observations"); // unmapped → no auths → 0 rows
         long publik   = count(SPATIAL, "public",   "observations"); // partial-tier auths
         long testuser = count(SPATIAL, "testuser", "observations"); // full auths (via group)
-        long admin    = count(SPATIAL, "admin",    "observations"); // unmapped → unrestricted only
+        long admin    = count(SPATIAL, "admin",    "observations"); // unmapped → no auths → 0 rows
 
-        assertThat(nobody).as("unmapped user sees only unrestricted rows").isGreaterThan(0);
-        assertThat(publik).as("partial clearance sees more than unrestricted-only").isGreaterThan(nobody);
+        // A caller with no auths sees NO rows: no visibility expression is satisfiable, and
+        // NULL/empty visibilities are anomalies hidden from everyone.
+        assertThat(nobody).as("unmapped user with no auths sees no rows").isEqualTo(0);
+        assertThat(publik).as("partial clearance sees some rows").isGreaterThan(nobody);
         assertThat(testuser).as("group-granted full auths see more than partial").isGreaterThan(publik);
         assertThat(admin).as("another unmapped user matches the unmapped baseline").isEqualTo(nobody);
     }

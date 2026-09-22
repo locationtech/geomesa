@@ -35,7 +35,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  *       empty, and mid-extent boxes whose edges straddle data and exercise the exact shell test),
  *       the count via {@code spatial_iceberg} as a full-auth identity equals the count via the plain
  *       {@code iceberg} connector (which evaluates the exact {@code ST_Intersects} with no
- *       visibility). Any divergence means bbox-short-circuit dropped or admitted a row the engine didn't.</li>
+ *       visibility, but excludes the NULL/empty {@code __vis__} anomaly tier so the two engines
+ *       measure the same universe — a full-auth identity sees every real visibility expression but,
+ *       under the anomaly policy, never the NULL/empty rows the plain engine would otherwise count).
+ *       Any divergence means bbox-short-circuit dropped or admitted a row the engine didn't.</li>
  *   <li><strong>Visibility preserved</strong> — a partial-auth identity sees strictly fewer rows than
  *       a full-auth identity, proving the {@code is_visible} row-filter still applies under
  *       bbox-short-circuit. (Regression guard: the first cut replaced the whole residual with TRUE and
@@ -82,8 +85,20 @@ class BboxShortCircuitParityIT {
     }
 
     private static long count(String catalogUrl, String user, String box) throws SQLException {
+        return count(catalogUrl, user, box, false);
+    }
+
+    /**
+     * @param excludeVisAnomalies when true, appends a predicate dropping NULL/empty {@code __vis__}
+     *     rows. Used for the plain {@code iceberg} engine, which has no visibility filter, so that its
+     *     universe matches the {@code spatial_iceberg} connector's — where {@code is_visible} always
+     *     hides the anomaly tier, even from a full-auth caller.
+     */
+    private static long count(String catalogUrl, String user, String box, boolean excludeVisAnomalies)
+            throws SQLException {
         String sql = "SELECT count(*) FROM spatial.observations"
-            + " WHERE ST_Intersects(ST_GeometryFromText('" + box + "'), ST_GeomFromBinary(geom))";
+            + " WHERE ST_Intersects(ST_GeometryFromText('" + box + "'), ST_GeomFromBinary(geom))"
+            + (excludeVisAnomalies ? " AND __vis__ IS NOT NULL AND __vis__ <> ''" : "");
         try (Connection c = DriverManager.getConnection(catalogUrl + "?user=" + user);
              Statement s = c.createStatement();
              ResultSet rs = s.executeQuery(sql)) {
@@ -95,8 +110,8 @@ class BboxShortCircuitParityIT {
     @Test
     void bboxShortCircuitMatchesEngineExactAcrossBoxes() throws SQLException {
         for (String box : BOXES) {
-            long viaConnector = count(SPATIAL, FULL_USER, box);   // bbox-short-circuit, all rows visible
-            long viaEngine    = count(PLAIN, "admin", box);       // exact ST_Intersects, no visibility
+            long viaConnector = count(SPATIAL, FULL_USER, box);        // bbox-short-circuit, is_visible applied
+            long viaEngine    = count(PLAIN, "admin", box, true);      // exact ST_Intersects, anomaly tier excluded
             assertThat(viaConnector)
                 .as("bbox-short-circuit count must equal the engine's exact ST_Intersects for %s", box)
                 .isEqualTo(viaEngine);
