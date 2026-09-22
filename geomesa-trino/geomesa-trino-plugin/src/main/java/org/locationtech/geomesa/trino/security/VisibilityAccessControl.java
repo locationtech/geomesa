@@ -36,14 +36,22 @@ import org.slf4j.LoggerFactory;
  * Iceberg's (absent) connector access control. Only {@link #getRowFilters}
  * adds behavior.
  *
- * <p>The visibility column is detected at analysis time by
- * {@code SpatialConnectorMetadata.getColumnHandles} and read here from the shared
- * {@link GeoMesaColumnCatalog}. Metadata tables (information_schema, Iceberg
- * {@code $}-metadata) are skipped. For any other (data) table that has not been
- * observed, the filter fails closed (hides all rows) rather than risk leaking a
- * vis-bearing table. Boundary: this protects only {@code spatial_iceberg}; the
- * plain {@code iceberg} catalog is not wrapped and must not be exposed to
- * untrusted users.
+ * <p>The visibility column is detected at analysis time and read here from the
+ * shared {@link GeoMesaColumnCatalog}: tables are observed by
+ * {@code SpatialConnectorMetadata.getColumnHandles}, views by its
+ * {@code getView}/{@code getViews}.
+ * Metadata tables (information_schema, Iceberg {@code $}-metadata) are skipped. For
+ * any other relation that has not been observed, the filter fails closed (hides all
+ * rows) rather than risk leaking a vis-bearing table.
+ *
+ * <p>A view that exposes no {@code __vis__} of its own is left unfiltered and its base
+ * tables enforce their own visibility. That is only sound while those base scans run as
+ * the querying user, which {@code geomesa.security.use-invoker-auths} guarantees by
+ * rewriting DEFINER views to INVOKER.
+ *
+ * <p>Boundary: this protects only {@code spatial_iceberg}; the plain {@code iceberg}
+ * catalog is not wrapped and must not be exposed to untrusted users. A view may only be
+ * left unfiltered on the assumption that every catalog it reads is likewise enforced.
  */
 public final class VisibilityAccessControl extends AllowAllAccessControl {
 
@@ -87,11 +95,11 @@ public final class VisibilityAccessControl extends AllowAllAccessControl {
         Optional<GeoMesaColumnCatalog.ObservedVisibility> observed =
             geomCatalog.visibilityColumn(table);
         if (observed.isEmpty()) {
-            // A real data table reached row-filter analysis without first being
-            // observed via getColumnHandles (e.g. an unexpected planner path or
-            // cold worker). Fail closed — hide all rows rather than risk leaking
-            // a vis-bearing table. Normal scans observe columns first, so this
-            // should not fire in practice.
+            // A real data table or view reached row-filter analysis without first
+            // being observed via getColumnHandles / getView (e.g. an unexpected
+            // planner path or cold worker). Fail closed — hide all rows rather than
+            // risk leaking a vis-bearing relation. Normal scans and view resolutions
+            // observe columns first, so this should not fire in practice.
             LOG.warn("Visibility column not observed for " + catalog + "." + table
                 + " before row-filter analysis; hiding all rows (fail-closed)");
             return List.of(viewExpression(context, table, "false"));

@@ -106,6 +106,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private final GeoMesaColumnCatalog geomCatalog;
     /** When true, claim eligible rectangle ST_Intersects predicates enforced. */
     private final boolean bboxShortCircuit;
+    /** When true, rewrite DEFINER views to run as the invoker; see {@link #observeView}. */
+    private final boolean useInvokerAuths;
 
     /** Result of locating a spatial constraint in a constraint expression: the
      *  query envelope(s), the spatial function's name (lowercased ASCII; {@code
@@ -137,9 +139,23 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public SpatialConnectorMetadata(ConnectorMetadata delegate,
                                     GeoMesaColumnCatalog geomCatalog,
                                     boolean bboxShortCircuit) {
+        this(delegate, geomCatalog, bboxShortCircuit, false);
+    }
+
+    /**
+     * @param delegate the underlying iceberg metadata
+     * @param geomCatalog the shared geometry-column catalog
+     * @param bboxShortCircuit whether to claim rectangle ST_Intersects predicates enforced
+     * @param useInvokerAuths whether to rewrite DEFINER views to run as the invoker
+     */
+    public SpatialConnectorMetadata(ConnectorMetadata delegate,
+                                    GeoMesaColumnCatalog geomCatalog,
+                                    boolean bboxShortCircuit,
+                                    boolean useInvokerAuths) {
         this.delegate = delegate;
         this.geomCatalog = geomCatalog;
         this.bboxShortCircuit = bboxShortCircuit;
+        this.useInvokerAuths = useInvokerAuths;
     }
 
     /** Resolve the per-geom-column descriptor map for the given table handle.
@@ -1266,7 +1282,10 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     @Override
     public Map<SchemaTableName, ConnectorViewDefinition> getViews(ConnectorSession session,
                                                                   Optional<String> schemaName) {
-        return delegate.getViews(session, schemaName);
+        Map<SchemaTableName, ConnectorViewDefinition> views = delegate.getViews(session, schemaName);
+        Map<SchemaTableName, ConnectorViewDefinition> observed = new LinkedHashMap<>();
+        views.forEach((name, definition) -> observed.put(name, observeView(name, definition)));
+        return observed;
     }
 
     /**
@@ -1291,7 +1310,54 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     @Override
     public Optional<ConnectorViewDefinition> getView(ConnectorSession session,
                                                      SchemaTableName viewName) {
-        return delegate.getView(session, viewName);
+        return delegate.getView(session, viewName)
+            .map(definition -> observeView(viewName, definition));
+    }
+
+    /**
+     * Records a view's output columns so the Trino-layer
+     * {@link org.locationtech.geomesa.trino.security.VisibilityAccessControl} does not
+     * fail closed on it, and — when {@code useInvokerAuths} is set — rewrites the
+     * definition to run as the invoker.
+     *
+     * <p><strong>Why the recording.</strong> A view never reaches
+     * {@link #getColumnHandles}: Trino resolves it here and expands its stored SQL, so
+     * the view's own name is never observed. The access control, which sees only a
+     * {@link SchemaTableName}, then treats it as an unobserved data table and hides
+     * every row. Recording the view's columns lets it behave exactly as it does for a
+     * table: filter on {@code __vis__} when the view exposes one, otherwise leave the
+     * view unfiltered and let the base tables enforce their own visibility.
+     *
+     * <p><strong>Why the rewrite.</strong> Leaving a view unfiltered is only sound if
+     * its base scans run as the querying user. Under Trino's default DEFINER security
+     * the base tables are read as the view OWNER, so both enforcement paths — the
+     * iceberg row filter and the postgis {@code geomesa.auths} connection stamp —
+     * would resolve the owner's authorizations, letting a view launder entitlements.
+     * Running as the invoker makes each base connector filter for the actual caller.
+     */
+    private ConnectorViewDefinition observeView(SchemaTableName viewName, ConnectorViewDefinition definition) {
+        try {
+            Set<String> columns = new LinkedHashSet<>();
+            for (ConnectorViewDefinition.ViewColumn column : definition.getColumns()) {
+                columns.add(column.getName());
+            }
+            geomCatalog.recordVisibilityColumn(viewName, columns);
+        } catch (RuntimeException e) {
+            LOG.debug("Could not record visibility column for view {}: {}", viewName, e.getMessage());
+        }
+        if (!useInvokerAuths || definition.isRunAsInvoker()) {
+            return definition;
+        }
+        // ConnectorViewDefinition rejects an owner together with runAsInvoker
+        return new ConnectorViewDefinition(
+            definition.getOriginalSql(),
+            definition.getCatalog(),
+            definition.getSchema(),
+            definition.getColumns(),
+            definition.getComment(),
+            Optional.empty(),
+            true,
+            definition.getPath());
     }
 
     /**
@@ -1378,10 +1444,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     //    structure, so they can't create the companion-less-row trap that keeps
     //    INSERT/CTAS/MERGE/refresh and column-level schema evolution blocked
     //    (see SpatialConnectorMetadataDelegationTest#INTENTIONALLY_NOT_FORWARDED).
-    //    When DDL drops or renames a table/schema, the GeoMesaColumnCatalog cache
-    //    is invalidated (see dropTable/renameTable/dropSchema/renameSchema below)
-    //    so a later table reusing the same name doesn't inherit stale
-    //    geometry/visibility descriptors. ──
+    //    When DDL creates, drops or renames a table/view/schema, the
+    //    GeoMesaColumnCatalog cache is invalidated (see createView/dropTable/
+    //    renameTable/dropView/renameView/dropSchema/renameSchema below) so a later
+    //    relation reusing the same name doesn't inherit stale geometry/visibility
+    //    descriptors. ──
 
     /**
      * Creates a schema via the delegate connector.
@@ -1519,7 +1586,15 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     }
 
     /**
-     * Creates a view via the delegate connector.
+     * Creates a view via the delegate connector and invalidates any cached state at
+     * that name.
+     *
+     * <p>Unconditional rather than only on {@code replace}: a replace changes the
+     * view's columns, so the recorded observation no longer describes it, and even a
+     * fresh create can land on a name carrying a stale entry — one left by a relation
+     * dropped through the plain {@code iceberg} catalog, where no forwarded DDL ran to
+     * invalidate it. When {@code replace} is false and the name is already taken the
+     * delegate throws, so this line is not reached.
      *
      * @param session the connector session
      * @param viewName the schema-qualified view name
@@ -1532,10 +1607,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
                            ConnectorViewDefinition definition, Map<String, Object> viewProperties,
                            boolean replace) {
         delegate.createView(session, viewName, definition, viewProperties, replace);
+        geomCatalog.invalidate(viewName);
     }
 
     /**
-     * Drops a view via the delegate connector.
+     * Drops a view via the delegate connector and invalidates its cached state.
      *
      * @param session the connector session
      * @param viewName the schema-qualified view name
@@ -1543,10 +1619,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     @Override
     public void dropView(ConnectorSession session, SchemaTableName viewName) {
         delegate.dropView(session, viewName);
+        geomCatalog.invalidate(viewName);
     }
 
     /**
-     * Renames a view via the delegate connector.
+     * Renames a view via the delegate connector and invalidates the old and new cached state.
      *
      * @param session the connector session
      * @param source the source schema-qualified view name
@@ -1555,6 +1632,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     @Override
     public void renameView(ConnectorSession session, SchemaTableName source, SchemaTableName target) {
         delegate.renameView(session, source, target);
+        geomCatalog.invalidate(source);
+        geomCatalog.invalidate(target);
     }
 
     /**

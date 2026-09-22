@@ -39,6 +39,11 @@ public class SpatialConnectorFactory implements ConnectorFactory {
     private static final String SECURITY_PREFIX = "geomesa.security.";
     private static final String AUTH_RESOLVER   = SECURITY_PREFIX + "auth-resolver";
     private static final String AUTH_MAPPING    = SECURITY_PREFIX + "auth-mapping-file";
+    /** Rewrite views in this catalog to run as the invoker rather than the definer, so a
+     *  view cannot read base tables with its owner's authorizations. ON by default; only
+     *  takes effect when a {@code geomesa.security.*} resolver is configured.
+     *  Disable via {@code geomesa.security.use-invoker-auths=false}. */
+    private static final String USE_INVOKER_AUTHS = SECURITY_PREFIX + "use-invoker-auths";
 
 
     /** Enables connector-side bbox filtering (see {@link BboxFilteringPageSource}).
@@ -79,6 +84,7 @@ public class SpatialConnectorFactory implements ConnectorFactory {
                             ConnectorContext context) {
         AuthorizationResolver resolver = buildResolver(config);
         boolean bboxShortCircuit = Boolean.parseBoolean(config.getOrDefault(BBOX_PAGE_FILTER, "true"));
+        boolean useInvokerAuths = Boolean.parseBoolean(config.getOrDefault(USE_INVOKER_AUTHS, "true"));
 
         // Iceberg uses strict config validation; strip our keys so it doesn't reject them as unused.
         Map<String, String> icebergConfig = new LinkedHashMap<>();
@@ -88,7 +94,7 @@ public class SpatialConnectorFactory implements ConnectorFactory {
 
         ConnectorFactory icebergFactory = new IcebergPlugin().getConnectorFactories().iterator().next();
         Connector icebergConnector = icebergFactory.create(catalogName, icebergConfig, context);
-        return new SpatialConnector(icebergConnector, catalogName, resolver, bboxShortCircuit);
+        return new SpatialConnector(icebergConnector, catalogName, resolver, bboxShortCircuit, useInvokerAuths);
     }
 
     /** Builds the identity→auths resolver from catalog config, or null when no
