@@ -1444,10 +1444,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     //    structure, so they can't create the companion-less-row trap that keeps
     //    INSERT/CTAS/MERGE/refresh and column-level schema evolution blocked
     //    (see SpatialConnectorMetadataDelegationTest#INTENTIONALLY_NOT_FORWARDED).
-    //    When DDL drops or renames a table/schema, the GeoMesaColumnCatalog cache
-    //    is invalidated (see dropTable/renameTable/dropSchema/renameSchema below)
-    //    so a later table reusing the same name doesn't inherit stale
-    //    geometry/visibility descriptors. ──
+    //    When DDL creates, drops or renames a table/view/schema, the
+    //    GeoMesaColumnCatalog cache is invalidated (see createView/dropTable/
+    //    renameTable/dropView/renameView/dropSchema/renameSchema below) so a later
+    //    relation reusing the same name doesn't inherit stale geometry/visibility
+    //    descriptors. ──
 
     /**
      * Creates a schema via the delegate connector.
@@ -1585,7 +1586,15 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     }
 
     /**
-     * Creates a view via the delegate connector.
+     * Creates a view via the delegate connector and invalidates any cached state at
+     * that name.
+     *
+     * <p>Unconditional rather than only on {@code replace}: a replace changes the
+     * view's columns, so the recorded observation no longer describes it, and even a
+     * fresh create can land on a name carrying a stale entry — one left by a relation
+     * dropped through the plain {@code iceberg} catalog, where no forwarded DDL ran to
+     * invalidate it. When {@code replace} is false and the name is already taken the
+     * delegate throws, so this line is not reached.
      *
      * @param session the connector session
      * @param viewName the schema-qualified view name
@@ -1598,10 +1607,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
                            ConnectorViewDefinition definition, Map<String, Object> viewProperties,
                            boolean replace) {
         delegate.createView(session, viewName, definition, viewProperties, replace);
+        geomCatalog.invalidate(viewName);
     }
 
     /**
-     * Drops a view via the delegate connector.
+     * Drops a view via the delegate connector and invalidates its cached state.
      *
      * @param session the connector session
      * @param viewName the schema-qualified view name
@@ -1609,10 +1619,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     @Override
     public void dropView(ConnectorSession session, SchemaTableName viewName) {
         delegate.dropView(session, viewName);
+        geomCatalog.invalidate(viewName);
     }
 
     /**
-     * Renames a view via the delegate connector.
+     * Renames a view via the delegate connector and invalidates the old and new cached state.
      *
      * @param session the connector session
      * @param source the source schema-qualified view name
@@ -1621,6 +1632,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     @Override
     public void renameView(ConnectorSession session, SchemaTableName source, SchemaTableName target) {
         delegate.renameView(session, source, target);
+        geomCatalog.invalidate(source);
+        geomCatalog.invalidate(target);
     }
 
     /**

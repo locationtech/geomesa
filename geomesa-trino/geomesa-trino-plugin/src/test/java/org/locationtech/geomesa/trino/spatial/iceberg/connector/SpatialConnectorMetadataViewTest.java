@@ -59,6 +59,19 @@ class SpatialConnectorMetadataViewTest {
         public Map<SchemaTableName, ConnectorViewDefinition> getViews(ConnectorSession session, Optional<String> schemaName) {
             return Map.of(VIEW, definition);
         }
+
+        // The default ConnectorMetadata implementations reject view DDL; accept it so the
+        // invalidation wrappers can be exercised.
+        @Override
+        public void createView(ConnectorSession session, SchemaTableName viewName,
+                               ConnectorViewDefinition definition, Map<String, Object> viewProperties,
+                               boolean replace) {}
+
+        @Override
+        public void dropView(ConnectorSession session, SchemaTableName viewName) {}
+
+        @Override
+        public void renameView(ConnectorSession session, SchemaTableName source, SchemaTableName target) {}
     }
 
     private static ConnectorViewDefinition definition(boolean runAsInvoker, String... columns) {
@@ -159,6 +172,65 @@ class SpatialConnectorMetadataViewTest {
         assertThat(filtersFor(cat)).hasSize(1);
         assertThat(filtersFor(cat).get(0).getExpression())
             .isEqualTo("is_visible(\"__vis__\", 'basic,privileged')");
+    }
+
+    @Test
+    void createOrReplaceViewInvalidatesTheStaleObservation() {
+        // CREATE OR REPLACE changes the view's columns, so the record written by the
+        // previous resolution no longer describes it.
+        GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
+        SpatialConnectorMetadata meta = metadata(cat, definition(true, "__fid__", "__vis__"), true);
+        meta.getView(null, VIEW);
+        assertThat(cat.visibilityColumn(VIEW)).isPresent();
+
+        meta.createView(null, VIEW, definition(true, "__fid__"), Map.of(), true);
+
+        assertThat(cat.visibilityColumn(VIEW)).isEmpty();
+    }
+
+    @Test
+    void createViewInvalidatesEvenWithoutReplace() {
+        // A fresh create can land on a name carrying a stale entry left by a relation
+        // dropped outside forwarded DDL, so the invalidate is not guarded on replace.
+        GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
+        SpatialConnectorMetadata meta = metadata(cat, definition(true, "__fid__", "__vis__"), true);
+        cat.recordVisibilityColumn(VIEW, Set.of("__fid__", "__vis__"));
+
+        meta.createView(null, VIEW, definition(true, "__fid__"), Map.of(), false);
+
+        assertThat(cat.visibilityColumn(VIEW)).isEmpty();
+    }
+
+    @Test
+    void dropViewInvalidatesTheObservation() {
+        // Otherwise a later relation at this name is served the dropped view's columns
+        // until the entry ages out.
+        GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
+        SpatialConnectorMetadata meta = metadata(cat, definition(true, "__fid__", "__vis__"), true);
+        meta.getView(null, VIEW);
+        assertThat(cat.visibilityColumn(VIEW)).isPresent();
+
+        meta.dropView(null, VIEW);
+
+        assertThat(cat.visibilityColumn(VIEW)).isEmpty();
+        // Unobserved again, so the access control is back to fail-closed.
+        assertThat(filtersFor(cat)).hasSize(1);
+        assertThat(filtersFor(cat).get(0).getExpression()).isEqualTo("false");
+    }
+
+    @Test
+    void renameViewInvalidatesBothNames() {
+        GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
+        SchemaTableName target = new SchemaTableName("spatial", "renamed");
+        SpatialConnectorMetadata meta = metadata(cat, definition(true, "__fid__", "__vis__"), true);
+        meta.getView(null, VIEW);
+        // Stale record at the target name, as if something had resolved there earlier.
+        cat.recordVisibilityColumn(target, Set.of("__fid__"));
+
+        meta.renameView(null, VIEW, target);
+
+        assertThat(cat.visibilityColumn(VIEW)).isEmpty();
+        assertThat(cat.visibilityColumn(target)).isEmpty();
     }
 
     @Test
