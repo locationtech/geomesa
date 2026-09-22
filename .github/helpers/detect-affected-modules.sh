@@ -18,6 +18,13 @@
 #
 # Usage: detect-affected-modules.sh <base-sha> <head-sha> <module-list>
 # where <module-list> is the matrix 'list' value, e.g. "geomesa-fs/geomesa-fs-spark".
+#
+# The IGNORE_PATHS env var is a space-separated list of path prefixes whose changes never affect
+# any job's build or test outcome (defaults to "docs/"). Files under these prefixes are dropped
+# from the diff; if nothing else changed, the job is reported as not affected. docs/ is the
+# canonical case: the docs module is an upstream dependency of every binary distribution (for
+# reactor ordering / bundling), but the CONTENTS of a .rst never change a compiled artifact or a
+# test result - so a docs-only diff should not trigger any job. Set IGNORE_PATHS="" to disable.
 
 # -f disables filename globbing: we word-split space-separated artifactId lists below and never
 # rely on globbing, so this prevents a stray token (e.g. an exclusion '*') from expanding to paths.
@@ -31,6 +38,7 @@ fi
 BASE="$1"
 HEAD="$2"
 LIST="$3"
+IGNORE_PATHS="${IGNORE_PATHS-docs/}"
 
 # both shas come from an untrusted PR (this may run under pull_request_target). require plain hex
 # so they can't be a dashed string that git would parse as an option (argument injection) - the
@@ -48,10 +56,25 @@ if ! git cat-file -e "$BASE^{commit}" 2>/dev/null || ! git cat-file -e "$HEAD^{c
 fi
 CHANGED="$(git diff --name-only "$BASE" "$HEAD")"
 
-# if we can't determine what changed, run everything
+# if we can't determine what changed, run everything. checked on the raw diff, before the
+# ignore-path filter below, so an empty diff still means "unknown -> run" rather than "docs-only".
 if [[ -z "$CHANGED" ]]; then
   echo "true"
   exit 0
+fi
+
+# drop files whose changes never affect a build/test outcome (see IGNORE_PATHS above). matched by
+# literal path prefix via awk's index() - no regex, so a '.' or other metachar in a prefix can't
+# match unexpectedly. if the diff is left empty, only ignored paths changed, so nothing is affected.
+if [[ -n "$IGNORE_PATHS" ]]; then
+  CHANGED="$(IGNORES="$IGNORE_PATHS" awk '
+    BEGIN { n = split(ENVIRON["IGNORES"], prefixes, " ") }
+    { for (i = 1; i <= n; i++) if (prefixes[i] != "" && index($0, prefixes[i]) == 1) next; print }
+  ' <<< "$CHANGED")"
+  if [[ -z "$CHANGED" ]]; then
+    echo "false"
+    exit 0
+  fi
 fi
 
 # extract a single pom's own artifactId, its parent artifactId, and its inter-module dependency
