@@ -36,6 +36,11 @@ package object jts extends DataFrameFunctions.Library with SpatialEncoders {
    * enrichment methods on [[SQLContext]] or [[SparkSession]] can be used instead.
    */
   def initJTS(sqlContext: SQLContext): Unit = {
+    // spark 4.2 ships native ST_* builtins (backed by its own geometry type) that, by default,
+    // shadow our session-registered UDFs. setting the session-function resolution order to 'first'
+    // makes session functions take precedence over builtins, restoring pre-4.2 behavior. the config
+    // does not exist prior to 4.2, but setting an unknown conf is harmless.
+    sqlContext.setConf("spark.sql.functionResolution.sessionOrder", "first")
     org.apache.spark.sql.jts.registerTypes()
     udf.registerFunctions(sqlContext)
     rules.registerOptimizations(sqlContext)

@@ -15,7 +15,9 @@
         <!-- scoverage messes up shaded jars in tests - TODO fix this -->
         <maven.scoverage.phase>none</maven.scoverage.phase>
         <!-- match the version in spark -->
-        <parquet.version>1.13.1</parquet.version>
+        <parquet.version>1.17.0</parquet.version>
+        <!-- match the version in spark - accumulo pulls in an older version that lacks classes spark needs -->
+        <datasketches.version>6.2.0</datasketches.version>
     </properties>
 
     <dependencyManagement>
@@ -77,6 +79,12 @@
                 <version>${parquet.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <!-- pin datasketches to the version spark expects, overriding the older version accumulo pulls in -->
+            <dependency>
+                <groupId>org.apache.datasketches</groupId>
+                <artifactId>datasketches-java</artifactId>
+                <version>${datasketches.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -111,6 +119,12 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-reload4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- test dependencies -->

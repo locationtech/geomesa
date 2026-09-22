@@ -42,6 +42,11 @@ public class SpatialConnectorFactory implements ConnectorFactory {
     private static final String SECURITY_PREFIX = "geomesa.security.";
     private static final String AUTH_RESOLVER   = SECURITY_PREFIX + "auth-resolver";
     private static final String AUTH_MAPPING    = SECURITY_PREFIX + "auth-mapping-file";
+    /** Rewrite views in this catalog to run as the invoker rather than the definer, so a
+     *  view cannot read base tables with its owner's authorizations. ON by default; only
+     *  takes effect when a {@code geomesa.security.*} resolver is configured.
+     *  Disable via {@code geomesa.security.use-invoker-auths=false}. */
+    private static final String USE_INVOKER_AUTHS = SECURITY_PREFIX + "use-invoker-auths";
 
     /** Declared closed universe of every distinct non-null visibility value the column can
      *  hold, comma-separated (e.g. {@code "basic,basic&privileged"}). When set, enables the
@@ -119,6 +124,7 @@ public class SpatialConnectorFactory implements ConnectorFactory {
         boolean visibilityPruningEnabled =
             Boolean.parseBoolean(config.getOrDefault(VISIBILITY_EXPRESSION_PRUNING, "false"));
         Set<String> visibilityExpressions = parseVisibilityExpressions(config.get(VISIBILITY_EXPRESSIONS));
+        boolean useInvokerAuths = Boolean.parseBoolean(config.getOrDefault(USE_INVOKER_AUTHS, "true"));
 
         // Iceberg uses strict config validation; strip our keys so it doesn't reject them as unused.
         Map<String, String> icebergConfig = new LinkedHashMap<>();
@@ -129,7 +135,7 @@ public class SpatialConnectorFactory implements ConnectorFactory {
         ConnectorFactory icebergFactory = new IcebergPlugin().getConnectorFactories().iterator().next();
         Connector icebergConnector = icebergFactory.create(catalogName, icebergConfig, context);
         return new SpatialConnector(icebergConnector, catalogName, resolver, bboxShortCircuit,
-            visibilityPruningEnabled, visibilityExpressions);
+            useInvokerAuths, visibilityPruningEnabled, visibilityExpressions);
     }
 
     /** Parses the comma-separated {@link #VISIBILITY_EXPRESSIONS} property; null/blank yields

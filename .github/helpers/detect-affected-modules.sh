@@ -18,36 +18,19 @@
 #
 # Usage: detect-affected-modules.sh <base-sha> <head-sha> <module-list>
 # where <module-list> is the matrix 'list' value, e.g. "geomesa-fs/geomesa-fs-spark".
-#
-# Batch mode: detect-affected-modules.sh --batch <base-sha> <head-sha>
-# reads newline-delimited module lists from stdin and prints one "true"/"false" per line, in
-# input order. the expensive shared state (the pom dependency graph and the changed-file set)
-# is built once and reused for every list, so a caller with many lists (e.g. the build-matrix
-# report over 39 matrix projects) pays for it once instead of once per list.
 
 # -f disables filename globbing: we word-split space-separated artifactId lists below and never
 # rely on globbing, so this prevents a stray token (e.g. an exclusion '*') from expanding to paths.
 set -eo pipefail -f
 
-BATCH=0
-if [[ "${1:-}" == "--batch" ]]; then
-  BATCH=1
-  shift
-fi
-
-if (( BATCH )); then
-  if [[ $# -ne 2 ]]; then
-    echo "Usage: $(basename "$0") --batch <base-sha> <head-sha>  (lists on stdin)" 1>&2
-    exit 1
-  fi
-elif [[ $# -ne 3 ]]; then
+if [[ $# -ne 3 ]]; then
   echo "Usage: $(basename "$0") <base-sha> <head-sha> <module-list>" 1>&2
   exit 1
 fi
 
 BASE="$1"
 HEAD="$2"
-LIST="${3:-}"
+LIST="$3"
 
 # both shas come from an untrusted PR (this may run under pull_request_target). require plain hex
 # so they can't be a dashed string that git would parse as an option (argument injection) - the
@@ -65,16 +48,8 @@ if ! git cat-file -e "$BASE^{commit}" 2>/dev/null || ! git cat-file -e "$HEAD^{c
 fi
 CHANGED="$(git diff --name-only "$BASE" "$HEAD")"
 
-# if we can't determine what changed, run everything. in batch mode that is one "true" per
-# input list; otherwise a single "true".
+# if we can't determine what changed, run everything
 if [[ -z "$CHANGED" ]]; then
-  if (( BATCH )); then
-    while IFS= read -r list; do
-      [[ -z "$list" ]] && continue
-      echo "true"
-    done
-    exit 0
-  fi
   echo "true"
   exit 0
 fi
@@ -176,6 +151,38 @@ for ((j = 0; j < ${#DIRS[@]}; j++)); do
   UPSTREAM["$dir"]="$ups"
 done
 
+# seed the closure from the -pl list, then BFS over upstream edges. does not account for maven's '!' exclusion syntax,
+# which does not ever get passed in here.
+declare -A IN_CLOSURE
+queue=()
+IFS=',' read -ra ENTRIES <<< "$LIST"
+for entry in "${ENTRIES[@]}"; do
+  # trim surrounding whitespace and any trailing slash
+  entry="${entry#"${entry%%[![:space:]]*}"}"
+  entry="${entry%"${entry##*[![:space:]]}"}"
+  entry="${entry%/}"
+  [[ -z "$entry" ]] && continue
+  if [[ -z "${IS_DIR[$entry]+x}" ]]; then
+    echo "$(basename "$0"): unknown module '$entry' in list" 1>&2
+    exit 1
+  fi
+  if [[ -z "${IN_CLOSURE[$entry]+x}" ]]; then
+    IN_CLOSURE["$entry"]=1
+    queue+=("$entry")
+  fi
+done
+
+while ((${#queue[@]})); do
+  cur="${queue[0]}"
+  queue=("${queue[@]:1}")
+  for up in ${UPSTREAM[$cur]}; do
+    if [[ -z "${IN_CLOSURE[$up]+x}" ]]; then
+      IN_CLOSURE["$up"]=1
+      queue+=("$up")
+    fi
+  done
+done
+
 # resolve a file to its owning module: the longest module dir that prefixes the file path
 owning_module() {
   local file="$1" owner="" mod
@@ -190,80 +197,15 @@ owning_module() {
   echo "$owner"
 }
 
-# map every changed file to its owning module once, up front - this is the same for every list,
-# so in batch mode we do it a single time rather than re-scanning the diff per list.
-declare -A CHANGED_OWNERS   # set of module dirs that own a changed file
-ROOT_CHANGED=0              # 1 if any changed file has no owning module (root pom, build/, .github/, ...)
 while IFS= read -r file; do
   [[ -z "$file" ]] && continue
   owner="$(owning_module "$file")"
-  # a file with no owning module belongs to the repo root, which is in every job's closure - so
-  # treat it as affecting everything
-  if [[ -z "$owner" ]]; then
-    ROOT_CHANGED=1
-  else
-    CHANGED_OWNERS["$owner"]=1
+  # a file with no owning module belongs to the repo root (root pom, build/, .github/, ...),
+  # which is in every job's closure - so treat it as affecting everything
+  if [[ -z "$owner" ]] || [[ -n "${IN_CLOSURE[$owner]+x}" ]]; then
+    echo "true"
+    exit 0
   fi
 done <<< "$CHANGED"
 
-# decide whether a single -pl list is affected: seed the closure from the list, BFS over upstream
-# edges, then check it against the precomputed changed-file owners. does not account for maven's
-# '!' exclusion syntax, which does not ever get passed in here. echoes "true" or "false".
-evaluate_list() {
-  local list="$1" cur up owner entry
-  local -a queue=() ENTRIES=()
-  local -A IN_CLOSURE=()
-
-  # validate + seed the closure from the list first, so an unknown module still fails the step even
-  # when a root-level change would otherwise short-circuit to "true" below.
-  IFS=',' read -ra ENTRIES <<< "$list"
-  for entry in "${ENTRIES[@]}"; do
-    # trim surrounding whitespace and any trailing slash
-    entry="${entry#"${entry%%[![:space:]]*}"}"
-    entry="${entry%"${entry##*[![:space:]]}"}"
-    entry="${entry%/}"
-    [[ -z "$entry" ]] && continue
-    if [[ -z "${IS_DIR[$entry]+x}" ]]; then
-      echo "$(basename "$0"): unknown module '$entry' in list" 1>&2
-      exit 1
-    fi
-    if [[ -z "${IN_CLOSURE[$entry]+x}" ]]; then
-      IN_CLOSURE["$entry"]=1
-      queue+=("$entry")
-    fi
-  done
-
-  # a root-level change is in every job's closure
-  if (( ROOT_CHANGED )); then
-    echo "true"
-    return
-  fi
-
-  while ((${#queue[@]})); do
-    cur="${queue[0]}"
-    queue=("${queue[@]:1}")
-    for up in ${UPSTREAM[$cur]}; do
-      if [[ -z "${IN_CLOSURE[$up]+x}" ]]; then
-        IN_CLOSURE["$up"]=1
-        queue+=("$up")
-      fi
-    done
-  done
-
-  for owner in "${!CHANGED_OWNERS[@]}"; do
-    if [[ -n "${IN_CLOSURE[$owner]+x}" ]]; then
-      echo "true"
-      return
-    fi
-  done
-  echo "false"
-}
-
-if (( BATCH )); then
-  while IFS= read -r list; do
-    [[ -z "$list" ]] && continue
-    evaluate_list "$list"
-  done
-else
-  evaluate_list "$LIST"
-fi
+echo "false"

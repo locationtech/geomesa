@@ -8,11 +8,15 @@
 
 package org.locationtech.geomesa.spark
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.sedona.sql.UDF.Catalog
+import org.apache.sedona.sql.UDT.UdtRegistrator
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.sedona_sql.strategy.join.JoinQueryDetector
 
-package object sedona {
+import scala.util.control.NonFatal
+
+package object sedona extends LazyLogging {
 
   // User can specify a common prefix of UDFs/UDAFs introduced by Apache Sedona. For example, when prefix is specified
   // as "Sedona_", ST_Contains function from Apache Sedona will be named as "Sedona_ST_Contains". When prefix is explicitly
@@ -25,6 +29,9 @@ package object sedona {
    */
   def initSedona(sqlContext: SQLContext): Unit = {
     val prefix = sedonaUdfPrefix(sqlContext)
+    // register Sedona's UDTs (Geometry, Geography, Box2D, Box3D, SpatialIndex) so that encoders can be
+    // derived for them - notably the Box2D/Box3D outputs of the ST_Extent/ST_3DExtent aggregators
+    UdtRegistrator.registerAll()
     registerOptimizations(sqlContext)
     registerUdfs(sqlContext, prefix)
   }
@@ -43,11 +50,20 @@ package object sedona {
   private def registerUdfs(sqlContext: SQLContext, prefix: String): Unit = {
     val sparkSession = sqlContext.sparkSession
     Catalog.expressions.foreach { case (identifier, info, builder) =>
-      val ident = identifier.copy(funcName = s"$prefix${identifier.funcName}")
-      sparkSession.sessionState.functionRegistry.registerFunction(ident, info, builder)
+      // as of spark 4 registerFunction asserts a fully-qualified (3-part) identifier; use
+      // createOrReplaceTempFunction, which registers a session function under a plain name
+      val name = s"$prefix${identifier.funcName}"
+      sparkSession.sessionState.functionRegistry.createOrReplaceTempFunction(name, builder, info.getSource)
     }
     Catalog.aggregateExpressions.foreach { f =>
-      sparkSession.udf.register(s"$prefix${f.getClass.getSimpleName}", org.apache.spark.sql.functions.udaf(f))
+      val name = s"$prefix${f.getClass.getSimpleName}"
+      // some sedona aggregators (e.g. ST_Extent, ST_3DExtent) output non-jts bean types (Box2D/Box3D)
+      // for which spark cannot derive an encoder; skip those rather than failing all of sedona init
+      try {
+        sparkSession.udf.register(name, org.apache.spark.sql.functions.udaf(f))
+      } catch {
+        case NonFatal(e) => logger.warn(s"Unable to register Sedona aggregate function '$name', skipping: $e")
+      }
     }
   }
 }

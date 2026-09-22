@@ -16,8 +16,22 @@
         <module>geomesa-gt-dist</module>
         <module>geomesa-gt-gs-plugin</module>
         <module>geomesa-gt-partitioning</module>
-        <module>geomesa-gt-spark</module>
         <module>geomesa-gt-tools</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>spark</id>
+            <activation>
+                <property>
+                    <name>scala.binary.version</name>
+                    <value>2.13</value>
+                </property>
+            </activation>
+            <modules>
+                <module>geomesa-gt-spark</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>

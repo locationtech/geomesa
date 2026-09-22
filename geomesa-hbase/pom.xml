@@ -26,8 +26,22 @@
         <module>geomesa-hbase-rpc</module>
         <module>geomesa-hbase-server</module>
         <module>geomesa-hbase-server-hbase2</module>
-        <module>geomesa-hbase-spark</module>
         <module>geomesa-hbase-tools</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>spark</id>
+            <activation>
+                <property>
+                    <name>scala.binary.version</name>
+                    <value>2.13</value>
+                </property>
+            </activation>
+            <modules>
+                <module>geomesa-hbase-spark</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>

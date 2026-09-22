@@ -39,7 +39,8 @@ jobs:
             args: -Dtest.excludes="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest,AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
           - name: accumulo-other
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            list: geomesa-accumulo/geomesa-accumulo-dist,geomesa-accumulo/geomesa-accumulo-gs-plugin,geomesa-accumulo/geomesa-accumulo-indices,geomesa-accumulo/geomesa-accumulo-iterators,geomesa-accumulo/geomesa-accumulo-jobs,geomesa-accumulo/geomesa-accumulo-spark,geomesa-accumulo/geomesa-accumulo-tools
+            list: geomesa-accumulo/geomesa-accumulo-dist,geomesa-accumulo/geomesa-accumulo-gs-plugin,geomesa-accumulo/geomesa-accumulo-indices,geomesa-accumulo/geomesa-accumulo-iterators,geomesa-accumulo/geomesa-accumulo-jobs,geomesa-accumulo/geomesa-accumulo-tools
+            list-2.13: geomesa-accumulo/geomesa-accumulo-spark
           - name: arrow
             list: geomesa-arrow/geomesa-arrow-datastore,geomesa-arrow/geomesa-arrow-dist,geomesa-arrow/geomesa-arrow-gt,geomesa-arrow/geomesa-arrow-jts,geomesa-arrow/geomesa-arrow-tools
           - name: cassandra
@@ -51,21 +52,26 @@ jobs:
           - name: fs
             list: geomesa-fs/geomesa-fs-datastore,geomesa-fs/geomesa-fs-dist,geomesa-fs/geomesa-fs-gs-plugin,geomesa-fs/geomesa-fs-tools
           - name: fs-storage
-            list: geomesa-fs/geomesa-fs-storage,geomesa-fs/geomesa-fs-storage-convert,geomesa-fs/geomesa-fs-jobs,geomesa-fs/geomesa-fs-spark
+            list: geomesa-fs/geomesa-fs-storage,geomesa-fs/geomesa-fs-storage-convert,geomesa-fs/geomesa-fs-jobs
+            list-2.13: geomesa-fs/geomesa-fs-spark
           - name: gt-pg15
-            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-tools
+            list-2.13: geomesa-gt/geomesa-gt-spark
             args: -Dtest.postgis.docker.tag=15-3.4
           - name: gt-pg16
-            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-tools
+            list-2.13: geomesa-gt/geomesa-gt-spark
             args: -Dtest.postgis.docker.tag=16-3.5
           - name: gt-pg17
-            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-tools
+            list-2.13: geomesa-gt/geomesa-gt-spark
             args: -Dtest.postgis.docker.tag=17-3.5
           - name: hbase-ds
             list: geomesa-hbase/geomesa-hbase-datastore
           - name: hbase-other
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            list: geomesa-hbase/geomesa-hbase-dist,geomesa-hbase/geomesa-hbase-gs-plugin,geomesa-hbase/geomesa-hbase-jobs,geomesa-hbase/geomesa-hbase-rpc,geomesa-hbase/geomesa-hbase-server,geomesa-hbase/geomesa-hbase-server-hbase2,geomesa-hbase/geomesa-hbase-spark,geomesa-hbase/geomesa-hbase-tools
+            list: geomesa-hbase/geomesa-hbase-dist,geomesa-hbase/geomesa-hbase-gs-plugin,geomesa-hbase/geomesa-hbase-jobs,geomesa-hbase/geomesa-hbase-rpc,geomesa-hbase/geomesa-hbase-server,geomesa-hbase/geomesa-hbase-server-hbase2,geomesa-hbase/geomesa-hbase-tools
+            list-2.13: geomesa-hbase/geomesa-hbase-spark
           - name: kafka
             list: geomesa-kafka/geomesa-kafka-confluent,geomesa-kafka/geomesa-kafka-datastore,geomesa-kafka/geomesa-kafka-dist,geomesa-kafka/geomesa-kafka-gs-plugin,geomesa-kafka/geomesa-kafka-tools,geomesa-kafka/geomesa-kafka-utils
           - name: lambda
@@ -77,7 +83,8 @@ jobs:
           - name: redis
             list: geomesa-redis/geomesa-redis-datastore,geomesa-redis/geomesa-redis-dist,geomesa-redis/geomesa-redis-gs-plugin,geomesa-redis/geomesa-redis-tools
           - name: spark
-            list: geomesa-spark/geomesa_pyspark,geomesa-spark/geomesa-spark-converter,geomesa-spark/geomesa-spark-core,geomesa-spark/geomesa-spark-jts,geomesa-spark/geomesa-spark-jupyter-leaflet,geomesa-spark/geomesa-spark-sql,geomesa-spark/geomesa-spark-test-with-sedona
+            # spark modules are only built for scala 2.13
+            list-2.13: geomesa-spark/geomesa_pyspark,geomesa-spark/geomesa-spark-converter,geomesa-spark/geomesa-spark-core,geomesa-spark/geomesa-spark-jts,geomesa-spark/geomesa-spark-jupyter-leaflet,geomesa-spark/geomesa-spark-sql,geomesa-spark/geomesa-spark-test-with-sedona
           - name: utils
             list: geomesa-utils-parent/geomesa-bom,geomesa-utils-parent/geomesa-hadoop-utils,geomesa-utils-parent/geomesa-utils
           - name: trino
@@ -86,7 +93,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: |
@@ -99,48 +106,79 @@ jobs:
             main-${{ matrix.scala-version }}-
             main-
           path: ~/.m2/repository/
+      - name: Determine project list
+        id: projects
+        env:
+          LIST: ${{ matrix.projects.list }}
+          LIST_2_13: ${{ matrix.projects['list-2.13'] }}
+          SCALA_VERSION: ${{ matrix.scala-version }}
+        run: |
+          # spark modules are only built for scala 2.13, so they're kept in a separate list-2.13
+          # element that we append to the main list only when building against 2.13
+          projects="$LIST"
+          if [[ "$SCALA_VERSION" == "2.13" && -n "$LIST_2_13" ]]; then
+            projects="${projects:+$projects,}$LIST_2_13"
+          fi
+          echo "list=$projects" >> "$GITHUB_OUTPUT"
       - name: Detect affected modules
         id: changes
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.projects.outputs.list != ''
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PROJECT_LIST: ${{ matrix.projects.list }}
+          PROJECT_LIST: ${{ steps.projects.outputs.list }}
         run: |
           affected="$(.github/helpers/detect-affected-modules.sh "$BASE_SHA" "$HEAD_SHA" "$PROJECT_LIST")"
           echo "affected=$affected" >> "$GITHUB_OUTPUT"
       - name: Set Scala version
-        if: steps.changes.outputs.affected != 'false'
+        if: steps.projects.outputs.list != '' && steps.changes.outputs.affected != 'false'
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Compile
         id: compile
-        if: steps.changes.outputs.affected != 'false'
+        if: steps.projects.outputs.list != '' && steps.changes.outputs.affected != 'false'
         continue-on-error: true
+        env:
+          PROJECT_LIST: ${{ steps.projects.outputs.list }}
         run: |
           set -o pipefail
-          mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }} | tee -a build.log
+          mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl "${PROJECT_LIST}" ${{ matrix.projects.args }} | tee -a build.log
       - name: Compile (retry)
-        if: steps.changes.outputs.affected != 'false' && steps.compile.outcome=='failure'
+        if: steps.projects.outputs.list != '' && steps.changes.outputs.affected != 'false' && steps.compile.outcome=='failure'
+        env:
+          PROJECT_LIST: ${{ steps.projects.outputs.list }}
         run: |
           set -o pipefail
           # retry if the failure was due to transient download errors from maven central
           if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' -e 'Could not resolve artifact' build.log; then
             RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-            mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }} $RESUME_FROM | tee -a build.log
+            mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl "${PROJECT_LIST}" ${{ matrix.projects.args }} $RESUME_FROM | tee -a build.log
           else
             exit 1
           fi
       - name: Run unit tests
         id: test
-        if: steps.changes.outputs.affected != 'false'
+        if: steps.projects.outputs.list != '' && steps.changes.outputs.affected != 'false'
         continue-on-error: true
+        env:
+          PROJECT_LIST: ${{ steps.projects.outputs.list }}
         run: |
           set -o pipefail
-          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }} | tee -a test.log
+          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl "${PROJECT_LIST}" ${{ matrix.projects.args }} | tee -a test.log
       - name: Run unit tests (retry)
         id: test-retry
-        if: steps.changes.outputs.affected != 'false' && steps.test.outcome=='failure'
+        if: steps.projects.outputs.list != '' && steps.changes.outputs.affected != 'false' && steps.test.outcome=='failure'
+        env:
+          PROJECT_LIST: ${{ steps.projects.outputs.list }}
         run: |
           set -o pipefail
           RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }} ${{ matrix.projects.args }} $RESUME_FROM | tee -a test.log
+          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -pl "${PROJECT_LIST}" ${{ matrix.projects.args }} $RESUME_FROM | tee -a test.log
+  report:
+    needs: build
+    if: always()
+    uses: $/.github/workflows/job-status-report.yml
+    with:
+      workflow-name: build
+    permissions:
+      contents: read
+      actions: read

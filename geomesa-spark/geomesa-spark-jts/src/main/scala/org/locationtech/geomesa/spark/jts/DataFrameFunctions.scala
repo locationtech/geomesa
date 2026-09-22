@@ -36,7 +36,7 @@ object DataFrameFunctions extends SpatialEncoders {
 
     /** Constructs a geometric literal from a value  and JTS UDT */
     private def udtlit[T >: Null <: Geometry: Encoder, U <: AbstractGeometryUDT[T]](t: T, u: U): TypedColumn[Any, T] =
-      new Column(Literal.create(u.serialize(t), u)).as[T]
+      ColumnUtils.toColumn(Literal.create(u.serialize(t), u)).as[T]
 
     /** Create a generic geometry literal, encoded as a GeometryUDT. */
     def geomLit(g: Geometry): TypedColumn[Any, Geometry] = udtlit(g, GeometryUDT)

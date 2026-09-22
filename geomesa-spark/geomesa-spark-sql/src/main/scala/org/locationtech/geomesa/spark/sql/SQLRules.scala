@@ -15,9 +15,10 @@ import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.sedona_sql.UDT.{GeometryUDT => Sedona_GeometryUDT}
-import org.apache.spark.sql.sedona_sql.expressions.{ST_Predicate => Sedona_ST_Predicate}
 import org.apache.spark.sql.types.DataTypes
-import org.apache.spark.sql.{SQLContext, Strategy}
+import org.apache.spark.sql.SQLContext
+// as of spark 4 the `Strategy` type alias lives in the classic package (expands to execution.SparkStrategy)
+import org.apache.spark.sql.classic.Strategy
 import org.geotools.api.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
 import org.geotools.api.filter.{FilterFactory, Filter => GTFilter}
 import org.geotools.factory.CommonFactoryFinder
@@ -73,7 +74,20 @@ object SQLRules extends LazyLogging {
     }
   }
 
-  def sedonaExprToGTFilter(pred: Sedona_ST_Predicate): Option[GTFilter] = {
+  // sedona spatial predicate expressions live in this package; as of sedona 1.9 they extend
+  // `InferredExpression` rather than the (older) `ST_Predicate` base class, so we identify them by
+  // package + simple name rather than by an `isInstanceOf` check against a stable base type
+  private val SedonaExpressionPackage = "org.apache.spark.sql.sedona_sql.expressions"
+
+  private val SedonaPredicateNames =
+    Set("ST_Contains", "ST_Crosses", "ST_Overlaps", "ST_Intersects",
+        "ST_Within", "ST_Touches", "ST_Equals", "ST_Disjoint")
+
+  def isSedonaPredicate(expr: Expression): Boolean =
+    Option(expr.getClass.getPackage).exists(_.getName == SedonaExpressionPackage) &&
+        SedonaPredicateNames.contains(expr.getClass.getSimpleName)
+
+  def sedonaExprToGTFilter(pred: Expression): Option[GTFilter] = {
     sparkExprToGTExpr(pred.children.head).flatMap { expr1 =>
       sparkExprToGTExpr(pred.children.last).flatMap { expr2 =>
         // sedona classes are private, so we have to match on the class name instead of the class itself
@@ -123,8 +137,8 @@ object SQLRules extends LazyLogging {
           }
         }
       case _ =>
-        if (haveSedona && expr.isInstanceOf[Sedona_ST_Predicate]) {
-          sedonaExprToGTFilter(expr.asInstanceOf[Sedona_ST_Predicate])
+        if (haveSedona && isSedonaPredicate(expr)) {
+          sedonaExprToGTFilter(expr)
         } else {
           logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
           None
@@ -190,6 +204,10 @@ object SQLRules extends LazyLogging {
         case _ => false
       }
 
+      // Note: the join relation's scan produces the full `left ++ right` output itself (via a sweepline
+      // join), so we replace the entire `Join` node with a scan over that relation rather than re-wrapping
+      // it in a `Join`. Preserving the original output attributes (and their exprIds) keeps the plan valid,
+      // which Spark 4+ enforces by re-validating the plan after each optimizer rule.
       (join.left, join.right) match {
         case (left: LogicalRelation, right: LogicalRelation) if isSpatialUDF =>
           (left.relation, right.relation) match {
@@ -197,14 +215,13 @@ object SQLRules extends LazyLogging {
               leftRel.join(rightRel, join.condition.get) match {
                 case None => join
                 case Some(joinRelation) =>
-                  val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
-                  SparkVersions.copy(join)(left = newLogicalRelLeft)
+                  SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
               }
 
             case _ => join
           }
 
-        case (leftProject @ Project(leftProjectList, left: LogicalRelation),
+        case (Project(leftProjectList, left: LogicalRelation),
             Project(rightProjectList, right: LogicalRelation)) if isSpatialUDF =>
           (left.relation, right.relation) match {
             case (leftRel: GeoMesaRelation, rightRel: GeoMesaRelation) =>
@@ -212,8 +229,7 @@ object SQLRules extends LazyLogging {
                 case None => join
                 case Some(joinRelation) =>
                   val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
-                  val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
-                  SparkVersions.copy(join)(left = newProjectLeft)
+                  Project(leftProjectList ++ rightProjectList, newLogicalRelLeft)
               }
 
             case _ => join
@@ -249,7 +265,7 @@ object SQLRules extends LazyLogging {
       val optimizeRest: PartialFunction[LogicalPlan, LogicalPlan] = {
         case join: Join =>
           alterJoin(join)
-        case sort @ Sort(_, _, _) => sort    // No-op.  Just realizing what we can do:)
+        case sort: Sort => sort    // No-op.  Just realizing what we can do:)
         case filt @ Filter(f, lr: LogicalRelation) if lr.relation.isInstanceOf[GeoMesaRelation] =>
           // TODO: deal with `or`
 
