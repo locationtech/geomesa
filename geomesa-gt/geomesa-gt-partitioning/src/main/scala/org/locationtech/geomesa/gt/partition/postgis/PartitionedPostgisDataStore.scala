@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
+import org.apache.commons.lang3.StringUtils
 import org.geotools.api.data._
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -107,7 +108,7 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
     val upgrade = existing match {
       case _: SchemaWithoutVis => sft
       case s: SchemaWithVis =>
-        val copy = SimpleFeatureTypes.copy(s.underling)
+        val copy = SimpleFeatureTypes.copy(s.underlying)
         copy.getUserData.putAll(sft.getUserData)
         copy
     }
@@ -257,26 +258,6 @@ object PartitionedPostgisDataStore {
   }
 
   /**
-   * Project a user-facing feature onto the underlying schema, mapping the user-data visibility into `_vis`.
-   * Other attributes are copied by name.
-   *
-   * @param from user feature
-   * @param underlyingType physical schema (with `_vis` column)
-   * @return physical feature with `_vis` populated
-   */
-  private def toUnderlying(from: SimpleFeature, underlyingType: SimpleFeatureType): SimpleFeature = {
-    val to = new ScalaSimpleFeature(underlyingType, from.getID)
-    var i = 0
-    while (i < from.getAttributeCount) {
-      to.setAttributeNoConvert(i, from.getAttribute(i))
-      i += 1
-    }
-    to.setAttributeNoConvert(i, SecurityUtils.getVisibility(from))
-    to.getUserData.putAll(from.getUserData)
-    to
-  }
-
-  /**
    * Project a physical feature onto the user schema, dropping the `_vis` column but surfacing its
    * value into the feature's user data as the visibility expression (if non-null/non-empty).
    *
@@ -297,11 +278,26 @@ object PartitionedPostgisDataStore {
   }
 
   /**
+   * Gets the visibility from a user-facing feature, ensuring it is not null or empty
+   *
+   * @param sf feature
+   * @return
+   */
+  private def getVisibility(sf: SimpleFeature): String = {
+    val visibility = SecurityUtils.getVisibility(sf)
+    if (StringUtils.isBlank(visibility)) {
+      throw new IllegalArgumentException(
+        s"Feature ${sf.getID} does not contain a visibility label under the user data key ${SecurityUtils.FEATURE_VISIBILITY}")
+    }
+    visibility
+  }
+
+  /**
    * Types for cached schemas
    */
   private sealed trait SchemaType
 
-  private case class SchemaWithVis(userFacing: SimpleFeatureType, underling: SimpleFeatureType) extends SchemaType
+  private case class SchemaWithVis(userFacing: SimpleFeatureType, underlying: SimpleFeatureType) extends SchemaType
   private case class SchemaWithoutVis(sft: SimpleFeatureType) extends SchemaType
 
   /**
@@ -362,18 +358,13 @@ object PartitionedPostgisDataStore {
         delegateFeature.setAttribute(i, userFeature.getAttribute(i))
         i += 1
       }
-      delegateFeature.setAttribute(i, SecurityUtils.getVisibility(userFeature))
+      delegateFeature.setAttribute(i, getVisibility(userFeature))
       delegateFeature.getUserData.putAll(userFeature.getUserData)
+      val fid = Option(userFeature.getUserData.get(Hints.PROVIDED_FID).asInstanceOf[String]).getOrElse(userFeature.getID)
       // propagate a caller-provided fid - the jdbc writer reads the id off the delegate feature itself
-      var providedFid = userFeature.getUserData.get(Hints.PROVIDED_FID)
-      if (providedFid == null && java.lang.Boolean.TRUE == userFeature.getUserData.get(Hints.USE_PROVIDED_FID)) {
-        providedFid = userFeature.getID
-      }
-      if (providedFid != null) {
-        delegateFeature.getIdentifier match {
-          case id: FeatureIdImpl => id.setID(providedFid.toString)
-          case _ => // no-op
-        }
+      delegateFeature.getIdentifier match {
+        case id: FeatureIdImpl => id.setID(fid)
+        case _ => // no-op
       }
       delegate.write()
     }
@@ -408,7 +399,7 @@ object PartitionedPostgisDataStore {
         override def features(): SimpleFeatureIterator = new SimpleFeatureIterator {
           private val iter = collection.features()
           override def hasNext: Boolean = iter.hasNext
-          override def next(): SimpleFeature = toUnderlying(iter.next(), underlying)
+          override def next(): SimpleFeature = toUnderlying(iter.next())
           override def close(): Unit = iter.close()
         }
       }
@@ -419,7 +410,7 @@ object PartitionedPostgisDataStore {
       val mapped = new FeatureReader[SimpleFeatureType, SimpleFeature] {
         override def getFeatureType: SimpleFeatureType = underlying
         override def hasNext: Boolean = reader.hasNext
-        override def next(): SimpleFeature = toUnderlying(reader.next(), underlying)
+        override def next(): SimpleFeature = toUnderlying(reader.next())
         override def close(): Unit = reader.close()
       }
       source.setFeatures(mapped)
@@ -436,6 +427,26 @@ object PartitionedPostgisDataStore {
       source.modifyFeatures(names, attributeValues, filter)
     override def setTransaction(tx: Transaction): Unit = source.setTransaction(tx)
     override def getTransaction: Transaction = source.getTransaction
+
+    /**
+     * Project a user-facing feature onto the underlying schema, mapping the user-data visibility into `_vis`.
+     * Other attributes are copied by name.
+     *
+     * @param from user feature
+     * @return physical feature with `_vis` populated
+     */
+    private def toUnderlying(from: SimpleFeature): SimpleFeature = {
+      val fid = Option(from.getUserData.get(Hints.PROVIDED_FID).asInstanceOf[String]).getOrElse(from.getID)
+      val to = new ScalaSimpleFeature(underlying, fid)
+      var i = 0
+      while (i < from.getAttributeCount) {
+        to.setAttributeNoConvert(i, from.getAttribute(i))
+        i += 1
+      }
+      to.setAttributeNoConvert(i, getVisibility(from))
+      to.getUserData.putAll(from.getUserData)
+      to
+    }
   }
 
   /**

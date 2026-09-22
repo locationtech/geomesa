@@ -14,6 +14,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.MultiValuedFilter.MatchAction
 import org.geotools.data._
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
@@ -25,7 +26,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
@@ -253,8 +254,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
         }
 
-        // visibility label to assign to each feature (null == visible to all)
-        val visibilities = Seq("admin", "user", "user&admin", null, "admin", "user", "user&admin", null, "admin", "user")
+        // visibility label to assign to each feature
+        val visibilities = Seq("admin", "user", "user&admin", "user|admin", "admin", "user", "user&admin", "user|admin", "admin", "user")
         val features = this.features.zip(visibilities).map { case (sf, vis) =>
           val retyped = ScalaSimpleFeature.retype(sft, sf)
           SecurityUtils.setFeatureVisibility(retyped, vis)
@@ -276,7 +277,13 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             val expected = features.filter { f =>
               val vis = SecurityUtils.getVisibility(f)
               // note: not a very robust check but works for our test data here
-              vis == null || auths.contains(vis) || vis == auths.mkString("&")
+              if (vis.contains("|")) {
+                vis.split("\\|").exists(auths.contains)
+              } else if (vis.contains("&")) {
+                vis.split("&").forall(auths.contains)
+              } else {
+                auths.contains(vis)
+              }
             }
             foreach(Seq(null, Array("name", "dtg", "geom"), Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
               val query = new Query(sft.getTypeName, Filter.INCLUDE, transforms: _*)
@@ -311,6 +318,27 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         ds.upgrade(sft)
 
         runQueries()
+
+        // verify features without vis throw errors on write
+        WithClose(new DefaultTransaction()) { tx =>
+          val sf = ScalaSimpleFeature.retype(sft, this.features.head)
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            FeatureUtils.write(writer, sf, useProvidedFid = true) must throwAn[IllegalArgumentException]
+          }
+          val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
+          fs.addFeatures(new ListFeatureCollection(sft, sf)) must throwAn[IllegalArgumentException]
+          tx.commit()
+        }
+
+        // verify that if somehow features end up without vis, they are not returned
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          count(cx, typeInfo.tables.view) mustEqual 10
+          Seq(typeInfo.tables.writeAheadPartitions, typeInfo.tables.mainPartitions, typeInfo.tables.spillPartitions).foreach { table =>
+            val sql = s"""update ${table.name.quoted} set "$VisCol" = null where ${typeInfo.cols.fid.quoted} = '${features.head.getID}'"""
+            WithClose(cx.prepareCall(sql))(_.executeUpdate())
+          }
+          count(cx, typeInfo.tables.view) mustEqual 9
+        }
       } finally {
         ds.dispose()
       }

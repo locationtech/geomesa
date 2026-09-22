@@ -467,7 +467,7 @@ object PartitionedPostgisDialect extends StrictLogging {
     val VisEnabled: SftUserData[Boolean] = SftUserData("pg.vis.enabled", mutable = false, default = false)
     // unique alias to use for identifiers so that we don't exceed the max postgres identifier length
     val IdentAlias: SftUserData[Option[String]] = SftUserData("pg.ident.alias", mutable = false, None)
-    // unique alias to use for identifiers so that we don't exceed the max postgres identifier length
+    // name of the feature id column
     val FidColumn: SftUserData[String] = SftUserData("pg.fid.col", mutable = false, "fid")
 
     // tablespace configurations - can be updated freely after the schema is created

@@ -101,7 +101,7 @@ authorizations.
 
 .. note::
 
-  Visibility filtering is disabled by default.
+    Visibility filtering is disabled by default.
 
 When enabled, a hidden ``_vis`` column is added to the partition tables to store each row's visibility label, and the main
 view filters rows based on the caller's authorizations. The hidden column is not exposed through the feature type, so it does not
@@ -114,6 +114,11 @@ Visibility filtering can be enabled at schema-creation time by setting the key `
 
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.vis.enabled", "true");
+
+.. note::
+
+    When visibility filtering is enabled, any rows that do not have a visibility label are assumed to be in error,
+    and will throw an exception on write. If a row somehow ends up without a label anyway, it will be hidden from all users.
 
 Visibility filtering cannot be changed after the schema has been created.
 

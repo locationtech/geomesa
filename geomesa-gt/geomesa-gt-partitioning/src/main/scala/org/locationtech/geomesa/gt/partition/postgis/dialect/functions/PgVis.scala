@@ -22,11 +22,15 @@ class PgVis extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     Seq(
-      """-- Evaluate visibilities against authorizations. Note that visibility strings are expected to be well formed -
-        |-- invalid strings will not raise errors but will always evaluate to 'false'.
-        |-- a valid expression is a sequence of tokens (chars from [A-Za-z0-9_-.:/], or any chars if quoted with ' or ")
+      """-- Evaluate visibilities against authorizations.
+        |--
+        |-- Note that visibility strings are expected to be well formed - invalid strings will not raise errors but will
+        |-- always evaluate to 'false'. Empty/null strings are considered invalid.
+        |--
+        |-- A valid expression is a sequence of tokens (chars from [A-Za-z0-9_-.:/], or any chars if quoted with ' or ")
         |-- joined by the binary operators & (and) or | (or). & and | may not be mixed at the same level without
         |-- parentheses to disambiguate, e.g. 'A|B&C' is invalid but '(A|B)&C' and 'A|(B&C)' are valid.
+        |--
         |-- arguments:
         |--   vis   - visibility expression, consisting of tokens separated by & and |
         |--   auths - user authorization tokens
@@ -47,7 +51,7 @@ class PgVis extends SqlStatements {
         |    result_stack   boolean[] := ARRAY[]::boolean[]; -- stack for evaluating RPN
         |  BEGIN
         |    IF vis IS NULL OR vis = '' THEN
-        |      return true;
+        |      return false;
         |    END IF;
         |
         |    c_len := char_length(vis);
