@@ -1,6 +1,6 @@
 # Workflow to upload software bill-of-materials (sboms) to the eclipse registry, as part of best-practices for eclipse projects.
 # Note that per-module sboms are also uploaded to maven central alongside other release artifacts.
-name: eclipse-sbom-registry-upload
+name: eclipse-sboms
 
 on:
   push:
