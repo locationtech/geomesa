@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   generate-sbom:
-    name: generate-sbom / ${{ matrix.product.name }}
+    name: generate-sbom / ${{ matrix.product.name || matrix.product.selector }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,18 +31,16 @@ jobs:
       fail-fast: false
       matrix:
         product:
-          - name: geomesa-accumulo
-          - name: geomesa-cassandra
-          - name: geomesa-fs
-          - name: geomesa-gt
-          - name: geomesa-hbase
-          - name: geomesa-kafka
-          - name: geomesa-redis
-          - name: geomesa-trino
-          - name: geomesa-all
-            selector: "."
-    env:
-      SELECTOR: ${{ matrix.product.selector || matrix.product.name }}
+          - selector: geomesa-accumulo
+          - selector: geomesa-cassandra
+          - selector: geomesa-fs
+          - selector: geomesa-gt
+          - selector: geomesa-hbase
+          - selector: geomesa-kafka
+          - selector: geomesa-redis
+          - selector: geomesa-trino
+          - selector:
+            name: geomesa-all
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -63,8 +61,12 @@ jobs:
       - name: Set Scala version
         # check against 2.13 as 2.12 doesn't include spark
         run: ./build/scripts/change-scala-version.sh 2.13
+      - name: Set project selector
+        env:
+          SELECTOR: ${{ matrix.product.selector }}
+        run: echo "PROJECT_SELECTOR=${SELECTOR:+-pl $SELECTOR/$SELECTOR-dist -am}" >> $GITHUB_ENV
       - name: Compile Trino plugin
-        if: matrix.product.name == 'geomesa-trino' || matrix.product.name == 'geomesa-all'
+        if: matrix.product.selector == 'geomesa-trino' || matrix.product.name == 'geomesa-all'
         run: |
           set -o pipefail
           mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS | tee -a build.log
@@ -74,7 +76,7 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          mvn $MAVEN_COMPILE_NO_OP_ARGS ${SELECTOR:+-f $SELECTOR -am} $COMPILE_EXCLUDE $MAVEN_CLI_OPTS | tee -a build.log
+          mvn $MAVEN_COMPILE_NO_OP_ARGS $PROJECT_SELECTOR $COMPILE_EXCLUDE $MAVEN_CLI_OPTS | tee -a build.log
       - name: Compile (retry)
         if: steps.compile.outcome=='failure'
         run: |
@@ -82,14 +84,14 @@ jobs:
           # retry if the failure was due to transient download errors from maven central
           if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' -e 'Could not resolve artifact' build.log; then
             RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-            mvn $MAVEN_COMPILE_NO_OP_ARGS ${SELECTOR:+-f $SELECTOR -am} $COMPILE_EXCLUDE $MAVEN_CLI_OPTS $RESUME_FROM | tee -a build.log
+            mvn $MAVEN_COMPILE_NO_OP_ARGS $PROJECT_SELECTOR $COMPILE_EXCLUDE $MAVEN_CLI_OPTS $RESUME_FROM | tee -a build.log
           else
             exit 1
           fi
       - name: Generate sbom
         run: |
-          mvn $MAVEN_CYCLONEDX_ARGS ${SELECTOR:+-f $SELECTOR} $MAVEN_CLI_OPTS
-      - name: Extract product version
+          mvn $MAVEN_CYCLONEDX_ARGS $PROJECT_SELECTOR $MAVEN_CLI_OPTS
+      - name: Read version
         id: version
         run: |
           VERSION="$(mvn $MAVEN_VERSION_ARGS $MAVEN_CLI_OPTS)"
@@ -98,6 +100,6 @@ jobs:
       - name: Upload sbom
         uses: eclipse-csi/workflows/upload-sbom@d83da6f2897e985d9d2b9541174c7ee5ee6d88ad # there are no tags, this is main as of 09/23/26
         with:
-          sbom-file: ${{ env.SELECTOR }}/target/bom.json
-          product-name: ${{ matrix.product.name }}
+          sbom-file: ./target/bom.json
+          product-name: ${{ matrix.product.name || matrix.product.selector }}
           product-version: ${{ steps.version.outputs.version }}
