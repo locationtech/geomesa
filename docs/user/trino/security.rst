@@ -36,7 +36,7 @@ Setting either property opts the catalog into Trino-layer enforcement.
     Only the ``spatial_iceberg`` catalog is protected — do not expose a plain
     ``iceberg`` catalog over the same tables to untrusted users.
 
-.. _trino_view_security:
+.. _trino_visibility_pruning:
 
 Visibility-Column File Pruning
 ------------------------------
@@ -100,6 +100,8 @@ The feature has two tiers:
 
     The list is catalog-wide; for a catalog whose tables use different visibility values, declare
     the union of all of them.
+
+.. _trino_view_security:
 
 Views
 -----

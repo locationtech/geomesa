@@ -76,6 +76,25 @@ import org.slf4j.LoggerFactory;
  * this connector injects would prune away exactly the files holding the answer.
  * Disjoint predicates fall through to the delegate unchanged and are evaluated
  * row-by-row.
+ *
+ * <p><strong>Visibility-column file pruning.</strong> When enabled, {@link #visibilityDomain}
+ * additionally injects a {@code Domain} on the {@code __vis__} column so Iceberg can prune whole
+ * files by their manifest stats (see {@link VisibilityDomainPruning}). It is gated <em>solely</em>
+ * by the master switch {@link #visibilityPruningEnabled}; the two tiers below then apply
+ * independently, and in particular are NOT jointly gated on {@link #visibilityExpressions} being
+ * declared:
+ * <ul>
+ *   <li><strong>Empty-auths tier</strong> — universe-free and therefore always eligible whenever
+ *       pruning is enabled. A caller with no authorizations can satisfy no expression (and
+ *       NULL/empty visibilities are hidden from everyone), so every file is prunable. Because it
+ *       needs no declared universe, it runs even when {@link #visibilityExpressions} is empty —
+ *       which is why {@link #visibilityDomain}'s guard does not also test
+ *       {@code visibilityExpressions.isEmpty()}.</li>
+ *   <li><strong>Expression tier</strong> — the only tier that consults the declared universe, so it
+ *       is the only one conditioned on {@link #visibilityExpressions} being non-empty. It refines
+ *       the result for a caller who <em>does</em> have authorizations (i.e. when the empty-auths
+ *       tier did not already apply).</li>
+ * </ul>
  */
 public class SpatialConnectorMetadata implements ConnectorMetadata {
 
