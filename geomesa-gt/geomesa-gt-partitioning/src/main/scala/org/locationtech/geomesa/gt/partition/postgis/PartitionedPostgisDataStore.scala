@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.gt.partition.postgis
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
-import org.apache.commons.lang3.StringUtils
 import org.geotools.api.data._
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -285,7 +284,7 @@ object PartitionedPostgisDataStore {
    */
   private def getVisibility(sf: SimpleFeature): String = {
     val visibility = SecurityUtils.getVisibility(sf)
-    if (StringUtils.isBlank(visibility)) {
+    if (visibility == null || visibility.isBlank) {
       throw new IllegalArgumentException(
         s"Feature ${sf.getID} does not contain a visibility label under the user data key ${SecurityUtils.FEATURE_VISIBILITY}")
     }
