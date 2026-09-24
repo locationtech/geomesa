@@ -51,7 +51,7 @@ This Code applies within all Project, Working Group, and Interest Group spaces a
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the Conduct Committee via conduct@eclipse-foundation.org. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. Without the explicit consent of the reporter, the Conduct Committee is obligated to maintain confidentiality with regard to the reporter of an incident. The Conduct Committee is further obligated to ensure that the respondent is provided with sufficient information about the complaint to reply. If such details cannot be provided while maintaining confidentiality, the Conduct Committee will take the respondent‘s inability to provide a defense into account in its deliberations and decisions. Further details of enforcement guidelines may be posted separately.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the Conduct Committee via conduct@eclipse-foundation.org. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. Without the explicit consent of the reporter, the Conduct Committee is obligated to maintain confidentiality with regard to the reporter of an incident. The Conduct Committee is further obligated to ensure that the respondent is provided with sufficient information about the complaint to reply. If such details cannot be provided while maintaining confidentiality, the Conduct Committee will take the respondent's inability to provide a defense into account in its deliberations and decisions. Further details of enforcement guidelines may be posted separately.
 
 Staff, Committers and Project Leads have the right to report, remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code, or to block temporarily or permanently any Contributor for other behaviors that they deem inappropriate, threatening, offensive, or harmful. Any such actions will be reported to the Conduct Committee for transparency and record keeping.
 
@@ -65,7 +65,7 @@ The responsibility for administering this Code rests with the Conduct Committee,
 
 All conflict is not bad as a healthy debate may sometimes be necessary to push us to do our best. It is, however, unacceptable to be disrespectful or offensive, or violate this Code. If you see someone engaging in objectionable behavior violating this Code, we encourage you to address the behavior directly with those involved. If for some reason, you are unable to resolve the matter or feel uncomfortable doing so, or if the behavior is threatening or harassing, please report it following the procedure laid out below.
 
-Reports should be directed to <conduct@eclipse-foundation.org>. It is the Conduct Committee’s role to receive and address reported violations of this Code and to ensure a fair and speedy resolution.
+Reports should be directed to <conduct@eclipse-foundation.org>. It is the Conduct Committee's role to receive and address reported violations of this Code and to ensure a fair and speedy resolution.
 
 The Eclipse Foundation takes all reports of potential Code violations seriously and is committed to confidentiality and a full investigation of all allegations. The identity of the reporter will be omitted from the details of the report supplied to the accused. Contributors who are being investigated for a potential Code violation will have an opportunity to be heard prior to any final determination. Those found to have violated the Code can seek reconsideration of the violation and disciplinary action decisions. Every effort will be made to have all matters disposed of within 60 days of the receipt of the complaint.
 
@@ -74,7 +74,7 @@ Contributors who do not follow this Code in good faith may face temporary or per
 
 This Code does not address all conduct. It works in conjunction with our [Communication Channel Guidelines](https://www.eclipse.org/org/documents/communication-channel-guidelines/), [Social Media Guidelines](https://www.eclipse.org/org/documents/social_media_guidelines.php), [Bylaws](https://www.eclipse.org/org/documents/eclipse-foundation-be-bylaws-en.pdf), and [Internal Rules](https://www.eclipse.org/org/documents/ef-be-internal-rules.pdf) which set out additional protections for, and obligations of, all contributors. The Foundation has additional policies that provide further guidance on other matters.
 
-It’s impossible to spell out every possible scenario that might be deemed a violation of this Code. Instead, we rely on one another’s good judgment to uphold a high standard of integrity within all Eclipse Spaces. Sometimes, identifying the right thing to do isn’t an easy call. In such a scenario, raise the issue as early as possible.
+It's impossible to spell out every possible scenario that might be deemed a violation of this Code. Instead, we rely on one another's good judgment to uphold a high standard of integrity within all Eclipse Spaces. Sometimes, identifying the right thing to do isn't an easy call. In such a scenario, raise the issue as early as possible.
 
 ## No Retaliation
 
