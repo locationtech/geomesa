@@ -115,9 +115,9 @@
         <aircompressor.version>2.0.3</aircompressor.version>
         <h2.version>2.2.224</h2.version>
         <hsql.version>2.7.2</hsql.version>
-        <jackson.version>2.21.1</jackson.version> <!-- used by geoserver, spark and arrow -->
+        <jackson.version>2.22.3</jackson.version> <!-- used by geoserver, spark and arrow -->
         <jackson.annotations.version>2.21</jackson.annotations.version> <!-- note: in most places this is managed through the jackson bom -->
-        <jackson3.version>3.2.2</jackson3.version> <!-- jackson 3 - used by geotools; keep in sync with gt-platform-dependencies -->
+        <jackson3.version>3.2.3</jackson3.version> <!-- jackson 3 - used by geotools; keep in sync with gt-platform-dependencies -->
         <jetty.version>9.4.57.v20241219</jetty.version>
         <json.smart.version>2.5.2</json.smart.version> <!-- used by json-path and hadoop-auth -->
         <netty.version>4.2.18.Final</netty.version>
@@ -1713,6 +1713,16 @@
                 <version>4.4.16</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.httpcomponents.core5</groupId>
+                <artifactId>httpcore5</artifactId>
+                <version>5.4.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents.core5</groupId>
+                <artifactId>httpcore5-h2</artifactId>
+                <version>5.4.4</version>
+            </dependency>
+            <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
                 <artifactId>paranamer</artifactId>
                 <version>2.8</version>
@@ -1844,6 +1854,11 @@
                 <version>${thrift.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-vfs2</artifactId>
+                <version>2.10.0</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-common</artifactId>
                 <version>${hadoop.version}</version>
@@ -1856,6 +1871,11 @@
                     <exclusion>
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to CVEs, not necessary since hadoop is scope provided -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
