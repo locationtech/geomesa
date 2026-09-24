@@ -1,0 +1,105 @@
+# Workflow to upload software bill-of-materials (sboms) to the eclipse registry, as part of best-practices for eclipse projects.
+# Note that per-module sboms are also uploaded to maven central alongside other release artifacts.
+name: eclipse-sboms
+
+on:
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: 25
+  JAVA_RUNTIME_VERSION: 17
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
+  MAVEN_COMPILE_NO_OP_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip
+  MAVEN_COMPILE_TRINO_PLUGIN_ARGS: clean install -Dmaven.test.skip -Dmaven.source.skip -pl geomesa-trino/geomesa-trino-plugin
+  MAVEN_CYCLONEDX_ARGS: org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
+  MAVEN_VERSION_ARGS: help:evaluate -Dexpression=project.version -q -DforceStdout
+
+permissions:
+  contents: read
+
+jobs:
+  generate-sbom:
+    name: generate-sbom / ${{ matrix.product.name || matrix.product.selector }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        product:
+          - selector: geomesa-accumulo
+          - selector: geomesa-cassandra
+          - selector: geomesa-fs
+          - selector: geomesa-gt
+          - selector: geomesa-hbase
+          - selector: geomesa-kafka
+          - selector: geomesa-redis
+          - selector: geomesa-trino
+          - selector:
+            name: geomesa-all
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: |
+            ${{ env.JAVA_RUNTIME_VERSION }}
+            ${{ env.JAVA_VERSION }}
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: main-2.13-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            main-2.13-
+            main-
+          path: ~/.m2/repository/
+      - name: Set Scala version
+        # check against 2.13 as 2.12 doesn't include spark
+        run: ./build/scripts/change-scala-version.sh 2.13
+      - name: Set project selector
+        env:
+          SELECTOR: ${{ matrix.product.selector }}
+        run: echo "PROJECT_SELECTOR=${SELECTOR:+-pl $SELECTOR/$SELECTOR-dist -am}" >> $GITHUB_ENV
+      - name: Compile Trino plugin
+        if: matrix.product.selector == 'geomesa-trino' || matrix.product.name == 'geomesa-all'
+        run: |
+          set -o pipefail
+          mvn $MAVEN_COMPILE_TRINO_PLUGIN_ARGS $MAVEN_CLI_OPTS | tee -a build.log
+          echo 'COMPILE_EXCLUDE=-pl !:geomesa-trino-plugin_2.13' >> $GITHUB_ENV
+      - name: Compile
+        id: compile
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mvn $MAVEN_COMPILE_NO_OP_ARGS $PROJECT_SELECTOR $COMPILE_EXCLUDE $MAVEN_CLI_OPTS | tee -a build.log
+      - name: Compile (retry)
+        if: steps.compile.outcome=='failure'
+        run: |
+          set -o pipefail
+          # retry if the failure was due to transient download errors from maven central
+          if grep -q -e 'Could not transfer artifact' -e 'Failed to read artifact descriptor' -e 'Could not resolve artifact' build.log; then
+            RESUME_FROM="$({ grep --text 'mvn <args> -rf ' build.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+            mvn $MAVEN_COMPILE_NO_OP_ARGS $PROJECT_SELECTOR $COMPILE_EXCLUDE $MAVEN_CLI_OPTS $RESUME_FROM | tee -a build.log
+          else
+            exit 1
+          fi
+      - name: Generate sbom
+        run: |
+          mvn $MAVEN_CYCLONEDX_ARGS $PROJECT_SELECTOR $MAVEN_CLI_OPTS
+      - name: Read version
+        id: version
+        run: |
+          VERSION="$(mvn $MAVEN_VERSION_ARGS $MAVEN_CLI_OPTS)"
+          echo "Product version is: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Upload sbom
+        uses: eclipse-csi/workflows/upload-sbom@d83da6f2897e985d9d2b9541174c7ee5ee6d88ad # there are no tags, this is main as of 09/23/26
+        with:
+          sbom-file: ./target/bom.json
+          product-name: ${{ matrix.product.name || matrix.product.selector }}
+          product-version: ${{ steps.version.outputs.version }}
