@@ -66,20 +66,22 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code INSERT} is its own Iceberg commit → its own file), 100 rows each, so every file's
  * {@code __vis__} min == max — the skew that makes manifest min/max pruning observable. Four
  * files: {@code admin}, {@code ops}, {@code finance}, and one all-{@code NULL} file. A NULL (or
- * empty) visibility carries no real expression, so it is an anomaly hidden from everyone and its
- * file is pruned for <em>every</em> caller. The {@code spatial_iceberg} connector is a read-path
- * wrapper and does not support writes, so the fixture is created and populated through a plain
- * {@code iceberg} catalog pointed at the <em>same</em> REST catalog + S3 warehouse.
+ * empty) visibility carries no real expression and is <em>unrestricted</em> — visible to every
+ * caller — so pruning always admits it and the all-NULL file is never pruned. The
+ * {@code spatial_iceberg} connector is a read-path wrapper and does not support writes, so the
+ * fixture is created and populated through a plain {@code iceberg} catalog pointed at the
+ * <em>same</em> REST catalog + S3 warehouse.
  *
  * <p><strong>Differential.</strong> A single table, varying only the querying identity (a JDBC
  * connection user mapped to auth tokens by the file resolver), so the reduction is attributable to
- * pruning and nothing else:
+ * pruning and nothing else. The all-NULL file is unrestricted and always survives; only the
+ * real-expression files (admin/ops/finance) are pruned when their value is not admissible:
  * <ul>
- *   <li>all-auths user → {@code expressionDomain} admits admin/ops/finance (never NULL) → 3
- *       files → 300 rows (the widest a caller can read);</li>
- *   <li>ops-only user → admits {@code ops} only (NULL never admitted) → 1 file → 100 rows;</li>
- *   <li>no-auths user → {@code emptyAuthsDomain} is {@code Domain.none} → every file pruned →
- *       0 rows.</li>
+ *   <li>all-auths user → {@code expressionDomain} admits admin/ops/finance, plus the always-admitted
+ *       unrestricted NULL file → 4 files → 400 rows (the widest a caller can read);</li>
+ *   <li>ops-only user → admits {@code ops} plus the unrestricted NULL file → 2 files → 200 rows;</li>
+ *   <li>no-auths user → {@code emptyAuthsDomain} admits only the unrestricted (NULL/{@code ""})
+ *       file → 1 file → 100 rows.</li>
  * </ul>
  *
  * <p>Tagged {@code integration} and named {@code *IT} so the fast surefire lane skips it (see this
@@ -160,24 +162,24 @@ class VisibilityPruningEndToEndIT {
     }
 
     @Test
-    void allAuthsUserReadsEveryNonNullFile() throws Exception {
-        // Widest read: expressionDomain admits admin/ops/finance but never NULL, so the three
-        // real-expression files survive and the all-NULL file is pruned.
-        assertThat(physicalRowsRead("allauths")).isEqualTo(3L * ROWS_PER_FILE);
+    void allAuthsUserReadsEveryFile() throws Exception {
+        // Widest read: expressionDomain admits admin/ops/finance, and the all-NULL file is
+        // unrestricted so it is always admitted too — all four files survive.
+        assertThat(physicalRowsRead("allauths")).isEqualTo(4L * ROWS_PER_FILE);
     }
 
     @Test
-    void opsOnlyUserReadsOnlyOpsFile() throws Exception {
-        // admin & finance files hold unsatisfiable values; the all-NULL file is a hidden anomaly.
-        // Only the ops file survives.
-        assertThat(physicalRowsRead("opsuser")).isEqualTo((long) ROWS_PER_FILE);
+    void opsOnlyUserReadsOpsAndUnrestrictedFiles() throws Exception {
+        // admin & finance files hold unsatisfiable values and are pruned; the ops file survives,
+        // and the all-NULL file is unrestricted (always admitted) — two files survive.
+        assertThat(physicalRowsRead("opsuser")).isEqualTo(2L * ROWS_PER_FILE);
     }
 
     @Test
-    void noAuthsUserReadsNothing() throws Exception {
-        // emptyAuthsDomain is Domain.none: a no-auth caller can see no rows (NULL/empty are hidden
-        // anomalies and no expression is satisfiable), so every file is pruned.
-        assertThat(physicalRowsRead("nobody")).isEqualTo(0L);
+    void noAuthsUserReadsOnlyUnrestrictedFile() throws Exception {
+        // emptyAuthsDomain admits only the unrestricted values (NULL/""), so a no-auth caller
+        // reads the all-NULL file and nothing else — the three real-expression files are pruned.
+        assertThat(physicalRowsRead("nobody")).isEqualTo((long) ROWS_PER_FILE);
     }
 
     @Test

@@ -76,7 +76,7 @@ class SchemaDriftIT {
         ddl("CREATE SCHEMA IF NOT EXISTS spatial",
             "DROP TABLE IF EXISTS " + TABLE,
             "CREATE TABLE " + TABLE + " (\"__fid__\" varchar, name varchar, \"__vis__\" varchar)",
-            "INSERT INTO " + TABLE + " VALUES ('1', 'a', '" + partial + "'), ('2', 'b', '" + partial + "')");
+            "INSERT INTO " + TABLE + " VALUES ('1', 'a', '" + partial + "'), ('2', 'b', NULL)");
 
         Map<String, Object> params = new HashMap<>();
         params.put("trino.host",    "localhost");

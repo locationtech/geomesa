@@ -35,6 +35,17 @@ import java.util.TreeSet;
  * what bounds the blast radius of an incomplete {@link #expressionDomain}
  * candidate universe (see below) to a correctness bug rather than a leak.
  *
+ * <p><strong>Unrestricted rows always survive pruning.</strong> A NULL or empty
+ * ({@code ""}) visibility carries no real expression and is unrestricted —
+ * {@code is_visible()} returns true for it, so the row filter returns it to
+ * every caller (see {@link GeoMesaSecurityFunctions#isVisible}). Every domain
+ * this class builds therefore admits BOTH NULL and {@code ""} (see
+ * {@link #unrestrictedDomain}); otherwise a file holding only unrestricted rows
+ * could be pruned even though the row filter would have returned them — a
+ * correctness bug. In particular {@code ""} must be admitted explicitly: it can
+ * never be a declared candidate (the connector drops blank entries), so nothing
+ * else would add it.
+ *
  * <p><strong>Which way "wrong" cuts for {@link #expressionDomain}.</strong> Its
  * declared candidate universe must be COMPLETE to be sound. Over-declaring is
  * harmless: a declared value that never occurs simply never matches, so pruning
@@ -50,24 +61,40 @@ public final class VisibilityDomainPruning {
     private VisibilityDomainPruning() {}
 
     /**
+     * The domain admitting exactly the unrestricted rows — those whose visibility
+     * is NULL or the empty string {@code ""}, which {@code is_visible()} returns
+     * true for regardless of the caller's auths. A file is prunable against this
+     * domain only when it holds no {@code ""} value AND no NULLs, so files that
+     * do contain unrestricted rows are always retained.
+     */
+    private static Domain unrestrictedDomain(VarcharType visColumnType) {
+        SortedRangeSet emptyString =
+            SortedRangeSet.copyOf(visColumnType, List.of(Range.equal(visColumnType, Slices.utf8Slice(""))));
+        return Domain.create(emptyString, true);  // nullAllowed = true -> also admits NULL
+    }
+
+    /**
      * Sound unconditionally, for any visibility expression grammar: an identity
-     * with no authorizations can satisfy nothing. {@code AccessEvaluator} never
-     * grants a non-empty expression to an empty auth set (no matter how simple or
-     * compound), and NULL/empty visibilities are anomalies hidden from everyone
-     * (see {@link GeoMesaSecurityFunctions#isVisible}). So when {@code auths} is
-     * empty the caller can see no rows at all, and Iceberg can prune EVERY file.
+     * with no authorizations can be granted access only to an unrestricted
+     * visibility (NULL or {@code ""}) — {@code AccessEvaluator} never grants a
+     * non-empty expression to an empty auth set, no matter how simple or compound
+     * it is (see {@link GeoMesaSecurityFunctions#isVisible}). So when {@code auths}
+     * is empty the only rows the caller could ever see are the unrestricted ones,
+     * and Iceberg can prune any file that holds neither a {@code ""} value nor a
+     * NULL for the column.
      *
      * @param visColumnType the visibility column's type (always VARCHAR)
      * @param auths the resolved authorizations for the querying identity
-     * @return {@link Domain#none} when {@code auths} is empty (prune all files);
-     *         empty {@code Optional} otherwise (an empty result is not a signal to
-     *         fall back — see {@link #expressionDomain} for the non-empty case)
+     * @return an unrestricted-only domain (NULL or {@code ""}) when {@code auths}
+     *         is empty; empty {@code Optional} otherwise (an empty result is not a
+     *         signal to fall back — see {@link #expressionDomain} for the
+     *         non-empty-auths case)
      */
     public static Optional<Domain> emptyAuthsDomain(VarcharType visColumnType, Set<String> auths) {
         if (!auths.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(Domain.none(visColumnType));
+        return Optional.of(unrestrictedDomain(visColumnType));
     }
 
     /**
@@ -92,19 +119,19 @@ public final class VisibilityDomainPruning {
      * never occurs simply never matches. Scales to tens-to-low-hundreds of distinct
      * values; not intended for effectively-unique per-row visibility strings.
      *
-     * <p>NULL and the empty string are never admitted: they carry no real
-     * expression and are hidden from everyone (see
-     * {@link GeoMesaSecurityFunctions#isVisible}). The domain therefore excludes
-     * NULL ({@code nullAllowed = false}) and any empty candidate string.
+     * <p>The admitted set always includes the unrestricted values (NULL and
+     * {@code ""}) on top of the auth-admissible declared expressions, so
+     * unrestricted rows are never pruned regardless of the caller's auths. When no
+     * declared expression is admissible, the domain collapses to the
+     * unrestricted-only set (NULL or {@code ""}), identical to {@link #emptyAuthsDomain}.
      *
      * @param visColumnType the visibility column's type (always VARCHAR)
      * @param candidateExpressions every distinct non-null value the column can hold
      * @param auths the resolved authorizations for the querying identity
-     * @return an IN-list domain (no NULL) over the expressions {@code auths} can
-     *         access; {@link Domain#none} when none are visible (prune all files);
-     *         empty {@code Optional} when {@code auths} or {@code
-     *         candidateExpressions} is empty (use {@link #emptyAuthsDomain} for the
-     *         former)
+     * @return an IN-list-plus-unrestricted (NULL/{@code ""}) domain over the
+     *         expressions {@code auths} can access; empty {@code Optional} when
+     *         {@code auths} or {@code candidateExpressions} is empty (use
+     *         {@link #emptyAuthsDomain} for the former)
      */
     public static Optional<Domain> expressionDomain(VarcharType visColumnType,
                                                       Set<String> candidateExpressions,
@@ -113,17 +140,17 @@ public final class VisibilityDomainPruning {
             return Optional.empty();
         }
         String authsCsv = String.join(",", new ArrayList<>(new TreeSet<>(auths)));
-        List<Range> ranges = candidateExpressions.stream()
+        // "" is unrestricted and can never be a declared candidate (blank entries are
+        // dropped), so admit it explicitly alongside any auth-admissible expressions.
+        List<Range> ranges = new ArrayList<>();
+        ranges.add(Range.equal(visColumnType, Slices.utf8Slice("")));
+        candidateExpressions.stream()
             .filter(expr -> expr != null && !expr.isEmpty())
             .filter(expr -> GeoMesaSecurityFunctions.isVisible(
                 Slices.utf8Slice(expr), Slices.utf8Slice(authsCsv)))
             .map(expr -> Range.equal(visColumnType, Slices.utf8Slice(expr)))
-            .toList();
-        if (ranges.isEmpty()) {
-            // None of the declared expressions are visible and NULL/empty are hidden:
-            // the caller can see no rows, so every file is prunable.
-            return Optional.of(Domain.none(visColumnType));
-        }
-        return Optional.of(Domain.create(SortedRangeSet.copyOf(visColumnType, ranges), false));
+            .forEach(ranges::add);
+        // nullAllowed = true -> NULL (also unrestricted) is admitted along with "".
+        return Optional.of(Domain.create(SortedRangeSet.copyOf(visColumnType, ranges), true));
     }
 }

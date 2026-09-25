@@ -69,9 +69,10 @@ properties:
 The feature has two tiers:
 
 * **Empty-authorizations tier** — active whenever pruning is enabled. A user with no
-  authorizations can satisfy no visibility expression, and NULL/empty visibilities are hidden
-  from everyone (see the note below), so such a user can see no rows at all and every file is
-  pruned. This tier is sound for any visibility grammar and needs no configuration.
+  authorizations can satisfy no visibility expression, so the only rows they can ever see are
+  the unrestricted ones (NULL or empty ``''`` visibility; see the note below). Files that hold
+  no such unrestricted rows are therefore pruned. This tier is sound for any visibility grammar
+  and needs no configuration.
 
 * **Expression tier** — active when ``geomesa.security.visibility-expressions`` is non-empty.
   Each declared value is evaluated through the same ``is_visible()`` decision the row filter
@@ -80,13 +81,12 @@ The feature has two tiers:
 
 .. note::
 
-    A NULL or empty (``''``) ``__vis__`` value carries no real visibility expression. The
-    ``spatial_iceberg`` connector treats such a value as an anomaly and hides the row from
-    **every** user (the ``is_visible()`` row filter returns false for it), and file pruning
-    likewise never admits it. You therefore never need to declare ``''`` in
-    ``geomesa.security.visibility-expressions``. This is intentionally stricter than the native
-    geomesa-security ``VisibilityUtils`` semantics used by GeoTools clients, which treat
-    NULL/empty as unrestricted.
+    A NULL or empty (``''``) ``__vis__`` value carries no real visibility expression and is
+    treated as **unrestricted** — the ``is_visible()`` row filter returns true for it, so it is
+    visible to every user, matching the native geomesa-security ``VisibilityUtils`` semantics
+    used by GeoTools clients. File pruning admits both NULL and ``''`` accordingly, so files
+    holding only unrestricted rows are never pruned. You therefore never need to declare ``''``
+    in ``geomesa.security.visibility-expressions``; it is always admitted regardless.
 
 .. warning::
 

@@ -85,8 +85,9 @@ import org.slf4j.LoggerFactory;
  * declared:
  * <ul>
  *   <li><strong>Empty-auths tier</strong> — universe-free and therefore always eligible whenever
- *       pruning is enabled. A caller with no authorizations can satisfy no expression (and
- *       NULL/empty visibilities are hidden from everyone), so every file is prunable. Because it
+ *       pruning is enabled. A caller with no authorizations can satisfy no expression, so the only
+ *       rows they can see are the unrestricted ones (NULL or {@code ""} visibility), and any file
+ *       holding none of those is prunable. Because it
  *       needs no declared universe, it runs even when {@link #visibilityExpressions} is empty —
  *       which is why {@link #visibilityDomain}'s guard does not also test
  *       {@code visibilityExpressions.isEmpty()}.</li>

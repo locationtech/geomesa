@@ -134,7 +134,7 @@ class VisibilityPruningIntegrationTest {
     }
 
     @Test
-    void emptyAuthsInjectsNoneSummary() {
+    void emptyAuthsInjectsUnrestrictedDomainOnVisColumn() {
         VisDelegate delegate = new VisDelegate();
         SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
             delegate, new GeoMesaColumnCatalog(), false, EMPTY_RESOLVER, true, Set.of());
@@ -145,11 +145,14 @@ class VisibilityPruningIntegrationTest {
         meta.getColumnHandles(session, handle);
         meta.applyFilter(session, handle, allConstraint());
 
-        // A caller with no auths can see no rows (no satisfiable expression, and NULL/empty are
-        // hidden anomalies), so the empty-auths tier injects Domain.none — which collapses the
-        // pushed-down summary to an unsatisfiable (none) TupleDomain and prunes every file.
-        assertThat(delegate.lastConstraint).isNotNull();
-        assertThat(delegate.lastConstraint.getSummary().isNone()).isTrue();
+        // A no-auth caller gets the unrestricted-only domain: it admits NULL and "" (both
+        // unrestricted per is_visible) but no concrete expression, so it is not only-null.
+        assertThat(hasVisDomain(delegate)).isTrue();
+        Domain injected = delegate.lastConstraint.getSummary().getDomains().orElseThrow().get(delegate.visHandle);
+        assertThat(injected.isOnlyNull()).isFalse();
+        assertThat(injected.includesNullableValue(null)).isTrue();
+        assertThat(injected.includesNullableValue(Slices.utf8Slice(""))).isTrue();
+        assertThat(injected.includesNullableValue(Slices.utf8Slice("admin"))).isFalse();
     }
 
     @Test
@@ -179,19 +182,19 @@ class VisibilityPruningIntegrationTest {
         meta.getColumnHandles(session, handle);
         meta.applyFilter(session, handle, allConstraint());
 
-        // USER_RESOLVER grants {"user"}: expressionDomain admits the declared "user" value but
-        // not "admin" (unsatisfiable) and not NULL (an anomaly hidden from everyone).
+        // USER_RESOLVER grants {"user"}: expressionDomain admits the declared "user" value
+        // (and NULL) but not "admin", which the caller's auths cannot satisfy.
         assertThat(hasVisDomain(delegate)).isTrue();
         Domain injected = delegate.lastConstraint.getSummary().getDomains().orElseThrow().get(delegate.visHandle);
         assertThat(injected.includesNullableValue(Slices.utf8Slice("user"))).isTrue();
-        assertThat(injected.includesNullableValue(null)).isFalse();
+        assertThat(injected.includesNullableValue(null)).isTrue();
         assertThat(injected.includesNullableValue(Slices.utf8Slice("admin"))).isFalse();
     }
 
     @Test
     void pruningDisabledInjectsNoDomainEvenForEmptyAuths() {
         // Master gate off: the always-on empty-auths tier (which would otherwise inject
-        // Domain.none for a caller with no auths) must not fire. Behavior reverts to
+        // vis IS NULL for a caller with no auths) must not fire. Behavior reverts to
         // pre-feature — only the is_visible() row filter runs, no domain is pushed down.
         VisDelegate delegate = new VisDelegate();
         SpatialConnectorMetadata meta = new SpatialConnectorMetadata(
@@ -253,7 +256,7 @@ class VisibilityPruningIntegrationTest {
 
         meta.applyFilter(session, handle, constraint);
 
-        // Not re-injected/overwritten with the Domain.none domain — the existing
+        // Not re-injected/overwritten with the onlyNull() domain — the existing
         // round-tripped domain is passed through unchanged.
         Domain seen = delegate.lastConstraint.getSummary().getDomains().orElseThrow().get(delegate.visHandle);
         assertThat(seen).isEqualTo(existing);

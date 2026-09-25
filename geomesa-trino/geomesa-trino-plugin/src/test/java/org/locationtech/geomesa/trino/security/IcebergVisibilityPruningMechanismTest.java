@@ -103,9 +103,8 @@ class IcebergVisibilityPruningMechanismTest {
     }
 
     @Test
-    void emptyAuthsDomainPrunesEveryFile() throws IOException {
-        // Restricted files + one all-NULL file. A NULL visibility carries no real expression,
-        // so it is an anomaly hidden from everyone (see GeoMesaSecurityFunctions.isVisible).
+    void emptyAuthsDomainPrunesEveryFileWithoutNulls() throws IOException {
+        // Restricted files (no NULL visibility values) + one unrestricted (all-NULL) file.
         appendFile("admin", 1000, false);
         appendFile("admin", 1000, false);
         appendFile("ops", 1000, false);
@@ -114,9 +113,27 @@ class IcebergVisibilityPruningMechanismTest {
         Domain domain = VisibilityDomainPruning.emptyAuthsDomain(VarcharType.VARCHAR, Set.of()).orElseThrow();
         Expression expr = toIcebergExpression(domain);
 
-        // A caller with no authorizations can see no rows at all — not even the all-NULL file —
-        // so Domain.none prunes every file.
-        assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(0);
+        // A caller with no authorizations can only ever see the unrestricted (NULL or "")
+        // visibility rows (see VisibilityDomainPruning javadoc); only the all-NULL file has
+        // any candidate rows, so the three restricted files are pruned.
+        assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(1);
+    }
+
+    @Test
+    void emptyAuthsDomainRetainsFileHoldingOnlyEmptyStringVisibility() throws IOException {
+        // The reviewer-flagged "" edge case, proven through Iceberg's real manifest evaluator:
+        // is_visible("") is unrestricted, so the row filter returns "" rows to every caller.
+        // A file whose only __vis__ value is "" (min == max == "", zero NULLs) must therefore
+        // survive pruning even for a no-auth caller, or pruning would drop rows the row filter
+        // returns. Before the fix the domain admitted NULL only and this file was wrongly pruned.
+        appendFileWithBounds("", "", 1000);           // only-"" file (no NULLs)
+        appendFile("admin", 1000, false);              // restricted file, must be pruned
+
+        Domain domain = VisibilityDomainPruning.emptyAuthsDomain(VarcharType.VARCHAR, Set.of()).orElseThrow();
+        Expression expr = toIcebergExpression(domain);
+
+        // Only the "" file survives; the "admin" file is pruned.
+        assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(1);
     }
 
     @Test
@@ -131,9 +148,9 @@ class IcebergVisibilityPruningMechanismTest {
             VarcharType.VARCHAR, Set.of("admin", "ops", "finance"), Set.of("ops")).orElseThrow();
         Expression expr = toIcebergExpression(domain);
 
-        // Only the "ops" file survives. "admin" and "finance" hold values the caller cannot
-        // satisfy, and the all-NULL file is a hidden anomaly (domain excludes NULL) — all pruned.
-        assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(1);
+        // The "ops" file and the all-NULL (unrestricted) file survive; "admin" and "finance"
+        // hold only values the caller's auths cannot satisfy, so they're pruned.
+        assertThat(scannedFileCount(Optional.of(expr))).isEqualTo(2);
     }
 
     @Test
@@ -153,7 +170,8 @@ class IcebergVisibilityPruningMechanismTest {
         assertThat(scannedFileCount(Optional.of(toIcebergExpression(entitled)))).isEqualTo(1);
 
         // Caller holds only one token of the compound expression -> no candidate value is visible,
-        // expressionDomain collapses to Domain.none, and the file is pruned.
+        // expressionDomain collapses to the unrestricted-only set (NULL/""), and the file
+        // (zero NULLs, no "") is pruned.
         Domain unentitled = VisibilityDomainPruning.expressionDomain(
             VarcharType.VARCHAR, Set.of("admin&ops"), Set.of("admin")).orElseThrow();
         assertThat(scannedFileCount(Optional.of(toIcebergExpression(unentitled)))).isEqualTo(0);

@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>The ingested data must carry a three-tier visibility ladder assigned by row
  * index i % 3: {@code [null, P, P&Q]}, where P is the partial-clearance token and
- * P&amp;Q the full set. The non-null tokens are DETECTED from the table's distinct
+ * P&amp;Q the full set. The tokens are DETECTED from the table's distinct
  * {@code __vis__} values (via the plain catalog), so the test runs flag-free
  * against any deployment's ladder; explicit overrides remain available:
  * <pre>
@@ -45,14 +45,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * </pre>
  * See {@link TestFixtures#visibilityLadder}.
  *
- * <p><strong>The tier-0 (NULL) rows are hidden from every caller</strong> — a NULL
- * or empty {@code __vis__} carries no real visibility expression, so the shared
- * {@code is_visible} UDF treats it as an anomaly and admits it for no one, not even
- * a full-auth identity. So the observable ladder is: empty auths see <em>nothing</em>
- * (0 rows), the partial token clears tier 1, and the full set clears tiers 1+2.
- *
- * <p>The assertions are expressed as (near-)monotonic inequalities
- * (0 == none &lt; partial &lt; full) rather than exact share arithmetic so that minor
+ * <p>The assertions are expressed as strict monotonic inequalities
+ * (0 &lt; none &lt; partial &lt; full) rather than exact share arithmetic so that minor
  * variations in row count (e.g. dedup, re-ingest) do not break the test.
  *
  * The one exception — countsMatchIteration — verifies that getCount() and manual
@@ -101,10 +95,8 @@ class VisibilityIT {
 
     /**
      * Build a DataStore with the given auths string.
-     * Pass {@code null} for no security params (the store adds no is_visible conjunct; the
-     * connector's server-side row filter still applies for the connecting identity).
-     * Pass {@code ""} for an empty auth set — no visibility expression is satisfiable and
-     * NULL/empty rows are hidden anomalies, so the caller sees no rows at all.
+     * Pass {@code null} to disable visibility filtering entirely (all rows visible).
+     * Pass {@code ""} for an empty auth set (only null-visibility rows visible).
      */
     private DataStore store(String auths) throws IOException {
         Map<String, Object> params = new HashMap<>();
@@ -152,26 +144,26 @@ class VisibilityIT {
     /**
      * Auths are fail-closed end-to-end: an UNCONFIGURED store (no geomesa.security
      * params) behaves exactly like a store with explicit empty auths — both see
-     * NO rows. An empty auth set satisfies no visibility expression, and the tier-0
-     * NULL rows are anomalies hidden from everyone (see class javadoc). Granting
-     * auths then widens the result set tier by tier.
+     * only the null-visibility rows (see {@code TrinoDataStore.connect(List)}:
+     * null/empty auths forward no credential, so the caller sees only unrestricted
+     * rows). Granting auths then widens the result set tier by tier.
      *
      * Visibility ladder = [null, partial, partial&rest] (see class javadoc):
-     *   unconfigured / "" → 0 rows (no expression satisfiable, NULL rows hidden)
-     *   partial auth        → tier 1 rows only                → larger
-     *   full auths          → tier 1 + tier 2 rows            → largest
+     *   unconfigured / "" → only tier-0 (null-vis) rows → the smallest set
+     *   partial auth        → tier 0 + tier 1 rows        → larger
+     *   full auths          → all tiers                   → largest
      *
-     * Using inequalities rather than exact share arithmetic keeps the test stable
-     * across minor ingest variations (dedup, partial re-ingest, etc.).
+     * Using monotonic inequalities rather than exact share arithmetic keeps the
+     * test stable across minor ingest variations (dedup, partial re-ingest, etc.).
      */
     @Test
     void authFilteringProducesStrictlyMonotonicCounts() throws IOException {
         int unconfigured = countVia(store(null)); // no security params → fail-closed
-        int full    = countVia(store(FULL_AUTHS));   // clears tiers 1 and 2
-        int partial = countVia(store(PARTIAL_AUTH)); // clears tier 1 only
-        int none    = countVia(store(""));           // empty auths → no rows
+        int full    = countVia(store(FULL_AUTHS));   // clears every visibility tier
+        int partial = countVia(store(PARTIAL_AUTH)); // sees null + partial tiers
+        int none    = countVia(store(""));           // sees only null-visibility rows
 
-        assertThat(none).as("empty-auths count must be 0 (no expression satisfiable; NULL rows hidden)").isZero();
+        assertThat(none).as("empty-auths count must be > 0 (null-vis rows exist)").isGreaterThan(0);
         assertThat(partial)
             .as("'%s' auth count must be > empty-auths count", PARTIAL_AUTH).isGreaterThan(none);
         assertThat(full)
@@ -183,19 +175,16 @@ class VisibilityIT {
     }
 
     /**
-     * With empty auths the caller sees no rows at all: no visibility expression is
-     * satisfiable, and the tier-0 NULL rows are anomalies hidden from everyone. Both
-     * the pushed-down count and a full iteration return zero, and they agree.
+     * Iterating with empty auths only surfaces rows whose visibility annotation
+     * is null (unrestricted rows in the VIS_CYCLE).
      */
     @Test
-    void emptyAuthsSeeNoRows() throws IOException {
+    void emptyAuthsSeeOnlyUnrestrictedRows() throws IOException {
         DataStore none = store("");
         int viaCount   = countVia(none);
-        int viaIter    = iterate(none, null);
+        int viaIter    = iterate(none, null);  // all returned features should have null vis
         assertThat(viaCount).as("getCount and iterate must agree for empty auths").isEqualTo(viaIter);
-        assertThat(viaCount)
-            .as("empty auths see no rows (NULL rows hidden, no expression satisfiable)")
-            .isZero();
+        assertThat(viaCount).isGreaterThan(0);
     }
 
     /**

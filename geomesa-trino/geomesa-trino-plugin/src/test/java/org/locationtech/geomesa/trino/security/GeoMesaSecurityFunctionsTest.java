@@ -22,13 +22,10 @@ class GeoMesaSecurityFunctionsTest {
     }
 
     @Test
-    void nullOrEmptyVisibilityIsHidden() {
-        // A NULL or empty visibility carries no real expression: an anomaly hidden
-        // from everyone, regardless of how many auths the caller holds.
-        assertThat(visible(null, "admin")).isFalse();
-        assertThat(visible("", "admin")).isFalse();
-        assertThat(visible(null, "")).isFalse();
-        assertThat(visible("", "")).isFalse();
+    void nullOrEmptyVisibilityIsUnrestricted() {
+        assertThat(visible(null, "admin")).isTrue();
+        assertThat(visible("", "admin")).isTrue();
+        assertThat(visible(null, "")).isTrue();
     }
 
     @Test
@@ -57,9 +54,8 @@ class GeoMesaSecurityFunctionsTest {
     }
 
     @Test
-    void emptyAuthsSeeNoRows() {
-        // With no auths, neither anomalous (NULL) nor real-expression rows are visible.
-        assertThat(visible(null, "")).isFalse();
+    void emptyAuthsSeeOnlyUnrestrictedRows() {
+        assertThat(visible(null, "")).isTrue();
         assertThat(visible("admin", "")).isFalse();
     }
 

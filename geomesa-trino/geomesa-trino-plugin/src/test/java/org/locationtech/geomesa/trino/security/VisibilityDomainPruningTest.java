@@ -28,12 +28,15 @@ class VisibilityDomainPruningTest {
     // -- emptyAuthsDomain --------------------------------------------------
 
     @Test
-    void emptyAuthsProducesNoneDomain() {
-        // No auths -> no rows visible at all (no satisfiable expression, and NULL/empty
-        // are anomalies hidden from everyone) -> Domain.none prunes every file.
+    void emptyAuthsProducesUnrestrictedDomain() {
+        // A no-auth caller can still see the unrestricted rows, which is_visible() returns
+        // for both NULL and the empty string "" — so the domain admits both, and is NOT
+        // only-null (the "" fix: files holding only "" must survive pruning too).
         Optional<Domain> domain = VisibilityDomainPruning.emptyAuthsDomain(VARCHAR, Set.of());
         assertThat(domain).isPresent();
-        assertThat(domain.get().isNone()).isTrue();
+        assertThat(domain.get().isOnlyNull()).isFalse();
+        assertThat(domain.get().includesNullableValue(null)).isTrue();
+        assertThat(domain.get().includesNullableValue(Slices.utf8Slice(""))).isTrue();
     }
 
     @Test
@@ -42,21 +45,20 @@ class VisibilityDomainPruningTest {
     }
 
     @Test
-    void emptyAuthsDomainAdmitsNothing() {
-        // Sanity: the domain admits no value at all — not a concrete string, not the
-        // empty string, and not NULL (NULL/empty are hidden anomalies).
+    void emptyAuthsDomainAdmitsOnlyUnrestrictedValues() {
+        // The domain admits the unrestricted values (NULL and "") and no concrete expression.
         Domain domain = VisibilityDomainPruning.emptyAuthsDomain(VARCHAR, Set.of()).orElseThrow();
         assertThat(domain.includesNullableValue(Slices.utf8Slice("admin"))).isFalse();
-        assertThat(domain.includesNullableValue(Slices.utf8Slice(""))).isFalse();
-        assertThat(domain.includesNullableValue(null)).isFalse();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice(""))).isTrue();
+        assertThat(domain.includesNullableValue(null)).isTrue();
     }
 
     @Test
     void emptyAuthsDomainConsistentWithAccessEvaluatorForAnyExpression() {
         // Cross-check against the real AccessEvaluator (same engine GeoMesaSecurityFunctions
-        // uses): with no authorizations, no real expression is accessible, regardless of
-        // expression complexity — and NULL/empty are hidden separately. Together these make
-        // the empty-auths tier a sound "prune everything" for a no-auth caller.
+        // uses): with no authorizations, only a NULL/empty visibility should be accessible,
+        // regardless of expression complexity. This is the soundness argument for the
+        // unconditional (non-opt-in) pruning tier, verified against a variety of expressions.
         AccessEvaluator eval = AccessEvaluator.of(Authorizations.of(List.of()));
         String[] expressions = {"admin", "admin&ops", "admin|ops", "(admin|ops)&secure"};
         for (String expr : expressions) {
@@ -85,20 +87,17 @@ class VisibilityDomainPruningTest {
             .expressionDomain(VARCHAR, Set.of("admin&ops"), Set.of("admin", "ops"))
             .orElseThrow();
         assertThat(domain.includesNullableValue(Slices.utf8Slice("admin&ops"))).isTrue();
-        // NULL is never admitted: an anomalous NULL visibility is hidden from everyone.
-        assertThat(domain.includesNullableValue(null)).isFalse();
     }
 
     @Test
     void expressionDomainExcludesCompoundExpressionCallerCannotSatisfy() {
-        // Only "admin&ops" is declared and this caller cannot satisfy it, so no candidate
-        // is visible -> Domain.none (nothing admitted, not even NULL).
         Domain domain = VisibilityDomainPruning
             .expressionDomain(VARCHAR, Set.of("admin&ops"), Set.of("admin"))
             .orElseThrow();
-        assertThat(domain.isNone()).isTrue();
         assertThat(domain.includesNullableValue(Slices.utf8Slice("admin&ops"))).isFalse();
-        assertThat(domain.includesNullableValue(null)).isFalse();
+        // Unrestricted values are always admitted, regardless of the caller's auths.
+        assertThat(domain.includesNullableValue(null)).isTrue();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice(""))).isTrue();
     }
 
     @Test
@@ -108,27 +107,22 @@ class VisibilityDomainPruningTest {
         assertThat(domain.includesNullableValue(Slices.utf8Slice("basic"))).isTrue();
         assertThat(domain.includesNullableValue(Slices.utf8Slice("basic&privileged"))).isTrue();
         assertThat(domain.includesNullableValue(Slices.utf8Slice("admin"))).isFalse();
-        // NULL is never admitted.
-        assertThat(domain.includesNullableValue(null)).isFalse();
+        // Unrestricted values (NULL and "") ride along with the admissible expressions.
+        assertThat(domain.includesNullableValue(null)).isTrue();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice(""))).isTrue();
     }
 
     @Test
-    void expressionDomainFallsBackToNoneWhenNoCandidateIsVisible() {
+    void expressionDomainFallsBackToUnrestrictedWhenNoCandidateIsVisible() {
+        // No declared candidate is admissible, so the domain collapses to the unrestricted-only
+        // set (NULL and ""), identical to emptyAuthsDomain — never only-null, so files holding
+        // only "" survive.
         Domain domain = VisibilityDomainPruning
             .expressionDomain(VARCHAR, Set.of("privileged"), Set.of("basic"))
             .orElseThrow();
-        assertThat(domain.isNone()).isTrue();
-    }
-
-    @Test
-    void expressionDomainNeverAdmitsEmptyStringEvenIfDeclared() {
-        // An empty candidate string is a NULL/empty anomaly and must never be admitted,
-        // even if an operator mistakenly declares "" in the universe.
-        Domain domain = VisibilityDomainPruning
-            .expressionDomain(VARCHAR, Set.of("basic", ""), Set.of("basic"))
-            .orElseThrow();
-        assertThat(domain.includesNullableValue(Slices.utf8Slice("basic"))).isTrue();
-        assertThat(domain.includesNullableValue(Slices.utf8Slice(""))).isFalse();
-        assertThat(domain.includesNullableValue(null)).isFalse();
+        assertThat(domain.isOnlyNull()).isFalse();
+        assertThat(domain.includesNullableValue(null)).isTrue();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice(""))).isTrue();
+        assertThat(domain.includesNullableValue(Slices.utf8Slice("privileged"))).isFalse();
     }
 }
