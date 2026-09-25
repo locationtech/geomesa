@@ -39,6 +39,8 @@ import org.locationtech.geomesa.trino.spatial.iceberg.GeoMesaColumnCatalog;
 import org.locationtech.geomesa.trino.spatial.GeometryColumn;
 import org.locationtech.geomesa.trino.spatial.SpatialIndexKind;
 import org.locationtech.geomesa.trino.spatial.iceberg.SpatialPartitionHandle;
+import org.locationtech.geomesa.trino.security.AuthorizationResolver;
+import org.locationtech.geomesa.trino.security.VisibilityDomainPruning;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKTReader;
@@ -74,6 +76,29 @@ import org.slf4j.LoggerFactory;
  * this connector injects would prune away exactly the files holding the answer.
  * Disjoint predicates fall through to the delegate unchanged and are evaluated
  * row-by-row.
+ *
+ * <p><strong>Visibility-column file pruning.</strong> When enabled, {@link #visibilityDomain}
+ * additionally injects a {@code Domain} on the {@code __vis__} column so Iceberg can prune whole
+ * files by their manifest stats (see {@link VisibilityDomainPruning}). It is gated <em>solely</em>
+ * by the master switch {@link #visibilityPruningEnabled}; the two tiers below then apply
+ * independently, and in particular are NOT jointly gated on {@link #visibilityExpressions} being
+ * declared. The resulting session-auth domain is finally <em>intersected</em> with the auths of
+ * any mandatory top-level {@code is_visible(__vis__, …)} query conjunct, so a broadly-authorized
+ * account proxying a narrower user (e.g. {@code WHERE is_visible(__vis__, 'basic')}) prunes to that
+ * narrower context rather than its own wide auths (see {@link #visibilityDomain}):
+ * <ul>
+ *   <li><strong>Empty-auths tier</strong> — universe-free and therefore always eligible whenever
+ *       pruning is enabled. A caller with no authorizations can satisfy no expression, so the only
+ *       rows they can see are the unrestricted ones (NULL or {@code ""} visibility), and any file
+ *       holding none of those is prunable. Because it
+ *       needs no declared universe, it runs even when {@link #visibilityExpressions} is empty —
+ *       which is why {@link #visibilityDomain}'s guard does not also test
+ *       {@code visibilityExpressions.isEmpty()}.</li>
+ *   <li><strong>Expression tier</strong> — the only tier that consults the declared universe, so it
+ *       is the only one conditioned on {@link #visibilityExpressions} being non-empty. It refines
+ *       the result for a caller who <em>does</em> have authorizations (i.e. when the empty-auths
+ *       tier did not already apply).</li>
+ * </ul>
  */
 public class SpatialConnectorMetadata implements ConnectorMetadata {
 
@@ -95,6 +120,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private static final String ST_GEOM_FROM_TEXT     = "st_geomfromtext";
     private static final String ST_GEOM_FROM_BINARY   = "st_geomfrombinary";
     private static final String BBOX_PATTERN = "bbox_pattern";
+    /** The visibility row-filter / query UDF; see {@link #collectVisibilityAuths}. */
+    private static final String IS_VISIBLE = "is_visible";
 
     // Cached reflective accessors for foreign-classloader JTS Geometry/Envelope values
     // (see envelopeOf). Keyed by concrete Class so each lookup runs at most once.
@@ -108,6 +135,19 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private final boolean bboxShortCircuit;
     /** When true, rewrite DEFINER views to run as the invoker; see {@link #observeView}. */
     private final boolean useInvokerAuths;
+    /** Identity→auths resolver; null when Trino-layer visibility enforcement isn't
+     *  configured, in which case no visibility-domain pruning is attempted. */
+    private final AuthorizationResolver resolver;
+    /** Master gate for the entire visibility-column file-pruning feature (both the
+     *  empty-auths and expression tiers). When false, {@link #visibilityDomain} injects
+     *  no domain at all, restoring pre-feature behavior (only the always-on
+     *  {@code is_visible()} row filter runs). */
+    private final boolean visibilityPruningEnabled;
+    /** Declared closed universe of every distinct non-null visibility value the
+     *  column can hold; when {@link #visibilityPruningEnabled} and non-empty, enables the
+     *  sound-for-compound-expressions {@link VisibilityDomainPruning#expressionDomain} tier.
+     *  Empty disables that tier (leaving only the empty-auths tier). */
+    private final Set<String> visibilityExpressions;
 
     /** Result of locating a spatial constraint in a constraint expression: the
      *  query envelope(s), the spatial function's name (lowercased ASCII; {@code
@@ -126,7 +166,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     record BboxPatternMatch(Envelope envelope, String geomName) {}
 
     /**
-     * Wraps a delegate metadata with spatial-predicate pushdown.
+     * Wraps a delegate metadata with spatial-predicate pushdown. The DEFINER→INVOKER view
+     * rewrite defaults to on, matching the connector's shipped default.
      *
      * @param delegate the underlying iceberg metadata
      * @param geomCatalog the shared geometry-column catalog
@@ -136,13 +177,24 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         this(delegate, geomCatalog, false);
     }
 
+    /**
+     * Wraps a delegate metadata with spatial-predicate pushdown. The DEFINER→INVOKER view
+     * rewrite defaults to on, matching the connector's shipped default.
+     *
+     * @param delegate the underlying iceberg metadata
+     * @param geomCatalog the shared geometry-column catalog
+     * @param bboxShortCircuit whether to claim rectangle ST_Intersects predicates enforced
+     */
     public SpatialConnectorMetadata(ConnectorMetadata delegate,
                                     GeoMesaColumnCatalog geomCatalog,
                                     boolean bboxShortCircuit) {
-        this(delegate, geomCatalog, bboxShortCircuit, false);
+        this(delegate, geomCatalog, bboxShortCircuit, true, null, false, Set.of());
     }
 
     /**
+     * Wraps a delegate metadata with spatial-predicate pushdown and the DEFINER→INVOKER
+     * view rewrite. Retained for call sites that do not use visibility-domain pushdown.
+     *
      * @param delegate the underlying iceberg metadata
      * @param geomCatalog the shared geometry-column catalog
      * @param bboxShortCircuit whether to claim rectangle ST_Intersects predicates enforced
@@ -152,10 +204,61 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
                                     GeoMesaColumnCatalog geomCatalog,
                                     boolean bboxShortCircuit,
                                     boolean useInvokerAuths) {
+        this(delegate, geomCatalog, bboxShortCircuit, useInvokerAuths, null, false, Set.of());
+    }
+
+    /**
+     * Wraps a delegate metadata with spatial-predicate pushdown and, when a resolver is
+     * supplied and pruning is enabled, visibility-column domain pushdown. Retained for
+     * call sites that do not set the view rewrite explicitly; it defaults to on.
+     *
+     * @param delegate the underlying iceberg metadata
+     * @param geomCatalog the shared geometry-column catalog
+     * @param bboxShortCircuit when true, claim eligible rectangle ST_Intersects enforced
+     * @param resolver identity→auths resolver; null disables visibility-domain pushdown
+     * @param visibilityPruningEnabled master gate for visibility-domain pushdown
+     * @param visibilityExpressions declared closed universe of visibility values
+     */
+    public SpatialConnectorMetadata(ConnectorMetadata delegate,
+                                    GeoMesaColumnCatalog geomCatalog,
+                                    boolean bboxShortCircuit,
+                                    AuthorizationResolver resolver,
+                                    boolean visibilityPruningEnabled,
+                                    Set<String> visibilityExpressions) {
+        this(delegate, geomCatalog, bboxShortCircuit, true, resolver,
+            visibilityPruningEnabled, visibilityExpressions);
+    }
+
+    /**
+     * Wraps a delegate metadata with spatial-predicate pushdown, the DEFINER→INVOKER view
+     * rewrite, and — when a resolver is supplied and pruning is enabled — visibility-column
+     * domain pushdown (see {@link VisibilityDomainPruning}).
+     *
+     * @param delegate the underlying iceberg metadata
+     * @param geomCatalog the shared geometry-column catalog
+     * @param bboxShortCircuit when true, claim eligible rectangle ST_Intersects enforced
+     * @param useInvokerAuths whether to rewrite DEFINER views to run as the invoker
+     * @param resolver identity→auths resolver; null disables visibility-domain pushdown
+     * @param visibilityPruningEnabled master gate for visibility-domain pushdown; when false,
+     *                              no domain is injected regardless of the other arguments
+     * @param visibilityExpressions declared closed universe of every distinct non-null
+     *                              visibility value the column can hold; when non-empty,
+     *                              enables {@link VisibilityDomainPruning#expressionDomain}
+     */
+    public SpatialConnectorMetadata(ConnectorMetadata delegate,
+                                    GeoMesaColumnCatalog geomCatalog,
+                                    boolean bboxShortCircuit,
+                                    boolean useInvokerAuths,
+                                    AuthorizationResolver resolver,
+                                    boolean visibilityPruningEnabled,
+                                    Set<String> visibilityExpressions) {
         this.delegate = delegate;
         this.geomCatalog = geomCatalog;
         this.bboxShortCircuit = bboxShortCircuit;
         this.useInvokerAuths = useInvokerAuths;
+        this.resolver = resolver;
+        this.visibilityPruningEnabled = visibilityPruningEnabled;
+        this.visibilityExpressions = visibilityExpressions;
     }
 
     /** Resolve the per-geom-column descriptor map for the given table handle.
@@ -184,6 +287,18 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             return Optional.empty();
         }
 
+        // Visibility-column pushdown is independent of any spatial predicate. Seed it into the
+        // domains map up front so there is a SINGLE site that applies it — the merge-and-delegate
+        // tail below — rather than repeating it at every early return. A non-spatial query then
+        // needs no special case: it simply contributes no spatial domains and flows through the
+        // same tail. See visibilityDomain() / VisibilityDomainPruning for what's injected and why
+        // it's sound.
+        Map<ColumnHandle, Domain> domains = new HashMap<>();
+        visibilityDomain(session, handle, constraint)
+            .ifPresent(e -> domains.put(e.getKey(), e.getValue()));
+        List<BboxHandles> injectedBboxes = new ArrayList<>();
+        List<SpatialPartitionHandle> injectedPartitions = new ArrayList<>();
+
         // Walk the filter expression for ALL ST_* spatial calls (not just the first).
         // Per-geom routing: each ST_* on column X uses X's bbox + partition companions.
         List<SpatialMatch> matches = findAllSpatialMatches(constraint.getExpression());
@@ -193,19 +308,14 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         // struct comparisons (re-entry on a second planning iteration). The reconstructed
         // envelope is anchored to whichever geom's bbox struct the comparisons reference.
         if (matches.isEmpty()) {
-            List<BboxPatternMatch> bboxes = tryExtractBboxPatternMatches(constraint.getExpression());
-            if (bboxes.isEmpty()) return delegate.applyFilter(session, handle, constraint);
-            matches = bboxes.stream()
+            matches = tryExtractBboxPatternMatches(constraint.getExpression()).stream()
                 .map(bp -> new SpatialMatch(bp.envelope(), BBOX_PATTERN, bp.geomName()))
                 .toList();
         }
 
-        Map<String, GeometryColumn> geoms = geomsFor(session, handle);
-        if (geoms.isEmpty()) return delegate.applyFilter(session, handle, constraint);
-
-        Map<ColumnHandle, Domain> domains = new HashMap<>();
-        List<BboxHandles> injectedBboxes = new ArrayList<>();
-        List<SpatialPartitionHandle> injectedPartitions = new ArrayList<>();
+        // Resolve geometry columns only when there's a spatial match to route; a pure
+        // (non-spatial) query still reaches the tail below to apply any visibility domain.
+        Map<String, GeometryColumn> geoms = matches.isEmpty() ? Map.of() : geomsFor(session, handle);
 
         for (SpatialMatch match : matches) {
             GeometryColumn geom = geoms.get(match.geomName());
@@ -250,6 +360,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             });
         }
 
+        // Fallback
         if (domains.isEmpty()) {
             return delegate.applyFilter(session, handle, constraint);
         }
@@ -320,6 +431,123 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
 
         return Optional.of(new ConstraintApplicationResult<>(
             resultHandle, cleanedRemaining, remainingExpr, dr.isPrecalculateStatistics()));
+    }
+
+    /**
+     * Builds a visibility-column pushdown domain when file pruning is enabled
+     * ({@link #visibilityPruningEnabled}), Trino-layer visibility enforcement is
+     * configured ({@link #resolver} non-null), and the table carries a visibility
+     * column observed by {@code getColumnHandles}. See {@link VisibilityDomainPruning}
+     * for what's injected and why both the empty-auths and expression tiers are sound.
+     *
+     * <p>The domain is built from the session identity's resolved auths, then
+     * <em>intersected</em> with a domain derived from the auths of any MANDATORY
+     * top-level {@code is_visible(__vis__, '<auths>')} query conjunct (see
+     * {@link #collectVisibilityAuths}). This makes pruning honor the effective,
+     * possibly narrower, auth context: a broadly-authorized service account that proxies
+     * a narrower user by adding such a predicate (e.g. {@code WHERE is_visible(__vis__,
+     * 'basic')}) prunes to that narrower context instead of its own wide session auths.
+     * Intersection can only shrink the admitted set — never widen past the session
+     * floor — so it can never turn a missed file into a leak; and each mandatory
+     * conjunct is a necessary condition on every returned row, so it can never drop a
+     * row the query returns.
+     *
+     * @param session the connector session
+     * @param handle the table handle
+     * @param constraint the filter constraint (checked so we don't re-inject a
+     *                   domain the planner already round-tripped onto this column)
+     * @return the visibility column's handle paired with the domain to intersect
+     *         in, or empty when no pushdown applies
+     */
+    private Optional<Map.Entry<ColumnHandle, Domain>> visibilityDomain(
+            ConnectorSession session, ConnectorTableHandle handle, Constraint constraint) {
+        if (resolver == null || !visibilityPruningEnabled) {
+            return Optional.empty();
+        }
+        SchemaTableName tn = delegate.getTableName(session, handle);
+        Optional<String> visColumnName = geomCatalog.visibilityColumn(tn)
+            .flatMap(GeoMesaColumnCatalog.ObservedVisibility::column);
+        if (visColumnName.isEmpty()) {
+            return Optional.empty();
+        }
+
+        ColumnHandle visHandle = delegate.getColumnHandles(session, handle).get(visColumnName.get());
+        if (!(visHandle instanceof IcebergColumnHandle ich) || !(ich.getType() instanceof VarcharType vt)) {
+            return Optional.empty();
+        }
+        // Skip if the planner already carries a domain for this column (round-trip).
+        if (constraint.getSummary().getDomains().map(d -> d.containsKey(visHandle)).orElse(false)) {
+            return Optional.empty();
+        }
+
+        Set<String> sessionAuths = resolver.authorizationsFor(session.getIdentity());
+        Optional<Domain> domain = domainForAuths(vt, sessionAuths);
+
+        List<Set<String>> predicateAuthSets = new ArrayList<>();
+        collectVisibilityAuths(constraint.getExpression(), visHandle,
+            constraint.getAssignments(), predicateAuthSets);
+        for (Set<String> predAuths : predicateAuthSets) {
+            Optional<Domain> pd = domainForAuths(vt, predAuths);
+            if (pd.isPresent()) {
+                domain = domain.map(d -> d.intersect(pd.get())).or(() -> pd);
+            }
+        }
+        return domain.map(d -> Map.entry(visHandle, d));
+    }
+
+    /** The visibility-domain tier selection for a given auth set: the always-eligible
+     *  empty-auths tier, falling back to the expression tier only when a candidate
+     *  universe is declared. Shared by the session-auth base domain and each
+     *  {@code is_visible} predicate-auth domain in {@link #visibilityDomain}. */
+    private Optional<Domain> domainForAuths(VarcharType vt, Set<String> auths) {
+        Optional<Domain> d = VisibilityDomainPruning.emptyAuthsDomain(vt, auths);
+        if (d.isEmpty() && !visibilityExpressions.isEmpty()) {
+            d = VisibilityDomainPruning.expressionDomain(vt, visibilityExpressions, auths);
+        }
+        return d;
+    }
+
+    /** Collects the auth set of every MANDATORY top-level {@code is_visible(__vis__, '<auths>')}
+     *  conjunct, descending through AND nodes ONLY. An {@code is_visible} under {@code $or}/
+     *  {@code $not} (or any non-AND combinator) is not a necessary condition on the result set,
+     *  so using it to prune could drop rows that satisfy the query another way — the same
+     *  soundness rule {@link #collectSpatialMatches} follows (hardened by the datastore
+     *  filter-parity suite). */
+    private void collectVisibilityAuths(ConnectorExpression expr, ColumnHandle visHandle,
+            Map<String, ColumnHandle> assignments, List<Set<String>> acc) {
+        if (!(expr instanceof Call call)) return;
+        if (IS_VISIBLE.equalsIgnoreCase(call.getFunctionName().getName())) {
+            extractVisAuths(call, visHandle, assignments).ifPresent(acc::add);
+            return;  // is_visible args are a Variable + a Constant; nothing to recurse into
+        }
+        if (!AND_FUNCTION_NAME.equals(call.getFunctionName())) return;
+        for (ConnectorExpression arg : call.getArguments()) {
+            collectVisibilityAuths(arg, visHandle, assignments, acc);
+        }
+    }
+
+    /** {@code is_visible(<visColVariable>, '<auths-csv>')} → the auth set, iff the first
+     *  argument resolves (via {@code assignments}) to the visibility column and the second is
+     *  a VARCHAR constant. Column identity is REQUIRED for soundness: an {@code is_visible} on
+     *  some other column says nothing about {@code __vis__}, so using it to prune {@code __vis__}
+     *  could drop valid rows. Any other shape returns empty (skipped — a missed optimization,
+     *  never a wrong result). The CSV split mirrors {@code VisibilityRowFilter.conjunct}'s
+     *  {@code String.join(",", auths)}. */
+    private static Optional<Set<String>> extractVisAuths(Call call, ColumnHandle visHandle,
+            Map<String, ColumnHandle> assignments) {
+        List<ConnectorExpression> args = call.getArguments();
+        if (args.size() != 2) return Optional.empty();
+        if (!(args.get(0) instanceof Variable v)) return Optional.empty();
+        if (!visHandle.equals(assignments.get(v.getName()))) return Optional.empty();
+        if (!(args.get(1) instanceof Constant c) || !(c.getValue() instanceof Slice s)) {
+            return Optional.empty();
+        }
+        Set<String> auths = new LinkedHashSet<>();
+        for (String tok : s.toStringUtf8().split(",", -1)) {
+            String trimmed = tok.trim();
+            if (!trimmed.isEmpty()) auths.add(trimmed);
+        }
+        return Optional.of(auths);
     }
 
     /**

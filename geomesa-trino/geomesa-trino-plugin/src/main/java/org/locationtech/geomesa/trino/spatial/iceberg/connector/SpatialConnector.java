@@ -36,6 +36,9 @@ public class SpatialConnector implements Connector {
     private final ConnectorAccessControl accessControl;
     private final boolean bboxShortCircuit;
     private final boolean useInvokerAuths;
+    private final AuthorizationResolver resolver;
+    private final boolean visibilityPruningEnabled;
+    private final Set<String> visibilityExpressions;
 
     /**
      * Wraps a delegate connector with no Trino-layer visibility enforcement.
@@ -72,10 +75,14 @@ public class SpatialConnector implements Connector {
      */
     public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
                             boolean bboxShortCircuit) {
-        this(delegate, catalogName, resolver, bboxShortCircuit, true);
+        this(delegate, catalogName, resolver, bboxShortCircuit, true, false, Set.of());
     }
 
     /**
+     * Wraps a delegate connector with Trino-layer row-visibility enforcement, the bbox
+     * cheap-reject and the DEFINER→INVOKER view rewrite. Retained for call sites that do
+     * not use visibility-domain pushdown.
+     *
      * @param delegate       the underlying iceberg connector
      * @param catalogName    the Trino catalog name; may be null when no resolver.
      * @param resolver       identity→auths resolver; null disables Trino-layer enforcement.
@@ -86,12 +93,65 @@ public class SpatialConnector implements Connector {
      */
     public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
                             boolean bboxShortCircuit, boolean useInvokerAuths) {
+        this(delegate, catalogName, resolver, bboxShortCircuit, useInvokerAuths, false, Set.of());
+    }
+
+    /**
+     * Wraps a delegate connector with Trino-layer row-visibility enforcement, the bbox
+     * cheap-reject and visibility-column domain pushdown. Retained for call sites that do
+     * not use the view rewrite.
+     *
+     * @param delegate       the underlying iceberg connector
+     * @param catalogName    the Trino catalog name; may be null when no resolver.
+     * @param resolver       identity→auths resolver; null disables Trino-layer enforcement
+     *                       AND visibility-domain pushdown.
+     * @param bboxShortCircuit when true, wrap the page source with the bbox cheap-reject
+     * @param visibilityPruningEnabled master gate for visibility-column domain pushdown
+     * @param visibilityExpressions declared closed universe of visibility values
+     */
+    public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
+                            boolean bboxShortCircuit, boolean visibilityPruningEnabled,
+                            Set<String> visibilityExpressions) {
+        this(delegate, catalogName, resolver, bboxShortCircuit, true,
+            visibilityPruningEnabled, visibilityExpressions);
+    }
+
+    /**
+     * Wraps a delegate connector, optionally installing Trino-layer row-visibility enforcement,
+     * the page-source bbox cheap-reject, the DEFINER→INVOKER view rewrite, and visibility-column
+     * domain pushdown for Iceberg manifest/file pruning (see
+     * {@link org.locationtech.geomesa.trino.security.VisibilityDomainPruning}).
+     *
+     * @param delegate       the underlying iceberg connector
+     * @param catalogName    the Trino catalog name; may be null when no resolver.
+     * @param resolver       identity→auths resolver; null disables Trino-layer enforcement
+     *                       AND visibility-domain pushdown.
+     * @param bboxShortCircuit when true, wrap the page source with the bbox cheap-reject
+     *                       ({@link SpatialPageSourceProvider}).
+     * @param useInvokerAuths when true, views in this catalog are rewritten to run as the
+     *                       invoker so base-table visibility resolves the caller's auths
+     *                       rather than the view owner's. Ignored when no resolver is set.
+     * @param visibilityPruningEnabled master gate for visibility-column domain pushdown; when
+     *                       false, no visibility domain is ever injected (both the empty-auths and
+     *                       expression tiers are skipped), restoring pre-feature behavior — only
+     *                       the always-on {@code is_visible()} row filter runs.
+     * @param visibilityExpressions declared closed universe of every distinct non-null
+     *                       visibility value the column can hold; when non-empty (and pruning is
+     *                       enabled), enables the sound-for-compound-expressions {@code
+     *                       VisibilityDomainPruning#expressionDomain} tier.
+     */
+    public SpatialConnector(Connector delegate, String catalogName, AuthorizationResolver resolver,
+                            boolean bboxShortCircuit, boolean useInvokerAuths,
+                            boolean visibilityPruningEnabled, Set<String> visibilityExpressions) {
         this.delegate = delegate;
         this.geomCatalog = new GeoMesaColumnCatalog();
         this.accessControl = resolver == null ? null
             : new VisibilityAccessControl(catalogName, geomCatalog, resolver);
         this.bboxShortCircuit = bboxShortCircuit;
         this.useInvokerAuths = useInvokerAuths && resolver != null;
+        this.resolver = resolver;
+        this.visibilityPruningEnabled = visibilityPruningEnabled;
+        this.visibilityExpressions = visibilityExpressions;
     }
 
     /**
@@ -141,7 +201,10 @@ public class SpatialConnector implements Connector {
             delegate.getMetadata(session, transactionHandle),
             geomCatalog,
             bboxShortCircuit,
-            useInvokerAuths
+            useInvokerAuths,
+            resolver,
+            visibilityPruningEnabled,
+            visibilityExpressions
         );
     }
 

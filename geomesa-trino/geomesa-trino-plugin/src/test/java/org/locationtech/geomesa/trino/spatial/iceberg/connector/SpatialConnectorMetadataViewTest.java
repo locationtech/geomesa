@@ -143,6 +143,22 @@ class SpatialConnectorMetadataViewTest {
     }
 
     @Test
+    void shortConstructorsDefaultToRewritingDefinerViews() {
+        // The overloads that don't name useInvokerAuths default it ON, matching the
+        // connector's shipped default. Without this, code constructing the metadata
+        // directly would silently get DEFINER semantics and the owner's auths.
+        ConnectorViewDefinition definer = definition(false, "__vis__");
+
+        SpatialConnectorMetadata threeArg =
+            new SpatialConnectorMetadata(new FakeMetadata(definer), new GeoMesaColumnCatalog(), false);
+        assertThat(threeArg.getView(null, VIEW).orElseThrow().isRunAsInvoker()).isTrue();
+
+        SpatialConnectorMetadata sixArg = new SpatialConnectorMetadata(
+            new FakeMetadata(definer), new GeoMesaColumnCatalog(), false, null, false, Set.of());
+        assertThat(sixArg.getView(null, VIEW).orElseThrow().isRunAsInvoker()).isTrue();
+    }
+
+    @Test
     void invokerViewIsReturnedUnchanged() {
         GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
         ConnectorViewDefinition invoker = definition(true, "__vis__");
