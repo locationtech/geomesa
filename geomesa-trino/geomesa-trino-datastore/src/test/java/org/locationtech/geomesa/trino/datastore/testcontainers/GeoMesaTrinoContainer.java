@@ -46,14 +46,21 @@ public class GeoMesaTrinoContainer extends TrinoContainer {
             // create temp directory for extracted plugin files
             var tempPluginDir = Files.createTempDirectory("geomesa-trino-plugin-");
             logger.debug("Extracting plugin zip {} to {}", pluginZip, tempPluginDir);
+            var normalizedRoot = tempPluginDir.toAbsolutePath().normalize();
 
             // extract zip file
             try (var zis = new ZipInputStream(Files.newInputStream(Paths.get(pluginZip)))) {
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null) {
                     if (!entry.isDirectory()) {
-                        Path targetPath = tempPluginDir.resolve(entry.getName());
-                        Files.createDirectories(targetPath.getParent());
+                        Path targetPath = normalizedRoot.resolve(entry.getName()).normalize();
+                        if (!targetPath.startsWith(normalizedRoot)) {
+                            throw new IOException("Bad zip entry outside target dir: " + entry.getName());
+                        }
+                        Path parent = targetPath.getParent();
+                        if (parent != null) {
+                            Files.createDirectories(parent);
+                        }
                         Files.copy(zis, targetPath);
                         targetPath.toFile().deleteOnExit();
 
