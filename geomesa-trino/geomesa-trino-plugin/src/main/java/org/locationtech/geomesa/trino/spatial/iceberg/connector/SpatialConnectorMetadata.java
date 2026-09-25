@@ -82,7 +82,10 @@ import org.slf4j.LoggerFactory;
  * files by their manifest stats (see {@link VisibilityDomainPruning}). It is gated <em>solely</em>
  * by the master switch {@link #visibilityPruningEnabled}; the two tiers below then apply
  * independently, and in particular are NOT jointly gated on {@link #visibilityExpressions} being
- * declared:
+ * declared. The resulting session-auth domain is finally <em>intersected</em> with the auths of
+ * any mandatory top-level {@code is_visible(__vis__, …)} query conjunct, so a broadly-authorized
+ * account proxying a narrower user (e.g. {@code WHERE is_visible(__vis__, 'basic')}) prunes to that
+ * narrower context rather than its own wide auths (see {@link #visibilityDomain}):
  * <ul>
  *   <li><strong>Empty-auths tier</strong> — universe-free and therefore always eligible whenever
  *       pruning is enabled. A caller with no authorizations can satisfy no expression, so the only
@@ -117,6 +120,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private static final String ST_GEOM_FROM_TEXT     = "st_geomfromtext";
     private static final String ST_GEOM_FROM_BINARY   = "st_geomfrombinary";
     private static final String BBOX_PATTERN = "bbox_pattern";
+    /** The visibility row-filter / query UDF; see {@link #collectVisibilityAuths}. */
+    private static final String IS_VISIBLE = "is_visible";
 
     // Cached reflective accessors for foreign-classloader JTS Geometry/Envelope values
     // (see envelopeOf). Keyed by concrete Class so each lookup runs at most once.
@@ -435,6 +440,18 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      * column observed by {@code getColumnHandles}. See {@link VisibilityDomainPruning}
      * for what's injected and why both the empty-auths and expression tiers are sound.
      *
+     * <p>The domain is built from the session identity's resolved auths, then
+     * <em>intersected</em> with a domain derived from the auths of any MANDATORY
+     * top-level {@code is_visible(__vis__, '<auths>')} query conjunct (see
+     * {@link #collectVisibilityAuths}). This makes pruning honor the effective,
+     * possibly narrower, auth context: a broadly-authorized service account that proxies
+     * a narrower user by adding such a predicate (e.g. {@code WHERE is_visible(__vis__,
+     * 'basic')}) prunes to that narrower context instead of its own wide session auths.
+     * Intersection can only shrink the admitted set — never widen past the session
+     * floor — so it can never turn a missed file into a leak; and each mandatory
+     * conjunct is a necessary condition on every returned row, so it can never drop a
+     * row the query returns.
+     *
      * @param session the connector session
      * @param handle the table handle
      * @param constraint the filter constraint (checked so we don't re-inject a
@@ -463,12 +480,74 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             return Optional.empty();
         }
 
-        Set<String> auths = resolver.authorizationsFor(session.getIdentity());
-        Optional<Domain> domain = VisibilityDomainPruning.emptyAuthsDomain(vt, auths);
-        if (domain.isEmpty() && !visibilityExpressions.isEmpty()) {
-            domain = VisibilityDomainPruning.expressionDomain(vt, visibilityExpressions, auths);
+        Set<String> sessionAuths = resolver.authorizationsFor(session.getIdentity());
+        Optional<Domain> domain = domainForAuths(vt, sessionAuths);
+
+        List<Set<String>> predicateAuthSets = new ArrayList<>();
+        collectVisibilityAuths(constraint.getExpression(), visHandle,
+            constraint.getAssignments(), predicateAuthSets);
+        for (Set<String> predAuths : predicateAuthSets) {
+            Optional<Domain> pd = domainForAuths(vt, predAuths);
+            if (pd.isPresent()) {
+                domain = domain.map(d -> d.intersect(pd.get())).or(() -> pd);
+            }
         }
         return domain.map(d -> Map.entry(visHandle, d));
+    }
+
+    /** The visibility-domain tier selection for a given auth set: the always-eligible
+     *  empty-auths tier, falling back to the expression tier only when a candidate
+     *  universe is declared. Shared by the session-auth base domain and each
+     *  {@code is_visible} predicate-auth domain in {@link #visibilityDomain}. */
+    private Optional<Domain> domainForAuths(VarcharType vt, Set<String> auths) {
+        Optional<Domain> d = VisibilityDomainPruning.emptyAuthsDomain(vt, auths);
+        if (d.isEmpty() && !visibilityExpressions.isEmpty()) {
+            d = VisibilityDomainPruning.expressionDomain(vt, visibilityExpressions, auths);
+        }
+        return d;
+    }
+
+    /** Collects the auth set of every MANDATORY top-level {@code is_visible(__vis__, '<auths>')}
+     *  conjunct, descending through AND nodes ONLY. An {@code is_visible} under {@code $or}/
+     *  {@code $not} (or any non-AND combinator) is not a necessary condition on the result set,
+     *  so using it to prune could drop rows that satisfy the query another way — the same
+     *  soundness rule {@link #collectSpatialMatches} follows (hardened by the datastore
+     *  filter-parity suite). */
+    private void collectVisibilityAuths(ConnectorExpression expr, ColumnHandle visHandle,
+            Map<String, ColumnHandle> assignments, List<Set<String>> acc) {
+        if (!(expr instanceof Call call)) return;
+        if (IS_VISIBLE.equalsIgnoreCase(call.getFunctionName().getName())) {
+            extractVisAuths(call, visHandle, assignments).ifPresent(acc::add);
+            return;  // is_visible args are a Variable + a Constant; nothing to recurse into
+        }
+        if (!AND_FUNCTION_NAME.equals(call.getFunctionName())) return;
+        for (ConnectorExpression arg : call.getArguments()) {
+            collectVisibilityAuths(arg, visHandle, assignments, acc);
+        }
+    }
+
+    /** {@code is_visible(<visColVariable>, '<auths-csv>')} → the auth set, iff the first
+     *  argument resolves (via {@code assignments}) to the visibility column and the second is
+     *  a VARCHAR constant. Column identity is REQUIRED for soundness: an {@code is_visible} on
+     *  some other column says nothing about {@code __vis__}, so using it to prune {@code __vis__}
+     *  could drop valid rows. Any other shape returns empty (skipped — a missed optimization,
+     *  never a wrong result). The CSV split mirrors {@code VisibilityRowFilter.conjunct}'s
+     *  {@code String.join(",", auths)}. */
+    private static Optional<Set<String>> extractVisAuths(Call call, ColumnHandle visHandle,
+            Map<String, ColumnHandle> assignments) {
+        List<ConnectorExpression> args = call.getArguments();
+        if (args.size() != 2) return Optional.empty();
+        if (!(args.get(0) instanceof Variable v)) return Optional.empty();
+        if (!visHandle.equals(assignments.get(v.getName()))) return Optional.empty();
+        if (!(args.get(1) instanceof Constant c) || !(c.getValue() instanceof Slice s)) {
+            return Optional.empty();
+        }
+        Set<String> auths = new LinkedHashSet<>();
+        for (String tok : s.toStringUtf8().split(",", -1)) {
+            String trimmed = tok.trim();
+            if (!trimmed.isEmpty()) auths.add(trimmed);
+        }
+        return Optional.of(auths);
     }
 
     /**

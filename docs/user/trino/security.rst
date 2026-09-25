@@ -79,6 +79,18 @@ The feature has two tiers:
   uses, so files whose visibility values are not admissible for the user are pruned. This tier
   correctly handles compound (``&`` / ``|``) visibility expressions.
 
+The domain built from the session's authorizations is then **intersected** with the
+authorizations of any explicit ``is_visible(__vis__, '<auths>')`` predicate present as a
+mandatory (top-level ``AND``) conjunct of the query. This matters for a broadly-authorized
+service account that proxies a narrower user by adding such a predicate — for example a caller
+holding ``basic,privileged`` running ``... WHERE is_visible(__vis__, 'basic')``. Without this,
+pruning would use the caller's wider session authorizations and prune nothing; with it, pruning
+reflects the effective, narrower context (``basic`` here) and files holding only
+``privileged`` rows become prunable. The intersection can only *narrow* the candidate files
+(never widen past the session authorizations), and only mandatory conjuncts are used — an
+``is_visible`` under ``OR`` / ``NOT`` is ignored — so this never drops rows the query would
+return and is never a leak.
+
 .. note::
 
     A NULL or empty (``''``) ``__vis__`` value carries no real visibility expression and is
