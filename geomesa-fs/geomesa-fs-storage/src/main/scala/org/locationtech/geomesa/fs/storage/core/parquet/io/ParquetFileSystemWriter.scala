@@ -19,7 +19,7 @@ import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
 import org.apache.parquet.io.{LocalOutputFile, OutputFile, PositionOutputStream}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemWriter, ParquetCompressionOpt, ParquetRowGroupSizeDefault, ParquetRowGroupSizeOpt}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemWriter, ParquetCompressionOpt, ParquetRowGroupSizeOpt}
 import org.locationtech.geomesa.fs.storage.core.fs.{LocalObjectStore, ObjectStore, S3ObjectStore}
 import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
@@ -136,29 +136,24 @@ object ParquetFileSystemWriter extends LazyLogging {
     new Builder(file)
       .withConf(conf)
       .withCompressionCodec(codec)
-      .withDictionaryEncoding(true)
-      .withDictionaryPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
-      .withMaxPaddingSize(ParquetWriter.MAX_PADDING_SIZE_DEFAULT)
-      .withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
-      .withValidation(false)
       .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
       .withWriterVersion(version)
       .withRowGroupSize(rowGroupSize)
   }
 
   /**
-   * The configured row group size, or the default if absent or invalid
+   * The configured row group size, or parquet's default (`ParquetWriter.DEFAULT_BLOCK_SIZE`) if absent or invalid
    *
    * @param conf write configuration
    * @return row group size, in bytes
    */
   private[io] def rowGroupSize(conf: ParquetConfiguration): Long = {
     Option(conf.get(ParquetRowGroupSizeOpt)).map(_.trim).filter(_.nonEmpty) match {
-      case None => ParquetRowGroupSizeDefault
+      case None => ParquetWriter.DEFAULT_BLOCK_SIZE
       case Some(size) =>
         Suffixes.Memory.bytes(size).getOrElse {
-          logger.warn(s"Invalid $ParquetRowGroupSizeOpt '$size', using the default of $ParquetRowGroupSizeDefault bytes")
-          ParquetRowGroupSizeDefault
+          logger.warn(s"Invalid $ParquetRowGroupSizeOpt '$size', using the default of ${ParquetWriter.DEFAULT_BLOCK_SIZE} bytes")
+          ParquetWriter.DEFAULT_BLOCK_SIZE
         }
     }
   }

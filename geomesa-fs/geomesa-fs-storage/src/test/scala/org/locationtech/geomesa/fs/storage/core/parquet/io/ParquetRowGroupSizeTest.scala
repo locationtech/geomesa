@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.fs.storage.core.parquet.io
 
 import org.apache.parquet.conf.PlainParquetConfiguration
-import org.apache.parquet.hadoop.ParquetFileReader
+import org.apache.parquet.hadoop.{ParquetFileReader, ParquetWriter}
 import org.apache.parquet.io.LocalInputFile
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{ParquetRowGroupSizeDefault, ParquetRowGroupSizeOpt}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.ParquetRowGroupSizeOpt
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -49,9 +49,8 @@ class ParquetRowGroupSizeTest extends SpecificationWithJUnit {
 
   "ParquetFileSystemWriter row group size" should {
 
-    "default to 8MB" >> {
-      ParquetFileSystemWriter.rowGroupSize(new PlainParquetConfiguration()) mustEqual ParquetRowGroupSizeDefault
-      ParquetRowGroupSizeDefault mustEqual 8L * 1024 * 1024
+    "default to parquet's row group size" >> {
+      ParquetFileSystemWriter.rowGroupSize(new PlainParquetConfiguration()) mustEqual ParquetWriter.DEFAULT_BLOCK_SIZE
     }
 
     "accept bytes and sizes with suffixes" >> {
@@ -61,11 +60,11 @@ class ParquetRowGroupSizeTest extends SpecificationWithJUnit {
     }
 
     "fall back to the default for invalid values" >> {
-      configured("lots") mustEqual ParquetRowGroupSizeDefault
-      configured("") mustEqual ParquetRowGroupSizeDefault
+      configured("lots") mustEqual ParquetWriter.DEFAULT_BLOCK_SIZE
+      configured("") mustEqual ParquetWriter.DEFAULT_BLOCK_SIZE
     }
 
-    "write fewer, larger row groups when configured larger" >> {
+    "write more, smaller row groups when configured smaller" >> {
       val small = rowGroups(Map(ParquetRowGroupSizeOpt -> "256k"))
       val default = rowGroups(Map.empty)
       small must beGreaterThan(1)
