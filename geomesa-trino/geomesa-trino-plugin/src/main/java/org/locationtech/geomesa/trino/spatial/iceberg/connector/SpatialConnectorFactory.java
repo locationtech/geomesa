@@ -17,8 +17,11 @@ import io.trino.spi.connector.ConnectorFactory;
 import org.locationtech.geomesa.trino.spatial.SpatialIcebergPlugin;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * ConnectorFactory for the spatial_iceberg connector. Bootstraps Trino's
@@ -45,6 +48,40 @@ public class SpatialConnectorFactory implements ConnectorFactory {
      *  Disable via {@code geomesa.security.use-invoker-auths=false}. */
     private static final String USE_INVOKER_AUTHS = SECURITY_PREFIX + "use-invoker-auths";
 
+    /** Declared closed universe of every distinct non-null visibility value the column can
+     *  hold, comma-separated (e.g. {@code "basic,basic&privileged"}). When set, enables the
+     *  sound-for-compound-expressions {@code VisibilityDomainPruning#expressionDomain} tier —
+     *  safe to enable even when visibility values are compound ({@code &}/{@code |}) expressions,
+     *  since it prunes on literal expression values via the real {@code is_visible()} decision
+     *  rather than decomposed tokens. Empty (default) disables this tier, leaving only the
+     *  unconditional empty-auths tier ({@code VisibilityDomainPruning#emptyAuthsDomain}), which
+     *  is sound for any grammar. Both tiers are gated by {@link #VISIBILITY_EXPRESSION_PRUNING};
+     *  neither runs unless that property is enabled.
+     *
+     *  <p><strong>This universe must be COMPLETE.</strong> The tier prunes any file whose
+     *  visibility value is not in this list, so a value that actually occurs in the data but is
+     *  omitted here gets its files over-pruned: a caller whose authorizations would admit that
+     *  value silently loses those rows (a correctness/availability bug — never a leak, since the
+     *  always-on {@code is_visible()} row filter still enforces confidentiality). Over-declaring
+     *  is safe: a declared value that never occurs simply never matches and never prunes. When in
+     *  doubt, declare more, never fewer.
+     *
+     *  <p>This property is catalog-wide, not per-table: the same declared universe applies to
+     *  every table in the catalog. When tables in the catalog use different visibility
+     *  universes, declare the <em>union</em> of all their distinct values here — a value that
+     *  belongs to one table but not another is harmless to the others (no file there ever holds
+     *  it, so it simply never matches), which is just the over-declaring-is-safe rule applied
+     *  across tables. */
+    private static final String VISIBILITY_EXPRESSIONS = SECURITY_PREFIX + "visibility-expressions";
+
+    /** Master gate for visibility-column file pruning (see {@link
+     *  org.locationtech.geomesa.trino.security.VisibilityDomainPruning}). Default {@code false}
+     *  (opt-in): when unset or false, the connector injects no visibility domain at all — behavior
+     *  is exactly as it was before the feature existed, with only the always-on {@code is_visible()}
+     *  row filter enforcing confidentiality. Set {@code true} to enable both the unconditional
+     *  empty-auths tier and (when {@link #VISIBILITY_EXPRESSIONS} is declared) the expression tier. */
+    private static final String VISIBILITY_EXPRESSION_PRUNING =
+        SECURITY_PREFIX + "enable-visibility-expression-pruning";
 
     /** Enables connector-side bbox filtering (see {@link BboxFilteringPageSource}).
      *  - For a rectangle {@code ST_Intersects} on a Z2/point geometry column the connector claims
@@ -84,6 +121,9 @@ public class SpatialConnectorFactory implements ConnectorFactory {
                             ConnectorContext context) {
         AuthorizationResolver resolver = buildResolver(config);
         boolean bboxShortCircuit = Boolean.parseBoolean(config.getOrDefault(BBOX_PAGE_FILTER, "true"));
+        boolean visibilityPruningEnabled =
+            Boolean.parseBoolean(config.getOrDefault(VISIBILITY_EXPRESSION_PRUNING, "false"));
+        Set<String> visibilityExpressions = parseVisibilityExpressions(config.get(VISIBILITY_EXPRESSIONS));
         boolean useInvokerAuths = Boolean.parseBoolean(config.getOrDefault(USE_INVOKER_AUTHS, "true"));
 
         // Iceberg uses strict config validation; strip our keys so it doesn't reject them as unused.
@@ -94,7 +134,20 @@ public class SpatialConnectorFactory implements ConnectorFactory {
 
         ConnectorFactory icebergFactory = new IcebergPlugin().getConnectorFactories().iterator().next();
         Connector icebergConnector = icebergFactory.create(catalogName, icebergConfig, context);
-        return new SpatialConnector(icebergConnector, catalogName, resolver, bboxShortCircuit, useInvokerAuths);
+        return new SpatialConnector(icebergConnector, catalogName, resolver, bboxShortCircuit,
+            useInvokerAuths, visibilityPruningEnabled, visibilityExpressions);
+    }
+
+    /** Parses the comma-separated {@link #VISIBILITY_EXPRESSIONS} property; null/blank yields
+     *  an empty set (the tier stays disabled). Entries are trimmed; blank entries are dropped. */
+    private static Set<String> parseVisibilityExpressions(String csv) {
+        if (csv == null || csv.isBlank()) {
+            return Set.of();
+        }
+        return Arrays.stream(csv.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .collect(Collectors.toUnmodifiableSet());
     }
 
     /** Builds the identity→auths resolver from catalog config, or null when no
