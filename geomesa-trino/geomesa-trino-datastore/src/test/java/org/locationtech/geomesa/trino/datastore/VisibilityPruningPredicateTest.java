@@ -80,8 +80,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *     -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false
  * </pre>
  */
-@Tag("integration")
-class VisibilityPruningPredicateIT {
+class VisibilityPruningPredicateTest {
 
     private static final String WRITE_CATALOG = "iceberg";
     private static final String SCHEMA = "vis";

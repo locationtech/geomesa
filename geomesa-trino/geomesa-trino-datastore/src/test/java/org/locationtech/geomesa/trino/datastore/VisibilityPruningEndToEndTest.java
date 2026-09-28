@@ -87,8 +87,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Tagged {@code integration} and named {@code *IT} so the fast surefire lane skips it (see this
  * module's {@code excludedGroups=integration}) and Failsafe runs it under {@code -DskipITs=false}.
  */
-@Tag("integration")
-class VisibilityPruningEndToEndIT {
+class VisibilityPruningEndToEndTest {
 
     private static final String READ_CATALOG = "spatial";   // spatial_iceberg — applies vis pruning
     private static final String WRITE_CATALOG = "iceberg";  // plain iceberg — fixture setup only
