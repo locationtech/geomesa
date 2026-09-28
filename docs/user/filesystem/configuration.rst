@@ -45,6 +45,16 @@ parquet.compression
 
 Specifies the file compression to use, by default ``ZSTD``.
 
+parquet.block.size
+++++++++++++++++++
+
+Specifies the target row group size of written files, either in bytes or with a suffix such as ``128MB``. The default is
+``8MB``. Every row group adds metadata for each column to the file footer, so wide schemas written to large files can produce
+footers that some readers refuse (Trino, for example, rejects footers over 15MB by default); larger row groups keep footers
+small and generally improve compression. However, a writer buffers an entire row group in memory, and up to
+``fs.writer.partitions.max.open`` writers may be open at once, so larger values need proportionally more memory. Can also be
+set as a system property, which the storage configuration overrides.
+
 AWS S3 Configuration
 --------------------
 

@@ -383,6 +383,11 @@ case class FileSystemStorage(
 object FileSystemStorage extends LazyLogging {
 
   val ParquetCompressionOpt   = "parquet.compression"
+  // row group ("block") size of written parquet files, as bytes or a size such as `128MB`
+  val ParquetRowGroupSizeOpt  = "parquet.block.size"
+  // small by default, since a writer buffers a whole row group in memory and up to
+  // `fs.writer.partitions.max.open` writers may be open at once
+  val ParquetRowGroupSizeDefault: Long = 8L * 1024 * 1024
   val WriterMaxOpenPartitions = "fs.writer.partitions.max.open"
   val WriterMaxOpenPartitionsDefault = 32
 
