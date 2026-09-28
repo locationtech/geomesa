@@ -57,7 +57,6 @@ object FileScan {
    */
   trait FilterScan[T <: FileScan] extends FileScan {
 
-    protected def tableScan: TableScan
     protected def schema: SimpleFeatureIcebergSchema
     protected def schemes: Seq[PartitionScheme]
     protected def filterStep(scan: TableScan): T

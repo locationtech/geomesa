@@ -19,6 +19,7 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.json.{JSONObject, JSONTokener}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -32,10 +33,10 @@ import org.locationtech.geomesa.fs.storage.core.utils.TestObserverFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.security.{AuthsParam, DefaultAuthorizationsProvider, SecurityUtils, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
@@ -578,6 +579,69 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
               val isVisible = VisibilityUtils.visible(new DefaultAuthorizationsProvider(auths.split(",").filter(_.nonEmpty)))
               testQuery(storage, sft)(filter, transforms, expected.filter(isVisible))
             }
+          }
+        }
+      }
+    }
+
+    "accurately count and bound features with visibilities" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
+
+      val authTests = Seq(
+        "user,admin" -> (300, new ReferencedEnvelope(CRS_EPSG_4326)),
+        "user"       -> (250, new ReferencedEnvelope(CRS_EPSG_4326)),
+        ""           -> (100, new ReferencedEnvelope(CRS_EPSG_4326)),
+      )
+
+      val features = Seq.tabulate(300) { i =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute(1, s"name$i")
+        sf.setAttribute(2, s"$i")
+        sf.setAttribute(3, f"2014-01-${(i % 31) + 1}%02dT00:00:01.000Z")
+        // split our features up by file to test various count optimizations
+        if (i < 100) {
+          sf.setAttribute(0, "POINT(10 10)")
+          SecurityUtils.setFeatureVisibility(sf, null)
+          authTests.foreach(_._2._2.expandToInclude(sf.getAttribute(0).asInstanceOf[Point].getCoordinate))
+        } else if (i < 200) {
+          sf.setAttribute(0, "POINT(40 50)")
+          SecurityUtils.setFeatureVisibility(sf, "user")
+          authTests.take(2).foreach(_._2._2.expandToInclude(sf.getAttribute(0).asInstanceOf[Point].getCoordinate))
+        } else {
+          val isUser = i % 2 == 0
+          sf.setAttribute(0, s"POINT(-40 -50)")
+          SecurityUtils.setFeatureVisibility(sf, if (isUser) "user" else "user&admin")
+          authTests.take(if (isUser) 2 else 1).foreach(_._2._2.expandToInclude(sf.getAttribute(0).asInstanceOf[Point].getCoordinate))
+        }
+        sf
+      }
+
+      val context = newPath()
+      foreach(authTests) { case (auths, (visible, envelope)) =>
+        WithClose(StorageCatalog(context ++ Map(AuthsParam.key -> auths))) { catalog =>
+          if (!catalog.getTypeNames.contains(sft.getTypeName)) {
+            WithClose(catalog.create(sft, schemes)) { storage =>
+              storage must not(beNull)
+
+              val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
+
+              features.foreach { f =>
+                val partition = Partition(storage.schemes.map(_.getPartition(f)))
+                val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+                writer.write(f)
+              }
+
+              writers.foreach(_._2.close())
+              writers must haveLength(3)
+
+              logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+            }
+          }
+          WithClose(catalog.load(sft.getTypeName)) { storage =>
+            storage must not(beNull)
+            storage.getCount(Filter.INCLUDE, 1) mustEqual visible
+            storage.getBounds(Filter.INCLUDE, 1) mustEqual envelope
           }
         }
       }
