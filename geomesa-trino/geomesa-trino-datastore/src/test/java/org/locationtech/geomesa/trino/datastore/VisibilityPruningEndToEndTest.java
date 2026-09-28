@@ -42,11 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code IcebergMetadata.applyFilter}, drops whole data files based on the visibility domain this
  * connector injects.
  *
- * <p>This is the containerized successor to the former embedded-{@code DistributedQueryRunner}
- * version that lived in the plugin module. It runs the real packaged plugin inside a stock
- * {@code trinodb/trino} image against a real Iceberg REST catalog and S3 (SeaweedFS), so the
- * plugin module no longer has to depend on {@code trino-testing}.
- *
  * <p><strong>What we assert, and why it is not a wall-clock benchmark.</strong> Timing is flaky
  * and proves nothing deterministic in CI. The causally-correct, deterministic signal that file
  * pruning happened is how many rows the query <em>physically read from storage</em>

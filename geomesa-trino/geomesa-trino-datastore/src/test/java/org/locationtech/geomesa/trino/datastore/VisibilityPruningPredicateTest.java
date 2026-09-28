@@ -74,10 +74,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * if it is not. Build the plugin in the same reactor so that zip is the one built from your working
  * copy rather than a stale snapshot in the local repository:
  * <pre>
- *   mvn verify failsafe:integration-test failsafe:verify \
+ *   mvn verify \
  *     -pl geomesa-trino/geomesa-trino-plugin,geomesa-trino/geomesa-trino-datastore \
- *     -DskipITs=false -Dit.test=VisibilityPruningPredicateIT -Dtest=none \
- *     -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false
+ *     -Dtest=VisibilityPruningPredicateTest -Dsurefire.failIfNoSpecifiedTests=false
  * </pre>
  */
 class VisibilityPruningPredicateTest {

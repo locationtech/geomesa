@@ -44,8 +44,7 @@ Visibility-Column File Pruning
 When Trino-layer enforcement is configured (see above), the ``spatial_iceberg`` connector can
 additionally use Iceberg per-file manifest statistics to skip whole data files that cannot
 contain any row the querying user is authorized to see. This is a **performance optimization
-only**: it runs alongside — never in place of — the always-enforced ``is_visible()`` row filter,
-so it can never cause a hidden row to be returned. It is opt-in, and controlled by these catalog
+only**: it runs alongside standard visibility filtering. It is opt-in, and controlled by these catalog
 properties:
 
 .. list-table::
@@ -70,35 +69,14 @@ The feature has two tiers:
 
 * **Empty-authorizations tier** — active whenever pruning is enabled. A user with no
   authorizations can satisfy no visibility expression, so the only rows they can ever see are
-  the unrestricted ones (NULL or empty ``''`` visibility; see the note below). Files that hold
-  no such unrestricted rows are therefore pruned. This tier is sound for any visibility grammar
+  the unrestricted ones (NULL or empty ``''`` visibility). Files that hold no such unrestricted
+  rows are therefore pruned. This tier is sound for any visibility grammar
   and needs no configuration.
 
 * **Expression tier** — active when ``geomesa.security.visibility-expressions`` is non-empty.
   Each declared value is evaluated through the same ``is_visible()`` decision the row filter
   uses, so files whose visibility values are not admissible for the user are pruned. This tier
   correctly handles compound (``&`` / ``|``) visibility expressions.
-
-The domain built from the session's authorizations is then **intersected** with the
-authorizations of any explicit ``is_visible(__vis__, '<auths>')`` predicate present as a
-mandatory (top-level ``AND``) conjunct of the query. This matters for a broadly-authorized
-service account that proxies a narrower user by adding such a predicate — for example a caller
-holding ``basic,privileged`` running ``... WHERE is_visible(__vis__, 'basic')``. Without this,
-pruning would use the caller's wider session authorizations and prune nothing; with it, pruning
-reflects the effective, narrower context (``basic`` here) and files holding only
-``privileged`` rows become prunable. The intersection can only *narrow* the candidate files
-(never widen past the session authorizations), and only mandatory conjuncts are used — an
-``is_visible`` under ``OR`` / ``NOT`` is ignored — so this never drops rows the query would
-return and is never a leak.
-
-.. note::
-
-    A NULL or empty (``''``) ``__vis__`` value carries no real visibility expression and is
-    treated as **unrestricted** — the ``is_visible()`` row filter returns true for it, so it is
-    visible to every user, matching the native geomesa-security ``VisibilityUtils`` semantics
-    used by GeoTools clients. File pruning admits both NULL and ``''`` accordingly, so files
-    holding only unrestricted rows are never pruned. You therefore never need to declare ``''``
-    in ``geomesa.security.visibility-expressions``; it is always admitted regardless.
 
 .. warning::
 
