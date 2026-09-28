@@ -19,7 +19,7 @@ import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
 import org.apache.parquet.io.{LocalOutputFile, OutputFile, PositionOutputStream}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemWriter, ParquetCompressionOpt}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemWriter, ParquetCompressionOpt, ParquetRowGroupSizeOpt}
 import org.locationtech.geomesa.fs.storage.core.fs.{LocalObjectStore, ObjectStore, S3ObjectStore}
 import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
@@ -29,6 +29,7 @@ import org.locationtech.geomesa.fs.storage.core.parquet.s3.S3OutputFile
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.utils.io.CloseQuietly
+import org.locationtech.geomesa.utils.text.Suffixes
 
 import java.net.URI
 import java.nio.file.Path
@@ -113,8 +114,9 @@ object ParquetFileSystemWriter extends LazyLogging {
    * @return
    */
   private def apply(conf: Map[String, String], output: FileOutput, observer: FileSystemObserver): ParquetFileSystemWriter = {
-    val compression = Option(System.getProperty(ParquetCompressionOpt)).map(ParquetCompressionOpt -> _).toMap
-    val parquetConf = new PlainParquetConfiguration((compression ++ conf).asJava)
+    // system properties provide defaults, which the storage configuration overrides
+    val sysProps = Seq(ParquetCompressionOpt, ParquetRowGroupSizeOpt).flatMap(k => Option(System.getProperty(k)).map(k -> _)).toMap
+    val parquetConf = new PlainParquetConfiguration((sysProps ++ conf).asJava)
     new ParquetFileSystemWriter(parquetConf, output, observer)
   }
 
@@ -128,19 +130,32 @@ object ParquetFileSystemWriter extends LazyLogging {
   private def builder(file: OutputFile, conf: ParquetConfiguration): Builder = {
     val version = WriterVersion.fromString(conf.get("parquet.writer.version", WriterVersion.PARQUET_2_0.name()))
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "ZSTD"))
-    logger.debug(s"Using Parquet file version $version with compression ${codec.name()}")
+    val rowGroupSize = this.rowGroupSize(conf)
+    logger.debug(s"Using Parquet file version $version with compression ${codec.name()} and row group size $rowGroupSize")
 
     new Builder(file)
       .withConf(conf)
       .withCompressionCodec(codec)
-      .withDictionaryEncoding(true)
-      .withDictionaryPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
-      .withMaxPaddingSize(ParquetWriter.MAX_PADDING_SIZE_DEFAULT)
-      .withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
-      .withValidation(false)
       .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
       .withWriterVersion(version)
-      .withRowGroupSize(8L*1024*1024)
+      .withRowGroupSize(rowGroupSize)
+  }
+
+  /**
+   * The configured row group size, or parquet's default (`ParquetWriter.DEFAULT_BLOCK_SIZE`) if absent or invalid
+   *
+   * @param conf write configuration
+   * @return row group size, in bytes
+   */
+  private[io] def rowGroupSize(conf: ParquetConfiguration): Long = {
+    Option(conf.get(ParquetRowGroupSizeOpt)).map(_.trim).filter(_.nonEmpty) match {
+      case None => ParquetWriter.DEFAULT_BLOCK_SIZE
+      case Some(size) =>
+        Suffixes.Memory.bytes(size).getOrElse {
+          logger.warn(s"Invalid $ParquetRowGroupSizeOpt '$size', using the default of ${ParquetWriter.DEFAULT_BLOCK_SIZE} bytes")
+          ParquetWriter.DEFAULT_BLOCK_SIZE
+        }
+    }
   }
 
   private sealed trait FileOutput {
