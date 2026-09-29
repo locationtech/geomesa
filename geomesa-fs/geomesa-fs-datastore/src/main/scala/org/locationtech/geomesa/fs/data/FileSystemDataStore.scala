@@ -70,7 +70,8 @@ class FileSystemDataStore(catalog: StorageCatalog, config: FileSystemDataStoreCo
         throw new IllegalArgumentException("Partition scheme must be specified in the SimpleFeatureType user data")
       }
       val fileSize = sft.removeTargetFileSize()
-      cache.put(sft.getTypeName, catalog.create(sft, scheme, fileSize))
+      val bloomFilters = sft.removeBloomFilters()
+      cache.put(sft.getTypeName, catalog.create(sft, scheme, fileSize, bloomFilters))
     }
   }
 

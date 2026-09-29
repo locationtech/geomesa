@@ -18,7 +18,7 @@ import org.locationtech.geomesa.fs.storage.converter.pathfilter.{PathFiltering, 
 import org.locationtech.geomesa.fs.storage.converter.schemes.{NamedOptions, PartitionSchemeFactory}
 import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergCatalog, SimpleFeatureIcebergSchema}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
-import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.{BloomFilterConfig, FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 
 import java.net.URI
@@ -104,7 +104,11 @@ class ConverterCatalog(val conf: Map[String, String]) extends StorageCatalog wit
     }
   }
 
-  override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long]): FileSystemStorage =
+  override def create(
+      sft: SimpleFeatureType,
+      partitions: Seq[String],
+      targetFileSize: Option[Long],
+      bloomFilters: Seq[BloomFilterConfig]): FileSystemStorage =
     throw new UnsupportedOperationException("Converter storage is read-only")
 
   override def close(): Unit = {}

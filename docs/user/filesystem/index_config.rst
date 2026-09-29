@@ -154,6 +154,39 @@ Once the schema has been created, the file size can be configured through the st
 :ref:`fsds_manage_metadata_command` for setting metadata keys, and see :ref:`fsds_size_threshold_prop` for controlling the file
 size error margin.
 
+.. _fsds_bloom_filter_config:
+
+Configuring Bloom Filters
+-------------------------
+
+Parquet bloom filters let readers skip row groups when querying high-cardinality attributes by equality, where min/max
+statistics can't prune. Bloom filters can be configured through the user data key ``geomesa.fs.bloom-filters``:
+
+.. tabs::
+
+    .. code-tab:: java
+
+        SimpleFeatureType sft = ...
+        sft.getUserData().put("geomesa.fs.bloom-filters", "name:ndv=10000,code");
+
+    .. code-tab:: scala
+
+        import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
+
+        val sft: SimpleFeatureType = ???
+        // use the implicit method from RichSimpleFeatureType
+        sft.setBloomFilters("name:ndv=10000,code")
+        // or set directly in the user data as a string
+        sft.getUserData.put("geomesa.fs.bloom-filters", "name:ndv=10000,code")
+
+Different attributes are separated with a comma (``,``), while options are separated with a colon (``:``). The available
+options are ``ndv``, the expected number of distinct values per row group, used to size the filter, and ``fpp``, the false
+positive probability (by default ``0.01``). Bloom filters can be applied to attributes of type ``String``, ``Integer``,
+``Long``, ``Float``, ``Double``, ``Date``, ``UUID`` and ``Bytes``.
+
+The configuration is persisted as the Iceberg table properties described in :ref:`fsds_config_props` under
+``parquet.bloom.filter.*``, which can be used to change it once the schema has been created.
+
 Configuring Custom Observer Callbacks
 -------------------------------------
 

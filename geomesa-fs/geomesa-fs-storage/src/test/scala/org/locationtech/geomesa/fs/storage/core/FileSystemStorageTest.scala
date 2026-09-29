@@ -11,8 +11,10 @@ package org.locationtech.geomesa.fs.storage.core
 import com.google.gson.JsonParser
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.apache.parquet.hadoop.ParquetFileReader
-import org.apache.parquet.io.LocalInputFile
+import org.apache.parquet.column.values.bloomfilter.BloomFilter
+import org.apache.parquet.conf.PlainParquetConfiguration
+import org.apache.parquet.hadoop.{ParquetFileReader, ParquetFileWriter}
+import org.apache.parquet.io.{LocalInputFile, LocalOutputFile}
 import org.everit.json.schema.Schema
 import org.everit.json.schema.loader.SchemaLoader
 import org.geotools.api.data.Query
@@ -26,8 +28,9 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorageTest.{IcebergRestContainer, SeaweedFsContainer}
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
+import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.fs.storage.core.parquet.s3.S3InputFile
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeoParquetMetadata
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.{GeoParquetMetadata, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.utils.TestObserverFactory
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -107,6 +110,32 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
     )
   }
 
+  private val bloomSpec = "name:String,code:String,*geom:Point:srid=4326,dtg:Date"
+
+  // distinct values, so parquet doesn't keep them dictionary encoded (which suppresses the filter)
+  private def bloomFeatures(sft: SimpleFeatureType): Seq[SimpleFeature] = Seq.tabulate(200) { i =>
+    val sf = ScalaSimpleFeature.create(sft, i.toString, f"name-$i%05d", f"code-$i%05d", "POINT(45 55)", "2014-01-01T00:00:01.000Z")
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    sf
+  }
+
+  // bloom filters in the first row group, by column path
+  private def readBlooms(reader: ParquetFileReader): Map[String, BloomFilter] = {
+    val columns = reader.getFooter.getBlocks.asScala.head.getColumns.asScala
+    columns.flatMap(c => Option(reader.readBloomFilter(c)).map(c.getPath.toDotString -> _)).toMap
+  }
+
+  // writes the bloom features through the storage, and returns the bloom filters of each file written
+  private def writeBlooms(storage: FileSystemStorage): Seq[Map[String, BloomFilter]] = {
+    val features = bloomFeatures(storage.sft)
+    WithClose(storage.getWriter(Partition(storage.schemes.map(_.getPartition(features.head)))))(w => features.foreach(w.write))
+    val files = storage.metadata.files().scan().toSeq
+    files must not(beEmpty)
+    WithClose(S3ObjectStore(s3Conf)) { fs =>
+      files.map(f => WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(f.location()))))(readBlooms))
+    }
+  }
+
   "FileSystemStorage" should {
     "read and write features" in {
       val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
@@ -184,6 +213,73 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
                 covering.getJSONArray(corner).toString mustEqual s"""["__geom_bbox__","$corner"]"""
               }
             }
+          }
+        }
+      }
+    }
+
+    "write bloom filters configured through iceberg table properties" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test-bloom", bloomSpec)
+      WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, schemes)) { created =>
+          // set externally, as another iceberg client (e.g. trino) would
+          created.table.updateProperties()
+            .set("write.parquet.bloom-filter-enabled.column.name", "true")
+            .set("write.parquet.bloom-filter-ndv.column.name", "200")
+            .commit()
+        }
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          foreach(writeBlooms(storage)) { blooms =>
+            blooms.keySet mustEqual Set("name")
+            blooms("name").getBitsetSize must beLessThan(1024 * 1024)
+          }
+        }
+      }
+    }
+
+    "persist bloom filters as iceberg table properties when created" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test-bloom-create", bloomSpec)
+      WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, schemes, None, Seq(BloomFilterConfig("name", ndv = Some(200), fpp = Some(0.05))))) { created =>
+          created.table.properties().asScala.filter(_._1.contains("bloom-filter")) mustEqual Map(
+            "write.parquet.bloom-filter-enabled.column.name" -> "true",
+            "write.parquet.bloom-filter-ndv.column.name" -> "200",
+            "write.parquet.bloom-filter-fpp.column.name" -> "0.05",
+          )
+        }
+        // the persisted properties are read back when the table is loaded, and applied when writing
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          foreach(writeBlooms(storage)) { blooms =>
+            blooms.keySet mustEqual Set("name")
+            blooms("name").getBitsetSize must beLessThan(1024 * 1024)
+          }
+        }
+      }
+    }
+
+    "require explicit writer configuration for bloom filters set in the storage configuration" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test-bloom-conf", bloomSpec)
+      val bloomConf = Map("parquet.bloom.filter.enabled#name" -> "true")
+      WithClose(StorageCatalog(newPath() ++ bloomConf)) { catalog =>
+        WithClose(catalog.create(sft, schemes)) { storage =>
+          storage.conf must containAllOf(bloomConf.toSeq)
+
+          // the geomesa writer applies the bloom filter options from the configuration
+          foreach(writeBlooms(storage))(_.keySet mustEqual Set("name"))
+
+          // a parquet writer given the same configuration ignores them, as ParquetWriter.Builder only reads bloom filter
+          // options set through its own methods (unlike ParquetOutputFormat, which parses them out of the configuration)
+          val file = Files.createTempFile("geomesa-bloom-conf", ".parquet")
+          try {
+            val conf = new PlainParquetConfiguration((storage.conf ++ SimpleFeatureParquetSchema.sftConf(storage.sft)).asJava)
+            val builder =
+              new ParquetFileSystemWriter.Builder(new LocalOutputFile(file))
+                .withConf(conf)
+                .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
+            WithClose(builder.build())(w => bloomFeatures(storage.sft).foreach(w.write))
+            WithClose(ParquetFileReader.open(new LocalInputFile(file)))(readBlooms) must beEmpty
+          } finally {
+            Files.deleteIfExists(file)
           }
         }
       }

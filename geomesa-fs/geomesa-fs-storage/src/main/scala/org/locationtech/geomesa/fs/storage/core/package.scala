@@ -160,6 +160,7 @@ package object core {
     val SchemeKey    = "geomesa.fs.scheme"
     val FileSizeKey  = "geomesa.fs.file-size"
     val ObserversKey = "geomesa.fs.observers"
+    val BloomFiltersKey = "geomesa.fs.bloom-filters"
   }
 
   /**
@@ -209,6 +210,13 @@ package object core {
         }
       }
     }
+
+    def setBloomFilters(spec: String): Unit = {
+      // validate input
+      BloomFilterConfig.parse(sft, spec)
+      sft.getUserData.put(BloomFiltersKey, spec)
+    }
+    def removeBloomFilters(): Seq[BloomFilterConfig] = remove(BloomFiltersKey).toSeq.flatMap(BloomFilterConfig.parse(sft, _))
 
     def setObservers(names: Seq[String]): Unit = sft.getUserData.put(ObserversKey, names.mkString(","))
     def getObservers: Seq[String] = {
