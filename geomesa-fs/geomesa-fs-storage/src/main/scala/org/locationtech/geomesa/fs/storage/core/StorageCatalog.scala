@@ -46,9 +46,14 @@ trait StorageCatalog extends Closeable {
    * @param sft simple feature type
    * @param partitions storage partitions
    * @param targetFileSize target file size, in bytes
+   * @param bloomFilters parquet bloom filters to write
    * @return
    */
-  def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long] = None): FileSystemStorage
+  def create(
+      sft: SimpleFeatureType,
+      partitions: Seq[String],
+      targetFileSize: Option[Long] = None,
+      bloomFilters: Seq[BloomFilterConfig] = Seq.empty): FileSystemStorage
 }
 
 object StorageCatalog {
