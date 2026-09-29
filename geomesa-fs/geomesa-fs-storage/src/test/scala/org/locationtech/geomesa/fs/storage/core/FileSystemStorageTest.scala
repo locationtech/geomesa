@@ -129,10 +129,10 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
   private def writeBlooms(storage: FileSystemStorage): Seq[Map[String, BloomFilter]] = {
     val features = bloomFeatures(storage.sft)
     WithClose(storage.getWriter(Partition(storage.schemes.map(_.getPartition(features.head)))))(w => features.foreach(w.write))
-    val files = storage.metadata.files().scan().toSeq
+    val files = storage.metadata.files().scan()
     files must not(beEmpty)
     WithClose(S3ObjectStore(s3Conf)) { fs =>
-      files.map(f => WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(f.location()))))(readBlooms))
+      files.map(f => WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(f.file().location()))))(readBlooms))
     }
   }
 
@@ -194,7 +194,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
             storage.metadata.files().forPartition(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).scan().headOption.orNull
           firstPartitionFile must not(beNull)
           WithClose(S3ObjectStore(s3Conf)) { fs =>
-            WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(firstPartitionFile.location())))) { reader =>
+            WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(firstPartitionFile.file().location())))) { reader =>
               val meta = reader.getFileMetaData.getKeyValueMetaData
               val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
               geo must not(beNull)
@@ -368,7 +368,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           try {
             WithClose(S3ObjectStore(s3Conf)) { fs =>
               WithClose(new FileOutputStream(tmpFile.toFile)) { os =>
-                WithClose(fs.read(URI.create(firstPartitionFile.location())).orNull) { is =>
+                WithClose(fs.read(URI.create(firstPartitionFile.file().location())).orNull) { is =>
                   IOUtils.copy(is, os)
                 }
               }
@@ -684,13 +684,13 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
 
       val authTests = Seq(
-        "user,admin" -> (300, new ReferencedEnvelope(CRS_EPSG_4326)),
-        "user"       -> (250, new ReferencedEnvelope(CRS_EPSG_4326)),
-        ""           -> (100, new ReferencedEnvelope(CRS_EPSG_4326)),
+        "user,admin" -> (296, new ReferencedEnvelope(CRS_EPSG_4326)),
+        "user"       -> (247, new ReferencedEnvelope(CRS_EPSG_4326)),
+        ""           -> (99, new ReferencedEnvelope(CRS_EPSG_4326)),
       )
 
       val features = Seq.tabulate(300) { i =>
-        val sf = new ScalaSimpleFeature(sft, i.toString)
+        val sf = new ScalaSimpleFeature(sft, f"$i%03d")
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.setAttribute(1, s"name$i")
         sf.setAttribute(2, s"$i")
@@ -732,6 +732,14 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
               writers must haveLength(3)
 
               logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+              // verify deletes are tracked in counts
+              WithClose(storage.getWriter(ECQL.toFilter("IN ('000','100','200','201')"), 1)) { writer =>
+                while (writer.hasNext) {
+                  writer.next()
+                  writer.remove()
+                }
+              }
             }
           }
           WithClose(catalog.load(sft.getTypeName)) { storage =>
@@ -956,7 +964,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
             val paths = storage.metadata.files().forPartition(partition).scan()
             paths.size must beGreaterThan(1)
             foreach(paths) { p =>
-              storage.table.io().newInputFile(p.location()).getLength must beCloseTo(targetSize, targetSize / 10)
+              storage.table.io().newInputFile(p.file().location()).getLength must beCloseTo(targetSize, targetSize / 10)
             }
           }
         }

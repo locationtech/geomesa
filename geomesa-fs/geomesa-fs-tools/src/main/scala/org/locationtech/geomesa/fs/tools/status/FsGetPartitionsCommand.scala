@@ -16,6 +16,8 @@ import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 
 class FsGetPartitionsCommand extends FsDataStoreCommand {
 
+  import scala.collection.JavaConverters._
+
   override val name: String = "get-partitions"
   override val params = new FsGetPartitionsParams
 
@@ -25,8 +27,9 @@ class FsGetPartitionsCommand extends FsDataStoreCommand {
       Command.output.info("partition\tfile_count\tfeature_count")
     }
     val storage = ds.storage(params.featureName)
-    storage.metadata.files().scan().groupBy(f => storage.metadata.partition(f).toString).toSeq.sortBy(_._1).foreach { case (p, files) =>
-      Command.output.info(s"$p\t${files.size}\t${files.map(_.recordCount()).sum}")
+    storage.metadata.files().scan().groupBy(f => storage.metadata.partition(f.file()).toString).toSeq.sortBy(_._1).foreach { case (p, files) =>
+      val count = files.map(_.file().recordCount()).sum - files.flatMap(_.deletes().asScala.map(_.recordCount())).sum
+      Command.output.info(s"$p\t${files.size}\t$count")
     }
   }
 }

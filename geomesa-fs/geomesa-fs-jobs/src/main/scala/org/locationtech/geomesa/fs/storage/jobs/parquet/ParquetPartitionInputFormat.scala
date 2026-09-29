@@ -44,7 +44,8 @@ class ParquetPartitionInputFormat extends InputFormat[Void, SimpleFeature] {
         val sizeCheck = fileSize.orElse(storage.sizer.targetSize).map(t => (f: DataFile) => storage.sizer.fileIsSized(f, t))
         val splits = StorageConfiguration.getPartitions(hadoopConf).map { partition =>
           var size = 0L
-          val files = storage.metadata.files().forPartition(partition).scan().filter { f =>
+          // TODO doesn't account for deletes
+          val files = storage.metadata.files().forPartition(partition).scan().map(_.file()).filter { f =>
             if (sizeCheck.exists(_.apply(f))) { false } else {
               size += f.fileSizeInBytes()
               true

@@ -68,6 +68,7 @@ case class FileSystemStorage(
     conf: Map[String, String],
   ) extends Closeable with StrictLogging {
 
+  import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileOps.{AttributeBoundsFileOps, BoundsFileOps, CountFileOps}
   import org.locationtech.geomesa.fs.storage.core.FileSystemStorage._
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -179,55 +180,22 @@ case class FileSystemStorage(
    * @param threads number of threads to use for any scans
    * @return
    */
-  def getCount(filter: Filter, threads: Int): Long = {
-    var count = 0L
-    fileOps(filter, threads, f => { count += f.recordCount(); true }, _ => { count += 1 })
-    count
-  }
+  def getCount(filter: Filter, threads: Int): Long = fileOps(filter, threads, new CountFileOps())
 
   /**
-   * Gets the spatial bounds of matching records
+   * Gets the spatial bounds of matching records.
+   *
+   * Note: does not always account for deleted records
    *
    * @param filter filter
    * @return
    */
-  def getBounds(filter: Filter, threads: Int): ReferencedEnvelope = {
-    val envelope = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    val geomAttribute = sft.getGeometryDescriptor.getLocalName
-    val bboxField = schema.schema.findField(BoundingBoxField.groupName(ColumnName.encode(geomAttribute))).`type`().asStructType()
-    val (minFieldIds, maxFieldIds) =
-      Seq(BoundingBoxField.XMin, BoundingBoxField.YMin, BoundingBoxField.XMax, BoundingBoxField.YMax)
-        .map(f => bboxField.field(f).fieldId())
-        .splitAt(2)
-
-    def addFileBounds(file: DataFile): Boolean = {
-      val minBuffers = minFieldIds.map(file.lowerBounds().get)
-      val maxBuffers = maxFieldIds.map(file.upperBounds().get)
-      if (minBuffers.contains(null) || maxBuffers.contains(null)) {
-        false
-      } else {
-        val Seq(xmin, ymin) = minBuffers.map(Conversions.fromByteBuffer[Float](Types.FloatType.get(), _))
-        val Seq(xmax, ymax) = maxBuffers.map(Conversions.fromByteBuffer[Float](Types.FloatType.get(), _))
-        envelope.expandToInclude(xmin, ymin)
-        envelope.expandToInclude(xmax, ymax)
-        true
-      }
-    }
-
-    def addFeatureBounds(f: SimpleFeature): Unit = {
-      val geom = f.getAttribute(geomAttribute).asInstanceOf[Geometry]
-      if (geom != null) {
-        envelope.expandToInclude(geom.getEnvelopeInternal)
-      }
-    }
-
-    fileOps(filter, threads, addFileBounds, addFeatureBounds, Seq(geomAttribute))
-
-    envelope
-  }
+  def getBounds(filter: Filter, threads: Int): ReferencedEnvelope = fileOps(filter, threads, new BoundsFileOps(schema))
 
   /**
-   * Gets the spatial bounds of matching records
+   * Gets the spatial bounds of matching records.
+   * *
+   * * Note: does not always account for deleted records
    *
    * @param filter filter
    * @return
@@ -235,45 +203,7 @@ case class FileSystemStorage(
   def getBounds[T](attribute: String, filter: Filter, threads: Int): (T, T) = {
     require(sft.indexOf(attribute) != -1,
       s"Attribute '$attribute' does not exist in the schema: ${sft.getTypeName} ${SimpleFeatureTypes.encodeType(sft)}")
-
-    val field = schema.schema.findField(ColumnName.encode(attribute))
-    val fieldType = field.`type`()
-    val fieldId = field.fieldId()
-
-    val defaults = MinMaxDefaults[T](sft.getDescriptor(attribute).getType.getBinding)
-    var min = defaults.max
-    var max = defaults.min
-
-    def bound(bounds: java.util.Map[Integer, ByteBuffer]): T = {
-      Conversions.fromByteBuffer[T](fieldType, bounds.get(fieldId)) match {
-        case c: CharSequence => c.toString.asInstanceOf[T]
-        case b => b
-      }
-    }
-
-    def addFileBounds(file: DataFile): Boolean = {
-      val localMin = bound(file.lowerBounds())
-      val localMax = bound(file.upperBounds())
-      if (localMin == null || localMax == null) {
-        false
-      } else {
-        min = defaults.min(min, localMin)
-        max = defaults.max(max, localMax)
-        true
-      }
-    }
-
-    def addFeatureBounds(f: SimpleFeature): Unit = {
-      val value = f.getAttribute(attribute).asInstanceOf[T]
-      if (value != null) {
-        min = defaults.min(min, value)
-        max = defaults.max(max, value)
-      }
-    }
-
-    fileOps(filter, threads, addFileBounds, addFeatureBounds, Seq(attribute))
-
-    (min, max)
+    fileOps(filter, threads, new AttributeBoundsFileOps(schema, attribute))
   }
 
   /**
@@ -282,27 +212,21 @@ case class FileSystemStorage(
    *
    * @param filter filter
    * @param threads read threads
-   * @param fileOp operation for whole files - return true to indicate the file was handled, false to read the file row-by-row
-   * @param featureOp operation for individual records from a file
-   * @param readAttributes any attributes that are needed to evaluate the featureOp
+   * @param ops operations to run
    */
-  private def fileOps(
-      filter: Filter,
-      threads: Int,
-      fileOp: DataFile => Boolean,
-      featureOp: SimpleFeature => Unit,
-      readAttributes: Seq[String] = Seq.empty): Unit = {
+  private def fileOps[T](filter: Filter, threads: Int, ops: FileOps[T]): T = {
     val remainingFiles = ArrayBuffer.empty[String]
     val visFieldId = schema.schema.findField(SimpleFeatureSchema.VisibilitiesField).fieldId()
     val visFilter = VisibilityUtils.check(authProvider)
 
-    val query = QueryRunner.configureQuery(sft, new Query(sft.getTypeName, filter, readAttributes: _*))
+    val query = QueryRunner.configureQuery(sft, new Query(sft.getTypeName, filter, ops.readAttributes: _*))
 
-    metadata.files().includeFileStats().forFilter(query.getFilter).scan().foreach { file =>
+    metadata.files().includeFileStats().forFilter(query.getFilter).scan().foreach { task =>
+      val file = task.file()
       val nullValueCount = file.nullValueCounts().get(visFieldId)
       if (nullValueCount != null && nullValueCount == file.valueCounts().get(visFieldId)) {
         // all nulls
-        if (!fileOp(file)) {
+        if (!ops.fileOp(file, task.deletes().asScala.toSeq)) {
           remainingFiles += file.location()
         }
       } else {
@@ -312,7 +236,7 @@ case class FileSystemStorage(
         if (lowerBound != null && lowerBound == bound(file.upperBounds())) {
           // only one vis marking, we can evaluate it here
           if (visFilter.apply(lowerBound.toString)) {
-            if (!fileOp(file)) {
+            if (!ops.fileOp(file, task.deletes().asScala.toSeq)) {
               remainingFiles += file.location()
             }
           }
@@ -329,9 +253,15 @@ case class FileSystemStorage(
       val fileFilter: Option[String => Boolean] = Some(remainingFiles.contains)
       WithClose(new IcebergParquetScan(table, readSchema.schema, icebergFilter.expression, threads, fileFilter)) { scan =>
         val features = icebergFilter.remainder.fold[CloseableIterator[SimpleFeature]](scan)(f => scan.filter(f.evaluate))
-        features.foreach(f => if (visFilter.apply(SecurityUtils.getVisibility(f))) { featureOp(f) })
+        features.foreach { f =>
+          if (visFilter.apply(SecurityUtils.getVisibility(f))) {
+            ops.featureOp(f)
+          }
+        }
       }
     }
+
+    ops.result
   }
 
   /**
@@ -401,14 +331,14 @@ case class FileSystemStorage(
      *
      * @return
      */
-    def partitions(): Seq[Partition] = files().scan().map(partition).distinct
+    def partitions(): Seq[Partition] = files().scan().map(t => partition(t.file())).distinct
 
     /**
      * Gets all partitions in this storage instance
      *
      * @return
      */
-    def partitions(filter: Filter): Seq[Partition] = files().forFilter(filter).scan().map(partition).distinct
+    def partitions(filter: Filter): Seq[Partition] = files().forFilter(filter).scan().map(t => partition(t.file())).distinct
 
     /**
      * Register new files with this storage instance. The files must already be in a compatible format.
@@ -706,5 +636,142 @@ object FileSystemStorage extends LazyLogging {
      * @return
      */
     def read(file: URI): CloseableIterator[SimpleFeature]
+  }
+
+  /**
+   * Trait for executing metadata ops on data files
+   */
+  private trait FileOps[T] {
+
+    /**
+     * Result of the operation
+     *
+     * @return
+     */
+    def result: T
+
+    /**
+     * Operation for whole files - return true to indicate the file was handled, false to read the file row-by-row
+     *
+     * @param file data file
+     * @param deletes delete markers
+     * @return
+     */
+    def fileOp(file: DataFile, deletes: Seq[DeleteFile]): Boolean
+
+    /**
+     * Operation for individual records from a file
+     *
+     * @param feature feature
+     */
+    def featureOp(feature: SimpleFeature): Unit
+
+    /**
+     * Any attributes that are needed to evaluate the featureOp
+     *
+     * @return
+     */
+    def readAttributes: Seq[String]
+  }
+
+  private object FileOps {
+
+    class CountFileOps extends FileOps[Long] {
+
+      private var count: Long = 0
+
+      override def result: Long = count
+
+      override def fileOp(file: DataFile, deletes: Seq[DeleteFile]): Boolean = {
+        var fileCount = file.recordCount()
+        deletes.foreach { d =>
+          fileCount -= d.recordCount()
+        }
+        if (fileCount > 0) {
+          count += fileCount
+        }
+        true
+      }
+
+      override def featureOp(feature: SimpleFeature): Unit = count += 1
+
+      override def readAttributes: Seq[String] = Seq.empty
+    }
+
+    class BoundsFileOps(schema: SimpleFeatureIcebergSchema) extends FileOps[ReferencedEnvelope] {
+
+      private val envelope = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+
+      private val geomAttribute = schema.sft.getGeometryDescriptor.getLocalName
+      private val bboxField = schema.schema.findField(BoundingBoxField.groupName(ColumnName.encode(geomAttribute))).`type`().asStructType()
+      private val (minFieldIds, maxFieldIds) =
+        Seq(BoundingBoxField.XMin, BoundingBoxField.YMin, BoundingBoxField.XMax, BoundingBoxField.YMax)
+          .map(f => bboxField.field(f).fieldId())
+          .splitAt(2)
+
+      override def result: ReferencedEnvelope = envelope
+
+      override def fileOp(file: DataFile, deletes: Seq[DeleteFile]): Boolean = {
+        val minBuffers = minFieldIds.map(file.lowerBounds().get)
+        val maxBuffers = maxFieldIds.map(file.upperBounds().get)
+        if (minBuffers.contains(null) || maxBuffers.contains(null)) {
+          false
+        } else {
+          val Seq(xmin, ymin) = minBuffers.map(Conversions.fromByteBuffer[Float](Types.FloatType.get(), _))
+          val Seq(xmax, ymax) = maxBuffers.map(Conversions.fromByteBuffer[Float](Types.FloatType.get(), _))
+          envelope.expandToInclude(xmin, ymin)
+          envelope.expandToInclude(xmax, ymax)
+          true
+        }
+      }
+
+      override def featureOp(feature: SimpleFeature): Unit = {
+        val geom = feature.getAttribute(geomAttribute).asInstanceOf[Geometry]
+        if (geom != null) {
+          envelope.expandToInclude(geom.getEnvelopeInternal)
+        }
+      }
+
+      override def readAttributes: Seq[String] = Seq(geomAttribute)
+    }
+
+    class AttributeBoundsFileOps[T](schema: SimpleFeatureIcebergSchema, attribute: String) extends FileOps[(T, T)] {
+
+      private val field = schema.schema.findField(ColumnName.encode(attribute))
+      private val fieldId = field.fieldId()
+
+      private val descriptor = schema.sft.getDescriptor(attribute)
+      private val parser = FileBoundsParser[T](descriptor, field.`type`()).orNull
+      private val defaults = MinMaxDefaults[T](descriptor.getType.getBinding)
+      private var min = defaults.max
+      private var max = defaults.min
+
+      override def result: (T, T) = (min, max)
+
+      override def fileOp(file: DataFile, deletes: Seq[DeleteFile]): Boolean = {
+        if (parser == null) { false } else {
+          val localMin = parser(file.lowerBounds().get(fieldId))
+          val localMax = parser(file.upperBounds().get(fieldId))
+          if (localMin == null || localMax == null) {
+            false
+          } else {
+            min = defaults.min(min, localMin)
+            max = defaults.max(max, localMax)
+            true
+          }
+        }
+
+      }
+
+      override def featureOp(feature: SimpleFeature): Unit = {
+        val value = feature.getAttribute(attribute).asInstanceOf[T]
+        if (value != null) {
+          min = defaults.min(min, value)
+          max = defaults.max(max, value)
+        }
+      }
+
+      override def readAttributes: Seq[String] = Seq(attribute)
+    }
   }
 }

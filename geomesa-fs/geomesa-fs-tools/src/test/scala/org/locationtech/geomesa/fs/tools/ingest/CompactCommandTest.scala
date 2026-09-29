@@ -134,7 +134,7 @@ class CompactCommandTest extends SpecificationWithJUnit with FsContainerTest {
         val storage = ds.storage(sft.getTypeName)
         foreach(storage.metadata.files().scan().groupBy(_.partition).values) { partition =>
           partition.size must beGreaterThan(1)
-          val sizes = partition.map(_.fileSizeInBytes())
+          val sizes = partition.map(_.file().fileSizeInBytes())
           // hard to get very close with small files...
           foreach(sizes)(_ must beCloseTo(targetFileSize, 2200))
         }

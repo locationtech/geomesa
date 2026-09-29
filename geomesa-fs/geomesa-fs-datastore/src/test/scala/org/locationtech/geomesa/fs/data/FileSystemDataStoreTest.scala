@@ -31,6 +31,7 @@ import org.specs2.matcher.{MatchResult, Matcher}
 import org.specs2.mutable.SpecificationWithJUnit
 
 import java.io.{File, IOException}
+import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.DurationInt
@@ -123,7 +124,7 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
 
         val expected = Set(Seq("2017-06-05"), Seq("2017-06-06"), Seq("2017-06-07"))
         val storage = ds.storage(sft.getTypeName)
-        val partitions = storage.metadata.files().scan().map(f => storage.metadata.partition(f)).toSet
+        val partitions = storage.metadata.files().scan().map(f => storage.metadata.partition(f.file())).toSet
         partitions must haveLength(3)
         partitions.map(_.values.map(_.value)) mustEqual expected
 
@@ -148,10 +149,15 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
         // test stats queries
         ds.stats.getCount(sft) must beSome(10L)
         ds.stats.getCount(sft, exact = true) must beSome(10L)
-        val minMax = ds.stats.getMinMax[String](sft, "name").orNull
-        minMax must not(beNull)
-        minMax.min mustEqual "test0"
-        minMax.max mustEqual "test9"
+        // test bounds queries
+        val minMaxName = ds.stats.getMinMax[String](sft, "name").orNull
+        minMaxName must not(beNull)
+        minMaxName.min mustEqual "test0"
+        minMaxName.max mustEqual "test9"
+        val minMaxDtg = ds.stats.getMinMax[Date](sft, "dtg").orNull
+        minMaxDtg must not(beNull)
+        minMaxDtg.min mustEqual features.head.getAttribute("dtg")
+        minMaxDtg.max mustEqual features(2).getAttribute("dtg") // dates are modulo 3
       }
     }
 

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.core.utils
 
 import org.apache.iceberg.expressions.Expressions
-import org.apache.iceberg.{DataFile, Table, TableScan}
+import org.apache.iceberg.{FileScanTask, Table, TableScan}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.fs.storage.core.Partition
 import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergFilterConverter, SimpleFeatureIcebergSchema}
@@ -30,7 +30,7 @@ class FileScan(protected val tableScan: TableScan) {
    *
    * @return
    */
-  def scan(): Seq[DataFile] = WithClose(tableScan.planFiles())(_.asScala.map(_.file()).toSeq)
+  def scan(): Seq[FileScanTask] = WithClose(tableScan.planFiles())(_.asScala.toList)
 }
 
 object FileScan {
