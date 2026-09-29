@@ -65,9 +65,9 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
         sc.newAPIHadoopRDD(conf, classOf[ParquetSimpleFeatureInputFormat], classOf[Void], classOf[SimpleFeature]).map(_._2)
       }
 
-      // TODO support modifications
+      // TODO support modifications/deletes
       val files = storage.metadata.files().forFilter(query.getFilter).scan()
-      val rdd = if (files.isEmpty) { sc.emptyRDD[SimpleFeature] } else { runAppendQuery(query.getFilter, files) }
+      val rdd = if (files.isEmpty) { sc.emptyRDD[SimpleFeature] } else { runAppendQuery(query.getFilter, files.map(_.file())) }
       SpatialRDD(rdd, sft)
     }
   }
