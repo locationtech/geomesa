@@ -79,7 +79,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |        SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
        |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WalLogEnabled.key)}
        |          INTO table_wa_logging;
-       |        IF table_wa_logging IS NULL OR NOT table_wa_logging::boolean THEN
+       |        IF table_wa_logging IS NULL OR table_wa_logging::boolean THEN
        |          table_wa_logging := '';
        |        ELSE
        |          table_wa_logging := 'UNLOGGED ';
