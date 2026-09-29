@@ -21,6 +21,7 @@ import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.data.container.FsContainerTest
 import org.locationtech.geomesa.fs.storage.core.StorageKeys
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
@@ -219,6 +220,37 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
         val results =
           CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList
         results must beEmpty
+      }
+    }
+
+    "enforce visibilities on write" in {
+      val params = newParams()
+      WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+        val sft = SimpleFeatureTypes.copy(this.sft)
+        sft.getUserData.put(SimpleFeatureTypes.Configs.RequireVisibility, java.lang.Boolean.TRUE)
+        ds.createSchema(sft)
+
+        val features = this.features.map(ScalaSimpleFeature.copy(sft, _))
+        features.head.getUserData.remove(SecurityUtils.FEATURE_VISIBILITY)
+
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          FeatureUtils.write(writer, features.head, useProvidedFid = true) must throwAn[IllegalArgumentException]
+          features.tail.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+
+        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT))
+          .map(ScalaSimpleFeature.copy).toList.sortBy(_.getID) mustEqual features.tail
+
+        WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter(s"IN ('${features(1).getID}')"), Transaction.AUTO_COMMIT)) { writer =>
+          writer.hasNext must beTrue
+          val next = writer.next()
+          next.getUserData.remove(SecurityUtils.FEATURE_VISIBILITY)
+          next.setAttribute("name", "fail")
+          writer.write() must throwAn[IllegalArgumentException]
+        }
+
+        CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT))
+          .map(ScalaSimpleFeature.copy).toList.sortBy(_.getID) mustEqual features.tail
       }
     }
 

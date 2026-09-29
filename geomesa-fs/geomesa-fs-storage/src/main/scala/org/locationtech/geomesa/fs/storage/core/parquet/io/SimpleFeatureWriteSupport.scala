@@ -66,8 +66,8 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
 
   // called per row
   override def write(record: SimpleFeature): Unit = {
-    writer.write(consumer, record)
     geoParquetObserver(record)
+    writer.write(consumer, record)
   }
 
   // called once at the end

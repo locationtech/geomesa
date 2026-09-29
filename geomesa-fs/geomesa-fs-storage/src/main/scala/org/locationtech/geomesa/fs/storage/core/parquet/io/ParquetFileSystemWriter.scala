@@ -52,8 +52,8 @@ class ParquetFileSystemWriter private (conf: ParquetConfiguration, output: FileO
   override def size: Long = if (closed) { output.size }  else { writer.getDataSize }
 
   override def write(f: SimpleFeature): Unit = {
-    writer.write(f)
     observer(f)
+    writer.write(f)
   }
 
   override def flush(): Unit = observer.flush()

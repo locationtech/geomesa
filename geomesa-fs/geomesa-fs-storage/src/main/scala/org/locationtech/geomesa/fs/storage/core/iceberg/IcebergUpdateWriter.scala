@@ -75,8 +75,9 @@ class IcebergUpdateWriter(
     // comparison of feature ID and attributes - doesn't consider concrete class used
     if (!ScalaSimpleFeature.equalIdAndAttributes(live, original) ||
         SecurityUtils.getVisibility(live) != SecurityUtils.getVisibility(original)) {
-      deleter(original)
+      // write first to ensure feature is valid
       writer(live)
+      deleter(original)
     }
     original = null
     live = null
