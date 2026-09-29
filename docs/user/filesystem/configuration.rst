@@ -55,6 +55,17 @@ metadata for each column to the file footer, so small row groups in large files 
 some readers refuse (Trino, for example, rejects footers over 15MB by default). Can also be set as a system property, which
 the storage configuration overrides.
 
+Parquet writer properties
++++++++++++++++++++++++++
+
+In addition to the options above, the standard Parquet writer properties (as defined by Parquet's ``ParquetOutputFormat``)
+are applied when writing, for example ``parquet.page.size``, ``parquet.dictionary.page.size``, ``parquet.enable.dictionary``,
+``parquet.page.row.count.limit``, ``parquet.column.statistics.enabled`` and ``parquet.page.write-checksum.enabled``. Properties
+that Parquet supports per column (dictionary encoding, statistics, bloom filters, and compression and compression level) can be
+applied to a single column by appending ``#`` and the column name, e.g. ``parquet.enable.dictionary#name=false`` or
+``parquet.compression#name=SNAPPY``. Properties that aren't set use Parquet's defaults, and invalid values are ignored with a
+warning. Compression codec settings (e.g. ``parquet.compression.codec.zstd.level``) are also passed through to the codec.
+
 parquet.bloom.filter.*
 ++++++++++++++++++++++
 
@@ -77,9 +88,10 @@ membership.
 
 When using Iceberg, the table properties ``write.parquet.bloom-filter-enabled.column.<column>``,
 ``write.parquet.bloom-filter-ndv.column.<column>``, ``write.parquet.bloom-filter-fpp.column.<column>`` and
-``write.parquet.bloom-filter-max-bytes`` are also honored, and take precedence over the storage configuration. These are the
-properties set by other Iceberg writers (for example Trino's ``parquet_bloom_filter_columns`` table property), so files
-rewritten by compaction keep the same filters.
+``write.parquet.bloom-filter-max-bytes`` are also honored, and take precedence over the storage configuration. These are
+set when a schema is created with bloom filters (see :ref:`fsds_bloom_filter_config`), and are the same properties used by
+other Iceberg writers (for example Trino's ``parquet_bloom_filter_columns`` table property), so files rewritten by
+compaction keep the same filters.
 
 AWS S3 Configuration
 --------------------

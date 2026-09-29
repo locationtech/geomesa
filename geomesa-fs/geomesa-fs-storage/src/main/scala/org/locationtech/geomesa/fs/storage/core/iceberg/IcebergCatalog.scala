@@ -19,7 +19,7 @@ import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.Ge
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema.GeometryEncodingKey
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
-import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Metadata, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.{BloomFilterConfig, FileSystemStorage, Metadata, StorageCatalog}
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -73,7 +73,11 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
     FileSystemStorage(table, schemes, schema, conf ++ ParquetFileSystemWriter.icebergBloomFilterConf(table.properties()))
   }
 
-  override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long] = None): FileSystemStorage = {
+  override def create(
+      sft: SimpleFeatureType,
+      partitions: Seq[String],
+      targetFileSize: Option[Long] = None,
+      bloomFilters: Seq[BloomFilterConfig] = Seq.empty): FileSystemStorage = {
     val geoms = conf.get(GeometryEncodingKey).map(GeometryEncoding.apply).getOrElse(GeometryEncoding.GeoParquetWkb)
     val schema = SimpleFeatureIcebergSchema.create(sft, geoms)
     // load the partition scheme first in case it fails
@@ -83,7 +87,8 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
       // file format v3 lets us use variant encoding
        val format =
          Map(TableProperties.FORMAT_VERSION -> "3", TableProperties.DELETE_MODE -> RowLevelOperationMode.MERGE_ON_READ.modeName())
-      size ++ format
+      // persisted as the standard iceberg properties, so that other iceberg writers (e.g. compaction) honor them too
+      size ++ format ++ BloomFilterConfig.tableProperties(bloomFilters)
     }
     val spec = schemes.foldLeft(PartitionSpec.builderFor(schema))((b, m) => m.spec(b)).build()
     catalog.ensureNamespace(namespace)

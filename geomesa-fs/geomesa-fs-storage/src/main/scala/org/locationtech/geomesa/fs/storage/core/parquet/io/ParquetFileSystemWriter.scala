@@ -143,20 +143,24 @@ object ParquetFileSystemWriter extends LazyLogging {
         .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
         .withWriterVersion(version)
         .withRowGroupSize(rowGroupSize)
-    configureBloomFilters(builder, conf)
+    configureProperties(builder, conf)
   }
 
   /**
-   * Applies any bloom filter options to the writer. The builder does not read these from its configuration
-   * (only `ParquetOutputFormat` does), so they have to be passed through explicitly. Options use the standard
-   * parquet keys, either globally (e.g. `parquet.bloom.filter.enabled`) or per column, by appending
-   * `#<column path>` (e.g. `parquet.bloom.filter.enabled#name`)
+   * Applies any parquet writer properties in the configuration to the writer. `ParquetWriter.Builder` only reads these
+   * through its own methods (unlike `ParquetOutputFormat`, which parses them out of the configuration), so they have to be
+   * passed through explicitly. Options use the standard parquet keys, as defined in `ParquetOutputFormat`. Options
+   * that can be set per column are applied to a single column by appending `#<column path>`,
+   * e.g. `parquet.bloom.filter.enabled#name`. Only options that are present are applied, so parquet's defaults are
+   * otherwise unchanged.
+   *
+   * Compression, writer version and row group size are handled separately, as they have geomesa-specific defaults.
    *
    * @param builder writer builder
    * @param conf write configuration
    * @return the builder
    */
-  private[io] def configureBloomFilters(builder: Builder, conf: ParquetConfiguration): Builder = {
+  private[io] def configureProperties(builder: Builder, conf: ParquetConfiguration): Builder = {
     import ParquetOutputFormat._
 
     def option[T](key: String, value: String)(parse: String => Option[T])(apply: T => Unit): Unit = {
@@ -170,24 +174,46 @@ object ParquetFileSystemWriter extends LazyLogging {
       case "false" => Some(false)
       case _ => None
     }
+    def int(v: String): Option[Int] = Try(v.toInt).toOption.filter(_ > 0)
     def long(v: String): Option[Long] = Try(v.toLong).toOption.filter(_ > 0)
     def fpp(v: String): Option[Double] = Try(v.toDouble).toOption.filter(d => d > 0 && d < 1)
-    def bytes(v: String): Option[Int] = Suffixes.Memory.bytes(v).toOption.filter(b => b > 0 && b <= Int.MaxValue).map(_.toInt)
+    def bytes(v: String): Option[Int] = Suffixes.Memory.bytes(v).toOption.filter(b => b >= 0 && b <= Int.MaxValue).map(_.toInt)
+    def codec(v: String): Option[CompressionCodecName] = Try(CompressionCodecName.fromConf(v)).toOption
+    def level(v: String): Option[Integer] = Try(Int.box(v.toInt)).toOption
 
     conf.iterator().asScala.foreach { entry =>
       val key = entry.getKey
-      if (key.startsWith("parquet.bloom.filter.")) {
-        val value = entry.getValue
-        key.split("#", 2) match {
-          case Array(BLOOM_FILTER_ENABLED)                     => option(key, value)(bool)(builder.withBloomFilterEnabled(_))
-          case Array(BLOOM_FILTER_ENABLED, col)                => option(key, value)(bool)(builder.withBloomFilterEnabled(col, _))
-          case Array(BLOOM_FILTER_EXPECTED_NDV, col)           => option(key, value)(long)(builder.withBloomFilterNDV(col, _))
-          case Array(BLOOM_FILTER_FPP, col)                    => option(key, value)(fpp)(builder.withBloomFilterFPP(col, _))
-          case Array(BLOOM_FILTER_CANDIDATES_NUMBER, col)      => option(key, value)(long)(n => builder.withBloomFilterCandidateNumber(col, n.toInt))
-          case Array(BLOOM_FILTER_MAX_BYTES)                   => option(key, value)(bytes)(builder.withMaxBloomFilterBytes(_))
-          case Array(ADAPTIVE_BLOOM_FILTER_ENABLED)            => option(key, value)(bool)(builder.withAdaptiveBloomFilterEnabled(_))
-          case _ => logger.warn(s"Ignoring unrecognized bloom filter option: $key")
-        }
+      val value = entry.getValue
+      key.split("#", 2) match {
+        case Array(PAGE_SIZE)                         => option(key, value)(bytes)(builder.withPageSize)
+        case Array(DICTIONARY_PAGE_SIZE)              => option(key, value)(bytes)(builder.withDictionaryPageSize)
+        case Array(ENABLE_DICTIONARY)                 => option(key, value)(bool)(builder.withDictionaryEncoding(_))
+        case Array(ENABLE_DICTIONARY, col)            => option(key, value)(bool)(builder.withDictionaryEncoding(col, _))
+        case Array(ENABLE_BYTE_STREAM_SPLIT)          => option(key, value)(bool)(builder.withByteStreamSplitEncoding(_))
+        case Array(ENABLE_BYTE_STREAM_SPLIT, col)     => option(key, value)(bool)(builder.withByteStreamSplitEncoding(col, _))
+        case Array(VALIDATION)                        => option(key, value)(bool)(builder.withValidation)
+        case Array(MAX_PADDING_BYTES)                 => option(key, value)(bytes)(builder.withMaxPaddingSize)
+        case Array(MIN_ROW_COUNT_FOR_PAGE_SIZE_CHECK) => option(key, value)(int)(builder.withMinRowCountForPageSizeCheck)
+        case Array(MAX_ROW_COUNT_FOR_PAGE_SIZE_CHECK) => option(key, value)(int)(builder.withMaxRowCountForPageSizeCheck)
+        case Array(COLUMN_INDEX_TRUNCATE_LENGTH)      => option(key, value)(int)(builder.withColumnIndexTruncateLength)
+        case Array(STATISTICS_TRUNCATE_LENGTH)        => option(key, value)(int)(builder.withStatisticsTruncateLength)
+        case Array(BLOCK_ROW_COUNT_LIMIT)             => option(key, value)(int)(builder.withRowGroupRowCountLimit)
+        case Array(PAGE_ROW_COUNT_LIMIT)              => option(key, value)(int)(builder.withPageRowCountLimit)
+        case Array(PAGE_WRITE_CHECKSUM_ENABLED)       => option(key, value)(bool)(builder.withPageWriteChecksumEnabled)
+        case Array(STATISTICS_ENABLED)                => option(key, value)(bool)(builder.withStatisticsEnabled(_))
+        case Array(STATISTICS_ENABLED, col)           => option(key, value)(bool)(builder.withStatisticsEnabled(col, _))
+        case Array(SIZE_STATISTICS_ENABLED)           => option(key, value)(bool)(builder.withSizeStatisticsEnabled(_))
+        case Array(SIZE_STATISTICS_ENABLED, col)      => option(key, value)(bool)(builder.withSizeStatisticsEnabled(col, _))
+        case Array(COMPRESSION, col)                  => option(key, value)(codec)(builder.withCompressionCodec(col, _))
+        case Array(COLUMN_COMPRESSION_LEVEL_PREFIX, col) => option(key, value)(level)(builder.withCompressionLevel(col, _))
+        case Array(BLOOM_FILTER_ENABLED)              => option(key, value)(bool)(builder.withBloomFilterEnabled(_))
+        case Array(BLOOM_FILTER_ENABLED, col)         => option(key, value)(bool)(builder.withBloomFilterEnabled(col, _))
+        case Array(BLOOM_FILTER_EXPECTED_NDV, col)    => option(key, value)(long)(builder.withBloomFilterNDV(col, _))
+        case Array(BLOOM_FILTER_FPP, col)             => option(key, value)(fpp)(builder.withBloomFilterFPP(col, _))
+        case Array(BLOOM_FILTER_CANDIDATES_NUMBER, col) => option(key, value)(int)(builder.withBloomFilterCandidateNumber(col, _))
+        case Array(BLOOM_FILTER_MAX_BYTES)            => option(key, value)(bytes)(builder.withMaxBloomFilterBytes)
+        case Array(ADAPTIVE_BLOOM_FILTER_ENABLED)     => option(key, value)(bool)(builder.withAdaptiveBloomFilterEnabled)
+        case _ => // not a writer property (or handled elsewhere)
       }
     }
     builder

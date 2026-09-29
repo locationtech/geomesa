@@ -99,6 +99,18 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
       }
     }
 
+    "persist bloom filters from the user data" in {
+      val bloomSft = SimpleFeatureTypes.copy(sft)
+      bloomSft.setBloomFilters("name:ndv=1000")
+      WithClose(DataStoreFinder.getDataStore(newParams().asJava).asInstanceOf[FileSystemDataStore]) { ds =>
+        ds.createSchema(bloomSft)
+        val properties = ds.storage(sft.getTypeName).table.properties().asScala
+        properties.get("write.parquet.bloom-filter-enabled.column.name") must beSome("true")
+        properties.get("write.parquet.bloom-filter-ndv.column.name") must beSome("1000")
+        ds.getSchema(sft.getTypeName).getUserData.containsKey(StorageKeys.BloomFiltersKey) must beFalse
+      }
+    }
+
     "create a DS" in {
       val params = newParams()
       WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
