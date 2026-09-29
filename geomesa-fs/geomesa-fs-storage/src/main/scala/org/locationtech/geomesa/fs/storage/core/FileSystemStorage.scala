@@ -37,7 +37,7 @@ import org.locationtech.geomesa.fs.storage.core.utils.{FileScan, FileSize, Multi
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
-import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityChecker, VisibilityUtils}
+import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, WithClose}
@@ -85,7 +85,7 @@ case class FileSystemStorage(
   // don't require observers if we never write any data
   private lazy val observers = {
     val builder = Seq.newBuilder[FileSystemObserverFactory]
-    RichSimpleFeatureType(sft).getObservers.foreach { c =>
+    sft.getObservers.foreach { c =>
       try {
         // use the context classloader if defined, so that child classloaders can be accessed, as per SPI loading
         val cl = Option(Thread.currentThread.getContextClassLoader).getOrElse(ClassLoader.getSystemClassLoader)
@@ -181,12 +181,7 @@ case class FileSystemStorage(
 
     def newWriter(): FileSystemWriter = {
       val path = newFilePath()
-      val tableObserver =
-        if (org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType(sft).isVisibilityRequired) {
-          new AddDataFileWithRequiredVisObserver(path, partition)
-        } else {
-          new AddDataFileObserver(path, partition)
-        }
+      val tableObserver = new AddDataFileObserver(path, partition)
       val observer = if (observers.isEmpty) { tableObserver } else {
         new CompositeObserver(observers.map(_.apply(path)).+:(tableObserver))
       }
@@ -383,17 +378,6 @@ case class FileSystemStorage(
       append.appendFile(file)
       append.commit()
     }
-  }
-
-  /**
-   * Observer to add a file to the metadata upon closing, validating visibilities are set on each row
-   *
-   * @param path file path
-   * @param partition file partition
-   */
-  private class AddDataFileWithRequiredVisObserver(path: String, partition: Partition)
-      extends AddDataFileObserver(path, partition) with VisibilityChecker {
-    override def apply(feature: SimpleFeature): Unit = requireVisibilities(feature)
   }
 }
 
