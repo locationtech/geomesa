@@ -368,15 +368,20 @@ case class FileSystemStorage(
    * @param partition file partition
    */
   private class AddDataFileObserver(path: String, partition: Partition) extends FileSystemObserver {
-    override def apply(feature: SimpleFeature): Unit = {}
+    private var empty = true
+    override def apply(feature: SimpleFeature): Unit = { empty = false }
     override def flush(): Unit = {}
     override def close(): Unit = {
-      // TODO this is reading the file footer again, could we track this during write instead?
-      logger.debug(s"Adding new data file: $path")
-      val file = toDataFile(path, partition)
-      val append = table.newAppend()
-      append.appendFile(file)
-      append.commit()
+      if (empty) {
+        logger.warn(s"Not adding empty data file: $path")
+      } else {
+        // TODO this is reading the file footer again, could we track this during write instead?
+        logger.debug(s"Adding new data file: $path")
+        val file = toDataFile(path, partition)
+        val append = table.newAppend()
+        append.appendFile(file)
+        append.commit()
+      }
     }
   }
 }
