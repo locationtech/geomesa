@@ -123,7 +123,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |              WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WalLogEnabled.key)}),
        |              '${SftUserData.WalLogEnabled.default}'
        |            ) INTO table_wa_logging;
-       |          IF table_wa_logging IS NULL OR NOT table_wa_logging::boolean THEN
+       |          IF table_wa_logging IS NULL OR table_wa_logging::boolean THEN
        |            table_wa_logging := '';
        |          ELSE
        |            table_wa_logging := 'UNLOGGED ';
