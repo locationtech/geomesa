@@ -92,7 +92,7 @@ object CompactPartitions extends SqlProcedure {
        |        EXECUTE 'LOCK TABLE ${info.schema.quoted}.' || quote_ident(spill_partition) ||
        |          ' IN SHARE ROW EXCLUSIVE MODE';
        |        EXECUTE 'CREATE ' || table_wa_logging || 'TABLE ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
-       |          partition_tablespace || ' AS SELECT * FROM' ||
+       |          '${info.tables.mainPartitions.storage.opts}' || partition_tablespace || ' AS SELECT * FROM' ||
        |          ' (SELECT * FROM ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |          ' UNION ALL SELECT * FROM ${info.schema.quoted}.' || quote_ident(spill_partition) ||
        |          ') results' ||
@@ -100,7 +100,7 @@ object CompactPartitions extends SqlProcedure {
        |        GET DIAGNOSTICS unsorted_count := ROW_COUNT;
        |      ELSE
        |        EXECUTE 'CREATE ' || table_wa_logging || 'TABLE ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
-       |          partition_tablespace || ' AS SELECT * FROM ' || quote_ident(partition_name) ||
+       |          '${info.tables.mainPartitions.storage.opts}' || partition_tablespace || ' AS SELECT * FROM ' || quote_ident(partition_name) ||
        |          ' ORDER BY _st_sortablehash(${info.cols.geom.quoted})';
        |        GET DIAGNOSTICS unsorted_count := ROW_COUNT;
        |      END IF;
@@ -120,7 +120,7 @@ object CompactPartitions extends SqlProcedure {
        |        ' USING BRIN(${info.cols.geom.quoted})' || partition_tablespace;
        |      EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition_name || '_${info.cols.dtg.raw}_tmp_sort') ||
        |        ' ON ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
-       |        ' (${info.cols.dtg.quoted})' || partition_tablespace;
+       |        ' ${info.cols.dtgIndexColumns}' || partition_tablespace;
        |${info.cols.indexed.map { col =>
     s"""      EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition_name || '_${col.raw}_tmp_sort') ||
        |        ' ON ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||

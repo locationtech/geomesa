@@ -469,6 +469,14 @@ object PartitionedPostgisDialect extends StrictLogging {
     val IdentAlias: SftUserData[Option[String]] = SftUserData("pg.ident.alias", mutable = false, None)
     // name of the feature id column
     val FidColumn: SftUserData[String] = SftUserData("pg.fid.col", mutable = false, "fid")
+    // toast_tuple_target for main and spill partitions, i.e. the stored row size above which postgres moves the
+    // largest values out of line, leaving less to read when scanning - can be updated after schema is created,
+    // but requires running PartitionedPostgisDialect.upgrade in order to be applied, and then only affects
+    // partitions created afterwards
+    val ToastTupleTarget: SftUserData[Option[Int]] = SftUserData("pg.partitions.toast-tuple-target", mutable = true, None)
+    // make the dtg index covering (the primary geometry if it is a point, and the visibility column), so that
+    // counts and time/bbox filters can be answered with index-only scans - can't be updated after schema is created
+    val CoveringDtgIndex: SftUserData[Boolean] = SftUserData("pg.partitions.dtg-index.covering", mutable = false, default = false)
 
     // tablespace configurations - can be updated freely after the schema is created
     val WriteAheadTableSpace: SftUserData[Option[String]] = SftUserData("pg.partitions.tablespace.wa", mutable = true, None)
@@ -501,11 +509,13 @@ object PartitionedPostgisDialect extends StrictLogging {
    * @return a sequence of SimpleFeatureType attribute names which have an index
    */
   private def getIndexedColumns(cx: Connection, info: TypeInfo): Try[List[String]] = {
+    // only key columns: indkey also lists the INCLUDE columns of a covering index, after the first indnkeyatts
     val sql =
       s"""select distinct(att.attname) as indexed_attribute_name
          |from pg_class obj
          |join pg_index idx on idx.indrelid = obj.oid
-         |join pg_attribute att on att.attrelid = obj.oid and att.attnum = any(idx.indkey)
+         |join pg_attribute att on att.attrelid = obj.oid
+         |  and exists (select from generate_series(0, idx.indnkeyatts - 1) k where idx.indkey[k] = att.attnum)
          |where obj.relname = ${literal(info.tables.mainPartitions.name.raw)}
          |order by att.attname;""".stripMargin
     Try {

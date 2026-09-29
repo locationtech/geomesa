@@ -112,10 +112,10 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |            INTO partition_tablespace;
        |          IF partition_tablespace IS NULL THEN
        |            index_tablespace := '';
-       |            partition_tablespace := '';
+       |            partition_tablespace := '${info.tables.mainPartitions.storage.opts}';
        |          ELSE
        |            index_tablespace := ' USING INDEX TABLESPACE '|| quote_ident(partition_tablespace);
-       |            partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
+       |            partition_tablespace := '${info.tables.mainPartitions.storage.opts} TABLESPACE ' || quote_ident(partition_tablespace);
        |          END IF;
        |
        |          SELECT COALESCE(

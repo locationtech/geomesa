@@ -45,9 +45,10 @@ object PartitionTables extends SqlStatements {
       s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, info.cols.geom.raw)}
          |  ON ${table.name.qualified}
          |  USING $indexType(${info.cols.geom.quoted})$pagesPerRange$tableTs;""".stripMargin
+    // note: partitions get this index when they're attached, so a covering one has to be declared here
     val dtgIndex =
       s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, info.cols.dtg.raw)}
-         |  ON ${table.name.qualified} (${info.cols.dtg.quoted})$tableTs;""".stripMargin
+         |  ON ${table.name.qualified} ${info.cols.dtgIndexColumns}$tableTs;""".stripMargin
     val indices = info.cols.indexed.map { col =>
       s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, col.raw)}
          |  ON ${table.name.qualified} (${col.quoted})$tableTs;""".stripMargin
