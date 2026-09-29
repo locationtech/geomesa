@@ -28,6 +28,7 @@ import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWrit
 import org.locationtech.geomesa.fs.storage.core.parquet.s3.S3OutputFile
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
+import org.locationtech.geomesa.security.VisibilityChecker
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.locationtech.geomesa.utils.text.Suffixes
 
@@ -66,6 +67,8 @@ class ParquetFileSystemWriter private (conf: ParquetConfiguration, output: FileO
 
 object ParquetFileSystemWriter extends LazyLogging {
 
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   import scala.collection.JavaConverters._
 
   /**
@@ -86,7 +89,7 @@ object ParquetFileSystemWriter extends LazyLogging {
     // stamp the written parquet files with the table's iceberg field ids (by name) so reads resolve by id
     val nameMapping = Map(SimpleFeatureSchema.IcebergNameMappingKey -> NameMappingParser.toJson(MappingUtil.create(schema.schema)))
     val sft = SimpleFeatureParquetSchema.sftConf(schema.sft)
-    apply(conf ++ nameMapping ++ sft, IcebergOutput(io, file), observer)
+    apply(conf ++ nameMapping ++ sft, IcebergOutput(io, file), observer, schema.sft.isVisibilityRequired)
   }
 
   /**
@@ -102,7 +105,7 @@ object ParquetFileSystemWriter extends LazyLogging {
    */
   def apply(sft: SimpleFeatureType, conf: Map[String, String], fs: ObjectStore, file: String): ParquetFileSystemWriter = {
     val sftConf = SimpleFeatureParquetSchema.sftConf(sft)
-    apply(conf ++ sftConf, ObjectStoreOutput(fs, URI.create(file)), NoOpObserver)
+    apply(conf ++ sftConf, ObjectStoreOutput(fs, URI.create(file)), NoOpObserver, sft.isVisibilityRequired)
   }
 
   /**
@@ -113,11 +116,15 @@ object ParquetFileSystemWriter extends LazyLogging {
    * @param observer observer
    * @return
    */
-  private def apply(conf: Map[String, String], output: FileOutput, observer: FileSystemObserver): ParquetFileSystemWriter = {
+  private def apply(conf: Map[String, String], output: FileOutput, observer: FileSystemObserver, requireVis: Boolean): ParquetFileSystemWriter = {
     // system properties provide defaults, which the storage configuration overrides
     val sysProps = Seq(ParquetCompressionOpt, ParquetRowGroupSizeOpt).flatMap(k => Option(System.getProperty(k)).map(k -> _)).toMap
     val parquetConf = new PlainParquetConfiguration((sysProps ++ conf).asJava)
-    new ParquetFileSystemWriter(parquetConf, output, observer)
+    if (requireVis) {
+      new ParquetFileSystemWriter(parquetConf, output, observer) with RequiredVisibilitiesWriter
+    } else {
+      new ParquetFileSystemWriter(parquetConf, output, observer)
+    }
   }
 
   /**
@@ -207,6 +214,13 @@ object ParquetFileSystemWriter extends LazyLogging {
     override def createOrOverwrite(blockSize: Long): PositionOutputStream = {
       Option(file.toFile.getParentFile).foreach(_.mkdirs())
       super.createOrOverwrite(blockSize)
+    }
+  }
+
+  private trait RequiredVisibilitiesWriter extends FileSystemWriter with VisibilityChecker {
+    abstract override def write(feature: SimpleFeature): Unit = {
+      requireVisibilities(feature)
+      super.write(feature)
     }
   }
 }
