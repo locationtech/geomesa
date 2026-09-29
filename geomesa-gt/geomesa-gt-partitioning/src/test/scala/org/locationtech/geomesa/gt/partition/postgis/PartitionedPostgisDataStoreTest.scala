@@ -27,7 +27,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
 import org.locationtech.geomesa.index.process.ArrowVisitor
@@ -1057,6 +1057,62 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         }
       } catch {
         case NonFatal(e) => logger.error("", e); ko
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "create child partitions logged or unlogged according to pg.wal.enabled" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      ds must not(beNull)
+
+      try {
+        foreach(Seq(true, false)) { logged =>
+          val sft = SimpleFeatureTypes.renameSft(this.sft, s"child_wal_${if (logged) "logged" else "unlogged"}")
+          if (!logged) {
+            sft.getUserData.put(SftUserData.WalLogEnabled.key, "false")
+          }
+          ds.createSchema(sft)
+
+          WithClose(new DefaultTransaction()) { tx =>
+            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+              features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+            }
+            tx.commit()
+          }
+
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            val typeInfo = TypeInfo(this.schema, sft)
+            WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
+            WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
+
+            // the tables that hold the rows, i.e. the children of the partitioned parents
+            def persistence(parent: TableConfig): Seq[String] = {
+              val sql =
+                s"""SELECT c.relpersistence FROM pg_inherits i JOIN pg_class c ON c.oid = i.inhrelid
+                   |  WHERE i.inhparent = ${parent.name.asRegclass}""".stripMargin
+              WithClose(cx.createStatement().executeQuery(sql)) { rs =>
+                Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1)).toList
+              }
+            }
+            val expected = if (logged) { "p" } else { "u" }
+            // the features span 20 to 200 minutes ago: the older ones go straight to main partitions, the
+            // newer ones to write ahead partitions
+            val writeAhead = persistence(typeInfo.tables.writeAheadPartitions)
+            val direct = persistence(typeInfo.tables.mainPartitions)
+            writeAhead must not(beEmpty)
+            direct must not(beEmpty)
+            foreach(writeAhead ++ direct)(_ mustEqual expected)
+
+            // most main partitions are made by merging write ahead partitions once they pass the cutoff - run
+            // it as if a few hours had passed
+            WithClose(cx.prepareCall(s"call ${MergeWriteAheadPartitions.name(typeInfo).quoted}(now()::timestamp + interval '3 hours');"))(_.execute())
+            persistence(typeInfo.tables.writeAheadPartitions) must beEmpty
+            val merged = persistence(typeInfo.tables.mainPartitions)
+            merged.length must beGreaterThan(direct.length)
+            foreach(merged)(_ mustEqual expected)
+          }
+        }
       } finally {
         ds.dispose()
       }
