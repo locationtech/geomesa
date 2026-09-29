@@ -55,6 +55,32 @@ metadata for each column to the file footer, so small row groups in large files 
 some readers refuse (Trino, for example, rejects footers over 15MB by default). Can also be set as a system property, which
 the storage configuration overrides.
 
+parquet.bloom.filter.*
+++++++++++++++++++++++
+
+Writes Parquet bloom filters, which let readers skip row groups on equality predicates against high-cardinality columns
+(such as unique keys) where min/max statistics can't prune. The options are Parquet's own, applied either to all columns or
+to a single column by appending ``#`` and the column name:
+
+* ``parquet.bloom.filter.enabled[#<column>]`` - ``true`` or ``false``, by default ``false``
+* ``parquet.bloom.filter.expected.ndv#<column>`` - the expected number of distinct values per row group, used to size the filter
+* ``parquet.bloom.filter.fpp#<column>`` - the false positive probability, by default ``0.01``
+* ``parquet.bloom.filter.max.bytes`` - the maximum size of each filter, in bytes or with a suffix such as ``64k``, by default ``1MB``
+* ``parquet.bloom.filter.adaptive.enabled`` - size each filter from the values actually written, instead of the expected ndv
+* ``parquet.bloom.filter.candidates.number#<column>`` - the number of candidate sizes to try when adaptive, by default ``5``
+
+A filter is written per column per row group. Without an expected ndv or adaptive sizing, each filter is the maximum size
+(``1MB`` by default), regardless of the number of values in the row group. Adaptive candidates halve in size from the
+maximum, so the smallest filter adaptive sizing will choose is ``max.bytes / 2^(candidates - 1)`` (``64k`` by default).
+Parquet does not write a filter for a column chunk that is entirely dictionary encoded, as the dictionary already answers
+membership.
+
+When using Iceberg, the table properties ``write.parquet.bloom-filter-enabled.column.<column>``,
+``write.parquet.bloom-filter-ndv.column.<column>``, ``write.parquet.bloom-filter-fpp.column.<column>`` and
+``write.parquet.bloom-filter-max-bytes`` are also honored, and take precedence over the storage configuration. These are the
+properties set by other Iceberg writers (for example Trino's ``parquet_bloom_filter_columns`` table property), so files
+rewritten by compaction keep the same filters.
+
 AWS S3 Configuration
 --------------------
 

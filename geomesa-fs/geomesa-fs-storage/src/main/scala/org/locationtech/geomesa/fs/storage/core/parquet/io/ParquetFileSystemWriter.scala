@@ -10,13 +10,14 @@ package org.locationtech.geomesa.fs.storage.core.parquet.io
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
+import org.apache.iceberg.TableProperties
 import org.apache.iceberg.io.FileIO
 import org.apache.iceberg.mapping.{MappingUtil, NameMappingParser}
 import org.apache.parquet.column.ParquetProperties.WriterVersion
 import org.apache.parquet.conf.{ParquetConfiguration, PlainParquetConfiguration}
 import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
-import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
+import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetOutputFormat, ParquetWriter}
 import org.apache.parquet.io.{LocalOutputFile, OutputFile, PositionOutputStream}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemWriter, ParquetCompressionOpt, ParquetRowGroupSizeOpt}
@@ -33,6 +34,8 @@ import org.locationtech.geomesa.utils.text.Suffixes
 
 import java.net.URI
 import java.nio.file.Path
+import java.util.Locale
+import scala.util.Try
 
 /**
  * Parquet writer
@@ -133,12 +136,87 @@ object ParquetFileSystemWriter extends LazyLogging {
     val rowGroupSize = this.rowGroupSize(conf)
     logger.debug(s"Using Parquet file version $version with compression ${codec.name()} and row group size $rowGroupSize")
 
-    new Builder(file)
-      .withConf(conf)
-      .withCompressionCodec(codec)
-      .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
-      .withWriterVersion(version)
-      .withRowGroupSize(rowGroupSize)
+    val builder =
+      new Builder(file)
+        .withConf(conf)
+        .withCompressionCodec(codec)
+        .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
+        .withWriterVersion(version)
+        .withRowGroupSize(rowGroupSize)
+    configureBloomFilters(builder, conf)
+  }
+
+  /**
+   * Applies any bloom filter options to the writer. The builder does not read these from its configuration
+   * (only `ParquetOutputFormat` does), so they have to be passed through explicitly. Options use the standard
+   * parquet keys, either globally (e.g. `parquet.bloom.filter.enabled`) or per column, by appending
+   * `#<column path>` (e.g. `parquet.bloom.filter.enabled#name`)
+   *
+   * @param builder writer builder
+   * @param conf write configuration
+   * @return the builder
+   */
+  private[io] def configureBloomFilters(builder: Builder, conf: ParquetConfiguration): Builder = {
+    import ParquetOutputFormat._
+
+    def option[T](key: String, value: String)(parse: String => Option[T])(apply: T => Unit): Unit = {
+      parse(value.trim) match {
+        case Some(v) => apply(v)
+        case None => logger.warn(s"Ignoring invalid value for $key: '$value'")
+      }
+    }
+    def bool(v: String): Option[Boolean] = v.toLowerCase(Locale.US) match {
+      case "true" => Some(true)
+      case "false" => Some(false)
+      case _ => None
+    }
+    def long(v: String): Option[Long] = Try(v.toLong).toOption.filter(_ > 0)
+    def fpp(v: String): Option[Double] = Try(v.toDouble).toOption.filter(d => d > 0 && d < 1)
+    def bytes(v: String): Option[Int] = Suffixes.Memory.bytes(v).toOption.filter(b => b > 0 && b <= Int.MaxValue).map(_.toInt)
+
+    conf.iterator().asScala.foreach { entry =>
+      val key = entry.getKey
+      if (key.startsWith("parquet.bloom.filter.")) {
+        val value = entry.getValue
+        key.split("#", 2) match {
+          case Array(BLOOM_FILTER_ENABLED)                     => option(key, value)(bool)(builder.withBloomFilterEnabled(_))
+          case Array(BLOOM_FILTER_ENABLED, col)                => option(key, value)(bool)(builder.withBloomFilterEnabled(col, _))
+          case Array(BLOOM_FILTER_EXPECTED_NDV, col)           => option(key, value)(long)(builder.withBloomFilterNDV(col, _))
+          case Array(BLOOM_FILTER_FPP, col)                    => option(key, value)(fpp)(builder.withBloomFilterFPP(col, _))
+          case Array(BLOOM_FILTER_CANDIDATES_NUMBER, col)      => option(key, value)(long)(n => builder.withBloomFilterCandidateNumber(col, n.toInt))
+          case Array(BLOOM_FILTER_MAX_BYTES)                   => option(key, value)(bytes)(builder.withMaxBloomFilterBytes(_))
+          case Array(ADAPTIVE_BLOOM_FILTER_ENABLED)            => option(key, value)(bool)(builder.withAdaptiveBloomFilterEnabled(_))
+          case _ => logger.warn(s"Ignoring unrecognized bloom filter option: $key")
+        }
+      }
+    }
+    builder
+  }
+
+  /**
+   * Translates the parquet bloom filter properties of an iceberg table (as set by e.g. Trino's
+   * `parquet_bloom_filter_columns`, and honored by other iceberg writers such as compaction) into the
+   * equivalent parquet write options
+   *
+   * @param properties iceberg table properties
+   * @return parquet write options
+   */
+  def icebergBloomFilterConf(properties: java.util.Map[String, String]): Map[String, String] = {
+    import ParquetOutputFormat._
+    import TableProperties._
+
+    val prefixes = Seq(
+      PARQUET_BLOOM_FILTER_COLUMN_ENABLED_PREFIX -> BLOOM_FILTER_ENABLED,
+      PARQUET_BLOOM_FILTER_COLUMN_NDV_PREFIX     -> BLOOM_FILTER_EXPECTED_NDV,
+      PARQUET_BLOOM_FILTER_COLUMN_FPP_PREFIX     -> BLOOM_FILTER_FPP,
+    )
+    properties.asScala.toMap.flatMap {
+      case (PARQUET_BLOOM_FILTER_MAX_BYTES, v) => Some(BLOOM_FILTER_MAX_BYTES -> v)
+      case (k, v) =>
+        prefixes.collectFirst { case (prefix, key) if k.startsWith(prefix) && k.length > prefix.length =>
+          s"$key#${k.substring(prefix.length)}" -> v
+        }
+    }
   }
 
   /**

@@ -14,6 +14,7 @@ import org.apache.iceberg._
 import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, TableIdentifier}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
+import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema.GeometryEncodingKey
@@ -69,7 +70,7 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
     val ns = conf.get(StorageCatalog.NamespaceConfigKey)
     val schema = SimpleFeatureIcebergSchema(table, ns)
     val schemes = PartitionSchemeFactory.load(schema, table.spec())
-    FileSystemStorage(table, schemes, schema, conf)
+    FileSystemStorage(table, schemes, schema, conf ++ ParquetFileSystemWriter.icebergBloomFilterConf(table.properties()))
   }
 
   override def create(sft: SimpleFeatureType, partitions: Seq[String], targetFileSize: Option[Long] = None): FileSystemStorage = {

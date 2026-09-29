@@ -188,6 +188,43 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
     }
 
+    "write bloom filters configured through iceberg table properties" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test-bloom", "name:String,code:String,*geom:Point:srid=4326,dtg:Date")
+
+      // distinct values, so parquet doesn't keep them dictionary encoded (which suppresses the filter)
+      val features = Seq.tabulate(200) { i =>
+        val sf = ScalaSimpleFeature.create(sft, i.toString, f"name-$i%05d", f"code-$i%05d", "POINT(45 55)", "2014-01-01T00:00:01.000Z")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf
+      }
+
+      WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, schemes)) { created =>
+          created.table.updateProperties()
+            .set("write.parquet.bloom-filter-enabled.column.name", "true")
+            .set("write.parquet.bloom-filter-ndv.column.name", "200")
+            .commit()
+        }
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          val partition = Partition(storage.schemes.map(_.getPartition(features.head)))
+          WithClose(storage.getWriter(partition))(w => features.foreach(w.write))
+
+          val files = storage.metadata.files().scan().toSeq
+          files must not(beEmpty)
+          WithClose(S3ObjectStore(s3Conf)) { fs =>
+            foreach(files) { file =>
+              WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(file.location())))) { reader =>
+                val columns = reader.getFooter.getBlocks.asScala.head.getColumns.asScala
+                val blooms = columns.flatMap(c => Option(reader.readBloomFilter(c)).map(c.getPath.toDotString -> _)).toMap
+                blooms.keySet mustEqual Set("name")
+                blooms("name").getBitsetSize must beLessThan(1024 * 1024)
+              }
+            }
+          }
+        }
+      }
+    }
+
     "read and write complex features" in {
       val sft = SimpleFeatureTypes.createType("parquet-test-complex",
         "name:String,age:Int,time:Long,height:Float,weight:Double,bool:Boolean," +
