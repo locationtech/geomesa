@@ -76,7 +76,7 @@ jobs:
               module="${pom%/pom.xml}"
               module="${module#./}"
               echo "Checking $module"
-              yq -e '.jobs.javadocs.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/javadocs.yml >/dev/null 2>&1 || exit 1
+              yq -e '.jobs.javadocs.strategy.matrix.projects[] | (.list, .["list-2.13"]) | select(. != null) | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/javadocs.yml >/dev/null 2>&1 || exit 1
             }
           done < <(find . -name pom.xml -print0)
           echo "done"
