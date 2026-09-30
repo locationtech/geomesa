@@ -332,10 +332,13 @@ package object dialect {
     ) {
 
     /**
-     * The key and INCLUDE clause of the dtg index, e.g. `("dtg") INCLUDE ("geom", "_vis")`
+     * The keys and INCLUDE clause of the dtg index, e.g. `("dtg", "_vis") INCLUDE ("geom")`
      */
-    def dtgIndexColumns: String =
-      if (dtgIncludes.isEmpty) { s"(${dtg.quoted})" } else { s"(${dtg.quoted}) INCLUDE (${dtgIncludes.map(_.quoted).mkString(", ")})" }
+    def dtgIndexColumns: String = {
+      // carry visibility as a trailing key so repeated (dtg, visibility) pairs can be deduplicated
+      val keys = (Seq(dtg) ++ vis).map(_.quoted).mkString("(", ", ", ")")
+      if (dtgIncludes.isEmpty) { keys } else { s"$keys INCLUDE (${dtgIncludes.map(_.quoted).mkString(", ")})" }
+    }
   }
 
   object Columns {
@@ -373,10 +376,9 @@ package object dialect {
       val all = sft.getAttributeDescriptors.asScala.map(ColumnName.apply)
       // the geometry only when it's a point: an index row is limited to ~2.7kB, and a larger geometry
       // would fail the insert
-      val dtgIncludes = if (!SftUserData.CoveringDtgIndex.get(sft)) { Seq.empty } else {
-        val point = classOf[Point].isAssignableFrom(sft.getGeometryDescriptor.getType.getBinding)
-        (if (point) { Seq(geom) } else { Seq.empty }) ++ vis
-      }
+      val dtgIncludes =
+        if (SftUserData.CoveringDtgIndex.get(sft) &&
+            classOf[Point].isAssignableFrom(sft.getGeometryDescriptor.getType.getBinding)) { Seq(geom) } else { Seq.empty }
       Columns(fid, dtg, geom, geoms.toSeq, indices.toSeq, vis, all.toSeq, dtgIncludes)
     }
   }

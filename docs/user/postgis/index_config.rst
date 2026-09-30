@@ -32,24 +32,30 @@ parent partition tables. See :ref:`pg_partition_table_design` for a description 
 Configuring a Covering Date Index
 ---------------------------------
 
-By default, the partition tables have a B-tree index on the default date attribute. Setting
-``pg.partitions.dtg-index.covering`` to ``true`` adds payload columns to this index using PostgreSQL's ``INCLUDE``
-clause. The primary geometry is included if its declared type is ``Point``, and the hidden ``_vis`` column is
-included if visibility filtering is enabled. Larger geometry types are excluded to avoid exceeding the maximum
-index tuple size. The default date attribute remains the sole index key, and time-based partitioning is unchanged.
+By default, the partition tables have a B-tree index on the default date attribute. When visibility filtering is
+enabled, the hidden ``_vis`` column is always added as a trailing key, e.g. ``(dtg, _vis)``. This allows date and
+visibility counts to use index-only scans while preserving PostgreSQL's ability to deduplicate repeated
+date-and-visibility pairs. The default date attribute remains the leading index key, and time-based partitioning
+is unchanged.
+
+Setting ``pg.partitions.dtg-index.covering`` to ``true`` additionally carries the primary geometry using PostgreSQL's
+``INCLUDE`` clause, e.g. ``(dtg, _vis) INCLUDE (geom)``. The geometry is included only if its declared type is ``Point``.
+Larger geometry types are excluded to avoid exceeding the maximum index tuple size.
 
 Covering indices can allow counts and queries whose filters and selected columns are all available in the index
 to use index-only scans. For point schemas, this can include queries with time, bounding-box and visibility filters.
-Avoiding heap reads also depends on PostgreSQL's visibility map, which is maintained by vacuuming. The covered index
-bears the tradeoff of increased index size and write overhead, so is disabled by default and should be enabled
-where it makes sense.
+Avoiding heap reads also depends on PostgreSQL's visibility map, which is maintained by vacuuming. Geometry
+covering increases index size and write overhead, and adding any ``INCLUDE`` column disables B-tree deduplication.
+Geometry covering is disabled by default and should be enabled based on the data and query patterns.
 
 .. code-block:: java
 
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.partitions.dtg-index.covering", "true");
 
-This setting cannot be changed after the schema has been created. See the PostgreSQL
+This setting cannot be changed after the schema has been created. Existing schemas retain their current parent
+index definitions during :ref:`postgis_partition_upgrade`; changing those definitions requires explicitly
+replacing the existing indices. See the PostgreSQL
 `covering index documentation <https://www.postgresql.org/docs/current/indexes-index-only-scans.html>`__ for more details.
 
 Configuring Partition Size

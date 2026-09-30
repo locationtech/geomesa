@@ -474,8 +474,8 @@ object PartitionedPostgisDialect extends StrictLogging {
     // but requires running PartitionedPostgisDialect.upgrade in order to be applied, and then only affects
     // partitions created afterwards
     val ToastTupleTarget: SftUserData[Option[Int]] = SftUserData("pg.partitions.toast-tuple-target", mutable = true, None)
-    // make the dtg index covering (the primary geometry if it is a point, and the visibility column), so that
-    // counts and time/bbox filters can be answered with index-only scans - can't be updated after schema is created
+    // include the primary geometry if it is a point in the dtg index, so that counts with time/bbox filters can
+    // use index-only scans; visibility is always a trailing key - can't be updated after schema is created
     val CoveringDtgIndex: SftUserData[Boolean] = SftUserData("pg.partitions.dtg-index.covering", mutable = false, default = false)
 
     // tablespace configurations - can be updated freely after the schema is created
@@ -521,7 +521,8 @@ object PartitionedPostgisDialect extends StrictLogging {
     Try {
       WithClose(cx.createStatement()) { st =>
         WithClose(st.executeQuery(sql)) { rs =>
-          Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1)).filter(_ != info.cols.fid.raw).toList
+          Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1))
+            .filter(c => c != info.cols.fid.raw && !info.cols.vis.exists(_.raw == c)).toList
         }
       }
     }

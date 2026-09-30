@@ -27,7 +27,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CompactPartitions, DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
 import org.locationtech.geomesa.index.process.ArrowVisitor
@@ -1206,16 +1206,18 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       ds must not(beNull)
 
       try {
-        {
-          val sft = SimpleFeatureTypes.renameSft(this.sft, "child_storage")
+        foreach(Seq(false, true)) { covering =>
+          val sft = SimpleFeatureTypes.renameSft(this.sft, s"child_storage_$covering")
           sft.getUserData.put(SftUserData.ToastTupleTarget.key, "512")
-          sft.getUserData.put(SftUserData.CoveringDtgIndex.key, "true")
+          if (covering) {
+            sft.getUserData.put(SftUserData.CoveringDtgIndex.key, "true")
+          }
           sft.getUserData.put(SftUserData.VisEnabled.key, "true")
           ds.createSchema(sft)
 
           val schema = ds.getSchema(sft.getTypeName)
           SftUserData.ToastTupleTarget.get(schema) must beSome(512)
-          SftUserData.CoveringDtgIndex.get(schema) must beTrue
+          SftUserData.CoveringDtgIndex.get(schema) mustEqual covering
 
           // the schema filters on visibility, which every written feature has to carry
           val labelled = features.map(f => SecurityUtils.setFeatureVisibility(ScalaSimpleFeature.retype(sft, f), "user"))
@@ -1260,17 +1262,31 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             main.length must beGreaterThan(partitioned.length)
             foreach(main) { case (_, opts) => opts must contain("toast_tuple_target=512") }
 
-            foreach(main.map(_._1)) { partition =>
+            val expectedIndex = if (covering) { "(dtg, _vis) INCLUDE (geom)" } else { "(dtg, _vis)" }
+            def checkIndex(partition: String): MatchResult[_] = {
               val sql =
                 s"SELECT indexdef FROM pg_indexes WHERE schemaname = '${this.schema}' AND tablename = '$partition'" +
-                    s" AND indexdef LIKE '%(dtg)%'"
+                    s" AND indexdef LIKE '%USING btree (dtg%';"
               WithClose(cx.createStatement().executeQuery(sql)) { rs =>
                 rs.next() must beTrue
-                rs.getString(1) must endWith("(dtg) INCLUDE (geom, _vis)")
+                rs.getString(1) must endWith(expectedIndex)
               }
             }
+            foreach(main.map(_._1))(checkIndex)
 
-            // the included columns aren't indexed attributes, so an upgrade must not give them indices of their own
+            // rebuilding a partition must keep the date/visibility keys and optional geometry payload
+            val compactDate = new java.sql.Timestamp(features.last.getAttribute("dtg").asInstanceOf[java.util.Date].getTime)
+            WithClose(cx.prepareCall(s"call ${CompactPartitions.name(typeInfo).quoted}(?);")) { st =>
+              st.setTimestamp(1, compactDate)
+              st.execute()
+            }
+            count(cx, typeInfo.tables.mainPartitions) mustEqual features.length
+            foreach(children(typeInfo.tables.mainPartitions)) { case (partition, opts) =>
+              opts must contain("toast_tuple_target=512")
+              checkIndex(partition)
+            }
+
+            // visibility keys and included geometry aren't independently indexed attributes
             def parentIndices: Seq[String] = {
               val sql = s"SELECT indexdef FROM pg_indexes WHERE schemaname = '${this.schema}'" +
                   s" AND tablename = '${typeInfo.tables.mainPartitions.name.raw}' ORDER BY 1"
@@ -1279,7 +1295,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
               }
             }
             val before = parentIndices
-            before must contain(endWith("(dtg) INCLUDE (geom, _vis)"))
+            before must contain(endWith(expectedIndex))
             ds.getSchema(sft.getTypeName).getDescriptor(PartitionedPostgisDialect.VisCol) must beNull // user-facing
             ds.upgrade(ds.getSchema(sft.getTypeName))
             parentIndices mustEqual before
