@@ -29,7 +29,11 @@ class FileSystemStats(ds: FileSystemDataStore) extends UnoptimizedRunnableStats(
       filter: Filter,
       exact: Boolean,
       queryHints: Hints): Option[Long] = {
-    Some(ds.storage(sft.getTypeName).getCount(filter, 1))
+    if (!exact || filter == Filter.INCLUDE) {
+      Some(ds.storage(sft.getTypeName).getCount(filter, 1))
+    } else {
+      super.getCount(sft, filter, exact, queryHints)
+    }
   }
 
   override def getMinMax[T](
@@ -37,13 +41,17 @@ class FileSystemStats(ds: FileSystemDataStore) extends UnoptimizedRunnableStats(
       attribute: String,
       filter: Filter,
       exact: Boolean): Option[MinMax[T]] = {
-    val (min, max) = ds.storage(sft.getTypeName).getBounds[T](attribute, filter, 1)
-    val minMax = Stat(sft, Stat.MinMax(attribute)).asInstanceOf[MinMax[T]]
-    val sf = new ScalaSimpleFeature(sft, "")
-    Seq(min, max).foreach { value =>
-      sf.setAttribute(attribute, value.asInstanceOf[AnyRef])
-      minMax.observe(sf)
+    if (!exact || filter == Filter.INCLUDE) {
+      val (min, max) = ds.storage(sft.getTypeName).getBounds[T](attribute, filter, 1)
+      val minMax = Stat(sft, Stat.MinMax(attribute)).asInstanceOf[MinMax[T]]
+      val sf = new ScalaSimpleFeature(sft, "")
+      Seq(min, max).foreach { value =>
+        sf.setAttribute(attribute, value.asInstanceOf[AnyRef])
+        minMax.observe(sf)
+      }
+      Some(minMax)
+    } else {
+      super.getMinMax(sft, attribute, filter, exact)
     }
-    Some(minMax)
   }
 }

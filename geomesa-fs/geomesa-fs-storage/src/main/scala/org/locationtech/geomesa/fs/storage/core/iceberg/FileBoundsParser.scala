@@ -33,6 +33,14 @@ object FileBoundsParser {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
+  /**
+   * Create a parser for a given attribute
+   *
+   * @param descriptor attribute descriptor
+   * @param fieldType iceberg field type
+   * @tparam T binding of the attribute
+   * @return
+   */
   def apply[T](descriptor: AttributeDescriptor, fieldType: Type): Option[FileBoundsParser[T]] = {
     val types = ObjectType.selectType(descriptor)
     val parser = types.head match {
@@ -70,7 +78,7 @@ object FileBoundsParser {
     }
   }
 
-  private object StringParser extends FileBoundsParser[String] {
+  object StringParser extends FileBoundsParser[String] {
     override def apply(buffer: ByteBuffer): String = {
       val charseq = parse[CharSequence](Types.StringType.get(), buffer)
       if (charseq == null) { null } else { charseq.toString }

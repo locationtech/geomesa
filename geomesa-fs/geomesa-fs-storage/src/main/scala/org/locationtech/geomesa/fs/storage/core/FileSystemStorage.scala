@@ -26,6 +26,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
+import org.locationtech.geomesa.fs.storage.core.iceberg.FileBoundsParser.StringParser
 import org.locationtech.geomesa.fs.storage.core.iceberg._
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
@@ -47,7 +48,6 @@ import org.locationtech.jts.geom.Geometry
 
 import java.io.{Closeable, Flushable}
 import java.net.URI
-import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.{Locale, UUID}
 import scala.collection.mutable.ArrayBuffer
@@ -174,7 +174,9 @@ case class FileSystemStorage(
   }
 
   /**
-   * Gets the count of matching records
+   * Gets the count of matching records.
+   *
+   * Note: may not be an exact count, depending on the filter. For an exact count, run a normal scan and count the results
    *
    * @param filter filter
    * @param threads number of threads to use for any scans
@@ -193,9 +195,9 @@ case class FileSystemStorage(
   def getBounds(filter: Filter, threads: Int): ReferencedEnvelope = fileOps(filter, threads, new BoundsFileOps(schema))
 
   /**
-   * Gets the spatial bounds of matching records.
-   * *
-   * * Note: does not always account for deleted records
+   * Gets the attribute bounds (min/max) of matching records.
+   *
+   * Note: does not always account for deleted records
    *
    * @param filter filter
    * @return
@@ -230,12 +232,10 @@ case class FileSystemStorage(
           remainingFiles += file.location()
         }
       } else {
-        def bound(bounds: java.util.Map[Integer, ByteBuffer]): CharSequence =
-          Conversions.fromByteBuffer[CharSequence](Types.StringType.get(), bounds.get(visFieldId))
-        val lowerBound = bound(file.lowerBounds())
-        if (lowerBound != null && lowerBound == bound(file.upperBounds())) {
+        val lowerBound = StringParser.apply(file.lowerBounds().get(visFieldId))
+        if (lowerBound != null && lowerBound == StringParser.apply(file.upperBounds().get(visFieldId))) {
           // only one vis marking, we can evaluate it here
-          if (visFilter.apply(lowerBound.toString)) {
+          if (visFilter.apply(lowerBound)) {
             if (!ops.fileOp(file, task.deletes().asScala.toSeq)) {
               remainingFiles += file.location()
             }
@@ -676,6 +676,9 @@ object FileSystemStorage extends LazyLogging {
 
   private object FileOps {
 
+    /**
+     * Counts records
+     */
     class CountFileOps extends FileOps[Long] {
 
       private var count: Long = 0
@@ -698,6 +701,11 @@ object FileSystemStorage extends LazyLogging {
       override def readAttributes: Seq[String] = Seq.empty
     }
 
+    /**
+     * Reads spatial bounds
+     *
+     * @param schema schema
+     */
     class BoundsFileOps(schema: SimpleFeatureIcebergSchema) extends FileOps[ReferencedEnvelope] {
 
       private val envelope = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
@@ -735,6 +743,13 @@ object FileSystemStorage extends LazyLogging {
       override def readAttributes: Seq[String] = Seq(geomAttribute)
     }
 
+    /**
+     * Read attribute bounds (min/max)
+     *
+     * @param schema schema
+     * @param attribute attribute name
+     * @tparam T attribute type binding
+     */
     class AttributeBoundsFileOps[T](schema: SimpleFeatureIcebergSchema, attribute: String) extends FileOps[(T, T)] {
 
       private val field = schema.schema.findField(ColumnName.encode(attribute))
