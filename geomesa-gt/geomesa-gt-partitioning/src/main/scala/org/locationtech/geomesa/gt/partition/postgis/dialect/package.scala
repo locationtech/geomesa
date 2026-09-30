@@ -15,6 +15,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisD
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.TemporalIndexCheck
+import org.locationtech.jts.geom.Point
 
 import java.io.Closeable
 import java.sql.{Connection, PreparedStatement}
@@ -220,8 +221,11 @@ package object dialect {
       // we disable autovacuum for write ahead tables, as they are transient and get dropped fairly quickly
       val writeAhead = TableConfig(schema, tablePrefix + WriteAheadTableSuffix.raw, SftUserData.WriteAheadTableSpace.get(sft), vacuum = false, logged)
       val writeAheadPartitions = TableConfig(schema, tablePrefix + PartitionedWriteAheadTableSuffix.raw, SftUserData.WriteAheadPartitionsTableSpace.get(sft), vacuum = false, logged)
-      val mainPartitions = TableConfig(schema, tablePrefix + PartitionedTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged)
-      val spillPartitions = TableConfig(schema, tablePrefix + SpillTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged)
+      val toastTupleTarget = SftUserData.ToastTupleTarget.get(sft)
+      require(toastTupleTarget.forall(t => t >= 128 && t <= 8160),
+        s"Toast tuple target must be between 128 and 8160: ${toastTupleTarget.orNull}")
+      val mainPartitions = TableConfig(schema, tablePrefix + PartitionedTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged, toastTupleTarget = toastTupleTarget)
+      val spillPartitions = TableConfig(schema, tablePrefix + SpillTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged, toastTupleTarget = toastTupleTarget)
       val analyzeQueue = TableConfig(schema, tablePrefix + AnalyzeTableSuffix.raw, None, logged = logged)
       val sortQueue = TableConfig(schema, tablePrefix + SortTableSuffix.raw, None, logged = logged)
       Tables(view, writeAhead, writeAheadPartitions, mainPartitions, spillPartitions, analyzeQueue, sortQueue)
@@ -233,29 +237,35 @@ package object dialect {
    *
    * @param name table name
    * @param tablespace table space
-   * @param storage storage opts (auto vacuum)
+   * @param storage storage opts (auto vacuum, toast tuple target)
    * @param logged logged or unlogged table
    */
   case class TableConfig(name: TableIdentifier, tablespace: Option[TableSpace], storage: Storage, logged: Boolean)
 
   object TableConfig {
-    def apply(schema: String, name: String, tablespace: Option[String], vacuum: Boolean = true, logged: Boolean = true): TableConfig = {
-      val storage = if (vacuum) { Storage.Nothing } else { Storage.AutoVacuumDisabled }
+    def apply(
+        schema: String,
+        name: String,
+        tablespace: Option[String],
+        vacuum: Boolean = true,
+        logged: Boolean = true,
+        toastTupleTarget: Option[Int] = None): TableConfig = {
       val ts = tablespace.collect { case t if t.nonEmpty => TableSpace(t) }
-      TableConfig(TableIdentifier(schema, name), ts, storage, logged)
+      TableConfig(TableIdentifier(schema, name), ts, Storage(vacuum, toastTupleTarget), logged)
     }
   }
 
-  sealed trait Storage {
-    def opts: String
-  }
-
-  object Storage {
-    case object Nothing extends Storage {
-      override val opts: String = ""
-    }
-    case object AutoVacuumDisabled extends Storage {
-      override val opts: String = " WITH (autovacuum_enabled = false)"
+  /**
+   * Storage parameters for the tables that hold rows
+   *
+   * @param vacuum autovacuum enabled
+   * @param toastTupleTarget stored row size above which values are moved out of line
+   */
+  case class Storage(vacuum: Boolean = true, toastTupleTarget: Option[Int] = None) {
+    val opts: String = {
+      val params = (if (vacuum) { Seq.empty } else { Seq("autovacuum_enabled = false") }) ++
+          toastTupleTarget.map(t => s"toast_tuple_target = $t")
+      if (params.isEmpty) { "" } else { params.mkString(" WITH (", ", ", ")") }
     }
   }
 
@@ -308,6 +318,7 @@ package object dialect {
    * @param indexed any indexed columns
    * @param vis hidden visibility column, if present
    * @param all all columns
+   * @param dtgIncludes columns carried by the dtg index, if it is covering
    */
   case class Columns(
       fid: ColumnName,
@@ -316,8 +327,19 @@ package object dialect {
       geoms: Seq[ColumnName],
       indexed: Seq[ColumnName],
       vis: Option[ColumnName],
-      all: Seq[ColumnName]
-    )
+      all: Seq[ColumnName],
+      dtgIncludes: Seq[ColumnName] = Seq.empty
+    ) {
+
+    /**
+     * The keys and INCLUDE clause of the dtg index, e.g. `("dtg", "_vis") INCLUDE ("geom")`
+     */
+    def dtgIndexColumns: String = {
+      // carry visibility as a trailing key so repeated (dtg, visibility) pairs can be deduplicated
+      val keys = (Seq(dtg) ++ vis).map(_.quoted).mkString("(", ", ", ")")
+      if (dtgIncludes.isEmpty) { keys } else { s"$keys INCLUDE (${dtgIncludes.map(_.quoted).mkString(", ")})" }
+    }
+  }
 
   object Columns {
 
@@ -352,7 +374,12 @@ package object dialect {
         case d if d.getLocalName == PartitionedPostgisDialect.VisCol => ColumnName(d)
       }
       val all = sft.getAttributeDescriptors.asScala.map(ColumnName.apply)
-      Columns(fid, dtg, geom, geoms.toSeq, indices.toSeq, vis, all.toSeq)
+      // the geometry only when it's a point: an index row is limited to ~2.7kB, and a larger geometry
+      // would fail the insert
+      val dtgIncludes =
+        if (SftUserData.CoveringDtgIndex.get(sft) &&
+            classOf[Point].isAssignableFrom(sft.getGeometryDescriptor.getType.getBinding)) { Seq(geom) } else { Seq.empty }
+      Columns(fid, dtg, geom, geoms.toSeq, indices.toSeq, vis, all.toSeq, dtgIncludes)
     }
   }
 

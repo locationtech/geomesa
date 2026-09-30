@@ -29,6 +29,35 @@ table column. See :ref:`attribute_indices` for details on how to specify indices
 After the schema has been created, additional indices can be added through ``CREATE INDEX`` statements on the
 parent partition tables. See :ref:`pg_partition_table_design` for a description of the partition tables.
 
+Configuring a Covering Date Index
+---------------------------------
+
+By default, the partition tables have a B-tree index on the default date attribute. When visibility filtering is
+enabled, the hidden ``_vis`` column is always added as a trailing key, e.g. ``(dtg, _vis)``. This allows date and
+visibility counts to use index-only scans while preserving PostgreSQL's ability to deduplicate repeated
+date-and-visibility pairs. The default date attribute remains the leading index key, and time-based partitioning
+is unchanged.
+
+Setting ``pg.partitions.dtg-index.covering`` to ``true`` additionally carries the primary geometry using PostgreSQL's
+``INCLUDE`` clause, e.g. ``(dtg, _vis) INCLUDE (geom)``. The geometry is included only if its declared type is ``Point``.
+Larger geometry types are excluded to avoid exceeding the maximum index tuple size.
+
+Covering indices can allow counts and queries whose filters and selected columns are all available in the index
+to use index-only scans. For point schemas, this can include queries with time, bounding-box and visibility filters.
+Avoiding heap reads also depends on PostgreSQL's visibility map, which is maintained by vacuuming. Geometry
+covering increases index size and write overhead, and adding any ``INCLUDE`` column disables B-tree deduplication.
+Geometry covering is disabled by default and should be enabled based on the data and query patterns.
+
+.. code-block:: java
+
+    SimpleFeatureType sft = ....;
+    sft.getUserData().put("pg.partitions.dtg-index.covering", "true");
+
+This setting cannot be changed after the schema has been created. Existing schemas retain their current parent
+index definitions during :ref:`postgis_partition_upgrade`; changing those definitions requires explicitly
+replacing the existing indices. See the PostgreSQL
+`covering index documentation <https://www.postgresql.org/docs/current/indexes-index-only-scans.html>`__ for more details.
+
 Configuring Partition Size
 --------------------------
 
@@ -70,6 +99,35 @@ The number of pages is configured with the key ``pg.partitions.pages-per-range``
     sft.getUserData().put("pg.partitions.pages-per-range", "64");
 
 The index resolution cannot be changed after the schema has been created.
+
+Configuring TOAST Tuple Target
+------------------------------
+
+PostgreSQL uses TOAST to compress or store large column values outside the main table. The key
+``pg.partitions.toast-tuple-target`` configures ``toast_tuple_target`` for main and spill leaf partitions,
+including tables rebuilt during compaction. It does not apply to write-ahead tables or write-ahead partitions.
+
+The value is specified in bytes and must be between ``128`` and ``8160``, inclusive. If unset, PostgreSQL's default
+is used, normally ``2040`` bytes with the default block size. The target controls when PostgreSQL attempts to
+compress or move large values out of line and the row size it tries to reach; it does not impose a maximum row size.
+
+A lower target can reduce the data read when scanning rows without accessing large attributes, such as JSON
+columns. However, reading those attributes may require additional TOAST table access. The best target depends
+on the data and query patterns.
+
+.. code-block:: java
+
+    SimpleFeatureType sft = ....;
+    sft.getUserData().put("pg.partitions.toast-tuple-target", "512");
+
+After the schema has been created, changes can be made through the :ref:`postgis_cli_update_schema` command,
+which also re-writes the partition procedures. If the setting is changed directly in the ``geomesa_userdata``
+table, run :ref:`postgis_partition_upgrade` to re-write the procedures. Changes apply to subsequently created
+or rebuilt partitions; they do not alter existing partition tables or rows in place.
+
+See the PostgreSQL
+`storage parameter documentation <https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS>`__
+for more details.
 
 Configuring Data Age-Off
 ------------------------

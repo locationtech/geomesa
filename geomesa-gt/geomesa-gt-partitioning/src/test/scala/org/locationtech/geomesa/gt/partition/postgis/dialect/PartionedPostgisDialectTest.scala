@@ -26,6 +26,21 @@ class PartionedPostgisDialectTest extends Specification with Mockito {
 
   "PartitionedPostgisDialect" should {
 
+    "keep visibility in the date index keys and make geometry covering optional" in {
+      val cases = Seq(
+        "dtg:Date,*geom:Point:srid=4326" -> "(\"dtg\")",
+        s"dtg:Date,*geom:Point:srid=4326,$VisCol:String" -> "(\"dtg\", \"_vis\")",
+        "dtg:Date,*geom:Point:srid=4326;pg.partitions.dtg-index.covering=true" -> "(\"dtg\") INCLUDE (\"geom\")",
+        s"dtg:Date,*geom:Point:srid=4326,$VisCol:String;pg.partitions.dtg-index.covering=true" ->
+            "(\"dtg\", \"_vis\") INCLUDE (\"geom\")",
+        s"dtg:Date,*geom:Polygon:srid=4326,$VisCol:String;pg.partitions.dtg-index.covering=true" ->
+            "(\"dtg\", \"_vis\")"
+      )
+      foreach(cases) { case (spec, expected) =>
+        Columns(SimpleFeatureTypes.createType("date_index", spec)).dtgIndexColumns mustEqual expected
+      }
+    }
+
     "add a pg_vis predicate to each main view branch when a _vis column is present" in {
       val sft = SimpleFeatureTypes.createType("vistest", s"name:String,dtg:Date,*geom:Point:srid=4326,$VisCol:String")
       val info = TypeInfo("public", sft)

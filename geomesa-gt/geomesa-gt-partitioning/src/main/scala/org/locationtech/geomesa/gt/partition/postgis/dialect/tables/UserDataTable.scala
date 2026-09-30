@@ -75,7 +75,8 @@ class UserDataTable extends Sql {
     if (info.cols.vis.isDefined) {
       insert(SftUserData.VisEnabled, "true")
     }
-    Seq(SftUserData.FilterWholeWorld, SftUserData.QueryInterceptors).foreach { config =>
+    Seq(SftUserData.FilterWholeWorld, SftUserData.QueryInterceptors, SftUserData.ToastTupleTarget,
+        SftUserData.CoveringDtgIndex).foreach { config =>
       info.userData.get(config.key).foreach(v => insert(config, v))
     }
   }

@@ -27,7 +27,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CompactPartitions, DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
 import org.locationtech.geomesa.index.process.ArrowVisitor
@@ -1194,6 +1194,111 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
                 tableType mustEqual "unlogged"
               }
             }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "create child partitions with the configured toast target and covering dtg index" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      ds must not(beNull)
+
+      try {
+        foreach(Seq(false, true)) { covering =>
+          val sft = SimpleFeatureTypes.renameSft(this.sft, s"child_storage_$covering")
+          sft.getUserData.put(SftUserData.ToastTupleTarget.key, "512")
+          if (covering) {
+            sft.getUserData.put(SftUserData.CoveringDtgIndex.key, "true")
+          }
+          sft.getUserData.put(SftUserData.VisEnabled.key, "true")
+          ds.createSchema(sft)
+
+          val schema = ds.getSchema(sft.getTypeName)
+          SftUserData.ToastTupleTarget.get(schema) must beSome(512)
+          SftUserData.CoveringDtgIndex.get(schema) mustEqual covering
+
+          // the schema filters on visibility, which every written feature has to carry
+          val labelled = features.map(f => SecurityUtils.setFeatureVisibility(ScalaSimpleFeature.retype(sft, f), "user"))
+          WithClose(new DefaultTransaction()) { tx =>
+            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+              labelled.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+            }
+            tx.commit()
+          }
+
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            val typeInfo = TypeInfo(this.schema, sft)
+            WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
+            WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
+
+            // the features span 20 to 200 minutes ago, so there are both main and write ahead partitions
+            def children(parent: TableConfig): Seq[(String, String)] = {
+              val sql =
+                s"""SELECT c.relname, array_to_string(c.reloptions, ',')
+                   |  FROM pg_inherits i JOIN pg_class c ON c.oid = i.inhrelid
+                   |  WHERE i.inhparent = ${parent.name.asRegclass}""".stripMargin
+              WithClose(cx.createStatement().executeQuery(sql)) { rs =>
+                val result = ArrayBuffer.empty[(String, String)]
+                while (rs.next()) {
+                  result += ((rs.getString(1), Option(rs.getString(2)).getOrElse("")))
+                }
+                result.toSeq
+              }
+            }
+            val writeAhead = children(typeInfo.tables.writeAheadPartitions)
+            writeAhead must not(beEmpty)
+            foreach(writeAhead) { case (_, opts) => opts must not(contain("toast_tuple_target")) }
+            val partitioned = children(typeInfo.tables.mainPartitions)
+            partitioned must not(beEmpty)
+
+            // main partitions are also created by merging the write ahead partitions once they age past the
+            // cutoff, which is how most of them are made - run it as if a few hours had passed
+            WithClose(cx.prepareCall(s"call ${MergeWriteAheadPartitions.name(typeInfo).quoted}(now()::timestamp + interval '3 hours');"))(_.execute())
+            children(typeInfo.tables.writeAheadPartitions) must beEmpty
+            val main = children(typeInfo.tables.mainPartitions)
+            main.map(_._1) must containAllOf(partitioned.map(_._1))
+            main.length must beGreaterThan(partitioned.length)
+            foreach(main) { case (_, opts) => opts must contain("toast_tuple_target=512") }
+
+            val expectedIndex = if (covering) { "(dtg, _vis) INCLUDE (geom)" } else { "(dtg, _vis)" }
+            def checkIndex(partition: String): MatchResult[_] = {
+              val sql =
+                s"SELECT indexdef FROM pg_indexes WHERE schemaname = '${this.schema}' AND tablename = '$partition'" +
+                    s" AND indexdef LIKE '%USING btree (dtg%';"
+              WithClose(cx.createStatement().executeQuery(sql)) { rs =>
+                rs.next() must beTrue
+                rs.getString(1) must endWith(expectedIndex)
+              }
+            }
+            foreach(main.map(_._1))(checkIndex)
+
+            // rebuilding a partition must keep the date/visibility keys and optional geometry payload
+            val compactDate = new java.sql.Timestamp(features.last.getAttribute("dtg").asInstanceOf[java.util.Date].getTime)
+            WithClose(cx.prepareCall(s"call ${CompactPartitions.name(typeInfo).quoted}(?);")) { st =>
+              st.setTimestamp(1, compactDate)
+              st.execute()
+            }
+            count(cx, typeInfo.tables.mainPartitions) mustEqual features.length
+            foreach(children(typeInfo.tables.mainPartitions)) { case (partition, opts) =>
+              opts must contain("toast_tuple_target=512")
+              checkIndex(partition)
+            }
+
+            // visibility keys and included geometry aren't independently indexed attributes
+            def parentIndices: Seq[String] = {
+              val sql = s"SELECT indexdef FROM pg_indexes WHERE schemaname = '${this.schema}'" +
+                  s" AND tablename = '${typeInfo.tables.mainPartitions.name.raw}' ORDER BY 1"
+              WithClose(cx.createStatement().executeQuery(sql)) { rs =>
+                Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1)).toList
+              }
+            }
+            val before = parentIndices
+            before must contain(endWith(expectedIndex))
+            ds.getSchema(sft.getTypeName).getDescriptor(PartitionedPostgisDialect.VisCol) must beNull // user-facing
+            ds.upgrade(ds.getSchema(sft.getTypeName))
+            parentIndices mustEqual before
           }
         }
       } finally {
