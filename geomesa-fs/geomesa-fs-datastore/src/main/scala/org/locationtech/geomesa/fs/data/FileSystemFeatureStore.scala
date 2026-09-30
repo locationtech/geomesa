@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.fs.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.iceberg.types.{Conversions, Types}
 import org.geotools.api.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -21,7 +20,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
-import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName}
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -50,29 +48,10 @@ class FileSystemFeatureStore(
 
   override def buildFeatureType(): SimpleFeatureType = storage.sft
 
-  override def getBoundsInternal(query: Query): ReferencedEnvelope = {
-    val envelope = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    val bboxFieldName = BoundingBoxField.groupName(ColumnName.encode(storage.sft.getGeometryDescriptor.getLocalName))
-    val bboxField = storage.schema.schema.findField(bboxFieldName).`type`().asStructType()
-    val (minFieldIds, maxFieldIds) =
-      Seq(BoundingBoxField.XMin, BoundingBoxField.YMin, BoundingBoxField.XMax, BoundingBoxField.YMax)
-        .map(f => bboxField.field(f).fieldId())
-        .splitAt(2)
-    storage.metadata.files().includeFileStats().forFilter(query.getFilter).scan().foreach { f =>
-      val minBuffers = minFieldIds.map(f.lowerBounds().get)
-      val maxBuffers = maxFieldIds.map(f.upperBounds().get)
-      if (!minBuffers.contains(null) && !maxBuffers.contains(null)) {
-        val Seq(xmin, ymin) = minBuffers.map(Conversions.fromByteBuffer[Float](Types.FloatType.get(), _))
-        val Seq(xmax, ymax) = maxBuffers.map(Conversions.fromByteBuffer[Float](Types.FloatType.get(), _))
-        envelope.expandToInclude(xmin, ymin)
-        envelope.expandToInclude(xmax, ymax)
-      }
-    }
-    envelope
-  }
+  override def getBoundsInternal(query: Query): ReferencedEnvelope = storage.getBounds(query.getFilter, config.readThreads)
 
   override def getCountInternal(query: Query): Int = {
-    val count = storage.metadata.files().forFilter(query.getFilter).scan().map(_.recordCount()).sum
+    val count = storage.getCount(query.getFilter, config.readThreads)
     if (count.isValidInt) { count.toInt } else { Int.MaxValue }
   }
 

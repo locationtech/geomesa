@@ -27,8 +27,10 @@ object VisibilityUtils {
     new AuthVisibilityFeatureCheck(provider.getAuthorizations)
 
   /**
+   * Return a local function that will check visibility strings directly, based on the user's current authorizations.
+   * Not thread-safe or re-usable in a subsequent request.
    *
-   * @param provider
+   * @param provider auth provider
    * @return
    */
   def check(provider: AuthorizationsProvider): String => Boolean = new AuthVisibilityCheck(provider.getAuthorizations)

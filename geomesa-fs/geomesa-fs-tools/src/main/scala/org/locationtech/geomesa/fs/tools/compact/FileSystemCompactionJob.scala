@@ -35,6 +35,8 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
   import FileSystemCompactionJob.{FailedCounter, MappedCounter}
 
+  import scala.collection.JavaConverters._
+
   def run(
       storage: FileSystemStorage,
       partitions: Seq[Partition],
@@ -81,7 +83,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     // mimic the filtering done in PartitionInputFormat
     val sizeCheck = storage.sizer.targetSize.map(t => (p: DataFile) => storage.sizer.fileIsSized(p, t))
     val existingDataFiles = partitions.toList.flatMap { p =>
-      val files = storage.metadata.files().forPartition(p).scan().filterNot(f => sizeCheck.exists(_.apply(f)))
+      val files = storage.metadata.files().forPartition(p).scan().filterNot(f => sizeCheck.exists(_.apply(f.file())))
       // TODO get counts right... use m/r counters?
       if (files.isEmpty) { None } else { Some(p -> files) }
     }
@@ -107,9 +109,12 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
           val counter = StorageConfiguration.Counters.partition(name)
           val count = Option(job.getCounters.findCounter(StorageConfiguration.Counters.Group, counter)).map(_.getValue)
           val delete = storage.table.newDelete()
-          files.foreach(delete.deleteFile)
+          files.foreach(f => delete.deleteFile(f.file()))
           delete.commit()
-          files.foreach(f => storage.table.io().deleteFile(f.location()))
+          files.foreach { f =>
+            storage.table.io().deleteFile(f.file().location())
+            f.deletes().asScala.foreach(d => storage.table.io().deleteFile(d.location()))
+          }
           val removed = count.map(c => s"containing $c features ").getOrElse("")
           Command.user.info(s"Removed ${TextTools.getPlural(files.size, "file")} ${removed}in partition $name")
         }

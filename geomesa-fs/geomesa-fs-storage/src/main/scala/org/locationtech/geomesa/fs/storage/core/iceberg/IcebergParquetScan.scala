@@ -63,10 +63,25 @@ class IcebergParquetScan(
             var fileCount = 0
             logger.debug("Submitting tasks")
             tasks.forEachRemaining { task =>
-              logger.trace(s"Submitting task with ${task.filesCount()} file(s)")
-              pool.submit(new TaskRunnable(task))
-              taskCount += 1
-              fileCount += task.filesCount()
+              val fileTasks = task.files().asScala.toSeq
+              val filteredTasks = fileFilter match {
+                case None => fileTasks
+                case Some(filt) =>
+                  fileTasks.filter { fileTask =>
+                    val res = filt.apply(fileTask.file().location())
+                    if (!res) {
+                      logger.debug(
+                        s"Skipping file ${fileTask.file().location()} [${fileTask.start()}:${fileTask.length()}] due to file filter")
+                    }
+                    res
+                  }
+              }
+              if (filteredTasks.nonEmpty) {
+                logger.trace(s"Submitting task with ${filteredTasks.size} file(s)")
+                pool.submit(new TaskRunnable(filteredTasks))
+                taskCount += 1
+                fileCount += filteredTasks.size
+              }
             }
             logger.debug(s"Submitted $taskCount tasks (scanning $fileCount total files) using $threads threads")
           }
@@ -119,47 +134,42 @@ class IcebergParquetScan(
   }
 
   private def readFile(task: FileScanTask, projection: Schema): CloseableIterator[StructLike] = {
+    logger.debug(s"Reading file ${task.file().location()} [${task.start()}:${task.length()}] with filter: ${task.residual()}")
     val inputFile = table.io().newInputFile(task.file())
-    if (fileFilter.exists(_.apply(inputFile.location()) == false)) {
-      logger.debug(s"Skipping file ${inputFile.location()} [${task.start()}:${task.length()}] due to file filter")
-      CloseableIterator.empty[StructLike]
-    } else {
-      logger.debug(s"Reading file ${inputFile.location()} [${task.start()}:${task.length()}] with filter: ${task.residual()}")
-      // we have to pass in the file path as a constant
-      val idToConstant = java.util.Map.of[Integer, Any](MetadataColumns.FILE_PATH_COLUMN_ID, inputFile.location())
-      // note: can't reuse containers b/c we put everything onto the queue - reading row-by-row with reused containers is much slower
-      val reader =
-        Parquet.read(inputFile)
-          .project(projection)
-          .split(task.start(), task.length())
-          .caseSensitive(false)
-          .filter(task.residual())
-          .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(projection, fileSchema, idToConstant))
-          .build[Record]()
-      val iter = reader.iterator()
-      CloseableIterator(iter.asScala, CloseWithLogging(Seq(iter, reader)))
-    }
+    // we have to pass in the file path as a constant
+    val idToConstant = java.util.Map.of[Integer, Any](MetadataColumns.FILE_PATH_COLUMN_ID, inputFile.location())
+    // note: can't reuse containers b/c we put everything onto the queue - reading row-by-row with reused containers is much slower
+    val reader =
+      Parquet.read(inputFile)
+        .project(projection)
+        .split(task.start(), task.length())
+        .caseSensitive(false)
+        .filter(task.residual())
+        .createReaderFunc(fileSchema => GenericParquetReaders.buildReader(projection, fileSchema, idToConstant))
+        .build[Record]()
+    val iter = reader.iterator()
+    CloseableIterator(iter.asScala, CloseWithLogging(Seq(iter, reader)))
   }
 
-  private class TaskRunnable(val task: CombinedScanTask) extends Runnable {
+  private class TaskRunnable(tasks: Seq[FileScanTask]) extends Runnable {
     override def run(): Unit = {
       try {
-        task.files().iterator().asScala.foreach { file =>
+        tasks.foreach { task =>
           if (!closed.get()) {
-            val deleteFilter = if (file.deletes().isEmpty) { None } else {
-              val filter = new GenericDeleteFilter(table.io(), file, table.schema(), schema.schema)
+            val deleteFilter = if (task.deletes().isEmpty) { None } else {
+              val filter = new GenericDeleteFilter(table.io(), task, table.schema(), schema.schema)
               require(!filter.hasEqDeletes,
-                s"Only positional deletes are supported, but got equality deletes: ${file.deletes().asScala.map(_.location()).mkString(", ")}")
+                s"Only positional deletes are supported, but got equality deletes: ${task.deletes().asScala.map(_.location()).mkString(", ")}")
               Some(filter).filter(_.hasPosDeletes)
             }
             val projection = deleteFilter.fold(schema.schema)(_.requiredSchema())
-            WithClose(readFile(file, projection)) { iter =>
+            WithClose(readFile(task, projection)) { iter =>
               val withDeletes = deleteFilter.fold(iter) { deletes =>
                 val index = deletes.deletedRowPositions()
                 val position = projection.accessorForField(MetadataColumns.ROW_POSITION.fieldId())
                 iter.filterNot(r => index.isDeleted(position.get(r).asInstanceOf[java.lang.Long]))
               }
-              val residual = file.residual()
+              val residual = task.residual()
               val filtered = if (residual == null || residual == Expressions.alwaysTrue()) { withDeletes } else {
                 val filter = new Evaluator(projection.asStruct(), residual, false)
                 val wrapper = new InternalRecordWrapper(projection.asStruct())

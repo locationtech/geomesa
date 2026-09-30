@@ -21,6 +21,7 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.json.{JSONObject, JSONTokener}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -35,10 +36,10 @@ import org.locationtech.geomesa.fs.storage.core.utils.TestObserverFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.security.{AuthsParam, DefaultAuthorizationsProvider, SecurityUtils, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
@@ -128,10 +129,10 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
   private def writeBlooms(storage: FileSystemStorage): Seq[Map[String, BloomFilter]] = {
     val features = bloomFeatures(storage.sft)
     WithClose(storage.getWriter(Partition(storage.schemes.map(_.getPartition(features.head)))))(w => features.foreach(w.write))
-    val files = storage.metadata.files().scan().toSeq
+    val files = storage.metadata.files().scan()
     files must not(beEmpty)
     WithClose(S3ObjectStore(s3Conf)) { fs =>
-      files.map(f => WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(f.location()))))(readBlooms))
+      files.map(f => WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(f.file().location()))))(readBlooms))
     }
   }
 
@@ -193,7 +194,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
             storage.metadata.files().forPartition(Partition(Seq(PartitionKey(storage.schemes.head.name, "e1")))).scan().headOption.orNull
           firstPartitionFile must not(beNull)
           WithClose(S3ObjectStore(s3Conf)) { fs =>
-            WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(firstPartitionFile.location())))) { reader =>
+            WithClose(ParquetFileReader.open(new S3InputFile(fs, URI.create(firstPartitionFile.file().location())))) { reader =>
               val meta = reader.getFileMetaData.getKeyValueMetaData
               val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
               geo must not(beNull)
@@ -367,7 +368,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           try {
             WithClose(S3ObjectStore(s3Conf)) { fs =>
               WithClose(new FileOutputStream(tmpFile.toFile)) { os =>
-                WithClose(fs.read(URI.create(firstPartitionFile.location())).orNull) { is =>
+                WithClose(fs.read(URI.create(firstPartitionFile.file().location())).orNull) { is =>
                   IOUtils.copy(is, os)
                 }
               }
@@ -679,6 +680,77 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
     }
 
+    "accurately count and bound features with visibilities" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
+
+      val authTests = Seq(
+        "user,admin" -> (296, new ReferencedEnvelope(CRS_EPSG_4326)),
+        "user"       -> (247, new ReferencedEnvelope(CRS_EPSG_4326)),
+        ""           -> (99, new ReferencedEnvelope(CRS_EPSG_4326)),
+      )
+
+      val features = Seq.tabulate(300) { i =>
+        val sf = new ScalaSimpleFeature(sft, f"$i%03d")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute(1, s"name$i")
+        sf.setAttribute(2, s"$i")
+        sf.setAttribute(3, f"2014-01-${(i % 31) + 1}%02dT00:00:01.000Z")
+        // split our features up by file to test various count optimizations
+        if (i < 100) {
+          sf.setAttribute(0, "POINT(10 10)")
+          SecurityUtils.setFeatureVisibility(sf, null)
+          authTests.foreach(_._2._2.expandToInclude(sf.getAttribute(0).asInstanceOf[Point].getCoordinate))
+        } else if (i < 200) {
+          sf.setAttribute(0, "POINT(40 50)")
+          SecurityUtils.setFeatureVisibility(sf, "user")
+          authTests.take(2).foreach(_._2._2.expandToInclude(sf.getAttribute(0).asInstanceOf[Point].getCoordinate))
+        } else {
+          val isUser = i % 2 == 0
+          sf.setAttribute(0, s"POINT(-40 -50)")
+          SecurityUtils.setFeatureVisibility(sf, if (isUser) "user" else "user&admin")
+          authTests.take(if (isUser) 2 else 1).foreach(_._2._2.expandToInclude(sf.getAttribute(0).asInstanceOf[Point].getCoordinate))
+        }
+        sf
+      }
+
+      val context = newPath()
+      foreach(authTests) { case (auths, (visible, envelope)) =>
+        WithClose(StorageCatalog(context ++ Map(AuthsParam.key -> auths))) { catalog =>
+          if (!catalog.getTypeNames.contains(sft.getTypeName)) {
+            WithClose(catalog.create(sft, schemes)) { storage =>
+              storage must not(beNull)
+
+              val writers = scala.collection.mutable.Map.empty[Partition, FileSystemWriter]
+
+              features.foreach { f =>
+                val partition = Partition(storage.schemes.map(_.getPartition(f)))
+                val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+                writer.write(f)
+              }
+
+              writers.foreach(_._2.close())
+              writers must haveLength(3)
+
+              logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+              // verify deletes are tracked in counts
+              WithClose(storage.getWriter(ECQL.toFilter("IN ('000','100','200','201')"), 1)) { writer =>
+                while (writer.hasNext) {
+                  writer.next()
+                  writer.remove()
+                }
+              }
+            }
+          }
+          WithClose(catalog.load(sft.getTypeName)) { storage =>
+            storage must not(beNull)
+            storage.getCount(Filter.INCLUDE, 1) mustEqual visible
+            storage.getBounds(Filter.INCLUDE, 1) mustEqual envelope
+          }
+        }
+      }
+    }
+
     "modify and delete features" in {
       val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
 
@@ -892,7 +964,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
             val paths = storage.metadata.files().forPartition(partition).scan()
             paths.size must beGreaterThan(1)
             foreach(paths) { p =>
-              storage.table.io().newInputFile(p.location()).getLength must beCloseTo(targetSize, targetSize / 10)
+              storage.table.io().newInputFile(p.file().location()).getLength must beCloseTo(targetSize, targetSize / 10)
             }
           }
         }

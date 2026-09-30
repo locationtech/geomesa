@@ -17,6 +17,8 @@ import org.locationtech.geomesa.tools.{Command, OptionalCqlFilterParam, Required
 
 class FsGetFilesCommand extends FsDataStoreCommand {
 
+  import scala.collection.JavaConverters._
+
   override val params = new FSGetFilesParams
 
   override val name: String = "get-files"
@@ -45,11 +47,13 @@ class FsGetFilesCommand extends FsDataStoreCommand {
         (fromFilter ++ fromPartitions).distinct
       }
 
-    files.groupBy(f => metadata.partition(f)).toSeq.sortBy(_._1.toString).foreach { case (p, files) =>
+    files.groupBy(f => metadata.partition(f.file())).toSeq.sortBy(_._1.toString).foreach { case (p, files) =>
       Command.output.info(s"$p:")
       // sort by record count descending
-      files.sortBy(_.recordCount())(Ordering[Long].reverse).foreach { f =>
-        Command.output.info(s"  ${f.location()} ${f.recordCount()} features")
+      files.sortBy(_.file().recordCount())(Ordering[Long].reverse).foreach { f =>
+        val deletes = f.deletes().asScala.map(_.recordCount()).sum
+        val count = f.file().recordCount() - deletes
+        Command.output.info(s"  ${f.file().location()} $count features${if (deletes > 0) { s" (and $deletes deleted features)" } else { "" }}")
       }
     }
   }
