@@ -44,7 +44,7 @@ class ParquetPartitionInputFormat extends InputFormat[Void, SimpleFeature] {
         val sizeCheck = fileSize.orElse(storage.sizer.targetSize).map(t => (f: DataFile) => storage.sizer.fileIsSized(f, t))
         val splits = StorageConfiguration.getPartitions(hadoopConf).map { partition =>
           var size = 0L
-          // TODO doesn't account for deletes
+          // Delete vectors are applied when PartitionRecordReader re-plans these files with IcebergParquetScan.
           val files = storage.metadata.files().forPartition(partition).scan().map(_.file()).filter { f =>
             if (sizeCheck.exists(_.apply(f))) { false } else {
               size += f.fileSizeInBytes()
