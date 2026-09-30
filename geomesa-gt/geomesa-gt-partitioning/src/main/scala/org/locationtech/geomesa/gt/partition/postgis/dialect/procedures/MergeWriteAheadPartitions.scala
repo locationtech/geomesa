@@ -112,10 +112,10 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |            INTO partition_tablespace;
        |          IF partition_tablespace IS NULL THEN
        |            index_tablespace := '';
-       |            partition_tablespace := '${info.tables.mainPartitions.storage.opts}';
+       |            partition_tablespace := '';
        |          ELSE
        |            index_tablespace := ' USING INDEX TABLESPACE '|| quote_ident(partition_tablespace);
-       |            partition_tablespace := '${info.tables.mainPartitions.storage.opts} TABLESPACE ' || quote_ident(partition_tablespace);
+       |            partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
        |          END IF;
        |
        |          SELECT COALESCE(
@@ -136,7 +136,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |          --   we're already sorting and there should be few or no conflicts
        |          -- create the partition table with a 'create as' for improved performance
        |          EXECUTE 'CREATE ' || table_wa_logging || 'TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |            partition_tablespace || ' AS SELECT DISTINCT ON' ||
+       |            '${info.tables.mainPartitions.storage.opts}' || partition_tablespace || ' AS SELECT DISTINCT ON' ||
        |            ' (_st_sortablehash(${info.cols.geom.quoted}), ${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) * FROM ' ||
        |            quote_ident(partition_name || '_tmp_migrate') || ' ORDER BY _st_sortablehash(${info.cols.geom.quoted})';
        |          GET DIAGNOSTICS unsorted_count := ROW_COUNT;
