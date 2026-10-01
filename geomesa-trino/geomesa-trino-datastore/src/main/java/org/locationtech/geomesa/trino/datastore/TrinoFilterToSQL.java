@@ -10,6 +10,8 @@ package org.locationtech.geomesa.trino.datastore;
 
 import org.geotools.api.feature.type.AttributeDescriptor;
 import org.geotools.api.filter.Id;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.PropertyIsEqualTo;
 import org.geotools.api.filter.expression.Expression;
 import org.geotools.api.filter.expression.Function;
 import org.geotools.api.filter.expression.Literal;
@@ -315,6 +317,52 @@ public class TrinoFilterToSQL extends FilterToSQL {
     // ── JSON path ─────────────────────────────────────────────────────────────
 
     /**
+     * A necessary condition for case-sensitive string equality on a schemaless JSON path.
+     * GeoTools equality performs type conversions and collection matching, so comparing
+     * VARIANT values directly is not an exact replacement. Reject only nonmatching strings;
+     * keep all other types (including missing fields and failed navigation) for the residual.
+     * This is deliberately limited to a positive equality conjunct, never its negation.
+     *
+     * @param filter a single conjunct
+     * @return SQL prefilter, or null when the conjunct is unsupported
+     */
+    String variantPrefilter(Filter filter) {
+        if (!(filter instanceof PropertyIsEqualTo equal) || !equal.isMatchingCase()) {
+            return null;
+        }
+        Expression left = equal.getExpression1();
+        Expression right = equal.getExpression2();
+        PropertyName property;
+        Literal literal;
+        if (left instanceof PropertyName p && right instanceof Literal l) {
+            property = p;
+            literal = l;
+        } else if (right instanceof PropertyName p && left instanceof Literal l) {
+            property = p;
+            literal = l;
+        } else {
+            return null;
+        }
+        if (!(literal.getValue() instanceof String value)) {
+            return null;
+        }
+        String name = property.getPropertyName();
+        if (name == null || !name.startsWith("$")) {
+            return null;
+        }
+        // Reuse the path validation and escaping of the structural translator.
+        String ref = writeJsonPath(name, true);
+        if (ref == null) {
+            return null;
+        }
+        String leaf = "TRY(" + ref + ")";
+        // Only a VARIANT string equals its VARCHAR -> VARIANT round trip. Numeric,
+        // boolean and container values must still reach the GeoTools residual.
+        return "CASE WHEN TRY(" + leaf + " = CAST(TRY_CAST(" + leaf + " AS VARCHAR) AS VARIANT))"
+            + " THEN " + leaf + " = CAST('" + value.replace("'", "''") + "' AS VARIANT) ELSE TRUE END";
+    }
+
+    /**
      * Emits a property reference. A property name that starts with {@code $} is a JSON path
      * into a structural ({@code json=true} with a {@code json-schema}) attribute; it is
      * translated to a Trino ROW dereference — {@code "$.props.name"} becomes
@@ -377,6 +425,11 @@ public class TrinoFilterToSQL extends FilterToSQL {
      * validate at query time (structural check only — no Avro schema navigation here).
      */
     private void writeJsonPath(String pathString) {
+        write(writeJsonPath(pathString, false));
+    }
+
+    /** Validated ROW dereference or VARIANT object subscripts. */
+    private String writeJsonPath(String pathString, boolean variantPrefiltering) {
         JsonPathParser.JsonPath path;
         try {
             path = JsonPathParser.parse(pathString, true);
@@ -405,10 +458,13 @@ public class TrinoFilterToSQL extends FilterToSQL {
         Map<Object, Object> userData = descriptor.getUserData();
         if (!"true".equals(userData.get(TrinoTypeMapper.OPT_JSON))) {
             throw new IllegalArgumentException("Invalid JSON path - points at a non-JSON attribute: " + pathString);
-        } else if (userData.get(TrinoTypeMapper.OPT_JSON_SCHEMA) == null) {
+        } else if (!variantPrefiltering && userData.get(TrinoTypeMapper.OPT_JSON_SCHEMA) == null) {
             // json=true but no json-schema: stored as an opaque variant, with no ROW fields to dereference
             throw new IllegalArgumentException(
                 "Invalid JSON path - points at an opaque JSON attribute with no structural schema: " + pathString);
+        }
+        if (variantPrefiltering && (userData.get(TrinoTypeMapper.OPT_JSON_SCHEMA) != null || elements.size() < 2)) {
+            return null;
         }
         // top-level column plus each nested field, all quoted: "props"."name"
         StringBuilder ref = new StringBuilder(quoteIdent(head.name()));
@@ -417,9 +473,13 @@ public class TrinoFilterToSQL extends FilterToSQL {
                 throw new IllegalArgumentException("Invalid JSON path - only plain field references can be pushed to SQL "
                     + "(no wildcards, array indices, or filters): " + pathString);
             }
-            ref.append('.').append(quoteIdent(attribute.name()));
+            if (variantPrefiltering) {
+                ref.append("['").append(attribute.name().replace("'", "''")).append("']");
+            } else {
+                ref.append('.').append(quoteIdent(attribute.name()));
+            }
         }
-        write(ref.toString());
+        return ref.toString();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
