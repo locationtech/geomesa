@@ -26,18 +26,14 @@ class JsonPathFilterFunction
 
   private val cache = new ConcurrentHashMap[String, PropertyAccessor]
 
-  override def evaluate(obj: Object): AnyRef = {
+  override def evaluate(obj: AnyRef): AnyRef = {
     val sf = obj match {
       case sf: SimpleFeature => sf
       case _ =>
         throw new IllegalArgumentException(
           s"Expected SimpleFeature, but received ${obj.getClass}. Only simple features are supported: $obj")
     }
-    val base = params.get(0) match {
-      case p: PropertyName => p.getPropertyName // for property name expressions, we want the attribute name
-      case p => p.evaluate(sf).asInstanceOf[String] // for literals, we want to evaluate the expression
-    }
-    val path = if (params.size() < 2) { base } else { s"$$.$base.${params.get(1).evaluate(sf)}" }
+    val path = this.path(sf)
     var accessor = cache.get(path)
     if (accessor == null) {
       accessor = SimpleFeaturePropertyAccessor.getAccessor(sf, path).getOrElse {
@@ -47,6 +43,20 @@ class JsonPathFilterFunction
       cache.put(path, accessor)
     }
     accessor.get(sf, path, classOf[AnyRef])
+  }
+
+  /**
+   * Get the json path from the parameters
+   *
+   * @param obj object being evaluated
+   * @return
+   */
+  def path(obj: AnyRef): String = {
+    val base = params.get(0) match {
+      case p: PropertyName => p.getPropertyName // for property name expressions, we want the attribute name
+      case p => p.evaluate(obj).asInstanceOf[String] // for literals, we want to evaluate the expression
+    }
+    if (params.size() < 2) { base } else { s"$$.$base.${params.get(1).evaluate(obj)}" }
   }
 
   override def visit(visitor: FilterAttributeExtractor, data: AnyRef): AnyRef = {

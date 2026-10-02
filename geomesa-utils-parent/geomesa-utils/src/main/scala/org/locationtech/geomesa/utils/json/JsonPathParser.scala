@@ -76,6 +76,8 @@ object JsonPathParser {
     def nonEmpty: Boolean = elements.nonEmpty
     def head: PathElement = elements.head
     def tail: JsonPath = JsonPath(elements.tail, function)
+
+    override def toString: String = print(this)
   }
 
   sealed trait PathElement
