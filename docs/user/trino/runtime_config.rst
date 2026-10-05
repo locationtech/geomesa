@@ -22,8 +22,11 @@ The possible values are:
 Note that the max features for a query with client-side filters can't be pushed down, so queries may consume more resources
 than expected.
 
-In ``partial`` and ``all`` modes, case-sensitive string equality on plain object paths into schemaless ``json=true``
-attributes stored as VARIANT also supplies a necessary SQL prefilter. For example,
+``geomesa.trino.filter.client-variant-pushdown``
+------------------------------------------------
+
+Defaults to ``false``. Set to ``true`` to enable a necessary SQL prefilter for case-sensitive string equality on plain
+object paths into schemaless ``json=true`` attributes stored as VARIANT. For example,
 ``"$.payload.category" = 'example'`` can reject nonmatching strings in Trino before returning documents
 to the client. Structured JSON attributes with a ``json-schema`` continue to use their existing ROW translation.
 
@@ -33,6 +36,8 @@ matching. Unsupported operators and paths retain their existing fallback. The cl
 while a residual exists.
 
 This optimization can reduce result transfer and client work but increase Trino CPU and Parquet reads, because the document
-becomes a scan-filter input. Compare representative workloads and concurrency when configuring client-side filtering.
-Deployments can set ``geomesa.trino.filter.client-side`` through JVM options; changing deployment JVM options requires a
+becomes a scan-filter input. Compare representative workloads and concurrency before enabling this option.
+The option is independent of ``geomesa.trino.filter.client-side``: ``partial`` and ``all`` permit the residual check,
+and ``none`` rejects it regardless of this flag. With the flag disabled, existing residual filtering behavior is preserved.
+Deployments can set these properties through JVM options; changing deployment JVM options requires a
 client/worker restart, with no archive rewrite.

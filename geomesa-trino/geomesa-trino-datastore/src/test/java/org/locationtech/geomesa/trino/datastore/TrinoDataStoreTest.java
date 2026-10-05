@@ -290,7 +290,10 @@ public class TrinoDataStoreTest {
             // when props was not requested in the output projection.
             var filter = ECQL.toFilter("\"$.props.weight\" = '0003'");
             var query = new Query(sft.getTypeName(), filter, new String[]{"name"});
-            // Default partial mode accepts the necessary SQL prefilter, retaining the residual.
+            // The independent flag defaults off; partial mode has no SQL condition to push.
+            Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(query));
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set("true");
+            // Partial mode now accepts the necessary SQL prefilter, retaining the residual.
             Assertions.assertEquals(-1, fs.getCount(query));
             var results = new ArrayList<SimpleFeature>();
             try (var reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) {
@@ -301,9 +304,10 @@ public class TrinoDataStoreTest {
             Assertions.assertEquals(1, results.size());
             Assertions.assertEquals("test3", results.get(0).getAttribute("name"));
             Assertions.assertEquals(1, results.get(0).getAttributeCount());
-            // All mode also prefilters while retaining exact residual evaluation.
+            // All mode allows residual evaluation independently of the VARIANT flag.
             TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
                 TrinoFeatureSource.ClientSideFiltering.ALL.value);
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set("false");
             var bounded = new Query(sft.getTypeName(), ECQL.toFilter(
                 "name = 'test3' AND \"$.props.weight\" = '0003'"), new String[]{"name"});
             try (var reader = ds.getFeatureReader(bounded, Transaction.AUTO_COMMIT)) {
@@ -312,11 +316,22 @@ public class TrinoDataStoreTest {
                 Assertions.assertFalse(reader.hasNext());
             }
             Assertions.assertEquals(-1, fs.getCount(query));
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set("true");
+            Assertions.assertEquals(-1, fs.getCount(query));
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
+                TrinoFeatureSource.ClientSideFiltering.PARTIAL.value);
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set("false");
+            Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(query));
+            Assertions.assertEquals(-1, fs.getCount(bounded));
             TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
                 TrinoFeatureSource.ClientSideFiltering.NONE.value);
-            Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(query));
-            Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(bounded));
+            for (String flag : List.of("false", "true")) {
+                TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set(flag);
+                Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(query));
+                Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(bounded));
+            }
         } finally {
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().remove();
             TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().remove();
             ds.dispose();
         }

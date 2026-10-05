@@ -67,6 +67,10 @@ class TrinoFeatureSource extends ContentFeatureSource {
     public static final SystemProperty CLIENT_SIDE_FILTERING =
         new SystemProperty("geomesa.trino.filter.client-side", ClientSideFiltering.PARTIAL.value);
 
+    /** Opt-in VARIANT prefilter; the original predicate still requires client-side evaluation. */
+    public static final SystemProperty CLIENT_VARIANT_PUSHDOWN =
+        new SystemProperty("geomesa.trino.filter.client-variant-pushdown", "false");
+
     /** The three client-side filtering behaviors selectable via {@link #CLIENT_SIDE_FILTERING}. */
     enum ClientSideFiltering {
         PARTIAL("partial"), NONE("none"), ALL("all");
@@ -486,7 +490,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
      * with a fresh {@link TrinoFilterToSQL}. Conjuncts that encode cleanly are joined into the
      * pushable SQL; conjuncts the translator rejects become the residual, to be evaluated
      * in-memory by the framework's {@code FilteringFeatureReader}.
-     * When client-side filtering is allowed, schemaless JSON string equality also contributes a necessary SQL prefilter, while
+     * When CLIENT_VARIANT_PUSHDOWN is enabled and client-side filtering is allowed, schemaless JSON
+     * string equality also contributes a necessary SQL prefilter, while
      * retaining the original conjunct as a residual to preserve GeoTools type coercion.
      *
      * <p>Whether a residual is allowed is governed by {@link #CLIENT_SIDE_FILTERING}: mode
@@ -511,6 +516,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
         List<String> pushable = new ArrayList<>();
         List<Filter> residual = new ArrayList<>();
         ClientSideFiltering mode = ClientSideFiltering.current();
+        boolean clientVariantPushdown = Boolean.parseBoolean(CLIENT_VARIANT_PUSHDOWN.get());
         for (Filter conjunct : conjuncts) {
             try {
                 TrinoFilterToSQL toSql = new TrinoFilterToSQL();
@@ -518,7 +524,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
                 pushable.add(toSql.encodeToString(conjunct));
             } catch (FilterToSQLException | RuntimeException e) {
                 LOG.debug("Cannot push filter conjunct to Trino SQL: " + conjunct + " (" + e.getMessage() + ")");
-                if (mode != ClientSideFiltering.NONE) {
+                if (clientVariantPushdown && mode != ClientSideFiltering.NONE) {
                     try {
                         TrinoFilterToSQL toSql = new TrinoFilterToSQL();
                         toSql.setFeatureType(getSchema());
