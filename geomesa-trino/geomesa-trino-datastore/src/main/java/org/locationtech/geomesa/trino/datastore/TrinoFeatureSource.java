@@ -56,8 +56,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
      * Controls whether filter conjuncts that can't be translated to Trino SQL are evaluated
      * client-side (in-memory) or cause the query to fail. Recognized values (case-insensitive):
      * <ul>
-     *   <li>{@code partial} (default) — allow client-side evaluation only when at least one
-     *       conjunct was pushed down to SQL; a filter with no pushable part fails.</li>
+     *   <li>{@code partial} (default) — allow client-side evaluation only when an exact
+     *       conjunct or necessary prefilter was pushed down to SQL; a filter with no pushable part fails.</li>
      *   <li>{@code none} — never evaluate filters client-side; any non-pushable conjunct fails
      *       the query.</li>
      *   <li>{@code all} — allow client-side evaluation of any non-pushable conjunct, even when
@@ -66,6 +66,10 @@ class TrinoFeatureSource extends ContentFeatureSource {
      */
     public static final SystemProperty CLIENT_SIDE_FILTERING =
         new SystemProperty("geomesa.trino.filter.client-side", ClientSideFiltering.PARTIAL.value);
+
+    /** Opt-in VARIANT prefilter; the original predicate still requires client-side evaluation. */
+    public static final SystemProperty CLIENT_VARIANT_PUSHDOWN =
+        new SystemProperty("geomesa.trino.filter.client-variant-pushdown", "false");
 
     /** The three client-side filtering behaviors selectable via {@link #CLIENT_SIDE_FILTERING}. */
     enum ClientSideFiltering {
@@ -486,6 +490,9 @@ class TrinoFeatureSource extends ContentFeatureSource {
      * with a fresh {@link TrinoFilterToSQL}. Conjuncts that encode cleanly are joined into the
      * pushable SQL; conjuncts the translator rejects become the residual, to be evaluated
      * in-memory by the framework's {@code FilteringFeatureReader}.
+     * When CLIENT_VARIANT_PUSHDOWN is enabled and client-side filtering is allowed, schemaless JSON
+     * string equality also contributes a necessary SQL prefilter, while
+     * retaining the original conjunct as a residual to preserve GeoTools type coercion.
      *
      * <p>Whether a residual is allowed is governed by {@link #CLIENT_SIDE_FILTERING}: mode
      * {@code none} rejects any residual, and mode {@code partial} (the default) rejects a
@@ -508,6 +515,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
         }
         List<String> pushable = new ArrayList<>();
         List<Filter> residual = new ArrayList<>();
+        ClientSideFiltering mode = ClientSideFiltering.current();
+        boolean clientVariantPushdown = Boolean.parseBoolean(CLIENT_VARIANT_PUSHDOWN.get());
         for (Filter conjunct : conjuncts) {
             try {
                 TrinoFilterToSQL toSql = new TrinoFilterToSQL();
@@ -515,6 +524,18 @@ class TrinoFeatureSource extends ContentFeatureSource {
                 pushable.add(toSql.encodeToString(conjunct));
             } catch (FilterToSQLException | RuntimeException e) {
                 LOG.debug("Cannot push filter conjunct to Trino SQL: " + conjunct + " (" + e.getMessage() + ")");
+                if (clientVariantPushdown && mode != ClientSideFiltering.NONE) {
+                    try {
+                        TrinoFilterToSQL toSql = new TrinoFilterToSQL();
+                        toSql.setFeatureType(getSchema());
+                        String prefilter = toSql.variantPrefilter(conjunct);
+                        if (prefilter != null) {
+                            pushable.add(prefilter);
+                        }
+                    } catch (RuntimeException unsupported) {
+                        LOG.debug("Cannot prefilter conjunct in Trino SQL: {}", conjunct, unsupported);
+                    }
+                }
                 residual.add(conjunct);
             }
         }
@@ -529,7 +550,6 @@ class TrinoFeatureSource extends ContentFeatureSource {
         if (residual.isEmpty()) {
             return new FilterSplit(pushableSql, null, Collections.emptySet());
         }
-        ClientSideFiltering mode = ClientSideFiltering.current();
         if (mode == ClientSideFiltering.NONE) {
             throw new IllegalArgumentException("Cannot push the following filter(s) to Trino SQL and client-side "
                 + "filtering is disabled (" + CLIENT_SIDE_FILTERING.property() + "=" + mode.value + "): " + residual);

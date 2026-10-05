@@ -276,6 +276,68 @@ public class TrinoDataStoreTest {
     }
 
     @Test
+    public void testVariantPrefilterRetainsResidualAndProjection() throws IOException, CQLException {
+        var params = Map.of(
+            TrinoDataStoreFactory.HOST.key, trino.getHost(),
+            TrinoDataStoreFactory.PORT.key, trino.getFirstMappedPort(),
+            TrinoDataStoreFactory.SCHEMA.key, "geomesa");
+        var ds = DataStoreFinder.getDataStore(params);
+        Assertions.assertNotNull(ds);
+        try {
+            var fs = ds.getFeatureSource(sft.getTypeName());
+            // Numeric JSON values match string literals through GeoTools coercion.
+            // The prefilter must keep them, and the residual must still run even
+            // when props was not requested in the output projection.
+            var filter = ECQL.toFilter("\"$.props.weight\" = '0003'");
+            var query = new Query(sft.getTypeName(), filter, new String[]{"name"});
+            // The independent flag defaults off; partial mode has no SQL condition to push.
+            Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(query));
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set("true");
+            // Partial mode now accepts the necessary SQL prefilter, retaining the residual.
+            Assertions.assertEquals(-1, fs.getCount(query));
+            var results = new ArrayList<SimpleFeature>();
+            try (var reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) {
+                while (reader.hasNext()) {
+                    results.add(reader.next());
+                }
+            }
+            Assertions.assertEquals(1, results.size());
+            Assertions.assertEquals("test3", results.get(0).getAttribute("name"));
+            Assertions.assertEquals(1, results.get(0).getAttributeCount());
+            // All mode allows residual evaluation independently of the VARIANT flag.
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
+                TrinoFeatureSource.ClientSideFiltering.ALL.value);
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set("false");
+            var bounded = new Query(sft.getTypeName(), ECQL.toFilter(
+                "name = 'test3' AND \"$.props.weight\" = '0003'"), new String[]{"name"});
+            try (var reader = ds.getFeatureReader(bounded, Transaction.AUTO_COMMIT)) {
+                Assertions.assertTrue(reader.hasNext());
+                Assertions.assertEquals("test3", reader.next().getAttribute("name"));
+                Assertions.assertFalse(reader.hasNext());
+            }
+            Assertions.assertEquals(-1, fs.getCount(query));
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set("true");
+            Assertions.assertEquals(-1, fs.getCount(query));
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
+                TrinoFeatureSource.ClientSideFiltering.PARTIAL.value);
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set("false");
+            Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(query));
+            Assertions.assertEquals(-1, fs.getCount(bounded));
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
+                TrinoFeatureSource.ClientSideFiltering.NONE.value);
+            for (String flag : List.of("false", "true")) {
+                TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set(flag);
+                Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(query));
+                Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(bounded));
+            }
+        } finally {
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().remove();
+            TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().remove();
+            ds.dispose();
+        }
+    }
+
+    @Test
     public void testStructuralJson() throws IOException, CQLException {
         var params = Map.of(
                 TrinoDataStoreFactory.HOST.key, trino.getHost(),

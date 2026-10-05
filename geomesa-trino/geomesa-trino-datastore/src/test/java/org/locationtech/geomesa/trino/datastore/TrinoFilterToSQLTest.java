@@ -361,8 +361,8 @@ class TrinoFilterToSQLTest {
     // A property name that starts with `$` is a JSON path into a structural (json=true +
     // json-schema) attribute; it translates to a Trino ROW dereference "props"."name". The
     // base class still writes the operator and literal. Non-pushable paths (opaque variant,
-    // wildcards, indices, functions, unknown attribute) throw — the Trino datastore is
-    // all-pushdown with no client-side residual.
+    // wildcards, indices, functions, unknown attribute) throw. Schemaless VARIANT string
+    // equality can separately supply a necessary prefilter while retaining its residual.
 
     /** A schema with a structural `props` attribute and an opaque `blob` (json=true, no
      *  json-schema), plus a geometry for the AND-composition case. */
@@ -414,6 +414,41 @@ class TrinoFilterToSQLTest {
         setStructuralSchema();
         assertThatThrownBy(() -> translator.encodeToString(ECQL.toFilter("\"$.blob.name\" = 'alice'")))
             .hasMessageContaining("opaque");
+    }
+
+    @Test
+    void variantStringEqualityPrefilterKeepsOtherTypesForResidual() throws Exception {
+        setStructuralSchema();
+        String sql = translator.variantPrefilter(ECQL.toFilter("\"$.blob.name\" = 'alice'"));
+        assertThat(sql).contains("TRY(\"blob\"['name'])");
+        assertThat(sql).contains("AS VARCHAR) AS VARIANT)");
+        assertThat(sql).contains("THEN TRY(\"blob\"['name']) = CAST('alice' AS VARIANT) ELSE TRUE END");
+        assertThat(translator.variantPrefilter(ECQL.toFilter("'alice' = \"$.blob.name\""))).isEqualTo(sql);
+    }
+
+    @Test
+    void variantPrefilterEscapesNestedKeysAndLiterals() throws Exception {
+        setStructuralSchema();
+        assertThat(translator.variantPrefilter(ff.equals(ff.property("$.blob.nested.name"), ff.literal("O'Brien"))))
+            .contains("\"blob\"['nested']['name']", "CAST('O''Brien' AS VARIANT)");
+        assertThat(translator.variantPrefilter(ff.equals(ff.property("$.blob['odd\\'name']"), ff.literal("x"))))
+            .contains("['odd''name']");
+    }
+
+    @Test
+    void variantPrefilterRejectsNegationCaseFoldingAndUnsupportedOperators() throws Exception {
+        setStructuralSchema();
+        for (String cql : new String[]{"NOT (\"$.blob.name\" = 'alice')", "\"$.blob.name\" <> 'alice'",
+                "\"$.blob.age\" > 30", "\"$.blob.age\" = 30", "\"$.props.name\" = 'alice'",
+                "\"$.blob\" = 'alice'", "\"$.blob.name\" IS NULL"}) {
+            assertThat(translator.variantPrefilter(ECQL.toFilter(cql))).as(cql).isNull();
+        }
+        assertThat(translator.variantPrefilter(ff.equal(ff.property("$.blob.name"), ff.literal("alice"), false)))
+            .isNull();
+        for (String path : new String[]{"$.blob.*", "$.blob.tags[0]", "$.blob.scores.max()", "$.missing.name"}) {
+            assertThatThrownBy(() -> translator.variantPrefilter(ff.equals(ff.property(path), ff.literal("x"))))
+                .isInstanceOf(RuntimeException.class);
+        }
     }
 
     @Test
