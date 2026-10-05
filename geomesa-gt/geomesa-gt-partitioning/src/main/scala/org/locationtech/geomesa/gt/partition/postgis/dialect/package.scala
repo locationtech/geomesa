@@ -169,9 +169,9 @@ package object dialect {
     def apply(schema: String, sft: SimpleFeatureType): TypeInfo = {
       val userData = sft.getUserData.asScala.map { case (k, v) => String.valueOf(k) -> String.valueOf(v) }
       val identifier = userData.getOrElse(SftUserData.IdentAlias.key, sft.getTypeName)
-      val tables = Tables(sft, schema, identifier)
-      val columns = Columns(sft)
       val partitions = PartitionInfo(sft)
+      val tables = Tables(sft, schema, identifier)
+      val columns = Columns(sft, tables, partitions)
       TypeInfo(SchemaName(schema), sft.getTypeName, identifier, tables, columns, partitions, userData.toMap)
     }
   }
@@ -312,42 +312,39 @@ package object dialect {
   /**
    * Columns names for the feature type
    *
+   * @param fid fid column
    * @param dtg primary dtg column
    * @param geom primary geometry column
-   * @param geoms all geometry cols (including primary)
-   * @param indexed any indexed columns
    * @param vis hidden visibility column, if present
-   * @param all all columns
-   * @param dtgIncludes columns carried by the dtg index, if it is covering
+   * @param all all columns (including fid, dtg, geom, etc)
+   * @param indices indices on columns
    */
   case class Columns(
       fid: ColumnName,
       dtg: ColumnName,
       geom: ColumnName,
-      geoms: Seq[ColumnName],
-      indexed: Seq[ColumnName],
       vis: Option[ColumnName],
       all: Seq[ColumnName],
-      dtgIncludes: Seq[ColumnName] = Seq.empty
+      indices: Seq[ColumnIndex],
     ) {
 
     /**
-     * The keys and INCLUDE clause of the dtg index, e.g. `("dtg", "_vis") INCLUDE ("geom")`
+     * Returns the columns for a particular table
+     *
+     * @param table table id
+     * @return
      */
-    def dtgIndexColumns: String = {
-      // carry visibility as a trailing key so repeated (dtg, visibility) pairs can be deduplicated
-      val keys = (Seq(dtg) ++ vis).map(_.quoted).mkString("(", ", ", ")")
-      if (dtgIncludes.isEmpty) { keys } else { s"$keys INCLUDE (${dtgIncludes.map(_.quoted).mkString(", ")})" }
-    }
+    def filter(table: TableIdentifier): Columns = copy(indices = indices.filter(_.tables.forall(_.contains(table))))
   }
 
   object Columns {
 
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     import scala.collection.JavaConverters._
 
-    def apply(original: SimpleFeatureType): Columns = {
+    def apply(original: SimpleFeatureType, tables: Tables, partitions: PartitionInfo): Columns = {
       val sft = SimpleFeatureTypes.copy(original)
       TemporalIndexCheck.validateDtgField(sft)
       val fid = ColumnName(SftUserData.FidColumn.get(sft))
@@ -357,29 +354,50 @@ package object dialect {
       val geom = Option(sft.getGeomField).map(ColumnName.apply).getOrElse {
         throw new IllegalArgumentException("Must include a geometry-type attribute when using a partitioned store")
       }
-      val geoms = sft.getAttributeDescriptors.asScala.collect { case d: GeometryDescriptor => ColumnName(d) }
-      // TODO we could use covering indices, but BRIN indices don't support them
-      //  val includes =
-      //    Seq(dtg) ++ sft.getAttributeDescriptors.asScala.collect { case d if d.isIndexValue() => ColumnName(d) }
-      //    .distinct
-      def indexed(d: AttributeDescriptor): Boolean =
-        d.getLocalName != geom.raw && d.getLocalName != dtg.raw &&
-          Option(d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]).exists { i =>
-            // accept any index flags, so config can be consistent across data stores
-            !i.isBlank && !"false".equalsIgnoreCase(i) && !"none".equalsIgnoreCase(i)
-          }
-
-      val indices = sft.getAttributeDescriptors.asScala.collect { case d if indexed(d) => ColumnName(d) }
       val vis = sft.getAttributeDescriptors.asScala.collectFirst {
         case d if d.getLocalName == PartitionedPostgisDialect.VisCol => ColumnName(d)
       }
       val all = sft.getAttributeDescriptors.asScala.map(ColumnName.apply)
-      // the geometry only when it's a point: an index row is limited to ~2.7kB, and a larger geometry
-      // would fail the insert
-      val dtgIncludes =
-        if (SftUserData.CoveringDtgIndex.get(sft) &&
-            classOf[Point].isAssignableFrom(sft.getGeometryDescriptor.getType.getBinding)) { Seq(geom) } else { Seq.empty }
-      Columns(fid, dtg, geom, geoms.toSeq, indices.toSeq, vis, all.toSeq, dtgIncludes)
+
+      def indexed(d: AttributeDescriptor): Boolean =
+        Option(d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]).exists { i =>
+          // accept any index flags, so config can be consistent across data stores
+          !i.isBlank && !"false".equalsIgnoreCase(i) && !"none".equalsIgnoreCase(i)
+        }
+
+      // TODO we could use covering indices, but BRIN indices don't support them
+      //  val includes =
+      //    Seq(dtg) ++ sft.getAttributeDescriptors.asScala.collect { case d if d.isIndexValue() => ColumnName(d) }
+      //    .distinct
+
+      val indices = sft.getAttributeDescriptors.asScala.flatMap { d =>
+        if (d.getLocalName == dtg.raw) {
+          // the geometry only when it's a point: an index row is limited to ~2.7kB, and a larger geometry would fail the insert
+          val includes =
+            if (SftUserData.CoveringDtgIndex.get(sft) &&
+              classOf[Point].isAssignableFrom(sft.getGeometryDescriptor.getType.getBinding)) { s"INCLUDE (${geom.quoted})" } else { "" }
+          // carry visibility as a trailing key so repeated (dtg, visibility) pairs can be deduplicated
+          Seq(ColumnIndex(Seq(dtg) ++ vis, includes = includes))
+        } else if (d.isInstanceOf[GeometryDescriptor]) {
+          val col = Seq(ColumnName(d))
+          val brinTables = Seq(tables.mainPartitions.name)
+          val gistTables = Seq(tables.writeAhead, tables.writeAheadPartitions, tables.spillPartitions).map(_.name)
+          val brin =
+            ColumnIndex(col, using = "USING brin", storageOpts = s"WITH (pages_per_range = ${partitions.pagesPerRange})", tables = Some(brinTables))
+          val gist = ColumnIndex(col, using = "USING gist", tables = Some(gistTables))
+          Seq(gist, brin)
+        } else if (indexed(d)) {
+          if (d.isJson()) {
+            Seq(ColumnIndex(Seq(ColumnName(d)), using = "USING gin", opclass = "jsonb_path_ops"))
+          } else {
+            Seq(ColumnIndex(Seq(ColumnName(d))))
+          }
+        } else {
+          Seq.empty
+        }
+      }
+
+      Columns(fid, dtg, geom, vis, all.toSeq, indices.toSeq)
     }
   }
 
@@ -395,6 +413,15 @@ package object dialect {
     def apply(d: AttributeDescriptor): ColumnName = apply(d.getLocalName)
     def apply(raw: String): ColumnName = ColumnName(escape(raw), raw)
   }
+
+  case class ColumnIndex(
+    cols: Seq[ColumnName],
+    using: String = "",
+    includes: String = "",
+    opclass: String = "",
+    storageOpts: String = "",
+    tables: Option[Seq[TableIdentifier]] = None,
+  )
 
   /**
    * Partition config

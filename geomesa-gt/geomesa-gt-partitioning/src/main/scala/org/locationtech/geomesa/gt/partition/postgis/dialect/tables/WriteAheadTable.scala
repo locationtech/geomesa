@@ -58,6 +58,11 @@ object WriteAheadTable extends SqlStatements {
     val move = table.tablespace.toSeq.map { ts =>
       s"ALTER TABLE ${table.name.qualified} SET TABLESPACE ${ts.quoted};\n"
     }
+    val indices = info.cols.filter(table.name).indices.map { index =>
+      s"""  EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition || ${literal(index.cols.map(_.raw).mkString("_", "_", ""))}) ||
+         |    ' ON ${info.schema.quoted}.' || quote_ident(partition) ||
+         |    ' ${index.using} (${index.cols.map(_.quoted).mkString(", ")} ${index.opclass}) ${index.includes} ${index.storageOpts} $tableTs';""".stripMargin
+    }
     val createFirstPartition =
       s"""DO $$$$
          |DECLARE
@@ -72,14 +77,7 @@ object WriteAheadTable extends SqlStatements {
          |    'CONSTRAINT ' || quote_ident(partition || '_pkey') ||
          |    ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})$indexTs ' ||
          |    ') INHERITS (${table.name.qualified})${table.storage.opts}$tableTs';
-         |  EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition || '_' || ${info.cols.dtg.asLiteral}) ||
-         |    ' ON ${info.schema.quoted}.' || quote_ident(partition) || ' (${info.cols.dtg.quoted})$tableTs';
-         |${info.cols.geoms.map { col =>
-      s"""  EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition || '_spatial_' || ${col.asLiteral}) ||
-         |    ' ON ${info.schema.quoted}.' || quote_ident(partition) || ' USING gist(${col.quoted})$tableTs';""".stripMargin}.mkString("\n")}
-         |${info.cols.indexed.map { col =>
-      s"""  EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition || '_' || ${col.asLiteral}) ||
-         |    ' ON ${info.schema.quoted}.' || quote_ident(partition) || '(${col.quoted})$tableTs';""".stripMargin}.mkString("\n")}
+         |${indices.mkString("\n")}
          |END $$$$;""".stripMargin
 
     Seq(renameMainTable) ++ move ++ Seq(createFirstPartition)

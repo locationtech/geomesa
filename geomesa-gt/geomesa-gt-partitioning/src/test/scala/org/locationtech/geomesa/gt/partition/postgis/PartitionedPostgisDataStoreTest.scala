@@ -508,7 +508,7 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
           }
           tx.commit()
         }
-// TODO CREATE INDEX idx_orders_path_gin ON orders USING gin (data jsonb_path_ops);
+
         val filters = Seq(
           ECQL.toFilter("jsonPath('$.props.names[0]') = 'name0'") -> features.take(1),
           ECQL.toFilter("\"$.props.names[0]\" = 'name0'") -> features.take(1),
