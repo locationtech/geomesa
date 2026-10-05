@@ -12,7 +12,7 @@ import org.apache.commons.text.StringEscapeUtils
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.expression.{Expression, Literal, PropertyName}
-import org.geotools.api.filter.{BinaryComparisonOperator, BinaryLogicOperator, Or, PropertyIsEqualTo, PropertyIsGreaterThan, PropertyIsGreaterThanOrEqualTo, PropertyIsLessThan, PropertyIsLessThanOrEqualTo, PropertyIsNotEqualTo}
+import org.geotools.api.filter._
 import org.geotools.data.postgis.PostgisPSFilterToSql
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -20,8 +20,8 @@ import org.geotools.filter.FilterCapabilities
 import org.geotools.util.Version
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisPsDialect
-import org.locationtech.geomesa.utils.json.{JsonPathFilterFunction, JsonPathPropertyAccessor}
 import org.locationtech.geomesa.utils.json.JsonPathParser.{JsonPath, PathAttribute, PathDeepScan}
+import org.locationtech.geomesa.utils.json.{JsonPathFilterFunction, JsonPathPropertyAccessor}
 
 import scala.util.control.NonFatal
 
@@ -107,16 +107,16 @@ class PartitionedPostgisPsFilterToSql(dialect: PartitionedPostgisPsDialect, pgVe
     try {
       (filter.getExpression1, filter.getExpression2) match {
         case (f: JsonPathFilterFunction, lit: Literal) =>
-          writePath(f.path(null), lit, op(filter, flipped = false), extraData)
+          writePath(f.path(null), lit, filter, flipped = false, extraData)
 
         case (lit: Literal, f: JsonPathFilterFunction) =>
-          writePath(f.path(null), lit, op(filter, flipped = true), extraData)
+          writePath(f.path(null), lit, filter, flipped = true, extraData)
 
         case (p: PropertyName, lit: Literal) if p.getPropertyName.startsWith("$") =>
-          writePath(p.getPropertyName, lit, op(filter, flipped = false), extraData)
+          writePath(p.getPropertyName, lit, filter, flipped = false, extraData)
 
         case (lit: Literal, p: PropertyName) if p.getPropertyName.startsWith("$") =>
-          writePath(p.getPropertyName, lit, op(filter, flipped = true), extraData)
+          writePath(p.getPropertyName, lit, filter, flipped = true, extraData)
 
         case _ => super.visitBinaryComparisonOperator(filter, extraData)
       }
@@ -125,8 +125,8 @@ class PartitionedPostgisPsFilterToSql(dialect: PartitionedPostgisPsDialect, pgVe
     }
   }
 
-  private def op(filter: BinaryComparisonOperator, flipped: Boolean): String = {
-    filter match {
+  private def writePath(pathString: String, lit: Literal, filter: BinaryComparisonOperator, flipped: Boolean, extraData: AnyRef): AnyRef = {
+    val op = filter match {
       case _: PropertyIsEqualTo => "=="
       case _: PropertyIsGreaterThan if flipped => "<"
       case _: PropertyIsGreaterThan => ">"
@@ -139,9 +139,6 @@ class PartitionedPostgisPsFilterToSql(dialect: PartitionedPostgisPsDialect, pgVe
       case _: PropertyIsNotEqualTo => "!="
       case _ => throw new UnsupportedOperationException(s"Unexpected binary comparison op: $filter")
     }
-  }
-
-  private def writePath(pathString: String, lit: Literal, op: String, extraData: AnyRef): AnyRef = {
     val path = JsonPathPropertyAccessor.Paths.get(pathString)
     path.head match {
       case a: PathAttribute => writePath(a.name, path.tail, lit, op, extraData)
@@ -157,8 +154,6 @@ class PartitionedPostgisPsFilterToSql(dialect: PartitionedPostgisPsDialect, pgVe
       // helps prevent denial of service
       throw new UnsupportedOperationException(s"Json paths deep scan expressions (..) are not supported")
     }
-    // WHERE data @@ $1::jsonpath @@ $2::jsonb;
-    // we use jsonb_path_match instead of the standard @@ operator so that we can safely encode the literal as a prepared value
     visit(FilterHelper.ff.property(attribute), extraData)
     out.write(" @@ ")
     val expression = lit.getValue match {

@@ -27,9 +27,9 @@ class PartionedPostgisDialectTest extends SpecificationWithJUnit with Mockito {
       val cases = Seq(
         "dtg:Date,*geom:Point:srid=4326" -> (Seq("dtg"), ""),
         s"dtg:Date,*geom:Point:srid=4326,$VisCol:String" -> (Seq("dtg", VisCol), ""),
-        "dtg:Date,*geom:Point:srid=4326;pg.partitions.dtg-index.covering=true" -> (Seq("dtg"), "INCLUDES (\"geom\")"),
+        "dtg:Date,*geom:Point:srid=4326;pg.partitions.dtg-index.covering=true" -> (Seq("dtg"), "INCLUDE (\"geom\")"),
         s"dtg:Date,*geom:Point:srid=4326,$VisCol:String;pg.partitions.dtg-index.covering=true" ->
-          (Seq("dtg", VisCol), "INCLUDES (\"geom\")"),
+          (Seq("dtg", VisCol), "INCLUDE (\"geom\")"),
         s"dtg:Date,*geom:Polygon:srid=4326,$VisCol:String;pg.partitions.dtg-index.covering=true" ->
           (Seq("dtg", VisCol), ""),
       )
