@@ -20,6 +20,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.referencing.CRS
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
@@ -250,16 +251,19 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
         val visibilities = Seq("admin", "user", "user&admin", "user|admin", "admin", "user", "user&admin", "user|admin", "admin", "user")
         val features = this.features.zip(visibilities).map { case (sf, vis) =>
           val retyped = ScalaSimpleFeature.retype(sft, sf)
+          retyped.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
           SecurityUtils.setFeatureVisibility(retyped, vis)
         }
 
         // write some data
         WithClose(new DefaultTransaction()) { tx =>
           WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
-            features.foreach { feature =>
+            features.take(5).foreach { feature =>
               FeatureUtils.write(writer, feature, useProvidedFid = true)
             }
           }
+          // validate adding through the feature store
+          ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.drop(5).asJava))
           tx.commit()
         }
 
@@ -282,6 +286,9 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
               val visible = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
               visible.map(compFromDb) mustEqual expected.map(compWithFid(_, sft, Option(transforms)))
               visible.map(SecurityUtils.getVisibility) mustEqual expected.map(SecurityUtils.getVisibility)
+              val fromFeatureSource =
+                CloseableIterator(ds.getFeatureSource(query.getTypeName).getFeatures(query).features()).toList.sortBy(_.getID)
+              fromFeatureSource mustEqual visible
             }
           }
         }
@@ -514,6 +521,9 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
           ECQL.toFilter("\"$.props.names[0]\" = 'name0'") -> features.take(1),
           ECQL.toFilter("jsonPath(props, 'age') > 5.0") -> features.drop(6),
           ECQL.toFilter("\"$.props.age\" > 5.0") -> features.drop(6),
+          ECQL.toFilter("\"$.props.age\" = 5.0 OR \"$.props.age\" = 6.0 ") -> features.slice(5, 7),
+          ECQL.toFilter("jsonPath('$.props.names.first()') = 'name0'") -> features.take(1),
+          ECQL.toFilter("jsonPath('$.props.names.length()') = 2") -> features,
         )
         foreach(filters) { case (filter, expected) =>
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>

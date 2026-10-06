@@ -152,7 +152,7 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
   override def getFeatureSource(typeName: Name): SimpleFeatureStore = getFeatureSource(typeName.getLocalPart)
 
   override def getFeatureSource(typeName: String): SimpleFeatureStore = {
-    val source = new JsonPathJdbcFeatureStore(this, delegate.getFeatureSource(typeName, Transaction.AUTO_COMMIT).getEntry, null)
+    val source = new JsonPathJdbcFeatureStore(delegate, delegate.getFeatureSource(typeName, Transaction.AUTO_COMMIT).getEntry, null)
     loadSchema(typeName) match {
       case _: SchemaWithoutVis => source
       case s: SchemaWithVis => new VisSimpleFeatureStore(source, s.userFacing)
@@ -160,7 +160,7 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
   }
 
   override def getFeatureReader(query: Query, tx: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val source = new JsonPathJdbcFeatureStore(this, delegate.getFeatureSource(query.getTypeName, tx).getEntry, null)
+    val source = new JsonPathJdbcFeatureStore(delegate, delegate.getFeatureSource(query.getTypeName, tx).getEntry, null)
     source.setTransaction(tx)
     loadSchema(query.getTypeName) match {
       case _: SchemaWithoutVis => source.getReader(query)
@@ -466,7 +466,7 @@ object PartitionedPostgisDataStore {
    * @param entry content entry
    * @param query query
    */
-  private class JsonPathJdbcFeatureStore(ds: PartitionedPostgisDataStore, entry: ContentEntry, query: Query)
+  private class JsonPathJdbcFeatureStore(ds: JDBCDataStore, entry: ContentEntry, query: Query)
       extends JDBCFeatureSource(entry, query) with SimpleFeatureStore {
 
     /**

@@ -11,8 +11,8 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect.filter
 import org.apache.commons.text.StringEscapeUtils
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.expression.{Expression, Literal, PropertyName}
 import org.geotools.api.filter._
+import org.geotools.api.filter.expression.{Expression, Literal, PropertyName}
 import org.geotools.data.postgis.PostgisPSFilterToSql
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -93,10 +93,15 @@ class PartitionedPostgisPsFilterToSql(dialect: PartitionedPostgisPsDialect, pgVe
   }
 
   override def visit(filter: Or, extraData: AnyRef): AnyRef = {
-    // for array-types, skip the super-class implementation, which merges ORs into INs, as it breaks array OR queries
+    // the super-class implementation merges ORs into INs
+    // for array-types, skip the super class as it breaks array OR queries
+    // for json-path expressions, skip the super class as it breaks json path predicates
     // for other types, keep the super handling as INs may be more efficient that ORs
+    def skipOrInProcessing(attribute: String): Boolean =
+      attribute.startsWith("$") || Option(featureType.getDescriptor(attribute)).exists(_.getType.getBinding.isArray)
+
     val names = FilterHelper.propertyNames(filter)
-    if (names.flatMap(name => Option(featureType.getDescriptor(name))).exists(_.getType.getBinding.isArray)) {
+    if (names.exists(skipOrInProcessing)) {
       visit(filter.asInstanceOf[BinaryLogicOperator], "OR")
     } else {
       super.visit(filter, extraData)
