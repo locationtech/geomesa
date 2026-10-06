@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class JavaConvertersTest {
 
@@ -81,5 +82,11 @@ public class JavaConvertersTest {
         try (SimpleFeatureConverter converter = SimpleFeatureConverter.apply("testsft", "global1")) {
             Assert.assertNotNull(converter);
         }
+    }
+
+    @Test
+    public void testEmptyEvaluationContext() {
+        var ec = EvaluationContext.empty(Map.of("foo", "bar"));
+        Assert.assertEquals("bar", ec.accessor("foo").apply());
     }
 }

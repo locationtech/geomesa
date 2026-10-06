@@ -93,6 +93,8 @@ trait EvaluationContext {
 
 object EvaluationContext extends LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   val InputFilePathKey = "inputFilePath"
   val FilterKey = "filter"
 
@@ -103,6 +105,24 @@ object EvaluationContext extends LazyLogging {
     */
   def empty: EvaluationContext =
     new StatefulEvaluationContext(Array.empty, Map.empty, Map.empty, Stats())
+
+  /**
+   * Creates a new, empty evaluation context
+   *
+   * @param globalValues global params
+   * @return
+   */
+  def empty(globalValues: Map[String, AnyRef]): EvaluationContext =
+    new StatefulEvaluationContext(Array.empty, globalValues, Map.empty, Stats())
+
+  /**
+   * Creates a new, empty evaluation context
+   *
+   * @param globalValues global params
+   * @return
+   */
+  def empty(globalValues: java.util.Map[String, AnyRef]): EvaluationContext =
+    new StatefulEvaluationContext(Array.empty, globalValues.asScala.toMap, Map.empty, Stats())
 
   /**
     * Gets a global parameter map containing the input file path
