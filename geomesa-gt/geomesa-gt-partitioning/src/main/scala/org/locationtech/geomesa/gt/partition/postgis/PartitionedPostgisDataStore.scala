@@ -15,25 +15,27 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.identity.FeatureId
 import org.geotools.data.simple._
-import org.geotools.data.store.DecoratingDataStore
+import org.geotools.data.store.{ContentEntry, DecoratingDataStore}
 import org.geotools.data.{DataUtilities, DefaultTransaction}
 import org.geotools.feature.FeatureCollection
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
+import org.geotools.jdbc.{JDBCDataStore, JDBCFeatureSource, SQLDialect}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.json.JsonPathPropertyNameResolver
 
 import java.awt.RenderingHints
 import java.sql.Connection
+import java.util
 import java.util.concurrent.CompletionException
 import javax.sql.DataSource
 
@@ -147,24 +149,22 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
     schemas.invalidate(typeName)
   }
 
-  override def getFeatureSource(typeName: String): SimpleFeatureSource = {
-    val source = delegate.getFeatureSource(typeName)
+  override def getFeatureSource(typeName: Name): SimpleFeatureStore = getFeatureSource(typeName.getLocalPart)
+
+  override def getFeatureSource(typeName: String): SimpleFeatureStore = {
+    val source = new JsonPathJdbcFeatureStore(delegate, delegate.getFeatureSource(typeName, Transaction.AUTO_COMMIT).getEntry, null)
     loadSchema(typeName) match {
       case _: SchemaWithoutVis => source
-      case s: SchemaWithVis =>
-        source match {
-          case store: SimpleFeatureStore => new VisSimpleFeatureStore(store, s.userFacing)
-          case _ => new VisSimpleFeatureSource(source, s.userFacing)
-        }
+      case s: SchemaWithVis => new VisSimpleFeatureStore(source, s.userFacing)
     }
   }
 
-  override def getFeatureSource(typeName: Name): SimpleFeatureSource = getFeatureSource(typeName.getLocalPart)
-
   override def getFeatureReader(query: Query, tx: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] = {
+    val source = new JsonPathJdbcFeatureStore(delegate, delegate.getFeatureSource(query.getTypeName, tx).getEntry, null)
+    source.setTransaction(tx)
     loadSchema(query.getTypeName) match {
-      case _: SchemaWithoutVis => delegate.getFeatureReader(query, tx)
-      case _: SchemaWithVis => new VisFeatureReader(delegate.getFeatureReader(addVisToTransform(query), tx))
+      case _: SchemaWithoutVis => source.getReader(query)
+      case _: SchemaWithVis => new VisFeatureReader(source.getReader(addVisToTransform(query)))
     }
   }
 
@@ -374,19 +374,10 @@ object PartitionedPostgisDataStore {
   }
 
   /**
-   * Read-only feature source wrapper
-   */
-  private class VisSimpleFeatureSource(source: SimpleFeatureSource, userFacingType: SimpleFeatureType)
-      extends VisFeatureSourceMethods(source, userFacingType) {
-    override def getDataStore: DataAccess[SimpleFeatureType, SimpleFeature] = source.getDataStore
-  }
-
-  /**
    * Feature store wrapper - maps visibility into `_vis` on write, since the store's own writer path
    * bypasses the data store's `getFeatureWriter*` methods.
    */
-  private class VisSimpleFeatureStore(source: SimpleFeatureStore, userFacingType: SimpleFeatureType)
-      extends VisFeatureSourceMethods(source, userFacingType) with SimpleFeatureStore {
+  private class VisSimpleFeatureStore(source: SimpleFeatureStore, userFacingType: SimpleFeatureType) extends SimpleFeatureStore {
 
     private val underlying = source.getSchema
 
@@ -415,6 +406,23 @@ object PartitionedPostgisDataStore {
       source.setFeatures(mapped)
     }
 
+    // read-side overrides - hides `_vis` from the exposed schema and from returned features; everything else delegates
+    override def getSchema: SimpleFeatureType = userFacingType
+    override def getName: Name = userFacingType.getName
+    override def getFeatures: SimpleFeatureCollection = new VisFeatureCollection(source.getFeatures)
+    override def getFeatures(filter: Filter): SimpleFeatureCollection = new VisFeatureCollection(source.getFeatures(filter))
+    override def getFeatures(query: Query): SimpleFeatureCollection =
+      new VisFeatureCollection(source.getFeatures(addVisToTransform(query)))
+    override def getInfo: ResourceInfo = source.getInfo
+    override def getQueryCapabilities: QueryCapabilities = source.getQueryCapabilities
+    override def getSupportedHints: java.util.Set[RenderingHints.Key] = source.getSupportedHints
+    override def getBounds: ReferencedEnvelope = source.getBounds
+    override def getBounds(query: Query): ReferencedEnvelope = source.getBounds(query)
+    override def getCount(query: Query): Int = source.getCount(query)
+    override def addFeatureListener(listener: FeatureListener): Unit = source.addFeatureListener(listener)
+    override def removeFeatureListener(listener: FeatureListener): Unit = source.removeFeatureListener(listener)
+
+    // write-side overrides - these can delegate directly since they don't need to explicitly deal with _vis
     override def removeFeatures(filter: Filter): Unit = source.removeFeatures(filter)
     override def modifyFeatures(attributeName: Name, attributeValue: AnyRef, filter: Filter): Unit =
       source.modifyFeatures(attributeName, attributeValue, filter)
@@ -449,23 +457,105 @@ object PartitionedPostgisDataStore {
   }
 
   /**
-   * Read-side overrides shared by the source and store wrappers. Hides `_vis` from the exposed schema
-   * and from returned features; everything else delegates.
+   * Replaces the JDBCFeatureSource with overrides to correctly resolve json path attributes. The method comes
+   * from ContentFeatureSource, so we can't override it in our delegating vis store/source (above). Since JDBCFeatureStore is
+   * a final class, write methods are re-routed back to the data store - this means that doing updates based on json-path
+   * expressions will not work.
+   *
+   * @param ds data store
+   * @param entry content entry
+   * @param query query
    */
-  private abstract class VisFeatureSourceMethods(source: SimpleFeatureSource, userFacingType: SimpleFeatureType)
-      extends SimpleFeatureSource {
-    override def getSchema: SimpleFeatureType = userFacingType
-    override def getName: Name = userFacingType.getName
-    override def getFeatures: SimpleFeatureCollection = new VisFeatureCollection(source.getFeatures)
-    override def getFeatures(filter: Filter): SimpleFeatureCollection = new VisFeatureCollection(source.getFeatures(filter))
-    override def getFeatures(query: Query): SimpleFeatureCollection = new VisFeatureCollection(source.getFeatures(addVisToTransform(query)))
-    override def getInfo: ResourceInfo = source.getInfo
-    override def getQueryCapabilities: QueryCapabilities = source.getQueryCapabilities
-    override def getSupportedHints: java.util.Set[RenderingHints.Key] = source.getSupportedHints
-    override def getBounds: ReferencedEnvelope = source.getBounds
-    override def getBounds(query: Query): ReferencedEnvelope = source.getBounds(query)
-    override def getCount(query: Query): Int = source.getCount(query)
-    override def addFeatureListener(listener: FeatureListener): Unit = source.addFeatureListener(listener)
-    override def removeFeatureListener(listener: FeatureListener): Unit = source.removeFeatureListener(listener)
+  private class JsonPathJdbcFeatureStore(ds: JDBCDataStore, entry: ContentEntry, query: Query)
+      extends JDBCFeatureSource(entry, query) with SimpleFeatureStore {
+
+    /**
+     * Resolves filter property names against the schema, but preserves JSON paths.
+     *
+     * The base class runs `DataUtilities.resolvePropertyNames`, whose `PropertyNameResolvingVisitor`
+     * evaluates each property name against the feature type and rewrites it to the resolved attribute's
+     * local name. A JSON path like `$.props.name` evaluates (via GeoMesa's JSON property accessor) to
+     * the `props` descriptor, so the default would collapse the whole path to `props` - losing the nested
+     * field that IcebergFilterConverter needs to push down. We keep `$`-prefixed names verbatim and
+     * resolve everything else as usual.
+     *
+     * @param query the query being planned
+     * @return the query with non-JSON-path property names resolved
+     */
+    override protected def resolvePropertyNames(query: Query): Query = {
+      val filter = query.getFilter
+      if (filter == null || filter == Filter.INCLUDE || filter == Filter.EXCLUDE) { query } else {
+        val resolved = filter.accept(new JsonPathPropertyNameResolver(getSchema), null).asInstanceOf[Filter]
+        if (resolved == filter) { query } else {
+          val newQuery = new Query(query)
+          newQuery.setFilter(resolved)
+          newQuery
+        }
+      }
+    }
+
+    override def setFeatures(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): Unit = {
+      WithClose(ds.getFeatureWriter(entry.getTypeName, Filter.INCLUDE, getTransaction)) { writer =>
+        while (writer.hasNext) {
+          writer.next()
+          writer.remove()
+        }
+      }
+      WithClose(ds.getFeatureWriterAppend(entry.getTypeName, getTransaction)) { writer =>
+        while (reader.hasNext) {
+          FeatureUtils.write(writer, reader.next())
+        }
+      }
+    }
+
+    override def addFeatures(features: FeatureCollection[SimpleFeatureType, SimpleFeature]): java.util.List[FeatureId] = {
+      val ids = new util.ArrayList[FeatureId]()
+      WithClose(ds.getFeatureWriterAppend(entry.getTypeName, getTransaction)) { writer =>
+        WithClose(features.features()) { iter =>
+          while (iter.hasNext) {
+            ids.add(FeatureUtils.write(writer, iter.next()).getIdentifier)
+          }
+        }
+      }
+      ids
+    }
+
+    override def removeFeatures(filter: Filter): Unit = {
+      WithClose(ds.getFeatureWriter(entry.getTypeName, filter, getTransaction)) { writer =>
+        while (writer.hasNext) {
+          writer.next()
+          writer.remove()
+        }
+      }
+    }
+
+    override def modifyFeatures(attributeName: String, attributeValue: AnyRef, filter: Filter): Unit =
+      modifyFeatures(Array(attributeName), Array(attributeValue), filter)
+
+    override def modifyFeatures(attributeNames: Array[Name], attributeValues: Array[AnyRef], filter: Filter): Unit =
+      modifyFeatures(attributeNames.map(_.getLocalPart), attributeValues, filter)
+
+    override def modifyFeatures(attributeName: Name, attributeValue: AnyRef, filter: Filter): Unit =
+      modifyFeatures(Array(attributeName.getLocalPart), Array(attributeValue), filter)
+
+    override def modifyFeatures(attributeNames: Array[String], attributeValues: Array[AnyRef], filter: Filter): Unit = {
+      if(attributeNames.length != attributeValues.length) {
+        throw new IllegalArgumentException(
+          s"Attribute names and values do not align: ${attributeNames.length} names (${attributeNames.mkString(", ")}) vs " +
+            s"${attributeValues.length} values (${attributeValues.mkString(", ")})")
+      }
+      WithClose(ds.getFeatureWriter(entry.getTypeName, filter, getTransaction)) { writer =>
+        while (writer.hasNext) {
+          val sf = writer.next()
+          var i = 0
+          while (i < attributeNames.length) {
+            sf.setAttribute(attributeNames(i), attributeValues(i))
+            i += 1
+          }
+          writer.write()
+        }
+      }
+    }
+
   }
 }

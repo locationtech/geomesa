@@ -10,15 +10,10 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.expression.{Expression, PropertyName}
-import org.geotools.api.filter.{BinaryLogicOperator, Filter, Or}
-import org.geotools.data.postgis.{PostGISPSDialect, PostgisPSFilterToSql}
-import org.geotools.feature.AttributeTypeBuilder
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.api.filter.Filter
+import org.geotools.data.postgis.PostGISPSDialect
 import org.geotools.jdbc.{JDBCDataStore, PreparedFilterToSQL}
-import org.geotools.util.Version
-import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisPsDialect.PartitionedPostgisPsFilterToSql
+import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.PartitionedPostgisPsFilterToSql
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
@@ -28,7 +23,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, val delegate: Partitione
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-  override def createPreparedFilterToSQL: PreparedFilterToSQL = {
+  override def createPreparedFilterToSQL(): PreparedFilterToSQL = {
     val fts = new PartitionedPostgisPsFilterToSql(this, delegate.getPostgreSQLVersion(null))
     fts.setFunctionEncodingEnabled(delegate.isFunctionEncodingEnabled)
     fts.setLooseBBOXEnabled(delegate.isLooseBBOXEnabled)
@@ -110,68 +105,4 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, val delegate: Partitione
 
 object PartitionedPostgisPsDialect {
 
-  class PartitionedPostgisPsFilterToSql(dialect: PartitionedPostgisPsDialect, pgVersion: Version)
-      extends PostgisPSFilterToSql(dialect, pgVersion) {
-
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
-    import scala.collection.JavaConverters._
-
-    override def setFeatureType(featureType: SimpleFeatureType): Unit = {
-      // convert List-type attributes to Array-types so that prepared statement bindings work correctly
-      if (featureType.getAttributeDescriptors.asScala.exists(_.getType.getBinding == classOf[java.util.List[_]])) {
-        val builder = new SimpleFeatureTypeBuilder() {
-          override def init(`type`: SimpleFeatureType): Unit = {
-            super.init(`type`)
-            attributes().clear()
-          }
-        }
-        builder.init(featureType)
-        featureType.getAttributeDescriptors.asScala.foreach { descriptor =>
-          val ab = new AttributeTypeBuilder(builder.getFeatureTypeFactory)
-          ab.init(descriptor)
-          if (descriptor.getType.getBinding == classOf[java.util.List[_]]) {
-            ab.setBinding(java.lang.reflect.Array.newInstance(Option(descriptor.getListType()).getOrElse(classOf[String]), 0).getClass)
-          }
-          builder.add(ab.buildDescriptor(descriptor.getLocalName))
-        }
-        this.featureType = builder.buildFeatureType()
-        this.featureType.getUserData.putAll(featureType.getUserData)
-      } else {
-        this.featureType = featureType
-      }
-    }
-
-    // note: this would be a cleaner solution, but it doesn't get invoked due to explicit calls to
-    // super.getExpressionType in PostgisPSFilterToSql :/
-    override def getExpressionType(expression: Expression): Class[_] = {
-      val result = Option(expression).collect { case p: PropertyName => p }.flatMap { p =>
-        Option(p.evaluate(featureType).asInstanceOf[AttributeDescriptor]).map { descriptor =>
-          val binding = descriptor.getType.getBinding
-          if (binding == classOf[java.util.List[_]]) {
-            val listType = descriptor.getListType()
-            if (listType == null) {
-              classOf[Array[String]]
-            } else {
-              java.lang.reflect.Array.newInstance(listType, 0).getClass
-            }
-          } else {
-            binding
-          }
-        }
-      }
-
-      result.getOrElse(super.getExpressionType(expression))
-    }
-
-    override def visit(filter: Or, extraData: AnyRef): AnyRef = {
-      // for array-types, skip the super-class implementation, which merges ORs into INs, as it breaks array OR queries
-      // for other types, keep the super handling as INs may be more efficient that ORs
-      if (FilterHelper.propertyNames(filter).flatMap(name => Option(featureType.getDescriptor(name))).exists(_.getType.getBinding.isArray)) {
-        visit(filter.asInstanceOf[BinaryLogicOperator], "OR")
-      } else {
-        super.visit(filter, extraData)
-      }
-    }
-  }
 }

@@ -14,48 +14,36 @@ package tables
  */
 object PartitionTables extends SqlStatements {
 
-  private def tablesAndTypes(info: TypeInfo): Seq[(TableConfig, String)] = {
-    Seq(
-      info.tables.writeAheadPartitions -> "gist",
-      info.tables.mainPartitions       -> "brin",
-      info.tables.spillPartitions      -> "gist"
-    )
-  }
+  private def tables(info: TypeInfo): Seq[TableConfig] = Seq(
+    info.tables.writeAheadPartitions,
+    info.tables.mainPartitions,
+    info.tables.spillPartitions,
+  )
 
-  override protected def createStatements(info: TypeInfo): Seq[String] =
-    tablesAndTypes(info).flatMap { case (table, indexType) => statements(info, table, indexType) }
+  override protected def createStatements(info: TypeInfo): Seq[String] = tables(info).flatMap(statements(info, _))
 
-  private def statements(info: TypeInfo, table: TableConfig, indexType: String): Seq[String] = {
+  private def statements(info: TypeInfo, table: TableConfig): Seq[String] = {
     // note: don't include storage opts since these are parent partition tables
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
-      case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
+      case Some(ts) => (s"TABLESPACE ${ts.quoted}", s"USING INDEX TABLESPACE ${ts.quoted}")
     }
 
     val logging = if (table.logged) { "" } else { "UNLOGGED" }
     val create =
       s"""CREATE $logging TABLE IF NOT EXISTS ${table.name.qualified} (
          |  LIKE ${info.tables.writeAhead.name.qualified} INCLUDING DEFAULTS INCLUDING CONSTRAINTS,
-         |  CONSTRAINT ${escape(table.name.raw, "pkey")} PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})$indexTs
-         |) PARTITION BY RANGE(${info.cols.dtg.quoted})$tableTs;""".stripMargin
-    val pagesPerRange =
-      if (indexType == "brin") { s" with (pages_per_range = ${info.partitions.pagesPerRange})" } else { "" }
-    // note: brin doesn't support 'include' cols
-    val geomIndex =
-      s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, info.cols.geom.raw)}
+         |  CONSTRAINT ${escape(table.name.raw, "pkey")} PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) $indexTs
+         |) PARTITION BY RANGE(${info.cols.dtg.quoted}) $tableTs;""".stripMargin
+    // note: partitions inherit these indices when they're attached, so they must be declared here
+    val indices = info.cols.filter(table.name).indices.map { index =>
+      s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, index.cols.map(_.raw).mkString("_"))}
          |  ON ${table.name.qualified}
-         |  USING $indexType(${info.cols.geom.quoted})$pagesPerRange$tableTs;""".stripMargin
-    // note: partitions get this index when they're attached, so a covering one has to be declared here
-    val dtgIndex =
-      s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, info.cols.dtg.raw)}
-         |  ON ${table.name.qualified} ${info.cols.dtgIndexColumns}$tableTs;""".stripMargin
-    val indices = info.cols.indexed.map { col =>
-      s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, col.raw)}
-         |  ON ${table.name.qualified} (${col.quoted})$tableTs;""".stripMargin
+         |  ${index.using} (${index.cols.map(_.quoted).mkString(", ")} ${index.opclass}) ${index.includes} ${index.storageOpts} $tableTs;""".stripMargin
     }
-    Seq(create, geomIndex, dtgIndex) ++ indices
+    Seq(create) ++ indices
   }
 
   override protected def dropStatements(info: TypeInfo): Seq[String] =
-    tablesAndTypes(info).map { case (table, _) => s"DROP TABLE IF EXISTS ${table.name.qualified};" }
+    tables(info).map(table => s"DROP TABLE IF EXISTS ${table.name.qualified};")
 }

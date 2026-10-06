@@ -90,18 +90,10 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |          'CONSTRAINT ' || quote_ident(next_partition || '_pkey') ||
        |          ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})' || index_space || ')' ||
        |          ' INHERITS (${info.tables.writeAhead.name.qualified})${info.tables.writeAhead.storage.opts}' || partition_tablespace;
-       |        EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(next_partition || '_' || ${info.cols.dtg.asLiteral}) ||
-       |          ' ON ${info.schema.quoted}.' || quote_ident(next_partition) || ' (${info.cols.dtg.quoted})' ||
-       |          partition_tablespace;
-       |${info.cols.geoms.map { col =>
-    s"""        EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(next_partition || '_spatial_' || ${col.asLiteral}) ||
-       |          ' ON ${info.schema.quoted}.' || quote_ident(next_partition) || ' USING gist(${col.quoted})' ||
-       |          partition_tablespace;""".stripMargin}.mkString("\n")}
-       |${info.cols.indexed.map { col =>
-    s"""        EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(next_partition || '_' || ${col.asLiteral}) ||
-       |          ' ON ${info.schema.quoted}.' || quote_ident(next_partition) || '(${col.quoted})' ||
-       |          partition_tablespace;""".stripMargin}.mkString("\n")}
-       |
+       |${info.cols.filter(info.tables.writeAhead.name).indices.map { index =>
+    s"""        EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(next_partition || ${literal(index.cols.map(_.raw).mkString("_", "_", ""))}) ||
+       |          ' ON ${info.schema.quoted}.' || quote_ident(next_partition) ||
+       |          ' ${index.using} (${index.cols.map(_.quoted).mkString(", ")} ${index.opclass}) ${index.includes} ${index.storageOpts}' || partition_tablespace;""".stripMargin}.mkString("\n")}
        |        COMMIT; -- releases our locks
        |
        |        EXECUTE 'ANALYZE ' || quote_ident(cur_partition);

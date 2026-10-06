@@ -115,16 +115,10 @@ object CompactPartitions extends SqlProcedure {
        |        ' AND ${info.cols.dtg.quoted} < ' || quote_literal(partition_end) || ' )';
        |
        |      -- create indices before attaching to minimize time to attach, copied from PartitionTables code
-       |      EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition_name || '_${info.cols.geom.raw}_tmp_sort') ||
+       |${info.cols.filter(info.tables.mainPartitions.name).indices.map { index =>
+    s"""      EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition_name || ${literal(index.cols.map(_.raw).mkString("_", "_", "_tmp_sort"))}) ||
        |        ' ON ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
-       |        ' USING BRIN(${info.cols.geom.quoted})' || partition_tablespace;
-       |      EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition_name || '_${info.cols.dtg.raw}_tmp_sort') ||
-       |        ' ON ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
-       |        ' ${info.cols.dtgIndexColumns}' || partition_tablespace;
-       |${info.cols.indexed.map { col =>
-    s"""      EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition_name || '_${col.raw}_tmp_sort') ||
-       |        ' ON ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
-       |        ' (${col.quoted})' || partition_tablespace;""".stripMargin}.mkString("\n")}
+       |        ' ${index.using} (${index.cols.map(_.quoted).mkString(", ")} ${index.opclass}) ${index.includes} ${index.storageOpts}' || partition_tablespace;""".stripMargin}.mkString("\n")}
        |
        |      RAISE INFO '% Dropping old partition table (queries will be blocked) %', timeofday()::timestamp, partition_name;
        |      EXECUTE 'DROP TABLE IF EXISTS ${info.schema.quoted}.' || quote_ident(partition_name);
@@ -138,13 +132,9 @@ object CompactPartitions extends SqlProcedure {
        |      EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |        ' RENAME CONSTRAINT ' || quote_ident(partition_name || '_pkey_tmp_sort') ||
        |        ' TO ' || quote_ident(partition_name || '_pkey');
-       |      EXECUTE 'ALTER INDEX ' || quote_ident(partition_name || '_${info.cols.geom.raw}_tmp_sort') ||
-       |        ' RENAME TO ' || quote_ident(partition_name || '_${info.cols.geom.raw}');
-       |      EXECUTE 'ALTER INDEX ' || quote_ident(partition_name || '_${info.cols.dtg.raw}_tmp_sort') ||
-       |        ' RENAME TO ' || quote_ident(partition_name || '_${info.cols.dtg.raw}');
-       |${info.cols.indexed.map { col =>
-    s"""      EXECUTE 'ALTER INDEX ' || quote_ident(partition_name || '_${col.raw}_tmp_sort') ||
-       |        ' RENAME TO ' || quote_ident(partition_name || '_${col.raw}');""".stripMargin}.mkString("\n")}
+       |${info.cols.filter(info.tables.mainPartitions.name).indices.map { index =>
+    s"""      EXECUTE 'ALTER INDEX ' || quote_ident(partition_name || ${literal(index.cols.map(_.raw).mkString("_", "_", "_tmp_sort"))}) ||
+       |        ' RENAME TO ' || quote_ident(partition_name || ${literal(index.cols.map(_.raw).mkString("_", "_", ""))});""".stripMargin}.mkString("\n")}
        |
        |      RAISE INFO '% Attaching newly sorted partition table %', timeofday()::timestamp, partition_name;
        |      EXECUTE 'ALTER TABLE ${info.tables.mainPartitions.name.qualified}' ||

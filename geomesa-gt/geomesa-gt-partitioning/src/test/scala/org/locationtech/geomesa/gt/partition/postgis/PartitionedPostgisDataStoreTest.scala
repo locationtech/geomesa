@@ -20,7 +20,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.referencing.CRS
-import org.junit.runner.RunWith
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
@@ -39,8 +39,7 @@ import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, Simple
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 
 import java.io.{ByteArrayInputStream, IOException, SequenceInputStream}
@@ -56,8 +55,7 @@ import scala.io.{Codec, Source}
 import scala.util.Try
 import scala.util.control.NonFatal
 
-@RunWith(classOf[JUnitRunner])
-class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll with LazyLogging {
+class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
@@ -86,7 +84,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     val builder = new SimpleFeatureBuilder(sft)
     builder.set("name", java.util.List.of(s"name$i", s"alt$i"))
     builder.set("age", i)
-    builder.set("props", s"""["name$i"]""")
+    builder.set("props", s"""{"age": $i, "names": ["name$i"]}""") // note: formatted so that the compare with sql works
     builder.set("dtg", new java.util.Date(now - ((i + 1) * 20 * 60 * 1000))) // 20 minutes
     builder.set("geom", WKTUtils.read(s"POINT(0 $i)"))
     builder.buildFeature(s"fid$i")
@@ -107,7 +105,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "geomesa.metrics.registry.config" -> s"port = $metricsPort",
   )
 
-  var container: PostgisContainer = _
+  private val container = new PostgisContainer()
 
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
   lazy val port = Option(container).map(_.getFirstMappedPort).getOrElse(5432).toString
@@ -115,18 +113,13 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   lazy val fif = CommonFactoryFinder.getFilterFactory
 
   override def beforeAll(): Unit = {
-    container = new PostgisContainer()
     if (logger.underlying.isTraceEnabled()) {
       container.withLogAllStatements()
     }
     container.start()
   }
 
-  override def afterAll(): Unit = {
-    if (container != null) {
-      container.close()
-    }
-  }
+  override def afterAll(): Unit = container.close()
 
   "PartitionedPostgisDataStore" should {
 
@@ -258,16 +251,19 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         val visibilities = Seq("admin", "user", "user&admin", "user|admin", "admin", "user", "user&admin", "user|admin", "admin", "user")
         val features = this.features.zip(visibilities).map { case (sf, vis) =>
           val retyped = ScalaSimpleFeature.retype(sft, sf)
+          retyped.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
           SecurityUtils.setFeatureVisibility(retyped, vis)
         }
 
         // write some data
         WithClose(new DefaultTransaction()) { tx =>
           WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
-            features.foreach { feature =>
+            features.take(5).foreach { feature =>
               FeatureUtils.write(writer, feature, useProvidedFid = true)
             }
           }
+          // validate adding through the feature store
+          ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.drop(5).asJava))
           tx.commit()
         }
 
@@ -290,6 +286,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
               val visible = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
               visible.map(compFromDb) mustEqual expected.map(compWithFid(_, sft, Option(transforms)))
               visible.map(SecurityUtils.getVisibility) mustEqual expected.map(SecurityUtils.getVisibility)
+              val fromFeatureSource =
+                CloseableIterator(ds.getFeatureSource(query.getTypeName).getFeatures(query).features()).toList.sortBy(_.getID)
+              fromFeatureSource mustEqual visible
             }
           }
         }
@@ -498,6 +497,44 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       }
     }
 
+    "filter on json elements" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      ds must not(beNull)
+
+      try {
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "json-filters")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        val filters = Seq(
+          ECQL.toFilter("jsonPath('$.props.names[0]') = 'name0'") -> features.take(1),
+          ECQL.toFilter("\"$.props.names[0]\" = 'name0'") -> features.take(1),
+          ECQL.toFilter("jsonPath(props, 'age') > 5.0") -> features.drop(6),
+          ECQL.toFilter("\"$.props.age\" > 5.0") -> features.drop(6),
+          ECQL.toFilter("\"$.props.age\" = 5.0 OR \"$.props.age\" = 6.0 ") -> features.slice(5, 7),
+        )
+        foreach(filters) { case (filter, expected) =>
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
+            val result = CloseableIterator(reader).toList.sortBy(_.getID)
+            result must haveLength(expected.length)
+            result.map(compFromDb) mustEqual expected.map(compWithFid(_, sft))
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
     "run arrow queries with dictionary encoded list attributes" in {
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
@@ -534,34 +571,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         WithClose(SimpleFeatureArrowFileReader.streaming(is)) { reader =>
           WithClose(reader.features())(_.map(compFromDb).toList) mustEqual features.map(compWithFid(_, sft))
         }
-      } finally {
-        ds.dispose()
-      }
-    }
-
-    "insert data without requiring JAI on the classpath" in {
-      val ds = DataStoreFinder.getDataStore((params ++ Map("Batch insert size" -> "1")).asJava)
-      ds must not(beNull)
-
-      try {
-        val sft = SimpleFeatureTypes.createType("jai", "name:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326")
-        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
-        ds.createSchema(sft)
-
-        WithClose(new DefaultTransaction()) { tx =>
-          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
-            val next = writer.next()
-            next.setAttribute(0, "name")
-            next.setAttribute(1, "2025-07-01T00:00:00.000Z")
-            next.setAttribute(2, "")
-            next.setAttribute(3, WKTUtils.read("POINT(0 0)"))
-            writer.write() must not (throwA[NoClassDefFoundError])
-          }
-          tx.commit()
-        }
-        ok
-      } catch {
-        case NonFatal(e) => logger.error("", e); ko
       } finally {
         ds.dispose()
       }

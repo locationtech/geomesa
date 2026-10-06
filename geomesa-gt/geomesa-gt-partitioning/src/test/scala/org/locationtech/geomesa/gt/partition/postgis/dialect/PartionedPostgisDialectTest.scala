@@ -10,34 +10,34 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.jdbc.JDBCDataStore
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.VisCol
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.MainView
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Point
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 
 import java.sql.Connection
 
-@RunWith(classOf[JUnitRunner])
-class PartionedPostgisDialectTest extends Specification with Mockito {
+class PartionedPostgisDialectTest extends SpecificationWithJUnit with Mockito {
 
   "PartitionedPostgisDialect" should {
 
     "keep visibility in the date index keys and make geometry covering optional" in {
       val cases = Seq(
-        "dtg:Date,*geom:Point:srid=4326" -> "(\"dtg\")",
-        s"dtg:Date,*geom:Point:srid=4326,$VisCol:String" -> "(\"dtg\", \"_vis\")",
-        "dtg:Date,*geom:Point:srid=4326;pg.partitions.dtg-index.covering=true" -> "(\"dtg\") INCLUDE (\"geom\")",
+        "dtg:Date,*geom:Point:srid=4326" -> (Seq("dtg"), ""),
+        s"dtg:Date,*geom:Point:srid=4326,$VisCol:String" -> (Seq("dtg", VisCol), ""),
+        "dtg:Date,*geom:Point:srid=4326;pg.partitions.dtg-index.covering=true" -> (Seq("dtg"), "INCLUDE (\"geom\")"),
         s"dtg:Date,*geom:Point:srid=4326,$VisCol:String;pg.partitions.dtg-index.covering=true" ->
-            "(\"dtg\", \"_vis\") INCLUDE (\"geom\")",
+          (Seq("dtg", VisCol), "INCLUDE (\"geom\")"),
         s"dtg:Date,*geom:Polygon:srid=4326,$VisCol:String;pg.partitions.dtg-index.covering=true" ->
-            "(\"dtg\", \"_vis\")"
+          (Seq("dtg", VisCol), ""),
       )
       foreach(cases) { case (spec, expected) =>
-        Columns(SimpleFeatureTypes.createType("date_index", spec)).dtgIndexColumns mustEqual expected
+        val sft = SimpleFeatureTypes.createType("date_index", spec)
+        val indices = Columns(sft, Tables(sft, "public", sft.getTypeName), PartitionInfo(sft)).indices
+        val dtgCol = indices.collectFirst { case i if i.cols.exists(_.raw == "dtg") => i.cols.map(_.raw) -> i.includes }
+        dtgCol must beSome(expected)
       }
     }
 

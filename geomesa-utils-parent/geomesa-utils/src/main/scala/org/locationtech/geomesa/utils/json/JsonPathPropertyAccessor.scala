@@ -42,7 +42,7 @@ trait JsonPathPropertyAccessor extends PropertyAccessor with LazyLogging {
   override def canHandle(obj: AnyRef, xpath: String, target: Class[_]): Boolean = {
     val path =
       try {
-        JsonPathPropertyAccessor.paths.get(xpath)
+        JsonPathPropertyAccessor.Paths.get(xpath)
       } catch {
         case NonFatal(e) =>
           logger.warn(s"Error parsing path: $xpath", e)
@@ -74,7 +74,7 @@ trait JsonPathPropertyAccessor extends PropertyAccessor with LazyLogging {
 
   override def get[T](obj: AnyRef, xpath: String, target: Class[T]): T = {
 
-    val path = JsonPathPropertyAccessor.paths.get(xpath)
+    val path = JsonPathPropertyAccessor.Paths.get(xpath)
 
     val result = obj match {
       case s: JsonAwareFeature =>
@@ -132,7 +132,7 @@ object JsonPathPropertyAccessor extends JsonPathPropertyAccessor {
   val CacheExpiry: SystemProperty = SystemProperty("geomesa.json.cache.expiry", "10 minutes")
 
   // cached references to parsed json path expressions
-  private val paths: LoadingCache[String, JsonPath] =
+  val Paths: LoadingCache[String, JsonPath] =
     Caffeine.newBuilder()
       .expireAfterAccess(CacheExpiry.toDuration.get.toMillis, TimeUnit.MILLISECONDS)
       .build(new CacheLoader[String, JsonPath]() {
