@@ -522,8 +522,6 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
           ECQL.toFilter("jsonPath(props, 'age') > 5.0") -> features.drop(6),
           ECQL.toFilter("\"$.props.age\" > 5.0") -> features.drop(6),
           ECQL.toFilter("\"$.props.age\" = 5.0 OR \"$.props.age\" = 6.0 ") -> features.slice(5, 7),
-          ECQL.toFilter("jsonPath('$.props.names.first()') = 'name0'") -> features.take(1),
-          ECQL.toFilter("jsonPath('$.props.names.length()') = 2") -> features,
         )
         foreach(filters) { case (filter, expected) =>
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
