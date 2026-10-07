@@ -24,13 +24,23 @@ object InsertTrigger extends SqlTriggerFunction {
     Seq(function(info)) ++ super.createStatements(info)
 
   private def function(info: TypeInfo): String =
+    {
+      val sidecar = info.cols.vis.fold("") { vis =>
+        s"""    IF NEW.${vis.quoted} IS NOT NULL THEN
+           |      INSERT INTO ${info.tables.visibilityValues.name.qualified} (${escape("vis")})
+           |        VALUES (NEW.${vis.quoted}) ON CONFLICT (${escape("vis")}) DO NOTHING;
+           |    END IF;
+           |""".stripMargin
+      }
     s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    BEGIN
+       |$sidecar
        |      INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |      RETURN NEW;
        |    END;
        |  $$BODY$$
        |LANGUAGE plpgsql VOLATILE
        |COST 100;""".stripMargin
+    }
 }

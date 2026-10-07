@@ -409,6 +409,7 @@ object PartitionedPostgisDialect extends StrictLogging {
     WriteAheadTable,
     WriteAheadTrigger,
     PartitionTables,
+    VisibilityValuesTable,
     PgVis, // must be created before the main view, which references it
     WriteAheadMigrationsTable,
     AgeOffQueueTable,
@@ -471,6 +472,9 @@ object PartitionedPostgisDialect extends StrictLogging {
     val WalLogEnabled: SftUserData[Boolean] = SftUserData("pg.wal.enabled", mutable = false, default = true)
     // enable per-row visibility enforcement via a hidden '_vis' column
     val VisEnabled: SftUserData[Boolean] = SftUserData("pg.vis.enabled", mutable = false, default = false)
+    // maximum distinct visibility expressions evaluated through the sidecar before falling back to row-wise evaluation
+    val VisibilityDecisionArrayMaxValues: SftUserData[Int] =
+      SftUserData("pg.vis.decision-array.max-values", mutable = true, default = 1024)
     // unique alias to use for identifiers so that we don't exceed the max postgres identifier length
     val IdentAlias: SftUserData[Option[String]] = SftUserData("pg.ident.alias", mutable = false, None)
     // name of the feature id column

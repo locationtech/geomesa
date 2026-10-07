@@ -239,11 +239,13 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
             Iterator.continually(rs).takeWhile(_.next()).map(_.getString("COLUMN_NAME")).toList must
               contain(PartitionedPostgisDialect.VisCol)
           }
-          // and that the view filters on it
+          // and that the view filters on it through the sidecar, with a row-wise fallback for oversized sidecars
           WithClose(cx.prepareStatement(s"""select pg_get_viewdef('${this.schema}."${sft.getTypeName}"'::regclass, true);""")) { st =>
             WithClose(st.executeQuery()) { rs =>
               rs.next() must beTrue
-              rs.getString(1).toLowerCase(Locale.US).split("pg_vis") must haveLength(5) // 4 tables
+              val view = rs.getString(1).toLowerCase(Locale.US)
+              view must contain(s"${sft.getTypeName}_vis_values")
+              view.split("pg_vis") must haveLength(14) // one sidecar decision plus three predicates for each of four tables
             }
           }
         }
@@ -263,9 +265,30 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
               FeatureUtils.write(writer, feature, useProvidedFid = true)
             }
           }
-          // validate adding through the feature store
-          ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.drop(5).asJava))
           tx.commit()
+        }
+        // validate adding through the feature store
+        ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.drop(5).asJava))
+
+        val typeInfo = TypeInfo(this.schema, sft)
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          count(cx, typeInfo.tables.visibilityValues) mustEqual visibilities.distinct.length
+        }
+
+        // a newly introduced expression must roll back with its feature row
+        val rollback = new SimpleFeatureBuilder(sft)
+        rollback.init(features.head)
+        val rollbackFeature = rollback.buildFeature("rollback")
+        SecurityUtils.setFeatureVisibility(rollbackFeature, "rollback")
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            FeatureUtils.write(writer, rollbackFeature, useProvidedFid = true)
+          }
+          tx.rollback()
+        }
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          count(cx, typeInfo.tables.writeAhead) mustEqual features.length
+          count(cx, typeInfo.tables.visibilityValues) mustEqual visibilities.distinct.length
         }
 
         def runQueries(): MatchResult[_] = {
@@ -297,7 +320,6 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
         runQueries()
 
         // verify vis still work through maintenance scripts
-        val typeInfo = TypeInfo(this.schema, sft)
         WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
           // everything starts in the write ahead log
           count(cx, typeInfo.tables.writeAhead) mustEqual 10
@@ -310,6 +332,42 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
               count(cx, typeInfo.tables.spillPartitions)
           partitioned mustEqual 10
         }
+
+        runQueries()
+
+        // bounded protected queries must retain direct access to physical partition relations
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          val sql =
+            s"EXPLAIN (FORMAT JSON) SELECT count(*) FROM ${typeInfo.tables.view.name.qualified} " +
+                s"WHERE ${typeInfo.cols.dtg.quoted} >= ? AND ${typeInfo.cols.dtg.quoted} < ?"
+          WithClose(cx.prepareStatement(sql)) { st =>
+            st.setTimestamp(1, new java.sql.Timestamp(now - (4 * 60 * 60 * 1000)))
+            st.setTimestamp(2, new java.sql.Timestamp(now))
+            WithClose(st.executeQuery()) { rs =>
+              rs.next() must beTrue
+              val plan = rs.getString(1).toLowerCase(Locale.US)
+              plan must contain(typeInfo.tables.mainPartitions.name.raw.toLowerCase(Locale.US))
+            }
+          }
+        }
+
+        // upgrade must backfill a missing sidecar from the physical tables before replacing the view
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.createStatement()) { st =>
+            st.execute(s"TRUNCATE ${typeInfo.tables.visibilityValues.name.qualified};")
+          }
+          count(cx, typeInfo.tables.visibilityValues) mustEqual 0
+        }
+        ds.upgrade(sft)
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          count(cx, typeInfo.tables.visibilityValues) mustEqual visibilities.distinct.length
+        }
+
+        runQueries()
+
+        // reduce the cap below the four sidecar expressions and verify the row-wise fallback remains equivalent
+        sft.getUserData.put(SftUserData.VisibilityDecisionArrayMaxValues.key, "1")
+        ds.upgrade(sft)
 
         runQueries()
 
@@ -364,10 +422,23 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
         ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft)
 
-        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
-        schema must not(beNull)
-        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
-        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+        val visibilitySft = SimpleFeatureTypes.renameSft(this.sft, "readonly_vis")
+        visibilitySft.getUserData.put(SftUserData.VisEnabled.key, "true")
+        ds.createSchema(visibilitySft)
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          val table = s"$schema.${visibilitySft.getTypeName}_vis_values"
+          WithClose(cx.prepareStatement(s"SELECT has_table_privilege('$readOnlyUser', '$table', 'SELECT')")) { st =>
+            WithClose(st.executeQuery()) { rs =>
+              rs.next() must beTrue
+              rs.getBoolean(1) must beFalse
+            }
+          }
+        }
+
+        val createdSchema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        createdSchema must not(beNull)
+        createdSchema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(createdSchema)}")
 
         // write some data
         WithClose(new DefaultTransaction()) { tx =>

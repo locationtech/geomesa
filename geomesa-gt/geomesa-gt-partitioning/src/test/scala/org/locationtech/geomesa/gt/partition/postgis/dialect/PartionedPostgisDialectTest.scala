@@ -41,15 +41,36 @@ class PartionedPostgisDialectTest extends SpecificationWithJUnit with Mockito {
       }
     }
 
-    "add a pg_vis predicate to each main view branch when a _vis column is present" in {
+    "add sidecar-backed visibility filtering to each main view branch when a _vis column is present" in {
       val sft = SimpleFeatureTypes.createType("vistest", s"name:String,dtg:Date,*geom:Point:srid=4326,$VisCol:String")
       val info = TypeInfo("public", sft)
       info.cols.vis must beSome
       val sqlCapture = new SqlCapture()
       MainView.create(info)(sqlCapture)
-      // one predicate per union branch (write ahead, wa partitions, main partitions, spill)
-      sqlCapture.sql.split("pg_vis").length - 1 mustEqual 4
-      sqlCapture.sql must contain(s"""pg_vis(${escape(VisCol)}, (SELECT string_to_array(current_setting('geomesa.auths', true), ',')))""")
+      sqlCapture.sql must contain("sidecar_count")
+      sqlCapture.sql must contain("allowed_values")
+      sqlCapture.sql must contain(info.tables.visibilityValues.name.qualified)
+      // four union branches retain a row-wise fallback predicate for cap-exceeded sidecars
+      sqlCapture.sql.split(java.util.regex.Pattern.quote(s"pg_vis(${escape(VisCol)}")).length - 1 mustEqual 4
+    }
+
+    "configure the visibility decision sidecar and cardinality cap" in {
+      import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
+
+      val sft = SimpleFeatureTypes.createType("visconfig", s"name:String,dtg:Date,*geom:Point:srid=4326,$VisCol:String")
+      val info = TypeInfo("public", sft)
+      info.tables.visibilityValues.name.raw mustEqual "visconfig_vis_values"
+      SftUserData.VisibilityDecisionArrayMaxValues.get(sft) mustEqual 1024
+
+      sft.getUserData.put(SftUserData.VisibilityDecisionArrayMaxValues.key, "1")
+      SftUserData.VisibilityDecisionArrayMaxValues.get(sft) mustEqual 1
+      TypeInfo("public", sft) must not(throwAn[IllegalArgumentException])
+      val sqlCapture = new SqlCapture()
+      MainView.create(TypeInfo("public", sft))(sqlCapture)
+      sqlCapture.sql must contain("count <= 1")
+
+      sft.getUserData.put(SftUserData.VisibilityDecisionArrayMaxValues.key, "0")
+      TypeInfo("public", sft) must throwAn[IllegalArgumentException]("Visibility decision array maximum must be positive: 0")
     }
 
     "not add a pg_vis predicate when there is no _vis column" in {
