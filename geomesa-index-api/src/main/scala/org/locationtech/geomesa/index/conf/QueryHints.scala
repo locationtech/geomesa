@@ -42,6 +42,8 @@ object QueryHints {
   val EXACT_COUNT      = new ClassKey(classOf[java.lang.Boolean])
   val LOOSE_BBOX       = new ClassKey(classOf[java.lang.Boolean])
 
+  val TRINO_VARIANT_PREFILTER = new ClassKey(classOf[java.lang.Boolean])
+
   val SAMPLING         = new ClassKey(classOf[java.lang.Float])
   val SAMPLE_BY        = new ClassKey(classOf[String])
 

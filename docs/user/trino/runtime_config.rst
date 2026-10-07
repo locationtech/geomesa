@@ -30,6 +30,10 @@ object paths into schemaless ``json=true`` attributes stored as VARIANT. For exa
 ``"$.payload.category" = 'example'`` can reject nonmatching strings in Trino before returning documents
 to the client. Structured JSON attributes with a ``json-schema`` continue to use their existing ROW translation.
 
+The Boolean query hint ``QueryHints.TRINO_VARIANT_PREFILTER`` overrides this system property for an individual query.
+An explicit ``false`` disables the prefilter even when the system property is ``true``; omitting the hint uses the system
+property. See :ref:`trino_variant_prefilter_hint` for examples.
+
 The original predicate is always evaluated as a client-side residual to preserve GeoTools type conversion and collection
 matching. Unsupported operators and paths retain their existing fallback. The client-side filtering mode still applies;
 ``none`` rejects these predicates because they require a residual. Exact COUNT and LIMIT pushdown remain unavailable

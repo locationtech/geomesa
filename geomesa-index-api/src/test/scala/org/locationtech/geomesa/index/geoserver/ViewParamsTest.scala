@@ -40,6 +40,8 @@ class ViewParamsTest extends Specification {
       testHint(DENSITY_BBOX, "DENSITY_BBOX", "[-120.0, -45, 10, -35.01]", new ReferencedEnvelope(-120d, 10d, -45d, -35.01d, CRS_EPSG_4326))
       testHint(ENCODE_STATS, "ENCODE_STATS", "true", true)
       testHint(ENCODE_STATS, "ENCODE_STATS", "false", false)
+      testHint(TRINO_VARIANT_PREFILTER, "TRINO_VARIANT_PREFILTER", "true", true)
+      testHint(TRINO_VARIANT_PREFILTER, "TRINO_VARIANT_PREFILTER", "false", false)
       testHint(DENSITY_WIDTH, "DENSITY_WIDTH", "640", 640)
       testHint(SAMPLING, "SAMPLING", "0.4", 0.4f)
     }
