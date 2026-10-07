@@ -81,11 +81,9 @@ public final class FileAuthorizationResolver implements AuthorizationResolver {
         return auths;
     }
 
-    /** Returns the mapping, reloading if the file's mtime changed. The new
-     *  (mapping, mtime) pair is published in a single volatile write so readers
-     *  never see a mismatched pair. Failures keep the last snapshot
-     *  (fail-closed: empty until a file is first read successfully). */
-    private Properties current() {
+    /** Serialize reloads so older reads cannot overwrite newer mappings. A failed reload clears
+     *  previous grants and remains eligible for retry, including when the mtime is unchanged. */
+    private synchronized Properties current() {
         Snapshot current = snapshot;
         try {
             long modified = Files.exists(file) ? Files.getLastModifiedTime(file).toMillis() : Long.MIN_VALUE;
@@ -104,10 +102,11 @@ public final class FileAuthorizationResolver implements AuthorizationResolver {
             Snapshot next0 = new Snapshot(next, modified);
             snapshot = next0;  // single atomic publish
             return next0.mapping();
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             LOG.warn("Failed to read auth-mapping file " + file + ": " + e.getMessage()
-                + " — using last good mapping (or empty)");
-            return current.mapping();
+                + " — all identities resolve to empty authorizations (fail-closed)");
+            snapshot = new Snapshot(new Properties(), Long.MIN_VALUE);
+            return snapshot.mapping();
         }
     }
 

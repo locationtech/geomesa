@@ -82,4 +82,40 @@ class FileAuthorizationResolverTest {
         var resolver = new FileAuthorizationResolver(dir.resolve("does-not-exist.properties"));
         assertThat(resolver.authorizationsFor(identity("alice", Set.of()))).isEmpty();
     }
+    @Test
+    void failedReloadClearsGrantsAndRetriesAtTheSameMtime(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("mapping.properties");
+        Files.writeString(file, "user.alice=privileged\n");
+        var modified = java.nio.file.attribute.FileTime.fromMillis(10000);
+        Files.setLastModifiedTime(file, modified);
+        var resolver = new FileAuthorizationResolver(file);
+        var alice = identity("alice", Set.of());
+        assertThat(resolver.authorizationsFor(alice)).containsExactly("privileged");
+
+        Files.delete(file);
+        Files.createDirectory(file);
+        Files.setLastModifiedTime(file, java.nio.file.attribute.FileTime.fromMillis(20000));
+        assertThat(resolver.authorizationsFor(alice)).isEmpty();
+        assertThat(resolver.authorizationsFor(alice)).isEmpty();
+
+        Files.delete(file);
+        Files.writeString(file, "user.alice=basic\n");
+        Files.setLastModifiedTime(file, modified);
+        assertThat(resolver.authorizationsFor(alice)).containsExactly("basic");
+    }
+
+    @Test
+    void malformedReloadClearsGrants(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("mapping.properties");
+        Files.writeString(file, "user.alice=privileged\n");
+        Files.setLastModifiedTime(file, java.nio.file.attribute.FileTime.fromMillis(10000));
+        var resolver = new FileAuthorizationResolver(file);
+        var alice = identity("alice", Set.of());
+        assertThat(resolver.authorizationsFor(alice)).containsExactly("privileged");
+        // Properties.load rejects malformed Unicode escapes with IllegalArgumentException.
+        Files.writeString(file, "user.alice=" + (char) 92 + "uZZZZ\n");
+        Files.setLastModifiedTime(file, java.nio.file.attribute.FileTime.fromMillis(20000));
+        assertThat(resolver.authorizationsFor(alice)).isEmpty();
+    }
+
 }

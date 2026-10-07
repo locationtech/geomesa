@@ -146,12 +146,21 @@ public class SpatialConnector implements Connector {
         this.delegate = delegate;
         this.geomCatalog = new GeoMesaColumnCatalog();
         this.accessControl = resolver == null ? null
-            : new VisibilityAccessControl(catalogName, geomCatalog, resolver);
+            : new VisibilityAccessControl(catalogName, geomCatalog, resolver, existingAccessControl(delegate));
         this.bboxShortCircuit = bboxShortCircuit;
         this.useInvokerAuths = useInvokerAuths && resolver != null;
         this.resolver = resolver;
         this.visibilityPruningEnabled = visibilityPruningEnabled;
         this.visibilityExpressions = visibilityExpressions;
+    }
+
+    private static ConnectorAccessControl existingAccessControl(Connector connector) {
+        try {
+            return connector.getAccessControl();
+        } catch (UnsupportedOperationException e) {
+            // SYSTEM security installs no connector policy; Trino still applies its system policy.
+            return new io.trino.plugin.base.security.AllowAllAccessControl();
+        }
     }
 
     /**

@@ -113,4 +113,58 @@ class VisibilityAccessControlTest {
         SchemaTableName metaTable = new SchemaTableName("spatial", "observations$snapshots");
         assertThat(control(cat).getRowFilters(ctx("alice"), metaTable)).isEmpty();
     }
+    @Test
+    void preservesDelegateRestrictionsFiltersAndMasks() {
+        GeoMesaColumnCatalog catalog = new GeoMesaColumnCatalog();
+        catalog.recordVisibilityColumn(TABLE, Set.of("__vis__"));
+        ViewExpression existing = ViewExpression.builder().expression("tenant = 'alice'").build();
+        ViewExpression mask = ViewExpression.builder().expression("NULL").build();
+        var policy = new io.trino.plugin.base.security.ReadOnlyAccessControl() {
+            @Override
+            public List<ViewExpression> getRowFilters(ConnectorSecurityContext context, SchemaTableName table) {
+                return List.of(existing);
+            }
+            @Override
+            public java.util.Map<io.trino.spi.connector.ColumnSchema, ViewExpression> getColumnMasks(
+                    ConnectorSecurityContext context, SchemaTableName table,
+                    List<io.trino.spi.connector.ColumnSchema> columns) {
+                return java.util.Map.of(columns.get(0), mask);
+            }
+        };
+        var control = new VisibilityAccessControl(CATALOG, catalog, RESOLVER, policy);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> control.checkCanDropTable(ctx("alice"), TABLE))
+            .isInstanceOf(io.trino.spi.security.AccessDeniedException.class);
+        assertThat(control.getRowFilters(ctx("alice"), TABLE)).hasSize(2).startsWith(existing);
+        var column = io.trino.spi.connector.ColumnSchema.builder().setName("secret")
+            .setType(io.trino.spi.type.VarcharType.VARCHAR).build();
+        assertThat(control.getColumnMasks(ctx("alice"), TABLE, List.of(column))).containsEntry(column, mask);
+        SchemaTableName metadata = new SchemaTableName("spatial", "observations$files");
+        assertThat(control.getRowFilters(ctx("alice"), metadata)).containsExactly(existing);
+    }
+
+    @Test
+    void connectorComposesItsConfiguredPolicyAndSupportsSystemSecurity() {
+        var delegate = new io.trino.spi.connector.Connector() {
+            @Override public void shutdown() {}
+            @Override
+            public io.trino.spi.connector.ConnectorAccessControl getAccessControl() {
+                return new io.trino.plugin.base.security.ReadOnlyAccessControl();
+            }
+        };
+        var connector = new org.locationtech.geomesa.trino.spatial.iceberg.connector.SpatialConnector(
+            delegate, CATALOG, RESOLVER);
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+            () -> connector.getAccessControl().checkCanDropTable(ctx("alice"), TABLE))
+            .isInstanceOf(io.trino.spi.security.AccessDeniedException.class);
+
+        // SYSTEM security supplies no connector policy; the default getAccessControl throws.
+        var system = new org.locationtech.geomesa.trino.spatial.iceberg.connector.SpatialConnector(
+            new io.trino.spi.connector.Connector() {
+                @Override public void shutdown() {}
+            }, CATALOG, RESOLVER);
+        system.getAccessControl().checkCanDropTable(ctx("alice"), TABLE);
+        assertThat(system.getAccessControl().getRowFilters(ctx("alice"), TABLE))
+            .extracting(ViewExpression::getExpression).containsExactly("false");
+    }
+
 }

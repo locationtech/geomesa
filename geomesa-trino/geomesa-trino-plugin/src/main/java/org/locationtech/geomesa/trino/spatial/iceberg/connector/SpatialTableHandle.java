@@ -73,6 +73,15 @@ public record SpatialTableHandle(
     @JsonProperty public double rectMaxX() { return rectMaxX; }
     @JsonProperty public double rectMaxY() { return rectMaxY; }
 
+    /** Preserve the authoritative spatial filter after delegate pushdown changes the Iceberg handle. */
+    SpatialTableHandle withDelegate(ConnectorTableHandle handle) {
+        if (!(handle instanceof IcebergTableHandle iceberg)) {
+            throw new IllegalArgumentException("Spatial filter requires an Iceberg table handle");
+        }
+        return new SpatialTableHandle(iceberg, geomColumn, bboxLeaves,
+            rectMinX, rectMinY, rectMaxX, rectMaxY);
+    }
+
     /** Unwrap to the Iceberg handle if wrapped, else return the handle unchanged. */
     static ConnectorTableHandle unwrap(ConnectorTableHandle handle) {
         return handle instanceof SpatialTableHandle w ? w.delegate() : handle;

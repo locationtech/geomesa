@@ -45,7 +45,7 @@ class BboxShortCircuitTest {
         Call isVisible = call("is_visible");
         Call stIntersects = call("st_intersects");
         ConnectorExpression result =
-            SpatialConnectorMetadata.dropSpatialCall(and(isVisible, stIntersects));
+            SpatialConnectorMetadata.dropSpatialCall(and(isVisible, stIntersects), stIntersects);
 
         assertThat(result).isInstanceOf(Call.class);
         Call andResult = (Call) result;
@@ -57,7 +57,7 @@ class BboxShortCircuitTest {
 
     @Test
     void dropSpatialCallOnBarePredicateBecomesTrue() {
-        assertThat(SpatialConnectorMetadata.dropSpatialCall(call("st_intersects")))
+        assertThat(SpatialConnectorMetadata.dropSpatialCall(call("st_intersects"), call("st_intersects")))
             .isEqualTo(Constant.TRUE);
     }
 
@@ -65,7 +65,7 @@ class BboxShortCircuitTest {
     void dropSpatialCallLeavesNonSpatialConjunctsUntouched() {
         Call isVisible = call("is_visible");
         Call other = call("some_other_predicate");
-        ConnectorExpression result = SpatialConnectorMetadata.dropSpatialCall(and(isVisible, other));
+        ConnectorExpression result = SpatialConnectorMetadata.dropSpatialCall(and(isVisible, other), call("st_intersects"));
         // No st_intersects present → nothing is dropped; the tree is preserved.
         assertThat(((Call) result).getArguments()).containsExactly(isVisible, other);
     }

@@ -10,6 +10,7 @@ package org.locationtech.geomesa.trino.security;
 import org.locationtech.geomesa.trino.spatial.iceberg.GeoMesaColumnCatalog;
 
 import io.trino.plugin.base.security.AllowAllAccessControl;
+import io.trino.plugin.base.security.ForwardingConnectorAccessControl;
 import io.trino.spi.connector.ConnectorAccessControl;
 import io.trino.spi.connector.ConnectorSecurityContext;
 import io.trino.spi.connector.SchemaTableName;
@@ -28,13 +29,8 @@ import org.slf4j.LoggerFactory;
  * consumers of the {@code spatial_iceberg} catalog (direct SQL / JDBC / BI),
  * complementing the datastore-layer enforcement used by GeoTools clients.
  *
- * <p><strong>Allow-all baseline.</strong> Every {@link ConnectorAccessControl}
- * method DENIES by default, so a connector that installs one is expected to own
- * authorization for the catalog. This feature is purely additive — it must not
- * restrict anything beyond row visibility — so it extends
- * {@link AllowAllAccessControl}, reproducing the permissive baseline of
- * Iceberg's (absent) connector access control. Only {@link #getRowFilters}
- * adds behavior.
+ * <p>Authorization checks and column masks are forwarded to Iceberg's configured access
+ * control. Its row filters are combined with the additional visibility filter.
  *
  * <p>The visibility column is detected at analysis time and read here from the
  * shared {@link GeoMesaColumnCatalog}: tables are observed by
@@ -53,10 +49,11 @@ import org.slf4j.LoggerFactory;
  * catalog is not wrapped and must not be exposed to untrusted users. A view may only be
  * left unfiltered on the assumption that every catalog it reads is likewise enforced.
  */
-public final class VisibilityAccessControl extends AllowAllAccessControl {
+public final class VisibilityAccessControl extends ForwardingConnectorAccessControl {
 
     private static final Logger LOG = LoggerFactory.getLogger(VisibilityAccessControl.class);
 
+    private final ConnectorAccessControl delegate;
     private final String catalog;
     private final GeoMesaColumnCatalog geomCatalog;
     private final AuthorizationResolver resolver;
@@ -70,6 +67,13 @@ public final class VisibilityAccessControl extends AllowAllAccessControl {
      */
     public VisibilityAccessControl(String catalog, GeoMesaColumnCatalog geomCatalog,
                                    AuthorizationResolver resolver) {
+        this(catalog, geomCatalog, resolver, new AllowAllAccessControl());
+    }
+
+    /** Builds additive visibility enforcement over the connector's existing policy. */
+    public VisibilityAccessControl(String catalog, GeoMesaColumnCatalog geomCatalog,
+                                   AuthorizationResolver resolver, ConnectorAccessControl delegate) {
+        this.delegate = java.util.Objects.requireNonNull(delegate);
         this.catalog = catalog;
         this.geomCatalog = geomCatalog;
         this.resolver = resolver;
@@ -85,6 +89,17 @@ public final class VisibilityAccessControl extends AllowAllAccessControl {
      */
     @Override
     public List<ViewExpression> getRowFilters(ConnectorSecurityContext context, SchemaTableName table) {
+        List<ViewExpression> filters = new ArrayList<>(delegate.getRowFilters(context, table));
+        filters.addAll(visibilityFilters(context, table));
+        return List.copyOf(filters);
+    }
+
+    @Override
+    protected ConnectorAccessControl delegate() {
+        return delegate;
+    }
+
+    private List<ViewExpression> visibilityFilters(ConnectorSecurityContext context, SchemaTableName table) {
         // Metadata/system tables (information_schema, Iceberg "$"-metadata) are
         // never visibility-controlled and reach here unobserved; skip them
         // explicitly so the fail-closed branch below doesn't empty SHOW TABLES /

@@ -31,6 +31,13 @@ properties in Trino (not data store parameters):
 
 Setting either property opts the catalog into Trino-layer enforcement.
 
+Visibility enforcement preserves the access control configured through ``iceberg.security``, including
+authorization checks and column masks. Its visibility filter is applied alongside any existing row filters.
+
+The file resolver reloads its mapping when the file's modification time changes. If the file is missing or
+cannot be read or parsed, previously loaded authorizations are cleared and users receive empty authorization
+sets. Failed reads are retried on subsequent lookups, so access can recover when the file is readable again.
+
 .. warning::
 
     Only the ``spatial_iceberg`` catalog is protected — do not expose a plain
