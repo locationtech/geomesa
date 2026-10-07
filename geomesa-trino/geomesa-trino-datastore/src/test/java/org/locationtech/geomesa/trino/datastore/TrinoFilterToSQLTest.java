@@ -10,16 +10,22 @@ package org.locationtech.geomesa.trino.datastore;
 
 import org.geotools.api.filter.Filter;
 import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.PropertyIsEqualTo;
 import org.geotools.api.filter.identity.FeatureId;
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.text.ecql.ECQL;
+import org.geotools.filter.text.cql2.CQL;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.WKTReader;
+import org.locationtech.geomesa.filter.factory.FastFilterFactory;
+import org.locationtech.geomesa.utils.json.JsonPathPropertyNameResolver;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -414,6 +420,53 @@ class TrinoFilterToSQLTest {
         setStructuralSchema();
         assertThatThrownBy(() -> translator.encodeToString(ECQL.toFilter("\"$.blob.name\" = 'alice'")))
             .hasMessageContaining("opaque");
+    }
+
+    @Test
+    void variantEqualityMatchingCaseSurvivesParsingAndPropertyResolution() throws Exception {
+        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+        builder.setName("variant_case");
+        builder.userData("json", "true");
+        builder.add("blob", String.class);
+        var schema = builder.buildFeatureType();
+        translator.setFeatureType(schema);
+        var property = ff.property("$.blob.name");
+        var literal = ff.literal("alice");
+        for (Filter filter : List.of(
+                CQL.toFilter("\"$.blob.name\" = 'alice'"),
+                ECQL.toFilter("\"$.blob.name\" = 'alice'"),
+                ECQL.toFilter("'alice' = \"$.blob.name\""),
+                ff.equals(property, literal), ff.equal(property, literal, true))) {
+            assertThat(((PropertyIsEqualTo) filter).isMatchingCase()).isTrue();
+            var resolved = (PropertyIsEqualTo) filter.accept(new JsonPathPropertyNameResolver(schema), null);
+            assertThat(resolved.isMatchingCase()).isTrue();
+            assertThat(translator.variantPrefilter(resolved)).isNotNull();
+        }
+        var insensitive = ff.equal(property, literal, false);
+        var resolved = (PropertyIsEqualTo) insensitive.accept(new JsonPathPropertyNameResolver(schema), null);
+        assertThat(resolved.isMatchingCase()).isFalse();
+        assertThat(resolved.evaluate(SimpleFeatureBuilder.build(
+            schema, new Object[]{"{\"name\":\"ALICE\"}"}, "case"))).isTrue();
+        assertThat(translator.variantPrefilter(resolved)).isNull();
+    }
+
+    @Test
+    void optimizedJsonEqualityWithFalseMatchingCaseFallsBackToResidual() throws Exception {
+        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+        builder.setName("variant_case");
+        builder.userData("json", "true");
+        builder.add("blob", String.class);
+        var schema = builder.buildFeatureType();
+        translator.setFeatureType(schema);
+        // GeoMesa's fast JSON equality reports false even for ordinary case-sensitive ECQL.
+        // Keep the conservative guard: a false flag must never enable a case-sensitive prefilter.
+        var optimized = (PropertyIsEqualTo) FastFilterFactory.toFilter(schema, "\"$.blob.name\" = 'alice'");
+        assertThat(optimized.isMatchingCase()).isFalse();
+        assertThat(optimized.evaluate(SimpleFeatureBuilder.build(
+            schema, new Object[]{"{\"name\":\"alice\"}"}, "match"))).isTrue();
+        assertThat(optimized.evaluate(SimpleFeatureBuilder.build(
+            schema, new Object[]{"{\"name\":\"ALICE\"}"}, "case"))).isFalse();
+        assertThat(translator.variantPrefilter(optimized)).isNull();
     }
 
     @Test

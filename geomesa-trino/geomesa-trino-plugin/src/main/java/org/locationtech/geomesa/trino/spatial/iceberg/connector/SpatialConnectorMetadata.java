@@ -155,9 +155,12 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      *  geometry column the constraint is filtering on. A single predicate
      *  yields one envelope; an OR of predicates on the same geom yields one
      *  envelope per branch — matching rows lie within their union. */
-    record SpatialMatch(List<Envelope> envelopes, String functionName, String geomName) {
+    record SpatialMatch(List<Envelope> envelopes, String functionName, String geomName, Call predicate) {
+        SpatialMatch(List<Envelope> envelopes, String functionName, String geomName) {
+            this(envelopes, functionName, geomName, null);
+        }
         SpatialMatch(Envelope envelope, String functionName, String geomName) {
-            this(List.of(envelope), functionName, geomName);
+            this(List.of(envelope), functionName, geomName, null);
         }
     }
 
@@ -281,11 +284,16 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public Optional<ConstraintApplicationResult<ConnectorTableHandle>> applyFilter(
             ConnectorSession session, ConnectorTableHandle handle, Constraint constraint) {
 
-        // Only bboxShortCircuit ever wraps the handle- we already claimed the ST_ as enforced
-        // and wrapped this handle on a prior pass.
-        if (handle instanceof SpatialTableHandle) {
-            return Optional.empty();
+        if (handle instanceof SpatialTableHandle spatial) {
+            return applyFilterUnwrapped(session, spatial.delegate(), constraint, false)
+                .map(result -> result.transform(spatial::withDelegate));
         }
+        return applyFilterUnwrapped(session, handle, constraint, bboxShortCircuit);
+    }
+
+    private Optional<ConstraintApplicationResult<ConnectorTableHandle>> applyFilterUnwrapped(
+            ConnectorSession session, ConnectorTableHandle handle, Constraint constraint,
+            boolean allowShortCircuit) {
 
         // Visibility-column pushdown is independent of any spatial predicate. Seed it into the
         // domains map up front so there is a SINGLE site that applies it — the merge-and-delegate
@@ -301,14 +309,14 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
 
         // Walk the filter expression for ALL ST_* spatial calls (not just the first).
         // Per-geom routing: each ST_* on column X uses X's bbox + partition companions.
-        List<SpatialMatch> matches = findAllSpatialMatches(constraint.getExpression());
+        List<SpatialMatch> matches = findAllSpatialMatches(constraint.getExpression(), constraint.getAssignments());
 
         // If no ST_*, try the bbox-pattern reconstruction at the top level — this fires
         // when the planner has already lowered a spatial call to its 4-predicate bbox
         // struct comparisons (re-entry on a second planning iteration). The reconstructed
         // envelope is anchored to whichever geom's bbox struct the comparisons reference.
         if (matches.isEmpty()) {
-            matches = tryExtractBboxPatternMatches(constraint.getExpression()).stream()
+            matches = tryExtractBboxPatternMatches(constraint.getExpression(), constraint.getAssignments()).stream()
                 .map(bp -> new SpatialMatch(bp.envelope(), BBOX_PATTERN, bp.geomName()))
                 .toList();
         }
@@ -401,13 +409,13 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         // exactly for points;
         //     (c) z2 partitioning ⟺ point data.
         // Every other predicate keeps the engine's exact residual.
-        if (bboxShortCircuit && matches.size() == 1 && resultHandle instanceof IcebergTableHandle ith) {
+        if (allowShortCircuit && matches.size() == 1 && resultHandle instanceof IcebergTableHandle ith) {
             SpatialMatch m = matches.get(0);
             GeometryColumn g = geoms.get(m.geomName());
             if (ST_INTERSECTS.equalsIgnoreCase(m.functionName())
                     && g != null
                     && g.partition().map(p -> p.kind() == SpatialIndexKind.Z2).orElse(false)
-                    && queryIsRectangle(constraint.getExpression())) {
+                    && m.predicate() != null && queryIsRectangle(m.predicate())) {
                 IcebergColumnHandle geomHandle = geomColumnHandle(session, handle, m.geomName());
                 if (geomHandle != null && g.bbox().isPresent()) {
                     BboxHandles bh = g.bbox().get();
@@ -419,7 +427,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
                     // Drop ONLY the ST_Intersects call — the page source now enforces it.
                     // Other conjuncts (critically is_visible row-filter) MUST stay in the
                     // residual for the engine to apply.
-                    remainingExpr = dropSpatialCall(remainingExpr);
+                    remainingExpr = dropSpatialCall(remainingExpr, m.predicate());
                     LOG.atDebug()
                         .setMessage("bbox-short-circuit: claimed rectangle ST_Intersects enforced on {} (geom '{}')")
                         .addArgument(() -> delegate.getTableName(session, handle))
@@ -772,11 +780,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      *  its own envelope). Reflects {@code isRectangle()} across the plugin-classloader boundary,
      *  mirroring {@link #envelopeOf}. Fail-safe: false on any uncertainty, so a missed case simply
      *  falls back to the engine's exact residual, never a wrong result. */
-    private boolean queryIsRectangle(ConnectorExpression expr) {
-        Call call = findSpatialCall(expr);
-        if (call == null) {
-            return false;
-        }
+    private boolean queryIsRectangle(Call call) {
         for (ConnectorExpression arg : call.getArguments()) {
             if (arg instanceof Constant c && GEOMETRY.equals(c.getType().getBaseName())) {
                 return isRectangleGeom(c.getValue());
@@ -797,42 +801,22 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         return false;
     }
 
-    /** Returns the expression with the {@code st_intersects} call replaced by TRUE,
-     *  preserving every other conjunct — most importantly the {@code is_visible} row-filter,
-     *  which the engine must still apply. Only the spatial predicate is claimed enforced. */
-    static ConnectorExpression dropSpatialCall(ConnectorExpression expr) {
+    /** Replace only the matched predicate with TRUE, preserving all other conjuncts, including
+     *  ST_Intersects calls whose arguments the extractor could not recognize. */
+    static ConnectorExpression dropSpatialCall(ConnectorExpression expr, Call enforced) {
         if (expr instanceof Call call) {
-            if (matchesFunction(call, ST_INTERSECTS)) {
+            if (call.equals(enforced)) {
                 return Constant.TRUE;
             }
             if (AND_FUNCTION_NAME.equals(call.getFunctionName())) {
                 List<ConnectorExpression> args = new ArrayList<>();
                 for (ConnectorExpression a : call.getArguments()) {
-                    args.add(dropSpatialCall(a));
+                    args.add(dropSpatialCall(a, enforced));
                 }
                 return new Call(call.getType(), call.getFunctionName(), args);
             }
         }
         return expr;
-    }
-
-    /** Finds the first {@code st_intersects} call in the expression, descending through ANDs. */
-    private static Call findSpatialCall(ConnectorExpression expr) {
-        if (!(expr instanceof Call call)) {
-            return null;
-        }
-        if (matchesFunction(call, ST_INTERSECTS)) {
-            return call;
-        }
-        if (AND_FUNCTION_NAME.equals(call.getFunctionName())) {
-            for (ConnectorExpression arg : call.getArguments()) {
-                Call found = findSpatialCall(arg);
-                if (found != null) {
-                    return found;
-                }
-            }
-        }
-        return null;
     }
 
     /** Reflect {@code isRectangle()} on a folded (foreign-classloader) Geometry constant, or read a
@@ -873,26 +857,30 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      *  nodes), not just the first one. Lets multi-geom predicate queries push
      *  pruning on every geom column independently. */
     List<SpatialMatch> findAllSpatialMatches(ConnectorExpression expr) {
+        return findAllSpatialMatches(expr, null);
+    }
+
+    List<SpatialMatch> findAllSpatialMatches(ConnectorExpression expr, Map<String, ColumnHandle> assignments) {
         List<SpatialMatch> acc = new ArrayList<>();
-        collectSpatialMatches(expr, acc);
+        collectSpatialMatches(expr, assignments, acc);
         return acc;
     }
 
-    private void collectSpatialMatches(ConnectorExpression expr, List<SpatialMatch> acc) {
+    private void collectSpatialMatches(ConnectorExpression expr, Map<String, ColumnHandle> assignments, List<SpatialMatch> acc) {
         if (!(expr instanceof Call call)) return;
         String fn = functionNameOf(call);
         if (isSpatialPredicate(fn)) {
             Optional<Envelope> envOpt = tryExtractEnvelope(call);
-            Optional<String> geomNameOpt = extractGeomColumnName(call);
+            Optional<String> geomNameOpt = extractGeomColumnName(call).flatMap(name -> physicalColumnName(name, assignments));
             if (envOpt.isPresent() && geomNameOpt.isPresent()) {
-                acc.add(new SpatialMatch(envOpt.get(), fn, geomNameOpt.get()));
+                acc.add(new SpatialMatch(List.of(envOpt.get()), fn, geomNameOpt.get(), call));
             }
             return;  // don't recurse into nested ST_*
         }
         // Disjunctions prune only when EVERY branch constrains the same geometry
         // column; the sound cover is then the union of the branch envelopes.
         if (OR_FUNCTION_NAME.equals(call.getFunctionName())) {
-            acc.addAll(orSpatialMatches(call));
+            acc.addAll(orSpatialMatches(call, assignments));
             return;
         }
         // Otherwise descend through CONJUNCTIONS only. A spatial predicate under
@@ -901,7 +889,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         // query through another path (e.g. NOT(WITHIN(t)) — matching rows live
         // outside t). Found by the datastore filter-parity suite.
         if (!AND_FUNCTION_NAME.equals(call.getFunctionName())) return;
-        for (ConnectorExpression arg : call.getArguments()) collectSpatialMatches(arg, acc);
+        for (ConnectorExpression arg : call.getArguments()) collectSpatialMatches(arg, assignments, acc);
     }
 
     /**
@@ -914,13 +902,13 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      * Nested ANDs/ORs are handled by recursion through
      * {@link #findAllSpatialMatches}.
      */
-    private List<SpatialMatch> orSpatialMatches(Call or) {
+    private List<SpatialMatch> orSpatialMatches(Call or, Map<String, ColumnHandle> assignments) {
         // Per-branch, per-geom envelopes; a branch with no spatial match on any
         // geom vetoes the whole disjunction (its rows are unconstrained).
         Map<String, List<Envelope>> unionByGeom = null;
         for (ConnectorExpression branch : or.getArguments()) {
             Map<String, List<Envelope>> branchByGeom = new LinkedHashMap<>();
-            for (SpatialMatch m : findAllSpatialMatches(branch)) {
+            for (SpatialMatch m : findAllSpatialMatches(branch, assignments)) {
                 branchByGeom.computeIfAbsent(m.geomName(), k -> new ArrayList<>())
                     .addAll(m.envelopes());
             }
@@ -979,8 +967,13 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      *  wins): multi-geom queries lower each spatial predicate to its own bbox
      *  comparisons, and each deserves independent pruning. */
     List<BboxPatternMatch> tryExtractBboxPatternMatches(ConnectorExpression expr) {
+        return tryExtractBboxPatternMatches(expr, null);
+    }
+
+    List<BboxPatternMatch> tryExtractBboxPatternMatches(ConnectorExpression expr,
+                                                       Map<String, ColumnHandle> assignments) {
         Map<String, double[]> bounds = new java.util.LinkedHashMap<>();
-        collectBboxBounds(expr, bounds);
+        collectBboxBounds(expr, assignments, bounds);
         List<BboxPatternMatch> out = new ArrayList<>();
         for (Map.Entry<String, double[]> e : bounds.entrySet()) {
             double[] b = e.getValue();
@@ -996,7 +989,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
      *  by the parent column name of the bbox struct (e.g. {@code __center_bbox__} →
      *  {@code center}). Bounds order: {xmax≥, xmin≤, ymax≥, ymin≤} → {minX, maxX,
      *  minY, maxY} of the reconstructed envelope. */
-    private void collectBboxBounds(ConnectorExpression expr, Map<String, double[]> bounds) {
+    private void collectBboxBounds(ConnectorExpression expr, Map<String, ColumnHandle> assignments, Map<String, double[]> bounds) {
         if (!(expr instanceof Call call)) return;
         boolean gte = GREATER_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME.equals(call.getFunctionName());
         boolean lte = LESS_THAN_OR_EQUAL_OPERATOR_FUNCTION_NAME.equals(call.getFunctionName());
@@ -1006,16 +999,16 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             // an envelope from them would over-prune the other branches. Found by the
             // datastore filter-parity suite (DISJOINT(a) OR CROSSES(b) lost rows).
             if (!AND_FUNCTION_NAME.equals(call.getFunctionName())) return;
-            for (ConnectorExpression arg : call.getArguments()) collectBboxBounds(arg, bounds);
+            for (ConnectorExpression arg : call.getArguments()) collectBboxBounds(arg, assignments, bounds);
             return;
         }
         if (call.getArguments().size() != 2) return;
         ConnectorExpression left  = call.getArguments().get(0);
         ConnectorExpression right = call.getArguments().get(1);
-        FieldRef ref  = bboxFieldRef(left);
+        FieldRef ref  = bboxFieldRef(left, assignments);
         Double    val = constantDouble(right);
         if (ref == null || val == null) {
-            ref = bboxFieldRef(right);
+            ref = bboxFieldRef(right, assignments);
             val = constantDouble(left);
             if (ref != null && val != null) { boolean t = gte; gte = lte; lte = t; }
         }
@@ -1036,7 +1029,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     /** If expr is a FieldDereference (or CAST-wrapped FieldDereference) on a bbox struct
      *  column, returns the geom-column name (parsed from the struct column's name like
      *  {@code __<X>_bbox__}) AND the sub-field name. Returns null otherwise. */
-    private FieldRef bboxFieldRef(ConnectorExpression expr) {
+    private FieldRef bboxFieldRef(ConnectorExpression expr, Map<String, ColumnHandle> assignments) {
         if (expr instanceof Call c
                 && CAST_FUNCTION_NAME.equals(c.getFunctionName())
                 && c.getArguments().size() == 1) {
@@ -1051,10 +1044,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         int idx = fd.getField();
         if (idx < 0 || idx >= fieldNames.size()) return null;
 
-        // Recover the geom column name from the struct's parent Variable. Trino's plan
-        // symbols strip leading/trailing underscores ("__center_bbox__" → "center_bbox"),
-        // so we strip the "_bbox" suffix to recover the geom name.
-        String parentName = parentVariableName(fd.getTarget());
+        // Resolve the parent symbol to its physical bbox column before parsing the companion name.
+        String parentName = physicalColumnName(parentVariableName(fd.getTarget()), assignments).orElse(null);
         if (parentName == null) return null;
         String stripped = parentName.startsWith("__") && parentName.endsWith("__")
             ? parentName.substring(2, parentName.length() - 2)
@@ -1062,6 +1053,17 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
         if (!stripped.endsWith("_bbox")) return null;
         String geomName = stripped.substring(0, stripped.length() - "_bbox".length());
         return new FieldRef(geomName, fieldNames.get(idx));
+    }
+
+    /** Resolve production planner symbols through assignments. Null is reserved for expression-only tests. */
+    private static Optional<String> physicalColumnName(String symbol, Map<String, ColumnHandle> assignments) {
+        if (symbol == null) return Optional.empty();
+        if (assignments == null) return Optional.of(symbol);
+        ColumnHandle column = assignments.get(symbol);
+        if (column instanceof IcebergColumnHandle iceberg && iceberg.isBaseColumn()) {
+            return Optional.of(iceberg.getBaseColumnIdentity().getName());
+        }
+        return Optional.empty();
     }
 
     private static String parentVariableName(ConnectorExpression target) {
@@ -1370,12 +1372,13 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public Optional<ProjectionApplicationResult<ConnectorTableHandle>> applyProjection(
             ConnectorSession session, ConnectorTableHandle handle,
             List<ConnectorExpression> projections, Map<String, ColumnHandle> assignments) {
-        // Preserve the cheap-accept wrapper: the delegate's result would carry the unwrapped Iceberg
-        // handle, silently replacing our SpatialTableHandle and disabling the page-source filter.
-        if (handle instanceof SpatialTableHandle) {
-            return Optional.empty();
+        Optional<ProjectionApplicationResult<ConnectorTableHandle>> result =
+            delegate.applyProjection(session, SpatialTableHandle.unwrap(handle), projections, assignments);
+        if (handle instanceof SpatialTableHandle spatial) {
+            return result.map(r -> new ProjectionApplicationResult<>(spatial.withDelegate(r.getHandle()),
+                r.getProjections(), r.getAssignments(), r.isPrecalculateStatistics()));
         }
-        return delegate.applyProjection(session, SpatialTableHandle.unwrap(handle), projections, assignments);
+        return result;
     }
 
     /**
@@ -1390,7 +1393,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public Optional<LimitApplicationResult<ConnectorTableHandle>> applyLimit(
             ConnectorSession session, ConnectorTableHandle handle, long limit) {
         if (handle instanceof SpatialTableHandle) {
-            return Optional.empty();   // preserve the cheap-accept wrapper (see applyProjection)
+            return Optional.empty();   // limit/top-N must not precede spatial row filtering
         }
         return delegate.applyLimit(session, SpatialTableHandle.unwrap(handle), limit);
     }
@@ -1445,7 +1448,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             ConnectorSession session, ConnectorTableHandle handle,
             long topNCount, List<SortItem> sortItems, Map<String, ColumnHandle> assignments) {
         if (handle instanceof SpatialTableHandle) {
-            return Optional.empty();   // preserve the cheap-accept wrapper (see applyProjection)
+            return Optional.empty();   // limit/top-N must not precede spatial row filtering
         }
         return delegate.applyTopN(session, SpatialTableHandle.unwrap(handle), topNCount, sortItems, assignments);
     }
