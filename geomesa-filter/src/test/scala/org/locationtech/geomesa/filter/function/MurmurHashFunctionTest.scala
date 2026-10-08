@@ -9,6 +9,8 @@
 
 package org.locationtech.geomesa.filter.function
 
+import org.geotools.api.filter.Filter
+import org.geotools.filter.visitor.SimplifyingFilterVisitor
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.filter.FilterHelper
@@ -27,6 +29,55 @@ class MurmurHashFunctionTest extends SpecificationWithJUnit {
   val nullValues = Seq.fill[AnyRef](sft.getAttributeCount)(null).asJava
 
   "MurmurHashFunction" should {
+    "evaluate constant hash arguments without a feature and fold them" in {
+      foreach(Seq("murmurHash", "bucketHash")) { name =>
+        val params = if (name == "murmurHash") Seq(ff.literal("iceberg")) else Seq(ff.literal("iceberg"), ff.literal(8))
+        val function = ff.function(name, params: _*)
+        val expected = if (name == "murmurHash") 1210000089 else 1210000089 % 8
+        function.evaluate(null) mustEqual Int.box(expected)
+        ff.equals(function, ff.literal(expected)).accept(new SimplifyingFilterVisitor(), null) mustEqual Filter.INCLUDE
+        ff.equals(function, ff.literal(expected + 1)).accept(new SimplifyingFilterVisitor(), null) mustEqual Filter.EXCLUDE
+      }
+    }
+
+    "hash the argument string for other value types independently of the feature" in {
+      val first = new SimpleFeatureImpl(nullValues, sft, new FeatureIdImpl("1"))
+      val second = new SimpleFeatureImpl(nullValues, sft, new FeatureIdImpl("2"))
+      foreach(Seq("murmurHash", "bucketHash")) { name =>
+        val params = if (name == "murmurHash") Seq(ff.literal(true)) else Seq(ff.literal(true), ff.literal(8))
+        val function = ff.function(name, params: _*)
+        val hash = MurmurHashFunction.StringHashing("true")
+        val expected = if (name == "murmurHash") hash else (hash & Int.MaxValue) % 8
+        foreach(Seq(null, first, second)) { feature =>
+          function.evaluate(feature) mustEqual Int.box(expected)
+        }
+      }
+    }
+
+    "retain property dependencies during simplification" in {
+      val first = new SimpleFeatureImpl(nullValues, sft, new FeatureIdImpl("1"))
+      first.setAttribute("name", "iceberg")
+      val second = new SimpleFeatureImpl(nullValues, sft, new FeatureIdImpl("2"))
+      second.setAttribute("name", "different")
+      foreach(Seq("murmurHash", "bucketHash")) { name =>
+        val params = if (name == "murmurHash") Seq(ff.property("name")) else Seq(ff.property("name"), ff.literal(8))
+        val function = ff.function(name, params: _*)
+        val filter = ff.equals(function, ff.literal(function.evaluate(first)))
+        val visitor = new SimplifyingFilterVisitor()
+        visitor.setFeatureType(sft)
+        val simplified = filter.accept(visitor, null).asInstanceOf[Filter]
+        simplified must not(beEqualTo(Filter.INCLUDE))
+        simplified must not(beEqualTo(Filter.EXCLUDE))
+        simplified.evaluate(first) must beTrue
+        simplified.evaluate(second) must beFalse
+      }
+    }
+
+    "return null for null value arguments" in {
+      ff.function("murmurHash", ff.literal(null)).evaluate(null) must beNull
+      ff.function("bucketHash", ff.literal(null), ff.literal(8)).evaluate(null) must beNull
+    }
+
     "hash strings" in {
       // string	hashBytes(utf8Bytes(v))	iceberg ￫ 1210000089
       val sf = new SimpleFeatureImpl(nullValues, sft, new FeatureIdImpl("1"))

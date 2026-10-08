@@ -16,6 +16,9 @@ import org.geotools.api.filter.And;
 import org.geotools.api.filter.Filter;
 import org.geotools.api.filter.FilterFactory;
 import org.geotools.api.filter.expression.PropertyName;
+import org.geotools.api.filter.spatial.BBOX;
+import org.geotools.api.filter.spatial.BinarySpatialOperator;
+import org.geotools.api.filter.spatial.Intersects;
 import org.geotools.api.filter.sort.SortBy;
 import org.geotools.api.filter.sort.SortOrder;
 import org.geotools.data.FilteringFeatureReader;
@@ -27,7 +30,10 @@ import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.filter.visitor.PostPreProcessFilterSplittingVisitor;
+import org.geotools.filter.visitor.SimplifyingFilterVisitor;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.locationtech.geomesa.filter.FilterHelper;
 import org.locationtech.geomesa.index.conf.QueryHints;
 import org.locationtech.geomesa.index.geoserver.ViewParams;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
@@ -488,9 +494,9 @@ class TrinoFeatureSource extends ContentFeatureSource {
 
     /**
      * Splits a filter into the part that can be pushed to Trino SQL and a client-side
-     * residual. The top-level filter is decomposed into AND conjuncts; each is trial-encoded
-     * with a fresh {@link TrinoFilterToSQL}. Conjuncts that encode cleanly are joined into the
-     * pushable SQL; conjuncts the translator rejects become the residual, to be evaluated
+     * residual. GeoTools simplifies the filter and splits it using the SQL encoder's
+     * capabilities. Supported conjuncts are encoded after validating their arguments;
+     * unsupported predicates become the residual, to be evaluated
      * in-memory by the framework's {@code FilteringFeatureReader}.
      * When the VARIANT prefilter is enabled and client-side filtering is allowed, schemaless JSON
      * string equality also contributes a necessary SQL prefilter, while
@@ -506,40 +512,71 @@ class TrinoFeatureSource extends ContentFeatureSource {
      * @return the split; {@link FilterSplit#residual} is null when everything pushes down
      */
     private FilterSplit splitFilter(Query query) {
-        boolean clientVariantPushdown = variantPrefilterEnabled(query);
-        Filter filter = query.getFilter();
+        return splitFilter(query.getFilter(), getSchema(), variantPrefilterEnabled(query), ClientSideFiltering.current());
+    }
+
+    static FilterSplit splitFilter(Filter filter, SimpleFeatureType schema, boolean clientVariantPushdown,
+            ClientSideFiltering mode) {
         if (filter == null || filter == Filter.INCLUDE) {
             return new FilterSplit(null, null, Collections.emptySet());
         }
-        List<Filter> conjuncts;
-        if (filter instanceof And and) {
-            conjuncts = and.getChildren();
-        } else {
-            conjuncts = Collections.singletonList(filter);
-        }
+        SimplifyingFilterVisitor simplifier = new SimplifyingFilterVisitor() {
+            @Override
+            public Object visit(BBOX filter, Object data) {
+                return isWholeWorld(filter) ? Filter.INCLUDE : super.visit(filter, data);
+            }
+
+            @Override
+            public Object visit(Intersects filter, Object data) {
+                return isWholeWorld(filter) ? Filter.INCLUDE : super.visit(filter, data);
+            }
+
+            private boolean isWholeWorld(BinarySpatialOperator filter) {
+                // Indexed rows have a non-null, non-empty WGS84 default geometry. Secondary
+                // geometries do not share that guarantee. Keep boundary-sensitive operators
+                // such as WITHIN and CONTAINS, and non-intersection operators such as OVERLAPS.
+                String geom = schema.getGeometryDescriptor() == null ? null
+                    : schema.getGeometryDescriptor().getLocalName();
+                return geom != null && (isDefaultGeometry(filter.getExpression1(), geom)
+                    || isDefaultGeometry(filter.getExpression2(), geom)) && FilterHelper.isFilterWholeWorld(filter);
+            }
+
+            private boolean isDefaultGeometry(org.geotools.api.filter.expression.Expression expression, String geom) {
+                return expression instanceof PropertyName property && geom.equals(property.getPropertyName());
+            }
+        };
+        simplifier.setFeatureType(schema);
+        Filter simplified = (Filter) filter.accept(simplifier, null);
+        TrinoFilterToSQL toSql = new TrinoFilterToSQL();
+        toSql.setFeatureType(schema);
+        // Property validation stays in the encoder, which understands schemaless JSON paths.
+        var splitter = new PostPreProcessFilterSplittingVisitor(toSql.getCapabilities(), null, null);
+        simplified.accept(splitter, null);
         List<String> pushable = new ArrayList<>();
         List<Filter> residual = new ArrayList<>();
-        ClientSideFiltering mode = ClientSideFiltering.current();
-        for (Filter conjunct : conjuncts) {
+        addConjuncts(splitter.getFilterPost(), residual);
+        List<Filter> candidates = new ArrayList<>();
+        addConjuncts(splitter.getFilterPre(), candidates);
+        for (Filter conjunct : candidates) {
             try {
-                TrinoFilterToSQL toSql = new TrinoFilterToSQL();
-                toSql.setFeatureType(getSchema());
                 pushable.add(toSql.encodeToString(conjunct));
             } catch (FilterToSQLException | RuntimeException e) {
-                LOG.debug("Cannot push filter conjunct to Trino SQL: " + conjunct + " (" + e.getMessage() + ")");
-                if (clientVariantPushdown && mode != ClientSideFiltering.NONE) {
-                    try {
-                        TrinoFilterToSQL toSql = new TrinoFilterToSQL();
-                        toSql.setFeatureType(getSchema());
-                        String prefilter = toSql.variantPrefilter(conjunct);
-                        if (prefilter != null) {
-                            pushable.add(prefilter);
-                        }
-                    } catch (RuntimeException unsupported) {
-                        LOG.debug("Cannot prefilter conjunct in Trino SQL: {}", conjunct, unsupported);
-                    }
-                }
+                // Capabilities describe operators/functions; argument types and operand shapes
+                // still need validation by the SQL renderer.
+                LOG.debug("Cannot push filter conjunct to Trino SQL: {}", conjunct, e);
                 residual.add(conjunct);
+            }
+        }
+        if (clientVariantPushdown && mode != ClientSideFiltering.NONE) {
+            for (Filter conjunct : residual) {
+                try {
+                    String prefilter = toSql.variantPrefilter(conjunct);
+                    if (prefilter != null) {
+                        pushable.add(prefilter);
+                    }
+                } catch (RuntimeException unsupported) {
+                    LOG.debug("Cannot prefilter conjunct in Trino SQL: {}", conjunct, unsupported);
+                }
             }
         }
         String pushableSql = null;
@@ -564,8 +601,18 @@ class TrinoFeatureSource extends ContentFeatureSource {
         }
         LOG.warn("Cannot push the following filter(s) to Trino SQL, evaluating client-side: {}", residual);
         Filter residualAnd = residual.size() == 1 ? residual.get(0) : filterFactory.and(residual);
-        Set<String> residualAttributes = residualAttributeNames(residualAnd);
+        Set<String> residualAttributes = residualAttributeNames(residualAnd, schema);
         return new FilterSplit(pushableSql, residualAnd, residualAttributes);
+    }
+
+    private static void addConjuncts(Filter filter, List<Filter> conjuncts) {
+        if (filter instanceof And and) {
+            for (Filter child : and.getChildren()) {
+                addConjuncts(child, conjuncts);
+            }
+        } else if (filter != Filter.INCLUDE) {
+            conjuncts.add(filter);
+        }
     }
 
     /** Resolve a per-query override (including GeoServer view params), then the system property default. */
@@ -586,8 +633,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
      * @param conjunct a residual filter conjunct
      * @return the set of backing attribute names the conjunct reads
      */
-    private Set<String> residualAttributeNames(Filter conjunct) {
-        var visitor = new AttributeExtractingVisitor(getSchema());
+    private static Set<String> residualAttributeNames(Filter conjunct, SimpleFeatureType schema) {
+        var visitor = new AttributeExtractingVisitor(schema);
         conjunct.accept(visitor, null);
         return new LinkedHashSet<>(Arrays.asList(visitor.getAttributeNames()));
     }
@@ -595,7 +642,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
     /** The result of splitting a filter into a pushed-down SQL fragment and a client-side
      *  residual. {@code pushableSql} is null when nothing pushes down; {@code residualAttributes}
      *  is the set of backing columns the residual reads (empty when there's no residual). */
-    private record FilterSplit(String pushableSql, Filter residual, Set<String> residualAttributes) {}
+    record FilterSplit(String pushableSql, Filter residual, Set<String> residualAttributes) {}
 
     /** The table's visibility column plus the caller's auths, captured together so
      *  a query makes a single {@code provider.getAuthorizations()} call and feeds

@@ -22,7 +22,9 @@ import org.geotools.api.filter.temporal.During;
 import org.geotools.api.geometry.BoundingBox;
 import org.geotools.api.temporal.Period;
 import org.geotools.data.jdbc.FilterToSQL;
-import org.geotools.data.jdbc.FilterToSQLException;
+import org.geotools.filter.FilterCapabilities;
+import org.geotools.filter.visitor.IsStaticExpressionVisitor;
+import org.locationtech.geomesa.filter.function.*;
 import org.locationtech.geomesa.utils.json.JsonPathFilterFunction;
 import org.locationtech.geomesa.utils.json.JsonPathParser;
 import org.locationtech.geomesa.utils.json.JsonPathParser.PathAttribute;
@@ -31,14 +33,15 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.WKTWriter;
+import org.locationtech.jts.io.WKBWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.collection.JavaConverters;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
@@ -56,11 +59,15 @@ public class TrinoFilterToSQL extends FilterToSQL {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrinoFilterToSQL.class);
 
+    private static final int POSITIVE_HASH_MASK = Integer.MAX_VALUE;
+    private static final String UNIX_EPOCH = "1970-01-01 00:00:00 UTC";
+
     /**
      * Creates a filter translator that double-quotes identifiers.
      */
     public TrinoFilterToSQL() {
         setSqlNameEscape("\"");  // quote identifiers in base-class comparisons too
+        setInline(true);
     }
 
     /** Double-quote an identifier, doubling embedded quotes. */
@@ -290,6 +297,10 @@ public class TrinoFilterToSQL extends FilterToSQL {
     protected void writeLiteral(Object literal) throws IOException {
         if (literal instanceof Date date) {
             out.write("TIMESTAMP '" + formatTimestamp(date) + "'");
+        } else if (literal instanceof byte[] bytes) {
+            out.write("from_hex('" + WKBWriter.toHex(bytes) + "')");
+        } else if (literal instanceof UUID uuid) {
+            out.write("UUID '" + uuid + "'");
         } else {
             super.writeLiteral(literal);
         }
@@ -392,7 +403,152 @@ public class TrinoFilterToSQL extends FilterToSQL {
         if (function instanceof JsonPathFilterFunction) {
             throw new UnsupportedOperationException("Can't push down JsonPathFilterFunction");
         }
-        return super.visit(function, extraData);
+        for (FunctionSqlEncoder<?> encoder : FUNCTION_ENCODERS) {
+            if (encoder.encode(function, this)) {
+                return extraData;
+            }
+        }
+        if (getCapabilities().supports(function.getClass())) {
+            return super.visit(function, extraData);
+        }
+        throw new UnsupportedOperationException("Unsupported Trino function: " + function.getName());
+    }
+
+    private static final List<FunctionSqlEncoder<?>> FUNCTION_ENCODERS = List.of(
+        FunctionSqlEncoder.of(CurrentDateFunction.class, (function, sql) -> sql.writeCurrentDate(function)),
+        FunctionSqlEncoder.of(DateToLong.class, (function, sql) -> sql.writeDateToLong(sql.parameter(function, 0))),
+        FunctionSqlEncoder.of(MurmurHashFunction.class, (function, sql) -> sql.writeHash(sql.parameter(function, 0))),
+        FunctionSqlEncoder.of(BucketHashFunction.class, (function, sql) -> sql.writeBucketHash(function)),
+        FunctionSqlEncoder.of(ProxyIdFunction.class, (function, sql) -> sql.writeProxyId()),
+        FunctionSqlEncoder.of(Z2Function.class, (function, sql) -> sql.writeSpatialIndex(function, "geomesa_z2")),
+        FunctionSqlEncoder.of(XZ2Function.class, (function, sql) -> sql.writeSpatialIndex(function, "geomesa_xz2")),
+        FunctionSqlEncoder.of(Convert2ViewerFunction.class, (function, sql) -> sql.writeViewer(function))
+    );
+
+    private void writeCurrentDate(CurrentDateFunction function) {
+        if (!Boolean.TRUE.equals(function.accept(IsStaticExpressionVisitor.VISITOR, null))) {
+            throw new UnsupportedOperationException("currentDate requires a feature-independent offset");
+        }
+        try {
+            writeLiteral(function.evaluate(null));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void writeBucketHash(BucketHashFunction function) {
+        write("mod(bitwise_and(");
+        writeHash(parameter(function, 0));
+        write(", " + POSITIVE_HASH_MASK + "), ");
+        parameter(function, 1).accept(this, Number.class);
+        write(")");
+    }
+
+    private void writeProxyId() {
+        boolean uuid = featureType != null
+            && Boolean.parseBoolean(String.valueOf(featureType.getUserData().get("geomesa.fid.uuid")));
+        write("geomesa_proxy_id(\"__fid__\", " + uuid + ")");
+    }
+
+    private void writeSpatialIndex(Function function, String sqlName) {
+        write(sqlName + "(");
+        writeGeometryArgument(parameter(function, 0));
+        write(")");
+    }
+
+    private void writeViewer(Convert2ViewerFunction function) {
+        write("geomesa_convert2viewer(");
+        parameter(function, 0).accept(this, String.class);
+        write(", ");
+        writeGeometryArgument(parameter(function, 1));
+        write(", ");
+        Expression dtg = parameter(function, 2);
+        Class<?> type = argumentType(dtg);
+        if (type != null && Date.class.isAssignableFrom(type)) {
+            writeDateToLong(dtg);
+        } else if (type != null && Number.class.isAssignableFrom(type)) {
+            dtg.accept(this, Long.class);
+        } else {
+            throw new UnsupportedOperationException("convert2viewer requires a date or epoch milliseconds");
+        }
+        write(")");
+    }
+
+    private Expression parameter(Function function, int index) {
+        return getParameter(function, index, true);
+    }
+
+    private void writeDateToLong(Expression expression) {
+        write("date_diff('millisecond', TIMESTAMP '" + UNIX_EPOCH + "', ");
+        expression.accept(this, Date.class);
+        write(")");
+    }
+
+    private void writeGeometryArgument(Expression expression) {
+        if (expression instanceof Literal literal && literal.getValue() instanceof Geometry geometry) {
+            write("from_hex('" + WKBWriter.toHex(new WKBWriter().write(geometry)) + "')");
+        } else {
+            expression.accept(this, null);
+        }
+    }
+
+    private void writeHash(Expression expression) {
+        if (expression instanceof Literal literal && literal.getValue() == null) {
+            write("NULL");
+            return;
+        }
+        Class<?> type = argumentType(expression);
+        String sqlType;
+        if (type == String.class) { sqlType = "varchar"; }
+        else if (type == Integer.class || type == Long.class) { sqlType = "bigint"; }
+        else if (type == Float.class) { sqlType = "real"; }
+        else if (type == Double.class) { sqlType = "double"; }
+        else if (type != null && Date.class.isAssignableFrom(type)) { sqlType = "timestamp(3) with time zone"; }
+        else if (type == byte[].class) { sqlType = "varbinary"; }
+        else if (type == UUID.class) { sqlType = "uuid"; }
+        else { throw new UnsupportedOperationException("Unsupported murmurHash value type: " + type); }
+        write("geomesa_murmur_hash(CAST(");
+        expression.accept(this, null);
+        write(" AS " + sqlType + "))");
+    }
+
+    private Class<?> argumentType(Expression expression) {
+        if (expression instanceof Literal literal) {
+            Object value = literal.getValue();
+            return value == null ? null : value.getClass();
+        }
+        return getExpressionType(expression);
+    }
+
+    /** The registry is also the function whitelist used by the GeoTools filter splitter. */
+    @Override
+    protected FilterCapabilities createFilterCapabilities() {
+        FilterCapabilities capabilities = super.createFilterCapabilities();
+        for (Class<?> type : List.of(BBOX.class, Beyond.class, Contains.class, Crosses.class,
+                Disjoint.class, DWithin.class, Equals.class, Intersects.class, Overlaps.class,
+                Touches.class, Within.class)) {
+            capabilities.addType(type);
+        }
+        for (FunctionSqlEncoder<?> encoder : FUNCTION_ENCODERS) {
+            capabilities.addType(encoder.type());
+        }
+        return capabilities;
+    }
+
+    /** Binds a GeoTools function implementation to its Trino SQL renderer. */
+    private record FunctionSqlEncoder<F extends Function>(Class<F> type, BiConsumer<F, TrinoFilterToSQL> renderer) {
+
+        static <F extends Function> FunctionSqlEncoder<F> of(Class<F> type, BiConsumer<F, TrinoFilterToSQL> renderer) {
+            return new FunctionSqlEncoder<>(type, renderer);
+        }
+
+        boolean encode(Function function, TrinoFilterToSQL sql) {
+            if (!type.isInstance(function)) {
+                return false;
+            }
+            renderer.accept(type.cast(function), sql);
+            return true;
+        }
     }
 
     /**
@@ -492,7 +648,8 @@ public class TrinoFilterToSQL extends FilterToSQL {
     }
 
     private static String formatTimestamp(Date date) {
-        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+        SimpleDateFormat fmt = new SimpleDateFormat(date.getTime() % 1000L == 0L
+            ? "yyyy-MM-dd HH:mm:ss z" : "yyyy-MM-dd HH:mm:ss.SSS z");
         fmt.setTimeZone(TimeZone.getTimeZone("UTC"));
         return fmt.format(date);
     }
@@ -520,18 +677,4 @@ public class TrinoFilterToSQL extends FilterToSQL {
         }
     }
 
-    /**
-     * Override encodeToString to initialize {@code out} before visiting and
-     * bypass the default capabilities check in {@link FilterToSQL#encode}.
-     *
-     * @param filter filter to translate
-     * @return the SQL WHERE-clause fragment
-     */
-    @Override
-    public String encodeToString(org.geotools.api.filter.Filter filter) throws FilterToSQLException {
-        StringWriter sw = new StringWriter();
-        out = sw;
-        filter.accept(this, null);
-        return sw.toString();
-    }
 }

@@ -39,6 +39,46 @@ methods, assuming that the GeoMesa code is on the classpath:
     org.geotools.api.data.DataStore dataStore =
         org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 
+GeoMesa Filter Functions
+------------------------
+
+The Trino datastore translates these functions from :ref:`filter_functions`:
+
+==================== ==================================================================================================
+Function             Translation
+==================== ==================================================================================================
+``currentDate``      Evaluated when each query is encoded, including ISO-8601 duration offsets such as ``'-P1D'``.
+``dateToLong``       Native SQL ``date_diff`` returning epoch milliseconds.
+``murmurHash``       ``geomesa_murmur_hash`` with GeoMesa's type-specific hashing rules.
+``bucketHash``       Positive 31-bit mask of ``geomesa_murmur_hash``, followed by modulo.
+``proxyId``          ``geomesa_proxy_id`` using the feature ID and the schema's UUID setting.
+==================== ==================================================================================================
+
+The documented ``jsonPath`` and ``visibility`` functions are evaluated client-side, subject to the
+client-side filtering policy. JSON path property expressions such as ``"$.props.color"`` can still be
+pushed down through the datastore's JSON support, and configured visibility enforcement is applied
+independently of a CQL ``visibility`` predicate.
+
+The ``geomesa_*`` SQL functions are supplied by the spatial-iceberg plugin.
+Hashing supports strings, integers, longs, floats, doubles, dates, byte arrays and UUIDs. Unsupported
+argument types become client-side residual filters, subject to the configured client-side filtering
+policy. Other functions with feature-dependent arguments also become residual filters instead of being
+sent to Trino under their GeoTools names. See :ref:`trino_runtime_configuration` for the client-side filtering policy.
+
+Before splitting a query into SQL and client-side predicates, GeoTools simplifies logical expressions
+and evaluates constant functions. This includes functions outside the SQL translation list when their
+arguments are feature-independent. Functions that implicitly read a feature, such as ``proxyId()``,
+remain feature-dependent. Functions outside the SQL translation list, including
+``z2``, ``xz2`` and ``convert2viewer``, use client-side filtering when their arguments
+depend on the feature.
+
+Whole-world ``BBOX`` and ``INTERSECTS`` predicates on the default geometry are removed during
+simplification, since indexed rows always have a geometry. Predicates on secondary geometries and
+boundary-sensitive operators such as ``WITHIN`` and ``CONTAINS`` are retained.
+
+``currentDate`` is evaluated for every query, rather than when the datastore is created. This permits
+merged stores to use rolling filters such as ``dtg < currentDate('-P1D')`` without freezing the cutoff.
+
 .. _trino_sql_patterns:
 
 SQL Patterns for Direct-SQL Consumers

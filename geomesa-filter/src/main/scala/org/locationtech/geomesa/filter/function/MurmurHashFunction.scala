@@ -25,25 +25,8 @@ class MurmurHashFunction extends FunctionExpressionImpl(MurmurHashFunction.Name)
   import org.locationtech.geomesa.filter.function.MurmurHashFunction._
 
   override def evaluate(o: AnyRef): AnyRef = {
-    if (o == null) {
-      return null
-    }
     val value = getExpression(0).evaluate(o)
-    if (value == null) {
-      return null
-    }
-    val hash = value match {
-      case v: String => StringHashing(v)
-      case v: Integer => IntegerHashing(v)
-      case v: java.lang.Long => LongHashing(v)
-      case v: java.lang.Float => FloatHashing(v)
-      case v: java.lang.Double => DoubleHashing(v)
-      case v: Date => DateHashing(v)
-      case v: Array[Byte] => ByteHashing(v)
-      case v: UUID => UUIDHashing(v)
-      case _ => StringHashing(o.toString)
-    }
-    Int.box(hash)
+    if (value == null) { null } else { Int.box(hash(value)) }
   }
 }
 
@@ -54,6 +37,18 @@ object MurmurHashFunction {
     classOf[java.lang.Integer],
     parameter("value", classOf[AnyRef])
   )
+
+  private[filter] def hash(value: AnyRef): Int = value match {
+    case v: String => StringHashing(v)
+    case v: Integer => IntegerHashing(v)
+    case v: java.lang.Long => LongHashing(v)
+    case v: java.lang.Float => FloatHashing(v)
+    case v: java.lang.Double => DoubleHashing(v)
+    case v: Date => DateHashing(v)
+    case v: Array[Byte] => ByteHashing(v)
+    case v: UUID => UUIDHashing(v)
+    case _ => StringHashing(value.toString)
+  }
 
   val Hashers: Seq[Hashing[_ <: AnyRef]] = Seq(
     StringHashing,

@@ -29,11 +29,10 @@ import java.util.concurrent.TimeUnit;
  * partition pruning and row-level visibility. The datastore is the trusted intermediary that
  * forwards each caller's authorizations to Trino per query as an extra credential.
  *
- * <p><strong>Why {@code ContentDataStore} and not {@code JDBCDataStore}?</strong> As of this version, the
- * Trino store is read-only to function primarily as a query engine and does not expose the write-based operations
- * provided by {@code JDBCDataStore}. {@code ContentDataStore} is the lighter, correct base for a query-only source,
- * it lets us push filter/projection/sort/count/bounds down as Trino SQL (see {@link TrinoFeatureSource}), and
- * offers per-request-authenticated connections per query and visibility/entitlement filtering. Because the
+ * <p>The store uses {@code ContentDataStore} for its Iceberg schema discovery and custom query readers
+ * (see {@link TrinoFeatureSource}). {@code JDBCDataStore} also supports read-only schemas, but adopting it
+ * would require integrating these paths and per-request authorization with its SQL dialect and connection handling.
+ * Filter simplification and splitting reuse GeoTools visitors independently of the datastore base class. Because the
  * forwarded authorizations are fixed on a connection at creation, connections are pooled keyed by the normalized
  * auth set ({@link ConnectionPool}): requests with the same effective auths reuse connections (see {@link #connect(List)}).
  */
