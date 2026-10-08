@@ -17,7 +17,7 @@ import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.locationtech.geomesa.filter.FilterHelper
 
 /**
- * Filter visitor we use for processing filters in the dialect's `splitFilter`method.
+ * Filter visitor we use for processing filters in the dialect's `splitFilter` method.
  *
  * Currently the filter does the following:
  * <ul>

@@ -76,7 +76,7 @@ case class FileSystemStorage(
 
   val sft: SimpleFeatureType = SimpleFeatureTypes.immutable(schema.sft)
   val sizer: FileSize = new FileSize(table)
-  val metadata: DataFiles = new DataFiles()
+  val metadata: DataFiles = new FsDataFiles()
 
   // common metrics tags for this storage instance
   val tags: Tags =
@@ -315,38 +315,17 @@ case class FileSystemStorage(
   /**
    * Helper for accessing metadata on files and partitions
    */
-  class DataFiles {
+  private class FsDataFiles extends DataFiles {
 
     private val schemesWithIndex = schemes.zipWithIndex
 
-    /**
-     * Gets files in this storage instance
-     *
-     * @return
-     */
-    def files(): FluentScan = FileScan(table, schema, schemes)
+    override def files(): FluentScan = FileScan(table, schema, schemes)
 
-    /**
-     * Gets all partitions in this storage instance
-     *
-     * @return
-     */
-    def partitions(): Seq[Partition] = files().scan().map(t => partition(t.file())).distinct
+    override def partitions(): Seq[Partition] = files().scan().map(t => partition(t.file())).distinct
 
-    /**
-     * Gets all partitions in this storage instance
-     *
-     * @return
-     */
-    def partitions(filter: Filter): Seq[Partition] = files().forFilter(filter).scan().map(t => partition(t.file())).distinct
+    override def partitions(filter: Filter): Seq[Partition] = files().forFilter(filter).scan().map(t => partition(t.file())).distinct
 
-    /**
-     * Register new files with this storage instance. The files must already be in a compatible format.
-     *
-     * @param files files to register
-     * @return registered files
-     */
-    def register(files: Map[Partition, Seq[URI]]): Seq[DataFile] = {
+    override def register(files: Map[Partition, Seq[URI]]): Seq[DataFile] = {
       val dataFiles = files.toSeq.flatMap { case (partition, paths) =>
         paths.map { path =>
           val destination = newFilePath()
@@ -357,20 +336,16 @@ case class FileSystemStorage(
         }
       }
 
-      val append = table.newAppend()
-      dataFiles.foreach(append.appendFile)
-      append.commit()
+      if (dataFiles.nonEmpty) {
+        val append = table.newAppend()
+        dataFiles.foreach(append.appendFile)
+        append.commit()
+      }
 
       dataFiles
     }
 
-    /**
-     * Register new files with this storage instance. The files must already be in a compatible format.
-     *
-     * @param files files to register
-     * @return registered file
-     */
-    def register(files: Seq[URI]): Seq[DataFile] = {
+    override def register(files: Seq[URI]): Seq[DataFile] = {
       val partitioned = scala.collection.mutable.Map.empty[String, ArrayBuffer[URI]]
       WithClose(ObjectStore(files.head.getScheme, conf)) { fs =>
         files.foreach { file =>
@@ -387,42 +362,17 @@ case class FileSystemStorage(
       register(partitioned.map { case (k, v) => Partition(k) -> v.toSeq }.toMap)
     }
 
-    /**
-     * Register a new file with this storage instance. The file must already be in a compatible format
-     *
-     * @param file file to register
-     * @return registered file
-     */
-    def register(file: URI): DataFile = register(Seq(file)).head
+    override def compactManifests(): Unit = table.rewriteManifests().clusterBy(f => partition(f).toString).commit()
 
-    /**
-     * Compact manifest files to improve query performance
-     */
-    def compactManifests(): Unit = table.rewriteManifests().clusterBy(f => partition(f).toString).commit()
-
-    /**
-     * Compact a partition - merge multiple data files into a single file.
-     *
-     * Care should be taken with this method. Currently, there is no guarantee for correct behavior if
-     * multiple threads or storage instances attempt to compact the same partition simultaneously.
-     *
-     * @param partition partition to compact
-     */
-    def compact(partition: Partition): Unit = {
+    override def compact(partition: Partition): Unit = {
       // TODO implement compaction
       throw new UnsupportedOperationException("Not implemented")
     }
 
-    /**
-     * Extract the partition from a data file
-     *
-     * @param file data file
-     * @return
-     */
-    def partition(file: DataFile): Partition =
+    override def partition(file: DataFile): Partition =
       Partition(schemesWithIndex.map { case (s, i) => s.getPartition(file.partition(), i) })
 
-    def partition(partition: Partition): PartitionData = {
+    override def partition(partition: Partition): PartitionData = {
       val data = new PartitionData(table.spec().partitionType)
       var i = 0
       partition.values.foreach { value =>
@@ -636,6 +586,88 @@ object FileSystemStorage extends LazyLogging {
      * @return
      */
     def read(file: URI): CloseableIterator[SimpleFeature]
+  }
+
+  /**
+   * Helper trait for accessing metadata on files and partitions
+   */
+  trait DataFiles {
+
+    /**
+     * Gets files in this storage instance
+     *
+     * @return
+     */
+    def files(): FluentScan
+
+    /**
+     * Gets all partitions in this storage instance
+     *
+     * @return
+     */
+    def partitions(): Seq[Partition]
+
+    /**
+     * Gets all partitions in this storage instance
+     *
+     * @return
+     */
+    def partitions(filter: Filter): Seq[Partition]
+
+    /**
+     * Register new files with this storage instance. The files must already be in a compatible format.
+     *
+     * @param files files to register
+     * @return registered files
+     */
+    def register(files: Map[Partition, Seq[URI]]): Seq[DataFile]
+
+    /**
+     * Register new files with this storage instance. The files must already be in a compatible format.
+     *
+     * @param files files to register
+     * @return registered file
+     */
+    def register(files: Seq[URI]): Seq[DataFile]
+
+    /**
+     * Register a new file with this storage instance. The file must already be in a compatible format
+     *
+     * @param file file to register
+     * @return registered file
+     */
+    def register(file: URI): DataFile = register(Seq(file)).head
+
+    /**
+     * Compact manifest files to improve query performance
+     */
+    def compactManifests(): Unit
+
+    /**
+     * Compact a partition - merge multiple data files into a single file.
+     *
+     * Care should be taken with this method. Currently, there is no guarantee for correct behavior if
+     * multiple threads or storage instances attempt to compact the same partition simultaneously.
+     *
+     * @param partition partition to compact
+     */
+    def compact(partition: Partition): Unit
+
+    /**
+     * Extract the partition from a data file
+     *
+     * @param file data file
+     * @return
+     */
+    def partition(file: DataFile): Partition
+
+    /**
+     * Creates an iceberg partition from a geomesa partition
+     *
+     * @param partition partition
+     * @return
+     */
+    def partition(partition: Partition): PartitionData
   }
 
   /**

@@ -102,7 +102,3 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, val delegate: Partitione
   override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit =
     delegate.encodePostColumnCreateTable(att, sql)
 }
-
-object PartitionedPostgisPsDialect {
-
-}
