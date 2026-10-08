@@ -29,6 +29,7 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.geomesa.index.conf.QueryHints;
+import org.locationtech.geomesa.index.geoserver.ViewParams;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty;
 import org.locationtech.geomesa.utils.geotools.AttributeExtractingVisitor;
@@ -67,7 +68,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
     public static final SystemProperty CLIENT_SIDE_FILTERING =
         new SystemProperty("geomesa.trino.filter.client-side", ClientSideFiltering.PARTIAL.value);
 
-    /** Opt-in VARIANT prefilter; the original predicate still requires client-side evaluation. */
+    /** Default for the opt-in VARIANT prefilter, overridden by {@link QueryHints#TRINO_VARIANT_PREFILTER()}.
+     *  The original predicate still requires client-side evaluation. */
     public static final SystemProperty CLIENT_VARIANT_PUSHDOWN =
         new SystemProperty("geomesa.trino.filter.client-variant-pushdown", "false");
 
@@ -221,7 +223,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
      */
     @Override
     protected int getCountInternal(Query query) throws IOException {
-        var split = splitFilter(query.getFilter());
+        var split = splitFilter(query);
         if (split.residual != null) {
             // part of the filter is evaluated client-side, so SQL COUNT(*) would over-count; return unknown
             return -1;
@@ -303,7 +305,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
         String bboxCol = "__" + geomName + "_bbox__";
         VisibilityContext vis = visibility();
         // note: this may give a larger bounds due to not taking client-side filters into account, but should still be valid
-        String where = combineWhere(splitFilter(query.getFilter()).pushableSql, vis == null ? null : vis.conjunct());
+        String where = combineWhere(splitFilter(query).pushableSql, vis == null ? null : vis.conjunct());
         String sql = String.format(
             "SELECT MIN(%1$s.xmin), MIN(%1$s.ymin)," +
             " MAX(%1$s.xmax), MAX(%1$s.ymax)" +
@@ -354,11 +356,11 @@ class TrinoFeatureSource extends ContentFeatureSource {
     private FeatureReader<SimpleFeatureType, SimpleFeature> openReader(Query query)
         throws IOException {
         String typeName = entry.getName().getLocalPart();
+        FilterSplit split = splitFilter(query);
         var includeFids = (Boolean) query.getHints().getOrDefault(QueryHints.INCLUDE_FID(), Boolean.TRUE);
         String fidColumn = includeFids ? "__fid__" : null;
         VisibilityContext vis = visibility();
         String visColumn = vis == null ? null : vis.visColumn();
-        FilterSplit split = splitFilter(query.getFilter());
         SimpleFeatureType sft;
         boolean retype = false; // if we need to re-type post query
         if (query.retrieveAllProperties()) {
@@ -490,7 +492,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
      * with a fresh {@link TrinoFilterToSQL}. Conjuncts that encode cleanly are joined into the
      * pushable SQL; conjuncts the translator rejects become the residual, to be evaluated
      * in-memory by the framework's {@code FilteringFeatureReader}.
-     * When CLIENT_VARIANT_PUSHDOWN is enabled and client-side filtering is allowed, schemaless JSON
+     * When the VARIANT prefilter is enabled and client-side filtering is allowed, schemaless JSON
      * string equality also contributes a necessary SQL prefilter, while
      * retaining the original conjunct as a residual to preserve GeoTools type coercion.
      *
@@ -500,10 +502,12 @@ class TrinoFeatureSource extends ContentFeatureSource {
      * {@link IllegalArgumentException} naming the offending conjuncts, failing the query rather
      * than silently evaluating (or not evaluating) it client-side.
      *
-     * @param filter the query filter (may be null / INCLUDE)
+     * @param query the query being planned
      * @return the split; {@link FilterSplit#residual} is null when everything pushes down
      */
-    private FilterSplit splitFilter(Filter filter) {
+    private FilterSplit splitFilter(Query query) {
+        boolean clientVariantPushdown = variantPrefilterEnabled(query);
+        Filter filter = query.getFilter();
         if (filter == null || filter == Filter.INCLUDE) {
             return new FilterSplit(null, null, Collections.emptySet());
         }
@@ -516,7 +520,6 @@ class TrinoFeatureSource extends ContentFeatureSource {
         List<String> pushable = new ArrayList<>();
         List<Filter> residual = new ArrayList<>();
         ClientSideFiltering mode = ClientSideFiltering.current();
-        boolean clientVariantPushdown = Boolean.parseBoolean(CLIENT_VARIANT_PUSHDOWN.get());
         for (Filter conjunct : conjuncts) {
             try {
                 TrinoFilterToSQL toSql = new TrinoFilterToSQL();
@@ -563,6 +566,13 @@ class TrinoFeatureSource extends ContentFeatureSource {
         Filter residualAnd = residual.size() == 1 ? residual.get(0) : filterFactory.and(residual);
         Set<String> residualAttributes = residualAttributeNames(residualAnd);
         return new FilterSplit(pushableSql, residualAnd, residualAttributes);
+    }
+
+    /** Resolve a per-query override (including GeoServer view params), then the system property default. */
+    static boolean variantPrefilterEnabled(Query query) {
+        ViewParams.setHints(query);
+        Boolean hint = (Boolean) query.getHints().get(QueryHints.TRINO_VARIANT_PREFILTER());
+        return hint == null ? Boolean.parseBoolean(CLIENT_VARIANT_PUSHDOWN.get()) : hint;
     }
 
     /**

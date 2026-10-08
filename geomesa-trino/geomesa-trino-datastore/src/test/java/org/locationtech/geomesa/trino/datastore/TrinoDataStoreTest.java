@@ -18,13 +18,16 @@ import org.geotools.api.data.Query;
 import org.geotools.api.data.Transaction;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.sort.SortBy;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
+import org.geotools.util.factory.Hints;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;
+import org.locationtech.geomesa.index.conf.QueryHints;
 import org.locationtech.geomesa.trino.datastore.testcontainers.GeoMesaTrinoContainer;
 import org.locationtech.geomesa.trino.datastore.testcontainers.IcebergRestContainer;
 import org.locationtech.geomesa.trino.datastore.testcontainers.SeaweedFsContainer;
@@ -290,9 +293,12 @@ public class TrinoDataStoreTest {
             // when props was not requested in the output projection.
             var filter = ECQL.toFilter("\"$.props.weight\" = '0003'");
             var query = new Query(sft.getTypeName(), filter, new String[]{"name"});
+            // Apply the limit after the residual: earlier numeric values survive the SQL prefilter.
+            query.setMaxFeatures(1);
+            query.setSortBy(SortBy.NATURAL_ORDER);
             // The independent flag defaults off; partial mode has no SQL condition to push.
             Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(query));
-            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set("true");
+            query.getHints().put(QueryHints.TRINO_VARIANT_PREFILTER(), Boolean.TRUE);
             // Partial mode now accepts the necessary SQL prefilter, retaining the residual.
             Assertions.assertEquals(-1, fs.getCount(query));
             var results = new ArrayList<SimpleFeature>();
@@ -304,6 +310,25 @@ public class TrinoDataStoreTest {
             Assertions.assertEquals(1, results.size());
             Assertions.assertEquals("test3", results.get(0).getAttribute("name"));
             Assertions.assertEquals(1, results.get(0).getAttributeCount());
+            Assertions.assertNotNull(fs.getBounds(query));
+            // GeoServer view params also enable reads, counts, and bounds without a JVM override.
+            var viewQuery = new Query(sft.getTypeName(), filter, new String[]{"name"});
+            viewQuery.getHints().put(Hints.VIRTUAL_TABLE_PARAMETERS, Map.of("TRINO_VARIANT_PREFILTER", "true"));
+            Assertions.assertEquals(-1, fs.getCount(viewQuery));
+            Assertions.assertNotNull(fs.getBounds(viewQuery));
+            try (var reader = ds.getFeatureReader(viewQuery, Transaction.AUTO_COMMIT)) {
+                Assertions.assertTrue(reader.hasNext());
+                Assertions.assertEquals("test3", reader.next().getAttribute("name"));
+                Assertions.assertFalse(reader.hasNext());
+            }
+            // Explicit false overrides a globally enabled default on all planning paths.
+            TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set("true");
+            query.getHints().put(QueryHints.TRINO_VARIANT_PREFILTER(), Boolean.FALSE);
+            Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(query));
+            Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getBounds(query));
+            Assertions.assertThrows(IllegalArgumentException.class,
+                () -> ds.getFeatureReader(query, Transaction.AUTO_COMMIT));
+            query.getHints().remove(QueryHints.TRINO_VARIANT_PREFILTER());
             // All mode allows residual evaluation independently of the VARIANT flag.
             TrinoFeatureSource.CLIENT_SIDE_FILTERING.threadLocalValue().set(
                 TrinoFeatureSource.ClientSideFiltering.ALL.value);
@@ -327,6 +352,7 @@ public class TrinoDataStoreTest {
                 TrinoFeatureSource.ClientSideFiltering.NONE.value);
             for (String flag : List.of("false", "true")) {
                 TrinoFeatureSource.CLIENT_VARIANT_PUSHDOWN.threadLocalValue().set(flag);
+                query.getHints().put(QueryHints.TRINO_VARIANT_PREFILTER(), Boolean.valueOf(flag));
                 Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(query));
                 Assertions.assertThrows(IllegalArgumentException.class, () -> fs.getCount(bounded));
             }

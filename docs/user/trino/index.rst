@@ -23,5 +23,6 @@ Parquet on S3-compatible object storage.
     usage
     connector_config
     runtime_config
+    query_config
     commandline
     security
