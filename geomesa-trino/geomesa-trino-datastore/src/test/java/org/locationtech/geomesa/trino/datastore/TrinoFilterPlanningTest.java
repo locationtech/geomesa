@@ -96,14 +96,12 @@ class TrinoFilterPlanningTest {
     }
 
     @Test
-    void implicitFeatureFunctionsAreNotFoldedIntoConstants() throws Exception {
-        for (String cql : new String[]{"proxyId() = 1", "z2(geom) = 'a'", "xz2(geom) = 'a'", "fastproperty(0) = 'alice'",
-                "murmurHash(fastproperty(0)) = 1"}) {
+    void featureDependentFunctionsAreNotFoldedIntoConstants() throws Exception {
+        for (String cql : new String[]{"proxyId() = 1", "z2(geom) = 'a'", "xz2(geom) = 'a'"}) {
             var result = split(cql, NONE);
             assertThat(result.residual()).isNull();
             assertThat(result.pushableSql()).doesNotContain("NULL");
-            assertThat(result.pushableSql()).contains(cql.startsWith("proxyId") ? "__fid__"
-                : cql.startsWith("z2") || cql.startsWith("xz2") ? "geom" : "name");
+            assertThat(result.pushableSql()).contains(cql.startsWith("proxyId") ? "__fid__" : "geom");
         }
     }
 
@@ -153,12 +151,10 @@ class TrinoFilterPlanningTest {
     }
 
     @Test
-    void residualsRetainImplicitGeometryAndIndexedAttributeDependencies() throws Exception {
+    void residualsRetainGeometryDependencies() throws Exception {
         var result = split("strToLowerCase(z2(geom)) = 'a'", ALL);
         assertThat(result.pushableSql()).isNull();
         assertThat(result.residualAttributes()).containsExactly("geom");
-        var indexed = split("strToLowerCase(fastproperty(0)) = 'alice'", ALL);
-        assertThat(indexed.residualAttributes()).containsExactlyInAnyOrder("name", "age", "dtg", "geom", "props");
     }
 
     @Test

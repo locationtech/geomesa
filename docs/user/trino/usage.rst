@@ -67,9 +67,9 @@ sent to Trino under their GeoTools names. See :ref:`trino_runtime_configuration`
 
 Before splitting a query into SQL and client-side predicates, GeoTools simplifies logical expressions
 and evaluates constant functions. This includes functions outside the SQL translation list when their
-arguments are feature-independent. Functions that implicitly read a feature, such as ``proxyId()`` and
-``fastproperty``, remain feature-dependent. Functions outside the SQL translation list, including
-``fastproperty``, ``z2``, ``xz2`` and ``convert2viewer``, use client-side filtering when their arguments
+arguments are feature-independent. Functions that implicitly read a feature, such as ``proxyId()``,
+remain feature-dependent. Functions outside the SQL translation list, including
+``z2``, ``xz2`` and ``convert2viewer``, use client-side filtering when their arguments
 depend on the feature.
 
 Whole-world ``BBOX`` and ``INTERSECTS`` predicates on the default geometry are removed during

@@ -13,11 +13,14 @@ import org.geotools.api.filter.expression.Literal
 import org.geotools.api.filter.spatial.BBOX
 import org.geotools.data.DataUtilities
 import org.geotools.factory.CommonFactoryFinder
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.feature.{AttributeTypeBuilder, NameImpl}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.expression.{FastPropertyIsEqualTo, FastPropertyName, OrHashEquality, OrSequentialEquality}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Point
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -48,6 +51,22 @@ class FastFilterFactoryTest extends Specification {
       val sft = SimpleFeatureTypes.createType("test", "geom:Point:srid=4326")
       val bbox = FastFilterFactory.toFilter(sft, "bbox(geom, -179, -89, 179, 89)")
       bbox.asInstanceOf[BBOX].getExpression1 must beAnInstanceOf[FastPropertyName]
+    }
+    "support namespaces" >> {
+      val attributeBuilder = new AttributeTypeBuilder()
+      attributeBuilder.setBinding(classOf[String])
+      val nameType = attributeBuilder.buildType()
+      val nameAttribute = attributeBuilder.buildDescriptor(new NameImpl("testns", "name"), nameType)
+      val builder = new SimpleFeatureTypeBuilder()
+      builder.add(nameAttribute)
+      builder.add("geom", classOf[Point], org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+      builder.setName("FastFilterFactoryNsTest")
+      val sft = builder.buildFeatureType()
+
+      val sf = DataUtilities.parse(sft, "id", "myname", "POINT(45 45)")
+
+      val filter = FastFilterFactory.toFilter(sft, "testns:name = 'myname'")
+      filter.evaluate(sf) must beTrue
     }
     "create sequential OR filter" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326")

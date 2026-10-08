@@ -16,7 +16,6 @@ import org.geotools.api.filter.And;
 import org.geotools.api.filter.Filter;
 import org.geotools.api.filter.FilterFactory;
 import org.geotools.api.filter.expression.PropertyName;
-import org.geotools.api.filter.expression.Function;
 import org.geotools.api.filter.spatial.BBOX;
 import org.geotools.api.filter.spatial.BinarySpatialOperator;
 import org.geotools.api.filter.spatial.Intersects;
@@ -35,7 +34,6 @@ import org.geotools.filter.visitor.PostPreProcessFilterSplittingVisitor;
 import org.geotools.filter.visitor.SimplifyingFilterVisitor;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.geomesa.filter.FilterHelper;
-import org.locationtech.geomesa.filter.function.FastProperty;
 import org.locationtech.geomesa.index.conf.QueryHints;
 import org.locationtech.geomesa.index.geoserver.ViewParams;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
@@ -373,9 +371,6 @@ class TrinoFeatureSource extends ContentFeatureSource {
         boolean retype = false; // if we need to re-type post query
         if (query.retrieveAllProperties()) {
             sft = getSchema();
-        } else if (split.residual != null && split.residualAttributes().size() == getSchema().getAttributeCount()) {
-            sft = getSchema();
-            retype = true;
         } else if (split.residual != null && !split.residualAttributes().isEmpty()) {
             // the client-side residual reads columns that may not be in the requested
             // projection, so pull those too - then retype back down to the requested attributes afterward
@@ -639,18 +634,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
      * @return the set of backing attribute names the conjunct reads
      */
     private static Set<String> residualAttributeNames(Filter conjunct, SimpleFeatureType schema) {
-        var visitor = new AttributeExtractingVisitor(schema) {
-            @Override
-            public Object visit(Function function, Object data) {
-                if (function instanceof FastProperty) {
-                    // Attribute indices refer to the original schema; preserve all positions.
-                    for (var descriptor : schema.getAttributeDescriptors()) {
-                        filterFactory.property(descriptor.getLocalName()).accept(this, data);
-                    }
-                }
-                return super.visit(function, data);
-            }
-        };
+        var visitor = new AttributeExtractingVisitor(schema);
         conjunct.accept(visitor, null);
         return new LinkedHashSet<>(Arrays.asList(visitor.getAttributeNames()));
     }

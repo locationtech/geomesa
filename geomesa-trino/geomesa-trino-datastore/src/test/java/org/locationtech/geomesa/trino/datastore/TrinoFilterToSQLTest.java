@@ -386,8 +386,6 @@ class TrinoFilterToSQLTest {
         translator.setFeatureType(builder.buildFeatureType());
         assertThat(translator.encodeToString(ECQL.toFilter("dateToLong(dtg) > 0")))
             .contains("date_diff('millisecond', TIMESTAMP '1970-01-01 00:00:00 UTC', \"dtg\")");
-        assertThat(translator.encodeToString(ff.equal(ff.function("fastproperty", ff.literal(0L)), ff.literal("a"), true)))
-            .contains("\"name\" = 'a'").doesNotContain("fastproperty");
         assertThat(translator.encodeToString(ECQL.toFilter("murmurHash(name) > 0")))
             .contains("geomesa_murmur_hash(CAST(\"name\" AS varchar))");
         assertThat(translator.encodeToString(ECQL.toFilter("bucketHash(name, 8) = 1")))

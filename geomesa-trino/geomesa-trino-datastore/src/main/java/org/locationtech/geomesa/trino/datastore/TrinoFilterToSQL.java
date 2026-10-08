@@ -417,8 +417,6 @@ public class TrinoFilterToSQL extends FilterToSQL {
     private static final List<FunctionSqlEncoder<?>> FUNCTION_ENCODERS = List.of(
         FunctionSqlEncoder.of(CurrentDateFunction.class, (function, sql) -> sql.writeCurrentDate(function)),
         FunctionSqlEncoder.of(DateToLong.class, (function, sql) -> sql.writeDateToLong(sql.parameter(function, 0))),
-        FunctionSqlEncoder.of(FastProperty.class,
-            (function, sql) -> sql.write(quoteIdent(sql.indexedAttribute(function).getLocalName()))),
         FunctionSqlEncoder.of(MurmurHashFunction.class, (function, sql) -> sql.writeHash(sql.parameter(function, 0))),
         FunctionSqlEncoder.of(BucketHashFunction.class, (function, sql) -> sql.writeBucketHash(function)),
         FunctionSqlEncoder.of(ProxyIdFunction.class, (function, sql) -> sql.writeProxyId()),
@@ -480,19 +478,6 @@ public class TrinoFilterToSQL extends FilterToSQL {
         return getParameter(function, index, true);
     }
 
-    private AttributeDescriptor indexedAttribute(Function function) {
-        Expression index = parameter(function, 0);
-        if (featureType == null || !Boolean.TRUE.equals(index.accept(IsStaticExpressionVisitor.VISITOR, null))) {
-            throw new UnsupportedOperationException("fastproperty requires a schema and a constant attribute index");
-        }
-        Object value = index.evaluate(null);
-        if (!(value instanceof Number number) || number.intValue() < 0
-                || number.intValue() >= featureType.getAttributeCount()) {
-            throw new IllegalArgumentException("Invalid fastproperty attribute index: " + value);
-        }
-        return featureType.getDescriptor(number.intValue());
-    }
-
     private void writeDateToLong(Expression expression) {
         write("date_diff('millisecond', TIMESTAMP '" + UNIX_EPOCH + "', ");
         expression.accept(this, Date.class);
@@ -531,9 +516,6 @@ public class TrinoFilterToSQL extends FilterToSQL {
         if (expression instanceof Literal literal) {
             Object value = literal.getValue();
             return value == null ? null : value.getClass();
-        }
-        if (expression instanceof FastProperty function) {
-            return indexedAttribute(function).getType().getBinding();
         }
         return getExpressionType(expression);
     }
