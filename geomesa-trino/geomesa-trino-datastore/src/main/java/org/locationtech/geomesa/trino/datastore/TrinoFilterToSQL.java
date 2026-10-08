@@ -22,7 +22,7 @@ import org.geotools.api.filter.temporal.During;
 import org.geotools.api.geometry.BoundingBox;
 import org.geotools.api.temporal.Period;
 import org.geotools.data.jdbc.FilterToSQL;
-import org.geotools.data.jdbc.FilterToSQLException;
+import org.geotools.filter.FilterCapabilities;
 import org.geotools.filter.visitor.IsStaticExpressionVisitor;
 import org.locationtech.geomesa.filter.function.*;
 import org.locationtech.geomesa.utils.json.JsonPathFilterFunction;
@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 import scala.collection.JavaConverters;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -68,6 +67,7 @@ public class TrinoFilterToSQL extends FilterToSQL {
      */
     public TrinoFilterToSQL() {
         setSqlNameEscape("\"");  // quote identifiers in base-class comparisons too
+        setInline(true);
     }
 
     /** Double-quote an identifier, doubling embedded quotes. */
@@ -403,15 +403,18 @@ public class TrinoFilterToSQL extends FilterToSQL {
         if (function instanceof JsonPathFilterFunction) {
             throw new UnsupportedOperationException("Can't push down JsonPathFilterFunction");
         }
-        for (FunctionSqlEncoder encoder : FUNCTION_ENCODERS) {
+        for (FunctionSqlEncoder<?> encoder : FUNCTION_ENCODERS) {
             if (encoder.encode(function, this)) {
                 return extraData;
             }
         }
-        return super.visit(function, extraData);
+        if (getCapabilities().supports(function.getClass())) {
+            return super.visit(function, extraData);
+        }
+        throw new UnsupportedOperationException("Unsupported Trino function: " + function.getName());
     }
 
-    private static final List<FunctionSqlEncoder> FUNCTION_ENCODERS = List.of(
+    private static final List<FunctionSqlEncoder<?>> FUNCTION_ENCODERS = List.of(
         FunctionSqlEncoder.of(CurrentDateFunction.class, (function, sql) -> sql.writeCurrentDate(function)),
         FunctionSqlEncoder.of(DateToLong.class, (function, sql) -> sql.writeDateToLong(sql.parameter(function, 0))),
         FunctionSqlEncoder.of(FastProperty.class,
@@ -451,11 +454,7 @@ public class TrinoFilterToSQL extends FilterToSQL {
 
     private void writeSpatialIndex(Function function, String sqlName) {
         write(sqlName + "(");
-        if (function.getParameters().isEmpty()) {
-            write(quoteIdent(defaultGeomCol()));
-        } else {
-            writeGeometryArgument(parameter(function, 0));
-        }
+        writeGeometryArgument(parameter(function, 0));
         write(")");
     }
 
@@ -539,20 +538,34 @@ public class TrinoFilterToSQL extends FilterToSQL {
         return getExpressionType(expression);
     }
 
+    /** The registry is also the function whitelist used by the GeoTools filter splitter. */
+    @Override
+    protected FilterCapabilities createFilterCapabilities() {
+        FilterCapabilities capabilities = super.createFilterCapabilities();
+        for (Class<?> type : List.of(BBOX.class, Beyond.class, Contains.class, Crosses.class,
+                Disjoint.class, DWithin.class, Equals.class, Intersects.class, Overlaps.class,
+                Touches.class, Within.class)) {
+            capabilities.addType(type);
+        }
+        for (FunctionSqlEncoder<?> encoder : FUNCTION_ENCODERS) {
+            capabilities.addType(encoder.type());
+        }
+        return capabilities;
+    }
+
     /** Binds a GeoTools function implementation to its Trino SQL renderer. */
-    private interface FunctionSqlEncoder {
+    private record FunctionSqlEncoder<F extends Function>(Class<F> type, BiConsumer<F, TrinoFilterToSQL> renderer) {
 
-        /** Returns false when this adapter does not support the function. */
-        boolean encode(Function function, TrinoFilterToSQL sql);
+        static <F extends Function> FunctionSqlEncoder<F> of(Class<F> type, BiConsumer<F, TrinoFilterToSQL> renderer) {
+            return new FunctionSqlEncoder<>(type, renderer);
+        }
 
-        static <F extends Function> FunctionSqlEncoder of(Class<F> type, BiConsumer<F, TrinoFilterToSQL> renderer) {
-            return (function, sql) -> {
-                if (!type.isInstance(function)) {
-                    return false;
-                }
-                renderer.accept(type.cast(function), sql);
-                return true;
-            };
+        boolean encode(Function function, TrinoFilterToSQL sql) {
+            if (!type.isInstance(function)) {
+                return false;
+            }
+            renderer.accept(type.cast(function), sql);
+            return true;
         }
     }
 
@@ -682,18 +695,4 @@ public class TrinoFilterToSQL extends FilterToSQL {
         }
     }
 
-    /**
-     * Override encodeToString to initialize {@code out} before visiting and
-     * bypass the default capabilities check in {@link FilterToSQL#encode}.
-     *
-     * @param filter filter to translate
-     * @return the SQL WHERE-clause fragment
-     */
-    @Override
-    public String encodeToString(org.geotools.api.filter.Filter filter) throws FilterToSQLException {
-        StringWriter sw = new StringWriter();
-        out = sw;
-        filter.accept(this, null);
-        return sw.toString();
-    }
 }

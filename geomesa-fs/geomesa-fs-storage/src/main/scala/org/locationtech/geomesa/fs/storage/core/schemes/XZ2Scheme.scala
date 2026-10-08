@@ -63,9 +63,9 @@ case class XZ2Scheme(attribute: String, index: Int, bits: Int) extends SpatialSc
   override def getCoveringFilter(partition: PartitionKey): Filter = {
     // TODO maybe we can improve this with *some* kind of bbox?
     val hexPrefix = partition.value
-    val lower = hexPrefix.padTo(xz2.hexDigits, '0')
-    val upper = hexPrefix.padTo(xz2.hexDigits, 'f')
-    ff.between(ff.function(XZ2Function.FunctionName.getName), ff.literal(lower), ff.literal(upper))
+    val value = ff.function(XZ2Function.FunctionName.getName, ff.property(attribute))
+    // Prefix matching preserves hex ordering without numeric coercion and can round-trip through ECQL.
+    ff.like(value, s"$hexPrefix%", "%", "_", "\\", true)
   }
 
   override def getPartition(partition: StructLike, i: Int): PartitionKey = PartitionKey(name, partition.get(i, classOf[String]))

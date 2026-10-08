@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.fs.storage.core
 package schemes
 
+import org.geotools.filter.text.ecql.ECQL
+import org.geotools.filter.visitor.SimplifyingFilterVisitor
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
@@ -52,8 +54,27 @@ class XZ2SchemeTest extends SpecificationWithJUnit {
         foreach(features.groupBy(ps.getPartition)) { case (partition, group) =>
           val filter = ps.getCoveringFilter(partition)
           features.filter(filter.evaluate) must containTheSameElementsAs(group)
+          val parsed = ECQL.toFilter(ECQL.toCQL(filter))
+          features.filter(parsed.evaluate) must containTheSameElementsAs(group)
         }
       }
+    }
+
+    "use the partitioned geometry in covering filters" in {
+      val schema = SimpleFeatureTypes.createType("two-geometries",
+        "*geom:Point:srid=4326,partitionGeom:Point:srid=4326")
+      val scheme = PartitionSchemeFactory.load(schema, "xz2:attribute=partitionGeom:bits=12")
+      val matching = ScalaSimpleFeature.create(schema, "matching", "POINT (10 10)", "POINT (-75 38)")
+      val other = ScalaSimpleFeature.create(schema, "other", "POINT (-75 38)", "POINT (10 10)")
+      val filter = scheme.getCoveringFilter(scheme.getPartition(matching))
+      val cql = ECQL.toCQL(filter)
+      cql must contain("xz2(partitionGeom)")
+
+      val simplifier = new SimplifyingFilterVisitor()
+      simplifier.setFeatureType(schema)
+      val simplified = ECQL.toFilter(cql).accept(simplifier, null).asInstanceOf[org.geotools.api.filter.Filter]
+      simplified.evaluate(matching) must beTrue
+      simplified.evaluate(other) must beFalse
     }
 
     "calculate covering filters for polygons" in {
@@ -81,6 +102,8 @@ class XZ2SchemeTest extends SpecificationWithJUnit {
         foreach(features.groupBy(ps.getPartition)) { case (partition, group) =>
           val filter = ps.getCoveringFilter(partition)
           features.filter(filter.evaluate) must containTheSameElementsAs(group)
+          val parsed = ECQL.toFilter(ECQL.toCQL(filter))
+          features.filter(parsed.evaluate) must containTheSameElementsAs(group)
         }
       }
     }
@@ -111,6 +134,8 @@ class XZ2SchemeTest extends SpecificationWithJUnit {
           val filter = ps.getCoveringFilter(partition)
           val matched = features.filter(filter.evaluate)
           matched must containTheSameElementsAs(group)
+          val parsed = ECQL.toFilter(ECQL.toCQL(filter))
+          features.filter(parsed.evaluate) must containTheSameElementsAs(group)
         }
       }
     }

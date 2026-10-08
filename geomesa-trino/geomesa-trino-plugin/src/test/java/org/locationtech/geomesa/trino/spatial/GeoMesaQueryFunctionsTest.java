@@ -17,8 +17,6 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.junit.jupiter.api.Test;
-import org.locationtech.jts.io.WKBWriter;
-import org.locationtech.jts.io.WKTReader;
 
 import java.util.Date;
 import java.util.UUID;
@@ -38,7 +36,7 @@ class GeoMesaQueryFunctionsTest {
     void functionsAreRegisteredWithValidTrinoSignatures() {
         assertThat(new SpatialIcebergPlugin().getFunctions()).contains(GeoMesaQueryFunctions.class);
         assertThat(InternalFunctionBundle.builder().functions(GeoMesaQueryFunctions.class).build().getFunctions())
-            .hasSize(11);
+            .hasSize(8);
     }
 
     @Test
@@ -85,21 +83,6 @@ class GeoMesaQueryFunctionsTest {
     }
 
     @Test
-    void spatialIndexesMatchGeoMesaAndEmptyEnvelopeIsNull() throws Exception {
-        var reader = new WKTReader();
-        var point = reader.read("POINT (-77.04 38.91)");
-        assertThat(GeoMesaQueryFunctions.z2(Slices.wrappedBuffer(new WKBWriter().write(point))).toStringUtf8())
-            .isEqualTo(evaluate("z2", point));
-        for (String wkt : new String[]{"POINT (-77.04 38.91)", "POLYGON ((0 0, 2 0, 2 3, 0 3, 0 0))"}) {
-            var geometry = reader.read(wkt);
-            assertThat(GeoMesaQueryFunctions.xz2(Slices.wrappedBuffer(new WKBWriter().write(geometry))).toStringUtf8())
-                .isEqualTo(evaluate("xz2", geometry));
-        }
-        assertThat(GeoMesaQueryFunctions.xz2(Slices.wrappedBuffer(new WKBWriter().write(reader.read("POLYGON EMPTY")))))
-            .isNull();
-    }
-
-    @Test
     void proxyIdMatchesFeatureIdAndUuidModes() {
         var ff = CommonFactoryFinder.getFilterFactory();
         var builder = new SimpleFeatureTypeBuilder();
@@ -115,15 +98,4 @@ class GeoMesaQueryFunctionsTest {
         }
     }
 
-    @Test
-    void viewerEncodingMatchesGeoMesaForUtf8LabelsAndNullIds() throws Exception {
-        var point = new WKTReader().read("POINT (-77.04 38.91)");
-        var wkb = Slices.wrappedBuffer(new WKBWriter().write(point));
-        for (String id : new String[]{null, "", "track-漢字"}) {
-            for (long millis : new long[]{-1234, 0, 1234567890123L}) {
-                assertThat(GeoMesaQueryFunctions.convert2viewer(id == null ? null : Slices.utf8Slice(id), wkb, millis)
-                    .toStringUtf8()).isEqualTo(evaluate("convert2viewer", id, point, new Date(millis)));
-            }
-        }
-    }
 }

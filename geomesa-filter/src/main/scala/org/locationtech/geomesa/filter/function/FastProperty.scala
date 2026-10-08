@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.filter.function
 
 import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.expression.VolatileFunction
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 
-class FastProperty extends FunctionExpressionImpl(FastProperty.Name) {
+class FastProperty extends FunctionExpressionImpl(FastProperty.Name) with VolatileFunction {
 
   private var idx: Int = -1
 

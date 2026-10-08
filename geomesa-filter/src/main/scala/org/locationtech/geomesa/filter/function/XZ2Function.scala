@@ -8,13 +8,10 @@
 
 package org.locationtech.geomesa.filter.function
 
-import org.geotools.api.feature.simple.SimpleFeature
-import org.geotools.api.filter.expression.{Expression, ExpressionVisitor}
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl.parameter
 import org.locationtech.geomesa.curve.XZ2SFC
-import org.locationtech.geomesa.filter.function.XZ2Function.GetDefaultGeometry
 import org.locationtech.jts.geom.Geometry
 
 /**
@@ -22,22 +19,8 @@ import org.locationtech.jts.geom.Geometry
  */
 class XZ2Function extends FunctionExpressionImpl(XZ2Function.FunctionName) {
 
-  private var expression: Expression = _
-
-  override def setParameters(params: java.util.List[Expression]): Unit = {
-    super.setParameters(params)
-    if (params.isEmpty) {
-      expression = GetDefaultGeometry
-    } else {
-      expression = getExpression(0)
-    }
-  }
-
   override def evaluate(o: AnyRef): AnyRef = {
-    if (o == null) {
-      return null
-    }
-    val value = expression.evaluate(o, classOf[Geometry])
+    val value = getExpression(0).evaluate(o, classOf[Geometry])
     if (value == null) {
       return null
     }
@@ -47,24 +30,12 @@ class XZ2Function extends FunctionExpressionImpl(XZ2Function.FunctionName) {
 
 object XZ2Function {
 
-  val FunctionName = new FunctionNameImpl("xz2", classOf[String], parameter("geom", classOf[String], 0, 1))
+  val FunctionName = new FunctionNameImpl("xz2", classOf[String], parameter("geom", classOf[Geometry]))
 
   private[filter] def encode(geom: Geometry): String = {
     val env = geom.getEnvelopeInternal
     if (env.isNull) { null } else {
       XZ2SFC.hexEncode(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
     }
-  }
-
-  private object GetDefaultGeometry extends Expression {
-
-    override def evaluate(obj: Any): Geometry = obj match {
-      case sf: SimpleFeature => sf.getDefaultGeometry.asInstanceOf[Geometry]
-      case _ => null
-    }
-
-    override def evaluate[T](obj: Any, context: Class[T]): T = evaluate(obj).asInstanceOf[T] // only called by our code, above
-
-    override def accept(visitor: ExpressionVisitor, extraData: Any): AnyRef = throw new UnsupportedOperationException()
   }
 }

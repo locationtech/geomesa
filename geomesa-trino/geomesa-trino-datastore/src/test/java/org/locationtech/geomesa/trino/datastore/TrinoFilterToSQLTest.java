@@ -353,13 +353,14 @@ class TrinoFilterToSQLTest {
     }
 
     @Test
-    void featureDependentFunctionsRetainTheirPropertyArguments() throws Exception {
+    void unsupportedFunctionsAreRejectedBeforeReachingTrino() throws Exception {
         Filter filter = ff.equal(ff.function("strToLowerCase", ff.property("name")), ff.literal("alice"), true);
-        assertThat(translator.encodeToString(filter)).contains("strToLowerCase(\"name\")").contains("'alice'");
+        assertThatThrownBy(() -> translator.encodeToString(filter))
+            .isInstanceOf(UnsupportedOperationException.class).hasMessageContaining("strToLowerCase");
     }
 
     @Test
-    void implicitFeatureFunctionsUseFeatureIdAndDefaultGeometry() throws Exception {
+    void functionsUseFeatureIdAndExplicitGeometry() throws Exception {
         var builder = new SimpleFeatureTypeBuilder();
         builder.setName("test");
         builder.add("geom", Point.class);
@@ -367,7 +368,7 @@ class TrinoFilterToSQLTest {
         assertThat(translator.encodeToString(ff.equal(ff.function("proxyId"), ff.literal(1), true)))
             .contains("geomesa_proxy_id(\"__fid__\", false)");
         for (String name : List.of("z2", "xz2")) {
-            assertThat(translator.encodeToString(ff.equal(ff.function(name), ff.literal("value"), true)))
+            assertThat(translator.encodeToString(ff.equal(ff.function(name, ff.property("geom")), ff.literal("value"), true)))
                 .contains("geomesa_" + name + "(\"geom\")").doesNotContain("NULL");
         }
         translator.getFeatureType().getUserData().put("geomesa.fid.uuid", true);

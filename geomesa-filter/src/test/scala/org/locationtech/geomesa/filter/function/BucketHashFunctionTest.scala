@@ -9,6 +9,8 @@
 
 package org.locationtech.geomesa.filter.function
 
+import org.geotools.api.filter.Filter
+import org.geotools.filter.visitor.SimplifyingFilterVisitor
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.filter.FilterHelper
@@ -27,6 +29,25 @@ class BucketHashFunctionTest extends SpecificationWithJUnit {
   val nullValues = Seq.fill[AnyRef](sft.getAttributeCount)(null).asJava
 
   "BucketHashFunction" should {
+    "evaluate the modulo argument against the feature" in {
+      val sf = new SimpleFeatureImpl(nullValues, sft, new FeatureIdImpl("1"))
+      sf.setAttribute("age", 8)
+      val function = ff.function("bucketHash", ff.literal("iceberg"), ff.property("age"))
+      function.evaluate(sf) mustEqual Int.box(1210000089 % 8)
+      val filter = ff.equals(function, ff.literal(1210000089 % 8))
+      val visitor = new SimplifyingFilterVisitor()
+      visitor.setFeatureType(sft)
+      val simplified = filter.accept(visitor, null).asInstanceOf[Filter]
+      simplified must not(beEqualTo(Filter.INCLUDE))
+      simplified must not(beEqualTo(Filter.EXCLUDE))
+      simplified.evaluate(sf) must beTrue
+      sf.setAttribute("age", 16)
+      function.evaluate(sf) mustEqual Int.box(1210000089 % 16)
+      simplified.evaluate(sf) must beFalse
+      sf.setAttribute("age", null)
+      function.evaluate(sf) must beNull
+    }
+
     "hash strings" in {
       // string	hashBytes(utf8Bytes(v))	iceberg ￫ 1210000089
       val sf = new SimpleFeatureImpl(nullValues, sft, new FeatureIdImpl("1"))
