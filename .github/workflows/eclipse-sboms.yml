@@ -16,7 +16,7 @@ env:
   JAVA_RUNTIME_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_COMPILE_NO_OP_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -Dmaven.main.skip
-  MAVEN_COMPILE_TRINO_PLUGIN_ARGS: clean install -Dmaven.test.skip -Dmaven.source.skip -pl geomesa-trino/geomesa-trino-plugin
+  MAVEN_COMPILE_TRINO_PLUGIN_ARGS: clean install -Dmaven.test.skip -Dmaven.source.skip -pl geomesa-trino/geomesa-trino-plugin -am
   MAVEN_CYCLONEDX_ARGS: org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
   MAVEN_VERSION_ARGS: help:evaluate -Dexpression=project.version -q -DforceStdout
 
