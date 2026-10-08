@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.converter
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
-import org.apache.iceberg.Table
+import org.apache.iceberg.{DataFile, PartitionData, Table}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -21,6 +21,7 @@ import org.locationtech.geomesa.fs.storage.converter.utils.FileSystemThreadedRea
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemUpdateWriter, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
+import org.locationtech.geomesa.fs.storage.core.utils.FileScan.FluentScan
 import org.locationtech.geomesa.fs.storage.core.{CacheDurationProperty, FileSystemStorage, Partition}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
@@ -61,7 +62,7 @@ class ConverterStorage(
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val configured = QueryRunner.configureQuery(sft, query)
-    val filter = Option(configured.getFilter)
+    val filter = Option(configured.getFilter).filter(_ != Filter.INCLUDE)
     val visFilter = VisibilityUtils.visible(authProvider)
     val transform = configured.getHints.getTransform
     val sort = configured.getHints.getSortFields
@@ -98,6 +99,24 @@ class ConverterStorage(
 
   override def getWriter(filter: Filter, threads: Int): FileSystemUpdateWriter =
     throw new UnsupportedOperationException("Converter storage is read-only")
+
+  override def getMultiPartitionWriter(): FileSystemWriter =
+    throw new UnsupportedOperationException("Converter storage is read-only")
+
+  override val metadata: FileSystemStorage.DataFiles = new FileSystemStorage.DataFiles() {
+
+    private def ko: Nothing = throw new UnsupportedOperationException("Converter storage does not support metadata ops")
+
+    override def files(): FluentScan = ko
+    override def partitions(): Seq[Partition] = ko
+    override def partitions(filter: Filter): Seq[Partition] = ko
+    override def register(files: Map[Partition, Seq[URI]]): Seq[DataFile] = ko
+    override def register(files: Seq[URI]): Seq[DataFile] = ko
+    override def compactManifests(): Unit = ko
+    override def compact(partition: Partition): Unit = ko
+    override def partition(file: DataFile): Partition = ko
+    override def partition(partition: Partition): PartitionData = ko
+  }
 
   override def close(): Unit = {
     try { super.close() } finally {
