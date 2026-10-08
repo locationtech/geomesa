@@ -133,6 +133,20 @@ This allows the ``AuthorizationsProvider`` to configure itself based on the envi
 
 For examples on implementing an ``AuthorizationsProvider`` see the :ref:`accumulo_tutorials_security` tutorials.
 
+Request-scoped Authorizations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Applications that keep per-request authorizations in a thread-local value can extend
+``org.locationtech.geomesa.security.ThreadLocalAuthorizationsProvider`` and scope each request using
+``ThreadLocalAuthorizationsProvider.withAuthorizations`` (Scala). Register the application subclass as an
+``AuthorizationsProvider`` as described above. The scope copies the authorization list and restores the
+previous value when the request completes, including on failure.
+
+Merged data store parallel counts, bounds and statistics capture this scope before submitting executor tasks.
+Each task installs the captured authorizations and restores its previous scope afterward. Configured
+``geomesa.security.auths`` ceilings still apply. Providers using their own thread-local storage do not
+participate in this propagation; they must use this provider or supply their own context propagation.
+
 Selecting a Provider
 ^^^^^^^^^^^^^^^^^^^^
 

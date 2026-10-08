@@ -19,6 +19,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
 import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
+import org.locationtech.geomesa.security.ThreadLocalAuthorizationsProvider
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
 import java.awt.RenderingHints.Key
@@ -56,7 +57,9 @@ class MergedFeatureSourceView(
           source.getCount(mergeFilter(sft, query, filter))
         }
         val results = new CopyOnWriteArrayList[Int]()
-        sources.toList.map(s => CachedThreadPool.submit(() => results.add(getSingle(s)))).foreach(_.get)
+        sources.toList.map { s =>
+          CachedThreadPool.submit(ThreadLocalAuthorizationsProvider.wrap(() => results.add(getSingle(s))))
+        }.foreach(_.get)
         results.asScala.foldLeft(0)((sum, count) => if (sum < 0 || count < 0) { -1 } else { sum + count })
       } else {
         // if one of our sources can't get a count (i.e. is negative), give up and return -1
@@ -82,7 +85,9 @@ class MergedFeatureSourceView(
 
     val sourceBounds = if (parallel) {
       val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
-      sources.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+      sources.toList.map { s =>
+        CachedThreadPool.submit(ThreadLocalAuthorizationsProvider.wrap(() => getSingle(s).foreach(results.add)))
+      }.foreach(_.get)
       results.asScala
     } else {
       sources.flatMap(getSingle)
@@ -99,7 +104,9 @@ class MergedFeatureSourceView(
 
     val sourceBounds = if (parallel) {
       val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
-      sources.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+      sources.toList.map { s =>
+        CachedThreadPool.submit(ThreadLocalAuthorizationsProvider.wrap(() => getSingle(s).foreach(results.add)))
+      }.foreach(_.get)
       results.asScala
     } else {
       sources.flatMap(getSingle)

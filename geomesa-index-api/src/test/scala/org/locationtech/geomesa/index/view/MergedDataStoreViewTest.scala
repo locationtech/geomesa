@@ -12,13 +12,20 @@ import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
+import org.locationtech.geomesa.index.stats.impl.{CountStat, MinMax}
+import org.locationtech.geomesa.security.{FilteringAuthorizationsProvider, ThreadLocalAuthorizationsProvider}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -62,6 +69,77 @@ class MergedDataStoreViewTest extends Specification with Mockito {
   }
 
   "MergedDataStoreView" should {
+    "propagate request authorizations to parallel counts and bounds" in {
+      val provider = new FilteringAuthorizationsProvider(
+        new ThreadLocalAuthorizationsProvider, java.util.Arrays.asList[String]("A", "B"))
+      val callers = new java.util.concurrent.CopyOnWriteArrayList[Long]()
+      val sources = Seq.fill(2) {
+        val source = mock[SimpleFeatureSource]
+        respond(source.getCount(ArgumentMatchers.any[Query]())) {
+          callers.add(Thread.currentThread().getId)
+          provider.getAuthorizations.size()
+        }
+        def bounds(): ReferencedEnvelope = {
+          callers.add(Thread.currentThread().getId)
+          val n = provider.getAuthorizations.size().toDouble
+          new ReferencedEnvelope(0, n, 0, n, org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+        }
+        respond(source.getBounds)(bounds())
+        respond(source.getBounds(ArgumentMatchers.any[Query]()))(bounds())
+        source -> None
+      }
+      val view = new MergedFeatureSourceView(null, sources, parallel = true, sft)
+      val query = new Query(sft.getTypeName)
+      val users = Seq(Seq("A", "C"), Seq("A", "B"), Seq.empty[String]).map(_.asJava)
+      foreach(users) {
+        auths => ThreadLocalAuthorizationsProvider.withAuthorizations(auths) {
+          val expected = provider.getAuthorizations.size()
+          view.getCount(query) mustEqual 2 * expected
+          view.getBounds.getMaxX mustEqual expected.toDouble
+          view.getBounds(query).getMaxX mustEqual expected.toDouble
+        }
+      }
+      callers.asScala must not contain Thread.currentThread().getId
+      provider.getAuthorizations.isEmpty must beTrue
+    }
+
+    "propagate request authorizations to parallel statistics" in {
+      val provider = new ThreadLocalAuthorizationsProvider
+      val stores = Seq.fill(2) {
+        val store = mock[StatsStore]
+        val stats = mock[GeoMesaStats]
+        store.stats returns stats
+        respond(stats.getCount(sft, Filter.INCLUDE, true, new Hints())) {
+          Some(provider.getAuthorizations.size().toLong)
+        }
+        respond(stats.getMinMax[Integer](sft, "age", Filter.INCLUDE, true)) {
+          val stat = new MinMax[Integer](sft, "age")
+          val feature = mock[SimpleFeature]
+          feature.getAttribute(sft.indexOf("age")) returns Integer.valueOf(provider.getAuthorizations.size())
+          stat.observe(feature)
+          Some(stat)
+        }
+        respond(stats.getStat[CountStat](sft, "Count()", Filter.INCLUDE, true)) {
+          val stat = new CountStat(sft)
+          (0 until provider.getAuthorizations.size()).foreach(_ => stat.observe(null))
+          Some(stat)
+        }
+        store -> None
+      }
+      val stats = new MergedDataStoreView.MergedStats(stores, parallel = true)
+      val users = Seq(Seq("A"), Seq("A", "B"), Seq.empty[String]).map(_.asJava)
+      foreach(users) {
+        auths => ThreadLocalAuthorizationsProvider.withAuthorizations(auths) {
+          stats.getCount(sft, Filter.INCLUDE, true, new Hints()) must beSome(2L * auths.size())
+          stats.getMinMax[Integer](sft, "age", Filter.INCLUDE, true).map(_.min) must
+            beSome(Integer.valueOf(auths.size()))
+          stats.getStat[CountStat](sft, "Count()", Filter.INCLUDE, true).map(_.count) must
+            beSome(2L * auths.size())
+        }
+      }
+      provider.getAuthorizations.isEmpty must beTrue
+    }
+
     "pass through INCLUDE filters" in {
       val stores = this.stores()
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
@@ -180,6 +258,15 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       foreach(readers)(_.closed must beTrue)
     }
   }
+
+  // Evaluate on the calling executor thread, rather than while setting up the mock.
+  private def respond[T](call: T)(value: => T): Unit = {
+    org.mockito.Mockito.when(call).thenAnswer(new Answer[T] {
+      override def answer(invocation: InvocationOnMock): T = value
+    })
+  }
+
+  trait StatsStore extends DataStore with HasGeoMesaStats
 
   class CloseableFeatureReader(val getFeatureType: SimpleFeatureType = sft)
       extends FeatureReader[SimpleFeatureType, SimpleFeature] {

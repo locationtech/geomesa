@@ -22,6 +22,7 @@ import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, Stat}
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedStats
 import org.locationtech.geomesa.index.view.MergedQueryRunner.DataStoreQueryable
+import org.locationtech.geomesa.security.ThreadLocalAuthorizationsProvider
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -84,7 +85,9 @@ object MergedDataStoreView {
 
       if (parallel) {
         val results = new CopyOnWriteArrayList[Long]()
-        stats.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+        stats.toList.map { s =>
+          CachedThreadPool.submit(ThreadLocalAuthorizationsProvider.wrap(() => getSingle(s).foreach(results.add)))
+        }.foreach(_.get)
         results.asScala.reduceLeftOption(_ + _)
       } else {
         stats.flatMap(getSingle).reduceLeftOption(_ + _)
@@ -102,7 +105,9 @@ object MergedDataStoreView {
 
       if (parallel) {
         val results = new CopyOnWriteArrayList[MinMax[T]]()
-        stats.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+        stats.toList.map { s =>
+          CachedThreadPool.submit(ThreadLocalAuthorizationsProvider.wrap(() => getSingle(s).foreach(results.add)))
+        }.foreach(_.get)
         results.asScala.reduceLeftOption(_ + _)
       } else {
         stats.flatMap(getSingle).reduceLeftOption(_ + _)
@@ -169,7 +174,9 @@ object MergedDataStoreView {
     private def merge[T <: Stat](query: (GeoMesaStats, Option[Filter]) => Option[T]): Option[T] = {
       if (parallel) {
         val results = new CopyOnWriteArrayList[Option[T]]()
-        stats.toList.map { case (s, f) => CachedThreadPool.submit(() => results.add(query(s, f))) }.foreach(_.get)
+        stats.toList.map { case (s, f) =>
+          CachedThreadPool.submit(ThreadLocalAuthorizationsProvider.wrap(() => results.add(query(s, f))))
+        }.foreach(_.get)
         results.asScala.reduceLeft((res, next) => for { r <- res; n <- next } yield { (r + n).asInstanceOf[T] })
       } else {
         // lazily evaluate each stat as we only return Some if all the child stores do
