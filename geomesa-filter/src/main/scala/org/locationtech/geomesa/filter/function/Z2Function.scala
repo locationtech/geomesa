@@ -41,13 +41,15 @@ class Z2Function extends FunctionExpressionImpl(Z2Function.FunctionName) {
     if (value == null) {
       return null
     }
-    Z2SFC.hexEncode(value.getX, value.getY)
+    Z2Function.encode(value)
   }
 }
 
 object Z2Function {
 
   val FunctionName = new FunctionNameImpl("z2", classOf[String], parameter("geom", classOf[String], 0, 1))
+
+  private[filter] def encode(point: Point): String = Z2SFC.hexEncode(point.getX, point.getY)
 
   private object GetDefaultPoint extends Expression {
 

@@ -39,6 +39,32 @@ methods, assuming that the GeoMesa code is on the classpath:
     org.geotools.api.data.DataStore dataStore =
         org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 
+GeoMesa Filter Functions
+-----------------------
+
+The Trino datastore translates the functions registered by ``geomesa-filter``:
+
+==================== ==================================================================================================
+Function             Translation
+==================== ==================================================================================================
+``currentDate``      Evaluated when each query is encoded, including ISO-8601 duration offsets such as ``'-P1D'``.
+``dateToLong``       Native SQL ``date_diff`` returning epoch milliseconds.
+``fastproperty``     Schema attribute selected by a constant, zero-based index.
+``murmurHash``       ``geomesa_murmur_hash`` with GeoMesa's type-specific hashing rules.
+``bucketHash``       Positive 31-bit mask of ``geomesa_murmur_hash``, followed by modulo.
+``proxyId``          ``geomesa_proxy_id`` using the feature ID and the schema's UUID setting.
+``z2``, ``xz2``      ``geomesa_z2`` and ``geomesa_xz2`` operating on WKB geometry, including the default geometry argument.
+``convert2viewer``   ``geomesa_convert2viewer`` returning the Base64-encoded, 24-byte viewer record.
+==================== ==================================================================================================
+
+The ``geomesa_*`` SQL functions are supplied by the spatial-iceberg plugin.
+Hashing supports strings, integers, longs, floats, doubles, dates, byte arrays and UUIDs. Unsupported
+argument types become client-side residual filters, subject to the configured client-side filtering
+policy. Other GeoTools functions are not covered by this translation list.
+
+``currentDate`` is evaluated for every query, rather than when the datastore is created. This permits
+merged stores to use rolling filters such as ``dtg < currentDate('-P1D')`` without freezing the cutoff.
+
 .. _trino_sql_patterns:
 
 SQL Patterns for Direct-SQL Consumers

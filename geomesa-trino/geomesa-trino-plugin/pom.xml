@@ -106,6 +106,29 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-z3_${scala.binary.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-filter_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.trino</groupId>
+            <artifactId>trino-main</artifactId>
+            <version>${trino.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <!-- Only the function annotation parser is used; no server runtime is needed. -->
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.trino</groupId>
+            <artifactId>trino-parser</artifactId>
+            <version>${trino.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- trino provided dependencies -->
         <dependency>

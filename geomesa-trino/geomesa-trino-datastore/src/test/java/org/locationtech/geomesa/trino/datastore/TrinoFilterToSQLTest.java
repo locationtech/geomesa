@@ -23,10 +23,20 @@ import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.WKTReader;
 import org.locationtech.geomesa.filter.factory.FastFilterFactory;
+import org.locationtech.geomesa.filter.function.CurrentDateFunction;
 import org.locationtech.geomesa.utils.json.JsonPathPropertyNameResolver;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -296,6 +306,127 @@ class TrinoFilterToSQLTest {
     }
 
     // ── Temporal ──────────────────────────────────────────────────────────────
+
+    @Test
+    void currentDateCutoffsAreEvaluatedAsTimestampLiterals() throws Exception {
+        for (String offset : List.of("", "-P1D", "P2D")) {
+            String expression = offset.isEmpty() ? "currentDate()" : "currentDate('" + offset + "')";
+            Duration duration = offset.isEmpty() ? Duration.ZERO : Duration.parse(offset);
+            for (String comparison : List.of("<", ">=")) {
+                Instant before = Instant.now().plus(duration).truncatedTo(ChronoUnit.MILLIS);
+                String sql = translator.encodeToString(ECQL.toFilter("dtg " + comparison + " " + expression));
+                Instant after = Instant.now().plus(duration).truncatedTo(ChronoUnit.MILLIS);
+                assertThat(sql).startsWith("\"dtg\" " + comparison + " TIMESTAMP '");
+                assertThat(sql).doesNotContain("currentDate");
+                String timestamp = sql.substring(sql.indexOf("TIMESTAMP '") + 11, sql.length() - 5);
+                Instant cutoff = LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSS]"))
+                    .toInstant(ZoneOffset.UTC);
+                assertThat(cutoff).isBetween(before, after);
+            }
+        }
+    }
+
+    @Test
+    void mergedTimeRangeRetainsQueryAndEvaluatesStoreCutoff() throws Exception {
+        Filter query = ECQL.toFilter("dtg DURING 2026-10-05T10:16:00Z/2026-10-05T11:16:00Z");
+        Filter storeFilter = ECQL.toFilter("dtg < currentDate('-P1D')");
+        String sql = translator.encodeToString(ff.and(query, storeFilter));
+        assertThat(sql).contains("\"dtg\" > TIMESTAMP '2026-10-05 10:16:00 UTC'");
+        assertThat(sql).contains("\"dtg\" < TIMESTAMP '2026-10-05 11:16:00 UTC'");
+        assertThat(sql).doesNotContain("currentDate");
+        assertThat(sql.split("TIMESTAMP '")).hasSize(4);
+    }
+
+    @Test
+    void currentDateIsReevaluatedForReusedFilters() throws Exception {
+        AtomicInteger evaluations = new AtomicInteger();
+        var function = new CurrentDateFunction() {
+            @Override
+            public Object evaluate(Object feature) {
+                return Date.from(Instant.parse("2026-10-07T00:00:00Z")
+                    .plus(evaluations.getAndIncrement(), ChronoUnit.DAYS));
+            }
+        };
+        Filter filter = ff.less(ff.property("dtg"), function);
+        assertThat(translator.encodeToString(filter)).isEqualTo("\"dtg\" < TIMESTAMP '2026-10-07 00:00:00 UTC'");
+        assertThat(translator.encodeToString(filter)).isEqualTo("\"dtg\" < TIMESTAMP '2026-10-08 00:00:00 UTC'");
+    }
+
+    @Test
+    void featureDependentFunctionsRetainTheirPropertyArguments() throws Exception {
+        Filter filter = ff.equal(ff.function("strToLowerCase", ff.property("name")), ff.literal("alice"), true);
+        assertThat(translator.encodeToString(filter)).contains("strToLowerCase(\"name\")").contains("'alice'");
+    }
+
+    @Test
+    void implicitFeatureFunctionsUseFeatureIdAndDefaultGeometry() throws Exception {
+        var builder = new SimpleFeatureTypeBuilder();
+        builder.setName("test");
+        builder.add("geom", Point.class);
+        translator.setFeatureType(builder.buildFeatureType());
+        assertThat(translator.encodeToString(ff.equal(ff.function("proxyId"), ff.literal(1), true)))
+            .contains("geomesa_proxy_id(\"__fid__\", false)");
+        for (String name : List.of("z2", "xz2")) {
+            assertThat(translator.encodeToString(ff.equal(ff.function(name), ff.literal("value"), true)))
+                .contains("geomesa_" + name + "(\"geom\")").doesNotContain("NULL");
+        }
+        translator.getFeatureType().getUserData().put("geomesa.fid.uuid", true);
+        assertThat(translator.encodeToString(ff.equal(ff.function("proxyId"), ff.literal(1), true)))
+            .contains("geomesa_proxy_id(\"__fid__\", true)");
+    }
+
+    @Test
+    void geomesaFunctionTranslationsUseNativeSqlAndRegisteredUdfs() throws Exception {
+        var builder = new SimpleFeatureTypeBuilder();
+        builder.setName("test");
+        builder.add("name", String.class);
+        builder.add("dtg", Date.class);
+        builder.add("geom", Point.class);
+        translator.setFeatureType(builder.buildFeatureType());
+        assertThat(translator.encodeToString(ECQL.toFilter("dateToLong(dtg) > 0")))
+            .contains("date_diff('millisecond', TIMESTAMP '1970-01-01 00:00:00 UTC', \"dtg\")");
+        assertThat(translator.encodeToString(ff.equal(ff.function("fastproperty", ff.literal(0L)), ff.literal("a"), true)))
+            .contains("\"name\" = 'a'").doesNotContain("fastproperty");
+        assertThat(translator.encodeToString(ECQL.toFilter("murmurHash(name) > 0")))
+            .contains("geomesa_murmur_hash(CAST(\"name\" AS varchar))");
+        assertThat(translator.encodeToString(ECQL.toFilter("bucketHash(name, 8) = 1")))
+            .contains("mod(bitwise_and(geomesa_murmur_hash(CAST(\"name\" AS varchar)), 2147483647), 8)");
+        assertThat(translator.encodeToString(ECQL.toFilter("z2(geom) = 'a'")))
+            .contains("geomesa_z2(\"geom\")");
+        assertThat(translator.encodeToString(ECQL.toFilter("xz2(geom) = 'a'")))
+            .contains("geomesa_xz2(\"geom\")");
+        assertThat(translator.encodeToString(ECQL.toFilter("convert2viewer(name, geom, dtg) = 'a'")))
+            .contains("geomesa_convert2viewer(\"name\", \"geom\", date_diff('millisecond',");
+        assertThat(translator.encodeToString(ECQL.toFilter("convert2viewer(name, geom, 1234) = 'a'")))
+            .contains("geomesa_convert2viewer(\"name\", \"geom\", 1234)");
+    }
+
+    @Test
+    void hashTranslationPreservesGeoMesaValueTypes() throws Exception {
+        Object[] values = {"name", 1, 1L, 1.0f, 1.0d, new Date(0), new byte[]{0, -1},
+            UUID.fromString("fedcba98-7654-3210-ffff-0123456789ab")};
+        String[] types = {"varchar", "bigint", "bigint", "real", "double", "timestamp(3) with time zone", "varbinary", "uuid"};
+        for (int i = 0; i < values.length; i++) {
+            Filter filter = ff.equal(ff.function("murmurHash", ff.literal(values[i])), ff.literal(1), true);
+            assertThat(translator.encodeToString(filter)).contains(" AS " + types[i] + "))");
+        }
+        assertThatThrownBy(() -> translator.encodeToString(
+            ff.equal(ff.function("murmurHash", ff.literal(true)), ff.literal(1), true)))
+            .isInstanceOf(UnsupportedOperationException.class).hasMessageContaining("value type");
+    }
+
+    @Test
+    void dateFunctionsRetainMillisecondsBeforeAndAfterEpoch() throws Exception {
+        for (long millis : new long[]{1234, -1}) {
+            var date = ff.literal(new Date(millis));
+            for (String name : List.of("dateToLong", "murmurHash")) {
+                String sql = translator.encodeToString(ff.equal(ff.function(name, date), ff.literal(1), true));
+                assertThat(sql).contains(millis == 1234
+                    ? "TIMESTAMP '1970-01-01 00:00:01.234 UTC'"
+                    : "TIMESTAMP '1969-12-31 23:59:59.999 UTC'");
+            }
+        }
+    }
 
     @Test
     void temporalComparisonLiteralsAreTimestampTyped() throws Exception {

@@ -24,12 +24,9 @@ class Convert2ViewerFunction extends FunctionExpressionImpl(Convert2ViewerFuncti
 
   override def evaluate(obj: AnyRef): String = {
     val id    = getExpression(0).evaluate(obj).asInstanceOf[String]
-    val track = BinaryOutputEncoder.convertToTrack(id)
-    val label = BinaryOutputEncoder.convertToLabel(id)
     val geom  = getExpression(1).evaluate(obj).asInstanceOf[Point]
     val dtg   = Convert2ViewerFunction.dtg2Long(getExpression(2).evaluate(obj))
-    ByteArrayCallback.apply(track, geom.getY.toFloat, geom.getX.toFloat, dtg, label)
-    Base64.getEncoder.encodeToString(ByteArrayCallback.result)
+    Convert2ViewerFunction.encode(id, geom, dtg)
   }
 }
 
@@ -42,6 +39,13 @@ object Convert2ViewerFunction {
     parameter("geom", classOf[Geometry]),
     parameter("dtg", classOf[Long])
   )
+
+  private[filter] def encode(id: String, geom: Point, dtg: Long): String = {
+    val track = BinaryOutputEncoder.convertToTrack(id)
+    val label = BinaryOutputEncoder.convertToLabel(id)
+    ByteArrayCallback.apply(track, geom.getY.toFloat, geom.getX.toFloat, dtg, label)
+    Base64.getEncoder.encodeToString(ByteArrayCallback.result)
+  }
 
   private def dtg2Long(dtg: Any): Long = dtg match {
     case d: Long     => d

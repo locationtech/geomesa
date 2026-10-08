@@ -41,17 +41,20 @@ class XZ2Function extends FunctionExpressionImpl(XZ2Function.FunctionName) {
     if (value == null) {
       return null
     }
-    val env = value.getEnvelopeInternal
-    if (env.isNull) {
-      return null
-    }
-    XZ2SFC.hexEncode(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
+    XZ2Function.encode(value)
   }
 }
 
 object XZ2Function {
 
   val FunctionName = new FunctionNameImpl("xz2", classOf[String], parameter("geom", classOf[String], 0, 1))
+
+  private[filter] def encode(geom: Geometry): String = {
+    val env = geom.getEnvelopeInternal
+    if (env.isNull) { null } else {
+      XZ2SFC.hexEncode(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
+    }
+  }
 
   private object GetDefaultGeometry extends Expression {
 

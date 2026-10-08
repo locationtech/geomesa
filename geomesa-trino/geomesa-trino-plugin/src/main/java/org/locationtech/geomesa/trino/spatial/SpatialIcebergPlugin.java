@@ -38,10 +38,10 @@ public class SpatialIcebergPlugin implements Plugin {
     /**
      * Returns the SQL functions provided by this plugin.
      *
-     * @return the GeoMesa security functions
+     * @return the GeoMesa security and query functions
      */
     @Override
     public Set<Class<?>> getFunctions() {
-        return Set.of(GeoMesaSecurityFunctions.class);
+        return Set.of(GeoMesaSecurityFunctions.class, GeoMesaQueryFunctions.class);
     }
 }
