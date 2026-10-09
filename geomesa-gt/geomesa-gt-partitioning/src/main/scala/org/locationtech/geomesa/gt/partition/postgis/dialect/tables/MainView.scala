@@ -23,14 +23,26 @@ object MainView extends SqlStatements {
     // caller's authorizations, stamped into the 'geomesa.auths' session variable by SessionDataSource.
     // the auths array is built in an uncorrelated sub-select so that it's evaluated once per query (as an
     // init plan) rather than re-running current_setting/string_to_array for every row
-    val filter =
-      info.cols.vis.fold("")(vis => s" WHERE pg_vis(${vis.quoted}, (SELECT string_to_array(current_setting('$AuthConfigName', true), ',')))")
+    val visibilityFilter =
+      info.cols.vis.map(vis => s"pg_vis(${vis.quoted}, (SELECT string_to_array(current_setting('$AuthConfigName', true), ',')))")
+    def filter(conditions: Seq[String]): String =
+      if (conditions.isEmpty) { "" } else { conditions.mkString(" WHERE ", " AND ", "") }
+    val writeAheadPartitionsFilter = filter(
+      Seq(
+        s"""NOT EXISTS (
+           |  SELECT FROM ${info.tables.writeAheadMigrations.name.qualified} migration
+           |  WHERE write_ahead_partition.${info.cols.dtg.quoted} >= migration.partition_start
+           |    AND write_ahead_partition.${info.cols.dtg.quoted} < migration.partition_end
+           |)""".stripMargin
+      ) ++ visibilityFilter
+    )
+    val defaultFilter = filter(visibilityFilter.toSeq)
     Seq(
       s"""CREATE OR REPLACE VIEW ${info.tables.view.name.qualified} AS
-         |  SELECT * FROM ${info.tables.writeAhead.name.qualified}$filter UNION ALL
-         |  SELECT * FROM ${info.tables.writeAheadPartitions.name.qualified}$filter UNION ALL
-         |  SELECT * FROM ${info.tables.mainPartitions.name.qualified}$filter UNION ALL
-         |  SELECT * FROM ${info.tables.spillPartitions.name.qualified}$filter;""".stripMargin
+         |  SELECT * FROM ${info.tables.writeAhead.name.qualified}$defaultFilter UNION ALL
+         |  SELECT * FROM ${info.tables.writeAheadPartitions.name.qualified} write_ahead_partition$writeAheadPartitionsFilter UNION ALL
+         |  SELECT * FROM ${info.tables.mainPartitions.name.qualified}$defaultFilter UNION ALL
+         |  SELECT * FROM ${info.tables.spillPartitions.name.qualified}$defaultFilter;""".stripMargin
     )
   }
 

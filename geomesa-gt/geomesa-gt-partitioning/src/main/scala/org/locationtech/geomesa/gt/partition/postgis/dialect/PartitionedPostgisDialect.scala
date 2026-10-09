@@ -410,6 +410,7 @@ object PartitionedPostgisDialect extends StrictLogging {
     WriteAheadTrigger,
     PartitionTables,
     PgVis, // must be created before the main view, which references it
+    WriteAheadMigrationsTable,
     MainView,
     InsertTrigger,
     UpdateTrigger,
@@ -423,6 +424,7 @@ object PartitionedPostgisDialect extends StrictLogging {
     RollWriteAheadLog,
     PartitionWriteAheadLog,
     MergeWriteAheadPartitions,
+    CleanWriteAheadMigrations,
     DropAgedOffPartitions,
     PartitionMaintenance,
     AnalyzePartitions,

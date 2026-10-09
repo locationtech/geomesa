@@ -817,13 +817,13 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
           }
 
           // _wa, _wa_partition, _partition, _spill tables + dtg, pk, geom indices for each
-          // _analyze_queue, _sort_queue, _wa_000, main view
-          getTablesAndIndices must haveLength(20)
+          // _analyze_queue, _sort_queue, _wa_000, _wa_migrations, main view
+          getTablesAndIndices must haveLength(23)
           // delete/insert/update/wa triggers
-          // analyze_partitions, compact, drop_age_off, merge_wa, part_maintenance, part_wa, roll_wa,
-          getFunctions must haveLength(11)
-          // log_cleaner, analyze_partitions, roll_wa, partition_maintenance
-          getCrons must haveLength(4)
+          // analyze_partitions, clean_wa_migrations, compact, drop_age_off, merge_wa, part_maintenance, part_wa, roll_wa,
+          getFunctions must haveLength(12)
+          // log_cleaner, analyze_partitions, clean_wa_migrations, roll_wa, partition_maintenance
+          getCrons must haveLength(5)
           // 4 user data, 1 seq count, 1 primary key
           val meta = getMeta
           meta must haveSize(3)
@@ -1116,7 +1116,9 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
             // most main partitions are made by merging write ahead partitions once they pass the cutoff - run
             // it as if a few hours had passed
             WithClose(cx.prepareCall(s"call ${MergeWriteAheadPartitions.name(typeInfo).quoted}(now()::timestamp + interval '3 hours');"))(_.execute())
-            persistence(typeInfo.tables.writeAheadPartitions) must beEmpty
+            val deferred = persistence(typeInfo.tables.writeAheadPartitions)
+            deferred must not(beEmpty)
+            foreach(deferred)(_ mustEqual expected)
             val merged = persistence(typeInfo.tables.mainPartitions)
             merged.length must beGreaterThan(direct.length)
             foreach(merged)(_ mustEqual expected)
@@ -1265,7 +1267,13 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
             // main partitions are also created by merging the write ahead partitions once they age past the
             // cutoff, which is how most of them are made - run it as if a few hours had passed
             WithClose(cx.prepareCall(s"call ${MergeWriteAheadPartitions.name(typeInfo).quoted}(now()::timestamp + interval '3 hours');"))(_.execute())
-            children(typeInfo.tables.writeAheadPartitions) must beEmpty
+            WithClose(cx.createStatement()) { st =>
+              st.execute("SELECT set_config('geomesa.auths', 'user', false)")
+              WithClose(st.executeQuery(s"SELECT count(*) FROM ${typeInfo.tables.view.name.qualified}")) { rs =>
+                rs.next() must beTrue
+                rs.getInt(1) mustEqual features.length
+              }
+            }
             val main = children(typeInfo.tables.mainPartitions)
             main.map(_._1) must containAllOf(partitioned.map(_._1))
             main.length must beGreaterThan(partitioned.length)
