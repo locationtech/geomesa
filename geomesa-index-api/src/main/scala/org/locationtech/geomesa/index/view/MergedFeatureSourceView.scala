@@ -18,6 +18,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
+import org.locationtech.geomesa.index.view.MergedDataStoreView.TaskDecorator
 import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
@@ -26,17 +27,19 @@ import java.util.Collections
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
-  * Feature source for merged data store view
-  *
-  * @param ds data store
-  * @param sources delegate feature sources
+ * Feature source for merged data store view
+ *
+ * @param ds data store
+ * @param sources delegate feature sources
  *  @param parallel scan stores in parallel (vs sequentially)
-  * @param sft simple feature type
-  */
+ * @param decorator parallel task decorator
+ * @param sft simple feature type
+ */
 class MergedFeatureSourceView(
     ds: MergedDataStoreView,
     sources: Seq[(SimpleFeatureSource, Option[Filter])],
     parallel: Boolean,
+    decorator: TaskDecorator,
     sft: SimpleFeatureType
   ) extends SimpleFeatureSource with LazyLogging {
 
@@ -56,7 +59,7 @@ class MergedFeatureSourceView(
           source.getCount(mergeFilter(sft, query, filter))
         }
         val results = new CopyOnWriteArrayList[Int]()
-        sources.toList.map(s => CachedThreadPool.submit(() => results.add(getSingle(s)))).foreach(_.get)
+        sources.toList.map(s => CachedThreadPool.submit(decorator(() => results.add(getSingle(s))))).foreach(_.get)
         results.asScala.foldLeft(0)((sum, count) => if (sum < 0 || count < 0) { -1 } else { sum + count })
       } else {
         // if one of our sources can't get a count (i.e. is negative), give up and return -1
@@ -82,7 +85,7 @@ class MergedFeatureSourceView(
 
     val sourceBounds = if (parallel) {
       val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
-      sources.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+      sources.toList.map(s => CachedThreadPool.submit(decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
       results.asScala
     } else {
       sources.flatMap(getSingle)
@@ -99,7 +102,7 @@ class MergedFeatureSourceView(
 
     val sourceBounds = if (parallel) {
       val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
-      sources.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+      sources.toList.map(s => CachedThreadPool.submit(decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
       results.asScala
     } else {
       sources.flatMap(getSingle)
