@@ -70,7 +70,10 @@ defined in priority order, as the first feature with a given feature ID will be 
 filtered out. Deduplication will be more efficient if stores with fewer features are defined first in the list.
 
 The parameter ``geomesa.merged.scan.parallel`` can be set to ``true`` to scan all underlying stores in parallel,
-instead of sequentially.
+instead of sequentially. When parallel scanning is enabled, the parameter ``geomesa.merged.task.decorator`` can
+be set to the fully-qualified name of a class implementing  ``java.util.function.UnaryOperator<java.lang.Runnable>``.
+The decorator will be invoked on tasks before they are passed off to a new thread. This can be used, for example, to
+propagate thread-local user authorizations.
 
 Query Filtering
 ^^^^^^^^^^^^^^^

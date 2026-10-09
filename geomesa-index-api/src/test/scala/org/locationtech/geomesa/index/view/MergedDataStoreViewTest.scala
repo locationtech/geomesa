@@ -12,22 +12,25 @@ import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
-import org.junit.runner.RunWith
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.stats.impl.CountStat
+import org.locationtech.geomesa.index.view.MergedDataStoreViewTest.CountingTaskDecorator
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.UnaryOperator
 import scala.collection.mutable.ArrayBuffer
 
-@RunWith(classOf[JUnitRunner])
-class MergedDataStoreViewTest extends Specification with Mockito {
+class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
 
   import org.locationtech.geomesa.filter.{andFilters, decomposeAnd}
 
@@ -43,6 +46,14 @@ class MergedDataStoreViewTest extends Specification with Mockito {
     override def close(): Unit = {}
   }
 
+  def featureSource(i: Int): SimpleFeatureSource = {
+    val source = mock[SimpleFeatureSource]
+    source.getCount(ArgumentMatchers.any()) returns i
+    source.getBounds() returns new ReferencedEnvelope(0, i, 0, i, CRS_EPSG_4326)
+    source.getBounds(ArgumentMatchers.any()) returns new ReferencedEnvelope(0, i, 0, i, CRS_EPSG_4326)
+    source
+  }
+
   def stores(): Seq[(DataStore, Option[Filter])] = Seq.tabulate(3) { i =>
     val store = mock[DataStore]
     val filter = i match {
@@ -52,6 +63,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
     }
     store.getSchema(sft.getTypeName) returns sft
     store.getFeatureReader(ArgumentMatchers.any(), ArgumentMatchers.any()) returns emptyReader()
+    val fs = featureSource(i)
+    store.getFeatureSource(ArgumentMatchers.anyString()) returns fs
     store -> Some(filter)
   }
 
@@ -179,6 +192,47 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       readers must haveLength(stores.length)
       foreach(readers)(_.closed must beTrue)
     }
+
+    "support decorators through data store params" in {
+      val params = java.util.Map.of("geomesa.merged.task.decorator", classOf[CountingTaskDecorator].getName)
+      val decorator = MergedDataStoreViewFactory.TaskDecoratorParam.lookup(params)
+      decorator must beAnInstanceOf[CountingTaskDecorator]
+    }
+
+    "decorate parallel queries" in {
+      val decorator = new CountingTaskDecorator()
+      val stores = this.stores()
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true, Some(decorator))
+      CloseableIterator(view.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must beEmpty
+      // note: queries are not actually parallelized
+      decorator.count mustEqual 0
+    }
+
+    "decorate parallel counts and bounds calls" in {
+      val decorator = new CountingTaskDecorator()
+      val stores = this.stores()
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true, Some(decorator))
+      val fs = view.getFeatureSource(sft.getTypeName)
+      val query = new Query(sft.getTypeName)
+      fs.getCount(query) mustEqual 3
+      decorator.count mustEqual 3
+      fs.getBounds(query) mustEqual new ReferencedEnvelope(0, 2, 0, 2, CRS_EPSG_4326)
+      decorator.count mustEqual 6
+      fs.getBounds() mustEqual new ReferencedEnvelope(0, 2, 0, 2, CRS_EPSG_4326)
+      decorator.count mustEqual 9
+    }
+
+    "decorate parallel statistics" in {
+      val decorator = new CountingTaskDecorator()
+      val stores = this.stores()
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true, Some(decorator))
+      view.stats.getCount(sft) must beNone
+      decorator.count mustEqual 3
+      view.stats.getMinMax(sft, "age") must beNone
+      decorator.count mustEqual 6
+      view.stats.getStat[CountStat](sft, "Count()") must beNone
+      decorator.count mustEqual 9
+    }
   }
 
   class CloseableFeatureReader(val getFeatureType: SimpleFeatureType = sft)
@@ -187,5 +241,20 @@ class MergedDataStoreViewTest extends Specification with Mockito {
     override def next(): SimpleFeature = null
     override def hasNext: Boolean = false
     override def close(): Unit = closed = true
+  }
+}
+
+object MergedDataStoreViewTest {
+
+  class CountingTaskDecorator extends UnaryOperator[Runnable] {
+
+    private val counter = new AtomicInteger(0)
+
+    def count: Int = counter.get
+
+    override def apply(t: Runnable): Runnable = () => {
+      counter.incrementAndGet()
+      t.run()
+    }
   }
 }

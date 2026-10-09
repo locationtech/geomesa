@@ -20,38 +20,45 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, Sta
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, Stat}
-import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedStats
+import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedStats, TaskDecorator}
 import org.locationtech.geomesa.index.view.MergedQueryRunner.DataStoreQueryable
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.UnaryOperator
 
 /**
-  * Merged querying against multiple data stores
-  *
-  * @param stores delegate stores
-  * @param namespace namespace
-  */
+ * Merged querying against multiple data stores
+ *
+ * @param stores delegate stores
+ * @param deduplicate deduplicate results across stores
+ * @param parallel execute queries in parallel
+ * @param taskDecorator parallel task decorator
+ * @param namespace namespace
+ */
 class MergedDataStoreView(
     val stores: Seq[(DataStore, Option[Filter])],
     deduplicate: Boolean,
     parallel: Boolean,
+    taskDecorator: Option[UnaryOperator[Runnable]] = None,
     namespace: Option[String] = None
   ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 
   require(stores.nonEmpty, "No delegate stores configured")
 
+  private val decorator = new TaskDecorator(taskDecorator)
+
   private[view] val runner =
     new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate, parallel)
 
-  override val stats: GeoMesaStats = new MergedStats(stores, parallel)
+  override val stats: GeoMesaStats = new MergedStats(stores, parallel, decorator)
 
   override def getFeatureSource(name: Name): SimpleFeatureSource = getFeatureSource(name.getLocalPart)
 
   override def getFeatureSource(typeName: String): SimpleFeatureSource = {
     val sources = stores.map { case (store, filter) => (store.getFeatureSource(typeName), filter) }
-    new MergedFeatureSourceView(this, sources, parallel, getSchema(typeName))
+    new MergedFeatureSourceView(this, sources, parallel, decorator, getSchema(typeName))
   }
 
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader =
@@ -68,7 +75,12 @@ object MergedDataStoreView {
 
   import scala.collection.JavaConverters._
 
-  class MergedStats(stores: Seq[(DataStore, Option[Filter])], parallel: Boolean) extends GeoMesaStats {
+  class TaskDecorator(op: Option[UnaryOperator[Runnable]]) {
+    def apply(task: Runnable): Runnable = op.fold(task)(_.apply(task))
+  }
+
+  class MergedStats(stores: Seq[(DataStore, Option[Filter])], parallel: Boolean, decorator: TaskDecorator)
+      extends GeoMesaStats {
 
     private val stats: Seq[(GeoMesaStats, Option[Filter])] = stores.map {
       case (s: HasGeoMesaStats, f) => (s.stats, f)
@@ -84,7 +96,7 @@ object MergedDataStoreView {
 
       if (parallel) {
         val results = new CopyOnWriteArrayList[Long]()
-        stats.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+        stats.toList.map(s => CachedThreadPool.submit(decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
         results.asScala.reduceLeftOption(_ + _)
       } else {
         stats.flatMap(getSingle).reduceLeftOption(_ + _)
@@ -102,7 +114,7 @@ object MergedDataStoreView {
 
       if (parallel) {
         val results = new CopyOnWriteArrayList[MinMax[T]]()
-        stats.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+        stats.toList.map(s => CachedThreadPool.submit(decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
         results.asScala.reduceLeftOption(_ + _)
       } else {
         stats.flatMap(getSingle).reduceLeftOption(_ + _)
@@ -169,7 +181,7 @@ object MergedDataStoreView {
     private def merge[T <: Stat](query: (GeoMesaStats, Option[Filter]) => Option[T]): Option[T] = {
       if (parallel) {
         val results = new CopyOnWriteArrayList[Option[T]]()
-        stats.toList.map { case (s, f) => CachedThreadPool.submit(() => results.add(query(s, f))) }.foreach(_.get)
+        stats.toList.map { case (s, f) => CachedThreadPool.submit(decorator(() => results.add(query(s, f)))) }.foreach(_.get)
         results.asScala.reduceLeft((res, next) => for { r <- res; n <- next } yield { (r + n).asInstanceOf[T] })
       } else {
         // lazily evaluate each stat as we only return Some if all the child stores do
