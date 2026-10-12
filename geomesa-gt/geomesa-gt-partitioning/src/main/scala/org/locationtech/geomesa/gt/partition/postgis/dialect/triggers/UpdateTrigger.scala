@@ -34,6 +34,9 @@ object UpdateTrigger extends SqlTriggerFunction {
          |    AND OLD.${info.cols.dtg.quoted} < migration.partition_end
          |)""".stripMargin
 
+    val notAgedOff = s"NOT EXISTS (SELECT FROM ${info.tables.ageOffQueue.name.qualified} queue " +
+        "WHERE queue.partition_oid = target.tableoid)"
+
     s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    DECLARE
@@ -46,12 +49,12 @@ object UpdateTrigger extends SqlTriggerFunction {
        |        IF del_count > 0 THEN
        |          INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |        ELSE
-       |          DELETE FROM ${info.tables.mainPartitions.name.qualified} WHERE $where;
+       |          DELETE FROM ${info.tables.mainPartitions.name.qualified} target WHERE $where AND $notAgedOff;
        |          GET DIAGNOSTICS del_count := ROW_COUNT;
        |          IF del_count > 0 THEN
        |            INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |          ELSE
-       |            DELETE FROM ${info.tables.spillPartitions.name.qualified} WHERE $where;
+       |            DELETE FROM ${info.tables.spillPartitions.name.qualified} target WHERE $where AND $notAgedOff;
        |            GET DIAGNOSTICS del_count := ROW_COUNT;
        |            IF del_count > 0 THEN
        |              INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);

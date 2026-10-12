@@ -31,9 +31,17 @@ object DeleteTrigger extends SqlTriggerFunction {
          |  WHERE OLD.${info.cols.dtg.quoted} >= migration.partition_start
          |    AND OLD.${info.cols.dtg.quoted} < migration.partition_end
          |)""".stripMargin
+    val notAgedOff = s"NOT EXISTS (SELECT FROM ${info.tables.ageOffQueue.name.qualified} queue " +
+        "WHERE queue.partition_oid = target.tableoid)"
     def delete(table: TableConfig): String = {
-      val filter = if (table == info.tables.writeAheadPartitions) { s" AND $notMigrated" } else { "" }
-      s"DELETE FROM ${table.name.qualified} WHERE ${info.cols.fid.quoted} = OLD.${info.cols.fid.quoted} AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}$filter"
+      val filter = if (table == info.tables.writeAheadPartitions) {
+        s" AND $notMigrated"
+      } else if (table == info.tables.mainPartitions || table == info.tables.spillPartitions) {
+        s" AND $notAgedOff"
+      } else {
+        ""
+      }
+      s"DELETE FROM ${table.name.qualified} target WHERE ${info.cols.fid.quoted} = OLD.${info.cols.fid.quoted} AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}$filter"
     }
 
     s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS

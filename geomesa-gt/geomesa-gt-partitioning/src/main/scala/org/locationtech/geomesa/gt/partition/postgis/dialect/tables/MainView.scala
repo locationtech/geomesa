@@ -37,12 +37,16 @@ object MainView extends SqlStatements {
       ) ++ visibilityFilter
     )
     val defaultFilter = filter(visibilityFilter.toSeq)
+    def ageOffFilter(alias: String): String = filter(
+      Seq(s"NOT EXISTS (SELECT FROM ${info.tables.ageOffQueue.name.qualified} queue " +
+          s"WHERE queue.partition_oid = $alias.tableoid)") ++ visibilityFilter
+    )
     Seq(
       s"""CREATE OR REPLACE VIEW ${info.tables.view.name.qualified} AS
          |  SELECT * FROM ${info.tables.writeAhead.name.qualified}$defaultFilter UNION ALL
          |  SELECT * FROM ${info.tables.writeAheadPartitions.name.qualified} write_ahead_partition$writeAheadPartitionsFilter UNION ALL
-         |  SELECT * FROM ${info.tables.mainPartitions.name.qualified}$defaultFilter UNION ALL
-         |  SELECT * FROM ${info.tables.spillPartitions.name.qualified}$defaultFilter;""".stripMargin
+         |  SELECT * FROM ${info.tables.mainPartitions.name.qualified} main_partition${ageOffFilter("main_partition")} UNION ALL
+         |  SELECT * FROM ${info.tables.spillPartitions.name.qualified} spill_partition${ageOffFilter("spill_partition")};""".stripMargin
     )
   }
 
