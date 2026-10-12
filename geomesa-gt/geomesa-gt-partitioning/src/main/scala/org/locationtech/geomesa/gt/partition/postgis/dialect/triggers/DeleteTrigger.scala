@@ -24,8 +24,17 @@ object DeleteTrigger extends SqlTriggerFunction {
     Seq(function(info)) ++ super.createStatements(info)
 
   private def function(info: TypeInfo): String = {
-    def delete(table: TableConfig): String =
-      s"DELETE FROM ${table.name.qualified} WHERE ${info.cols.fid.quoted} = OLD.${info.cols.fid.quoted} AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}"
+    // Migrated write-ahead rows are hidden by the view; mutate their visible main/spill copies instead.
+    val notMigrated =
+      s"""NOT EXISTS (
+         |  SELECT FROM ${info.tables.writeAheadMigrations.name.qualified} migration
+         |  WHERE OLD.${info.cols.dtg.quoted} >= migration.partition_start
+         |    AND OLD.${info.cols.dtg.quoted} < migration.partition_end
+         |)""".stripMargin
+    def delete(table: TableConfig): String = {
+      val filter = if (table == info.tables.writeAheadPartitions) { s" AND $notMigrated" } else { "" }
+      s"DELETE FROM ${table.name.qualified} WHERE ${info.cols.fid.quoted} = OLD.${info.cols.fid.quoted} AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}$filter"
+    }
 
     s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$

@@ -26,6 +26,13 @@ object UpdateTrigger extends SqlTriggerFunction {
   private def function(info: TypeInfo): String = {
     val updateFields = info.cols.all.map(c => s"${c.quoted} = NEW.${c.quoted}").mkString(",")
     val where = s"${info.cols.fid.quoted} = OLD.${info.cols.fid.quoted} AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}"
+    // Migrated write-ahead rows are hidden by the view; mutate their visible main/spill copies instead.
+    val notMigrated =
+      s"""NOT EXISTS (
+         |  SELECT FROM ${info.tables.writeAheadMigrations.name.qualified} migration
+         |  WHERE OLD.${info.cols.dtg.quoted} >= migration.partition_start
+         |    AND OLD.${info.cols.dtg.quoted} < migration.partition_end
+         |)""".stripMargin
 
     s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
@@ -34,7 +41,7 @@ object UpdateTrigger extends SqlTriggerFunction {
        |    BEGIN
        |      UPDATE ${info.tables.writeAhead.name.qualified} SET $updateFields WHERE $where;
        |      IF NOT FOUND THEN
-       |        DELETE FROM ${info.tables.writeAheadPartitions.name.qualified} WHERE $where;
+       |        DELETE FROM ${info.tables.writeAheadPartitions.name.qualified} WHERE $where AND $notMigrated;
        |        GET DIAGNOSTICS del_count := ROW_COUNT;
        |        IF del_count > 0 THEN
        |          INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);

@@ -27,9 +27,9 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CompactPartitions, DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CleanWriteAheadMigrations, CompactPartitions, DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TableIdentifier, TypeInfo}
 import org.locationtech.geomesa.index.process.ArrowVisitor
 import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils}
@@ -570,6 +570,85 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
         val is = new SequenceInputStream(arrowVisitor.getResult.results.asScala.map(new ByteArrayInputStream(_)).asJavaEnumeration)
         WithClose(SimpleFeatureArrowFileReader.streaming(is)) { reader =>
           WithClose(reader.features())(_.map(compFromDb).toList) mustEqual features.map(compWithFid(_, sft))
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "route mutations to visible rows while write-ahead detachment is pending" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      try {
+        foreach(Seq("main", "spill")) { destination =>
+          foreach(Seq(false, true)) { migrated =>
+            val sft = SimpleFeatureTypes.renameSft(this.sft, s"mutations_${destination}_$migrated")
+            ds.createSchema(sft)
+            try {
+              val info = TypeInfo(this.schema, sft)
+              val source = TableIdentifier(this.schema, s"${info.typeIdentifier}_wa_test").qualified
+              val target = TableIdentifier(this.schema, s"${info.typeIdentifier}_target_test").qualified
+              val parent = if (destination == "main") { info.tables.mainPartitions } else { info.tables.spillPartitions }
+              val bounds = "FOR VALUES FROM ('2020-01-01 00:00:00') TO ('2020-01-01 01:00:00')"
+              val fid = info.cols.fid.quoted
+              val dtg = info.cols.dtg.quoted
+              WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+                WithClose(cx.createStatement()) { st =>
+                  // Keep maintenance from changing this deliberately paused, post-merge state.
+                  st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+                  st.execute(s"CREATE TABLE $source PARTITION OF ${info.tables.writeAheadPartitions.name.qualified} $bounds")
+                  st.execute(s"INSERT INTO $source ($fid, age, $dtg) VALUES " +
+                      "('update', 1, '2020-01-01 00:30:00'), ('delete', 2, '2020-01-01 00:30:00'), " +
+                      "('keep', 3, '2020-01-01 00:30:00')")
+                  if (migrated) {
+                    st.execute(s"CREATE TABLE $target PARTITION OF ${parent.name.qualified} $bounds")
+                    st.execute(s"INSERT INTO $target SELECT * FROM $source")
+                    st.execute(s"INSERT INTO ${info.tables.writeAheadMigrations.name.qualified} " +
+                        s"VALUES ('$source', '2020-01-01 00:00:00', '2020-01-01 01:00:00', now())")
+                  }
+
+                  def rows(table: String): Seq[(String, Int)] = {
+                    WithClose(st.executeQuery(s"SELECT $fid, age FROM $table ORDER BY $fid")) { rs =>
+                      val result = ArrayBuffer.empty[(String, Int)]
+                      while (rs.next()) {
+                        result += rs.getString(1) -> rs.getInt(2)
+                      }
+                      result.toSeq
+                    }
+                  }
+
+                  val view = info.tables.view.name.qualified
+                  rows(view) mustEqual Seq("delete" -> 2, "keep" -> 3, "update" -> 1)
+                  // Move outside the migrated interval: routing must use OLD.dtg.
+                  st.executeUpdate(s"UPDATE $view SET age = 10, $dtg = '2020-01-01 02:30:00' WHERE $fid = 'update'") mustEqual 1
+                  // The updated row now lives in the current write-ahead table.
+                  st.executeUpdate(s"UPDATE $view SET age = 11 WHERE $fid = 'update'") mustEqual 1
+                  st.executeUpdate(s"DELETE FROM $view WHERE $fid = 'delete'") mustEqual 1
+                  rows(view) mustEqual Seq("keep" -> 3, "update" -> 11)
+
+                  if (migrated) {
+                    rows(source) mustEqual Seq("delete" -> 2, "keep" -> 3, "update" -> 1)
+                    rows(target) mustEqual Seq("keep" -> 3)
+                    st.execute(s"ALTER TABLE ${info.tables.writeAheadPartitions.name.qualified} " +
+                        s"DETACH PARTITION $source CONCURRENTLY")
+                    st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadMigrations.name(info).quoted}()")
+                    rows(view) mustEqual Seq("keep" -> 3, "update" -> 11)
+                    WithClose(st.executeQuery(s"SELECT to_regclass('$source')")) { rs =>
+                      rs.next() must beTrue
+                      rs.getString(1) must beNull
+                    }
+                    WithClose(st.executeQuery(s"SELECT count(*) FROM ${info.tables.writeAheadMigrations.name.qualified}")) { rs =>
+                      rs.next() must beTrue
+                      rs.getInt(1) mustEqual 0
+                    }
+                  } else {
+                    rows(source) mustEqual Seq("keep" -> 3)
+                  }
+                }
+              }
+            } finally {
+              ds.removeSchema(sft.getTypeName)
+            }
+          }
         }
       } finally {
         ds.dispose()
