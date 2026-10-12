@@ -140,11 +140,9 @@ object MergedDataStoreView {
    * @param to end date filter
    * @tparam T type binding
    */
-  case class MergedSource[T](source: T, sourceFilter: Option[Filter], from: Option[DateFilter], to: Option[DateFilter]) {
+  case class MergedSource[T](source: T, sourceFilter: Option[Filter] = None, from: Option[DateFilter] = None, to: Option[DateFilter] = None) {
 
     import FilterHelper.ff
-
-    def copy[U](newObj: U): MergedSource[U] = MergedSource(newObj, sourceFilter, from, to)
 
     /**
      * The filter to apply to this source, based on the current date
@@ -154,6 +152,7 @@ object MergedDataStoreView {
      * @return
      */
     def filter(dtg: String, now: Instant): Option[Filter] = {
+      this.copy()
       val fromFilter = from.map(d => ff.greaterOrEqual(ff.property(dtg), ff.literal(d.toDate(now))))
       val toFilter = to.map(d => ff.less(ff.property(dtg), ff.literal(d.toDate(now))))
       FilterHelper.filterListAsAnd(sourceFilter.toSeq ++ fromFilter ++ toFilter)

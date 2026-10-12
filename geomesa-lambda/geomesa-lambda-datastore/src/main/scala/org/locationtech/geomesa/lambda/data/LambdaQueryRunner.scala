@@ -13,13 +13,14 @@ import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.index.utils.ExplainLogger
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource
 import org.locationtech.geomesa.index.view.MergedQueryRunner
 import org.locationtech.geomesa.index.view.MergedQueryRunner.DataStoreQueryable
 import org.locationtech.geomesa.lambda.data.LambdaQueryRunner.TransientQueryable
 import org.locationtech.geomesa.lambda.stream.TransientStore
 
 class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients: LoadingCache[String, TransientStore])
-    extends MergedQueryRunner(ds, Seq(TransientQueryable(transients) -> None, DataStoreQueryable(persistence) -> None), true, false)
+    extends MergedQueryRunner(ds, Seq(MergedSource(TransientQueryable(transients)), MergedSource(DataStoreQueryable(persistence))), true, false)
 
 object LambdaQueryRunner {
   case class TransientQueryable(transients: LoadingCache[String, TransientStore])
