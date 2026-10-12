@@ -108,6 +108,18 @@ class PartitionedPostgisPsFilterToSql(dialect: PartitionedPostgisPsDialect, pgVe
     }
   }
 
+  override def visit(filter: Id, extraData: AnyRef): AnyRef = {
+    if (filter.getIdentifiers.size < 2) {
+      super.visit(filter, extraData)
+    } else {
+      // fix bug in super class where multiple OR clauses are not grouped together
+      out.write("(")
+      val result = super.visit(filter, extraData)
+      out.write(")")
+      result
+    }
+  }
+
   override protected def visitBinaryComparisonOperator(filter: BinaryComparisonOperator, extraData: AnyRef): Unit = {
     try {
       (filter.getExpression1, filter.getExpression2) match {
