@@ -10,7 +10,7 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
 /**
- * Removes migration records and cron jobs for write-ahead partitions that have been detached
+ * Drops write-ahead partitions that have been detached, then removes their migration records and cron jobs
  */
 object CleanWriteAheadMigrations extends SqlProcedure with CronSchedule {
 
@@ -46,6 +46,9 @@ object CleanWriteAheadMigrations extends SqlProcedure with CronSchedule {
        |        detach_job_name := '${info.typeIdentifier}-detach-' || split_part(migrated_partition, '.', 2);
        |        IF EXISTS (SELECT FROM cron.job WHERE jobname = detach_job_name) THEN
        |          PERFORM cron.unschedule(detach_job_name);
+       |        END IF;
+       |        IF to_regclass(migrated_partition) IS NOT NULL THEN
+       |          EXECUTE 'DROP TABLE ' || migrated_partition;
        |        END IF;
        |        DELETE FROM ${info.tables.writeAheadMigrations.name.qualified}
        |          WHERE source_partition = migrated_partition;
