@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import io.micrometer.core.instrument.Tags
 import org.geotools.api.data.{DataStore, FeatureReader, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
@@ -25,12 +24,15 @@ import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource
 import org.locationtech.geomesa.index.view.MergedQueryRunner.{MergedQueryPlan, Queryable}
 import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterator
+
+import java.time.Instant
 
 /**
  * Query runner for merging results from multiple stores
@@ -42,12 +44,13 @@ import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterat
  */
 class MergedQueryRunner(
     ds: HasGeoMesaStats,
-    stores: Seq[(Queryable, Option[Filter])],
+    stores: Seq[MergedSource[Queryable]],
     deduplicate: Boolean,
     parallel: Boolean
   ) extends QueryRunner with LazyLogging {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   // query interceptors are handled by the individual data stores
   override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
@@ -100,11 +103,12 @@ class MergedQueryRunner(
 
   // query each delegate store
   private def getReaders(sft: SimpleFeatureType, query: Query): Seq[FeatureReader[SimpleFeatureType, SimpleFeature]] = {
-    stores.map { case (store, filter) =>
+    val now = Instant.now() // shared current time passed to all stores for consistency in bounds calculations
+    stores.map { store =>
       val copy = new Query(query) // make sure to coy the hints so they aren't shared
       // suppress the reduce step for gm stores so that we can do the merge here
       copy.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-      store.getFeatureReader(mergeFilter(sft, copy, filter), Transaction.AUTO_COMMIT)
+      store.source.getFeatureReader(mergeFilter(sft, copy, store.filter(sft.getDtgField.orNull, now)), Transaction.AUTO_COMMIT)
     }
   }
 
