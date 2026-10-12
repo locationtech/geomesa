@@ -215,8 +215,11 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          END LOOP;
        |
        |          RAISE INFO '% Dropping write ahead table %', timeofday()::timestamp, write_ahead.name;
-       |          -- requires ACCESS EXCLUSIVE lock
-       |          EXECUTE 'DROP TABLE ' || quote_ident(write_ahead.name);
+       |          -- Don't queue an exclusive lock behind an export and block new readers.
+       |          -- If unavailable, abort this migration so its copies roll back and the next maintenance run can retry.
+       |          EXECUTE 'LOCK TABLE ONLY ${info.schema.quoted}.' || quote_ident(write_ahead.name) ||
+       |            ' IN ACCESS EXCLUSIVE MODE NOWAIT';
+       |          EXECUTE 'DROP TABLE ${info.schema.quoted}.' || quote_ident(write_ahead.name);
        |
        |        END IF;
        |

@@ -27,7 +27,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CleanAgedOffPartitions, CleanWriteAheadMigrations, CompactPartitions, DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CleanAgedOffPartitions, CleanWriteAheadMigrations, CompactPartitions, DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, PartitionWriteAheadLog, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TableIdentifier, TypeInfo}
 import org.locationtech.geomesa.index.process.ArrowVisitor
@@ -663,6 +663,98 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
         }
       } finally {
         ds.dispose()
+      }
+    }
+
+    "roll back numeric write-ahead migration without waiting for an export and retry safely" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "numeric_wa_locks")
+      val executor = Executors.newSingleThreadExecutor()
+      try {
+        ds.createSchema(sft)
+        val info = TypeInfo(this.schema, sft)
+        val source = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + "_000")
+        val newPartition = TableIdentifier(this.schema, info.tables.mainPartitions.name.raw + "_2020_01_01_01")
+        val invocation = s"CALL ${info.schema.quoted}.${PartitionWriteAheadLog.name(info).quoted}('2020-01-01 05:00:00')"
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { observer =>
+          WithClose(observer.createStatement()) { st =>
+            def scalar(sql: String): Int = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getInt(1) }
+            def exists(table: TableIdentifier): Boolean =
+              scalar(s"SELECT count(*) FROM pg_class WHERE oid = to_regclass('${table.qualified}')") == 1
+            st.execute("SET statement_timeout = '5s'")
+            st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+            // Exercise rollback of both an append to an existing spill table and creation of a new main table.
+            Seq(info.tables.mainPartitions, info.tables.spillPartitions).foreach { parent =>
+              val child = TableIdentifier(this.schema, parent.name.raw + "_2020_01_01_00")
+              st.execute(s"CREATE TABLE ${child.qualified} PARTITION OF ${parent.name.qualified} " +
+                  "FOR VALUES FROM ('2020-01-01') TO ('2020-01-01 01:00:00')")
+              st.execute(s"INSERT INTO ${child.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) " +
+                  s"VALUES ('${parent.name.raw}', '2020-01-01 00:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
+            }
+            val view = info.tables.view.name.qualified
+            st.execute(s"INSERT INTO $view (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) VALUES " +
+                "('copy-to-spill', '2020-01-01 00:30:00', ST_GeomFromText('POINT(0 0)', 4326)), " +
+                "('copy-to-main', '2020-01-01 01:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
+            st.execute(s"CALL ${info.schema.quoted}.${RollWriteAheadLog.name(info).quoted}()")
+
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { reader =>
+              reader.setAutoCommit(false)
+              try {
+                WithClose(reader.createStatement()) { read =>
+                  WithClose(read.executeQuery(s"SELECT count(*) FROM $view")) { rs =>
+                    rs.next() must beTrue
+                    rs.getInt(1) mustEqual 4
+                  }
+                }
+                WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { worker =>
+                  WithClose(worker.createStatement()) { migration =>
+                    // Bound the test even when run against the original, indefinitely waiting DROP.
+                    migration.setQueryTimeout(3)
+                    val task = executor.submit(new Callable[Boolean] {
+                      override def call(): Boolean = migration.execute(invocation)
+                    })
+                    try {
+                      val result = Try(task.get(5, TimeUnit.SECONDS))
+                      result.isFailure must beTrue
+                      result.failed.get.getCause.asInstanceOf[java.sql.SQLException].getSQLState mustEqual "55P03"
+                      // The export is still open; another query must finish and see each feature once.
+                      scalar(s"SELECT count(*) FROM $view") mustEqual 4
+                      scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 2
+                      scalar(s"SELECT count(*) FROM ${info.tables.spillPartitions.name.qualified}") mustEqual 1
+                      exists(newPartition) must beFalse
+                      scalar(s"SELECT count(*) FROM ${info.tables.analyzeQueue.name.qualified}") mustEqual 0
+                      scalar(s"SELECT count(*) FROM ${info.tables.sortQueue.name.qualified}") mustEqual 0
+                    } finally {
+                      if (!task.isDone) {
+                        migration.cancel()
+                        Try(task.get(5, TimeUnit.SECONDS))
+                      }
+                    }
+                  }
+                }
+                reader.rollback()
+                // A read of ONLY the inheritance parent should not prevent removal of the old child.
+                WithClose(reader.createStatement()) { read =>
+                  WithClose(read.executeQuery(s"SELECT count(*) FROM ONLY ${info.tables.writeAhead.name.qualified}")) { rs =>
+                    rs.next() must beTrue
+                    rs.getInt(1) mustEqual 0
+                  }
+                }
+                st.execute(invocation)
+                exists(source) must beFalse
+                scalar(s"SELECT count(*) FROM $view") mustEqual 4
+                scalar(s"SELECT count(*) FROM ${info.tables.mainPartitions.name.qualified}") mustEqual 2
+                scalar(s"SELECT count(*) FROM ${info.tables.spillPartitions.name.qualified}") mustEqual 2
+                scalar(s"SELECT count(*) FROM ${info.tables.writeAhead.name.qualified}") mustEqual 0
+              } finally {
+                reader.rollback()
+              }
+            }
+          }
+        }
+      } finally {
+        executor.shutdownNow()
+        try { ds.removeSchema(sft.getTypeName) } finally { ds.dispose() }
       }
     }
 
