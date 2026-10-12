@@ -193,7 +193,19 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |
        |          detach_job_name := '${info.typeIdentifier}-detach-' || split_part(write_ahead_partition, '.', 2);
        |          detach_invocation := 'ALTER TABLE ${info.tables.writeAheadPartitions.name.qualified}' ||
-       |            ' DETACH PARTITION ' || write_ahead_partition || ' CONCURRENTLY';
+       |            ' DETACH PARTITION ' || write_ahead_partition;
+       |
+       |          IF EXISTS (
+       |            SELECT FROM pg_catalog.pg_inherits
+       |              WHERE inhparent = ${info.tables.writeAheadPartitions.name.asRegclass}
+       |              AND inhrelid = to_regclass(write_ahead_partition)
+       |              AND inhdetachpending
+       |          ) THEN
+       |            -- handle detaches that failed part-way through
+       |            detach_invocation := detach_invocation || ' FINALIZE';
+       |          ELSE
+       |            detach_invocation := detach_invocation || ' CONCURRENTLY';
+       |          END IF;
        |          IF EXISTS (SELECT FROM cron.job WHERE jobname = detach_job_name) THEN
        |            PERFORM cron.unschedule(detach_job_name);
        |          END IF;
