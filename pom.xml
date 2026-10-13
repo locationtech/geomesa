@@ -488,27 +488,6 @@
                 </plugins>
             </build>
         </profile>
-
-        <profile>
-            <!-- for exporting the maven build as a bloop project, see build/scripts/bloop-export.sh -->
-            <id>bloop</id>
-            <dependencies>
-                <dependency>
-                    <groupId>jdk.tools</groupId>
-                    <artifactId>jdk.tools</artifactId>
-                    <version>${jdk.version}</version>
-                    <scope>system</scope>
-                    <systemPath>${java.home}/../lib/tools.jar</systemPath>
-                </dependency>
-            </dependencies>
-            <repositories>
-                <!-- secondary repo used by confluent, required explicitly for some reason -->
-                <repository>
-                    <id>jitpack.io</id>
-                    <url>https://jitpack.io</url>
-                </repository>
-            </repositories>
-        </profile>
     </profiles>
 
     <dependencies>
