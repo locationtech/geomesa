@@ -188,6 +188,29 @@ class VisibilityMetadataTest extends SpecificationWithJUnit {
       }
     }
 
+    "retain summaries at the distinct expression bound even with repeated rows" >> {
+      val observer = new VisibilityMetadata(2)
+      val expressions = (0 until VisibilityMetadata.MaxExpressions).map(i => s"A$i")
+      expressions.foreach(observer.observe)
+      expressions.foreach(observer.observe)
+      val summary = JsonParser.parseString(observer.metadata.get).getAsJsonObject
+      summary.get("rowCount").getAsLong mustEqual 2L * VisibilityMetadata.MaxExpressions
+      summary.get("allOf").getAsString mustEqual
+          AccessExpression.of(expressions.map(e => s"($e)").mkString("&"), true).getExpression
+      observer.observe("B")
+      observer.metadata must beNone
+    }
+
+    "count repeated expression bytes only once" >> {
+      val observer = new VisibilityMetadata(2)
+      val expression = "A" * 1000
+      (0 until 1000).foreach(_ => observer.observe(expression))
+      val summary = JsonParser.parseString(observer.metadata.get).getAsJsonObject
+      summary.get("rowCount").getAsLong mustEqual 1000L
+      summary.get("allOf").getAsString mustEqual expression
+      summary.get("anyOf").getAsString mustEqual expression
+    }
+
     "discard complete summaries when distinct expressions exceed the bound" >> {
       val observer = new VisibilityMetadata(2)
       (0 to VisibilityMetadata.MaxExpressions).foreach(i => observer.observe(s"A$i"))
@@ -201,6 +224,15 @@ class VisibilityMetadataTest extends SpecificationWithJUnit {
         observer.observe(expression)
         observer.metadata must beNone
       }
+    }
+
+    "accept a zero-based physical field identity" >> {
+      val observer = new VisibilityMetadata(0)
+      observer.observe("A")
+      val summary = JsonParser.parseString(observer.metadata.get).getAsJsonObject
+      summary.get("fieldId").getAsInt mustEqual 0
+      summary.get("allOf").getAsString mustEqual "A"
+      summary.get("anyOf").getAsString mustEqual "A"
     }
 
     "omit summaries without a physical field identity" >> {

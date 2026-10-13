@@ -24,24 +24,23 @@ class VisibilityMetadata(fieldId: Int) {
   private val expressions = mutable.LinkedHashSet.empty[String]
   private var rows = 0L
   private var bytes = 0
-  private var complete = fieldId > 0
+  private var valid = fieldId >= 0
   private var unrestricted = false
 
   def observe(expression: String): Unit = {
     rows += 1L
     if (expression == null || expression.isEmpty) unrestricted = true
-    if (complete && expression != null && expression.nonEmpty && !expressions.contains(expression)) {
-      if (expression.length > MaxBytes || expressions.size >= MaxExpressions) {
+    if (valid && expression != null && expression.nonEmpty && expressions.add(expression)) {
+      // Avoid allocating UTF-8 bytes when the character count already exceeds the limit.
+      bytes += (if (expression.length > MaxBytes) MaxBytes + 1 else expression.getBytes(UTF_8).length)
+      if (expressions.size > MaxExpressions || bytes > MaxBytes) {
         discard()
-      } else {
-        bytes += expression.getBytes(UTF_8).length
-        if (bytes > MaxBytes) discard() else expressions.add(expression)
       }
     }
   }
 
   def metadata: Option[String] = {
-    if (!complete) { None } else {
+    if (!valid) { None } else {
       try {
         // Validate and normalize only at file close, after exact-string deduplication. Every
         // operand is parenthesized so compound AND/OR expressions retain their meaning.
@@ -68,13 +67,16 @@ class VisibilityMetadata(fieldId: Int) {
   }
 
   private def discard(): Unit = {
-    complete = false
+    valid = false
     expressions.clear()
   }
 }
 
 object VisibilityMetadata {
   val MetadataKey = "geomesa.visibility.rollup"
+  // Conservative application limits, not Parquet format limits: bound the number of operands
+  // and the memory used for optional visibility summaries. MaxBytes caps both accumulated
+  // UTF-8 expression bytes and the final JSON footer value, including rollups and escaping.
   val MaxExpressions = 1024
   val MaxBytes = 64 * 1024
   val MaxDepth = 128
