@@ -25,6 +25,7 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
 object LambdaQueryRunner {
   case class TransientQueryable(transients: LoadingCache[String, TransientStore])
       extends MergedQueryRunner.Queryable with StrictLogging {
+    override def sft(typeName: String): SimpleFeatureType = transients.get(typeName).sft
     override def getFeatureReader(q: Query, t: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] = {
       val store = transients.get(q.getTypeName)
       val explain = new ExplainLogger(logger)

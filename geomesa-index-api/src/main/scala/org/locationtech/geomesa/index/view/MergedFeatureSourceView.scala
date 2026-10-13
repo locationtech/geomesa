@@ -44,8 +44,6 @@ class MergedFeatureSourceView(
     sft: SimpleFeatureType
   ) extends SimpleFeatureSource with LazyLogging {
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
   import scala.collection.JavaConverters._
 
   lazy private val hints = Collections.unmodifiableSet(Collections.emptySet[Key])
@@ -55,20 +53,18 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
-    val dtg = sft.getDtgField.orNull
     val now = Instant.now() // shared current time passed to all stores for consistency in bounds calculations
     val total =
       if (parallel) {
-        def getSingle(source: MergedSource[SimpleFeatureSource]): Int = {
-          source.source.getCount(mergeFilter(sft, query, source.filter(dtg, now)))
-        }
+        def getSingle(source: MergedSource[SimpleFeatureSource]): Int = source.source.getCount(source.filter(query, now))
+
         val results = new CopyOnWriteArrayList[Int]()
         sources.toList.map(s => CachedThreadPool.submit(decorator(() => results.add(getSingle(s))))).foreach(_.get)
         results.asScala.foldLeft(0)((sum, count) => if (sum < 0 || count < 0) { -1 } else { sum + count })
       } else {
         // if one of our sources can't get a count (i.e. is negative), give up and return -1
         sources.foldLeft(0) { case (sum, source) =>
-          lazy val count = source.source.getCount(mergeFilter(sft, query, source.filter(dtg, now)))
+          lazy val count = source.source.getCount(source.filter(query, now))
           if (sum < 0 || count < 0) { -1 } else { sum + count }
         }
       }
@@ -79,34 +75,12 @@ class MergedFeatureSourceView(
     }
   }
 
-  override def getBounds: ReferencedEnvelope = {
-    val dtg = sft.getDtgField.orNull
-    val now = Instant.now() // shared current time passed to all stores for consistency in bounds calculations
-    def getSingle(source: MergedSource[SimpleFeatureSource]): Option[ReferencedEnvelope] = {
-      source.filter(dtg, now) match {
-        case None    => Option(source.source.getBounds)
-        case Some(f) => Option(source.source.getBounds(new Query(sft.getTypeName, f)))
-      }
-    }
-
-    val sourceBounds = if (parallel) {
-      val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
-      sources.toList.map(s => CachedThreadPool.submit(decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
-      results.asScala
-    } else {
-      sources.flatMap(getSingle)
-    }
-
-    val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    sourceBounds.foreach(bounds.expandToInclude)
-    bounds
-  }
+  override def getBounds: ReferencedEnvelope = getBounds(new Query(sft.getTypeName))
 
   override def getBounds(query: Query): ReferencedEnvelope = {
-    val dtg = sft.getDtgField.orNull
     val now = Instant.now() // shared current time passed to all stores for consistency in bounds calculations
     def getSingle(source: MergedSource[SimpleFeatureSource]): Option[ReferencedEnvelope] =
-      Option(source.source.getBounds(mergeFilter(sft, query, source.filter(dtg, now))))
+      Option(source.source.getBounds(source.filter(query, now)))
 
     val sourceBounds = if (parallel) {
       val results = new CopyOnWriteArrayList[ReferencedEnvelope]()

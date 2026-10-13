@@ -11,12 +11,15 @@ package org.locationtech.geomesa.index.view
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
+import org.geotools.filter.FunctionExpressionImpl
+import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.stats.impl.CountStat
 import org.locationtech.geomesa.index.view.MergedDataStoreView.DateFilter.{RelativeDate, StaticDate}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.MergedSourceSft
 import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource}
 import org.locationtech.geomesa.index.view.MergedDataStoreViewTest.CountingTaskDecorator
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -31,6 +34,7 @@ import org.specs2.mutable.SpecificationWithJUnit
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.UnaryOperator
 import scala.collection.mutable.ArrayBuffer
@@ -56,6 +60,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
     source.getCount(ArgumentMatchers.any()) returns i
     source.getBounds() returns new ReferencedEnvelope(0, i, 0, i, CRS_EPSG_4326)
     source.getBounds(ArgumentMatchers.any()) returns new ReferencedEnvelope(0, i, 0, i, CRS_EPSG_4326)
+    source.getSchema returns sft
     source
   }
 
@@ -241,8 +246,11 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
 
     "calculate date offset filters" in {
       val now = Instant.now()
-      def getFilter(f: String, s: DateFilter, e: DateFilter): Filter =
-        MergedSource[AnyRef](null, Option(f).map(ECQL.toFilter), Option(s), Option(e)).filter("dtg", now).orNull
+      val ev = new MergedSourceSft[AnyRef]() {
+        override def sft(source: AnyRef, typeName: String): SimpleFeatureType = MergedDataStoreViewTest.this.sft
+      }
+      def getFilter(f: String, s: DateFilter, e: DateFilter, merged: Filter = Filter.INCLUDE): Filter =
+        MergedSource[AnyRef](null, Option(f).map(ECQL.toFilter), Option(s), Option(e)).filter(sft.getTypeName, merged, now)(ev)
 
       compareFilters(
         getFilter("name = 'alice'", StaticDate("2022-02-01T00:00:00.000Z"), StaticDate("2022-02-02T00:00:00.000Z")),
@@ -259,6 +267,17 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
       compareFilters(
         getFilter(null, null, RelativeDate("-P1D")),
         ECQL.toFilter(s"dtg < '${DateParsing.formatInstant(now.minus(1, ChronoUnit.DAYS))}'")
+      )
+      compareFilters(
+        getFilter("dtg <= testDate()", null, null, ECQL.toFilter("dtg = testDate()")),
+        // note: simplification isn't performed by the merged view
+        ECQL.toFilter(Seq.fill(2)(DateParsing.formatDate(MergedDataStoreViewTest.response)).mkString("dtg <= '", "' AND dtg = '", "'"))
+      )
+      MergedDataStoreViewTest.response = new Date(MergedDataStoreViewTest.response.getTime + 10000)
+      compareFilters(
+        getFilter("dtg <= testDate()", null, null, ECQL.toFilter("dtg = testDate()")),
+        // note: simplification isn't performed by the merged view
+        ECQL.toFilter(Seq.fill(2)(DateParsing.formatDate(MergedDataStoreViewTest.response)).mkString("dtg <= '", "' AND dtg = '", "'"))
       )
     }
 
@@ -280,6 +299,12 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
 }
 
 object MergedDataStoreViewTest {
+
+  private var response = new Date()
+
+  class TestFunction extends FunctionExpressionImpl(new FunctionNameImpl("testDate", classOf[java.util.Date])) {
+    override def evaluate(o: AnyRef): AnyRef = response
+  }
 
   class CountingTaskDecorator extends UnaryOperator[Runnable] {
 
