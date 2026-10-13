@@ -41,7 +41,7 @@ class MergedDataStoreViewDynamicFilterTest extends SpecificationWithJUnit with B
   // as such, we don't compare primary keys directly here
 
   private val sft =
-    SimpleFeatureTypes.createType("merged-ds", "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date")
+    SimpleFeatureTypes.createType("merged-ds", "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date;geomesa.index.dtg=dtg")
 
   private val features = Seq.tabulate(8) { u =>
     val i = u + 1 // sync up with shp fid

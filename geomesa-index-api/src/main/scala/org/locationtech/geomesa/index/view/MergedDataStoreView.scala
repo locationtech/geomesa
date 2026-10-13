@@ -22,6 +22,7 @@ import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.Merg
 import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
 import org.locationtech.geomesa.index.view.MergedQueryRunner.{DataStoreQueryable, Queryable}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.time.format.DateTimeParseException
@@ -137,6 +138,8 @@ object MergedDataStoreView extends LazyLogging {
 
     import FilterHelper.ff
 
+    import scala.collection.JavaConverters._
+
     /**
      * The filter to apply to this source, based on the current date
      *
@@ -161,7 +164,7 @@ object MergedDataStoreView extends LazyLogging {
      * @return
      */
     def filter(typeName: String, base: Filter, now: Instant)(implicit ev: MergedSourceSft[T]): Filter = {
-      val dtg = ev.sft(source, typeName).getDtgField.orNull
+      val dtg = dtgField(ev, typeName)
       val fromFilter = from.map(d => ff.greaterOrEqual(ff.property(dtg), ff.literal(d.toDate(now))))
       val toFilter = to.map(d => ff.less(ff.property(dtg), ff.literal(d.toDate(now))))
       val storeFilter = FilterHelper.filterListAsAnd(sourceFilter.toSeq ++ fromFilter ++ toFilter)
@@ -183,6 +186,18 @@ object MergedDataStoreView extends LazyLogging {
             }
           }
           disjoint.getOrElse(andFilters(Seq(base, f)))
+      }
+    }
+
+    private def dtgField(ev: MergedSourceSft[T], typeName: String): String = {
+      val sft = ev.sft(source, typeName)
+      def firstDtg(): Option[String] =
+        sft.getAttributeDescriptors.asScala.collectFirst {
+          case d if classOf[Date].isAssignableFrom(d.getType.getBinding) => d.getLocalName
+        }
+      sft.getDtgField.orElse(firstDtg()).getOrElse {
+        throw new IllegalArgumentException(
+          s"Schema '$typeName' does not have a date field for filtering: ${SimpleFeatureTypes.encodeType(sft)}")
       }
     }
   }
