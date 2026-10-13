@@ -70,7 +70,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |            BEGIN
        |              EXECUTE 'LOCK TABLE ONLY ${info.schema.quoted}.' || quote_ident(next_partition) ||
        |                ' IN SHARE ROW EXCLUSIVE MODE NOWAIT';
-       |              -- Also empties retirement records created before migration began deleting the originals.
+       |              -- Delete the originals before removing the retirement marker and reusing the slot.
        |              EXECUTE 'DELETE FROM ONLY ${info.schema.quoted}.' || quote_ident(next_partition);
        |              DELETE FROM ${info.tables.writeAheadRetirements.name.qualified} WHERE partition_oid = next_oid;
        |              reused := true;

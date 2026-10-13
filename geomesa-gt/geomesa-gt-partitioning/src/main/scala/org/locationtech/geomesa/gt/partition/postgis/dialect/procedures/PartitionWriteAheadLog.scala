@@ -229,9 +229,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              VALUES (partition_name, now());
        |          END LOOP;
        |
-       |          -- DELETE uses MVCC: old snapshots retain the originals, while new snapshots see the copies.
-       |          -- Vacuum and rotation can reclaim/reuse the emptied table even if new queries keep locking it.
-       |          EXECUTE 'DELETE FROM ONLY ${info.schema.quoted}.' || quote_ident(write_ahead.name);
+       |          -- Commit the copies and retirement marker together. Cleanup drops the originals,
+       |          -- or rotation deletes them before reusing the table.
        |          INSERT INTO ${info.tables.writeAheadRetirements.name.qualified}(source_partition, partition_oid, enqueued)
        |            VALUES (${literal(info.schema.quoted + ".")} || quote_ident(write_ahead.name), write_ahead.oid, now());
        |

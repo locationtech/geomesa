@@ -10,8 +10,8 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
 /**
- * Removes migrated numeric write-ahead tables when readers permit it. Migration deletes the copied rows
- * through MVCC, so vacuum and slot reuse do not depend on this best-effort removal.
+ * Removes retired numeric write-ahead tables when readers permit it. The retirement marker hides
+ * their rows from new queries; rotation can delete the originals and reuse a table before cleanup.
  */
 object CleanWriteAheadRetirements extends SqlProcedure with CronSchedule {
 
@@ -39,7 +39,7 @@ object CleanWriteAheadRetirements extends SqlProcedure with CronSchedule {
        |            -- Match log rotation's lock order, and never queue behind a reader or another cleanup.
        |            LOCK TABLE ONLY ${info.tables.writeAhead.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE NOWAIT;
        |            EXECUTE 'LOCK TABLE ONLY ' || retired.source_partition || ' IN ACCESS EXCLUSIVE MODE NOWAIT';
-       |            -- Rotation can reuse an emptied table between enumeration and acquiring these locks.
+       |            -- Rotation can reuse a retired table between enumeration and acquiring these locks.
        |            IF EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified}
        |                WHERE partition_oid = retired.partition_oid AND enqueued = retired.enqueued) THEN
        |              EXECUTE 'DROP TABLE ' || retired.source_partition;
