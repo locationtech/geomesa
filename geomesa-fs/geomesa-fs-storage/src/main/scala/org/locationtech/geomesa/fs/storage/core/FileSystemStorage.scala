@@ -75,6 +75,7 @@ case class FileSystemStorage(
   import scala.collection.JavaConverters._
 
   val sft: SimpleFeatureType = SimpleFeatureTypes.immutable(schema.sft)
+  private[core] val partitionSpecId: Int = table.spec().specId()
   val sizer: FileSize = new FileSize(table)
   val metadata: DataFiles = new FsDataFiles()
 
@@ -365,22 +366,15 @@ case class FileSystemStorage(
     override def compactManifests(): Unit = table.rewriteManifests().clusterBy(f => partition(f).toString).commit()
 
     override def compact(partition: Partition): Unit = {
-      // TODO implement compaction
-      throw new UnsupportedOperationException("Not implemented")
+      val plans = FileSystemCompaction.plan(FileSystemStorage.this, Seq(partition), sizer.targetSize)
+      val outputs = plans.map(p => FileSystemCompaction.prepare(FileSystemStorage.this, p, sizer.targetSize))
+      FileSystemCompaction.commit(FileSystemStorage.this, plans, outputs)
     }
 
     override def partition(file: DataFile): Partition =
       Partition(schemesWithIndex.map { case (s, i) => s.getPartition(file.partition(), i) })
 
-    override def partition(partition: Partition): PartitionData = {
-      val data = new PartitionData(table.spec().partitionType)
-      var i = 0
-      partition.values.foreach { value =>
-        data.set(i, Conversions.fromPartitionString(data.getType(i), value.value))
-        i += 1
-      }
-      data
-    }
+    override def partition(partition: Partition): PartitionData = partitionData(partition, table.spec())
   }
 
   private[core] def newFilePath(ext: String = "parquet"): String =
@@ -393,17 +387,28 @@ case class FileSystemStorage(
    * @param partition file partition
    * @return
    */
-  private def toDataFile(path: String, partition: Partition): DataFile = {
+  private[core] def toDataFile(path: String, partition: Partition): DataFile =
+    toDataFile(path, partition, table.spec())
+
+  private[core] def toDataFile(path: String, partition: Partition, spec: PartitionSpec): DataFile = {
     val inputFile = table.io().newInputFile(path)
     val metrics = ParquetUtil.fileMetrics(inputFile, metricsConfig, null)
-    DataFiles.builder(table.spec())
+    DataFiles.builder(spec)
       .withFormat(FileFormat.PARQUET)
       .withPath(inputFile.location())
       .withFileSizeInBytes(inputFile.getLength)
-      .withPartition(metadata.partition(partition))
+      .withPartition(partitionData(partition, spec))
       .withMetrics(metrics)
       // TODO withSort(f.sort)
       .build()
+  }
+
+  private def partitionData(partition: Partition, spec: PartitionSpec): PartitionData = {
+    val data = new PartitionData(spec.partitionType())
+    partition.values.zipWithIndex.foreach { case (value, i) =>
+      data.set(i, Conversions.fromPartitionString(data.getType(i), value.value))
+    }
+    data
   }
 
   /**
@@ -644,10 +649,11 @@ object FileSystemStorage extends LazyLogging {
     def compactManifests(): Unit
 
     /**
-     * Compact a partition - merge multiple data files into a single file.
+     * Compact a partition, merging or splitting data files according to the target file size.
      *
-     * Care should be taken with this method. Currently, there is no guarantee for correct behavior if
-     * multiple threads or storage instances attempt to compact the same partition simultaneously.
+     * Reads a pinned snapshot and atomically replaces the selected files. Concurrent rewrites or
+     * row-level deletes affecting those files fail validation. Concurrent appends are preserved.
+     * Replaced files remain available to retained snapshots.
      *
      * @param partition partition to compact
      */

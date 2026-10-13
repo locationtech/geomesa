@@ -107,6 +107,16 @@ and ``Visibility fallback value evaluations``. Checked rows count logical rows c
 fallback value evaluations count decisions after block-level reuse. Visibility filtering optimizations are more
 likely to take effect if records with the same visibility are grouped together during writes.
 
+GeoMesa-written Parquet files can also carry a file-wide visibility rollup in the custom
+``geomesa.visibility.rollup`` footer entry. This extends bypass to mixed files: the reader
+evaluates an ``allOf`` expression against every absorbed authorization context,
+and bypasses only when all decisions succeed. An ``anyOf`` expression can prove that no row is
+visible: failure for any one absorbed context skips the split before creating its data reader.
+When neither proof applies, exact row filtering remains mandatory.
+
+GeoMesa's filesystem ``compact`` command recomputes these summaries for each replacement file,
+after applying positional deletes.
+
 .. _trino_view_security:
 
 Views

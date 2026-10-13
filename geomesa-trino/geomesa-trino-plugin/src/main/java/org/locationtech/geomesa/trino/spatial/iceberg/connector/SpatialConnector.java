@@ -11,6 +11,8 @@ import org.locationtech.geomesa.trino.security.AuthorizationResolver;
 import org.locationtech.geomesa.trino.security.VisibilityAccessControl;
 
 import io.trino.spi.connector.*;
+import io.trino.plugin.iceberg.IcebergConnector;
+import io.trino.plugin.base.classloader.ClassLoaderSafeConnectorPageSourceProviderFactory;
 import io.trino.spi.function.FunctionProvider;
 import io.trino.spi.function.table.ConnectorTableFunction;
 import io.trino.spi.procedure.Procedure;
@@ -269,6 +271,11 @@ public class SpatialConnector implements Connector {
      */
     @Override
     public ConnectorPageSourceProviderFactory getPageSourceProviderFactory() {
+        if (delegate instanceof IcebergConnector iceberg) {
+            var footerFactory = CustomFooterProviderFactory.from(iceberg.getInjector());
+            return new ClassLoaderSafeConnectorPageSourceProviderFactory(
+                () -> footerFactory.create(bboxShortCircuit), IcebergConnector.class.getClassLoader());
+        }
         ConnectorPageSourceProviderFactory factory = delegate.getPageSourceProviderFactory();
         return () -> new VisibilityPageSourceProvider(bboxShortCircuit
             ? new SpatialPageSourceProvider(factory.createPageSourceProvider()) : factory.createPageSourceProvider());
