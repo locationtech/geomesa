@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.util.factory.Hints
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.gt.partition.postgis.dialect.TypeInfo
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CleanAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
@@ -20,8 +19,7 @@ import org.locationtech.geomesa.gt.partition.postgis.{PartitionedPostgisDataStor
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -29,8 +27,7 @@ import org.testcontainers.utility.DockerImageName
 
 import scala.collection.mutable.ArrayBuffer
 
-@RunWith(classOf[JUnitRunner])
-class GeoToolsUpdateSchemaCommandTest extends Specification with BeforeAfterAll with LazyLogging {
+class GeoToolsUpdateSchemaCommandTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -235,6 +232,9 @@ class GeoToolsUpdateSchemaCommandTest extends Specification with BeforeAfterAll 
 
         // run the age-off job
         write(Seq.empty)
+
+        // verify features were dropped
+        getFeatures must beEmpty
 
         // verify partitions were dropped
         getScheduledAgeOff mustEqual
