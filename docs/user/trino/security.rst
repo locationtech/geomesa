@@ -101,35 +101,11 @@ The feature has two tiers:
 Visibility Filtering in the Scan
 --------------------------------
 
-The spatial connector can enforce mandatory ``is_visible(__vis__, '<auths>')`` predicates in
-its page source. For files whose Iceberg lower and upper visibility bounds are equal, it evaluates
-that expression once against each predicate's authorization literal. If all evaluations succeed,
-the scan bypasses row-level visibility checks and does not read the visibility column unless
-another query operation needs it. NULL and empty visibility remain unrestricted.
-
-Mixed files, missing bounds, and malformed expressions retain exact row filtering. On that path,
-run-length encoded blocks are evaluated once and dictionary blocks once per used value, preserving
-batch evaluation for repeated expressions. Each
-absorbed authorization context is evaluated separately, including narrower predicates supplied
-by proxying clients. Calls inside OR or NOT, calls on other columns, and nonconstant authorization
-arguments remain with the engine. Iceberg delete processing is preserved; aggregation, limit,
-and top-N pushdown are declined when they could run before authoritative scan filtering.
-
-Visibility short-circuiting is always enabled and requires no configuration. It applies to
-mandatory visibility predicates installed by Trino-layer enforcement or supplied explicitly by
-queries, including queries without a configured authorization resolver. The optimization never
-installs a visibility predicate by itself.
-
-The optimization needs no declared visibility universe or custom export metadata. Full visibility
-metrics (``write.metadata.metrics.column.__vis__=full``) improve eligibility. Statistics must cover
-all non-null values of the file; insufficient bounds simply disable bypass. The connector includes
-visibility statistics in splits even when the engine no longer projects that column.
-
-Scan connector metrics report ``Visibility bypassed rows``, ``Visibility checked rows``,
-``Visibility rejected rows``, ``Visibility bypassed splits``, ``Visibility filtered splits``, and
-``Visibility fallback value evaluations``. Checked rows count logical rows considered by the exact
-filter; fallback value evaluations count decisions after block-level reuse.
-Use these alongside CPU time and physical input bytes to verify that a benchmark exercised bypass.
+The Scan connector reports various metrics related to visibility filtering: ``Visibility bypassed rows``,
+``Visibility checked rows``, ``Visibility rejected rows``, ``Visibility bypassed splits``, ``Visibility filtered splits``,
+and ``Visibility fallback value evaluations``. Checked rows count logical rows considered by the exact filter;
+fallback value evaluations count decisions after block-level reuse. Visibility filtering optimizations are more
+likely to take effect if records with the same visibility are grouped together during writes.
 
 .. _trino_view_security:
 
