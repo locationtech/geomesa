@@ -79,6 +79,13 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |        END IF;
        |        EXECUTE 'LOCK TABLE ${info.schema.quoted}.' || quote_ident(write_ahead.name) ||
        |          ' IN SHARE ROW EXCLUSIVE MODE';
+       |        -- Rotation may have reused a retired table since this loop enumerated the children.
+       |        SELECT value FROM ${info.schema.quoted}.${SequenceTable.Name.quoted}
+       |          WHERE type_name = ${literal(info.typeName)} INTO seq_val;
+       |        IF write_ahead.name = ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0') THEN
+       |          COMMIT;
+       |          CONTINUE;
+       |        END IF;
        |        RAISE INFO '% Locked write ahead table % for migration', timeofday()::timestamp, write_ahead.name;
        |
        |        -- wait until the table doesn't contain any recent records
@@ -222,7 +229,9 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              VALUES (partition_name, now());
        |          END LOOP;
        |
-       |          -- Commit the copies and visibility change together; readers may delay removal, not migration.
+       |          -- DELETE uses MVCC: old snapshots retain the originals, while new snapshots see the copies.
+       |          -- Vacuum and rotation can reclaim/reuse the emptied table even if new queries keep locking it.
+       |          EXECUTE 'DELETE FROM ONLY ${info.schema.quoted}.' || quote_ident(write_ahead.name);
        |          INSERT INTO ${info.tables.writeAheadRetirements.name.qualified}(source_partition, partition_oid, enqueued)
        |            VALUES (${literal(info.schema.quoted + ".")} || quote_ident(write_ahead.name), write_ahead.oid, now());
        |

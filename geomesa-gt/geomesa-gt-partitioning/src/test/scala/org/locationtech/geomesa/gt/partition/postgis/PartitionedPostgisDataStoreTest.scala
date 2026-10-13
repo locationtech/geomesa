@@ -726,8 +726,8 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
 
                 st.executeUpdate(s"UPDATE $view SET age = 11 WHERE ${info.cols.fid.quoted} = 'copy-to-spill'") mustEqual 1
                 st.executeUpdate(s"DELETE FROM $view WHERE ${info.cols.fid.quoted} = 'copy-to-main'") mustEqual 1
-                // Hidden numeric originals must not intercept either mutation.
-                scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 2
+                // Numeric originals have been deleted; neither mutation can leave a stale copy behind.
+                scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 0
                 scalar(s"SELECT count(*) FROM $view") mustEqual 4
                 st.execute(s"INSERT INTO $view (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) VALUES " +
                     "('later-row', '2020-01-01 02:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
@@ -769,6 +769,107 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
                 scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 0
               } finally {
                 reader.rollback()
+              }
+            }
+          }
+        }
+      } finally {
+        try { ds.removeSchema(sft.getTypeName) } finally { ds.dispose() }
+      }
+    }
+
+    "reclaim and reuse numeric write-ahead tables while new readers keep locking them" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "numeric_wa_reuse")
+      try {
+        ds.createSchema(sft)
+        val info = TypeInfo(this.schema, sft)
+        val source = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + "_000")
+        val current = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + "_001")
+        val view = info.tables.view.name.qualified
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { observer =>
+          WithClose(observer.createStatement()) { st =>
+            def scalar(sql: String): Long = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getLong(1) }
+            def insert(fid: String): Unit = st.execute(s"INSERT INTO $view (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) " +
+                s"VALUES ('$fid', '2020-01-01 00:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
+            def migrate(): Unit = st.execute(
+              s"CALL ${info.schema.quoted}.${PartitionWriteAheadLog.name(info).quoted}('2020-01-01 05:00:00')")
+            def roll(): Unit = st.execute(s"CALL ${info.schema.quoted}.${RollWriteAheadLog.name(info).quoted}()")
+            def clean(): Unit = st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadRetirements.name(info).quoted}()")
+            def count(cx: Connection): Long = WithClose(cx.createStatement()) { read =>
+              WithClose(read.executeQuery(s"SELECT count(*) FROM $view")) { rs => rs.next(); rs.getLong(1) }
+            }
+            st.execute("SET statement_timeout = '10s'")
+            st.execute("CREATE EXTENSION IF NOT EXISTS pgstattuple")
+            st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+            insert("original")
+            roll()
+            val originalOid = scalar(s"SELECT '${source.qualified}'::regclass::oid")
+
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { oldReader =>
+              oldReader.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ)
+              oldReader.setAutoCommit(false)
+              try {
+                count(oldReader) mustEqual 1L
+                migrate()
+                scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 0L
+                count(oldReader) mustEqual 1L // MVCC retains the originals for the export's old snapshot.
+                scalar(s"SELECT count(*) FROM $view") mustEqual 1L
+
+                // Fill every slot so rotation cannot escape the problem by creating another numeric table.
+                (2 until 1000).foreach { i =>
+                  val child = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + f"_$i%03d")
+                  st.execute(s"CREATE TABLE ${child.qualified} () INHERITS (${info.tables.writeAhead.name.qualified})")
+                }
+                WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { newReader =>
+                  newReader.setAutoCommit(false)
+                  try {
+                    count(newReader) mustEqual 1L
+                    WithClose(newReader.createStatement()) { read =>
+                      WithClose(read.executeQuery(s"SELECT count(*) FROM pg_locks WHERE pid = pg_backend_pid() " +
+                          s"AND relation = '${source.qualified}'::regclass AND mode = 'AccessShareLock' AND granted")) { rs =>
+                        rs.next() must beTrue
+                        rs.getInt(1) mustEqual 1
+                      }
+                    }
+                    oldReader.rollback()
+                    // The new reader still holds its relation locks, but cannot pin the deleted row versions.
+                    st.execute(s"VACUUM ${source.qualified}")
+                    // Vacuum may retain the empty heap page because truncation needs an exclusive lock.
+                    scalar(s"SELECT dead_tuple_count FROM pgstattuple('${source.qualified}'::regclass)") mustEqual 0L
+                    clean()
+                    scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 1L
+
+                    // Older retirement records retained the copied rows. Reuse must empty those as well.
+                    st.execute(s"INSERT INTO ${source.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) " +
+                        "VALUES ('original', '2020-01-01 00:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
+                    insert("next")
+                    count(oldReader) mustEqual 2L // Keep a snapshot open across slot reuse and another migration.
+                    roll() // All 1,000 slots exist; reuse _000 despite the new reader's lock.
+                    scalar(s"SELECT value FROM ${info.schema.quoted}.${SequenceTable.Name.quoted} " +
+                        s"WHERE type_name = '${sft.getTypeName}'") mustEqual 0L
+                    scalar(s"SELECT '${source.qualified}'::regclass::oid") mustEqual originalOid
+                    scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 0L
+                    insert("reused")
+                    clean() // A reused table must not be removed by the cleaner.
+                    scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 1L
+                    scalar(s"SELECT count(*) FROM $view") mustEqual 3L
+                    migrate()
+                    scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 1L // still the active writer
+                    scalar(s"SELECT count(*) FROM ${current.qualified}") mustEqual 0L
+                    scalar(s"SELECT count(*) FROM $view") mustEqual 3L
+                    count(newReader) mustEqual 3L
+                    count(oldReader) mustEqual 2L
+                  } finally {
+                    newReader.rollback()
+                  }
+                }
+                oldReader.rollback()
+                clean()
+                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 0L
+                scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 1L
+              } finally {
+                oldReader.rollback()
               }
             }
           }
@@ -895,7 +996,7 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
       }
     }
 
-    "skip occupied numeric write-ahead slots when rotating through zero" in {
+    "skip unmigrated numeric write-ahead slots when rotating through zero" in {
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       val sft = SimpleFeatureTypes.renameSft(this.sft, "wa_rotation")
       try {
@@ -907,9 +1008,7 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
           WithClose(cx.createStatement()) { st =>
             st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
             st.execute(s"INSERT INTO ${occupied.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
-                "VALUES ('retired', '2020-01-01')")
-            st.execute(s"INSERT INTO ${info.tables.writeAheadRetirements.name.qualified} VALUES " +
-                s"('${occupied.qualified}', '${occupied.qualified}'::regclass, now())")
+                "VALUES ('unmigrated', '2020-01-01')")
             st.execute(s"CREATE TABLE ${current.qualified} () INHERITS (${info.tables.writeAhead.name.qualified})")
             st.execute(s"INSERT INTO ${current.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
                 "VALUES ('active', '2020-01-02')")
@@ -929,7 +1028,7 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
             }
             WithClose(st.executeQuery(s"SELECT count(*) FROM ${info.tables.view.name.qualified}")) { rs =>
               rs.next() must beTrue
-              rs.getInt(1) mustEqual 2
+              rs.getInt(1) mustEqual 3
             }
           }
         }

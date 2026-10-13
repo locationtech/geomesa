@@ -10,7 +10,8 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
 /**
- * Removes copied numeric write-ahead tables without making maintenance or queries wait for their readers
+ * Removes migrated numeric write-ahead tables when readers permit it. Migration deletes the copied rows
+ * through MVCC, so vacuum and slot reuse do not depend on this best-effort removal.
  */
 object CleanWriteAheadRetirements extends SqlProcedure with CronSchedule {
 
@@ -38,9 +39,14 @@ object CleanWriteAheadRetirements extends SqlProcedure with CronSchedule {
        |            -- Match log rotation's lock order, and never queue behind a reader or another cleanup.
        |            LOCK TABLE ONLY ${info.tables.writeAhead.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE NOWAIT;
        |            EXECUTE 'LOCK TABLE ONLY ' || retired.source_partition || ' IN ACCESS EXCLUSIVE MODE NOWAIT';
-       |            EXECUTE 'DROP TABLE ' || retired.source_partition;
+       |            -- Rotation can reuse an emptied table between enumeration and acquiring these locks.
+       |            IF EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified}
+       |                WHERE partition_oid = retired.partition_oid AND enqueued = retired.enqueued) THEN
+       |              EXECUTE 'DROP TABLE ' || retired.source_partition;
+       |            END IF;
        |          END IF;
-       |          DELETE FROM ${info.tables.writeAheadRetirements.name.qualified} WHERE partition_oid = retired.partition_oid;
+       |          DELETE FROM ${info.tables.writeAheadRetirements.name.qualified}
+       |            WHERE partition_oid = retired.partition_oid AND enqueued = retired.enqueued;
        |        EXCEPTION WHEN lock_not_available THEN
        |          RAISE DEBUG 'Deferring removal of numeric write-ahead table %', retired.source_partition;
        |        END;

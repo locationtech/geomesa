@@ -35,6 +35,8 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |    DECLARE
        |      seq_val smallint;
        |      attempt integer;
+       |      next_oid oid;
+       |      reused boolean;
        |      cur_partition text;        -- rename of the _writes table
        |      next_partition text;       -- next partition that will be created from the _writes table
        |      partition_tablespace text; -- table space command
@@ -43,28 +45,43 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      pexists boolean;           -- table exists check
        |    BEGIN
        |
+       |      -- Serialize slot selection with rotation and cleanup before reading the current sequence.
+       |      LOCK TABLE ONLY ${info.tables.writeAhead.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |      SELECT value FROM ${info.schema.quoted}.${SequenceTable.Name.quoted}
        |        WHERE type_name = ${literal(info.typeName)} INTO seq_val;
        |      cur_partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
-       |
-       |      -- get the required locks up front to avoid deadlocks with inserts
-       |      LOCK TABLE ONLY ${info.tables.writeAhead.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |
        |      -- don't re-create the table if there hasn't been any data inserted
        |      EXECUTE 'SELECT EXISTS(SELECT 1 FROM ${info.schema.quoted}.' || quote_ident(cur_partition) || ')'
        |          INTO pexists;
        |      IF pexists THEN
        |
-       |        -- A retired table may still be attached while an export reads it. Never reuse an occupied slot.
+       |        -- Prefer the next slot, reusing migrated tables without waiting for their readers to finish.
+       |        reused := false;
        |        FOR attempt IN 1..999 LOOP
        |          seq_val := (seq_val + 1) % 1000;
        |          next_partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
-       |          SELECT EXISTS (SELECT FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-       |            WHERE n.nspname = ${info.schema.asLiteral} AND c.relname = next_partition) INTO pexists;
+       |          SELECT c.oid INTO next_oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+       |            WHERE n.nspname = ${info.schema.asLiteral} AND c.relname = next_partition;
+       |          pexists := FOUND;
        |          EXIT WHEN NOT pexists;
+       |          IF EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified}
+       |              WHERE partition_oid = next_oid) THEN
+       |            BEGIN
+       |              EXECUTE 'LOCK TABLE ONLY ${info.schema.quoted}.' || quote_ident(next_partition) ||
+       |                ' IN SHARE ROW EXCLUSIVE MODE NOWAIT';
+       |              -- Also empties retirement records created before migration began deleting the originals.
+       |              EXECUTE 'DELETE FROM ONLY ${info.schema.quoted}.' || quote_ident(next_partition);
+       |              DELETE FROM ${info.tables.writeAheadRetirements.name.qualified} WHERE partition_oid = next_oid;
+       |              reused := true;
+       |              EXIT;
+       |            EXCEPTION WHEN lock_not_available THEN
+       |              RAISE DEBUG 'Skipping busy numeric write-ahead table %', next_partition;
+       |            END;
+       |          END IF;
        |        END LOOP;
-       |        IF pexists THEN
-       |          RAISE EXCEPTION 'No unused numeric write-ahead slots remain for %', ${literal(info.typeName)};
+       |        IF pexists AND NOT reused THEN
+       |          RAISE EXCEPTION 'No available numeric write-ahead slots remain for %', ${literal(info.typeName)};
        |        END IF;
        |        UPDATE ${info.schema.quoted}.${SequenceTable.Name.quoted} SET value = seq_val
        |          WHERE type_name = ${literal(info.typeName)};
@@ -89,15 +106,17 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |          table_wa_logging := 'UNLOGGED ';
        |        END IF;
        |
-       |        -- requires SHARE UPDATE EXCLUSIVE
-       |        EXECUTE 'CREATE ' || table_wa_logging || 'TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(next_partition) || '(' ||
-       |          'CONSTRAINT ' || quote_ident(next_partition || '_pkey') ||
-       |          ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})' || index_space || ')' ||
-       |          ' INHERITS (${info.tables.writeAhead.name.qualified})${info.tables.writeAhead.storage.opts}' || partition_tablespace;
+       |        IF NOT reused THEN
+       |          -- requires SHARE UPDATE EXCLUSIVE
+       |          EXECUTE 'CREATE ' || table_wa_logging || 'TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(next_partition) || '(' ||
+       |            'CONSTRAINT ' || quote_ident(next_partition || '_pkey') ||
+       |            ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})' || index_space || ')' ||
+       |            ' INHERITS (${info.tables.writeAhead.name.qualified})${info.tables.writeAhead.storage.opts}' || partition_tablespace;
        |${info.cols.filter(info.tables.writeAhead.name).indices.map { index =>
-    s"""        EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(next_partition || ${literal(index.cols.map(_.raw).mkString("_", "_", ""))}) ||
-       |          ' ON ${info.schema.quoted}.' || quote_ident(next_partition) ||
-       |          ' ${index.using} (${index.cols.map(_.quoted).mkString(", ")} ${index.opclass}) ${index.includes} ${index.storageOpts}' || partition_tablespace;""".stripMargin}.mkString("\n")}
+    s"""          EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(next_partition || ${literal(index.cols.map(_.raw).mkString("_", "_", ""))}) ||
+       |            ' ON ${info.schema.quoted}.' || quote_ident(next_partition) ||
+       |            ' ${index.using} (${index.cols.map(_.quoted).mkString(", ")} ${index.opclass}) ${index.includes} ${index.storageOpts}' || partition_tablespace;""".stripMargin}.mkString("\n")}
+       |        END IF;
        |        COMMIT; -- releases our locks
        |
        |        EXECUTE 'ANALYZE ' || quote_ident(cur_partition);
