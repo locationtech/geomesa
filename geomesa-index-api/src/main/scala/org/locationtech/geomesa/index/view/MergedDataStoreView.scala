@@ -140,6 +140,20 @@ object MergedDataStoreView extends LazyLogging {
     /**
      * The filter to apply to this source, based on the current date
      *
+     * @param query query
+     * @param now current timestamp, for consistency across multiple stores
+     * @param ev feature type loader
+     * @return
+     */
+    def filter(query: Query, now: Instant)(implicit ev: MergedSourceSft[T]): Query = {
+      val q = new Query(query)
+      q.setFilter(filter(query.getTypeName, query.getFilter, now))
+      q
+    }
+
+    /**
+     * The filter to apply to this source, based on the current date
+     *
      * @param typeName feature type name
      * @param base user-supplied filter
      * @param now current timestamp, for consistency across multiple stores
