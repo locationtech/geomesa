@@ -122,6 +122,9 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private static final String BBOX_PATTERN = "bbox_pattern";
     /** The visibility row-filter / query UDF; see {@link #collectVisibilityAuths}. */
     private static final String IS_VISIBLE = "is_visible";
+    private static final int IS_VISIBLE_ARGUMENT_COUNT = 2;
+    private static final int IS_VISIBLE_EXPRESSION_ARGUMENT = 0;
+    private static final int IS_VISIBLE_AUTHS_ARGUMENT = 1;
 
     // Cached reflective accessors for foreign-classloader JTS Geometry/Envelope values
     // (see envelopeOf). Keyed by concrete Class so each lookup runs at most once.
@@ -284,6 +287,74 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public Optional<ConstraintApplicationResult<ConnectorTableHandle>> applyFilter(
             ConnectorSession session, ConnectorTableHandle handle, Constraint constraint) {
 
+        return applyVisibilityFilter(session, handle, constraint);
+    }
+
+    /** Absorb only mandatory calls to our UDF on the observed visibility column. */
+    private Optional<ConstraintApplicationResult<ConnectorTableHandle>> applyVisibilityFilter(
+            ConnectorSession session, ConnectorTableHandle handle, Constraint constraint) {
+        if (!(constraint.getExpression() instanceof Call)) {
+            return applySpatialFilter(session, handle, constraint);
+        }
+        ConnectorTableHandle inner = handle instanceof VisibilityTableHandle v ? v.delegate() : handle;
+        ConnectorTableHandle iceberg = SpatialTableHandle.unwrap(inner);
+        if (!(iceberg instanceof io.trino.plugin.iceberg.IcebergTableHandle)) {
+            return applySpatialFilter(session, handle, constraint);
+        }
+        SchemaTableName name = delegate.getTableName(session, iceberg);
+        Optional<String> columnName = geomCatalog.visibilityColumn(name)
+            .flatMap(GeoMesaColumnCatalog.ObservedVisibility::column);
+        ColumnHandle column = columnName.map(n -> delegate.getColumnHandles(session, iceberg).get(n)).orElse(null);
+        if (!(column instanceof IcebergColumnHandle vis) || !(vis.getType() instanceof VarcharType)) {
+            return applySpatialFilter(session, handle, constraint);
+        }
+        List<String> auths = new ArrayList<>();
+        removeVisibilityConjuncts(constraint.getExpression(), vis, constraint.getAssignments(), auths);
+        if (auths.isEmpty()) return applySpatialFilter(session, handle, constraint);
+        if (handle instanceof VisibilityTableHandle v) auths.addAll(v.auths());
+        // Let existing pruning see the original auth literals before removing the predicates.
+        Optional<ConstraintApplicationResult<ConnectorTableHandle>> spatial = applySpatialFilter(session, inner, constraint);
+        ConnectorTableHandle filtered = spatial.map(ConstraintApplicationResult::getHandle).orElse(inner);
+        // Spatial pushdown may itself remove a predicate; preserve that remaining expression too.
+        ConnectorExpression spatialRemaining = spatial.flatMap(ConstraintApplicationResult::getRemainingExpression)
+            .orElse(constraint.getExpression());
+        ConnectorExpression remaining = removeVisibilityConjuncts(spatialRemaining, vis,
+            constraint.getAssignments(), new ArrayList<>());
+        return Optional.of(new ConstraintApplicationResult<>(
+            new VisibilityTableHandle(filtered, vis, auths.stream().distinct().toList()),
+            spatial.map(ConstraintApplicationResult::getRemainingFilter).orElse(constraint.getSummary()),
+            remaining, spatial.map(ConstraintApplicationResult::isPrecalculateStatistics).orElse(false)));
+    }
+
+    static ConnectorExpression removeVisibilityConjuncts(ConnectorExpression expression,
+            IcebergColumnHandle visibility, Map<String, ColumnHandle> assignments, List<String> auths) {
+        if (!(expression instanceof Call call)) return expression;
+        // Qualified user functions with the same name must never be mistaken for our global UDF.
+        boolean ourFunction = call.getFunctionName().getCatalogSchema().isEmpty()
+            || call.getFunctionName().getCatalogSchema().get().equals(new CatalogSchemaName("system", "builtin"));
+        if (ourFunction && IS_VISIBLE.equalsIgnoreCase(call.getFunctionName().getName())
+                && call.getArguments().size() == IS_VISIBLE_ARGUMENT_COUNT
+                && call.getArguments().get(IS_VISIBLE_EXPRESSION_ARGUMENT) instanceof Variable variable
+                && visibility.equals(assignments.get(variable.getName()))
+                && call.getArguments().get(IS_VISIBLE_AUTHS_ARGUMENT) instanceof Constant constant
+                && constant.getType() instanceof VarcharType && constant.getValue() instanceof Slice literal) {
+            auths.add(literal.toStringUtf8());
+            return Constant.TRUE;
+        }
+        if (!AND_FUNCTION_NAME.equals(call.getFunctionName())) return expression;
+        List<ConnectorExpression> remaining = call.getArguments().stream()
+            .map(arg -> removeVisibilityConjuncts(arg, visibility, assignments, auths))
+            .filter(arg -> !Constant.TRUE.equals(arg)).toList();
+        if (remaining.isEmpty()) return Constant.TRUE;
+        return remaining.size() == 1 ? remaining.get(0) : new Call(call.getType(), AND_FUNCTION_NAME, remaining);
+    }
+
+    private Optional<ConstraintApplicationResult<ConnectorTableHandle>> applySpatialFilter(
+            ConnectorSession session, ConnectorTableHandle handle, Constraint constraint) {
+        if (handle instanceof VisibilityTableHandle visibility) {
+            return applySpatialFilter(session, visibility.delegate(), constraint)
+                .map(result -> result.transform(visibility::withDelegate));
+        }
         if (handle instanceof SpatialTableHandle spatial) {
             return applyFilterUnwrapped(session, spatial.delegate(), constraint, false)
                 .map(result -> result.transform(spatial::withDelegate));
@@ -544,10 +615,10 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     private static Optional<Set<String>> extractVisAuths(Call call, ColumnHandle visHandle,
             Map<String, ColumnHandle> assignments) {
         List<ConnectorExpression> args = call.getArguments();
-        if (args.size() != 2) return Optional.empty();
-        if (!(args.get(0) instanceof Variable v)) return Optional.empty();
+        if (args.size() != IS_VISIBLE_ARGUMENT_COUNT) return Optional.empty();
+        if (!(args.get(IS_VISIBLE_EXPRESSION_ARGUMENT) instanceof Variable v)) return Optional.empty();
         if (!visHandle.equals(assignments.get(v.getName()))) return Optional.empty();
-        if (!(args.get(1) instanceof Constant c) || !(c.getValue() instanceof Slice s)) {
+        if (!(args.get(IS_VISIBLE_AUTHS_ARGUMENT) instanceof Constant c) || !(c.getValue() instanceof Slice s)) {
             return Optional.empty();
         }
         Set<String> auths = new LinkedHashSet<>();
@@ -1372,6 +1443,11 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public Optional<ProjectionApplicationResult<ConnectorTableHandle>> applyProjection(
             ConnectorSession session, ConnectorTableHandle handle,
             List<ConnectorExpression> projections, Map<String, ColumnHandle> assignments) {
+        if (handle instanceof VisibilityTableHandle visibility) {
+            return applyProjection(session, visibility.delegate(), projections, assignments)
+                .map(r -> new ProjectionApplicationResult<>(visibility.withDelegate(r.getHandle()),
+                    r.getProjections(), r.getAssignments(), r.isPrecalculateStatistics()));
+        }
         Optional<ProjectionApplicationResult<ConnectorTableHandle>> result =
             delegate.applyProjection(session, SpatialTableHandle.unwrap(handle), projections, assignments);
         if (handle instanceof SpatialTableHandle spatial) {
@@ -1392,8 +1468,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     @Override
     public Optional<LimitApplicationResult<ConnectorTableHandle>> applyLimit(
             ConnectorSession session, ConnectorTableHandle handle, long limit) {
-        if (handle instanceof SpatialTableHandle) {
-            return Optional.empty();   // limit/top-N must not precede spatial row filtering
+        if (handle instanceof SpatialTableHandle || handle instanceof VisibilityTableHandle) {
+            return Optional.empty();   // limit/top-N must not precede authoritative row filtering
         }
         return delegate.applyLimit(session, SpatialTableHandle.unwrap(handle), limit);
     }
@@ -1427,7 +1503,7 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
             ConnectorSession session, ConnectorTableHandle handle,
             List<AggregateFunction> aggregates, Map<String, ColumnHandle> assignments,
             List<List<ColumnHandle>> groupingSets) {
-        if (handle instanceof SpatialTableHandle) {
+        if (handle instanceof SpatialTableHandle || handle instanceof VisibilityTableHandle) {
             return Optional.empty();
         }
         return delegate.applyAggregation(session, SpatialTableHandle.unwrap(handle), aggregates, assignments, groupingSets);
@@ -1447,8 +1523,8 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     public Optional<TopNApplicationResult<ConnectorTableHandle>> applyTopN(
             ConnectorSession session, ConnectorTableHandle handle,
             long topNCount, List<SortItem> sortItems, Map<String, ColumnHandle> assignments) {
-        if (handle instanceof SpatialTableHandle) {
-            return Optional.empty();   // limit/top-N must not precede spatial row filtering
+        if (handle instanceof SpatialTableHandle || handle instanceof VisibilityTableHandle) {
+            return Optional.empty();   // limit/top-N must not precede authoritative row filtering
         }
         return delegate.applyTopN(session, SpatialTableHandle.unwrap(handle), topNCount, sortItems, assignments);
     }
