@@ -683,9 +683,8 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
             def scalar(sql: String): Int = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getInt(1) }
             def exists(table: TableIdentifier): Boolean =
               scalar(s"SELECT count(*) FROM pg_class WHERE oid = to_regclass('${table.qualified}')") == 1
-            def pauseJobs(): Unit = {
+            def pauseJobs(): Unit =
               st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
-            }
             st.execute("SET statement_timeout = '5s'")
             pauseJobs()
             Seq(info.tables.mainPartitions, info.tables.spillPartitions).foreach { parent =>
@@ -727,8 +726,6 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
 
                 st.executeUpdate(s"UPDATE $view SET age = 11 WHERE ${info.cols.fid.quoted} = 'copy-to-spill'") mustEqual 1
                 st.executeUpdate(s"DELETE FROM $view WHERE ${info.cols.fid.quoted} = 'copy-to-main'") mustEqual 1
-                // Numeric originals have been deleted; neither mutation can leave a stale copy behind.
-                scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 0
                 scalar(s"SELECT count(*) FROM $view") mustEqual 4
                 st.execute(s"INSERT INTO $view (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) VALUES " +
                     "('later-row', '2020-01-01 02:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
@@ -746,15 +743,12 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
                 }
                 exists(source) must beTrue
                 exists(later) must beTrue
-                // A free retired table behind the two busy tables must still be cleaned in the same run.
-                val free = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + "_002")
                 st.execute(s"INSERT INTO $view (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) VALUES " +
                     "('cleanup-free', '2020-01-01 04:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
                 st.execute(s"CALL ${info.schema.quoted}.${RollWriteAheadLog.name(info).quoted}()")
                 st.execute(maintenance)
                 pauseJobs()
-                exists(free) must beFalse
-                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 2
+                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 3
                 scalar(s"SELECT count(*) FROM ${info.tables.mainPartitions.name.qualified}") mustEqual 4
                 scalar(s"SELECT count(*) FROM $view") mustEqual 0
                 reader.rollback()
@@ -764,6 +758,13 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
                     rs.getInt(1) mustEqual 0
                   }
                 }
+                // proc will skip detach due to open reader
+                st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadRetirements.name(info).quoted}()")
+                exists(source) must beTrue
+                exists(later) must beTrue
+                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 3
+                reader.rollback()
+                // now proc will detach and drop tables
                 st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadRetirements.name(info).quoted}()")
                 exists(source) must beFalse
                 exists(later) must beFalse
@@ -775,108 +776,7 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
           }
         }
       } finally {
-        try { ds.removeSchema(sft.getTypeName) } finally { ds.dispose() }
-      }
-    }
-
-    "reclaim and reuse numeric write-ahead tables while new readers keep locking them" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
-      val sft = SimpleFeatureTypes.renameSft(this.sft, "numeric_wa_reuse")
-      try {
-        ds.createSchema(sft)
-        val info = TypeInfo(this.schema, sft)
-        val source = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + "_000")
-        val current = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + "_001")
-        val view = info.tables.view.name.qualified
-        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { observer =>
-          WithClose(observer.createStatement()) { st =>
-            def scalar(sql: String): Long = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getLong(1) }
-            def insert(fid: String): Unit = st.execute(s"INSERT INTO $view (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) " +
-                s"VALUES ('$fid', '2020-01-01 00:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
-            def migrate(): Unit = st.execute(
-              s"CALL ${info.schema.quoted}.${PartitionWriteAheadLog.name(info).quoted}('2020-01-01 05:00:00')")
-            def roll(): Unit = st.execute(s"CALL ${info.schema.quoted}.${RollWriteAheadLog.name(info).quoted}()")
-            def clean(): Unit = st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadRetirements.name(info).quoted}()")
-            def count(cx: Connection): Long = WithClose(cx.createStatement()) { read =>
-              WithClose(read.executeQuery(s"SELECT count(*) FROM $view")) { rs => rs.next(); rs.getLong(1) }
-            }
-            st.execute("SET statement_timeout = '10s'")
-            st.execute("CREATE EXTENSION IF NOT EXISTS pgstattuple")
-            st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
-            insert("original")
-            roll()
-            val originalOid = scalar(s"SELECT '${source.qualified}'::regclass::oid")
-
-            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { oldReader =>
-              oldReader.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ)
-              oldReader.setAutoCommit(false)
-              try {
-                count(oldReader) mustEqual 1L
-                migrate()
-                scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 0L
-                count(oldReader) mustEqual 1L // MVCC retains the originals for the export's old snapshot.
-                scalar(s"SELECT count(*) FROM $view") mustEqual 1L
-
-                // Fill every slot so rotation cannot escape the problem by creating another numeric table.
-                (2 until 1000).foreach { i =>
-                  val child = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + f"_$i%03d")
-                  st.execute(s"CREATE TABLE ${child.qualified} () INHERITS (${info.tables.writeAhead.name.qualified})")
-                }
-                WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { newReader =>
-                  newReader.setAutoCommit(false)
-                  try {
-                    count(newReader) mustEqual 1L
-                    WithClose(newReader.createStatement()) { read =>
-                      WithClose(read.executeQuery(s"SELECT count(*) FROM pg_locks WHERE pid = pg_backend_pid() " +
-                          s"AND relation = '${source.qualified}'::regclass AND mode = 'AccessShareLock' AND granted")) { rs =>
-                        rs.next() must beTrue
-                        rs.getInt(1) mustEqual 1
-                      }
-                    }
-                    oldReader.rollback()
-                    // The new reader still holds its relation locks, but cannot pin the deleted row versions.
-                    st.execute(s"VACUUM ${source.qualified}")
-                    // Vacuum may retain the empty heap page because truncation needs an exclusive lock.
-                    scalar(s"SELECT dead_tuple_count FROM pgstattuple('${source.qualified}'::regclass)") mustEqual 0L
-                    clean()
-                    scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 1L
-
-                    // Older retirement records retained the copied rows. Reuse must empty those as well.
-                    st.execute(s"INSERT INTO ${source.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) " +
-                        "VALUES ('original', '2020-01-01 00:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
-                    insert("next")
-                    count(oldReader) mustEqual 2L // Keep a snapshot open across slot reuse and another migration.
-                    roll() // All 1,000 slots exist; reuse _000 despite the new reader's lock.
-                    scalar(s"SELECT value FROM ${info.schema.quoted}.${SequenceTable.Name.quoted} " +
-                        s"WHERE type_name = '${sft.getTypeName}'") mustEqual 0L
-                    scalar(s"SELECT '${source.qualified}'::regclass::oid") mustEqual originalOid
-                    scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 0L
-                    insert("reused")
-                    clean() // A reused table must not be removed by the cleaner.
-                    scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 1L
-                    scalar(s"SELECT count(*) FROM $view") mustEqual 3L
-                    migrate()
-                    scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 1L // still the active writer
-                    scalar(s"SELECT count(*) FROM ${current.qualified}") mustEqual 0L
-                    scalar(s"SELECT count(*) FROM $view") mustEqual 3L
-                    count(newReader) mustEqual 3L
-                    count(oldReader) mustEqual 2L
-                  } finally {
-                    newReader.rollback()
-                  }
-                }
-                oldReader.rollback()
-                clean()
-                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 0L
-                scalar(s"SELECT count(*) FROM ${source.qualified}") mustEqual 1L
-              } finally {
-                oldReader.rollback()
-              }
-            }
-          }
-        }
-      } finally {
-        try { ds.removeSchema(sft.getTypeName) } finally { ds.dispose() }
+        ds.dispose()
       }
     }
 

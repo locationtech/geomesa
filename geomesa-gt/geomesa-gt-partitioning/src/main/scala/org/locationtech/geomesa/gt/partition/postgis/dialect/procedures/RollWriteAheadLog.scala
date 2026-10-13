@@ -36,7 +36,6 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      seq_val smallint;
        |      attempt integer;
        |      next_oid oid;
-       |      reused boolean;
        |      cur_partition text;        -- rename of the _writes table
        |      next_partition text;       -- next partition that will be created from the _writes table
        |      partition_tablespace text; -- table space command
@@ -55,32 +54,18 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      EXECUTE 'SELECT EXISTS(SELECT 1 FROM ${info.schema.quoted}.' || quote_ident(cur_partition) || ')'
        |          INTO pexists;
        |      IF pexists THEN
-       |
-       |        -- Prefer the next slot, reusing migrated tables without waiting for their readers to finish.
-       |        reused := false;
+       |        -- find the next slot, skipping any tables queued for retirement but not yet deleted
        |        FOR attempt IN 1..999 LOOP
        |          seq_val := (seq_val + 1) % 1000;
        |          next_partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
        |          SELECT c.oid INTO next_oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
        |            WHERE n.nspname = ${info.schema.asLiteral} AND c.relname = next_partition;
        |          pexists := FOUND;
+       |          CONTINUE WHEN EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified}
+       |            WHERE partition_oid = next_oid);
        |          EXIT WHEN NOT pexists;
-       |          IF EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified}
-       |              WHERE partition_oid = next_oid) THEN
-       |            BEGIN
-       |              EXECUTE 'LOCK TABLE ONLY ${info.schema.quoted}.' || quote_ident(next_partition) ||
-       |                ' IN SHARE ROW EXCLUSIVE MODE NOWAIT';
-       |              -- Delete the originals before removing the retirement marker and reusing the slot.
-       |              EXECUTE 'DELETE FROM ONLY ${info.schema.quoted}.' || quote_ident(next_partition);
-       |              DELETE FROM ${info.tables.writeAheadRetirements.name.qualified} WHERE partition_oid = next_oid;
-       |              reused := true;
-       |              EXIT;
-       |            EXCEPTION WHEN lock_not_available THEN
-       |              RAISE DEBUG 'Skipping busy numeric write-ahead table %', next_partition;
-       |            END;
-       |          END IF;
        |        END LOOP;
-       |        IF pexists AND NOT reused THEN
+       |        IF pexists THEN
        |          RAISE EXCEPTION 'No available numeric write-ahead slots remain for %', ${literal(info.typeName)};
        |        END IF;
        |        UPDATE ${info.schema.quoted}.${SequenceTable.Name.quoted} SET value = seq_val
@@ -106,17 +91,15 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |          table_wa_logging := 'UNLOGGED ';
        |        END IF;
        |
-       |        IF NOT reused THEN
-       |          -- requires SHARE UPDATE EXCLUSIVE
-       |          EXECUTE 'CREATE ' || table_wa_logging || 'TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(next_partition) || '(' ||
-       |            'CONSTRAINT ' || quote_ident(next_partition || '_pkey') ||
-       |            ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})' || index_space || ')' ||
-       |            ' INHERITS (${info.tables.writeAhead.name.qualified})${info.tables.writeAhead.storage.opts}' || partition_tablespace;
+       |        -- requires SHARE UPDATE EXCLUSIVE
+       |        EXECUTE 'CREATE ' || table_wa_logging || 'TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(next_partition) || '(' ||
+       |          'CONSTRAINT ' || quote_ident(next_partition || '_pkey') ||
+       |          ' PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted})' || index_space || ')' ||
+       |          ' INHERITS (${info.tables.writeAhead.name.qualified})${info.tables.writeAhead.storage.opts}' || partition_tablespace;
        |${info.cols.filter(info.tables.writeAhead.name).indices.map { index =>
-    s"""          EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(next_partition || ${literal(index.cols.map(_.raw).mkString("_", "_", ""))}) ||
-       |            ' ON ${info.schema.quoted}.' || quote_ident(next_partition) ||
-       |            ' ${index.using} (${index.cols.map(_.quoted).mkString(", ")} ${index.opclass}) ${index.includes} ${index.storageOpts}' || partition_tablespace;""".stripMargin}.mkString("\n")}
-       |        END IF;
+    s"""        EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(next_partition || ${literal(index.cols.map(_.raw).mkString("_", "_", ""))}) ||
+       |          ' ON ${info.schema.quoted}.' || quote_ident(next_partition) ||
+       |          ' ${index.using} (${index.cols.map(_.quoted).mkString(", ")} ${index.opclass}) ${index.includes} ${index.storageOpts}' || partition_tablespace;""".stripMargin}.mkString("\n")}
        |        COMMIT; -- releases our locks
        |
        |        EXECUTE 'ANALYZE ' || quote_ident(cur_partition);
