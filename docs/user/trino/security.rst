@@ -98,6 +98,15 @@ The feature has two tiers:
     The list is catalog-wide; for a catalog whose tables use different visibility values, declare
     the union of all of them.
 
+Visibility Filtering in the Scan
+--------------------------------
+
+The Scan connector reports various metrics related to visibility filtering: ``Visibility bypassed rows``,
+``Visibility checked rows``, ``Visibility rejected rows``, ``Visibility bypassed splits``, ``Visibility filtered splits``,
+and ``Visibility fallback value evaluations``. Checked rows count logical rows considered by the exact filter;
+fallback value evaluations count decisions after block-level reuse. Visibility filtering optimizations are more
+likely to take effect if records with the same visibility are grouped together during writes.
+
 .. _trino_view_security:
 
 Views

@@ -82,8 +82,9 @@ public record SpatialTableHandle(
             rectMinX, rectMinY, rectMaxX, rectMaxY);
     }
 
-    /** Unwrap to the Iceberg handle if wrapped, else return the handle unchanged. */
+    /** Unwrap spatial and visibility scan filters to their underlying Iceberg handle. */
     static ConnectorTableHandle unwrap(ConnectorTableHandle handle) {
+        if (handle instanceof VisibilityTableHandle v) return unwrap(v.delegate());
         return handle instanceof SpatialTableHandle w ? w.delegate() : handle;
     }
 }

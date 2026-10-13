@@ -225,20 +225,28 @@ public class SpatialConnector implements Connector {
     @Override
     public ConnectorSplitManager getSplitManager() {
         ConnectorSplitManager splitManager = delegate.getSplitManager();
-        if (!bboxShortCircuit) {
-            return splitManager;
-        }
-        // BBOX Short-Circuit: unwrap a SpatialTableHandle before Iceberg's split manager sees it;
-        // the pushed bbox/z2 domains ride in the unwrapped handle's predicate, so file/manifest
-        // pruning is unaffected.
+
+        // Unwrap authoritative scan filters before delegating to Iceberg. Request visibility
+        // statistics explicitly: once its UDF is absorbed, the engine may project the column away.
+        // Iceberg's split source uses dynamicFilterColumns to select file statistics, independently
+        // of whether the query actually provides a dynamic filter for that column.
         return new ConnectorSplitManager() {
             @Override
             public ConnectorSplitSource getSplits(ConnectorTransactionHandle transaction,
                                                   ConnectorSession session, ConnectorTableHandle table,
                                                   Set<ColumnHandle> dynamicFilterColumns,
                                                   Constraint constraint) {
-                return splitManager.getSplits(transaction, session, SpatialTableHandle.unwrap(table),
-                    dynamicFilterColumns, constraint);
+                ConnectorTableHandle unwrapped = SpatialTableHandle.unwrap(table);
+                if (table instanceof VisibilityTableHandle visibility) {
+                    java.util.Set<ColumnHandle> statsColumns = new java.util.HashSet<>(dynamicFilterColumns);
+                    statsColumns.add(visibility.visibilityColumn());
+                    java.util.Set<io.trino.plugin.iceberg.IcebergColumnHandle> projected = new java.util.HashSet<>(
+                        ((io.trino.plugin.iceberg.IcebergTableHandle) unwrapped).getProjectedColumns());
+                    projected.add(visibility.visibilityColumn());
+                    unwrapped = ((io.trino.plugin.iceberg.IcebergTableHandle) unwrapped).withProjectedColumns(projected);
+                    return splitManager.getSplits(transaction, session, unwrapped, statsColumns, constraint);
+                }
+                return splitManager.getSplits(transaction, session, unwrapped, dynamicFilterColumns, constraint);
             }
         };
     }
@@ -251,7 +259,7 @@ public class SpatialConnector implements Connector {
     @Override
     public ConnectorPageSourceProvider getPageSourceProvider() {
         ConnectorPageSourceProvider provider = delegate.getPageSourceProvider();
-        return bboxShortCircuit ? new SpatialPageSourceProvider(provider) : provider;
+        return new VisibilityPageSourceProvider(bboxShortCircuit ? new SpatialPageSourceProvider(provider) : provider);
     }
 
     /**
@@ -262,9 +270,8 @@ public class SpatialConnector implements Connector {
     @Override
     public ConnectorPageSourceProviderFactory getPageSourceProviderFactory() {
         ConnectorPageSourceProviderFactory factory = delegate.getPageSourceProviderFactory();
-        return bboxShortCircuit
-            ? () -> new SpatialPageSourceProvider(factory.createPageSourceProvider())
-            : factory;
+        return () -> new VisibilityPageSourceProvider(bboxShortCircuit
+            ? new SpatialPageSourceProvider(factory.createPageSourceProvider()) : factory.createPageSourceProvider());
     }
 
     /**
