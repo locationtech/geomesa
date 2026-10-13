@@ -9,16 +9,16 @@
 package org.locationtech.geomesa.index.view
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.sort.SortOrder
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.gt.partition.postgis.PostgisContainer
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
 import org.locationtech.geomesa.index.stats.impl.MinMax
@@ -26,81 +26,95 @@ import org.locationtech.geomesa.index.view.MergedDataStoreViewTest.TestConfigLoa
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodedValues}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils}
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.jts.geom.Point
 import org.specs2.matcher.MatchResult
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
+import org.specs2.specification.BeforeAfterAll
 
 import java.io.ByteArrayOutputStream
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 import java.util.Date
 
-@RunWith(classOf[JUnitRunner])
-class MergedDataStoreViewTest extends TestWithFeatureType {
+class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
   import scala.collection.JavaConverters._
 
   // note: shp seems to just use `<typeName>.` plus an incrementing 1-based number for the feature id,
   // as such, we don't compare primary keys directly here
 
-  sequential
+  private val sft =
+    SimpleFeatureTypes.createType("merged-ds", "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date")
 
-  override val spec = "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date"
-
-  lazy val features = Seq.tabulate(8) { u =>
+  private val features = Seq.tabulate(8) { u =>
     val i = u + 1 // sync up with shp fid
     // shp seems to round dates to whole days??
     ScalaSimpleFeature.create(sft, s"$i", s"POINT (45 5$i)", s"name$i", 20 + i, s"2018-01-0${i}T00:00:00.000Z")
   }
 
-  val defaultFilter =
+  private val defaultFilter =
     ECQL.toFilter("bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-02T12:00:00.000Z/2018-01-06T12:00:00.000Z")
 
-  val accumuloParams = dsParams.asJava
+  private val container = new PostgisContainer()
 
-  var shpParams: java.util.Map[String, String] = _
+  private lazy val postgisParams = Map(
+    "dbtype" -> "postgis-partitioned",
+    "host" -> container.getHost,
+    "port" -> String.valueOf(container.getFirstMappedPort),
+    "database" -> "postgres",
+    "user" -> "postgres",
+    "passwd" -> container.password,
+    "Batch insert size" -> "10",
+  )
 
-  var path: Path = _
-  var mergedDs: MergedDataStoreView = _
+  private lazy val path = Files.createTempDirectory("combo-ds-test")
 
-  def comboParams(params: java.util.Map[String, String]*): java.util.Map[String, String] = {
-    val configs = params.map(ConfigValueFactory.fromMap).asJava
+  private lazy val shpParams = Map(
+    "url" -> s"file://${path.toFile.getAbsolutePath}/${sft.getTypeName}.shp"
+  )
+
+  private lazy val mergedDs = DataStoreFinder.getDataStore(comboParams(shpParams, postgisParams)).asInstanceOf[MergedDataStoreView]
+
+  override def beforeAll(): Unit = {
+    if (logger.underlying.isTraceEnabled()) {
+      container.withLogAllStatements()
+    }
+    container.start()
+
+    WithClose(DataStoreFinder.getDataStore(shpParams.asJava)) { shpDs =>
+      WithClose(DataStoreFinder.getDataStore(postgisParams.asJava)) { postgisDs =>
+        val copied = features.iterator
+        Seq(shpDs, postgisDs).foreach { ds =>
+          ds.createSchema(sft)
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            copied.take(4).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+        }
+      }
+    }
+
+    mergedDs must not(beNull)
+  }
+
+  override def afterAll(): Unit = {
+    try {
+      mergedDs.dispose()
+      container.close()
+    } finally {
+      PathUtils.deleteRecursively(path)
+    }
+  }
+
+  def comboParams(params: Map[String, String]*): java.util.Map[String, String] = {
+    val configs = params.map(p => ConfigValueFactory.fromMap(p.asJava)).asJava
     val config = ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(configs))
     Map(MergedDataStoreViewFactory.ConfigParam.key -> config.root.render(ConfigRenderOptions.concise())).asJava
   }
 
-  step {
-    path = Files.createTempDirectory(s"combo-ds-test")
-
-    shpParams = Map(
-      "url" -> s"file://${path.toFile.getAbsolutePath}/$sftName.shp"
-    ).asJava
-
-    val shpDs = DataStoreFinder.getDataStore(shpParams)
-    val accumuloDs = DataStoreFinder.getDataStore(accumuloParams)
-
-    val copied = features.iterator
-    Seq(shpDs, accumuloDs).foreach { ds =>
-      ds.createSchema(sft)
-      WithClose(ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
-        copied.take(4).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
-      }
-    }
-
-    CloseableIterator(shpDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(4)
-    CloseableIterator(accumuloDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(4)
-
-    shpDs.dispose()
-    accumuloDs.dispose()
-
-    mergedDs = DataStoreFinder.getDataStore(comboParams(shpParams, accumuloParams)).asInstanceOf[MergedDataStoreView]
-    mergedDs must not(beNull)
-  }
-
   "MergedDataStoreView" should {
     "respect max features" in {
-      val query = new Query(sftName)
+      val query = new Query(sft.getTypeName)
       query.setMaxFeatures(1)
       query.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
       mergedDs.getFeatureSource(sft.getTypeName).getCount(query) mustEqual 1
@@ -108,20 +122,20 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "load multiple datastores" in {
-      mergedDs.getTypeNames mustEqual Array(sftName)
-      mergedDs.getNames.asScala mustEqual Seq(new NameImpl(sftName))
+      mergedDs.getTypeNames mustEqual Array(sft.getTypeName)
+      mergedDs.getNames.asScala mustEqual Seq(new NameImpl(sft.getTypeName))
 
-      val sft = mergedDs.getSchema(sftName)
+      val loadedSft = mergedDs.getSchema(sft.getTypeName)
 
-      sft.getAttributeCount mustEqual 4
-      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("the_geom", "name", "age", "dtg")
-      sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
+      loadedSft.getAttributeCount mustEqual 4
+      loadedSft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("the_geom", "name", "age", "dtg")
+      loadedSft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
           Seq(classOf[Point], classOf[String], classOf[Integer], classOf[Date])
     }
 
     "load via SPI config" in {
-      val shpConfig = ConfigValueFactory.fromMap(shpParams)
-      val accumuloConfig = ConfigValueFactory.fromMap(accumuloParams)
+      val shpConfig = ConfigValueFactory.fromMap(shpParams.asJava)
+      val postgisConfig = ConfigValueFactory.fromMap(postgisParams.asJava)
 
       def testParams(config: Config): MatchResult[Any] = {
         val params = Map(
@@ -139,15 +153,15 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       }
 
       MergedDataStoreViewTest.loadConfig =
-          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(shpConfig, accumuloConfig).asJava))
+          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(shpConfig, postgisConfig).asJava))
       testParams(ConfigFactory.empty())
 
       MergedDataStoreViewTest.loadConfig =
           ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(shpConfig).asJava))
-      testParams(ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(accumuloConfig).asJava)))
+      testParams(ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(postgisConfig).asJava)))
 
       MergedDataStoreViewTest.loadConfig =
-          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(accumuloConfig).asJava))
+          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(postgisConfig).asJava))
       testParams(ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(shpConfig).asJava)))
     }
 
@@ -157,10 +171,10 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
           conf.withValue(k, ConfigValueFactory.fromAnyRef(v))
         }
       }
-      val shpConfig = unquotedConfig(shpParams.asScala.toMap).root()
-      val accumuloConfig = unquotedConfig(accumuloParams.asScala.toMap).root()
+      val shpConfig = unquotedConfig(shpParams).root()
+      val postgisConfig = unquotedConfig(postgisParams).root()
       val config =
-        ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(accumuloConfig, shpConfig).asJava))
+        ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(postgisConfig, shpConfig).asJava))
 
       val params = Map(
         MergedDataStoreViewFactory.ConfigParam.key -> config.root.render(ConfigRenderOptions.concise())
@@ -177,7 +191,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores" in {
-      val results = CloseableIterator(mergedDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList
+      val results = CloseableIterator(mergedDs.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
 
       results must haveLength(features.length)
       foreach(results.sortBy(_.getAttribute("name").asInstanceOf[String]).zip(features)) { case (actual, expected) =>
@@ -188,7 +202,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
     "query multiple data stores with filters and transforms" in {
       val filters = Seq(
-        s"IN('$sftName.3', '$sftName.4', '5', '6')",
+        s"IN('${sft.getTypeName}.3', '${sft.getTypeName}.4', '5', '6')",
         "bbox(the_geom,44,52.5,46,56.5)",
         "bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-02T12:00:00.000Z/2018-01-06T12:00:00.000Z",
         "name IN('name3', 'name4', 'name5', 'name6') and bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-01T12:00:00.000Z/2018-01-07T12:00:00.000Z"
@@ -198,7 +212,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       foreach(filters) { filter =>
         val ecql = ECQL.toFilter(filter)
         foreach(transforms) { transform =>
-          val query = new Query(sftName, ecql, transform: _*)
+          val query = new Query(sft.getTypeName, ecql, transform: _*)
           val results = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(4)
           val attributes = Option(transform).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
@@ -217,23 +231,22 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
     "apply filters to each data store impl" in {
       val filters = Seq(
-        s"IN('$sftName.3', '$sftName.4', '5', '6')",
+        s"IN('${sft.getTypeName}.3', '${sft.getTypeName}.4', '5', '6')",
         "bbox(the_geom,44,52.5,46,56.5)",
         "bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-02T12:00:00.000Z/2018-01-06T12:00:00.000Z",
         "name IN('name3', 'name4', 'name5', 'name6') and bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-01T12:00:00.000Z/2018-01-07T12:00:00.000Z"
       )
 
       // these filters exclude the '5' feature
-      val shpFilteredParams = new java.util.HashMap[String, String](shpParams)
-      shpFilteredParams.put(MergedDataStoreViewFactory.StoreFilterParam.key, "dtg < '2018-01-06T00:00:00.000Z'")
-      val accumuloFilteredParams = new java.util.HashMap[String, String](accumuloParams)
-      accumuloFilteredParams.put(MergedDataStoreViewFactory.StoreFilterParam.key, "dtg >= '2018-01-06T00:00:00.000Z'")
+      val shpFilteredParams = shpParams ++ Map(MergedDataStoreViewFactory.StoreFilterParam.key -> "dtg < '2018-01-06T00:00:00.000Z'")
+      val postgisFilteredParams =
+        postgisParams ++ Map(MergedDataStoreViewFactory.StoreFilterParam.key -> "dtg >= '2018-01-06T00:00:00.000Z'")
 
-      val ds = DataStoreFinder.getDataStore(comboParams(shpFilteredParams, accumuloFilteredParams))
+      val ds = DataStoreFinder.getDataStore(comboParams(shpFilteredParams, postgisFilteredParams))
       try {
         foreach(filters) { filter =>
           val ecql = ECQL.toFilter(filter)
-          val query = new Query(sftName, ecql)
+          val query = new Query(sft.getTypeName, ecql)
           val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(3)
           forall(results) { feature =>
@@ -248,7 +261,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
     "query multiple data stores with sorting" in {
       foreach(Seq[Array[String]](null, Array("the_geom", "dtg"))) { transform =>
-        val query = new Query(sftName, Filter.INCLUDE, transform: _*)
+        val query = new Query(sft.getTypeName, Filter.INCLUDE, transform: _*)
         query.setSortBy(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.DESCENDING))
         val results = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
@@ -261,7 +274,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores and return bins" in {
-      val query = new Query(sftName, defaultFilter, "name", "dtg", "the_geom")
+      val query = new Query(sft.getTypeName, defaultFilter, "name", "dtg", "the_geom")
       query.getHints.put(QueryHints.BIN_TRACK, "name")
 
       val bytes = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).map { f =>
@@ -282,7 +295,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores and return arrow" in {
-      val query = new Query(sftName, defaultFilter, "name", "dtg", "the_geom")
+      val query = new Query(sft.getTypeName, defaultFilter, "name", "dtg", "the_geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
@@ -307,7 +320,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
     "query multiple data stores for stats" in {
       foreach(Seq[Array[String]](null, Array("dtg"))) { transform =>
-        val query = new Query(sftName, defaultFilter, transform: _*)
+        val query = new Query(sft.getTypeName, defaultFilter, transform: _*)
         query.getHints.put(QueryHints.STATS_STRING, "MinMax(dtg)")
         query.getHints.put(QueryHints.ENCODE_STATS, true)
 
@@ -326,7 +339,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       val width = 480
       val height = 360
 
-      val query = new Query(sftName, defaultFilter, "the_geom")
+      val query = new Query(sft.getTypeName, defaultFilter, "the_geom")
       query.getHints.put(QueryHints.DENSITY_BBOX, envelope)
       query.getHints.put(QueryHints.DENSITY_WIDTH, width)
       query.getHints.put(QueryHints.DENSITY_HEIGHT, height)
@@ -357,7 +370,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       // slightly buffer the envelope so it's covered with our default filter
       val envelope = new ReferencedEnvelope(43.9, 46.1, 51.9, 59.1, CRS_EPSG_4326)
 
-      val query = new Query(sftName, defaultFilter)
+      val query = new Query(sft.getTypeName, defaultFilter)
       query.getHints.put(QueryHints.DENSITY_BBOX, envelope)
       query.getHints.put(QueryHints.DENSITY_WIDTH, outputWidth)
       query.getHints.put(QueryHints.DENSITY_HEIGHT, outputHeight)
@@ -365,7 +378,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       // we run the decode logic from density process as we don't have coverage/jai on the classpath in order to run the whole thing
       val points = scala.collection.mutable.Map.empty[(Double, Double), Double]
       val decode = DensityScan.decodeResult(envelope, outputWidth, outputHeight)
-      WithClose(mergedDs.getFeatureSource(sftName).getFeatures(query).features()) { features =>
+      WithClose(mergedDs.getFeatureSource(sft.getTypeName).getFeatures(query).features()) { features =>
         while (features.hasNext) {
           val pts = decode(features.next())
           while (pts.hasNext) {
@@ -377,11 +390,6 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       // TODO way to test coverage?
       points must not(beEmpty)
     }
-  }
-
-  step {
-    mergedDs.dispose()
-    PathUtils.deleteRecursively(path)
   }
 }
 

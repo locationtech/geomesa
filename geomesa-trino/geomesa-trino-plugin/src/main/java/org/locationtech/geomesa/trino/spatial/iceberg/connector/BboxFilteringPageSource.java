@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.trino.spatial.iceberg.connector;
 
 import io.airlift.slice.Slice;
-import io.trino.spi.Page;
 import io.trino.spi.block.Block;
 import io.trino.spi.connector.ConnectorPageSource;
 import io.trino.spi.connector.SourcePage;
@@ -25,7 +24,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.ObjLongConsumer;
 
 /**
  * Wraps the Iceberg page source with a sound, pre-decode bbox filter over a geometry's
@@ -211,41 +209,4 @@ final class BboxFilteringPageSource implements ConnectorPageSource {
     @Override public void close() throws IOException { delegate.close(); }
     @Override public CompletableFuture<?> isBlocked() { return delegate.isBlocked(); }
     @Override public Metrics getMetrics() { return delegate.getMetrics(); }
-
-    /** A {@link SourcePage} view exposing only the first {@code channelCount} channels of a
-     *  delegate, hiding the bbox/geometry columns this page source added to the physical read. */
-    private static final class ChannelPrefixSourcePage implements SourcePage {
-        private final SourcePage delegate;
-        private final int channelCount;
-
-        ChannelPrefixSourcePage(SourcePage delegate, int channelCount) {
-            this.delegate = delegate;
-            this.channelCount = channelCount;
-        }
-
-        @Override public int getPositionCount() { return delegate.getPositionCount(); }
-        @Override public long getSizeInBytes() { return delegate.getSizeInBytes(); }
-        @Override public long getRetainedSizeInBytes() { return delegate.getRetainedSizeInBytes(); }
-        @Override public void retainedBytesForEachPart(ObjLongConsumer<Object> consumer) {
-            delegate.retainedBytesForEachPart(consumer);
-        }
-        @Override public int getChannelCount() { return channelCount; }
-        @Override public Block getBlock(int channel) {
-            if (channel >= channelCount) {
-                throw new IndexOutOfBoundsException("channel " + channel + " >= " + channelCount);
-            }
-            return delegate.getBlock(channel);
-        }
-        @Override public Page getPage() {
-            int[] channels = new int[channelCount];
-            for (int i = 0; i < channelCount; i++) {
-                channels[i] = i;
-            }
-            return delegate.getColumns(channels);
-        }
-        @Override public Page getColumns(int[] channels) { return delegate.getColumns(channels); }
-        @Override public void selectPositions(int[] positions, int offset, int size) {
-            delegate.selectPositions(positions, offset, size);
-        }
-    }
 }

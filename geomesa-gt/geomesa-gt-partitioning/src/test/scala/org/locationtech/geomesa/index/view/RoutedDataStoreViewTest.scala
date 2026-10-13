@@ -9,23 +9,23 @@
 package org.locationtech.geomesa.index.view
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.ecql.ECQL
-import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.gt.partition.postgis.PostgisContainer
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.FeatureUtils
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.jts.geom.Point
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
+import org.specs2.specification.BeforeAfterAll
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 import java.util.Date
 
-@RunWith(classOf[JUnitRunner])
-class RoutedDataStoreViewTest extends TestWithFeatureType {
+class RoutedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -33,74 +33,87 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
   // and return `<typeName>.` when returning feature them
   // as such, we don't compare primary keys directly here
 
-  override val spec = "*the_geom:Point:srid=4326,name:String,age:Int,dtg:Date"
+  private val sft =
+    SimpleFeatureTypes.createType("merged-ds", "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date")
 
-  lazy val features = Seq.tabulate(9) { u =>
+  private val features = Seq.tabulate(9) { u =>
     val i = u + 1 // sync up with shp fid
     // shp seems to round dates to whole days??
     ScalaSimpleFeature.create(sft, s"$i", s"POINT (45 5$i)", s"name$i", 20 + i, s"2018-01-0${i}T00:00:00.000Z")
   }
 
-  lazy val accumuloParams =
-    (dsParams +
-      (RouteSelectorByAttribute.RouteAttributes -> Seq(Seq.empty.asJava, "id", "the_geom", Seq("dtg", "the_geom").asJava).asJava)).asJava
+  private val container = new PostgisContainer()
 
-  var shpParams: java.util.Map[String, _] = _
+  private lazy val postgisParams = Map(
+    "dbtype" -> "postgis-partitioned",
+    "host" -> container.getHost,
+    "port" -> String.valueOf(container.getFirstMappedPort),
+    "database" -> "postgres",
+    "user" -> "postgres",
+    "passwd" -> container.password,
+    "Batch insert size" -> "10",
+    RouteSelectorByAttribute.RouteAttributes -> java.util.List.of(java.util.List.of(), "id", "the_geom", java.util.List.of("dtg", "the_geom"))
+  )
 
-  var path: Path = _
-  var routedDs: RoutedDataStoreView = _
+  private lazy val path = Files.createTempDirectory("route-ds-test")
 
-  def comboParams(params: java.util.Map[String, _]*): java.util.Map[String, String] = {
-    val configs = params.map(ConfigValueFactory.fromMap).asJava
+  private lazy val shpParams = Map(
+    "url" -> s"file://${path.toFile.getAbsolutePath}/${sft.getTypeName}.shp",
+    RouteSelectorByAttribute.RouteAttributes -> java.util.List.of("name", "age")
+  )
+
+  private lazy val routedDs = DataStoreFinder.getDataStore(comboParams(shpParams, postgisParams)).asInstanceOf[RoutedDataStoreView]
+
+  def comboParams(params: Map[String, _]*): java.util.Map[String, String] = {
+    val configs = params.map(p => ConfigValueFactory.fromMap(p.asJava)).asJava
     val config = ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(configs))
     Map(RoutedDataStoreViewFactory.ConfigParam.key -> config.root.render(ConfigRenderOptions.concise())).asJava
   }
 
-  step {
-    addFeatures(features)
-    CloseableIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must
-        haveLength(features.length)
+  override def beforeAll(): Unit = {
+    if (logger.underlying.isTraceEnabled()) {
+      container.withLogAllStatements()
+    }
+    container.start()
 
-    path = Files.createTempDirectory(s"route-ds-test")
-
-    shpParams = Map(
-      "url"                                    -> s"file://${path.toFile.getAbsolutePath}/$sftName.shp",
-      RouteSelectorByAttribute.RouteAttributes -> Seq("name", "age").asJava
-    ).asJava
-
-    val shpDs = DataStoreFinder.getDataStore(shpParams)
-    try {
-      shpDs.createSchema(sft)
-      WithClose(shpDs.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
-        features.iterator.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
-      }
-      CloseableIterator(shpDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must
-          haveLength(features.length)
-    } finally {
-      if (shpDs != null) {
-        shpDs.dispose()
+    WithClose(DataStoreFinder.getDataStore(shpParams.asJava)) { shpDs =>
+      WithClose(DataStoreFinder.getDataStore(postgisParams.asJava)) { postgisDs =>
+        Seq(shpDs, postgisDs).foreach { ds =>
+          ds.createSchema(sft)
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+        }
       }
     }
 
-    routedDs = DataStoreFinder.getDataStore(comboParams(shpParams, accumuloParams)).asInstanceOf[RoutedDataStoreView]
     routedDs must not(beNull)
   }
 
-  "MergedDataStoreView" should {
+  override def afterAll(): Unit = {
+    try {
+      routedDs.dispose()
+      container.close()
+    } finally {
+      PathUtils.deleteRecursively(path)
+    }
+  }
+
+  "RoutedDataStoreView" should {
     "load multiple datastores" in {
-      routedDs.getTypeNames mustEqual Array(sftName)
-      routedDs.getNames.asScala mustEqual Seq(new NameImpl(sftName))
+      routedDs.getTypeNames mustEqual Array(sft.getTypeName)
+      routedDs.getNames.asScala mustEqual Seq(new NameImpl(sft.getTypeName))
 
-      val sft = routedDs.getSchema(sftName)
+      val loadedSft = routedDs.getSchema(sft.getTypeName)
 
-      sft.getAttributeCount mustEqual 4
-      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("the_geom", "name", "age", "dtg")
-      sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
+      loadedSft.getAttributeCount mustEqual 4
+      loadedSft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("the_geom", "name", "age", "dtg")
+      loadedSft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
           Seq(classOf[Point], classOf[String], classOf[Integer], classOf[Date])
     }
 
     "query multiple data stores" in {
-      val results = CloseableIterator(routedDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList
+      val results = CloseableIterator(routedDs.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
 
       results must haveLength(features.length)
       foreach(results.sortBy(_.getAttribute("name").asInstanceOf[String]).zip(features)) { case (actual, expected) =>
@@ -121,7 +134,7 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
       foreach(filters) { filter =>
         val ecql = ECQL.toFilter(filter)
         foreach(transforms) { transform =>
-          val query = new Query(sftName, ecql, transform: _*)
+          val query = new Query(sft.getTypeName, ecql, transform: _*)
           val results = CloseableIterator(routedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(4)
           val attributes = Option(transform).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
@@ -137,11 +150,6 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
         }
       }
     }
-  }
-
-  step {
-    routedDs.dispose()
-    PathUtils.deleteRecursively(path)
   }
 }
 

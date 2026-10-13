@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import io.micrometer.core.instrument.Tags
 import org.geotools.api.data.{DataStore, FeatureReader, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
@@ -25,12 +24,15 @@ import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource
 import org.locationtech.geomesa.index.view.MergedQueryRunner.{MergedQueryPlan, Queryable}
 import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterator
+
+import java.time.Instant
 
 /**
  * Query runner for merging results from multiple stores
@@ -42,7 +44,7 @@ import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterat
  */
 class MergedQueryRunner(
     ds: HasGeoMesaStats,
-    stores: Seq[(Queryable, Option[Filter])],
+    stores: Seq[MergedSource[Queryable]],
     deduplicate: Boolean,
     parallel: Boolean
   ) extends QueryRunner with LazyLogging {
@@ -78,7 +80,7 @@ class MergedQueryRunner(
     } else {
       // we assume the delegate stores can handle normal transforms/etc appropriately
       val scanner = () => {
-        val readers = getReaders(sft, query).map(CloseableIterator(_))
+        val readers = getReaders(query).map(CloseableIterator(_))
         val deduped = if (deduplicate) {
           // we re-use the feature id cache across readers
           val cache = scala.collection.mutable.HashSet.empty[String]
@@ -99,12 +101,14 @@ class MergedQueryRunner(
   }
 
   // query each delegate store
-  private def getReaders(sft: SimpleFeatureType, query: Query): Seq[FeatureReader[SimpleFeatureType, SimpleFeature]] = {
-    stores.map { case (store, filter) =>
+  private def getReaders(query: Query): Seq[FeatureReader[SimpleFeatureType, SimpleFeature]] = {
+    val now = Instant.now() // shared current time passed to all stores for consistency in bounds calculations
+    stores.map { store =>
       val copy = new Query(query) // make sure to coy the hints so they aren't shared
       // suppress the reduce step for gm stores so that we can do the merge here
       copy.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-      store.getFeatureReader(mergeFilter(sft, copy, filter), Transaction.AUTO_COMMIT)
+      copy.setFilter(store.filter(query.getTypeName, query.getFilter, now))
+      store.source.getFeatureReader(copy, Transaction.AUTO_COMMIT)
     }
   }
 
@@ -113,7 +117,7 @@ class MergedQueryRunner(
       query: Query,
       encodedType: SimpleFeatureType,
       fallbackProcessor: SimpleFeatureType => LocalScanProcessor): CloseableIterator[SimpleFeature] = {
-    val readers = getReaders(sft, query).map { reader =>
+    val readers = getReaders(query).map { reader =>
       val schema = reader.getFeatureType
       if (schema == encodedType) {
         // processing has been handled by the store already
@@ -139,10 +143,12 @@ class MergedQueryRunner(
 object MergedQueryRunner {
 
   trait Queryable {
+    def sft(typeName: String): SimpleFeatureType
     def getFeatureReader(q: Query, t: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature]
   }
 
   case class DataStoreQueryable(ds: DataStore) extends Queryable {
+    override def sft(typeName: String): SimpleFeatureType = ds.getSchema(typeName)
     override def getFeatureReader(q: Query, t: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] =
       ds.getFeatureReader(q, t)
   }

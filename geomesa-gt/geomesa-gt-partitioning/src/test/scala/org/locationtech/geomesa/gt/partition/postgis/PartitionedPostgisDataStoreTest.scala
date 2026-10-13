@@ -17,6 +17,7 @@ import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.referencing.CRS
@@ -1535,6 +1536,36 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
               selects.head.toLowerCase(Locale.US) must contain("where")
             }
           }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "group multiple feature ids when combined with another predicate" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      ds must not(beNull)
+
+      try {
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "id-predicate-grouping")
+        ds.createSchema(sft)
+
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+          tx.commit()
+        }
+
+        val ids = new java.util.HashSet[org.geotools.api.filter.identity.FeatureId]()
+        ids.add(new FeatureIdImpl("fid0"))
+        ids.add(new FeatureIdImpl("fid9"))
+        val filter = fif.and(
+          fif.id(ids),
+          fif.lessOrEqual(fif.property("dtg"), fif.literal(new java.util.Date(now - 60 * 60 * 1000))))
+
+        WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
+          CloseableIterator(reader).map(_.getID).toList mustEqual Seq(s"${sft.getTypeName}.fid9")
         }
       } finally {
         ds.dispose()

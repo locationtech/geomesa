@@ -15,73 +15,20 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.data._
 import org.geotools.feature.{AttributeTypeBuilder, FeatureTypes, NameImpl}
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.IOException
-import java.time.ZonedDateTime
 
 package object view extends LazyLogging {
-
-  import org.locationtech.geomesa.filter.andFilters
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-  /**
-    * Helper method to merge a filtered data store query
-    *
-    * @param query query
-    * @param filter data store filter
-    * @return
-    */
-  def mergeFilter(sft: SimpleFeatureType, query: Query, filter: Option[Filter]): Query = {
-    mergeFilter(sft, query.getFilter, filter) match {
-      case f if f.eq(query.getFilter) => query
-      case f =>
-        val q = new Query(query)
-        q.setFilter(f)
-        q
-    }
-  }
-
-  /**
-    * Helper method to merge a filtered data store query
-    *
-    * @param filter filter
-    * @param option data store filter
-    * @return
-    */
-  def mergeFilter(sft: SimpleFeatureType, filter: Filter, option: Option[Filter]): Filter = {
-    option match {
-      case None => filter
-      case Some(f) if filter == Filter.INCLUDE => f
-      case Some(f) =>
-        // check for disjoint dates between the store filter and the query filter
-        val intersected = sft.getDtgField.flatMap { dtg =>
-          // note: don't cache this call, as it can contain things like `currentDate()` that will change per invocation
-          Some(FilterHelper.extractIntervals(f, dtg)).filter(_.nonEmpty).flatMap { left =>
-            val right = FilterHelper.extractIntervals(filter, dtg)
-            val merged = FilterValues.and[Bounds[ZonedDateTime]](Bounds.intersection)(left, right)
-            if (merged.disjoint) {
-              logger.debug(s"Suppressing query with filter (${ECQL.toCQL(filter)}) AND (${ECQL.toCQL(f)})")
-              Some(Filter.EXCLUDE)
-            } else {
-              None
-            }
-          }
-        }
-        intersected.getOrElse(andFilters(Seq(filter, f)))
-    }
-  }
 
   /**
     * Read only data store - does not support creating/updating/deleting schemas or features
     */
   trait ReadOnlyDataStore extends DataStore {
 
-    private def error = throw new UnsupportedOperationException("This data store is read-only")
+    private def error: Nothing = throw new UnsupportedOperationException("This data store is read-only")
 
     override def createSchema(featureType: SimpleFeatureType): Unit = error
     override def updateSchema(typeName: Name, featureType: SimpleFeatureType): Unit = error
@@ -156,7 +103,10 @@ package object view extends LazyLogging {
 
           builder.addAttribute(attribute.buildDescriptor(leftDescriptor.getLocalName))
         }
-        builder.build(namespace.orNull, typeName)
+        val merged = builder.build(namespace.orNull, typeName)
+        // preference any user data conflicts by the order stores are declared
+        Seq(right, left).foreach(t => merged.getUserData.putAll(t.getUserData))
+        merged
       }
     }
 
@@ -192,7 +142,7 @@ package object view extends LazyLogging {
       var i = 0
       streams.foreach { s =>
         if (s.hasNext) {
-          heads += ((s.next, i))
+          heads += s.next -> i
         }
         i += 1
       }
@@ -204,7 +154,7 @@ package object view extends LazyLogging {
       val (n, i) = heads.dequeue()
       val stream = indexedStreams(i)
       if (stream.hasNext) {
-        heads += ((stream.next, i))
+        heads += stream.next -> i
       }
       n
     }

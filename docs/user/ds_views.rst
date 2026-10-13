@@ -79,10 +79,16 @@ Query Filtering
 ^^^^^^^^^^^^^^^
 
 If the stores being merged have known characteristics, filters can be applied selectively to each store in
-order to speed up queries. The filter is specified along with the other store parameters, under the key
-``geomesa.merged.store.filter``, and should be an ECQL filter string.
+order to speed up queries. The most common case is when stores are separated by by time ranges. To support this,
+starting and ending dates can be specified along with the other store parameters, using the keys
+``geomesa.merged.store.date.start`` (inclusive) and ``geomesa.merged.store.date.end`` (exclusive). The dates
+can either be absolute (e.g. ``2026-01-26T00:00:00.000Z``) or relative durations, specified as ISO-8601 (e.g. ``-P1D``).
+The default date field in the schema will be used for filtering.
 
-The filter will be applied against any query, in addition to the query filter. This can be used to short-circuit
+For other use cases, an arbitrary filter can be specified using the key ``geomesa.merged.store.filter``, which should be
+an ECQL filter string.
+
+The filters will always be applied in addition to the query filter. This can be used to short-circuit
 queries that are not relevant for a particular store. For example, if one store contains features from the past
 24 hours, and a second store contains features older than 24 hours, then you could configure them with
 time-based filters:
@@ -93,11 +99,11 @@ time-based filters:
       "stores": [
         {
           "other.store.params": "go here...",
-          "geomesa.merged.store.filter": "dtg >= currentDate('-P1D')"
+          "geomesa.merged.store.date.start": "-P1D"
         },
         {
           "other.store.params": "go here...",
-          "geomesa.merged.store.filter": "dtg < currentDate('-P1D')"
+          "geomesa.merged.store.date.end": "-P1D"
         }
       ]
     }

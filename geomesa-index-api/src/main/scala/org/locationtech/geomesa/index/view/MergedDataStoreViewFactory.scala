@@ -11,9 +11,9 @@ package org.locationtech.geomesa.index.view
 import com.typesafe.config._
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi, DataStoreFinder}
-import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
@@ -57,7 +57,7 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
     val namespace = NamespaceParam.lookupOpt(params)
     val nsConfig = namespace.map(ConfigValueFactory.fromAnyRef)
 
-    val stores = Seq.newBuilder[(DataStore, Option[Filter])]
+    val stores = Seq.newBuilder[MergedSource[DataStore]]
     stores.sizeHint(configs.length)
 
     try {
@@ -74,14 +74,16 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
           case NonFatal(e) =>
             throw new IllegalArgumentException(s"Invalid store filter '${storeParams.get(StoreFilterParam.key)}'", e)
         }
+        val dateOffsetStart = DateOffsetStartParam.lookupOpt(storeParams).map(DateFilter.apply)
+        val dateOffsetEnd = DateOffsetEndParam.lookupOpt(storeParams).map(DateFilter.apply)
         Try(DataStoreFinder.getDataStore(storeParams)) match {
           case Success(null)  => throw error
-          case Success(store) => stores += store -> filter
+          case Success(store) => stores += MergedSource(store, filter, dateOffsetStart, dateOffsetEnd)
           case Failure(e)     => throw error.initCause(e)
         }
       }
     } catch {
-      case NonFatal(e) => stores.result.foreach(_._1.dispose()); throw e
+      case NonFatal(e) => stores.result.foreach(_.source.dispose()); throw e
     }
 
     val deduplicate = DeduplicateParam.lookup(params).booleanValue()
@@ -108,6 +110,8 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
   override val Description: String = "A merged, read-only view of multiple data stores"
 
   val StoreFilterParam = new GeoMesaParam[String]("geomesa.merged.store.filter", readWrite = ReadWriteFlag.ReadOnly)
+  val DateOffsetStartParam = new GeoMesaParam[String]("geomesa.merged.store.date.start", readWrite = ReadWriteFlag.ReadOnly)
+  val DateOffsetEndParam = new GeoMesaParam[String]("geomesa.merged.store.date.end", readWrite = ReadWriteFlag.ReadOnly)
 
   val ConfigLoaderParam: Option[GeoMesaParam[String]] = {
     val loaders = ServiceLoader.load[MergedViewConfigLoader]().map(_.getClass.getName)

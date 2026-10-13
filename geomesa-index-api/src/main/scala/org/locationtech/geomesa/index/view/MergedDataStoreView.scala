@@ -8,24 +8,26 @@
 
 package org.locationtech.geomesa.index.view
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.`type`.Name
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
-import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues, andFilters}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
-import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
-import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
-import org.locationtech.geomesa.index.stats.impl._
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, Stat}
-import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedStats, TaskDecorator}
-import org.locationtech.geomesa.index.view.MergedQueryRunner.DataStoreQueryable
-import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.MergedSourceSft
+import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
+import org.locationtech.geomesa.index.view.MergedQueryRunner.{DataStoreQueryable, Queryable}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.DateParsing
 
-import java.util.concurrent.CopyOnWriteArrayList
+import java.time.format.DateTimeParseException
+import java.time.{Instant, ZonedDateTime}
+import java.util.Date
 import java.util.function.UnaryOperator
 
 /**
@@ -38,26 +40,26 @@ import java.util.function.UnaryOperator
  * @param namespace namespace
  */
 class MergedDataStoreView(
-    val stores: Seq[(DataStore, Option[Filter])],
+    val stores: Seq[MergedSource[DataStore]],
     deduplicate: Boolean,
     parallel: Boolean,
     taskDecorator: Option[UnaryOperator[Runnable]] = None,
     namespace: Option[String] = None
-  ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
+  ) extends MergedDataStoreSchemas(stores.map(_.source), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 
   require(stores.nonEmpty, "No delegate stores configured")
 
   private val decorator = new TaskDecorator(taskDecorator)
 
   private[view] val runner =
-    new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate, parallel)
+    new MergedQueryRunner(this, stores.map(s => s.copy[Queryable](DataStoreQueryable(s.source))), deduplicate, parallel)
 
   override val stats: GeoMesaStats = new MergedStats(stores, parallel, decorator)
 
   override def getFeatureSource(name: Name): SimpleFeatureSource = getFeatureSource(name.getLocalPart)
 
   override def getFeatureSource(typeName: String): SimpleFeatureSource = {
-    val sources = stores.map { case (store, filter) => (store.getFeatureSource(typeName), filter) }
+    val sources = stores.map(s => s.copy(s.source.getFeatureSource(typeName)))
     new MergedFeatureSourceView(this, sources, parallel, decorator, getSchema(typeName))
   }
 
@@ -71,147 +73,164 @@ class MergedDataStoreView(
     GeoMesaFeatureReader(sft, query, runner, None)
 }
 
-object MergedDataStoreView {
+object MergedDataStoreView extends LazyLogging {
 
-  import scala.collection.JavaConverters._
+  /**
+   * Trait for bounding merged stores based on date
+   */
+  sealed trait DateFilter {
+    def toDate(currentDate: Instant): Date
+  }
+
+  object DateFilter {
+
+    /**
+     * Create a date filter
+     *
+     * @param offsetOrDate either an offset (PT1D, e.g. a java duration string) or a static date (2026-01-01T00:00:00.000Z)
+     * @return
+     */
+    def apply(offsetOrDate: String): DateFilter = {
+      lazy val error =
+        new IllegalArgumentException(s"Invalid date filter '$offsetOrDate' - could not parse as a duration nor a date")
+      try {
+        return RelativeDate(offsetOrDate)
+      } catch {
+        case e: DateTimeParseException => error.addSuppressed(e)
+      }
+      try {
+        return StaticDate(offsetOrDate)
+      } catch {
+        case e: DateTimeParseException => error.addSuppressed(e)
+      }
+      throw error
+    }
+
+    case class StaticDate(date: Date) extends DateFilter {
+      override def toDate(currentDate: Instant): Date = date
+    }
+
+    object StaticDate {
+      @throws(classOf[DateTimeParseException])
+      def apply(date: String): StaticDate = StaticDate(DateParsing.parseDate(date))
+    }
+
+    case class RelativeDate(offset: java.time.Duration) extends DateFilter {
+      override def toDate(currentDate: Instant): Date = Date.from(currentDate.plus(offset))
+    }
+
+    object RelativeDate {
+      @throws(classOf[DateTimeParseException])
+      def apply(offset: String): RelativeDate = RelativeDate(java.time.Duration.parse(offset))
+    }
+  }
+
+  /**
+   * A merged object, with associated filters
+   *
+   * @param source object
+   * @param sourceFilter arbitrary filter
+   * @param from start date filter
+   * @param to end date filter
+   * @tparam T type binding
+   */
+  case class MergedSource[T](source: T, sourceFilter: Option[Filter] = None, from: Option[DateFilter] = None, to: Option[DateFilter] = None) {
+
+    import FilterHelper.ff
+
+    import scala.collection.JavaConverters._
+
+    /**
+     * The filter to apply to this source, based on the current date
+     *
+     * @param query query
+     * @param now current timestamp, for consistency across multiple stores
+     * @param ev feature type loader
+     * @return
+     */
+    def filter(query: Query, now: Instant)(implicit ev: MergedSourceSft[T]): Query = {
+      val q = new Query(query)
+      q.setFilter(filter(query.getTypeName, query.getFilter, now))
+      q
+    }
+
+    /**
+     * The filter to apply to this source, based on the current date
+     *
+     * @param typeName feature type name
+     * @param base user-supplied filter
+     * @param now current timestamp, for consistency across multiple stores
+     * @param ev feature type loader
+     * @return
+     */
+    def filter(typeName: String, base: Filter, now: Instant)(implicit ev: MergedSourceSft[T]): Filter = {
+      val dtg = dtgField(ev, typeName)
+      val fromFilter = from.map(d => ff.greaterOrEqual(ff.property(dtg), ff.literal(d.toDate(now))))
+      val toFilter = to.map(d => ff.less(ff.property(dtg), ff.literal(d.toDate(now))))
+      val storeFilter = FilterHelper.filterListAsAnd(sourceFilter.toSeq ++ fromFilter ++ toFilter)
+      storeFilter match {
+        case None => base
+        case Some(f) if base == Filter.INCLUDE => f
+        case Some(f) if dtg == null => andFilters(Seq(base, f))
+        case Some(f) =>
+          // check for disjoint dates between the store filter and the query filter
+          // note: don't cache this call, as it can contain things like `currentDate()` that will change per invocation
+          val disjoint = Some(FilterHelper.extractIntervals(f, dtg)).filter(_.nonEmpty).flatMap { left =>
+            val right = FilterHelper.extractIntervals(base, dtg)
+            val merged = FilterValues.and[Bounds[ZonedDateTime]](Bounds.intersection)(left, right)
+            if (merged.disjoint) {
+              logger.debug(s"Suppressing query with filter (${ECQL.toCQL(base)}) AND (${ECQL.toCQL(f)})")
+              Some(Filter.EXCLUDE)
+            } else {
+              None
+            }
+          }
+          disjoint.getOrElse(andFilters(Seq(base, f)))
+      }
+    }
+
+    private def dtgField(ev: MergedSourceSft[T], typeName: String): String = {
+      val sft = ev.sft(source, typeName)
+      def firstDtg(): Option[String] =
+        sft.getAttributeDescriptors.asScala.collectFirst {
+          case d if classOf[Date].isAssignableFrom(d.getType.getBinding) => d.getLocalName
+        }
+      sft.getDtgField.orElse(firstDtg()).getOrElse {
+        throw new IllegalArgumentException(
+          s"Schema '$typeName' does not have a date field for filtering: ${SimpleFeatureTypes.encodeType(sft)}")
+      }
+    }
+  }
+
+  object MergedSource {
+
+    /**
+     * Helper for extracting a feature type from a merged source
+     *
+     * @tparam T type binding
+     */
+    trait MergedSourceSft[T] {
+      def sft(source: T, typeName: String): SimpleFeatureType
+    }
+
+    implicit object DataSourceSft extends MergedSourceSft[DataStore] {
+      override def sft(source: DataStore, typeName: String): SimpleFeatureType = source.getSchema(typeName)
+    }
+
+    implicit object FeatureSourceSft extends MergedSourceSft[SimpleFeatureSource] {
+      override def sft(source: SimpleFeatureSource, typeName: String): SimpleFeatureType = {
+        val sft = source.getSchema
+        require(sft != null && sft.getTypeName == typeName)
+        sft
+      }
+    }
+
+    implicit object QueryableSft extends MergedSourceSft[Queryable] {
+      override def sft(source: Queryable, typeName: String): SimpleFeatureType = source.sft(typeName)
+    }
+  }
 
   class TaskDecorator(op: Option[UnaryOperator[Runnable]]) {
     def apply(task: Runnable): Runnable = op.fold(task)(_.apply(task))
-  }
-
-  class MergedStats(stores: Seq[(DataStore, Option[Filter])], parallel: Boolean, decorator: TaskDecorator)
-      extends GeoMesaStats {
-
-    private val stats: Seq[(GeoMesaStats, Option[Filter])] = stores.map {
-      case (s: HasGeoMesaStats, f) => (s.stats, f)
-      case (s, f) => (new UnoptimizedRunnableStats(s), f)
-    }
-
-    override val writer: GeoMesaStatWriter = new MergedStatWriter(stats.map(_._1.writer))
-
-    override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
-      // note: unlike most methods in this class, this will return if any of the merged stores provide a response
-      def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[Long] =
-        statAndFilter._1.getCount(sft, mergeFilter(sft, filter, statAndFilter._2), exact, queryHints)
-
-      if (parallel) {
-        val results = new CopyOnWriteArrayList[Long]()
-        stats.toList.map(s => CachedThreadPool.submit(decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
-        results.asScala.reduceLeftOption(_ + _)
-      } else {
-        stats.flatMap(getSingle).reduceLeftOption(_ + _)
-      }
-    }
-
-    override def getMinMax[T](
-        sft: SimpleFeatureType,
-        attribute: String,
-        filter: Filter,
-        exact: Boolean): Option[MinMax[T]] = {
-      // note: unlike most methods in this class, this will return if any of the merged stores provide a response
-      def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[MinMax[T]] =
-        statAndFilter._1.getMinMax[T](sft, attribute, mergeFilter(sft, filter, statAndFilter._2), exact)
-
-      if (parallel) {
-        val results = new CopyOnWriteArrayList[MinMax[T]]()
-        stats.toList.map(s => CachedThreadPool.submit(decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
-        results.asScala.reduceLeftOption(_ + _)
-      } else {
-        stats.flatMap(getSingle).reduceLeftOption(_ + _)
-      }
-    }
-
-    override def getEnumeration[T](
-        sft: SimpleFeatureType,
-        attribute: String,
-        filter: Filter,
-        exact: Boolean): Option[EnumerationStat[T]] = {
-      merge((stat, f) => stat.getEnumeration[T](sft, attribute, mergeFilter(sft, filter, f), exact))
-    }
-
-    override def getFrequency[T](
-        sft: SimpleFeatureType,
-        attribute: String,
-        precision: Int,
-        filter: Filter,
-        exact: Boolean): Option[Frequency[T]] = {
-      merge((stat, f) => stat.getFrequency[T](sft, attribute, precision, mergeFilter(sft, filter, f), exact))
-    }
-
-    override def getTopK[T](
-        sft: SimpleFeatureType,
-        attribute: String,
-        filter: Filter,
-        exact: Boolean): Option[TopK[T]] = {
-      merge((stat, f) => stat.getTopK[T](sft, attribute, mergeFilter(sft, filter, f), exact))
-    }
-
-    override def getHistogram[T](
-        sft: SimpleFeatureType,
-        attribute: String,
-        bins: Int,
-        min: T,
-        max: T,
-        filter: Filter,
-        exact: Boolean): Option[Histogram[T]] = {
-      merge((stat, f) => stat.getHistogram[T](sft, attribute, bins, min, max, mergeFilter(sft, filter, f), exact))
-    }
-
-    override def getZ3Histogram(
-        sft: SimpleFeatureType,
-        geom: String,
-        dtg: String,
-        period: TimePeriod,
-        bins: Int,
-        filter: Filter,
-        exact: Boolean): Option[Z3Histogram] = {
-      merge((stat, f) => stat.getZ3Histogram(sft, geom, dtg, period, bins, mergeFilter(sft, filter, f), exact))
-    }
-
-    override def getStat[T <: Stat](
-        sft: SimpleFeatureType,
-        query: String,
-        filter: Filter,
-        exact: Boolean): Option[T] = {
-      merge((stat, f) => stat.getStat(sft, query, mergeFilter(sft, filter, f), exact))
-    }
-
-    override def close(): Unit = CloseWithLogging(stats.map(_._1))
-
-    private def merge[T <: Stat](query: (GeoMesaStats, Option[Filter]) => Option[T]): Option[T] = {
-      if (parallel) {
-        val results = new CopyOnWriteArrayList[Option[T]]()
-        stats.toList.map { case (s, f) => CachedThreadPool.submit(decorator(() => results.add(query(s, f)))) }.foreach(_.get)
-        results.asScala.reduceLeft((res, next) => for { r <- res; n <- next } yield { (r + n).asInstanceOf[T] })
-      } else {
-        // lazily evaluate each stat as we only return Some if all the child stores do
-        val head = query(stats.head._1, stats.head._2)
-        stats.tail.foldLeft(head) { case (result, (stat, filter)) =>
-          for { r <- result; n <- query(stat, filter) } yield { (r + n).asInstanceOf[T] }
-        }
-      }
-    }
-  }
-
-  class MergedStatWriter(writers: Seq[GeoMesaStatWriter]) extends GeoMesaStatWriter {
-    override def analyze(sft: SimpleFeatureType): Seq[Stat] = {
-      writers.map(_.analyze(sft)).reduceLeft[Seq[Stat]] { case (left, right) =>
-        left.zip(right).map { case (l, r) => l + r }
-      }
-    }
-
-    override def updater(sft: SimpleFeatureType): StatUpdater = new MergedStatUpdater(writers.map(_.updater(sft)))
-
-    override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit =
-      writers.foreach(_.rename(sft, previous))
-
-    override def clear(sft: SimpleFeatureType): Unit = writers.foreach(_.clear(sft))
-  }
-
-  class MergedStatUpdater(updaters: Seq[StatUpdater]) extends StatUpdater {
-    override def add(sf: SimpleFeature): Unit = updaters.foreach(_.add(sf))
-    override def remove(sf: SimpleFeature): Unit = updaters.foreach(_.remove(sf))
-    override def flush(): Unit = updaters.foreach(_.flush())
-    override def close(): Unit = CloseWithLogging(updaters)
   }
 }
