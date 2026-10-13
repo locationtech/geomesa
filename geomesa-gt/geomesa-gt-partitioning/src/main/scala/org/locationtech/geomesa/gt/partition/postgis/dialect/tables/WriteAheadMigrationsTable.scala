@@ -25,6 +25,15 @@ object WriteAheadMigrationsTable extends SqlStatements {
        |  ON ${info.tables.writeAheadMigrations.name.qualified} (partition_start, partition_end);""".stripMargin
   )
 
-  override protected def dropStatements(info: TypeInfo): Seq[String] =
-    Seq(s"DROP TABLE IF EXISTS ${info.tables.writeAheadMigrations.name.qualified};")
+  override protected def dropStatements(info: TypeInfo): Seq[String] = Seq(
+    s"""DO $$$$ DECLARE partition_name text;
+       |BEGIN
+       |  IF to_regclass(${literal(info.tables.writeAheadMigrations.name.qualified)}) IS NOT NULL THEN
+       |    FOR partition_name IN SELECT source_partition FROM ${info.tables.writeAheadMigrations.name.qualified} LOOP
+       |      EXECUTE 'DROP TABLE IF EXISTS ' || partition_name;
+       |    END LOOP;
+       |  END IF;
+       |END$$$$;""".stripMargin,
+    s"DROP TABLE IF EXISTS ${info.tables.writeAheadMigrations.name.qualified};"
+  )
 }

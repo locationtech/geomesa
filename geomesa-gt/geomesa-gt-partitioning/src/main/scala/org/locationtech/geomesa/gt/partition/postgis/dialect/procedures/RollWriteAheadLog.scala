@@ -34,6 +34,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |  $$BODY$$
        |    DECLARE
        |      seq_val smallint;
+       |      attempt integer;
        |      cur_partition text;        -- rename of the _writes table
        |      next_partition text;       -- next partition that will be created from the _writes table
        |      partition_tablespace text; -- table space command
@@ -54,17 +55,20 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |          INTO pexists;
        |      IF pexists THEN
        |
-       |        IF seq_val < 999 THEN
-       |          seq_val := seq_val + 1;
-       |        ELSE
-       |          seq_val := 0;
+       |        -- A retired table may still be attached while an export reads it. Never reuse an occupied slot.
+       |        FOR attempt IN 1..999 LOOP
+       |          seq_val := (seq_val + 1) % 1000;
+       |          next_partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
+       |          SELECT EXISTS (SELECT FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+       |            WHERE n.nspname = ${info.schema.asLiteral} AND c.relname = next_partition) INTO pexists;
+       |          EXIT WHEN NOT pexists;
+       |        END LOOP;
+       |        IF pexists THEN
+       |          RAISE EXCEPTION 'No unused numeric write-ahead slots remain for %', ${literal(info.typeName)};
        |        END IF;
-       |
        |        UPDATE ${info.schema.quoted}.${SequenceTable.Name.quoted} SET value = seq_val
        |          WHERE type_name = ${literal(info.typeName)};
        |
-       |        -- format the table name to be 3 digits, with leading zeros as needed
-       |        next_partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
        |        SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
        |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WriteAheadTableSpace.key)}
        |          INTO partition_tablespace;

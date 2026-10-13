@@ -31,10 +31,14 @@ object DeleteTrigger extends SqlTriggerFunction {
          |  WHERE OLD.${info.cols.dtg.quoted} >= migration.partition_start
          |    AND OLD.${info.cols.dtg.quoted} < migration.partition_end
          |)""".stripMargin
+    val notRetired = s"NOT EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified} retired " +
+        "WHERE retired.partition_oid = target.tableoid)"
     val notAgedOff = s"NOT EXISTS (SELECT FROM ${info.tables.ageOffQueue.name.qualified} queue " +
         "WHERE queue.partition_oid = target.tableoid)"
     def delete(table: TableConfig): String = {
-      val filter = if (table == info.tables.writeAheadPartitions) {
+      val filter = if (table == info.tables.writeAhead) {
+        s" AND $notRetired"
+      } else if (table == info.tables.writeAheadPartitions) {
         s" AND $notMigrated"
       } else if (table == info.tables.mainPartitions || table == info.tables.spillPartitions) {
         s" AND $notAgedOff"

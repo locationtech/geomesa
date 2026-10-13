@@ -37,8 +37,6 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |      table_wa_logging text;                       -- wa log options
        |      write_ahead_partitions text[];               -- names of the partitions we're migrating
        |      write_ahead_partition text;                  -- name of current partition
-       |      detach_job_name text;
-       |      detach_invocation text;
        |      pexists boolean;                             -- table exists check
        |      unsorted_count bigint;
        |    BEGIN
@@ -191,25 +189,6 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |                  partition_end = EXCLUDED.partition_end,
        |                  enqueued = EXCLUDED.enqueued;
        |
-       |          detach_job_name := '${info.typeIdentifier}-detach-' || split_part(write_ahead_partition, '.', 2);
-       |          detach_invocation := 'ALTER TABLE ${info.tables.writeAheadPartitions.name.qualified}' ||
-       |            ' DETACH PARTITION ' || write_ahead_partition;
-       |
-       |          IF EXISTS (
-       |            SELECT FROM pg_catalog.pg_inherits
-       |              WHERE inhparent = ${info.tables.writeAheadPartitions.name.asRegclass}
-       |              AND inhrelid = to_regclass(write_ahead_partition)
-       |              AND inhdetachpending
-       |          ) THEN
-       |            -- handle detaches that failed part-way through
-       |            detach_invocation := detach_invocation || ' FINALIZE';
-       |          ELSE
-       |            detach_invocation := detach_invocation || ' CONCURRENTLY';
-       |          END IF;
-       |          IF EXISTS (SELECT FROM cron.job WHERE jobname = detach_job_name) THEN
-       |            PERFORM cron.unschedule(detach_job_name);
-       |          END IF;
-       |          PERFORM cron.schedule(detach_job_name, '*/5 * * * *', detach_invocation);
        |          RAISE NOTICE 'A partition has been queued for detachment %', write_ahead_partition;
        |        END LOOP;
        |
@@ -221,6 +200,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |        COMMIT;
        |
        |      END LOOP;
+       |      CALL ${info.schema.quoted}.${CleanWriteAheadMigrations.name(info).quoted}();
        |    END;
        |  $$BODY$$;
        |""".stripMargin

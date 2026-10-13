@@ -38,6 +38,7 @@ package object dialect {
   private[dialect] val AnalyzeTableSuffix               = SqlLiteral("_analyze_queue")
   private[dialect] val SortTableSuffix                  = SqlLiteral("_sort_queue")
   private[dialect] val WriteAheadMigrationsTableSuffix  = SqlLiteral("_wa_migrations")
+  private[dialect] val WriteAheadRetirementsTableSuffix = SqlLiteral("_wa_retirements")
   private[dialect] val AgeOffQueueTableSuffix           = SqlLiteral("_age_off_queue")
 
   /**
@@ -206,6 +207,7 @@ package object dialect {
    * @param analyzeQueue analyze queue table
    * @param sortQueue sort queue table
    * @param writeAheadMigrations write ahead partitions that have been copied into main partitions
+   * @param writeAheadRetirements numeric write-ahead tables whose rows have been copied
    * @param ageOffQueue expired main and spill partitions awaiting detachment and deletion
    */
   case class Tables(
@@ -217,7 +219,8 @@ package object dialect {
       analyzeQueue: TableConfig,
       sortQueue: TableConfig,
       writeAheadMigrations: TableConfig,
-      ageOffQueue: TableConfig)
+      ageOffQueue: TableConfig,
+      writeAheadRetirements: TableConfig)
 
   object Tables {
     def apply(sft: SimpleFeatureType, schema: String, typeIdentifier: String): Tables = {
@@ -236,8 +239,9 @@ package object dialect {
       val sortQueue = TableConfig(schema, tablePrefix + SortTableSuffix.raw, None, logged = logged)
       val writeAheadMigrations = TableConfig(schema, tablePrefix + WriteAheadMigrationsTableSuffix.raw, None)
       val ageOffQueue = TableConfig(schema, tablePrefix + AgeOffQueueTableSuffix.raw, None)
+      val writeAheadRetirements = TableConfig(schema, tablePrefix + WriteAheadRetirementsTableSuffix.raw, None)
       Tables(view, writeAhead, writeAheadPartitions, mainPartitions, spillPartitions, analyzeQueue, sortQueue,
-        writeAheadMigrations, ageOffQueue)
+        writeAheadMigrations, ageOffQueue, writeAheadRetirements)
     }
   }
 

@@ -34,6 +34,8 @@ object UpdateTrigger extends SqlTriggerFunction {
          |    AND OLD.${info.cols.dtg.quoted} < migration.partition_end
          |)""".stripMargin
 
+    val notRetired = s"NOT EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified} retired " +
+        "WHERE retired.partition_oid = target.tableoid)"
     val notAgedOff = s"NOT EXISTS (SELECT FROM ${info.tables.ageOffQueue.name.qualified} queue " +
         "WHERE queue.partition_oid = target.tableoid)"
 
@@ -42,7 +44,7 @@ object UpdateTrigger extends SqlTriggerFunction {
        |    DECLARE
        |      del_count integer;
        |    BEGIN
-       |      UPDATE ${info.tables.writeAhead.name.qualified} SET $updateFields WHERE $where;
+       |      UPDATE ${info.tables.writeAhead.name.qualified} target SET $updateFields WHERE $where AND $notRetired;
        |      IF NOT FOUND THEN
        |        DELETE FROM ${info.tables.writeAheadPartitions.name.qualified} WHERE $where AND $notMigrated;
        |        GET DIAGNOSTICS del_count := ROW_COUNT;
