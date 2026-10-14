@@ -204,6 +204,8 @@ object MergedDataStoreView extends LazyLogging {
 
   object MergedSource {
 
+    def apply[T](source: T): MergedSource[T] = MergedSource(source, TypeOption.empty, TypeOption.empty, TypeOption.empty)
+
     /**
      * Per feature-type lookup
      *
