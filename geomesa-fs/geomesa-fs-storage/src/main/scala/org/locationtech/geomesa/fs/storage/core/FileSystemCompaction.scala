@@ -103,7 +103,14 @@ class FileSystemCompaction(storage: FileSystemStorage, partitions: Seq[Partition
     }
   }
 
-  /** Old files remain available to retained snapshots; snapshot expiration handles their removal. */
+  /**
+   * The compaction reader applies positional deletes, including deletion vectors,
+   * so replacement files contain only surviving rows.
+   * Iceberg removes deletion-vector entries for rewritten inputs during commit.
+   * Legacy positional-delete entries may remain until sequence-number cleanup removes them.
+   * Physical files remain available to retained snapshots until snapshot expiration
+   * can safely remove them.
+   */
   private[core] def commit(plans: Seq[Plan], outputs: Seq[Output]): Unit = {
     if (plans.isEmpty) return
     require(plans.map(_.snapshotId).distinct.size == 1, "Compaction plans must share one snapshot")

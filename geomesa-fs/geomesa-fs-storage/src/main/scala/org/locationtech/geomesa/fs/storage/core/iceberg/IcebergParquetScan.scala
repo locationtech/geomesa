@@ -187,9 +187,15 @@ class IcebergParquetScan(
           }
         }
       } catch {
-        case NonFatal(e) =>
+        case e: Throwable =>
+          // submit captures all throwables in its Future. Publish even fatal failures to the reader so
+          // a failed task cannot appear to be an empty input (and cause compaction to discard its rows).
           failure.compareAndSet(null, e)
-          logger.error("Error running scan task:", e)
+          if (NonFatal(e)) {
+            logger.error("Error running scan task:", e)
+          } else {
+            throw e
+          }
       }
     }
   }

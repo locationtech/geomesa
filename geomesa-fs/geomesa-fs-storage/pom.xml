@@ -92,6 +92,12 @@
             <artifactId>iceberg-parquet</artifactId>
         </dependency>
         <dependency>
+            <!-- Iceberg's generic delete loader registers ORC support even when reading Parquet deletes. -->
+            <groupId>org.apache.iceberg</groupId>
+            <artifactId>iceberg-orc</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.iceberg</groupId>
             <artifactId>iceberg-aws</artifactId>
         </dependency>

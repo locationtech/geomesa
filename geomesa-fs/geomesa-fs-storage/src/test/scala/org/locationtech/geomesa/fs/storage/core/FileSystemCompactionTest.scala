@@ -12,9 +12,12 @@ import com.google.gson.JsonParser
 import org.apache.accumulo.access.{AccessEvaluator, Authorizations}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.security.UserGroupInformation
-import org.apache.iceberg.{PartitionSpec, TableProperties}
+import org.apache.iceberg.deletes.PositionDelete
 import org.apache.iceberg.exceptions.ValidationException
 import org.apache.iceberg.hadoop.HadoopTables
+import org.apache.iceberg.io.FileIO
+import org.apache.iceberg.parquet.Parquet
+import org.apache.iceberg.{DataFile, DeleteFile, ManifestFiles, PartitionSpec, Snapshot, Table, TableProperties}
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.io.LocalInputFile
 import org.geotools.api.data.Query
@@ -28,6 +31,7 @@ import org.locationtech.geomesa.fs.storage.core.parquet.schema.VisibilityMetadat
 import org.locationtech.geomesa.security.{AuthsParam, SecurityUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.mockito.{AdditionalAnswers, ArgumentMatchers, Mockito}
 import org.specs2.mutable.SpecificationWithJUnit
 
 import java.nio.file.{Files, Paths}
@@ -38,12 +42,12 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
 
   sequential
 
-  private def withStorage[T](test: FileSystemStorage => T): T = {
+  private def withStorage[T](test: FileSystemStorage => T, formatVersion: Int = 3): T = {
     UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("geomesa-compaction-test"))
     val directory = Files.createTempDirectory("geomesa-compaction")
     val sft = SimpleFeatureTypes.createType("compact", "name:String,*geom:Point:srid=4326")
     val schema = SimpleFeatureIcebergSchema.create(sft, GeometryEncoding.GeoParquetWkb)
-    val properties = IcebergCatalog.sftTableProperties(sft) ++ Map(TableProperties.FORMAT_VERSION -> "3")
+    val properties = IcebergCatalog.sftTableProperties(sft) ++ Map(TableProperties.FORMAT_VERSION -> formatVersion.toString)
     val table = new HadoopTables(new Configuration()).create(schema, PartitionSpec.unpartitioned(),
       properties.asJava, directory.resolve("table").toUri.toString)
     val storage = FileSystemStorage(table, Seq.empty, SimpleFeatureIcebergSchema(table), Map(AuthsParam.key -> "A,B,C"))
@@ -66,6 +70,33 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
   private def visible(storage: FileSystemStorage, auths: String): Set[String] = {
     val view = storage.copy(conf = Map(AuthsParam.key -> auths))
     WithClose(view.getReader(new Query(storage.sft.getTypeName), 1))(_.map(_.getID).toSet)
+  }
+
+  // Inspect manifests directly: scan tasks do not reliably reveal dangling delete entries.
+  private def liveDeletes(storage: FileSystemStorage, snapshot: Snapshot): Seq[DeleteFile] = {
+    snapshot.deleteManifests(storage.table.io()).asScala.toSeq.flatMap { manifest =>
+      WithClose(ManifestFiles.readDeleteManifest(manifest, storage.table.io(), storage.table.specs())) { reader =>
+        WithClose(reader.iterator())(_.asScala.map(_.copy()).toList)
+      }
+    }
+  }
+
+  private def snapshotRows(storage: FileSystemStorage, snapshot: Snapshot): Set[String] = {
+    WithClose(new IcebergParquetScan(storage.table, storage.schema.read(None, None, Set.empty).schema,
+      org.apache.iceberg.expressions.Expressions.alwaysTrue(), 1, snapshotId = Some(snapshot.snapshotId()))) { reader =>
+      reader.map(_.getID).toSet
+    }
+  }
+
+  private def addPositionDeletes(storage: FileSystemStorage, paths: Seq[String]): String = {
+    val path = storage.newFilePath()
+    val writer = Parquet.writeDeletes(storage.table.io().newOutputFile(path))
+      .withSpec(storage.table.spec()).buildPositionWriter[Void]()
+    WithClose(writer) { out =>
+      paths.sorted.foreach(file => out.write(PositionDelete.create[Void]().set(file, 0L, null)))
+    }
+    storage.table.newRowDelta().addDeletes(writer.toDeleteFile).commit()
+    writer.toDeleteFile.location()
   }
 
   private def assertSummaries(storage: FileSystemStorage): Unit = {
@@ -146,12 +177,93 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
         writer.next()
         writer.remove()
       }
+      val snapshot = storage.table.currentSnapshot()
+      val deletes = liveDeletes(storage, snapshot)
+      deletes must haveLength(1)
       storage.metadata.compact(Partition.None)
+      liveDeletes(storage, storage.table.currentSnapshot()) must beEmpty
+      foreach(deletes)(d => storage.table.io().newInputFile(d.location()).exists() must beTrue)
+      snapshotRows(storage, snapshot) mustEqual Set("a", "c")
       visible(storage, "A,B,C") mustEqual Set("a", "c")
       storage.metadata.files().scan().map(_.file().recordCount()).sum mustEqual 2L
       assertSummaries(storage)
       success
     }
+
+    "retain a shared Puffin file and the deletion vector for an untouched data file" in withStorage { storage =>
+      append(storage, Seq("a" -> "A", "delete-a" -> "B"))
+      val first = storage.metadata.files().scan().head.file().location()
+      append(storage, Seq("b" -> "A", "delete-b" -> "B"))
+      WithClose(storage.getWriter(ECQL.toFilter("name LIKE 'delete-%'"), 1)) { writer =>
+        while (writer.hasNext) { writer.next(); writer.remove() }
+      }
+      val snapshot = storage.table.currentSnapshot()
+      val deletes = liveDeletes(storage, snapshot)
+      deletes must haveLength(2)
+      deletes.map(_.location()).distinct must haveLength(1)
+      val compaction = new FileSystemCompaction(storage, Seq(Partition.None), None)
+      val plan = compaction.plan().head
+      val selected = plan.copy(files = plan.files.filter(_.location() == first))
+      selected.files must haveLength(1)
+      compaction.commit(Seq(selected), Seq(compaction.prepare(selected)))
+      val remaining = liveDeletes(storage, storage.table.currentSnapshot())
+      remaining.map(_.referencedDataFile()) mustEqual
+          deletes.filterNot(_.referencedDataFile() == first).map(_.referencedDataFile())
+      storage.table.io().newInputFile(deletes.head.location()).exists() must beTrue
+      visible(storage, "A,B") mustEqual Set("a", "b")
+      snapshotRows(storage, snapshot) mustEqual Set("a", "b")
+    }
+
+    "retain a shared legacy position-delete file while an untouched input still needs it" in withStorage({ storage =>
+      append(storage, Seq("delete-a" -> "B", "a" -> "A"))
+      val first = storage.metadata.files().scan().head.file().location()
+      append(storage, Seq("delete-b" -> "B", "b" -> "A"))
+      val inputs = storage.metadata.files().scan().map(_.file().location())
+      val path = addPositionDeletes(storage, inputs)
+      storage.table.updateProperties().set(TableProperties.FORMAT_VERSION, "3").commit()
+      val snapshot = storage.table.currentSnapshot()
+      val compaction = new FileSystemCompaction(storage, Seq(Partition.None), None)
+      val plan = compaction.plan().head
+      val selected = plan.copy(files = plan.files.filter(_.location() == first))
+      compaction.commit(Seq(selected), Seq(compaction.prepare(selected)))
+      liveDeletes(storage, storage.table.currentSnapshot()).map(_.location()) mustEqual Seq(path)
+      visible(storage, "A,B") mustEqual Set("a", "b")
+      snapshotRows(storage, snapshot) mustEqual Set("a", "b")
+    }, formatVersion = 2)
+
+    "retain dangling legacy position-delete metadata when an older unrelated input remains" in withStorage({ storage =>
+      append(storage, Seq("older" -> "A"))
+      val older = storage.metadata.files().scan().head.file().location()
+      append(storage, Seq("delete-a" -> "B", "a" -> "A"))
+      val first = storage.metadata.files().scan().map(_.file().location()).find(_ != older).get
+      val path = addPositionDeletes(storage, Seq(first))
+      storage.table.updateProperties().set(TableProperties.FORMAT_VERSION, "3").commit()
+      val snapshot = storage.table.currentSnapshot()
+      val compaction = new FileSystemCompaction(storage, Seq(Partition.None), None)
+      val plan = compaction.plan().head
+      val selected = plan.copy(files = plan.files.filter(_.location() == first))
+      compaction.commit(Seq(selected), Seq(compaction.prepare(selected)))
+      // Iceberg's sequence-number cleanup cannot drop this delete while older data remains.
+      // Its positions only reference the removed data file, but its manifest entry is still live.
+      liveDeletes(storage, storage.table.currentSnapshot()).map(_.location()) mustEqual Seq(path)
+      visible(storage, "A,B") mustEqual Set("a", "older")
+      snapshotRows(storage, snapshot) mustEqual Set("a", "older")
+    }, formatVersion = 2)
+
+    "remove legacy position-delete metadata once the sequence-number cutoff advances" in withStorage({ storage =>
+      append(storage, Seq("delete-a" -> "B", "a" -> "A"))
+      val path = addPositionDeletes(storage, storage.metadata.files().scan().map(_.file().location()))
+      storage.table.updateProperties().set(TableProperties.FORMAT_VERSION, "3").commit()
+      val snapshot = storage.table.currentSnapshot()
+      storage.metadata.compact(Partition.None)
+      // The first rewrite's cutoff is the delete's sequence number; cleanup uses a strict less-than check.
+      liveDeletes(storage, storage.table.currentSnapshot()).map(_.location()) mustEqual Seq(path)
+      visible(storage, "A,B") mustEqual Set("a")
+      storage.metadata.compact(Partition.None)
+      liveDeletes(storage, storage.table.currentSnapshot()) must beEmpty
+      storage.table.io().newInputFile(path).exists() must beTrue
+      snapshotRows(storage, snapshot) mustEqual Set("a")
+    }, formatVersion = 2)
 
     "skip files already within the target size margin" in withStorage { storage =>
       append(storage, Seq("a" -> "A"))
@@ -234,11 +346,37 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
       storage.table.currentSnapshot().snapshotId() mustEqual snapshot
     }
 
+    "abort compaction and preserve inputs when a scan worker encounters a linkage error" in withStorage { storage =>
+      append(storage, Seq("a" -> "A"))
+      val snapshot = storage.table.currentSnapshot()
+      val inputs = storage.metadata.files().scan().map(_.file().location())
+      val error = new NoClassDefFoundError("missing delete-loader dependency")
+      val io = Mockito.mock(classOf[FileIO], AdditionalAnswers.delegatesTo(storage.table.io()))
+      Mockito.doThrow(error).when(io).newInputFile(ArgumentMatchers.any(classOf[DataFile]))
+      val table = Mockito.mock(classOf[Table], AdditionalAnswers.delegatesTo(storage.table))
+      Mockito.doReturn(io, Array.empty[AnyRef]: _*).when(table).io()
+
+      new FileSystemCompaction(storage.copy(table = table), Seq(Partition.None), None).compact() must
+        throwA[RuntimeException].like { case e => e.getCause must beTheSameAs(error) }
+
+      storage.table.refresh()
+      storage.table.currentSnapshot().snapshotId() mustEqual snapshot.snapshotId()
+      storage.metadata.files().scan().map(_.file().location()).toSet mustEqual inputs.toSet
+      foreach(inputs)(path => storage.table.io().newInputFile(path).exists() must beTrue)
+      visible(storage, "A") mustEqual Set("a")
+    }
+
     "remove completely deleted inputs without creating an empty output" in withStorage { storage =>
       append(storage, Seq("a" -> "A"))
       WithClose(storage.getWriter(ECQL.toFilter("name = 'a'"), 1)) { writer => writer.next(); writer.remove() }
+      val snapshot = storage.table.currentSnapshot()
+      val deletes = liveDeletes(storage, snapshot)
+      deletes must haveLength(1)
       storage.metadata.compact(Partition.None)
       storage.metadata.files().scan() must beEmpty
+      liveDeletes(storage, storage.table.currentSnapshot()) must beEmpty
+      foreach(deletes)(d => storage.table.io().newInputFile(d.location()).exists() must beTrue)
+      snapshotRows(storage, snapshot) must beEmpty
     }
   }
 }
