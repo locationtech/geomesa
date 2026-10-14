@@ -99,7 +99,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |        -- END LOOP;
        |
        |        -- create a view from the tables so that we can sort the result by an expression (geohash)
-       |        EXECUTE 'CREATE TEMP VIEW ' || quote_ident(partition_name || '_tmp_migrate') ||
+       |        EXECUTE 'CREATE OR REPLACE TEMP VIEW ' || quote_ident(partition_name || '_tmp_migrate') ||
        |          ' AS SELECT * FROM ' || array_to_string(write_ahead_partitions, ' UNION ALL SELECT * FROM ');
        |
        |        -- copy rows from write ahead partitions to main partition table

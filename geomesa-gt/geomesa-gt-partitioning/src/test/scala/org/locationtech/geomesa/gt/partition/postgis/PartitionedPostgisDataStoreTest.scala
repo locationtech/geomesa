@@ -1234,6 +1234,35 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
       }
     }
 
+    "re-create functions after dropping a visibility-enabled main view" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      ds must not(beNull)
+
+      try {
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "recreate-vis")
+        sft.getUserData.put(SftUserData.VisEnabled.key, "true")
+        ds.createSchema(sft)
+
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          val typeInfo = TypeInfo(this.schema, sft)
+          val indexName = s"${typeInfo.tables.mainPartitions.name.raw}_dtg__vis"
+          WithClose(cx.prepareStatement("SELECT 1 FROM pg_indexes WHERE tablename = ? AND indexname = ?")) { st =>
+            st.setString(1, typeInfo.tables.mainPartitions.name.raw)
+            st.setString(2, indexName)
+            WithClose(st.executeQuery())(_.next() must beTrue)
+          }
+          WithClose(cx.prepareStatement(s"""DROP VIEW "${sft.getTypeName}""""))(_.executeUpdate())
+        }
+
+        WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]) { recreated =>
+          recreated.createSchema(sft)
+          Try(recreated.getSchema(sft.getTypeName)).getOrElse(null) must not(beNull)
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
     "drop all associated tables on removeSchema" in {
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
