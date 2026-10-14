@@ -22,19 +22,6 @@ fs.writer.partitions.max.open
 When writing to multiple partitions at once, this restricts the maximum number of partition files to hold open at one time, per
 writer. It can also be specified through :ref:`fsds_parameters`, which will take precedence.
 
-.. _fsds_parquet_geometries_prop:
-
-geomesa.parquet.geometries
-++++++++++++++++++++++++++
-
-This property can be used to control the encoding schema used for geometry-type columns when using Parquet. The available options
-are:
-
-* ``GeoParquetWkb`` (default) - This schema uses `GeoParquet 1.1.0 <https://geoparquet.org/releases/v1.1.0/>`__ with geometries
-  encoded as WKB. This format is supported by most 3rd party libraries that can read GeoParquet.
-* ``GeoParquetNative`` - This schema uses `GeoParquet 1.1.0 <https://geoparquet.org/releases/v1.1.0/>`__ with geometries
-  encoded "natively". This format doesn't require special libraries to read, but isn't as widely supported as WKB.
-
 parquet.writer.version
 ++++++++++++++++++++++
 

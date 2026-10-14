@@ -17,7 +17,6 @@ object SimpleFeatureSchema {
 
   val SftNameKey            = "geomesa.fs.sft.name"
   val SftSpecKey            = "geomesa.fs.sft.spec"
-  val GeometryEncodingKey   = "geomesa.parquet.geometries"
   val PartitionKey          = "geomesa.fs.partition"
   // serialized iceberg name mapping, used to stamp iceberg field ids onto written parquet files
   val IcebergNameMappingKey = "geomesa.iceberg.name.mapping"

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.fs.storage.core.iceberg
 import org.apache.iceberg.types.{Conversions, Type, Types}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
@@ -50,10 +51,7 @@ object FileBoundsParser {
       case ObjectType.BYTES => Some(BytesParser)
 
       case ObjectType.GEOMETRY =>
-        val encoding = descriptor.getUserData.get(SimpleFeatureIcebergSchema.GeometryEncodingKey) match {
-          case e: String => GeometryEncoding(e)
-          case _ => GeometryEncoding.GeoParquetWkb
-        }
+        val encoding = descriptor.getEncoding.fold[GeometryEncoding](GeoParquetWkb)(GeometryEncoding.apply)
         if (encoding != GeometryEncoding.GeoParquetWkb) {
           throw new UnsupportedOperationException(encoding.toString)
         }

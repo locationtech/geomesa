@@ -112,6 +112,7 @@ object SimpleFeatureTypes {
     val OptColumnGroups = "column-groups"
     val OptCqIndex      = "cq-index"
     val OptDefault      = "default"
+    val OptEncoding     = "encoding"
     val OptIndex        = "index"
     val OptIndexValue   = "index-value"
     val OptJson         = "json"
@@ -147,6 +148,7 @@ object SimpleFeatureTypes {
 
   private val AttributeChecks: Seq[AttributeDescriptor => Any] =
     Seq(
+      _.getUserData.get(AttributeOptions.OptEncoding),
       _.getUserData.get(AttributeOptions.OptIndexValue),
       _.getUserData.get(AttributeOptions.OptJson),
       _.getUserData.get(AttributeOptions.OptJsonSchema),

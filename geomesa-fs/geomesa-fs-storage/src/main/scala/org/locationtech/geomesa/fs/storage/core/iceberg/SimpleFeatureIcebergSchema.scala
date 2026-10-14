@@ -254,8 +254,6 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  val GeometryEncodingKey = "encoding"
-
   def apply(table: Table, namespace: Option[String] = None): SimpleFeatureIcebergSchema = {
     val sft = {
       val typeName = table.properties().get("geomesa.sft.name")
@@ -293,20 +291,19 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
   }
 
   /**
-   * Get a schema based on a simple feature type. Encoding can be configured through `geomesa.parquet.geometries`.
+   * Get a schema based on a simple feature type. Encoding can be configured through `encoding` in a geometry-attribute's user data.
    *
    * Note: this should only be called for creating a new schema, for an existing table the field ids will not be correct
    *
    * @param sft simple feature type
-   * @param geometries geometry encoding
    * @return
    */
-  def create(sft: SimpleFeatureType, geometries: GeometryEncoding): Schema = {
+  def create(sft: SimpleFeatureType): Schema = {
     val builder = Seq.newBuilder[NestedField]
     // note: we have to use unique field ids, but iceberg will throw them out and regenerate them when creating a table
     val fieldIds = new AtomicInteger(1)
     builder += NestedField.required(FeatureIdField).withId(fieldIds.getAndIncrement()).ofType(StringType.get()).build()
-    builder += buildField(VisibilitiesField, fieldIds.getAndIncrement(), null, StringType.get())
+    builder += buildField(VisibilitiesField, fieldIds.getAndIncrement(), StringType.get())
     sft.getAttributeDescriptors.asScala.foreach { d =>
       val name = ColumnName(d.getLocalName)
       val objectType = ObjectType.selectType(d)
@@ -314,17 +311,18 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
       // structural type definition, so every attribute's spec is a table property - see columnSpecs
       if (objectType.head == ObjectType.GEOMETRY) {
         // TODO supports native geometry encoding
-        require(geometries == GeometryEncoding.GeoParquetWkb, "Only WKB encoding is supported for Geometry types")
+        require(d.getEncoding.map(GeometryEncoding.apply).forall(_ == GeometryEncoding.GeoParquetWkb),
+          "Only WKB encoding is supported for Geometry types")
         // not yet supported in spark or trino: GeometryType.crs84()
-        builder += buildField(name.column, fieldIds.getAndIncrement(), null, BinaryType.get())
+        builder += buildField(name.column, fieldIds.getAndIncrement(), BinaryType.get())
         builder += BoundingBoxField.icebergSchema(name.column, fieldIds)
         builder += ZValueField.icebergSchema(name.column, objectType(1), fieldIds)
       } else if (objectType.last == ObjectType.JSON) {
         builder +=
-          buildField(name.column, fieldIds.getAndIncrement(), null,
+          buildField(name.column, fieldIds.getAndIncrement(),
             d.getJsonSchema().fold[Type](VariantType.get())(buildStructuralType(_, () => fieldIds.getAndIncrement())))
       } else {
-        builder += buildField(name.column, fieldIds.getAndIncrement(), null, getType(objectType, fieldIds))
+        builder += buildField(name.column, fieldIds.getAndIncrement(), getType(objectType, fieldIds))
       }
     }
 
@@ -336,12 +334,11 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
    *
    * @param name field name
    * @param fieldId field id
-   * @param doc field doc
    * @param fieldType field type
    * @return
    */
-  private def buildField(name: String, fieldId: Int, doc: String, fieldType: Type): NestedField =
-    NestedField.optional(name).withId(fieldId).withDoc(doc).ofType(fieldType).build()
+  private def buildField(name: String, fieldId: Int, fieldType: Type): NestedField =
+    NestedField.optional(name).withId(fieldId).ofType(fieldType).build()
 
   /**
    * Every column mapped to its full attribute spec, for the table properties that
@@ -379,12 +376,12 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
       case ObjectType.STRING  => StringType.get()
 
       case ObjectType.LIST =>
-        val subType = buildField("", fieldIds.getAndIncrement(), null, getType(bindings.drop(1), fieldIds))
+        val subType = buildField("", fieldIds.getAndIncrement(), getType(bindings.drop(1), fieldIds))
         ListType.ofRequired(subType.fieldId(), subType.`type`())
 
       case ObjectType.MAP =>
-        val keyType = buildField("", fieldIds.getAndIncrement(), null, getType(bindings.slice(1, 2), fieldIds))
-        val valueType = buildField("", fieldIds.getAndIncrement(), null, getType(bindings.slice(2, 3), fieldIds))
+        val keyType = buildField("", fieldIds.getAndIncrement(), getType(bindings.slice(1, 2), fieldIds))
+        val valueType = buildField("", fieldIds.getAndIncrement(), getType(bindings.slice(2, 3), fieldIds))
         MapType.ofRequired(keyType.fieldId(), valueType.fieldId(), keyType.`type`(), valueType.`type`())
 
       case binding =>

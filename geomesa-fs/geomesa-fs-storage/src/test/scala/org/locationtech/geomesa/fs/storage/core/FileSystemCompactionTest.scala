@@ -17,16 +17,15 @@ import org.apache.iceberg.exceptions.ValidationException
 import org.apache.iceberg.hadoop.HadoopTables
 import org.apache.iceberg.io.FileIO
 import org.apache.iceberg.parquet.Parquet
-import org.apache.iceberg.{DataFile, DeleteFile, ManifestFiles, PartitionSpec, Snapshot, Table, TableProperties}
+import org.apache.iceberg._
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.io.LocalInputFile
 import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergCatalog, IcebergParquetScan, SimpleFeatureIcebergSchema}
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
+import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergCatalog, IcebergParquetScan, SimpleFeatureIcebergSchema}
 import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.VisibilityMetadata
 import org.locationtech.geomesa.security.{AuthsParam, SecurityUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -46,7 +45,7 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
     UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("geomesa-compaction-test"))
     val directory = Files.createTempDirectory("geomesa-compaction")
     val sft = SimpleFeatureTypes.createType("compact", "name:String,*geom:Point:srid=4326")
-    val schema = SimpleFeatureIcebergSchema.create(sft, GeometryEncoding.GeoParquetWkb)
+    val schema = SimpleFeatureIcebergSchema.create(sft)
     val properties = IcebergCatalog.sftTableProperties(sft) ++ Map(TableProperties.FORMAT_VERSION -> formatVersion.toString)
     val table = new HadoopTables(new Configuration()).create(schema, PartitionSpec.unpartitioned(),
       properties.asJava, directory.resolve("table").toUri.toString)

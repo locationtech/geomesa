@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.specs2.mutable.SpecificationWithJUnit
@@ -44,13 +43,13 @@ class IcebergColumnSpecTest extends SpecificationWithJUnit {
   "SimpleFeatureIcebergSchema" should {
 
     "write no column docs at all" >> {
-      val columns = SimpleFeatureIcebergSchema.create(sft, GeoParquetWkb).columns().asScala
+      val columns = SimpleFeatureIcebergSchema.create(sft).columns().asScala
       columns must not(beEmpty)
       forall(columns)(_.doc() must beNull)
     }
 
     "keep the nested shape in the iceberg struct" >> {
-      val schema = SimpleFeatureIcebergSchema.create(sft, GeoParquetWkb)
+      val schema = SimpleFeatureIcebergSchema.create(sft)
       val field = schema.columns().asScala.find(_.name == "identifiers").orNull
       field must not(beNull)
       // a variant here would mean the structural definition never reached the schema
