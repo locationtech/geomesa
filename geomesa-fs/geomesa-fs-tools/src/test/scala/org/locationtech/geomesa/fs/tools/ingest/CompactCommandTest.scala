@@ -15,7 +15,6 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.core.Metadata
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
 import org.locationtech.geomesa.fs.tools.ingest.container.FsContainerTest
-import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -94,7 +93,6 @@ class CompactCommandTest extends SpecificationWithJUnit with FsContainerTest {
     "run successfully" in {
       val command = new FsCompactCommand()
       command.params.featureName = sft.getTypeName
-      command.params.runMode = RunModes.Distributed.toString
       // Container endpoints change between test executions while the S3 bucket name stays the same.
       command.params.configuration = (configs + ("fs.s3a.impl.disable.cache" -> "true")).toList.asJava
       command.execute() must not(throwAn[Exception])
@@ -119,26 +117,12 @@ class CompactCommandTest extends SpecificationWithJUnit with FsContainerTest {
       }
     }
 
-    "run successfully in local mode" in {
-      val command = new FsCompactCommand()
-      command.params.featureName = sft.getTypeName
-      command.params.runMode = RunModes.Local.toString
-      // Container endpoints change between test executions while the S3 bucket name stays the same.
-      command.params.configuration = (configs + ("fs.s3a.impl.disable.cache" -> "true")).toList.asJava
-      command.execute() must not(throwAn[Exception])
-      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
-        ds.storage(sft.getTypeName).metadata.files().scan() must haveLength(3)
-        ds.getFeatureSource(sft.getTypeName).getCount(Query.ALL) mustEqual numFeatures
-      }
-    }
-
     "run successfully with target file size" in {
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         Metadata.set(ds.storage(sft.getTypeName).table, Metadata.TargetFileSize, targetFileSize.toString)
       }
       val command = new FsCompactCommand()
       command.params.featureName = sft.getTypeName
-      command.params.runMode = RunModes.Distributed.toString
       // Container endpoints change between test executions while the S3 bucket name stays the same.
       command.params.configuration = (configs + ("fs.s3a.impl.disable.cache" -> "true")).toList.asJava
       command.execute() must not(throwAn[Exception])

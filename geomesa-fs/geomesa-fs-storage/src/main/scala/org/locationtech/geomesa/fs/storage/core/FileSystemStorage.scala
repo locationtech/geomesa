@@ -141,7 +141,7 @@ case class FileSystemStorage(
     val configured = QueryRunner.configureQuery(sft, query)
     val filter = Option(configured.getFilter).getOrElse(Filter.INCLUDE)
     val icebergFilter = IcebergFilterConverter(schema, schemes, filter)
-    val visFilter = VisibilityUtils.visible(authProvider)
+    val visFilter = VisibilityUtils.visible(authProvider) // TODO can optimize out on a per-file basis based on metadata
     val transform = configured.getHints.getTransform
     val includeFids = configured.getHints.isIncludeFid
     val sort = configured.getHints.getSortFields
@@ -242,6 +242,7 @@ case class FileSystemStorage(
             }
           }
         } else {
+          // TODO can read vis metadata from the footer and potentially apply the file-level op
           remainingFiles += file.location()
         }
       }

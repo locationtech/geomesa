@@ -14,22 +14,14 @@ import org.apache.iceberg.hadoop.HadoopCatalog
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
+import org.locationtech.geomesa.fs.tools.ingest.LocalCompactionCommandTest.LocalCommandCompactionCatalog
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.tools.Command.CommandException
-import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.SpecificationWithJUnit
 
 import java.nio.file.Files
-
-/** Supplies Hadoop configuration for a filesystem-only test catalog. */
-class LocalCommandCompactionCatalog extends HadoopCatalog {
-  override def initialize(name: String, properties: java.util.Map[String, String]): Unit = {
-    setConf(new Configuration())
-    super.initialize(name, properties)
-  }
-}
 
 class LocalCompactionCommandTest extends SpecificationWithJUnit {
 
@@ -71,7 +63,6 @@ class LocalCompactionCommandTest extends SpecificationWithJUnit {
     command.params.featureName = "compact"
     command.params.configuration = config.toList.asJava
     command.params.threads = 2
-    command.params.runMode = RunModes.Local.toString
     command.execute()
   }
 
@@ -106,6 +97,17 @@ class LocalCompactionCommandTest extends SpecificationWithJUnit {
       run(config) must not(throwAn[Exception])
       storage.table.refresh()
       storage.metadata.files().scan() must beEmpty
+    }
+  }
+}
+
+object LocalCompactionCommandTest {
+
+  /** Supplies Hadoop configuration for a filesystem-only test catalog. */
+  class LocalCommandCompactionCatalog extends HadoopCatalog {
+    override def initialize(name: String, properties: java.util.Map[String, String]): Unit = {
+      setConf(new Configuration())
+      super.initialize(name, properties)
     }
   }
 }
