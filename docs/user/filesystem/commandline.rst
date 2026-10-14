@@ -49,11 +49,7 @@ Argument                 Description
 ``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
 ``--partitions``         Partitions to compact (omit to compact all partitions)
-``--mode``               One of ``local`` or ``distributed`` (to use map/reduce)
-``--temp-path``          Path to a temp directory used for working files
 ======================== =========================================================
-
-The ``--temp-path`` argument may be useful when working with ``s3`` data, as ``s3`` is slow for incremental writes.
 
 ``generate-partition-filters``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
