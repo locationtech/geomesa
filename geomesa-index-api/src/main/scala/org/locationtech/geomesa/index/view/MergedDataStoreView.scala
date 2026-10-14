@@ -18,7 +18,7 @@ import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues, andF
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
-import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.MergedSourceSft
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.{MergedSourceSft, TypeOption}
 import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
 import org.locationtech.geomesa.index.view.MergedQueryRunner.{DataStoreQueryable, Queryable}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -129,12 +129,12 @@ object MergedDataStoreView extends LazyLogging {
    * A merged object, with associated filters
    *
    * @param source object
-   * @param sourceFilter arbitrary filter
-   * @param from start date filter
-   * @param to end date filter
+   * @param sourceFilter arbitrary filter, keyed by type name
+   * @param from start date filter, keyed by type name
+   * @param to end date filter, keyed by type name
    * @tparam T type binding
    */
-  case class MergedSource[T](source: T, sourceFilter: Option[Filter] = None, from: Option[DateFilter] = None, to: Option[DateFilter] = None) {
+  case class MergedSource[T](source: T, sourceFilter: TypeOption[Filter], from: TypeOption[DateFilter], to: TypeOption[DateFilter]) {
 
     import FilterHelper.ff
 
@@ -165,9 +165,9 @@ object MergedDataStoreView extends LazyLogging {
      */
     def filter(typeName: String, base: Filter, now: Instant)(implicit ev: MergedSourceSft[T]): Filter = {
       val dtg = dtgField(ev, typeName)
-      val fromFilter = from.map(d => ff.greaterOrEqual(ff.property(dtg), ff.literal(d.toDate(now))))
-      val toFilter = to.map(d => ff.less(ff.property(dtg), ff.literal(d.toDate(now))))
-      val storeFilter = FilterHelper.filterListAsAnd(sourceFilter.toSeq ++ fromFilter ++ toFilter)
+      val fromFilter = from(typeName).map(d => ff.greaterOrEqual(ff.property(dtg), ff.literal(d.toDate(now))))
+      val toFilter = to(typeName).map(d => ff.less(ff.property(dtg), ff.literal(d.toDate(now))))
+      val storeFilter = FilterHelper.filterListAsAnd(sourceFilter(typeName).toSeq ++ fromFilter ++ toFilter)
       storeFilter match {
         case None => base
         case Some(f) if base == Filter.INCLUDE => f
@@ -203,6 +203,24 @@ object MergedDataStoreView extends LazyLogging {
   }
 
   object MergedSource {
+
+    /**
+     * Per feature-type lookup
+     *
+     * @param byTypeName map of type names to values
+     * @param default default for type names not specified in the map
+     * @tparam T type binding
+     */
+    class TypeOption[T](byTypeName: Map[String, T], default: Option[T]) {
+      def apply(typeName: String): Option[T] = byTypeName.get(typeName).orElse(default)
+    }
+
+    object TypeOption {
+      def apply[T](byTypeName: Map[String, T], default: T): TypeOption[T] = new TypeOption[T](byTypeName, Option(default))
+      def apply[T](default: T): TypeOption[T] = new TypeOption[T](Map.empty, Option(default))
+      def apply[T](byTypeName: Map[String, T]): TypeOption[T] = new TypeOption[T](byTypeName, None)
+      def empty[T]: TypeOption[T] = new TypeOption(Map.empty, None)
+    }
 
     /**
      * Helper for extracting a feature type from a merged source

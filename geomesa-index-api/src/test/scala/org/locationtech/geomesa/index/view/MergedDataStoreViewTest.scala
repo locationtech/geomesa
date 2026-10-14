@@ -19,7 +19,7 @@ import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.stats.impl.CountStat
 import org.locationtech.geomesa.index.view.MergedDataStoreView.DateFilter.{RelativeDate, StaticDate}
-import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.MergedSourceSft
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.{MergedSourceSft, TypeOption}
 import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource}
 import org.locationtech.geomesa.index.view.MergedDataStoreViewTest.CountingTaskDecorator
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -75,7 +75,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
     store.getFeatureReader(ArgumentMatchers.any(), ArgumentMatchers.any()) returns emptyReader()
     val fs = featureSource(i)
     store.getFeatureSource(ArgumentMatchers.anyString()) returns fs
-    MergedSource(store, Some(filter), None, None)
+    MergedSource(store, TypeOption(filter), TypeOption.empty, TypeOption.empty)
   }
 
   // standardizes filters so that comparisons work as expected for non-equals but equivalent values
@@ -92,7 +92,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
       foreach(stores) { store =>
         val captor = ArgumentCaptor.forClass(classOf[Query])
         there was one(store.source).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
-        captor.getValue.getFilter mustEqual store.sourceFilter.orNull
+        captor.getValue.getFilter mustEqual store.sourceFilter("").orNull
       }
     }
 
@@ -108,7 +108,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
         val captor = ArgumentCaptor.forClass(classOf[Query])
         there was noDates.size.times(store.source).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
         foreach(captor.getAllValues.asScala.map(_.getFilter).zip(noDates)) { case (actual, expected) =>
-          compareFilters(actual, andFilters(Seq(store.sourceFilter.orNull, expected)))
+          compareFilters(actual, andFilters(Seq(store.sourceFilter("").orNull, expected)))
         }
       }
     }
@@ -123,7 +123,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
         val captor = ArgumentCaptor.forClass(classOf[Query])
         there was one(store.source).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
         decomposeAnd(FastFilterFactory.optimize(sft, captor.getValue.getFilter)) must
-          containTheSameElementsAs(decomposeAnd(FastFilterFactory.optimize(sft, andFilters(Seq(before, store.sourceFilter.orNull)))))
+          containTheSameElementsAs(decomposeAnd(FastFilterFactory.optimize(sft, andFilters(Seq(before, store.sourceFilter("").orNull)))))
       }
       foreach(stores.drop(1)) { store =>
         val captor = ArgumentCaptor.forClass(classOf[Query])
@@ -146,7 +146,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
       foreach(stores.drop(2)) { store =>
         val captor = ArgumentCaptor.forClass(classOf[Query])
         there was one(store.source).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
-        compareFilters(captor.getValue.getFilter, andFilters(Seq(after, store.sourceFilter.orNull)))
+        compareFilters(captor.getValue.getFilter, andFilters(Seq(after, store.sourceFilter("").orNull)))
       }
     }
 
@@ -159,7 +159,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
       foreach(stores) { store =>
         val captor = ArgumentCaptor.forClass(classOf[Query])
         there was one(store.source).getFeatureReader(captor.capture(), ArgumentMatchers.eq(Transaction.AUTO_COMMIT))
-        compareFilters(captor.getValue.getFilter, andFilters(Seq(after, store.sourceFilter.orNull)))
+        compareFilters(captor.getValue.getFilter, andFilters(Seq(after, store.sourceFilter("").orNull)))
       }
     }
 
@@ -250,7 +250,8 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
         override def sft(source: AnyRef, typeName: String): SimpleFeatureType = MergedDataStoreViewTest.this.sft
       }
       def getFilter(f: String, s: DateFilter, e: DateFilter, merged: Filter = Filter.INCLUDE): Filter =
-        MergedSource[AnyRef](null, Option(f).map(ECQL.toFilter), Option(s), Option(e)).filter(sft.getTypeName, merged, now)(ev)
+        MergedSource[AnyRef](null, TypeOption(Option(f).map(ECQL.toFilter).orNull), TypeOption(s), TypeOption(e))
+          .filter(sft.getTypeName, merged, now)(ev)
 
       compareFilters(
         getFilter("name = 'alice'", StaticDate("2022-02-01T00:00:00.000Z"), StaticDate("2022-02-02T00:00:00.000Z")),

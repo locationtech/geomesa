@@ -11,8 +11,10 @@ package org.locationtech.geomesa.index.view
 import com.typesafe.config._
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi, DataStoreFinder}
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.TypeOption
 import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -70,12 +72,11 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
         val storeParams = new java.util.HashMap[String, AnyRef](paramConf.root().unwrapped())
         // allow for unquoted keys
         storeParams.putAll(paramConf.toStringMap().asJava)
-        val filter = try { StoreFilterParam.lookupOpt(storeParams).map(ECQL.toFilter) } catch {
-          case NonFatal(e) =>
-            throw new IllegalArgumentException(s"Invalid store filter '${storeParams.get(StoreFilterParam.key)}'", e)
-        }
-        val dateOffsetStart = DateOffsetStartParam.lookupOpt(storeParams).map(DateFilter.apply)
-        val dateOffsetEnd = DateOffsetEndParam.lookupOpt(storeParams).map(DateFilter.apply)
+
+        val filter = parseTypeOptions(StoreFilterParam, parseFilter, storeParams)
+        val dateOffsetStart = parseTypeOptions(DateOffsetStartParam, DateFilter.apply, storeParams)
+        val dateOffsetEnd = parseTypeOptions(DateOffsetEndParam, DateFilter.apply, storeParams)
+
         Try(DataStoreFinder.getDataStore(storeParams)) match {
           case Success(null)  => throw error
           case Success(store) => stores += MergedSource(store, filter, dateOffsetStart, dateOffsetEnd)
@@ -105,6 +106,8 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 }
 
 object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespaceParams {
+
+  import scala.collection.JavaConverters._
 
   override val DisplayName: String = "Merged DataStore View (GeoMesa)"
   override val Description: String = "A merged, read-only view of multiple data stores"
@@ -164,4 +167,17 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =
     params.containsKey(ConfigParam.key) || ConfigLoaderParam.exists(p => params.containsKey(p.key))
+
+  private def parseFilter(value: Any): Filter = {
+    try { ECQL.toFilter(value.toString) } catch {
+      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid store filter '$value'", e)
+    }
+  }
+
+  private def parseTypeOptions[T](param: GeoMesaParam[String], parser: String => T, params: java.util.Map[String, _]): TypeOption[T] = {
+    val prefix = param.key + "."
+    val types = params.asScala.collect { case (k, v) if k.startsWith(prefix) => k.substring(prefix.length) -> parser(v.toString) }
+    val default = param.lookupOpt(params).map(parser)
+    new TypeOption[T](types.toMap, default)
+  }
 }
