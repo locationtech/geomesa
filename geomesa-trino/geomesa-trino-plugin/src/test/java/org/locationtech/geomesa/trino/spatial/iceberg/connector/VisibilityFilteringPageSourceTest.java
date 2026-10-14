@@ -101,6 +101,21 @@ class VisibilityFilteringPageSourceTest {
         assertThat(source.getMetrics().getMetrics().get("Visibility fallback value evaluations")).isEqualTo(new LongCount(4));
     }
 
+    @Test void emptyAuthorizationsSeeOnlyNullAndEmptyVisibility() {
+        BlockBuilder builder = VarcharType.VARCHAR.createBlockBuilder(null, 5);
+        for (String value : new String[]{"A", "", null, "A|B", "A&"}) {
+            if (value == null) builder.appendNull(); else VarcharType.VARCHAR.writeString(builder, value);
+        }
+        var source = new VisibilityFilteringPageSource(new OneShotPageSource(new StubSourcePage(5, builder.build())),
+            1, 0, auths(""), false);
+        SourcePage result = source.getNextSourcePage();
+        assertThat(result.getPositionCount()).isEqualTo(2);
+        assertThat(VarcharType.VARCHAR.getSlice(result.getBlock(0), 0).toStringUtf8()).isEmpty();
+        assertThat(result.getBlock(0).isNull(1)).isTrue();
+        assertThat(VisibilityPageSourceProvider.allVisible(singleton("", true), auths(""))).isTrue();
+        assertThat(VisibilityPageSourceProvider.allVisible(singleton("A", false), auths(""))).isFalse();
+    }
+
     @Test void bypassDoesNotMaterializeVisibility() {
         SourcePage page = new StubSourcePage(100) {
             @Override public Block getBlock(int channel) { throw new AssertionError("must remain lazy"); }

@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class VisibilityFooterMetadataTest {
     private static final String SUMMARY = """
-        {"version":1,"fieldId":2,"scope":"file","rowCount":6,"allOf":["A","A&B","C|D"]}
+        {"version":1,"fieldId":2,"scope":"file","rowCount":6,"allOf":"A&B&(C|D)","anyOf":"A|C|D"}
         """;
 
     private static boolean visible(String summary, String... auths) {
@@ -27,7 +27,7 @@ class VisibilityFooterMetadataTest {
 
     private static VisibilityFooterReader.Result decision(String allOf, String anyOf, String... auths) {
         var json = new com.google.gson.JsonObject();
-        json.addProperty("version", 2);
+        json.addProperty("version", 1);
         json.addProperty("fieldId", 2);
         json.addProperty("scope", "file");
         json.addProperty("rowCount", 6);
@@ -51,6 +51,8 @@ class VisibilityFooterMetadataTest {
     }
 
     @Test void unrestrictedRowsPreventPruning() {
+        assertThat(decision("A&B", "", ""))
+            .isEqualTo(VisibilityFooterReader.Result.FILTER_REQUIRED);
         assertThat(decision("A&B", "", "C")).isEqualTo(VisibilityFooterReader.Result.FILTER_REQUIRED);
         assertThat(decision("", "", "")).isEqualTo(VisibilityFooterReader.Result.ALL_VISIBLE);
     }
@@ -63,12 +65,12 @@ class VisibilityFooterMetadataTest {
     }
 
     @Test void malformedOrAndUnsupportedShapesCannotSupplyARejectionProof() {
-        String v2 = """
-            {"version":2,"fieldId":2,"scope":"file","rowCount":6,"allOf":"A&B","anyOf":"A|B"}
+        String summary = """
+            {"version":1,"fieldId":2,"scope":"file","rowCount":6,"allOf":"A&B","anyOf":"A|B"}
             """;
-        for (String invalid : List.of(v2.replace("\"A|B\"", "\"A|\""),
-                v2.replace("\"A&B\"", "\"A&\""), v2.replace("\"A|B\"", "null"),
-                v2.replace("\"A|B\"", "[]"), v2.replace("\"version\":2", "\"version\":3"))) {
+        for (String invalid : List.of(summary.replace("\"A|B\"", "\"A|\""),
+                summary.replace("\"A&B\"", "\"A&\""), summary.replace("\"A|B\"", "null"),
+                summary.replace("\"A|B\"", "[]"), summary.replace("\"version\":1", "\"version\":2"))) {
             assertThat(VisibilityFooterMetadata.parse(invalid, 2, 6)).isEmpty();
         }
     }
@@ -76,7 +78,7 @@ class VisibilityFooterMetadataTest {
     @Test void rejectsExcessiveStructuralNestingButAcceptsQuotedParentheses() {
         String deep = "(".repeat(10000) + "A" + ")".repeat(10000);
         var json = new com.google.gson.JsonObject();
-        json.addProperty("version", 2);
+        json.addProperty("version", 1);
         json.addProperty("fieldId", 2);
         json.addProperty("scope", "file");
         json.addProperty("rowCount", 6);
@@ -100,12 +102,12 @@ class VisibilityFooterMetadataTest {
     }
 
     @Test void unrestrictedSummaryAcceptsEmptyAuthorizations() {
-        assertThat(visible(SUMMARY.replace("[\"A\",\"A&B\",\"C|D\"]", "[]"), "")).isTrue();
+        assertThat(visible(SUMMARY.replace("A&B&(C|D)", "").replace("A|C|D", ""), "")).isTrue();
     }
 
     @Test void failsClosedOnMalformedExpressionsAndPreservesWhitespace() {
-        assertThat(visible(SUMMARY.replace("\"A&B\"", "\"A&\""), "A,B,C")).isFalse();
-        assertThat(visible(SUMMARY.replace("\"A&B\"", "\" A \""), "A,B,C")).isFalse();
+        assertThat(visible(SUMMARY.replace("\"A&B&(C|D)\"", "\"A&\""), "A,B,C")).isFalse();
+        assertThat(visible(SUMMARY.replace("\"A&B&(C|D)\"", "\" A \""), "A,B,C")).isFalse();
     }
 
     @Test void rejectsIncompleteUnsupportedAndIncorrectlyTypedMetadata() {
@@ -117,7 +119,8 @@ class VisibilityFooterMetadataTest {
                 SUMMARY.replace("\"rowCount\":6", "\"rowCount\":6.5"),
                 SUMMARY.replace("\"rowCount\":6", "\"rowCount\":\"6\""),
                 SUMMARY.replace("\"rowCount\":6", "\"rowCount\":18446744073709551622"),
-                SUMMARY.replace("\"A&B\"", "null"), SUMMARY.replace("\"A&B\"", "true"))) {
+                SUMMARY.replace("\"A&B&(C|D)\"", "[\"A\",\"B\"]"),
+                SUMMARY.replace("\"A&B&(C|D)\"", "null"), SUMMARY.replace("\"A&B&(C|D)\"", "true"))) {
             assertThat(visible(invalid, "A,B,C")).as(invalid).isFalse();
         }
         assertThat(visible(null, "A,B,C")).isFalse();
@@ -125,6 +128,6 @@ class VisibilityFooterMetadataTest {
 
     @Test void rejectsOversizedMetadata() {
         assertThat(visible(" ".repeat(VisibilityFooterMetadata.MAX_BYTES) + SUMMARY, "A,B,C")).isFalse();
-        assertThat(visible(SUMMARY.replace("\"A&B\"", "\"\u20ac".repeat(23000) + "\""), "A,B,C")).isFalse();
+        assertThat(visible(SUMMARY.replace("\"A&B&(C|D)\"", "\"\u20ac".repeat(23000) + "\""), "A,B,C")).isFalse();
     }
 }

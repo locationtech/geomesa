@@ -139,7 +139,7 @@ class CustomFooterParquetTest {
                             0, List.of(), deletes ? List.of(delete) : List.of(), SplitWeight.standard(), TupleDomain.all(), Optional.empty(),
                             OptionalLong.of(1), OptionalLong.empty(), Optional.empty());
                         var provider = factory.create(bbox, useFooter);
-                        for (List<String> auths : List.of(List.of("A,B,C"), List.of("A,B,C", "A,C"))) {
+                        for (List<String> auths : List.of(List.of("A,B,C"), List.of("A,B,C", "A,C"), List.of(""))) {
                             for (List<ColumnHandle> columns : List.<List<ColumnHandle>>of(List.of(NAME), List.of(NAME, VIS))) {
                                 var handle = new VisibilityTableHandle(TABLE, VIS, auths);
                                 try (var source = provider.createPageSource(null, session(), split, handle, credentials,
@@ -153,11 +153,15 @@ class CustomFooterParquetTest {
                                             names.add(VarcharType.VARCHAR.getSlice(page.getBlock(0), position).toStringUtf8());
                                         }
                                     }
-                                    boolean bypass = auths.size() == 1;
-                                    List<String> expected = bypass
+                                    // The empty literal is emitted for an empty authorization set,
+                                    // whether resolved from extra credentials or configured mappings.
+                                    boolean noAuthorizations = auths.equals(List.of(""));
+                                    boolean bypass = auths.size() == 1 && !noAuthorizations;
+                                    List<String> expected = noAuthorizations ? List.of("row-4", "row-5") : bypass
                                         ? List.of("row-0", "row-1", "row-2", "row-3", "row-4", "row-5")
                                         : List.of("row-0", "row-2", "row-3", "row-4", "row-5");
-                                    assertThat(names).containsExactlyElementsOf(deletes ? expected.subList(1, expected.size()) : expected);
+                                    assertThat(names).containsExactlyElementsOf(
+                                        deletes && !noAuthorizations ? expected.subList(1, expected.size()) : expected);
                                     assertThat(source.getMetrics().getMetrics().get("Visibility footer bypassed splits").toString())
                                         .contains(bypass && useFooter ? "1" : "0");
                                 }

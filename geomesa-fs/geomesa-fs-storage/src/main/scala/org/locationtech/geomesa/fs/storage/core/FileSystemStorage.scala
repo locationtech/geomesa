@@ -366,9 +366,7 @@ case class FileSystemStorage(
     override def compactManifests(): Unit = table.rewriteManifests().clusterBy(f => partition(f).toString).commit()
 
     override def compact(partition: Partition): Unit = {
-      val plans = FileSystemCompaction.plan(FileSystemStorage.this, Seq(partition), sizer.targetSize)
-      val outputs = plans.map(p => FileSystemCompaction.prepare(FileSystemStorage.this, p, sizer.targetSize))
-      FileSystemCompaction.commit(FileSystemStorage.this, plans, outputs)
+      new FileSystemCompaction(FileSystemStorage.this, Seq(partition), sizer.targetSize).compact()
     }
 
     override def partition(file: DataFile): Partition =

@@ -51,7 +51,7 @@ class VisibilityMetadata(fieldId: Int) {
         // Validate all operands above even when an unrestricted row makes the OR rollup true.
         val anyOf = if (unrestricted) "" else AccessExpression.of(operands.mkString("|"), true).getExpression
         val json = new JsonObject()
-        json.addProperty("version", 2)
+        json.addProperty("version", 1)
         json.addProperty("fieldId", fieldId)
         json.addProperty("scope", "file")
         json.addProperty("rowCount", rows)

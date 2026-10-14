@@ -17,28 +17,30 @@ import org.apache.accumulo.access.AccessExpression;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Optional;
 
-/** Complete writer proofs. Version 1 supports bypass; version 2 adds normalized AND/OR rollups. */
+/** Version 1 file-wide visibility proofs using normalized AND/OR rollups. */
 final class VisibilityFooterMetadata {
     static final String METADATA_KEY = "geomesa.visibility.rollup";
     static final int MAX_BYTES = 64 * 1024;
-    static final int MAX_EXPRESSIONS = 1024;
     static final int MAX_DEPTH = 128;
 
     private VisibilityFooterMetadata() {}
 
-    record Summary(List<Slice> allOf, Optional<Slice> anyOf, long rows) {
-        VisibilityFooterReader.Result check(List<Slice> auths) {
-            if (auths.isEmpty()) return VisibilityFooterReader.Result.FILTER_REQUIRED;
+    record Summary(Slice allOf, Slice anyOf, long rows) {
+        VisibilityFooterReader.Result check(List<Slice> authorizationContexts) {
+            // Each context contains a user's comma-delimited authorizations. A user with no
+            // authorizations has an empty string context and can still see NULL/empty visibility.
+            // An empty outer list means no absorbed predicates; the normal scan path excludes
+            // that case in SpatialConnectorMetadata and VisibilityTableHandle.
+            if (authorizationContexts.isEmpty()) return VisibilityFooterReader.Result.FILTER_REQUIRED;
             if (rows == 0) return VisibilityFooterReader.Result.NONE_VISIBLE;
             // Each predicate's context is independent: failure for any one proves that no row
             // can satisfy their conjunction. Passing each OR does not prove a common visible row.
-            if (anyOf.isPresent() && !VisibilityPageSourceProvider.visible(anyOf.get(), auths)) {
+            if (!VisibilityPageSourceProvider.visible(anyOf, authorizationContexts)) {
                 return VisibilityFooterReader.Result.NONE_VISIBLE;
             }
-            return allOf.stream().allMatch(expression -> VisibilityPageSourceProvider.visible(expression, auths))
+            return VisibilityPageSourceProvider.visible(allOf, authorizationContexts)
                 ? VisibilityFooterReader.Result.ALL_VISIBLE : VisibilityFooterReader.Result.FILTER_REQUIRED;
         }
     }
@@ -55,29 +57,17 @@ final class VisibilityFooterMetadata {
         try {
             JsonObject json = JsonParser.parseString(encoded).getAsJsonObject();
             long version = number(json.get("version"));
-            if ((version != 1 && version != 2) || number(json.get("fieldId")) != fieldId
+            if (version != 1 || number(json.get("fieldId")) != fieldId
                     || !"file".equals(string(json.get("scope")))
                     || number(json.get("rowCount")) != fileRows || fileRows < 0) return Optional.empty();
-            if (version == 2) {
-                String allOf = string(json.get("allOf"));
-                String anyOf = string(json.get("anyOf"));
-                if (!withinDepthLimit(allOf) || !withinDepthLimit(anyOf)) return Optional.empty();
-                // A malformed OR must not be interpreted as FALSE: that would incorrectly prune
-                // files containing visible rows. Reject the whole optional summary instead.
-                AccessExpression.validate(allOf);
-                AccessExpression.validate(anyOf);
-                return Optional.of(new Summary(List.of(Slices.utf8Slice(allOf)),
-                    Optional.of(Slices.utf8Slice(anyOf)), fileRows));
-            }
-            var expressions = json.getAsJsonArray("allOf");
-            if (expressions == null || expressions.size() > MAX_EXPRESSIONS) return Optional.empty();
-            List<Slice> allOf = new ArrayList<>();
-            for (JsonElement expression : expressions) {
-                String value = string(expression);
-                if (!withinDepthLimit(value)) return Optional.empty();
-                allOf.add(Slices.utf8Slice(value));
-            }
-            return Optional.of(new Summary(List.copyOf(allOf), Optional.empty(), fileRows));
+            String allOf = string(json.get("allOf"));
+            String anyOf = string(json.get("anyOf"));
+            if (!withinDepthLimit(allOf) || !withinDepthLimit(anyOf)) return Optional.empty();
+            // A malformed OR must not be interpreted as FALSE: that would incorrectly prune
+            // files containing visible rows. Reject the whole optional summary instead.
+            AccessExpression.validate(allOf);
+            AccessExpression.validate(anyOf);
+            return Optional.of(new Summary(Slices.utf8Slice(allOf), Slices.utf8Slice(anyOf), fileRows));
         } catch (RuntimeException e) {
             return Optional.empty();
         } catch (StackOverflowError e) {

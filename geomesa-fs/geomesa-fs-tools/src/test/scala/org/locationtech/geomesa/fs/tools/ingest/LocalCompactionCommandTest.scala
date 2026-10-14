@@ -9,15 +9,14 @@
 package org.locationtech.geomesa.fs.tools.ingest
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.iceberg.hadoop.HadoopCatalog
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
-import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.ParquetCompactionJob
-import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
-import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
+import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.tools.Command.CommandException
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.SpecificationWithJUnit
@@ -25,35 +24,33 @@ import org.specs2.mutable.SpecificationWithJUnit
 import java.nio.file.Files
 
 /** Supplies Hadoop configuration for a filesystem-only test catalog. */
-class LocalCompactionCatalog extends HadoopCatalog {
+class LocalCommandCompactionCatalog extends HadoopCatalog {
   override def initialize(name: String, properties: java.util.Map[String, String]): Unit = {
     setConf(new Configuration())
     super.initialize(name, properties)
   }
 }
 
-class DistributedCompactionTest extends SpecificationWithJUnit {
+class LocalCompactionCommandTest extends SpecificationWithJUnit {
 
   import scala.collection.JavaConverters._
 
   sequential
 
-  private def withStorage[T](test: (FileSystemStorage, Path) => T, partitions: Seq[String] = Seq.empty): T = {
+  private def withStorage[T](test: (FileSystemStorage, Map[String, String]) => T, partitions: Seq[String] = Seq.empty): T = {
     UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("geomesa-compaction-test"))
-    val directory = Files.createTempDirectory("geomesa-distributed-compaction")
+    val directory = Files.createTempDirectory("geomesa-local-compaction")
     val config = Map(
-      "catalog-impl" -> classOf[LocalCompactionCatalog].getName,
+      "catalog-impl" -> classOf[LocalCommandCompactionCatalog].getName,
       "io-impl" -> "org.apache.iceberg.hadoop.HadoopFileIO",
       "warehouse" -> directory.resolve("warehouse").toUri.toString,
       "iceberg.namespace" -> "geomesa",
-      "mapreduce.framework.name" -> "local",
-      "fs.defaultFS" -> "file:///",
-      "mapreduce.map.maxattempts" -> "1")
+      "fs.defaultFS" -> "file:///")
     try {
       WithClose(StorageCatalog(config)) { catalog =>
         val sft = SimpleFeatureTypes.createType("compact", "name:String,*geom:Point:srid=4326")
         WithClose(catalog.create(sft, partitions)) { storage =>
-          test(storage, new Path(directory.resolve("results").toUri))
+          test(storage, config)
         }
       }
     } finally {
@@ -69,54 +66,46 @@ class DistributedCompactionTest extends SpecificationWithJUnit {
     }
   }
 
-  private val status = new StatusCallback {
-    override def apply(prefix: String, progress: Float, counters: Seq[(String, Long)], done: Boolean): Unit = {}
-    override def reset(): Unit = {}
+  private def run(config: Map[String, String]): Unit = {
+    val command = new FsCompactCommand()
+    command.params.featureName = "compact"
+    command.params.configuration = config.toList.asJava
+    command.params.threads = 2
+    command.params.runMode = RunModes.Local.toString
+    command.execute()
   }
 
-  private def run(storage: FileSystemStorage, path: Path): JobResult =
-    new ParquetCompactionJob().run(storage, storage.metadata.partitions(), Some(path), Seq.empty, Iterator.empty, status)
-
-  "Distributed compaction" should {
-    "stage worker outputs and publish exactly one replacement snapshot" in withStorage { (storage, path) =>
-      append(storage, "one")
-      append(storage, "two")
-      val snapshot = storage.table.currentSnapshot().snapshotId()
-      val inputs = storage.metadata.files().scan().map(_.file().location())
-      run(storage, path) must beAnInstanceOf[JobSuccess]
-      storage.table.refresh()
-      storage.table.currentSnapshot().parentId().longValue() mustEqual snapshot
-      storage.metadata.files().scan() must haveLength(1)
-      storage.metadata.files().scan().head.file().recordCount() mustEqual 2L
-      foreach(inputs)(input => storage.table.io().newInputFile(input).exists() must beTrue)
-    }
-
-    "publish all partition replacements in the same snapshot" in withStorage({ (storage, path) =>
+  "Local compaction command" should {
+    "compact all partitions in local mode and retain their rows" in withStorage({ (storage, config) =>
       append(storage, "one-first", "one")
       append(storage, "one-second", "one")
       append(storage, "two-first", "two")
       append(storage, "two-second", "two")
-      val snapshot = storage.table.currentSnapshot().snapshotId()
-      storage.metadata.files().scan() must haveLength(4)
-      run(storage, path) must beAnInstanceOf[JobSuccess]
+      val inputs = storage.metadata.files().scan().map(_.file().location())
+      inputs must haveLength(4)
+      run(config)
       storage.table.refresh()
-      storage.table.currentSnapshot().parentId().longValue() mustEqual snapshot
       val files = storage.metadata.files().scan()
       files must haveLength(2)
       foreach(files)(_.file().recordCount() mustEqual 2L)
+      foreach(inputs)(input => storage.table.io().newInputFile(input).exists() must beTrue)
     }, Seq("attribute:attribute=name"))
 
-    "leave every partition registered when one mapper fails" in withStorage({ (storage, path) =>
-      append(storage, "good")
+    "report reader failures and leave the failed partition registered" in withStorage { (storage, config) =>
       append(storage, "broken")
       val snapshot = storage.table.currentSnapshot().snapshotId()
       val inputs = storage.metadata.files().scan()
-      val input = inputs.find(t => storage.metadata.partition(t.file()).values.exists(_.value == "broken")).get.file().location()
-      storage.table.io().deleteFile(input)
-      run(storage, path) must beAnInstanceOf[JobFailure]
+      storage.table.io().deleteFile(inputs.head.file().location())
+      run(config) must throwA[CommandException]
       storage.table.refresh()
       storage.table.currentSnapshot().snapshotId() mustEqual snapshot
       storage.metadata.files().scan().map(_.file().location()).toSet mustEqual inputs.map(_.file().location()).toSet
-    }, Seq("attribute:attribute=name"))
+    }
+
+    "succeed for an empty table" in withStorage { (storage, config) =>
+      run(config) must not(throwAn[Exception])
+      storage.table.refresh()
+      storage.metadata.files().scan() must beEmpty
+    }
   }
 }

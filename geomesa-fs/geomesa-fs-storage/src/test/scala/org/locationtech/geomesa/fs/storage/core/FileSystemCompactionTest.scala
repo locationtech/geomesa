@@ -175,19 +175,21 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
 
     "keep concurrent appends while replacing only the pinned inputs" in withStorage { storage =>
       append(storage, Seq("a" -> "A"))
-      val plans = FileSystemCompaction.plan(storage, Seq(Partition.None), None)
+      val compaction = new FileSystemCompaction(storage, Seq(Partition.None), None)
+      val plans = compaction.plan()
       append(storage, Seq("new" -> "C"))
-      val outputs = plans.map(FileSystemCompaction.prepare(storage, _, None))
-      FileSystemCompaction.commit(storage, plans, outputs)
+      val outputs = plans.map(compaction.prepare)
+      compaction.commit(plans, outputs)
       visible(storage, "A,B,C") mustEqual Set("a", "new")
     }
 
     "reject concurrent deletes without publishing staged rows" in withStorage { storage =>
       append(storage, Seq("a" -> "A", "b" -> "B"))
-      val plans = FileSystemCompaction.plan(storage, Seq(Partition.None), None)
-      val outputs = plans.map(FileSystemCompaction.prepare(storage, _, None))
+      val compaction = new FileSystemCompaction(storage, Seq(Partition.None), None)
+      val plans = compaction.plan()
+      val outputs = plans.map(compaction.prepare)
       WithClose(storage.getWriter(ECQL.toFilter("name = 'b'"), 1)) { writer => writer.next(); writer.remove() }
-      FileSystemCompaction.commit(storage, plans, outputs) must throwA[ValidationException]
+      compaction.commit(plans, outputs) must throwA[ValidationException]
       visible(storage, "A,B,C") mustEqual Set("a")
     }
 
@@ -195,37 +197,40 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
       append(storage, Seq("a" -> "A"))
       val snapshot = storage.table.currentSnapshot().snapshotId()
       storage.table.updateSpec().addField("name").commit()
-      FileSystemCompaction.plan(storage, Seq(Partition.None), None) must throwAn[IllegalArgumentException]
+      new FileSystemCompaction(storage, Seq(Partition.None), None).plan() must throwAn[IllegalArgumentException]
       val reloaded = storage.copy(schemes = org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
         .load(storage.schema, storage.table.spec()))
-      FileSystemCompaction.plan(reloaded, Seq(Partition.None), None) must throwAn[IllegalArgumentException]
+      new FileSystemCompaction(reloaded, Seq(Partition.None), None).plan() must throwAn[IllegalArgumentException]
       storage.table.currentSnapshot().snapshotId() mustEqual snapshot
     }
 
     "reject a schema change after planning" in withStorage { storage =>
       append(storage, Seq("a" -> "A"))
-      val plan = FileSystemCompaction.plan(storage, Seq(Partition.None), None).head
+      val compaction = new FileSystemCompaction(storage, Seq(Partition.None), None)
+      val plan = compaction.plan().head
       storage.table.updateSchema().addColumn("new", org.apache.iceberg.types.Types.StringType.get()).commit()
-      FileSystemCompaction.prepare(storage, plan, None) must throwAn[IllegalArgumentException]
+      compaction.prepare(plan) must throwAn[IllegalArgumentException]
       storage.metadata.files().scan().head.file().location() mustEqual plan.files.head.location()
     }
 
-    "reject incomplete or inconsistent worker descriptors before committing" in withStorage { storage =>
+    "reject incomplete or inconsistent staged outputs before committing" in withStorage { storage =>
       append(storage, Seq("a" -> "A"))
-      val plans = FileSystemCompaction.plan(storage, Seq(Partition.None), None)
-      val output = FileSystemCompaction.prepare(storage, plans.head, None)
+      val compaction = new FileSystemCompaction(storage, Seq(Partition.None), None)
+      val plans = compaction.plan()
+      val output = compaction.prepare(plans.head)
       val snapshot = storage.table.currentSnapshot().snapshotId()
-      FileSystemCompaction.commit(storage, plans, Seq.empty) must throwAn[IllegalArgumentException]
-      FileSystemCompaction.commit(storage, plans, Seq(output.copy(rows = 99L))) must throwAn[IllegalArgumentException]
+      compaction.commit(plans, Seq.empty) must throwAn[IllegalArgumentException]
+      compaction.commit(plans, Seq(output.copy(rows = 99L))) must throwAn[IllegalArgumentException]
       storage.table.currentSnapshot().snapshotId() mustEqual snapshot
     }
 
     "leave the snapshot untouched if an input cannot be read" in withStorage { storage =>
       append(storage, Seq("a" -> "A"))
-      val plans = FileSystemCompaction.plan(storage, Seq(Partition.None), None)
+      val compaction = new FileSystemCompaction(storage, Seq(Partition.None), None)
+      val plans = compaction.plan()
       val snapshot = storage.table.currentSnapshot().snapshotId()
       storage.table.io().deleteFile(plans.head.files.head.location())
-      FileSystemCompaction.prepare(storage, plans.head, None) must throwA[RuntimeException]
+      compaction.prepare(plans.head) must throwA[RuntimeException]
       storage.table.currentSnapshot().snapshotId() mustEqual snapshot
     }
 

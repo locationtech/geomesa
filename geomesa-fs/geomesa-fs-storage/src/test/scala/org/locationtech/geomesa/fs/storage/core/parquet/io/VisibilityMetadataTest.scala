@@ -109,7 +109,7 @@ class VisibilityMetadataTest extends SpecificationWithJUnit {
             val summary = JsonParser.parseString(metadata.get(VisibilityMetadata.MetadataKey)).getAsJsonObject
             summary.get("rowCount").getAsLong mustEqual expressions.size.toLong
             summary.get("fieldId").getAsInt mustEqual 2
-            summary.get("version").getAsInt mustEqual 2
+            summary.get("version").getAsInt mustEqual 1
             summary.get("scope").getAsString mustEqual "file"
             metadata.size() must beGreaterThan(1)
             val operands = expressions.filter(v => v != null && v.nonEmpty).distinct.map(v => s"($v)")

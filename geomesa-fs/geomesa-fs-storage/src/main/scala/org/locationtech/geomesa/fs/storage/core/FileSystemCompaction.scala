@@ -20,14 +20,19 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 /** Stages complete replacement files before publishing a single validated Iceberg rewrite. */
-object FileSystemCompaction {
+class FileSystemCompaction(storage: FileSystemStorage, partitions: Seq[Partition], target: Option[Long]) {
+
+  import FileSystemCompaction.{Output, Plan}
 
   import scala.collection.JavaConverters._
 
-  case class Plan(snapshotId: Long, schemaId: Int, specId: Int, partition: Partition, files: Seq[DataFile])
-  case class Output(partition: Partition, paths: Seq[String], rows: Long)
+  def compact(): Unit = {
+    val plans = plan()
+    val outputs = plans.map(prepare)
+    commit(plans, outputs)
+  }
 
-  def plan(storage: FileSystemStorage, partitions: Seq[Partition], target: Option[Long]): Seq[Plan] = {
+  private[core] def plan(): Seq[Plan] = {
     storage.table.refresh()
     require(storage.schema.schema.sameSchema(storage.table.schema()), "Reload storage after a table schema change")
     require(storage.partitionSpecId == storage.table.spec().specId(), "Reload storage after a partition spec change")
@@ -46,21 +51,9 @@ object FileSystemCompaction {
     }
   }
 
-  /** Reconstruct a worker's plan from the pinned snapshot, never the current set of files. */
-  def restore(storage: FileSystemStorage, snapshotId: Long, schemaId: Int, specId: Int,
-      partition: Partition, paths: Set[String]): Plan = {
-    validateSchema(storage, schemaId, specId)
-    val files = WithClose(storage.table.newScan().useSnapshot(snapshotId).planFiles()) { tasks =>
-      tasks.asScala.map(_.file().copy()).filter(f => paths.contains(f.location())).toList
-    }
-    require(files.map(_.location()).toSet == paths, "Compaction input files are missing from the planned snapshot")
-    require(files.forall(f => storage.metadata.partition(f) == partition), "Compaction inputs span partitions")
-    Plan(snapshotId, schemaId, specId, partition, files)
-  }
-
   /** Writes all live rows without applying the caller's authorizations. No files are registered here. */
-  def prepare(storage: FileSystemStorage, plan: Plan, target: Option[Long], progress: () => Unit = () => ()): Output = {
-    validateSchema(storage, plan.schemaId, plan.specId)
+  private[core] def prepare(plan: Plan): Output = {
+    validateSchema(plan.schemaId, plan.specId)
     val paths = ArrayBuffer.empty[String]
     val inputs = plan.files.map(_.location()).toSet
     val readSchema = storage.schema.read(None, None, Set.empty).schema
@@ -89,7 +82,6 @@ object FileSystemCompaction {
           }
           writer.write(feature)
           rows += 1
-          progress()
           remaining -= 1
           if (remaining <= 0) {
             closeWriter()
@@ -112,14 +104,14 @@ object FileSystemCompaction {
   }
 
   /** Old files remain available to retained snapshots; snapshot expiration handles their removal. */
-  def commit(storage: FileSystemStorage, plans: Seq[Plan], outputs: Seq[Output]): Unit = {
+  private[core] def commit(plans: Seq[Plan], outputs: Seq[Output]): Unit = {
     if (plans.isEmpty) return
     require(plans.map(_.snapshotId).distinct.size == 1, "Compaction plans must share one snapshot")
     require(outputs.map(_.partition).toSet == plans.map(_.partition).toSet && outputs.size == plans.size,
       "Compaction results must cover every planned partition exactly once")
     require(plans.map(_.schemaId).distinct.size == 1 && plans.map(_.specId).distinct.size == 1,
       "Compaction plans must share one schema and partition spec")
-    validateSchema(storage, plans.head.schemaId, plans.head.specId)
+    validateSchema(plans.head.schemaId, plans.head.specId)
     require(outputs.flatMap(_.paths).distinct.size == outputs.map(_.paths.size).sum,
       "Compaction results contain duplicate output paths")
     val spec = storage.table.specs().get(plans.head.specId)
@@ -129,7 +121,7 @@ object FileSystemCompaction {
         "Compaction result row counts do not match replacement files")
       files
     }
-    validateSchema(storage, plans.head.schemaId, plans.head.specId)
+    validateSchema(plans.head.schemaId, plans.head.specId)
     val rewrite = storage.table.newRewrite().validateFromSnapshot(plans.head.snapshotId)
     plans.flatMap(_.files).foreach(rewrite.deleteFile)
     replacements.foreach(rewrite.addFile)
@@ -138,9 +130,14 @@ object FileSystemCompaction {
     rewrite.commit()
   }
 
-  private def validateSchema(storage: FileSystemStorage, schemaId: Int, specId: Int): Unit = {
+  private def validateSchema(schemaId: Int, specId: Int): Unit = {
     storage.table.refresh()
     require(storage.table.schema().schemaId() == schemaId && storage.table.spec().specId() == specId,
       "Table schema or partition spec changed during compaction")
   }
+}
+
+private[core] object FileSystemCompaction {
+  case class Plan(snapshotId: Long, schemaId: Int, specId: Int, partition: Partition, files: Seq[DataFile])
+  case class Output(partition: Partition, paths: Seq[String], rows: Long)
 }
