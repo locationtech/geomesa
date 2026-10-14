@@ -23,6 +23,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.utils.geotools.ObjectType
@@ -122,7 +123,7 @@ object SimpleFeatureReadSupport {
         val types = ObjectType.selectType(descriptor)
         val materializer =
           if (types.head == ObjectType.GEOMETRY) {
-            geometry(types.last)
+            geometry(types.last, descriptor.getEncoding.fold[GeometryEncoding](GeoParquetWkb)(GeometryEncoding.apply))
           } else if (types.last == ObjectType.JSON) {
             val groupType = schema.messageType.getType(fieldOffset).asGroupType()
             if (descriptor.getJsonSchema().isDefined) {
@@ -187,10 +188,10 @@ object SimpleFeatureReadSupport {
       }
     }
 
-    private def geometry(binding: ObjectType): ValueMaterializer[_ <: Geometry] = {
-      if (schema.geometries == GeometryEncoding.GeoParquetWkb) {
+    private def geometry(binding: ObjectType, encoding: GeometryEncoding): ValueMaterializer[_ <: Geometry] = {
+      if (encoding == GeometryEncoding.GeoParquetWkb) {
         new WkbConverter()
-      } else if (schema.geometries == GeometryEncoding.GeoParquetNative) {
+      } else if (encoding == GeometryEncoding.GeoParquetNative) {
         binding match {
           case ObjectType.POINT           => new PointConverter()
           case ObjectType.LINESTRING      => new GeoParquetNativeLineStringConverter()
@@ -201,7 +202,7 @@ object SimpleFeatureReadSupport {
           case _                          => new WkbConverter()
         }
       } else {
-        throw new UnsupportedOperationException(s"Can't read geometries encoded with '${schema.geometries}'")
+        throw new UnsupportedOperationException(s"Can't read geometries encoded with '$encoding'")
       }
     }
   }

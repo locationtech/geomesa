@@ -192,6 +192,8 @@ object RichAttributeDescriptors extends Conversions {
 
     def getIndexFlags: Seq[String] =
       Option(ad.getUserData.get(OptIndex)).toSeq.flatMap(_.asInstanceOf[String].split(",").map(_.trim))
+
+    def getEncoding: Option[String] = Option(ad.getUserData.get(OptEncoding).asInstanceOf[String])
   }
 
   implicit class RichAttributeTypeBuilder(val builder: AttributeTypeBuilder) extends AnyVal {
@@ -202,6 +204,8 @@ object RichAttributeDescriptors extends Conversions {
       builder.userData(OptCardinality, cardinality.toString)
 
     def collectionType(typ: Class[_]): AttributeTypeBuilder = builder.userData(UserDataListType, typ)
+
+    def encoding(encoding: String): AttributeTypeBuilder = builder.userData(OptEncoding, encoding)
   }
 }
 

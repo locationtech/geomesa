@@ -119,6 +119,36 @@ The top-level element in the Avro schema must be a record, array or map type.
 
     Any values that do not match the structural type schema will not be persisted.
 
+Configuring Geometry Encoding
+-----------------------------
+
+.. note::
+
+  Currently only ``WKB`` encoding is supported.
+
+Geometry encoding can be specified per-attribute, using the ``encoding`` key. This must be one of ``WKB`` or ``native``,
+corresponding to the
+`GeoParquet encoding <https://geoparquet.org/releases/v1.1.0/#:~:text=not%20per%20geometry).-,encoding,-This%20is%20the>`__.
+
+* ``WKB`` (default) - This schema uses `GeoParquet 1.1.0 <https://geoparquet.org/releases/v1.1.0/>`__ with geometries
+  encoded as WKB. This format is supported by most 3rd party libraries that can read GeoParquet.
+* ``native`` - This schema uses `GeoParquet 1.1.0 <https://geoparquet.org/releases/v1.1.0/>`__ with geometries
+  encoded "natively". This format doesn't require special libraries to read, but isn't as widely supported as WKB.
+
+.. tabs::
+
+    .. code-tab:: java
+
+        DataStore ds = ...
+        var sft = SimpleFeatureTypes.createType("test", "ids:String:json=true,dtg:Date,*geom:Point:srid=4326:encoding=wkb");
+        ds.createSchema(sft);
+
+    .. code-tab:: scala
+
+        val ds: DataStore = ???
+        val sft = SimpleFeatureTypes.createType("test", "ids:String:json=true,dtg:Date,*geom:Point:srid=4326:encoding=wkb")
+        ds.createSchema(sft)
+
 .. _fsds_file_size_config:
 
 Configuring Target File Size

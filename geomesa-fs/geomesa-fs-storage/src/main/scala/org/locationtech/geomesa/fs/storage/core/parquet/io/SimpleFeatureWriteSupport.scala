@@ -22,6 +22,7 @@ import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeoParquetMetadata.GeoParquetObserver
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetWkb
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.{GeometryColumnX, GeometryColumnY, GeometryEncoding}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.VisibilityMetadata
@@ -126,7 +127,7 @@ object SimpleFeatureWriteSupport {
       val bindings = ObjectType.selectType(descriptor)
       val col = ColumnName(descriptor.getLocalName)
       if (bindings.head == ObjectType.GEOMETRY) {
-        geometry(col, index, bindings.last)
+        geometry(col, index, bindings.last, descriptor.getEncoding.fold[GeometryEncoding](GeoParquetWkb)(GeometryEncoding.apply))
       } else if (bindings.last == ObjectType.JSON) {
         val groupType = schema.messageType.getType(index).asGroupType()
         if (descriptor.getJsonSchema().isDefined) {
@@ -157,14 +158,14 @@ object SimpleFeatureWriteSupport {
     }
 
     // TODO support z/m
-    private def geometry(col: ColumnName, index: Int, binding: ObjectType): AttributeWriter[_] = {
-      if (schema.geometries == GeometryEncoding.GeoParquetWkb) {
+    private def geometry(col: ColumnName, index: Int, binding: ObjectType, encoding: GeometryEncoding): AttributeWriter[_] = {
+      if (encoding == GeometryEncoding.GeoParquetWkb) {
         if (binding == ObjectType.POINT) {
           new WkbPointWriter(col.column, index)
         } else {
           new WkbWriter(col.column, index)
         }
-      } else {
+      } else if (encoding == GeometryEncoding.GeoParquetNative) {
         binding match {
           case ObjectType.POINT               => new PointWriter(col.column, index)
           case ObjectType.LINESTRING          => new NativeLineStringWriter(col.column, index)
@@ -176,6 +177,8 @@ object SimpleFeatureWriteSupport {
           case ObjectType.GEOMETRY            => new WkbWriter(col.column, index)
           case _ => throw new IllegalArgumentException(s"Can't serialize field '${col.attribute}' of type $binding")
         }
+      } else {
+        throw new UnsupportedOperationException(s"Can't write geometries encoded with '$encoding'")
       }
     }
   }

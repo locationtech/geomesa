@@ -31,14 +31,12 @@ import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
  * A paired simple feature type and parquet schema
  *
  * @param sft simple feature type
- * @param geometries geometry type encoding
  * @param metadata file metadata
  * @param messageType parquet schema
  * @param fields parquet message schema
  */
 class SimpleFeatureParquetSchema private (
     val sft: SimpleFeatureType,
-    val geometries: GeometryEncoding,
     val metadata: java.util.Map[String, String],
     val messageType: MessageType,
     fields: ParquetFields) {
@@ -52,7 +50,7 @@ class SimpleFeatureParquetSchema private (
     val fieldFilter =
       fields.fields.map(_.getName)
         .filterNot(n => n.endsWith(ZValueField.Z2ValueFieldSuffix) || n.endsWith(ZValueField.XZ2ValueFieldSuffix))
-    new SimpleFeatureParquetSchema(sft, geometries, metadata, fields.toMessageType(sft.getTypeName, fieldFilter.toSet), fields)
+    new SimpleFeatureParquetSchema(sft, metadata, fields.toMessageType(sft.getTypeName, fieldFilter.toSet), fields)
   }
 }
 
@@ -96,7 +94,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     // copy in the file level metadata
     val kvMeta = context.getKeyValueMetadata.asScala.collect { case (k, v) if !v.isEmpty => k -> v.iterator.next }
     // noinspection ScalaDeprecation
-    val gmMeta = Seq(SftNameKey, SftSpecKey, GeometryEncodingKey).flatMap { key =>
+    val gmMeta = Seq(SftNameKey, SftSpecKey).flatMap { key =>
       val value =
         try { context.getParquetConfiguration.get(key) } catch {
           // noinspection ScalaDeprecation - use the older method for spark compatibility
@@ -118,7 +116,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     apply(new PlainParquetConfiguration(footer.getKeyValueMetaData)).map(_.read())
 
   /**
-   * Get a schema for writing. Encoding can be configured through `geomesa.parquet.geometries` and `geomesa.fs.visibilities`
+   * Get a schema for writing. Encoding can be configured through attribute `encoding` user data.
    *
    * @param conf write configuration, including the sft spec
    * @return
@@ -129,14 +127,11 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       spec <- Option(conf.get(SftSpecKey))
     } yield {
       val sft = SimpleFeatureTypes.createImmutableType(name, spec)
-      // TODO in iceberg, geometry encoding is now specified at the column level - use that once we support more than WKB
-      val geometries = Option(conf.get(GeometryEncodingKey)).map(GeometryEncoding.apply).getOrElse(GeometryEncoding.GeoParquetWkb)
       val metadata = Map(
         SftNameKey -> name,
         SftSpecKey -> spec,
-        GeometryEncodingKey -> geometries.toString,
       ) ++ Option(conf.get(PartitionKey)).map(PartitionKey -> _)
-      val parquet = schema(sft, geometries)
+      val parquet = schema(sft)
       val messageType = {
         val base = parquet.toMessageType(sft.getTypeName)
         // if an iceberg name mapping is provided, stamp the table's field ids onto the schema by name,
@@ -146,7 +141,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
           case Some(json) => ParquetSchemaUtil.applyNameMapping(base, NameMappingParser.fromJson(json))
         }
       }
-      new SimpleFeatureParquetSchema(sft, geometries, metadata.asJava, messageType, parquet)
+      new SimpleFeatureParquetSchema(sft, metadata.asJava, messageType, parquet)
     }
   }
 
@@ -168,10 +163,9 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * consistent, but the schema may be reduced (e.g. on read) based on the filter sft
    *
    * @param sft simple feature type
-   * @param geometries geometry type encoding
    * @return
    */
-  private def schema(sft: SimpleFeatureType, geometries: GeometryEncoding): ParquetFields = {
+  private def schema(sft: SimpleFeatureType): ParquetFields = {
     val builder = Seq.newBuilder[Type]
     builder +=
       Types.required(PrimitiveTypeName.BINARY)
@@ -186,7 +180,8 @@ object SimpleFeatureParquetSchema extends LazyLogging {
       val name = ColumnName(d.getLocalName)
       val objectType = ObjectType.selectType(d)
       if (objectType.head == ObjectType.GEOMETRY) {
-        builder += geometries.schema(objectType(1)).named(name.column)
+        val encoding = d.getEncoding.fold[GeometryEncoding](GeometryEncoding.GeoParquetWkb)(GeometryEncoding.apply)
+        builder += encoding.schema(objectType(1)).named(name.column)
         builder += BoundingBoxField.parquetSchema(name.column)
         builder += ZValueField.parquetSchema(name.column, objectType(1))
       } else if (objectType.last == ObjectType.JSON) {

@@ -9,21 +9,18 @@
 package org.locationtech.geomesa.fs.storage.core.parquet.io
 
 import com.google.gson.JsonParser
-import org.apache.parquet.hadoop.ParquetFileReader
-import org.apache.parquet.hadoop.example.ExampleParquetWriter
-import org.apache.parquet.hadoop.ParquetFileWriter
-import org.apache.parquet.conf.PlainParquetConfiguration
-import org.apache.parquet.example.data.simple.SimpleGroupFactory
-import org.apache.parquet.io.LocalOutputFile
-import org.apache.parquet.schema.MessageTypeParser
+import org.apache.accumulo.access.{AccessEvaluator, AccessExpression, Authorizations}
 import org.apache.iceberg.MetadataColumns
 import org.apache.iceberg.mapping.{MappingUtil, NameMappingParser}
-import org.apache.accumulo.access.{AccessEvaluator, AccessExpression, Authorizations}
-import org.apache.parquet.io.LocalInputFile
+import org.apache.parquet.conf.PlainParquetConfiguration
+import org.apache.parquet.example.data.simple.SimpleGroupFactory
+import org.apache.parquet.hadoop.{ParquetFileReader, ParquetFileWriter}
+import org.apache.parquet.hadoop.example.ExampleParquetWriter
+import org.apache.parquet.io.{LocalInputFile, LocalOutputFile}
+import org.apache.parquet.schema.MessageTypeParser
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.VisibilityMetadata
 import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -42,7 +39,7 @@ class VisibilityMetadataTest extends SpecificationWithJUnit {
   "Visibility footer rollup" should {
     "write visibility and GeoParquet metadata together for spatial parity fixtures" >> {
       val spatialSft = SimpleFeatureTypes.createType("spatial-rollup", "name:String,*geom:Point:srid=4326")
-      val schema = SimpleFeatureIcebergSchema.create(spatialSft, GeometryEncoding.GeoParquetWkb)
+      val schema = SimpleFeatureIcebergSchema.create(spatialSft)
       val spatialConf = Map(SimpleFeatureSchema.IcebergNameMappingKey -> NameMappingParser.toJson(MappingUtil.create(schema)))
       val file = Files.createTempFile("geomesa-spatial-visibility", ".parquet")
       val points = Seq("POINT (-1 -1)", "POINT (1 1)", "POINT (2 2)", "POINT (20 20)", "POINT (0 0)", "POINT (5 5)")

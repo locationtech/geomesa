@@ -14,6 +14,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeoParquetMetadata.ColumnMetadata
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding.GeoParquetNative
 import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
@@ -183,20 +184,19 @@ object GeoParquetMetadata {
    */
   class GeoParquetObserver(schema: SimpleFeatureParquetSchema) extends FileSystemObserver {
 
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
     import scala.collection.JavaConverters._
 
     private val columns =
       schema.sft.getAttributeDescriptors.asScala.toSeq.collect { case d: GeometryDescriptor =>
         val col = ColumnName(d.getLocalName)
         val binding = d.getType.getBinding
-        val encoding = {
+        val encoding = d.getEncoding.map(GeometryEncoding.apply) match {
           // for non-wkb encoding schemes, we still use WKB for mixed-type geometries
-          if (schema.geometries == GeometryEncoding.GeoParquetWkb ||
-            binding == classOf[Geometry] || binding == classOf[GeometryCollection]) {
-            GeoParquetColumnEncoding.WKB
-          } else {
+          case Some(GeoParquetNative) if binding != classOf[Geometry] && binding != classOf[GeometryCollection] =>
             GeoParquetColumnEncoding.withName(binding.getSimpleName.toLowerCase(Locale.US))
-          }
+          case _ => GeoParquetColumnEncoding.WKB
         }
         // TODO add z for 3d points
         val types = if (binding == classOf[Geometry]) { Seq.empty } else { Seq(GeoParquetColumnType.withName(binding.getSimpleName)) }

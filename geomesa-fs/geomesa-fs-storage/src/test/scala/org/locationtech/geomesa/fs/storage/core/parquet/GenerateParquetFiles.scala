@@ -14,7 +14,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
-import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 
@@ -27,12 +26,7 @@ object GenerateParquetFiles extends StrictLogging {
 
   def main(args: Array[String]): Unit = {
 
-    val sft = SimpleFeatureTypes.createType("geoparquet-test",
-      "dtg:Date,name:String,age:Int,time:Long,height:Float,weight:Double,bool:Boolean," +
-        "uuid:UUID,bytes:Bytes,list:List[String],map:Map[String,Long]," +
-        "line:LineString:srid=4326,multipt:MultiPoint:srid=4326,poly:Polygon:srid=4326," +
-        "multiline:MultiLineString:srid=4326,multipoly:MultiPolygon:srid=4326,geom:Geometry:srid=4326," +
-        "*pt:Point:srid=4326")
+    val sft = SimpleFeatureTypes.createType("geoparquet-test", spec(""))
 
     val features = Seq.tabulate(10) { i =>
       val sf = new ScalaSimpleFeature(sft, i.toString)
@@ -66,13 +60,20 @@ object GenerateParquetFiles extends StrictLogging {
     }
 
     Seq(GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb).foreach { encoding =>
-      val conf = Map(SimpleFeatureSchema.GeometryEncodingKey -> encoding.toString)
+      val sft = SimpleFeatureTypes.createType("geoparquet-test", spec(s":$encoding"))
       val file =
         s"${sys.props("java.io.tmpdir")}/${encoding.toString.replace("GeoParquet", "geoparquet-").toLowerCase(Locale.US)}-test.parquet"
-      WithClose(ParquetFileSystemWriter(sft, conf, LocalObjectStore, file)) { writer =>
+      WithClose(ParquetFileSystemWriter(sft, Map.empty, LocalObjectStore, file)) { writer =>
         features.foreach(writer.write)
       }
       logger.info(s"Wrote ${features.length} features to $file")
     }
   }
+
+  private def spec(encoding: String): String =
+    "dtg:Date,name:String,age:Int,time:Long,height:Float,weight:Double,bool:Boolean," +
+      "uuid:UUID,bytes:Bytes,list:List[String],map:Map[String,Long]," +
+      s"line:LineString:srid=4326$encoding,multipt:MultiPoint:srid=4326$encoding,poly:Polygon:srid=4326$encoding," +
+      s"multiline:MultiLineString:srid=4326$encoding,multipoly:MultiPolygon:srid=4326$encoding,geom:Geometry:srid=4326$encoding," +
+      s"*pt:Point:srid=4326$encoding"
 }

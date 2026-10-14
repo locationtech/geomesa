@@ -187,10 +187,7 @@ object StructSimpleFeature {
     def apply(descriptor: AttributeDescriptor, col: String, schema: SimpleFeatureIcebergSchema): Option[Converter] = {
       val types = ObjectType.selectType(descriptor)
       if (types.head == ObjectType.GEOMETRY) {
-        val encoding = descriptor.getUserData.get(SimpleFeatureIcebergSchema.GeometryEncodingKey) match {
-          case e: String => GeometryEncoding(e)
-          case _ => GeometryEncoding.GeoParquetWkb
-        }
+        val encoding = descriptor.getEncoding.fold[GeometryEncoding](GeoParquetWkb)(GeometryEncoding.apply)
         if (encoding != GeoParquetWkb) {
           throw new UnsupportedOperationException(encoding.toString)
         }

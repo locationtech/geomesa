@@ -36,10 +36,13 @@ object GeometrySchema {
   object GeometryEncoding {
 
     def apply(name: String): GeometryEncoding = {
-      Seq(GeoParquetNative, GeoParquetWkb).find(_.toString.equalsIgnoreCase(name)).getOrElse {
-        if (name.equalsIgnoreCase("GeoMesaV0") || name.equalsIgnoreCase("GeoMesaV1")) {
-          throw new UnsupportedOperationException(s"Geometry encoding '$name' is not longer supported")
-        }
+      if (Seq("wkb", GeoParquetWkb.toString).exists(_.equalsIgnoreCase(name))) {
+        GeoParquetWkb
+      } else if (Seq("native", GeoParquetNative.toString).exists(_.equalsIgnoreCase(name))) {
+        GeoParquetNative
+      } else if (name.equalsIgnoreCase("GeoMesaV0") || name.equalsIgnoreCase("GeoMesaV1")) {
+        throw new UnsupportedOperationException(s"Geometry encoding '$name' is not longer supported")
+      } else {
         throw new IllegalArgumentException(s"No geometry encoding defined for '$name'")
       }
     }

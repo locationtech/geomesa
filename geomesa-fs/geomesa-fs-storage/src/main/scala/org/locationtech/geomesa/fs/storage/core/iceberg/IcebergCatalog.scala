@@ -15,9 +15,7 @@ import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, Table
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
-import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
-import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema.GeometryEncodingKey
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
 import org.locationtech.geomesa.fs.storage.core.{BloomFilterConfig, FileSystemStorage, Metadata, StorageCatalog}
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
@@ -78,8 +76,7 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
       partitions: Seq[String],
       targetFileSize: Option[Long] = None,
       bloomFilters: Seq[BloomFilterConfig] = Seq.empty): FileSystemStorage = {
-    val geoms = conf.get(GeometryEncodingKey).map(GeometryEncoding.apply).getOrElse(GeometryEncoding.GeoParquetWkb)
-    val schema = SimpleFeatureIcebergSchema.create(sft, geoms)
+    val schema = SimpleFeatureIcebergSchema.create(sft)
     // load the partition scheme first in case it fails
     val schemes = partitions.map(PartitionSchemeFactory.load(sft, _)).sortBy(_.name)
     val tableProps = IcebergCatalog.sftTableProperties(sft) ++ {
