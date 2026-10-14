@@ -21,7 +21,7 @@ import org.locationtech.geomesa.utils.io.IsCloseableImplicits.ExecutorServiceIsC
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, IsCloseable, WithClose}
 
 import java.io.Closeable
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import scala.util.control.NonFatal
 
@@ -33,19 +33,22 @@ import scala.util.control.NonFatal
  * @param filter filter
  * @param threads number of threads used to execute
  * @param fileFilter optional filter for restricting the files that are scanned
+ * @param snapshotId optional snapshot to pin the scan to
  */
 class IcebergParquetScan(
     table: Table,
     schema: SimpleFeatureIcebergSchema,
     filter: Expression,
     threads: Int,
-    fileFilter: Option[String => Boolean] = None
+    fileFilter: Option[String => Boolean] = None,
+    snapshotId: Option[Long] = None
   ) extends CloseableIterator[SimpleFeature] with LazyLogging {
 
   import scala.collection.JavaConverters._
 
   private val queue = new LinkedBlockingQueue[StructLike](10000)
   private val closed = new AtomicBoolean(false)
+  private val failure = new AtomicReference[Throwable]()
 
   private val row = StructSimpleFeature(schema)
 
@@ -56,6 +59,7 @@ class IcebergParquetScan(
     WithClose(new CachedThreadPool(threads)) { pool =>
       // note: exclude z2 cols even if there's no transform
       val scan = table.newScan().caseSensitive(false).project(schema.schema).filter(filter)
+      snapshotId.foreach(scan.useSnapshot)
       try {
         WithClose(scan.planTasks()) { plan =>
           WithClose(plan.iterator()) { tasks =>
@@ -95,6 +99,7 @@ class IcebergParquetScan(
   private var current: StructLike = _
 
   override def hasNext: Boolean = {
+    Option(failure.get()).foreach(e => throw new RuntimeException("Error reading Iceberg data", e))
     if (current != null) {
       return true
     }
@@ -106,12 +111,14 @@ class IcebergParquetScan(
     if (closed.get()) {
       false
     } else if (ex.isTerminated) {
+      Option(failure.get()).foreach(e => throw new RuntimeException("Error reading Iceberg data", e))
       current = queue.poll()
       current != null
     } else {
       while (current == null && !ex.isTerminated) {
         current = queue.poll(100, TimeUnit.MILLISECONDS)
       }
+      Option(failure.get()).foreach(e => throw new RuntimeException("Error reading Iceberg data", e))
       current != null
     }
   }
@@ -180,7 +187,15 @@ class IcebergParquetScan(
           }
         }
       } catch {
-        case NonFatal(e) => logger.error("Error running scan task:", e)
+        case e: Throwable =>
+          // submit captures all throwables in its Future. Publish even fatal failures to the reader so
+          // a failed task cannot appear to be an empty input (and cause compaction to discard its rows).
+          failure.compareAndSet(null, e)
+          if (NonFatal(e)) {
+            logger.error("Error running scan task:", e)
+          } else {
+            throw e
+          }
       }
     }
   }

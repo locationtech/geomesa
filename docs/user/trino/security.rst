@@ -101,11 +101,56 @@ The feature has two tiers:
 Visibility Filtering in the Scan
 --------------------------------
 
-The Scan connector reports various metrics related to visibility filtering: ``Visibility bypassed rows``,
-``Visibility checked rows``, ``Visibility rejected rows``, ``Visibility bypassed splits``, ``Visibility filtered splits``,
-and ``Visibility fallback value evaluations``. Checked rows count logical rows considered by the exact filter;
-fallback value evaluations count decisions after block-level reuse. Visibility filtering optimizations are more
-likely to take effect if records with the same visibility are grouped together during writes.
+The Scan connector reports the following visibility filtering metrics:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Metric
+     - Meaning
+   * - ``Visibility bypassed rows``
+     - Rows returned without exact visibility filtering, using file statistics or a footer proof.
+   * - ``Visibility checked rows``
+     - Logical rows considered by the exact visibility filter.
+   * - ``Visibility rejected rows``
+     - Checked rows rejected by the exact visibility filter.
+   * - ``Visibility bypassed splits``
+     - Splits that bypass exact visibility filtering using file statistics or a footer proof.
+   * - ``Visibility filtered splits``
+     - Splits requiring exact visibility filtering; excludes splits pruned by a footer proof.
+   * - ``Visibility fallback value evaluations``
+     - Visibility decisions after reusing results within dictionary and run-length encoded blocks.
+   * - ``Visibility footer bypassed rows``
+     - Bypassed rows justified by a footer proof; included in ``Visibility bypassed rows``.
+   * - ``Visibility footer bypassed splits``
+     - Splits with a footer proof that all rows are visible; included in ``Visibility bypassed splits``.
+   * - ``Visibility footer pruned splits``
+     - Splits with a footer proof that no rows are visible, skipped before creating the data reader.
+   * - ``Visibility footer missing splits``
+     - Probed splits whose Parquet footer has no visibility summary.
+   * - ``Visibility footer invalid splits``
+     - Probed splits whose footer metadata fails validation.
+   * - ``Visibility footer unavailable splits``
+     - Splits whose footer probe fails, leaving the normal reader to read the file or report an error.
+   * - ``Visibility footer unproven splits``
+     - Splits with a valid summary that proves neither all rows nor no rows are visible.
+
+Missing, invalid, unavailable, and unproven summaries retain exact row filtering. Splits that bypass
+using file statistics or do not attempt a footer probe do not increment footer outcome metrics.
+Visibility filtering optimizations are more likely to take effect if records with the same visibility
+are grouped together during writes.
+
+GeoMesa-written Parquet files can also carry a file-wide visibility rollup in the custom
+``geomesa.visibility.rollup`` footer entry. This extends bypass to mixed files: the reader
+evaluates an ``allOf`` expression against every absorbed authorization context,
+and bypasses only when all decisions succeed. An ``anyOf`` expression can prove that no row is
+visible: failure for any one absorbed context skips the split before creating its data reader.
+When neither proof applies, exact row filtering remains mandatory. Users with an empty authorization
+set, whether supplied through extra credentials or configured user mappings, can still read rows
+with NULL or empty visibility. Restricted rows remain hidden from those users.
+
+GeoMesa's filesystem ``compact`` command recomputes these summaries for each replacement file,
+after applying positional deletes.
 
 .. _trino_view_security:
 

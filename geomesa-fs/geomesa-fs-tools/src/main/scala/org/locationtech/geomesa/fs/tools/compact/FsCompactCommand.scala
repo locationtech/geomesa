@@ -26,6 +26,7 @@ import org.locationtech.geomesa.utils.text.TextTools
 
 import java.util.Locale
 import java.util.concurrent.{CountDownLatch, Executors}
+import java.util.concurrent.atomic.AtomicReference
 import scala.util.control.NonFatal
 
 // need to mixin FsDistributedCommand to pick up base libjars file
@@ -60,7 +61,7 @@ object FsCompactCommand {
 
       val mode = params.mode.getOrElse(RunModes.Distributed)
 
-      Command.user.info(s"Compacting ${toCompact.size} files in ${mode.toString.toLowerCase(Locale.US)} mode")
+      Command.user.info(s"Compacting ${toCompact.size} partitions in ${mode.toString.toLowerCase(Locale.US)} mode")
 
       val start = System.currentTimeMillis()
       val status = TerminalCallback()
@@ -69,6 +70,7 @@ object FsCompactCommand {
         case RunModes.Local =>
           val total = toCompact.length
           val latch = new CountDownLatch(total)
+          val failure = new AtomicReference[Throwable]()
           val executor = Executors.newFixedThreadPool(math.max(1, math.min(params.threads, total)))
 
           try {
@@ -80,7 +82,9 @@ object FsCompactCommand {
                       logger.info(s"Compacting $p")
                       storage.metadata.compact(p)
                     } catch {
-                      case NonFatal(e) => logger.error(s"Error processing partition '$p':", e)
+                      case NonFatal(e) =>
+                        failure.compareAndSet(null, e)
+                        logger.error(s"Error processing partition '$p':", e)
                     } finally {
                       latch.countDown()
                     }
@@ -97,6 +101,7 @@ object FsCompactCommand {
             status("", 1f - latch.getCount.toFloat / total, Seq.empty, done = false)
           }
           status("", 1f, Seq.empty, done = true)
+          Option(failure.get()).foreach(e => throw new CommandException("Local compaction failed").initCause(e))
           Command.user.info(s"Local compaction complete in ${TextTools.getTime(start)}")
 
         case RunModes.Distributed =>

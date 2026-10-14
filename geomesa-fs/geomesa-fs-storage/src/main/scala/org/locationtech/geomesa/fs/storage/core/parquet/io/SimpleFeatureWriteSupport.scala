@@ -24,6 +24,7 @@ import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeoParquetMetadata.GeoParquetObserver
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.{GeometryColumnX, GeometryColumnY, GeometryEncoding}
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.VisibilityMetadata
 import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName, SimpleFeatureSchema, ZValueField}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
@@ -41,6 +42,7 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
   private var consumer: RecordConsumer = _
   private var geoParquetObserver: GeoParquetObserver = _
   private var baseMetadata: java.util.Map[String, String] = _
+  private var visibilityMetadata: VisibilityMetadata = _
 
   override val getName: String = "SimpleFeatureWriteSupport"
 
@@ -57,8 +59,11 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
   private def init(schema: SimpleFeatureParquetSchema): WriteContext = {
     this.writer = new SimpleFeatureWriteSupport.SimpleFeatureWriter(schema)
     this.geoParquetObserver = new GeoParquetObserver(schema)
-    this.baseMetadata = schema.metadata
-    new WriteContext(schema.messageType, schema.metadata)
+    this.baseMetadata = new java.util.HashMap[String, String](schema.metadata)
+    this.baseMetadata.remove(VisibilityMetadata.MetadataKey)
+    val visibility = schema.messageType.getFields.get(schema.messageType.getFieldIndex(SimpleFeatureSchema.VisibilitiesField))
+    this.visibilityMetadata = new VisibilityMetadata(Option(visibility.getId).map(_.intValue()).getOrElse(-1))
+    new WriteContext(schema.messageType, baseMetadata)
   }
 
   // called per block
@@ -67,6 +72,7 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
   // called per row
   override def write(record: SimpleFeature): Unit = {
     writer.write(consumer, record)
+    visibilityMetadata.observe(record.getUserData.get("geomesa.feature.visibility").asInstanceOf[String])
     geoParquetObserver(record)
   }
 
@@ -76,6 +82,9 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
       val metadata = new java.util.HashMap[String, String]()
       metadata.putAll(baseMetadata)
       metadata.putAll(geoParquetObserver.metadata())
+      // Never retain a summary supplied in base metadata from an earlier file.
+      metadata.remove(VisibilityMetadata.MetadataKey)
+      visibilityMetadata.metadata.foreach(metadata.put(VisibilityMetadata.MetadataKey, _))
       new FinalizedWriteContext(metadata)
     } finally {
       CloseWithLogging(geoParquetObserver)

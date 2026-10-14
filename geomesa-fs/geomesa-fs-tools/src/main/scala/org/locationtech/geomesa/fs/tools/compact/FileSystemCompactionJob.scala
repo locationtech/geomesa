@@ -90,15 +90,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
     def mapCounters: Seq[(String, Long)] = Seq((MappedCounter, written(job)), (FailedCounter, failed(job)))
 
-    val result = JobRunner.run(job, statusCallback, mapCounters, Seq.empty)
-    // TODO this doesn't work b/c the output format registers the files before we can distcp them
-    /*.merge {
-      tempPath.map { tp =>
-        new DistributedCopy().copy(Seq(tp), outputPath, statusCallback)
-      }
-    }*/
-
-    result match {
+    JobRunner.run(job, statusCallback, mapCounters, Seq.empty) match {
       case JobSuccess(message, counts) =>
         if (message.nonEmpty) {
           Command.user.info(message)

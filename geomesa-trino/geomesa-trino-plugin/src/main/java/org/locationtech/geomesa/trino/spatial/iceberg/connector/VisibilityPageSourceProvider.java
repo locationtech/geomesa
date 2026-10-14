@@ -11,6 +11,8 @@ package org.locationtech.geomesa.trino.spatial.iceberg.connector;
 import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
 import io.trino.plugin.iceberg.IcebergSplit;
+import io.trino.plugin.iceberg.IcebergFileFormat;
+import io.trino.plugin.iceberg.IcebergTableCredentials;
 import io.trino.spi.connector.*;
 import io.trino.spi.predicate.Domain;
 import org.locationtech.geomesa.trino.security.GeoMesaSecurityFunctions;
@@ -19,11 +21,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/** Enforces predicates absorbed by metadata. Only authoritative file statistics permit bypass. */
+/** Enforces absorbed predicates using exact filtering or complete statistics/footer proofs. */
 final class VisibilityPageSourceProvider implements ConnectorPageSourceProvider {
     private final ConnectorPageSourceProvider delegate;
+    private final VisibilityFooterReader footerReader;
 
-    VisibilityPageSourceProvider(ConnectorPageSourceProvider delegate) { this.delegate = delegate; }
+    VisibilityPageSourceProvider(ConnectorPageSourceProvider delegate) { this(delegate, null); }
+
+    VisibilityPageSourceProvider(ConnectorPageSourceProvider delegate, VisibilityFooterReader footerReader) {
+        this.delegate = delegate;
+        this.footerReader = footerReader;
+    }
 
     @Override
     public ConnectorPageSource createPageSource(ConnectorTransactionHandle transaction, ConnectorSession session,
@@ -37,6 +45,32 @@ final class VisibilityPageSourceProvider implements ConnectorPageSourceProvider 
             ? iceberg.fileStatisticsDomain().getDomains().map(d -> d.get(visibility.visibilityColumn())).orElse(null)
             : null;
         boolean bypass = allVisible(domain, auths);
+        if (!bypass && footerReader != null && split instanceof IcebergSplit iceberg
+                && iceberg.fileFormat() == IcebergFileFormat.PARQUET && iceberg.parquetFileDecryptionData().isEmpty()
+                && footerReader.shouldProbe(session, iceberg)
+                && credentials.orElse(null) instanceof IcebergTableCredentials icebergCredentials) {
+            try (var ignored = footerReader.scope()) {
+                var inspection = footerReader.inspect(session, iceberg, icebergCredentials,
+                    visibility.visibilityColumn().getId(), auths, memoryContext);
+                var footerResult = inspection.result();
+                if (footerResult == VisibilityFooterReader.Result.NONE_VISIBLE) {
+                    return new VisibilityFilteringPageSource(new EmptyPageSource(), columns.size(), -1,
+                        auths, false, footerResult, inspection.bytes(), inspection.nanos());
+                }
+                return createFiltered(transaction, session, split, visibility, credentials, columns, dynamicFilter,
+                    memoryContext, auths, footerResult == VisibilityFooterReader.Result.ALL_VISIBLE, footerResult,
+                    inspection.bytes(), inspection.nanos());
+            }
+        }
+        return createFiltered(transaction, session, split, visibility, credentials, columns, dynamicFilter,
+            memoryContext, auths, bypass, null, 0, 0);
+    }
+
+    private ConnectorPageSource createFiltered(ConnectorTransactionHandle transaction, ConnectorSession session,
+            ConnectorSplit split, VisibilityTableHandle visibility, Optional<ConnectorTableCredentials> credentials,
+            List<ColumnHandle> columns, DynamicFilter dynamicFilter, MemoryContext memoryContext,
+            List<Slice> auths, boolean bypass, VisibilityFooterReader.Result footerResult,
+            long footerBytes, long footerNanos) {
         List<ColumnHandle> physical = new ArrayList<>(columns);
         int channel = physical.indexOf(visibility.visibilityColumn());
         if (!bypass && channel < 0) {
@@ -45,7 +79,8 @@ final class VisibilityPageSourceProvider implements ConnectorPageSourceProvider 
         }
         ConnectorPageSource source = delegate.createPageSource(transaction, session, split, visibility.delegate(),
             credentials, physical, dynamicFilter, memoryContext);
-        return new VisibilityFilteringPageSource(source, columns.size(), channel, auths, bypass);
+        return new VisibilityFilteringPageSource(source, columns.size(), channel, auths, bypass, footerResult,
+            footerBytes, footerNanos);
     }
 
     static boolean allVisible(Domain domain, List<Slice> auths) {

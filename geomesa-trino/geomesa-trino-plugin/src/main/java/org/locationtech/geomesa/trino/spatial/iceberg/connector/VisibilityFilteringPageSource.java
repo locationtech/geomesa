@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
 
-/** The exact fallback remains mandatory for mixed files, missing statistics, and invalid expressions. */
+/** Applies exact visibility filtering when neither the statistics nor the footer proves access to every row. */
 final class VisibilityFilteringPageSource implements ConnectorPageSource {
     // Keep UNKNOWN at zero so newly allocated decision arrays need no initialization.
     private static final byte DECISION_UNKNOWN = 0;
@@ -36,6 +36,9 @@ final class VisibilityFilteringPageSource implements ConnectorPageSource {
     private final int visibilityChannel;
     private final List<Slice> auths;
     private final boolean bypass;
+    private final VisibilityFooterReader.Result footerResult;
+    private final long footerBytes;
+    private final long footerNanos;
     private long bypassedRows;
     private long checkedRows;
     private long rejectedRows;
@@ -43,11 +46,20 @@ final class VisibilityFilteringPageSource implements ConnectorPageSource {
 
     VisibilityFilteringPageSource(ConnectorPageSource delegate, int outputChannels, int visibilityChannel,
             List<Slice> auths, boolean bypass) {
+        this(delegate, outputChannels, visibilityChannel, auths, bypass, null, 0, 0);
+    }
+
+    VisibilityFilteringPageSource(ConnectorPageSource delegate, int outputChannels, int visibilityChannel,
+            List<Slice> auths, boolean bypass, VisibilityFooterReader.Result footerResult,
+            long footerBytes, long footerNanos) {
         this.delegate = delegate;
         this.outputChannels = outputChannels;
         this.visibilityChannel = visibilityChannel;
         this.auths = List.copyOf(auths);
         this.bypass = bypass;
+        this.footerResult = footerResult;
+        this.footerBytes = footerBytes;
+        this.footerNanos = footerNanos;
     }
 
     @Override
@@ -103,17 +115,25 @@ final class VisibilityFilteringPageSource implements ConnectorPageSource {
     }
 
     @Override public Metrics getMetrics() {
-        return delegate.getMetrics().mergeWith(new Metrics(Map.of(
-            "Visibility bypassed rows", new LongCount(bypassedRows),
-            "Visibility checked rows", new LongCount(checkedRows),
-            "Visibility rejected rows", new LongCount(rejectedRows),
-            "Visibility fallback value evaluations", new LongCount(evaluatedValues),
-            "Visibility bypassed splits", new LongCount(bypass ? 1 : 0),
-            "Visibility filtered splits", new LongCount(bypass ? 0 : 1))));
+        boolean footerBypass = footerResult == VisibilityFooterReader.Result.ALL_VISIBLE;
+        return delegate.getMetrics().mergeWith(new Metrics(Map.ofEntries(
+            Map.entry("Visibility bypassed rows", new LongCount(bypassedRows)),
+            Map.entry("Visibility checked rows", new LongCount(checkedRows)),
+            Map.entry("Visibility rejected rows", new LongCount(rejectedRows)),
+            Map.entry("Visibility footer bypassed rows", new LongCount(footerBypass ? bypassedRows : 0)),
+            Map.entry("Visibility footer bypassed splits", new LongCount(footerBypass ? 1 : 0)),
+            Map.entry("Visibility footer pruned splits", new LongCount(footerResult == VisibilityFooterReader.Result.NONE_VISIBLE ? 1 : 0)),
+            Map.entry("Visibility footer missing splits", new LongCount(footerResult == VisibilityFooterReader.Result.MISSING ? 1 : 0)),
+            Map.entry("Visibility footer invalid splits", new LongCount(footerResult == VisibilityFooterReader.Result.INVALID ? 1 : 0)),
+            Map.entry("Visibility footer unavailable splits", new LongCount(footerResult == VisibilityFooterReader.Result.UNAVAILABLE ? 1 : 0)),
+            Map.entry("Visibility footer unproven splits", new LongCount(footerResult == VisibilityFooterReader.Result.FILTER_REQUIRED ? 1 : 0)),
+            Map.entry("Visibility fallback value evaluations", new LongCount(evaluatedValues)),
+            Map.entry("Visibility bypassed splits", new LongCount(bypass ? 1 : 0)),
+            Map.entry("Visibility filtered splits", new LongCount(bypass || footerResult == VisibilityFooterReader.Result.NONE_VISIBLE ? 0 : 1)))));
     }
-    @Override public long getCompletedBytes() { return delegate.getCompletedBytes(); }
+    @Override public long getCompletedBytes() { return footerBytes + delegate.getCompletedBytes(); }
     @Override public OptionalLong getCompletedPositions() { return delegate.getCompletedPositions(); }
-    @Override public long getReadTimeNanos() { return delegate.getReadTimeNanos(); }
+    @Override public long getReadTimeNanos() { return footerNanos + delegate.getReadTimeNanos(); }
     @Override public boolean isFinished() { return delegate.isFinished(); }
     @Override public long getMemoryUsage() { return delegate.getMemoryUsage(); }
     @Override public void close() throws IOException { delegate.close(); }
