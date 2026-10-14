@@ -155,6 +155,10 @@
     <category name="org.apache.camel">
         <priority value="error"/>
     </category>
+    <!-- suppress exceptions from short-lived object pools not being lazily registered b/c they have been closed already -->
+    <category name="io.micrometer.core.instrument.binder.commonspool2.CommonsObjectPool2Metrics">
+        <priority value="fatal" />
+    </category>
 
     <!-- suppress logs from Apache Sedona kryo serializer registrator -->
     <category name="org.apache.sedona.core.serde">

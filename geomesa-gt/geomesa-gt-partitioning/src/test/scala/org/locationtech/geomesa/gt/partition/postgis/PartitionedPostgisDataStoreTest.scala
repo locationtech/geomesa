@@ -28,9 +28,9 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CompactPartitions, DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CleanAgedOffPartitions, CleanWriteAheadMigrations, CleanWriteAheadRetirements, CompactPartitions, DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, PartitionWriteAheadLog, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TableIdentifier, TypeInfo}
 import org.locationtech.geomesa.index.process.ArrowVisitor
 import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils}
@@ -46,7 +46,7 @@ import org.specs2.specification.BeforeAfterAll
 import java.io.{ByteArrayInputStream, IOException, SequenceInputStream}
 import java.net.{ServerSocket, URL}
 import java.sql.Connection
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.{Callable, CopyOnWriteArrayList, Executors, TimeUnit}
 import java.util.logging.{Handler, Level, LogRecord}
 import java.util.{Collections, Locale}
 import javax.sql.DataSource
@@ -577,6 +577,523 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
       }
     }
 
+    "route mutations to visible rows while write-ahead detachment is pending" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      try {
+        foreach(Seq("main", "spill")) { destination =>
+          foreach(Seq(false, true)) { migrated =>
+            val sft = SimpleFeatureTypes.renameSft(this.sft, s"mutations_${destination}_$migrated")
+            ds.createSchema(sft)
+            try {
+              val info = TypeInfo(this.schema, sft)
+              val source = TableIdentifier(this.schema, s"${info.typeIdentifier}_wa_test").qualified
+              val target = TableIdentifier(this.schema, s"${info.typeIdentifier}_target_test").qualified
+              val expired = TableIdentifier(this.schema, s"${info.typeIdentifier}_expired_test").qualified
+              val parent = if (destination == "main") { info.tables.mainPartitions } else { info.tables.spillPartitions }
+              val bounds = "FOR VALUES FROM ('2020-01-01 00:00:00') TO ('2020-01-01 01:00:00')"
+              val fid = info.cols.fid.quoted
+              val dtg = info.cols.dtg.quoted
+              WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+                WithClose(cx.createStatement()) { st =>
+                  // Keep maintenance from changing this deliberately paused, post-merge state.
+                  st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+                  st.execute(s"CREATE TABLE $source PARTITION OF ${info.tables.writeAheadPartitions.name.qualified} $bounds")
+                  st.execute(s"INSERT INTO $source ($fid, age, $dtg) VALUES " +
+                      "('update', 1, '2020-01-01 00:30:00'), ('delete', 2, '2020-01-01 00:30:00'), " +
+                      "('keep', 3, '2020-01-01 00:30:00')")
+                  if (migrated) {
+                    st.execute(s"CREATE TABLE $target PARTITION OF ${parent.name.qualified} $bounds")
+                    st.execute(s"INSERT INTO $target SELECT * FROM $source")
+                    if (destination == "spill") {
+                      // An expired main copy must not intercept mutations of the visible spill copy.
+                      st.execute(s"CREATE TABLE $expired PARTITION OF ${info.tables.mainPartitions.name.qualified} $bounds")
+                      st.execute(s"INSERT INTO $expired SELECT * FROM $source")
+                      st.execute(s"INSERT INTO ${info.tables.ageOffQueue.name.qualified} VALUES " +
+                          s"('$expired', '$expired'::regclass, ${info.tables.mainPartitions.name.asRegclass}, now())")
+                    }
+                    st.execute(s"INSERT INTO ${info.tables.writeAheadMigrations.name.qualified} " +
+                        s"VALUES ('$source', '2020-01-01 00:00:00', '2020-01-01 01:00:00', now())")
+                  }
+
+                  def rows(table: String): Seq[(String, Int)] = {
+                    WithClose(st.executeQuery(s"SELECT $fid, age FROM $table ORDER BY $fid")) { rs =>
+                      val result = ArrayBuffer.empty[(String, Int)]
+                      while (rs.next()) {
+                        result += rs.getString(1) -> rs.getInt(2)
+                      }
+                      result.toSeq
+                    }
+                  }
+
+                  val view = info.tables.view.name.qualified
+                  rows(view) mustEqual Seq("delete" -> 2, "keep" -> 3, "update" -> 1)
+                  // Move outside the migrated interval: routing must use OLD.dtg.
+                  st.executeUpdate(s"UPDATE $view SET age = 10, $dtg = '2020-01-01 02:30:00' WHERE $fid = 'update'") mustEqual 1
+                  // The updated row now lives in the current write-ahead table.
+                  st.executeUpdate(s"UPDATE $view SET age = 11 WHERE $fid = 'update'") mustEqual 1
+                  st.executeUpdate(s"DELETE FROM $view WHERE $fid = 'delete'") mustEqual 1
+                  rows(view) mustEqual Seq("keep" -> 3, "update" -> 11)
+
+                  if (migrated) {
+                    rows(source) mustEqual Seq("delete" -> 2, "keep" -> 3, "update" -> 1)
+                    rows(target) mustEqual Seq("keep" -> 3)
+                    if (destination == "spill") {
+                      rows(expired) mustEqual Seq("delete" -> 2, "keep" -> 3, "update" -> 1)
+                    }
+                    st.execute(s"ALTER TABLE ${info.tables.writeAheadPartitions.name.qualified} " +
+                        s"DETACH PARTITION $source CONCURRENTLY")
+                    st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadMigrations.name(info).quoted}()")
+                    rows(view) mustEqual Seq("keep" -> 3, "update" -> 11)
+                    WithClose(st.executeQuery(s"SELECT to_regclass('$source')")) { rs =>
+                      rs.next() must beTrue
+                      rs.getString(1) must beNull
+                    }
+                    WithClose(st.executeQuery(s"SELECT count(*) FROM ${info.tables.writeAheadMigrations.name.qualified}")) { rs =>
+                      rs.next() must beTrue
+                      rs.getInt(1) mustEqual 0
+                    }
+                  } else {
+                    rows(source) mustEqual Seq("keep" -> 3)
+                  }
+                }
+              }
+            } finally {
+              ds.removeSchema(sft.getTypeName)
+            }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "keep maintenance advancing while retired numeric write-ahead tables are still being read" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "numeric_wa_locks")
+      sft.getUserData.put(SftUserData.MaxPartitions.key, "2")
+      try {
+        ds.createSchema(sft)
+        val info = TypeInfo(this.schema, sft)
+        val source = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + "_000")
+        val later = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + "_001")
+        val newPartition = TableIdentifier(this.schema, info.tables.mainPartitions.name.raw + "_2020_01_01_01")
+        val invocation = s"CALL ${info.schema.quoted}.${PartitionWriteAheadLog.name(info).quoted}('2020-01-01 05:00:00')"
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { observer =>
+          WithClose(observer.createStatement()) { st =>
+            def scalar(sql: String): Int = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getInt(1) }
+            def exists(table: TableIdentifier): Boolean =
+              scalar(s"SELECT count(*) FROM pg_class WHERE oid = to_regclass('${table.qualified}')") == 1
+            def pauseJobs(): Unit =
+              st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+            st.execute("SET statement_timeout = '5s'")
+            pauseJobs()
+            Seq(info.tables.mainPartitions, info.tables.spillPartitions).foreach { parent =>
+              val child = TableIdentifier(this.schema, parent.name.raw + "_2020_01_01_00")
+              st.execute(s"CREATE TABLE ${child.qualified} PARTITION OF ${parent.name.qualified} " +
+                  "FOR VALUES FROM ('2020-01-01') TO ('2020-01-01 01:00:00')")
+              st.execute(s"INSERT INTO ${child.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) " +
+                  s"VALUES ('${parent.name.raw}', '2020-01-01 00:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
+            }
+            val view = info.tables.view.name.qualified
+            st.execute(s"INSERT INTO $view (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) VALUES " +
+                "('copy-to-spill', '2020-01-01 00:30:00', ST_GeomFromText('POINT(0 0)', 4326)), " +
+                "('copy-to-main', '2020-01-01 01:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
+            st.execute(s"CALL ${info.schema.quoted}.${RollWriteAheadLog.name(info).quoted}()")
+            // Seed a timed partition so the later maintenance call must also run merging.
+            val timed = TableIdentifier(this.schema, info.tables.writeAheadPartitions.name.raw + "_2020_01_01_03_00")
+            st.execute(s"CREATE TABLE ${timed.qualified} PARTITION OF ${info.tables.writeAheadPartitions.name.qualified} " +
+                "FOR VALUES FROM ('2020-01-01 03:00:00') TO ('2020-01-01 04:00:00')")
+            st.execute(s"INSERT INTO ${timed.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) VALUES " +
+                "('merge-me', '2020-01-01 03:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
+
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { reader =>
+              reader.setAutoCommit(false)
+              try {
+                WithClose(reader.createStatement()) { read =>
+                  WithClose(read.executeQuery(s"SELECT count(*) FROM $view")) { rs =>
+                    rs.next() must beTrue
+                    rs.getInt(1) mustEqual 5
+                  }
+                }
+                // The export keeps its relation locks throughout every maintenance attempt below.
+                st.execute(invocation)
+                scalar(s"SELECT count(*) FROM $view") mustEqual 5
+                exists(source) must beTrue
+                exists(newPartition) must beTrue
+                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 1
+                scalar(s"SELECT count(*) FROM ${info.tables.spillPartitions.name.qualified}") mustEqual 2
+                scalar(s"SELECT count(*) FROM ${info.tables.mainPartitions.name.qualified}") mustEqual 2
+
+                st.executeUpdate(s"UPDATE $view SET age = 11 WHERE ${info.cols.fid.quoted} = 'copy-to-spill'") mustEqual 1
+                st.executeUpdate(s"DELETE FROM $view WHERE ${info.cols.fid.quoted} = 'copy-to-main'") mustEqual 1
+                scalar(s"SELECT count(*) FROM $view") mustEqual 4
+                st.execute(s"INSERT INTO $view (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) VALUES " +
+                    "('later-row', '2020-01-01 02:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
+                st.execute(s"CALL ${info.schema.quoted}.${RollWriteAheadLog.name(info).quoted}()")
+                val maintenance = s"CALL ${info.schema.quoted}.${PartitionMaintenance.name(info).quoted}()"
+                (0 until 3).foreach { _ =>
+                  st.execute(maintenance)
+                  pauseJobs()
+                  scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 2
+                  scalar(s"SELECT count(*) FROM ${info.tables.mainPartitions.name.qualified}") mustEqual 3
+                  scalar(s"SELECT count(*) FROM ${info.tables.spillPartitions.name.qualified}") mustEqual 2
+                  scalar(s"SELECT count(*) FROM ${info.tables.writeAheadMigrations.name.qualified}") mustEqual 1
+                  scalar(s"SELECT count(*) FROM ${info.tables.ageOffQueue.name.qualified}") mustEqual 5
+                  scalar(s"SELECT count(*) FROM $view") mustEqual 0
+                }
+                exists(source) must beTrue
+                exists(later) must beTrue
+                st.execute(s"INSERT INTO $view (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}, geom) VALUES " +
+                    "('cleanup-free', '2020-01-01 04:30:00', ST_GeomFromText('POINT(0 0)', 4326))")
+                st.execute(s"CALL ${info.schema.quoted}.${RollWriteAheadLog.name(info).quoted}()")
+                st.execute(maintenance)
+                pauseJobs()
+                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 3
+                scalar(s"SELECT count(*) FROM ${info.tables.mainPartitions.name.qualified}") mustEqual 4
+                scalar(s"SELECT count(*) FROM $view") mustEqual 0
+                reader.rollback()
+                WithClose(reader.createStatement()) { read =>
+                  WithClose(read.executeQuery(s"SELECT count(*) FROM ONLY ${info.tables.writeAhead.name.qualified}")) { rs =>
+                    rs.next() must beTrue
+                    rs.getInt(1) mustEqual 0
+                  }
+                }
+                // proc will skip detach due to open reader
+                st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadRetirements.name(info).quoted}()")
+                exists(source) must beTrue
+                exists(later) must beTrue
+                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 3
+                reader.rollback()
+                // now proc will detach and drop tables
+                st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadRetirements.name(info).quoted}()")
+                exists(source) must beFalse
+                exists(later) must beFalse
+                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadRetirements.name.qualified}") mustEqual 0
+              } finally {
+                reader.rollback()
+              }
+            }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "recover interrupted timed write-ahead detaches and advance the next queued partition" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "timed_detach_retry")
+      val executor = Executors.newSingleThreadExecutor()
+      try {
+        ds.createSchema(sft)
+        val info = TypeInfo(this.schema, sft)
+        val sources = (0 until 2).map(hour => TableIdentifier(this.schema,
+          info.tables.writeAheadPartitions.name.raw + f"_2020_01_01_$hour%02d" + "_00"))
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { observer =>
+          WithClose(observer.createStatement()) { st =>
+            def scalar(sql: String): Int = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getInt(1) }
+            def pauseJobs(): Unit = {
+              st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+            }
+            def clean(): Unit = {
+              st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadMigrations.name(info).quoted}()")
+              pauseJobs()
+            }
+            def command(): String = WithClose(st.executeQuery(s"SELECT command FROM cron.job WHERE jobname = " +
+                CleanWriteAheadMigrations.detachJobName(info).quoted)) { rs =>
+              rs.next() must beTrue
+              rs.getString(1)
+            }
+            def workers(): Int = scalar(s"SELECT count(*) FROM cron.job WHERE jobname LIKE '${info.typeIdentifier}-detach-%'")
+            st.execute("SET statement_timeout = '5s'")
+            pauseJobs()
+            sources.zipWithIndex.foreach { case (source, hour) =>
+              val target = TableIdentifier(this.schema, info.tables.mainPartitions.name.raw + f"_2020_01_01_$hour%02d")
+              val bounds = s"FOR VALUES FROM ('2020-01-01 $hour:00:00') TO ('2020-01-01 ${hour + 1}:00:00')"
+              st.execute(s"CREATE TABLE ${source.qualified} PARTITION OF ${info.tables.writeAheadPartitions.name.qualified} $bounds")
+              st.execute(s"INSERT INTO ${source.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
+                  s"VALUES ('fid$hour', '2020-01-01 $hour:30:00')")
+              st.execute(s"CREATE TABLE ${target.qualified} PARTITION OF ${info.tables.mainPartitions.name.qualified} $bounds")
+              st.execute(s"INSERT INTO ${target.qualified} SELECT * FROM ${source.qualified}")
+              st.execute(s"INSERT INTO ${info.tables.writeAheadMigrations.name.qualified} VALUES " +
+                  s"('${source.qualified}', '2020-01-01 $hour:00:00', '2020-01-01 ${hour + 1}:00:00', now())")
+              // Simulate jobs left by the original per-partition scheduling scheme.
+              st.execute(s"SELECT cron.schedule('${info.typeIdentifier}-detach-' || split_part('${source.qualified}', '.', 2), " +
+                  "'0 0 1 1 *', 'SELECT 1')")
+            }
+            clean()
+            workers() mustEqual 1
+            command() must endWith(" CONCURRENTLY")
+            command() must contain(sources.head.qualified)
+            val view = info.tables.view.name.qualified
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { reader =>
+              reader.setAutoCommit(false)
+              try {
+                WithClose(reader.createStatement()) { read =>
+                  WithClose(read.executeQuery(s"SELECT count(*) FROM $view")) { rs =>
+                    rs.next() must beTrue
+                    rs.getInt(1) mustEqual 2
+                  }
+                }
+                WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { worker =>
+                  val pid = WithClose(worker.createStatement()) { query =>
+                    WithClose(query.executeQuery("SELECT pg_backend_pid()")) { rs => rs.next(); rs.getInt(1) }
+                  }
+                  WithClose(worker.createStatement()) { detach =>
+                    detach.setQueryTimeout(30)
+                    val sql = command()
+                    val task = executor.submit(new Callable[Boolean] {
+                      override def call(): Boolean = detach.execute(sql)
+                    })
+                    try {
+                      eventually(50, 100.millis) {
+                        scalar(s"SELECT count(*) FROM pg_stat_activity WHERE pid = $pid " +
+                            "AND wait_event_type = 'Lock' AND wait_event = 'virtualxid'") mustEqual 1
+                      }
+                      scalar(s"SELECT count(*) FROM $view") mustEqual 2
+                      detach.cancel()
+                      Try(task.get(5, TimeUnit.SECONDS)).isFailure must beTrue
+                      clean()
+                      workers() mustEqual 1
+                      command() must endWith(" FINALIZE")
+                      command() must contain(sources.head.qualified)
+                      // Merge excludes these ranges; recurring recovery must still run without recopying them.
+                      st.execute(s"CALL ${info.schema.quoted}.${MergeWriteAheadPartitions.name(info).quoted}('2020-01-01 05:00:00')")
+                      pauseJobs()
+                      command() must endWith(" FINALIZE")
+                      scalar(s"SELECT count(*) FROM ${info.tables.mainPartitions.name.qualified}") mustEqual 2
+                    } finally {
+                      reader.rollback()
+                      if (!task.isDone) {
+                        detach.cancel()
+                        Try(task.get(5, TimeUnit.SECONDS))
+                      }
+                    }
+                  }
+                }
+              } finally {
+                reader.rollback()
+              }
+            }
+            st.execute(command()) // FINALIZE the interrupted first detach.
+            clean()
+            scalar(s"SELECT count(*) FROM ${info.tables.writeAheadMigrations.name.qualified}") mustEqual 1
+            workers() mustEqual 1
+            command() must endWith(" CONCURRENTLY")
+            command() must contain(sources.last.qualified)
+            st.execute(command())
+            clean()
+            workers() mustEqual 0
+            scalar(s"SELECT count(*) FROM ${info.tables.writeAheadMigrations.name.qualified}") mustEqual 0
+            foreach(sources) { source =>
+              scalar(s"SELECT count(*) FROM pg_class WHERE oid = to_regclass('${source.qualified}')") mustEqual 0
+            }
+            scalar(s"SELECT count(*) FROM $view") mustEqual 2
+          }
+        }
+      } finally {
+        executor.shutdownNow()
+        try { ds.removeSchema(sft.getTypeName) } finally { ds.dispose() }
+      }
+    }
+
+    "skip unmigrated numeric write-ahead slots when rotating through zero" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "wa_rotation")
+      try {
+        ds.createSchema(sft)
+        val info = TypeInfo(this.schema, sft)
+        val occupied = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + "_000")
+        val current = TableIdentifier(this.schema, info.tables.writeAhead.name.raw + "_999")
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.createStatement()) { st =>
+            st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+            st.execute(s"INSERT INTO ${occupied.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
+                "VALUES ('unmigrated', '2020-01-01')")
+            st.execute(s"CREATE TABLE ${current.qualified} () INHERITS (${info.tables.writeAhead.name.qualified})")
+            st.execute(s"INSERT INTO ${current.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
+                "VALUES ('active', '2020-01-02')")
+            st.execute(s"UPDATE ${info.schema.quoted}.${SequenceTable.Name.quoted} SET value = 999 " +
+                s"WHERE type_name = '${sft.getTypeName}'")
+            st.execute(s"CALL ${info.schema.quoted}.${RollWriteAheadLog.name(info).quoted}()")
+            WithClose(st.executeQuery(s"SELECT value FROM ${info.schema.quoted}.${SequenceTable.Name.quoted} " +
+                s"WHERE type_name = '${sft.getTypeName}'")) { rs =>
+              rs.next() must beTrue
+              rs.getInt(1) mustEqual 1
+            }
+            st.execute(s"INSERT INTO ${info.tables.view.name.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
+                "VALUES ('new', '2020-01-03')")
+            WithClose(st.executeQuery(s"SELECT count(*) FROM ${occupied.qualified}")) { rs =>
+              rs.next() must beTrue
+              rs.getInt(1) mustEqual 1
+            }
+            WithClose(st.executeQuery(s"SELECT count(*) FROM ${info.tables.view.name.qualified}")) { rs =>
+              rs.next() must beTrue
+              rs.getInt(1) mustEqual 3
+            }
+          }
+        }
+      } finally {
+        try { ds.removeSchema(sft.getTypeName) } finally { ds.dispose() }
+      }
+    }
+
+    "age off without blocking new queries and recover an interrupted detach" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "concurrent_ageoff")
+      sft.getUserData.put(SftUserData.MaxPartitions.key, "2")
+      ds.createSchema(sft)
+      val info = TypeInfo(this.schema, sft)
+      val parents = Seq(info.tables.mainPartitions, info.tables.spillPartitions)
+      val executor = Executors.newSingleThreadExecutor()
+      try {
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { observer =>
+          WithClose(observer.createStatement()) { st =>
+            def scalar(sql: String): Int = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getInt(1) }
+            def clean(): Unit = {
+              st.execute(s"CALL ${info.schema.quoted}.${CleanAgedOffPartitions.name(info).quoted}()")
+              // Invoke worker commands ourselves so the test does not depend on cron timing.
+              st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+            }
+            def command(parent: TableConfig): String = {
+              WithClose(st.executeQuery(s"SELECT command FROM cron.job WHERE jobname = " +
+                  CleanAgedOffPartitions.detachJobName(info, parent).quoted)) { rs =>
+                rs.next() must beTrue
+                rs.getString(1)
+              }
+            }
+            st.execute("SET statement_timeout = '5s'")
+            st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+            parents.foreach { parent =>
+              Seq(0, 1, 3).foreach { hour =>
+                val child = TableIdentifier(this.schema, parent.name.raw + f"_2020_01_01_$hour%02d").qualified
+                st.execute(s"CREATE TABLE $child PARTITION OF ${parent.name.qualified} " +
+                    s"FOR VALUES FROM ('2020-01-01 $hour:00:00') TO ('2020-01-01 ${hour + 1}:00:00')")
+                st.execute(s"INSERT INTO $child (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
+                    s"VALUES ('${parent.name.raw}_$hour', '2020-01-01 $hour:30:00')")
+              }
+            }
+            val view = info.tables.view.name.qualified
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { reader =>
+              reader.setAutoCommit(false)
+              try {
+                // Exhausting the result still holds relation locks until the export transaction ends.
+                WithClose(reader.createStatement()) { read =>
+                  WithClose(read.executeQuery(s"SELECT count(*) FROM $view")) { rs =>
+                    rs.next() must beTrue
+                    rs.getInt(1) mustEqual 6
+                  }
+                }
+                st.execute(s"CALL ${info.schema.quoted}.${DropAgedOffPartitions.name(info).quoted}" +
+                    "('2020-01-01 05:00:00')")
+                clean()
+                scalar(s"SELECT count(*) FROM ${info.tables.ageOffQueue.name.qualified}") mustEqual 4
+                scalar(s"SELECT count(*) FROM $view") mustEqual 2
+
+                WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { worker =>
+                  val pid = WithClose(worker.createStatement()) { query =>
+                    WithClose(query.executeQuery("SELECT pg_backend_pid()")) { rs => rs.next(); rs.getInt(1) }
+                  }
+                  WithClose(worker.createStatement()) { detach =>
+                    detach.setQueryTimeout(30)
+                    val sql = command(parents.head)
+                    sql must endWith(" CONCURRENTLY")
+                    val task = executor.submit(new Callable[Boolean] {
+                      override def call(): Boolean = detach.execute(sql)
+                    })
+                    try {
+                      eventually(50, 100.millis) {
+                        scalar(s"SELECT count(*) FROM pg_stat_activity WHERE pid = $pid " +
+                            "AND wait_event_type = 'Lock' AND wait_event = 'virtualxid'") mustEqual 1
+                      }
+                      task.isDone must beFalse
+                      // This query must finish while the old export keeps detachment waiting.
+                      scalar(s"SELECT count(*) FROM $view") mustEqual 2
+                      detach.cancel()
+                      Try(task.get(5, TimeUnit.SECONDS)).isFailure must beTrue
+                      scalar(s"SELECT count(*) FROM pg_inherits WHERE inhparent = " +
+                          s"${parents.head.name.asRegclass} AND inhdetachpending") mustEqual 1
+                      clean()
+                      command(parents.head) must endWith(" FINALIZE")
+                    } finally {
+                      reader.rollback()
+                      if (!task.isDone) {
+                        detach.cancel()
+                        Try(task.get(5, TimeUnit.SECONDS))
+                      }
+                    }
+                  }
+                }
+              } finally {
+                reader.rollback()
+              }
+            }
+
+            foreach(parents) { parent =>
+              (0 until 2).foreach { _ =>
+                st.execute(command(parent))
+                clean()
+              }
+              scalar(s"SELECT count(*) FROM cron.job WHERE jobname = " +
+                  CleanAgedOffPartitions.detachJobName(info, parent).quoted) mustEqual 0
+              scalar(s"SELECT count(*) FROM ${parent.name.qualified}") mustEqual 1
+              scalar(s"SELECT count(*) FROM pg_class WHERE relname IN " +
+                  s"('${parent.name.raw}_2020_01_01_00', '${parent.name.raw}_2020_01_01_01')") mustEqual 0
+            }
+            scalar(s"SELECT count(*) FROM ${info.tables.ageOffQueue.name.qualified}") mustEqual 0
+            scalar(s"SELECT count(*) FROM $view") mustEqual 2
+          }
+        }
+      } finally {
+        executor.shutdownNow()
+        try { ds.removeSchema(sft.getTypeName) } finally { ds.dispose() }
+      }
+    }
+
+    "remove queued age-off partitions and worker jobs with the schema" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "age-off-removal")
+      sft.getUserData.put(SftUserData.MaxPartitions.key, "2")
+      try {
+        ds.createSchema(sft)
+        val info = TypeInfo(this.schema, sft)
+        val parents = Seq(info.tables.mainPartitions, info.tables.spillPartitions)
+        val children = parents.map(parent => TableIdentifier(this.schema, parent.name.raw + "_2020_01_01_00"))
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.createStatement()) { st =>
+            st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+            parents.zip(children).foreach { case (parent, child) =>
+              st.execute(s"CREATE TABLE ${child.qualified} PARTITION OF ${parent.name.qualified} " +
+                  "FOR VALUES FROM ('2020-01-01') TO ('2020-01-01 01:00:00')")
+            }
+            st.execute(s"CALL ${info.schema.quoted}.${DropAgedOffPartitions.name(info).quoted}" +
+                "('2020-01-01 05:00:00')")
+            st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+            val command = WithClose(st.executeQuery(s"SELECT command FROM cron.job WHERE jobname = " +
+                CleanAgedOffPartitions.detachJobName(info, parents.head).quoted)) { rs =>
+              rs.next() must beTrue
+              rs.getString(1)
+            }
+            // Leave one detached partition and one attached partition in the queue.
+            st.execute(command)
+            ds.removeSchema(sft.getTypeName)
+            foreach(children) { child =>
+              WithClose(st.executeQuery(s"SELECT to_regclass('${child.qualified}')")) { rs =>
+                rs.next() must beTrue
+                rs.getString(1) must beNull
+              }
+            }
+            WithClose(st.executeQuery(s"SELECT count(*) FROM cron.job WHERE jobname LIKE '${info.typeIdentifier}-%'")) { rs =>
+              rs.next() must beTrue
+              rs.getInt(1) mustEqual 0
+            }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
     "age-off" in {
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
       ds must not(beNull)
@@ -818,13 +1335,13 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
           }
 
           // _wa, _wa_partition, _partition, _spill tables + dtg, pk, geom indices for each
-          // _analyze_queue, _sort_queue, _wa_000, main view
-          getTablesAndIndices must haveLength(20)
+          // _analyze_queue, _sort_queue, _wa_000, _wa_migrations, _age_off_queue, _wa_retirements, main view
+          getTablesAndIndices must haveLength(28)
           // delete/insert/update/wa triggers
-          // analyze_partitions, compact, drop_age_off, merge_wa, part_maintenance, part_wa, roll_wa,
-          getFunctions must haveLength(11)
-          // log_cleaner, analyze_partitions, roll_wa, partition_maintenance
-          getCrons must haveLength(4)
+          // analyze_partitions, clean_wa_migrations, clean_wa_retirements, clean_age_off, compact, drop_age_off, merge_wa, part_maintenance, part_wa, roll_wa,
+          getFunctions must haveLength(14)
+          // log_cleaner, analyze_partitions, clean_wa_migrations, clean_wa_retirements, clean_age_off, roll_wa, partition_maintenance
+          getCrons must haveLength(7)
           // 4 user data, 1 seq count, 1 primary key
           val meta = getMeta
           meta must haveSize(3)
@@ -1147,7 +1664,9 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
             // most main partitions are made by merging write ahead partitions once they pass the cutoff - run
             // it as if a few hours had passed
             WithClose(cx.prepareCall(s"call ${MergeWriteAheadPartitions.name(typeInfo).quoted}(now()::timestamp + interval '3 hours');"))(_.execute())
-            persistence(typeInfo.tables.writeAheadPartitions) must beEmpty
+            val deferred = persistence(typeInfo.tables.writeAheadPartitions)
+            deferred must not(beEmpty)
+            foreach(deferred)(_ mustEqual expected)
             val merged = persistence(typeInfo.tables.mainPartitions)
             merged.length must beGreaterThan(direct.length)
             foreach(merged)(_ mustEqual expected)
@@ -1296,7 +1815,13 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
             // main partitions are also created by merging the write ahead partitions once they age past the
             // cutoff, which is how most of them are made - run it as if a few hours had passed
             WithClose(cx.prepareCall(s"call ${MergeWriteAheadPartitions.name(typeInfo).quoted}(now()::timestamp + interval '3 hours');"))(_.execute())
-            children(typeInfo.tables.writeAheadPartitions) must beEmpty
+            WithClose(cx.createStatement()) { st =>
+              st.execute("SELECT set_config('geomesa.auths', 'user', false)")
+              WithClose(st.executeQuery(s"SELECT count(*) FROM ${typeInfo.tables.view.name.qualified}")) { rs =>
+                rs.next() must beTrue
+                rs.getInt(1) mustEqual features.length
+              }
+            }
             val main = children(typeInfo.tables.mainPartitions)
             main.map(_._1) must containAllOf(partitioned.map(_._1))
             main.length must beGreaterThan(partitioned.length)

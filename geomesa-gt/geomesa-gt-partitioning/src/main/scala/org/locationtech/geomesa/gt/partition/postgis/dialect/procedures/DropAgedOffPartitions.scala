@@ -13,7 +13,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
 
 /**
- * Drops any partitions older than the configured maximum
+ * Queues partitions older than the configured maximum for concurrent detachment and deletion
  */
 object DropAgedOffPartitions extends SqlProcedure {
 
@@ -29,7 +29,6 @@ object DropAgedOffPartitions extends SqlProcedure {
        |      partition_size int;                          -- size of the partition, in hours
        |      main_cutoff timestamp without time zone;     -- max age of the records for main tables
        |      partition_start timestamp without time zone; -- start bounds for the partition we're writing
-       |      partition_name regclass;                     -- partition table name
        |    BEGIN
        |      SELECT value::int FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
        |        WHERE key = ${literal(SftUserData.MaxPartitions.key)}
@@ -44,25 +43,20 @@ object DropAgedOffPartitions extends SqlProcedure {
        |        main_cutoff := ${info.schema.quoted}.truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
        |        -- remove any partitions that have aged out
        |        partition_start := main_cutoff - (make_interval(hours => partition_size) * num_partitions);
-       |        FOR partition_name IN
-       |          SELECT relid
-       |            FROM pg_partition_tree(${info.tables.mainPartitions.name.asRegclass})
-       |            WHERE parentrelid IS NOT NULL
-       |            AND (SELECT relname FROM pg_class WHERE oid = relid) <= ${literal(info.tables.mainPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
-       |          UNION ALL
-       |            SELECT relid
-       |              FROM pg_partition_tree(${info.tables.spillPartitions.name.asRegclass})
-       |              WHERE parentrelid IS NOT NULL
-       |              AND (SELECT relname FROM pg_class WHERE oid = relid) <= ${literal(info.tables.spillPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
-       |        LOOP
-       |          RAISE NOTICE 'Aging off partition %', partition_name;
-       |          IF EXISTS(SELECT FROM pg_class WHERE oid = partition_name) THEN
-       |            -- cast to text will handle quoting the table name appropriately
-       |            EXECUTE 'DROP TABLE IF EXISTS ${info.schema.quoted}.' || partition_name::text;
-       |            RAISE NOTICE 'A partition has been deleted %', partition_name;
-       |          END IF;
-       |        END LOOP;
+       |        INSERT INTO ${info.tables.ageOffQueue.name.qualified}
+       |          (source_partition, partition_oid, parent_oid, enqueued)
+       |          SELECT quote_ident(namespace.nspname) || '.' || quote_ident(partition.relname),
+       |              partition.oid, inherits.inhparent, now()
+       |            FROM pg_catalog.pg_inherits inherits
+       |            JOIN pg_catalog.pg_class partition ON partition.oid = inherits.inhrelid
+       |            JOIN pg_catalog.pg_namespace namespace ON namespace.oid = partition.relnamespace
+       |            WHERE (inherits.inhparent = ${info.tables.mainPartitions.name.asRegclass}
+       |              AND partition.relname <= ${literal(info.tables.mainPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24'))
+       |            OR (inherits.inhparent = ${info.tables.spillPartitions.name.asRegclass}
+       |              AND partition.relname <= ${literal(info.tables.spillPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24'))
+       |          ON CONFLICT (source_partition) DO NOTHING;
        |      END IF;
+       |      CALL ${info.schema.quoted}.${CleanAgedOffPartitions.name(info).quoted}();
        |    END;
        |  $$BODY$$;
        |""".stripMargin

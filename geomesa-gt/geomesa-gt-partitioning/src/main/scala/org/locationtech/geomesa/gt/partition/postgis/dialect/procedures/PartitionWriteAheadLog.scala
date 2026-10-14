@@ -55,12 +55,14 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |
        |      -- check for write ahead partitions and move the data into the time partitioned tables
        |      FOR write_ahead IN
-       |        SELECT pg_class.relname AS name
+       |        SELECT pg_class.relname AS name, pg_class.oid AS oid
        |          FROM pg_catalog.pg_inherits
        |          INNER JOIN pg_catalog.pg_class ON (pg_inherits.inhrelid = pg_class.oid)
        |          INNER JOIN pg_catalog.pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
        |          WHERE inhparent = ${info.tables.writeAhead.name.asRegclass}
        |          AND relname != write_partition
+       |          AND NOT EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified} retired
+       |            WHERE retired.partition_oid = pg_class.oid)
        |          ORDER BY name
        |      LOOP
        |
@@ -69,8 +71,21 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |        -- (there shouldn't be any writes though) and will synchronize this method
        |        LOCK TABLE ONLY ${info.tables.mainPartitions.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |        LOCK TABLE ONLY ${info.tables.spillPartitions.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
+       |        -- Recheck after acquiring the parent locks: another migration may have retired this table.
+       |        IF NOT EXISTS (SELECT FROM pg_class WHERE oid = write_ahead.oid)
+       |          OR EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified} WHERE partition_oid = write_ahead.oid) THEN
+       |          COMMIT;
+       |          CONTINUE;
+       |        END IF;
        |        EXECUTE 'LOCK TABLE ${info.schema.quoted}.' || quote_ident(write_ahead.name) ||
-       |          ' IN SHARE UPDATE EXCLUSIVE MODE';
+       |          ' IN SHARE ROW EXCLUSIVE MODE';
+       |        -- Rotation may have reused a retired table since this loop enumerated the children.
+       |        SELECT value FROM ${info.schema.quoted}.${SequenceTable.Name.quoted}
+       |          WHERE type_name = ${literal(info.typeName)} INTO seq_val;
+       |        IF write_ahead.name = ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0') THEN
+       |          COMMIT;
+       |          CONTINUE;
+       |        END IF;
        |        RAISE INFO '% Locked write ahead table % for migration', timeofday()::timestamp, write_ahead.name;
        |
        |        -- wait until the table doesn't contain any recent records
@@ -214,14 +229,16 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              VALUES (partition_name, now());
        |          END LOOP;
        |
-       |          RAISE INFO '% Dropping write ahead table %', timeofday()::timestamp, write_ahead.name;
-       |          -- requires ACCESS EXCLUSIVE lock
-       |          EXECUTE 'DROP TABLE ' || quote_ident(write_ahead.name);
+       |          -- Commit the copies and retirement marker together. Cleanup drops the originals,
+       |          -- or rotation deletes them before reusing the table.
+       |          INSERT INTO ${info.tables.writeAheadRetirements.name.qualified}(source_partition, partition_oid, enqueued)
+       |            VALUES (${literal(info.schema.quoted + ".")} || quote_ident(write_ahead.name), write_ahead.oid, now());
        |
        |        END IF;
        |
        |        COMMIT; -- releases the lock
        |      END LOOP;
+       |      CALL ${info.schema.quoted}.${CleanWriteAheadRetirements.name(info).quoted}();
        |    END;
        |  $$BODY$$;
        |""".stripMargin

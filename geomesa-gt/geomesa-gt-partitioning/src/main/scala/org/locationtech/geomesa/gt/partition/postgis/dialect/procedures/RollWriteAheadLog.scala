@@ -34,6 +34,8 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |  $$BODY$$
        |    DECLARE
        |      seq_val smallint;
+       |      attempt integer;
+       |      next_oid oid;
        |      cur_partition text;        -- rename of the _writes table
        |      next_partition text;       -- next partition that will be created from the _writes table
        |      partition_tablespace text; -- table space command
@@ -42,29 +44,33 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      pexists boolean;           -- table exists check
        |    BEGIN
        |
+       |      -- Serialize slot selection with rotation and cleanup before reading the current sequence.
+       |      LOCK TABLE ONLY ${info.tables.writeAhead.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |      SELECT value FROM ${info.schema.quoted}.${SequenceTable.Name.quoted}
        |        WHERE type_name = ${literal(info.typeName)} INTO seq_val;
        |      cur_partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
-       |
-       |      -- get the required locks up front to avoid deadlocks with inserts
-       |      LOCK TABLE ONLY ${info.tables.writeAhead.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |
        |      -- don't re-create the table if there hasn't been any data inserted
        |      EXECUTE 'SELECT EXISTS(SELECT 1 FROM ${info.schema.quoted}.' || quote_ident(cur_partition) || ')'
        |          INTO pexists;
        |      IF pexists THEN
-       |
-       |        IF seq_val < 999 THEN
-       |          seq_val := seq_val + 1;
-       |        ELSE
-       |          seq_val := 0;
+       |        -- find the next slot, skipping any tables queued for retirement but not yet deleted
+       |        FOR attempt IN 1..999 LOOP
+       |          seq_val := (seq_val + 1) % 1000;
+       |          next_partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
+       |          SELECT c.oid INTO next_oid FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+       |            WHERE n.nspname = ${info.schema.asLiteral} AND c.relname = next_partition;
+       |          pexists := FOUND;
+       |          CONTINUE WHEN EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified}
+       |            WHERE partition_oid = next_oid);
+       |          EXIT WHEN NOT pexists;
+       |        END LOOP;
+       |        IF pexists THEN
+       |          RAISE EXCEPTION 'No available numeric write-ahead slots remain for %', ${literal(info.typeName)};
        |        END IF;
-       |
        |        UPDATE ${info.schema.quoted}.${SequenceTable.Name.quoted} SET value = seq_val
        |          WHERE type_name = ${literal(info.typeName)};
        |
-       |        -- format the table name to be 3 digits, with leading zeros as needed
-       |        next_partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
        |        SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
        |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WriteAheadTableSpace.key)}
        |          INTO partition_tablespace;

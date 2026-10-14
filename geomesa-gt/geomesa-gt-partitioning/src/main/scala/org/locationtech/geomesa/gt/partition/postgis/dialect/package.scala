@@ -37,6 +37,9 @@ package object dialect {
   private[dialect] val SpillTableSuffix                 = SqlLiteral("_spill")
   private[dialect] val AnalyzeTableSuffix               = SqlLiteral("_analyze_queue")
   private[dialect] val SortTableSuffix                  = SqlLiteral("_sort_queue")
+  private[dialect] val WriteAheadMigrationsTableSuffix  = SqlLiteral("_wa_migrations")
+  private[dialect] val WriteAheadRetirementsTableSuffix = SqlLiteral("_wa_retirements")
+  private[dialect] val AgeOffQueueTableSuffix           = SqlLiteral("_age_off_queue")
 
   /**
    * Escape a sql identifier
@@ -203,6 +206,9 @@ package object dialect {
    * @param mainPartitions main partitions table
    * @param analyzeQueue analyze queue table
    * @param sortQueue sort queue table
+   * @param writeAheadMigrations write ahead partitions that have been copied into main partitions
+   * @param writeAheadRetirements numeric write-ahead tables whose rows have been copied
+   * @param ageOffQueue expired main and spill partitions awaiting detachment and deletion
    */
   case class Tables(
       view: TableConfig,
@@ -211,7 +217,10 @@ package object dialect {
       mainPartitions: TableConfig,
       spillPartitions: TableConfig,
       analyzeQueue: TableConfig,
-      sortQueue: TableConfig)
+      sortQueue: TableConfig,
+      writeAheadMigrations: TableConfig,
+      ageOffQueue: TableConfig,
+      writeAheadRetirements: TableConfig)
 
   object Tables {
     def apply(sft: SimpleFeatureType, schema: String, typeIdentifier: String): Tables = {
@@ -228,7 +237,11 @@ package object dialect {
       val spillPartitions = TableConfig(schema, tablePrefix + SpillTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged, toastTupleTarget = toastTupleTarget)
       val analyzeQueue = TableConfig(schema, tablePrefix + AnalyzeTableSuffix.raw, None, logged = logged)
       val sortQueue = TableConfig(schema, tablePrefix + SortTableSuffix.raw, None, logged = logged)
-      Tables(view, writeAhead, writeAheadPartitions, mainPartitions, spillPartitions, analyzeQueue, sortQueue)
+      val writeAheadMigrations = TableConfig(schema, tablePrefix + WriteAheadMigrationsTableSuffix.raw, None)
+      val ageOffQueue = TableConfig(schema, tablePrefix + AgeOffQueueTableSuffix.raw, None)
+      val writeAheadRetirements = TableConfig(schema, tablePrefix + WriteAheadRetirementsTableSuffix.raw, None)
+      Tables(view, writeAhead, writeAheadPartitions, mainPartitions, spillPartitions, analyzeQueue, sortQueue,
+        writeAheadMigrations, ageOffQueue, writeAheadRetirements)
     }
   }
 

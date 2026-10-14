@@ -51,8 +51,14 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |      -- move data from the write ahead partitions to the main partitions
        |      LOOP
        |        -- find the range of dates in the write ahead partition tables
-       |        SELECT min(${info.cols.dtg.quoted}) INTO min_dtg FROM ${info.tables.writeAheadPartitions.name.qualified}
-       |          WHERE ${info.cols.dtg.quoted} < main_cutoff;
+       |        SELECT min(write_ahead_partition.${info.cols.dtg.quoted}) INTO min_dtg
+       |          FROM ${info.tables.writeAheadPartitions.name.qualified} write_ahead_partition
+       |          WHERE write_ahead_partition.${info.cols.dtg.quoted} < main_cutoff
+       |            AND NOT EXISTS (
+       |              SELECT FROM ${info.tables.writeAheadMigrations.name.qualified} migration
+       |              WHERE write_ahead_partition.${info.cols.dtg.quoted} >= migration.partition_start
+       |                AND write_ahead_partition.${info.cols.dtg.quoted} < migration.partition_end
+       |            );
        |        EXIT WHEN min_dtg IS NULL;
        |
        |        partition_start := ${info.schema.quoted}.truncate_to_partition(min_dtg, partition_size);
@@ -173,12 +179,17 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |          RAISE NOTICE 'A partition has been created %', partition_name;
        |        END IF;
        |
-       |        -- drop the tables that we've copied out
        |        EXECUTE 'DROP VIEW ' || quote_ident(partition_name || '_tmp_migrate');
-       |        -- TODO this requires ACCESS EXCLUSIVE
        |        FOREACH write_ahead_partition IN ARRAY write_ahead_partitions LOOP
-       |          EXECUTE 'DROP TABLE ' || write_ahead_partition;
-       |          RAISE NOTICE 'A partition has been deleted %', write_ahead_partition;
+       |          INSERT INTO ${info.tables.writeAheadMigrations.name.qualified}
+       |            (source_partition, partition_start, partition_end, enqueued)
+       |            VALUES (write_ahead_partition, partition_start, partition_end, now())
+       |            ON CONFLICT (source_partition) DO UPDATE
+       |              SET partition_start = EXCLUDED.partition_start,
+       |                  partition_end = EXCLUDED.partition_end,
+       |                  enqueued = EXCLUDED.enqueued;
+       |
+       |          RAISE NOTICE 'A partition has been queued for detachment %', write_ahead_partition;
        |        END LOOP;
        |
        |        -- mark the partition to be analyzed in a separate thread
@@ -189,6 +200,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |        COMMIT;
        |
        |      END LOOP;
+       |      CALL ${info.schema.quoted}.${CleanWriteAheadMigrations.name(info).quoted}();
        |    END;
        |  $$BODY$$;
        |""".stripMargin

@@ -26,25 +26,37 @@ object UpdateTrigger extends SqlTriggerFunction {
   private def function(info: TypeInfo): String = {
     val updateFields = info.cols.all.map(c => s"${c.quoted} = NEW.${c.quoted}").mkString(",")
     val where = s"${info.cols.fid.quoted} = OLD.${info.cols.fid.quoted} AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}"
+    // Migrated write-ahead rows are hidden by the view; mutate their visible main/spill copies instead.
+    val notMigrated =
+      s"""NOT EXISTS (
+         |  SELECT FROM ${info.tables.writeAheadMigrations.name.qualified} migration
+         |  WHERE OLD.${info.cols.dtg.quoted} >= migration.partition_start
+         |    AND OLD.${info.cols.dtg.quoted} < migration.partition_end
+         |)""".stripMargin
+
+    val notRetired = s"NOT EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified} retired " +
+        "WHERE retired.partition_oid = target.tableoid)"
+    val notAgedOff = s"NOT EXISTS (SELECT FROM ${info.tables.ageOffQueue.name.qualified} queue " +
+        "WHERE queue.partition_oid = target.tableoid)"
 
     s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    DECLARE
        |      del_count integer;
        |    BEGIN
-       |      UPDATE ${info.tables.writeAhead.name.qualified} SET $updateFields WHERE $where;
+       |      UPDATE ${info.tables.writeAhead.name.qualified} target SET $updateFields WHERE $where AND $notRetired;
        |      IF NOT FOUND THEN
-       |        DELETE FROM ${info.tables.writeAheadPartitions.name.qualified} WHERE $where;
+       |        DELETE FROM ${info.tables.writeAheadPartitions.name.qualified} WHERE $where AND $notMigrated;
        |        GET DIAGNOSTICS del_count := ROW_COUNT;
        |        IF del_count > 0 THEN
        |          INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |        ELSE
-       |          DELETE FROM ${info.tables.mainPartitions.name.qualified} WHERE $where;
+       |          DELETE FROM ${info.tables.mainPartitions.name.qualified} target WHERE $where AND $notAgedOff;
        |          GET DIAGNOSTICS del_count := ROW_COUNT;
        |          IF del_count > 0 THEN
        |            INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |          ELSE
-       |            DELETE FROM ${info.tables.spillPartitions.name.qualified} WHERE $where;
+       |            DELETE FROM ${info.tables.spillPartitions.name.qualified} target WHERE $where AND $notAgedOff;
        |            GET DIAGNOSTICS del_count := ROW_COUNT;
        |            IF del_count > 0 THEN
        |              INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);

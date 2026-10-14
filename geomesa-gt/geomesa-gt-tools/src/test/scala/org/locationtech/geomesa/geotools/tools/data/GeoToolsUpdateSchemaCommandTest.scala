@@ -12,16 +12,14 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.util.factory.Hints
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.gt.partition.postgis.dialect.TypeInfo
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CleanAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.{PartitionedPostgisDataStore, PartitionedPostgisDataStoreParams}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -29,8 +27,7 @@ import org.testcontainers.utility.DockerImageName
 
 import scala.collection.mutable.ArrayBuffer
 
-@RunWith(classOf[JUnitRunner])
-class GeoToolsUpdateSchemaCommandTest extends Specification with BeforeAfterAll with LazyLogging {
+class GeoToolsUpdateSchemaCommandTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -140,6 +137,48 @@ class GeoToolsUpdateSchemaCommandTest extends Specification with BeforeAfterAll 
           cron
         }
 
+        // get the cron schedule for the partition maintenance job
+        def getScheduledAgeOff: Seq[String] = {
+          val tables = ArrayBuffer.empty[String]
+          val sql = s"select source_partition from ${typeInfo.tables.ageOffQueue.name.qualified}"
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(cx.prepareStatement(sql)) { st =>
+              WithClose(st.executeQuery()) { rs =>
+                while (rs.next()) {
+                  tables += rs.getString(1)
+                }
+              }
+            }
+          }
+          tables.toSeq.sorted
+        }
+
+        // get the cron schedule for the partition maintenance job
+        def executeScheduledAgeOffs: Seq[String] = {
+          val crons = ArrayBuffer.empty[String]
+          val sql = s"select command from cron.job where jobname like 'tools-age-off-%'"
+          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            def executeCron: Boolean = {
+              WithClose(cx.prepareStatement(sql)) { st =>
+                WithClose(st.executeQuery()) { rs =>
+                  if (rs.next()) {
+                    val cron = rs.getString(1)
+                    WithClose(cx.prepareCall(cron))(_.execute())
+                    crons += cron
+                    true
+                  } else {
+                    false
+                  }
+                }
+              }
+            }
+            while (executeCron) {
+              WithClose(cx.prepareCall(s"call ${CleanAgedOffPartitions.name(typeInfo).quoted}();"))(_.execute())
+            }
+          }
+          crons.toSeq.distinct.sorted
+        }
+
         getTables must beEmpty
 
         // write the first 12 features
@@ -194,7 +233,32 @@ class GeoToolsUpdateSchemaCommandTest extends Specification with BeforeAfterAll 
         // run the age-off job
         write(Seq.empty)
 
+        // verify features were dropped
+        getFeatures must beEmpty
+
         // verify partitions were dropped
+        getScheduledAgeOff mustEqual
+          Seq(
+            "public.tools_partition_2023_10_30_00",
+            "public.tools_partition_2023_10_30_06",
+            "public.tools_partition_2023_10_30_12",
+            "public.tools_partition_2023_10_30_14",
+            "public.tools_partition_2023_10_30_16",
+            "public.tools_partition_2023_10_30_18",
+            "public.tools_partition_2023_10_30_20",
+            "public.tools_partition_2023_10_30_22"
+          )
+        executeScheduledAgeOffs mustEqual
+          Seq(
+            "public.tools_partition_2023_10_30_00",
+            "public.tools_partition_2023_10_30_06",
+            "public.tools_partition_2023_10_30_12",
+            "public.tools_partition_2023_10_30_14",
+            "public.tools_partition_2023_10_30_16",
+            "public.tools_partition_2023_10_30_18",
+            "public.tools_partition_2023_10_30_20",
+            "public.tools_partition_2023_10_30_22"
+          ).map(t => s"""ALTER TABLE "public"."tools_partition" DETACH PARTITION $t CONCURRENTLY""")
         getTables must beEmpty
 
         // verify features were dropped
