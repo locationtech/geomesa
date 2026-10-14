@@ -88,6 +88,9 @@ The default date field in the schema will be used for filtering.
 For other use cases, an arbitrary filter can be specified using the key ``geomesa.merged.store.filter``, which should be
 an ECQL filter string.
 
+The filters will be used on all layers in the store. For fine-grained control, per-layer filters can be specified
+by appending the type name to the filter parameter - for example, ``geomesa.merged.store.date.start.myFeatureType``.
+
 The filters will always be applied in addition to the query filter. This can be used to short-circuit
 queries that are not relevant for a particular store. For example, if one store contains features from the past
 24 hours, and a second store contains features older than 24 hours, then you could configure them with

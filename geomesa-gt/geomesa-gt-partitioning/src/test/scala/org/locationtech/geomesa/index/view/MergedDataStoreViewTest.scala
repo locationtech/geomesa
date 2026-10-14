@@ -237,25 +237,29 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
         "name IN('name3', 'name4', 'name5', 'name6') and bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-01T12:00:00.000Z/2018-01-07T12:00:00.000Z"
       )
 
-      // these filters exclude the '5' feature
-      val shpFilteredParams = shpParams ++ Map(MergedDataStoreViewFactory.StoreFilterParam.key -> "dtg < '2018-01-06T00:00:00.000Z'")
-      val postgisFilteredParams =
-        postgisParams ++ Map(MergedDataStoreViewFactory.StoreFilterParam.key -> "dtg >= '2018-01-06T00:00:00.000Z'")
-
-      val ds = DataStoreFinder.getDataStore(comboParams(shpFilteredParams, postgisFilteredParams))
-      try {
-        foreach(filters) { filter =>
-          val ecql = ECQL.toFilter(filter)
-          val query = new Query(sft.getTypeName, ecql)
-          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
-          results must haveLength(3)
-          forall(results) { feature =>
-            // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
-            features.find(f => feature.getID.contains(f.getID)).get.getAttributes mustEqual feature.getAttributes
+      val keys = Seq(
+        MergedDataStoreViewFactory.StoreFilterParam.key,
+        s"${MergedDataStoreViewFactory.StoreFilterParam.key}.${sft.getTypeName}"
+      )
+      foreach(keys) { key =>
+        // these filters exclude the '5' feature
+        val shpFilteredParams = shpParams ++ Map(key -> "dtg < '2018-01-06T00:00:00.000Z'")
+        val postgisFilteredParams = postgisParams ++ Map(key -> "dtg >= '2018-01-06T00:00:00.000Z'")
+        val ds = DataStoreFinder.getDataStore(comboParams(shpFilteredParams, postgisFilteredParams))
+        try {
+          foreach(filters) { filter =>
+            val ecql = ECQL.toFilter(filter)
+            val query = new Query(sft.getTypeName, ecql)
+            val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            results must haveLength(3)
+            forall(results) { feature =>
+              // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
+              features.find(f => feature.getID.contains(f.getID)).get.getAttributes mustEqual feature.getAttributes
+            }
           }
+        } finally {
+          ds.dispose()
         }
-      } finally {
-        ds.dispose()
       }
     }
 
