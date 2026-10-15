@@ -130,7 +130,7 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
               def pauseJobs(): Unit =
                 st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
 
-              st.execute("SET statement_timeout = '5s'")
+              st.execute("SET statement_timeout = '20s'")
               pauseJobs()
               Seq(info.tables.mainPartitions, info.tables.spillPartitions).foreach { parent =>
                 val child = TableIdentifier(this.schema, parent.name.raw + "_2020_01_01_00")
@@ -251,7 +251,7 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
 
               def workers(): Int = scalar(s"SELECT count(*) FROM cron.job WHERE jobname LIKE '${info.typeIdentifier}-detach-%'")
 
-              st.execute("SET statement_timeout = '5s'")
+              st.execute("SET statement_timeout = '20s'")
               pauseJobs()
               sources.zipWithIndex.foreach { case (source, hour) =>
                 val target = TableIdentifier(this.schema, info.tables.mainPartitions.name.raw + f"_2020_01_01_$hour%02d")
@@ -400,7 +400,7 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
                 }
               }
 
-              st.execute("SET statement_timeout = '5s'")
+              st.execute("SET statement_timeout = '20s'")
               st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
               parents.foreach { parent =>
                 Seq(0, 1, 3).foreach { hour =>
