@@ -87,6 +87,7 @@ object CompactPartitions extends SqlProcedure {
        |        INTO pexists;
        |
        |      -- use "create table as" (vs create then insert) for performance benefits related to WAL skipping
+       |      EXECUTE 'DROP TABLE IF EXISTS ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort');
        |      IF pexists THEN
        |        -- lock the child table to prevent any inserts that would be lost
        |        EXECUTE 'LOCK TABLE ${info.schema.quoted}.' || quote_ident(spill_partition) ||

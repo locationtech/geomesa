@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.codec.digest.MurmurHash3
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -28,13 +29,14 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CleanAgedOffPartitions, CleanWriteAheadMigrations, CleanWriteAheadRetirements, CompactPartitions, DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, PartitionWriteAheadLog, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect._
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TableIdentifier, TypeInfo}
 import org.locationtech.geomesa.index.process.ArrowVisitor
 import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -45,8 +47,9 @@ import org.specs2.specification.BeforeAfterAll
 
 import java.io.{ByteArrayInputStream, IOException, SequenceInputStream}
 import java.net.{ServerSocket, URL}
+import java.nio.charset.StandardCharsets
 import java.sql.Connection
-import java.util.concurrent.{Callable, CopyOnWriteArrayList, Executors, TimeUnit}
+import java.util.concurrent._
 import java.util.logging.{Handler, Level, LogRecord}
 import java.util.{Collections, Locale}
 import javax.sql.DataSource
@@ -139,6 +142,60 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
         ds.dispose()
       }
       ok
+    }
+
+    "serialize concurrent schema creation" in {
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "concurrent-schema-create")
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      ds must not(beNull)
+
+      try {
+        val lockId = {
+          val bytes = s"$schema.${sft.getTypeName}".getBytes(StandardCharsets.UTF_8)
+          MurmurHash3.hash128x64(bytes, 0, bytes.length, 0).head
+        }
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.createStatement()) { st =>
+            st.execute(s"SELECT pg_advisory_lock($lockId)")
+          }
+          var future: Future[_] = null
+          try {
+            future = CachedThreadPool.submit(() =>
+              WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]) { created =>
+                created.createSchema(sft)
+              }
+            )
+            var waiting = false
+            val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
+            while (!waiting && System.nanoTime() < deadline) {
+              WithClose(cx.prepareStatement(
+                "SELECT EXISTS(SELECT FROM pg_locks WHERE locktype = 'advisory' AND classid::int = ? " +
+                    "AND objid::int = ? AND NOT granted)")) { st =>
+                st.setInt(1, (lockId >>> 32).toInt) // the lock id gets split into two ints in the pg_locks table
+                st.setInt(2, lockId.toInt)
+                WithClose(st.executeQuery()) { rs =>
+                  rs.next()
+                  waiting = rs.getBoolean(1)
+                }
+              }
+              if (!waiting) {
+                Thread.sleep(10)
+              }
+            }
+            waiting must beTrue
+            future.isDone must beFalse
+          } finally {
+            WithClose(cx.createStatement()) { st =>
+              st.execute(s"SELECT pg_advisory_unlock($lockId)")
+            }
+          }
+          future.get(10, TimeUnit.SECONDS)
+          future.isDone must beTrue
+        }
+        ds.getTypeNames.toSeq must contain(sft.getTypeName)
+      } finally {
+        ds.dispose()
+      }
     }
 
     "work" in {

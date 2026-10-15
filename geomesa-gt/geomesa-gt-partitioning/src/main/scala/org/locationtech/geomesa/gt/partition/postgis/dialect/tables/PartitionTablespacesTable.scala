@@ -18,7 +18,7 @@ import java.sql.{Connection, DatabaseMetaData}
 /**
  * Stores tablespaces used by each feature type - deprecated but kept around for back-compatibility
  */
-private[postgis] object PartitionTablespacesTable extends PartitionTablespacesTable with AdvisoryLock {
+private[postgis] object PartitionTablespacesTable extends PartitionTablespacesTable with AdvisoryLockSql {
   override protected val lockId: Long = 2005234735580322669L
 }
 

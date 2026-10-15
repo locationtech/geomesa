@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 
 import com.typesafe.scalalogging.StrictLogging
+import org.apache.commons.codec.digest.MurmurHash3
 import org.geotools.api.data.Query
 import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -31,6 +32,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptio
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.jts.geom._
 
+import java.nio.charset.StandardCharsets
 import java.sql.{Connection, DatabaseMetaData, ResultSet, Types}
 import scala.util.{Failure, Success, Try}
 
@@ -120,53 +122,63 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
 
     val sft = SimpleFeatureTypes.copy(original)
 
+    // get an advisory lock so that multiple threads don't try to create things concurrently, which can cause errors
+    val lock = new AdvisoryLock {
+      override protected val lockId: Long = {
+        val bytes = s"$schemaName.${sft.getTypeName}".getBytes(StandardCharsets.UTF_8)
+        MurmurHash3.hash128x64(bytes, 0, bytes.length, 0).head
+      }
+    }
+
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
-      // if the sft name is longer than 31 characters, use an alias for delegate tables to avoid character limits
-      // 31 is the max length, based on the current length of our sql identifiers (tables, etc)
-      if (sft.getTypeName.length() >= 32) {
-        ex.execute(
-          s"CREATE SEQUENCE IF NOT EXISTS ${escape(schemaName)}.${PartitionedPostgisDialect.SftSeqName} " +
-            s"AS integer MINVALUE 0 MAXVALUE 65535")
-        val sql = s"SELECT nextval(${literal(s"$schemaName.${PartitionedPostgisDialect.SftSeqName}")})"
-        val nextVal = WithClose(cx.prepareStatement(sql)) { st =>
-          WithClose(st.executeQuery()) { rs =>
-            rs.next()
-            rs.getInt(1)
+      lock.locked {
+        // if the sft name is longer than 31 characters, use an alias for delegate tables to avoid character limits
+        // 31 is the max length, based on the current length of our sql identifiers (tables, etc)
+        if (sft.getTypeName.length() >= 32) {
+          ex.execute(
+            s"CREATE SEQUENCE IF NOT EXISTS ${escape(schemaName)}.${PartitionedPostgisDialect.SftSeqName} " +
+              s"AS integer MINVALUE 0 MAXVALUE 65535")
+          val sql = s"SELECT nextval(${literal(s"$schemaName.${PartitionedPostgisDialect.SftSeqName}")})"
+          val nextVal = WithClose(cx.prepareStatement(sql)) { st =>
+            WithClose(st.executeQuery()) { rs =>
+              rs.next()
+              rs.getInt(1)
+            }
+          }
+          if (nextVal > 0xFFFF) {
+            throw new IllegalStateException(
+              s"Sequence ${PartitionedPostgisDialect.SftSeqName} has exceeded maximum supported value of 65535 unique feature types")
+          }
+          val id = sft.getTypeName.substring(0, 26) + f"_$nextVal%04x" // 4-character hex-encoded padded string
+          sft.getUserData.put(SftUserData.IdentAlias.key, id)
+        }
+        // get the first column as the fid col, which may or may not be called 'fid'
+        WithClose(cx.getMetaData.getColumns(null, schemaName, sft.getTypeName, null)) { cols =>
+          if (cols.next()) {
+            val name = cols.getString("COLUMN_NAME")
+            if (name != null) {
+              sft.getUserData.put(SftUserData.FidColumn.key, name)
+            }
           }
         }
-        if (nextVal > 0xFFFF) {
-          throw new IllegalStateException(
-            s"Sequence ${PartitionedPostgisDialect.SftSeqName} has exceeded maximum supported value of 65535 unique feature types")
-        }
-        val id = sft.getTypeName.substring(0, 26) + f"_$nextVal%04x" // 4-character hex-encoded padded string
-        sft.getUserData.put(SftUserData.IdentAlias.key, id)
-      }
-      // get the first column as the fid col, which may or may not be called 'fid'
-      WithClose(cx.getMetaData.getColumns(null, schemaName, sft.getTypeName, null)) { cols =>
-        if (cols.next()) {
-          val name = cols.getString("COLUMN_NAME")
-          if (name != null) {
-            sft.getUserData.put(SftUserData.FidColumn.key, name)
+        val info = TypeInfo(schemaName, sft)
+        PartitionedPostgisDialect.Commands.foreach(_.create(info))
+        if (grants.nonEmpty) {
+          val roles = grants.map(_.quoted).mkString(", ")
+          val tables =
+            Seq(
+              info.tables.view.name,
+              info.tables.writeAhead.name,
+              info.tables.writeAheadPartitions.name,
+              info.tables.mainPartitions.name,
+              info.tables.spillPartitions.name,
+              TableIdentifier(schemaName, PrimaryKeyTable.Name.raw),
+              TableIdentifier(schemaName, UserDataTable.Name.raw)
+            )
+          tables.foreach { table =>
+            ex.execute(s"GRANT SELECT ON ${table.qualified} TO $roles;")
           }
-        }
-      }
-      val info = TypeInfo(schemaName, sft)
-      PartitionedPostgisDialect.Commands.foreach(_.create(info))
-      if (grants.nonEmpty) {
-        val roles = grants.map(_.quoted).mkString(", ")
-        val tables =
-          Seq(
-            info.tables.view.name,
-            info.tables.writeAhead.name,
-            info.tables.writeAheadPartitions.name,
-            info.tables.mainPartitions.name,
-            info.tables.spillPartitions.name,
-            TableIdentifier(schemaName, PrimaryKeyTable.Name.raw),
-            TableIdentifier(schemaName, UserDataTable.Name.raw)
-          )
-        tables.foreach { table =>
-          ex.execute(s"GRANT SELECT ON ${table.qualified} TO $roles;")
         }
       }
     } finally {

@@ -111,12 +111,22 @@ package object dialect {
     }
 
     /**
-     * Execute an update statements
+     * Execute a statement with variable binding
      *
      * @param sql sql string, with arguments denoted by '?'
      * @param args arguments to the update statement, must match the argument placeholders in the sql string
      */
-    def executeUpdate(sql: String, args: Seq[Any]): Unit = {
+    def execute(sql: String, args: Seq[Any]): Unit = execute(sql, args, _.execute())
+
+    /**
+     * Execute an update statement with variable binding
+     *
+     * @param sql sql string, with arguments denoted by '?'
+     * @param args arguments to the update statement, must match the argument placeholders in the sql string
+     */
+    def executeUpdate(sql: String, args: Seq[Any]): Unit = execute(sql, args, _.executeUpdate())
+
+    private def execute(sql: String, args: Seq[Any], op: PreparedStatement => Unit): Unit = {
       val ps: PreparedStatement = cx.prepareStatement(sql)
       try {
         var i = 1
@@ -125,7 +135,7 @@ package object dialect {
           i += 1
         }
         logger.debug(s"$sql, ${args.mkString(", ")}")
-        ps.executeUpdate()
+        op(ps)
       } catch {
         case NonFatal(e) => rollback = true; throw e
       } finally {
@@ -733,7 +743,16 @@ package object dialect {
   /**
    * Uses a postgres advisory lock to synchronize create and drop statements
    */
-  trait AdvisoryLock extends Sql {
+  trait AdvisoryLockSql extends Sql with AdvisoryLock {
+
+    abstract override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
+      locked(super.create(info))
+
+    abstract override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
+      locked(super.drop(info))
+  }
+
+  trait AdvisoryLock {
 
     /**
      * The lock id associated with this object
@@ -758,7 +777,7 @@ package object dialect {
      * updated' errors. When auto-commit is on, each statement commits immediately so there is no open transaction to
      * scope the lock to, and we fall back to a session-scoped lock with an explicit unlock.
      */
-    private def locked(op: => Unit)(implicit ex: ExecutionContext): Unit = {
+    def locked(op: => Unit)(implicit ex: ExecutionContext): Unit = {
       if (ex.cx.getAutoCommit) {
         ex.execute(sessionLock)
         try { op } finally {
@@ -769,11 +788,5 @@ package object dialect {
         op
       }
     }
-
-    abstract override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
-      locked(super.create(info))
-
-    abstract override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
-      locked(super.drop(info))
   }
 }

@@ -16,7 +16,7 @@ import java.util.Locale
 /**
  * Deletes history older than 7 days
  */
-object LogCleaner extends LogCleaner with AdvisoryLock {
+object LogCleaner extends LogCleaner with AdvisoryLockSql {
   override protected val lockId: Long = 6743164310736814350L
 }
 

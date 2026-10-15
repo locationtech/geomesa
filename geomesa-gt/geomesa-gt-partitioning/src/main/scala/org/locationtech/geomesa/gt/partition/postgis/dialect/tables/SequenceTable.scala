@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package tables
 
-object SequenceTable extends SequenceTable with AdvisoryLock {
+object SequenceTable extends SequenceTable with AdvisoryLockSql {
   override protected val lockId: Long = 8479421144957800283L
 }
 
