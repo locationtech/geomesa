@@ -111,12 +111,22 @@ package object dialect {
     }
 
     /**
-     * Execute an update statements
+     * Execute a statement with variable binding
      *
      * @param sql sql string, with arguments denoted by '?'
      * @param args arguments to the update statement, must match the argument placeholders in the sql string
      */
-    def executeUpdate(sql: String, args: Seq[Any]): Unit = {
+    def execute(sql: String, args: Seq[Any]): Unit = execute(sql, args, _.execute())
+
+    /**
+     * Execute an update statement with variable binding
+     *
+     * @param sql sql string, with arguments denoted by '?'
+     * @param args arguments to the update statement, must match the argument placeholders in the sql string
+     */
+    def executeUpdate(sql: String, args: Seq[Any]): Unit = execute(sql, args, _.executeUpdate())
+
+    private def execute(sql: String, args: Seq[Any], op: PreparedStatement => Unit): Unit = {
       val ps: PreparedStatement = cx.prepareStatement(sql)
       try {
         var i = 1
@@ -125,7 +135,7 @@ package object dialect {
           i += 1
         }
         logger.debug(s"$sql, ${args.mkString(", ")}")
-        ps.executeUpdate()
+        op(ps)
       } catch {
         case NonFatal(e) => rollback = true; throw e
       } finally {

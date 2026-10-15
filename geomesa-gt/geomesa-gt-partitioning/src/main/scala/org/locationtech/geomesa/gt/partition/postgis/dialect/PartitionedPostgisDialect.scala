@@ -114,7 +114,6 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
   }
 
   override def postCreateTable(schemaName: String, original: SimpleFeatureType, cx: Connection): Unit = {
-
     // note: we skip the call to `super`, which creates a spatial index (that we don't want), and which
     // alters the geometry column types (which we handle in the create statement)
 
@@ -122,6 +121,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
 
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
+      // get an advisory lock so that multiple threads don't try to create things concurrently, which can cause errors
+      ex.execute("SELECT pg_advisory_lock(hashtext(?), hashtext(?))", Seq(schemaName, sft.getTypeName))
       // if the sft name is longer than 31 characters, use an alias for delegate tables to avoid character limits
       // 31 is the max length, based on the current length of our sql identifiers (tables, etc)
       if (sft.getTypeName.length() >= 32) {
@@ -170,7 +171,11 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
         }
       }
     } finally {
-      ex.close()
+      try {
+        ex.execute("SELECT pg_advisory_unlock(hashtext(?), hashtext(?))", Seq(schemaName, sft.getTypeName))
+      } finally {
+        ex.close()
+      }
     }
   }
 

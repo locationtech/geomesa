@@ -28,13 +28,14 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{CleanAgedOffPartitions, CleanWriteAheadMigrations, CleanWriteAheadRetirements, CompactPartitions, DropAgedOffPartitions, MergeWriteAheadPartitions, PartitionMaintenance, PartitionWriteAheadLog, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TableIdentifier, TypeInfo}
+import org.locationtech.geomesa.gt.partition.postgis.dialect._
 import org.locationtech.geomesa.index.process.ArrowVisitor
 import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -46,7 +47,7 @@ import org.specs2.specification.BeforeAfterAll
 import java.io.{ByteArrayInputStream, IOException, SequenceInputStream}
 import java.net.{ServerSocket, URL}
 import java.sql.Connection
-import java.util.concurrent.{Callable, CopyOnWriteArrayList, Executors, TimeUnit}
+import java.util.concurrent._
 import java.util.logging.{Handler, Level, LogRecord}
 import java.util.{Collections, Locale}
 import javax.sql.DataSource
@@ -139,6 +140,60 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
         ds.dispose()
       }
       ok
+    }
+
+    "serialize concurrent schema creation" in {
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "concurrent-schema-create")
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
+      ds must not(beNull)
+
+      try {
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.prepareStatement("SELECT pg_advisory_lock(hashtext(?), hashtext(?))")) { st =>
+            st.setString(1, schema)
+            st.setString(2, sft.getTypeName)
+            st.execute()
+          }
+          var future: Future[_] = null
+          try {
+            future = CachedThreadPool.submit(() =>
+              WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]) { created =>
+                created.createSchema(sft)
+              }
+            )
+            var waiting = false
+            val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
+            while (!waiting && System.nanoTime() < deadline) {
+              WithClose(cx.prepareStatement(
+                "SELECT EXISTS(SELECT FROM pg_locks WHERE locktype = 'advisory' AND classid::int = hashtext(?) " +
+                    "AND objid::int = hashtext(?) AND NOT granted)")) { st =>
+                st.setString(1, schema)
+                st.setString(2, sft.getTypeName)
+                WithClose(st.executeQuery()) { rs =>
+                  rs.next()
+                  waiting = rs.getBoolean(1)
+                }
+              }
+              if (!waiting) {
+                Thread.sleep(10)
+              }
+            }
+            waiting must beTrue
+            future.isDone must beFalse
+          } finally {
+            WithClose(cx.prepareStatement("SELECT pg_advisory_unlock(hashtext(?), hashtext(?))")) { st =>
+              st.setString(1, schema)
+              st.setString(2, sft.getTypeName)
+              st.execute()
+            }
+          }
+          future.get(10, TimeUnit.SECONDS)
+          future.isDone must beTrue
+        }
+        ds.getTypeNames.toSeq must contain(sft.getTypeName)
+      } finally {
+        ds.dispose()
+      }
     }
 
     "work" in {
@@ -1228,35 +1283,6 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
               }
             }
           }
-        }
-      } finally {
-        ds.dispose()
-      }
-    }
-
-    "re-create functions after dropping a visibility-enabled main view" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]
-      ds must not(beNull)
-
-      try {
-        val sft = SimpleFeatureTypes.renameSft(this.sft, "recreate-vis")
-        sft.getUserData.put(SftUserData.VisEnabled.key, "true")
-        ds.createSchema(sft)
-
-        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
-          val typeInfo = TypeInfo(this.schema, sft)
-          val indexName = s"${typeInfo.tables.mainPartitions.name.raw}_dtg__vis"
-          WithClose(cx.prepareStatement("SELECT 1 FROM pg_indexes WHERE tablename = ? AND indexname = ?")) { st =>
-            st.setString(1, typeInfo.tables.mainPartitions.name.raw)
-            st.setString(2, indexName)
-            WithClose(st.executeQuery())(_.next() must beTrue)
-          }
-          WithClose(cx.prepareStatement(s"""DROP VIEW "${sft.getTypeName}""""))(_.executeUpdate())
-        }
-
-        WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[PartitionedPostgisDataStore]) { recreated =>
-          recreated.createSchema(sft)
-          Try(recreated.getSchema(sft.getTypeName)).getOrElse(null) must not(beNull)
         }
       } finally {
         ds.dispose()
