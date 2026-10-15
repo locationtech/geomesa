@@ -35,6 +35,7 @@ package object dialect {
   private[dialect] val PartitionedWriteAheadTableSuffix = SqlLiteral("_wa_partition")
   private[dialect] val PartitionedTableSuffix           = SqlLiteral("_partition")
   private[dialect] val SpillTableSuffix                 = SqlLiteral("_spill")
+  private[dialect] val VisibilityValuesTableSuffix      = SqlLiteral("_vis_values")
   private[dialect] val AnalyzeTableSuffix               = SqlLiteral("_analyze_queue")
   private[dialect] val SortTableSuffix                  = SqlLiteral("_sort_queue")
   private[dialect] val WriteAheadMigrationsTableSuffix  = SqlLiteral("_wa_migrations")
@@ -214,6 +215,7 @@ package object dialect {
    * @param writeAhead write ahead table
    * @param writeAheadPartitions recent partitions table
    * @param mainPartitions main partitions table
+   * @param visibilityValues distinct non-null visibility expressions
    * @param analyzeQueue analyze queue table
    * @param sortQueue sort queue table
    * @param writeAheadMigrations write ahead partitions that have been copied into main partitions
@@ -226,6 +228,7 @@ package object dialect {
       writeAheadPartitions: TableConfig,
       mainPartitions: TableConfig,
       spillPartitions: TableConfig,
+      visibilityValues: TableConfig,
       analyzeQueue: TableConfig,
       sortQueue: TableConfig,
       writeAheadMigrations: TableConfig,
@@ -245,13 +248,16 @@ package object dialect {
         s"Toast tuple target must be between 128 and 8160: ${toastTupleTarget.orNull}")
       val mainPartitions = TableConfig(schema, tablePrefix + PartitionedTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged, toastTupleTarget = toastTupleTarget)
       val spillPartitions = TableConfig(schema, tablePrefix + SpillTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged, toastTupleTarget = toastTupleTarget)
+      val visibilityValues = TableConfig(schema, tablePrefix + VisibilityValuesTableSuffix.raw, None, logged = logged)
       val analyzeQueue = TableConfig(schema, tablePrefix + AnalyzeTableSuffix.raw, None, logged = logged)
       val sortQueue = TableConfig(schema, tablePrefix + SortTableSuffix.raw, None, logged = logged)
       val writeAheadMigrations = TableConfig(schema, tablePrefix + WriteAheadMigrationsTableSuffix.raw, None)
       val ageOffQueue = TableConfig(schema, tablePrefix + AgeOffQueueTableSuffix.raw, None)
       val writeAheadRetirements = TableConfig(schema, tablePrefix + WriteAheadRetirementsTableSuffix.raw, None)
-      Tables(view, writeAhead, writeAheadPartitions, mainPartitions, spillPartitions, analyzeQueue, sortQueue,
-        writeAheadMigrations, ageOffQueue, writeAheadRetirements)
+      require(SftUserData.VisibilityDecisionArrayMaxValues.get(sft) > 0,
+        s"Visibility decision array maximum must be positive: ${SftUserData.VisibilityDecisionArrayMaxValues.get(sft)}")
+      Tables(view, writeAhead, writeAheadPartitions, mainPartitions, spillPartitions, visibilityValues, analyzeQueue,
+        sortQueue, writeAheadMigrations, ageOffQueue, writeAheadRetirements)
     }
   }
 
