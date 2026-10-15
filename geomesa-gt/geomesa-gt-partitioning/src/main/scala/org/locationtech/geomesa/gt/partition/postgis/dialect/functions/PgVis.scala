@@ -14,7 +14,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.SqlStatements
 /**
  * Provides per-row visibility filtering
  */
-object PgVis extends PgVis with AdvisoryLock {
+object PgVis extends PgVis with AdvisoryLockSql {
   override protected val lockId: Long = 1957550962396498252L
 }
 

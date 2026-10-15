@@ -17,7 +17,7 @@ import java.sql.Connection
 /**
  * Stores feature type user data
  */
-object UserDataTable extends UserDataTable with AdvisoryLock {
+object UserDataTable extends UserDataTable with AdvisoryLockSql {
   override protected val lockId: Long = 8778078099312765227L
 }
 

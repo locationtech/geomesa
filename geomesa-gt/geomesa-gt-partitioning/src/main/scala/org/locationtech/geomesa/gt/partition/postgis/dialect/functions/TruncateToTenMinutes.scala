@@ -12,7 +12,7 @@ package functions
 /**
  * Truncates a timestamp to the nearest ten-minute boundary. For example, 05:45:23 -> 05:40:00
  */
-object TruncateToTenMinutes extends TruncateToTenMinutes with AdvisoryLock {
+object TruncateToTenMinutes extends TruncateToTenMinutes with AdvisoryLockSql {
   override protected val lockId: Long = 2276984964099379703L
 }
 

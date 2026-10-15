@@ -12,7 +12,7 @@ package functions
 /**
  * Truncates a timestamp to the closest partition boundary, based on the number of hours in each partition
  */
-object TruncateToPartition extends TruncateToPartition with AdvisoryLock {
+object TruncateToPartition extends TruncateToPartition with AdvisoryLockSql {
   override protected val lockId: Long = 1616433564832724520L
 }
 

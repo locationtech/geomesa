@@ -16,7 +16,7 @@ import java.util.Locale
 /**
  * Primary key table used by the JDBC data store to specify primary key columns
  */
-object PrimaryKeyTable extends PrimaryKeyTable with AdvisoryLock {
+object PrimaryKeyTable extends PrimaryKeyTable with AdvisoryLockSql {
   override protected val lockId: Long = 6133394343366639763L
 }
 

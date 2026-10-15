@@ -743,7 +743,16 @@ package object dialect {
   /**
    * Uses a postgres advisory lock to synchronize create and drop statements
    */
-  trait AdvisoryLock extends Sql {
+  trait AdvisoryLockSql extends Sql with AdvisoryLock {
+
+    abstract override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
+      locked(super.create(info))
+
+    abstract override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
+      locked(super.drop(info))
+  }
+
+  trait AdvisoryLock {
 
     /**
      * The lock id associated with this object
@@ -751,6 +760,7 @@ package object dialect {
      * @return
      */
     protected def lockId: Long
+
 
     // session-scoped locks
     private def sessionLock: String = s"SELECT pg_advisory_lock($lockId);"
@@ -768,7 +778,7 @@ package object dialect {
      * updated' errors. When auto-commit is on, each statement commits immediately so there is no open transaction to
      * scope the lock to, and we fall back to a session-scoped lock with an explicit unlock.
      */
-    private def locked(op: => Unit)(implicit ex: ExecutionContext): Unit = {
+    def locked(op: => Unit)(implicit ex: ExecutionContext): Unit = {
       if (ex.cx.getAutoCommit) {
         ex.execute(sessionLock)
         try { op } finally {
@@ -779,11 +789,5 @@ package object dialect {
         op
       }
     }
-
-    abstract override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
-      locked(super.create(info))
-
-    abstract override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
-      locked(super.drop(info))
   }
 }

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.codec.digest.MurmurHash3
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -28,9 +29,9 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
+import org.locationtech.geomesa.gt.partition.postgis.dialect._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
-import org.locationtech.geomesa.gt.partition.postgis.dialect._
 import org.locationtech.geomesa.index.process.ArrowVisitor
 import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource
 import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils}
@@ -46,6 +47,7 @@ import org.specs2.specification.BeforeAfterAll
 
 import java.io.{ByteArrayInputStream, IOException, SequenceInputStream}
 import java.net.{ServerSocket, URL}
+import java.nio.charset.StandardCharsets
 import java.sql.Connection
 import java.util.concurrent._
 import java.util.logging.{Handler, Level, LogRecord}
@@ -148,11 +150,13 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
       ds must not(beNull)
 
       try {
+        val lockId = {
+          val bytes = s"$schema.${sft.getTypeName}".getBytes(StandardCharsets.UTF_8)
+          MurmurHash3.hash128x64(bytes, 0, bytes.length, 0).head
+        }
         WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
-          WithClose(cx.prepareStatement("SELECT pg_advisory_lock(hashtext(?), hashtext(?))")) { st =>
-            st.setString(1, schema)
-            st.setString(2, sft.getTypeName)
-            st.execute()
+          WithClose(cx.createStatement()) { st =>
+            st.execute(s"SELECT pg_advisory_lock($lockId)")
           }
           var future: Future[_] = null
           try {
@@ -165,10 +169,10 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
             val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
             while (!waiting && System.nanoTime() < deadline) {
               WithClose(cx.prepareStatement(
-                "SELECT EXISTS(SELECT FROM pg_locks WHERE locktype = 'advisory' AND classid::int = hashtext(?) " +
-                    "AND objid::int = hashtext(?) AND NOT granted)")) { st =>
-                st.setString(1, schema)
-                st.setString(2, sft.getTypeName)
+                "SELECT EXISTS(SELECT FROM pg_locks WHERE locktype = 'advisory' AND classid::int = ? " +
+                    "AND objid::int = ? AND NOT granted)")) { st =>
+                st.setInt(1, (lockId >>> 32).toInt) // the lock id gets split into two ints in the pg_locks table
+                st.setInt(2, lockId.toInt)
                 WithClose(st.executeQuery()) { rs =>
                   rs.next()
                   waiting = rs.getBoolean(1)
@@ -181,10 +185,8 @@ class PartitionedPostgisDataStoreTest extends SpecificationWithJUnit with Before
             waiting must beTrue
             future.isDone must beFalse
           } finally {
-            WithClose(cx.prepareStatement("SELECT pg_advisory_unlock(hashtext(?), hashtext(?))")) { st =>
-              st.setString(1, schema)
-              st.setString(2, sft.getTypeName)
-              st.execute()
+            WithClose(cx.createStatement()) { st =>
+              st.execute(s"SELECT pg_advisory_unlock($lockId)")
             }
           }
           future.get(10, TimeUnit.SECONDS)
