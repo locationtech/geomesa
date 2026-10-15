@@ -67,8 +67,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |      LOOP
        |
        |        RAISE INFO '% Checking write ahead table %', timeofday()::timestamp, write_ahead.name;
-       |        -- get a lock on the table - this mode won't prevent reads but will prevent writes
-       |        -- (there shouldn't be any writes though) and will synchronize this method
+       |        -- lock parent tables up-front to avoid deadlocks when attaching children - this won't prevent reads or writes
+       |        LOCK TABLE ONLY ${info.tables.writeAheadPartitions.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |        LOCK TABLE ONLY ${info.tables.mainPartitions.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |        LOCK TABLE ONLY ${info.tables.spillPartitions.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |        -- Recheck after acquiring the parent locks: another migration may have retired this table.
@@ -77,6 +77,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          COMMIT;
        |          CONTINUE;
        |        END IF;
+       |        -- get a lock on the table - this mode won't prevent reads but will prevent writes
+       |        -- (there shouldn't be any writes though) and will synchronize this method
        |        EXECUTE 'LOCK TABLE ${info.schema.quoted}.' || quote_ident(write_ahead.name) ||
        |          ' IN SHARE ROW EXCLUSIVE MODE';
        |        -- Rotation may have reused a retired table since this loop enumerated the children.
