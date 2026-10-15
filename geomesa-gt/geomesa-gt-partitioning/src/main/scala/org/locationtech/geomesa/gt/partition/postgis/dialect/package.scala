@@ -761,7 +761,6 @@ package object dialect {
      */
     protected def lockId: Long
 
-
     // session-scoped locks
     private def sessionLock: String = s"SELECT pg_advisory_lock($lockId);"
     private def sessionUnlock: String = s"SELECT pg_advisory_unlock($lockId);"
