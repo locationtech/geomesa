@@ -1,0 +1,2 @@
+kafka-datastore:\
+org.locationtech.geomesa.kafka.spring.binder.KafkaDatastoreBinderConfiguration

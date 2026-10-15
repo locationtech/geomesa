@@ -18,6 +18,7 @@
         <module>geomesa-kafka-gs-plugin</module>
         <module>geomesa-kafka-tools</module>
         <module>geomesa-kafka-utils</module>
+        <module>geomesa-kafka-spring-cloud-stream-binder</module>
     </modules>
 
 </project>
