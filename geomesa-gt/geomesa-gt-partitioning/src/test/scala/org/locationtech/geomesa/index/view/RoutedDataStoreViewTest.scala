@@ -14,7 +14,7 @@ import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.gt.partition.postgis.PostgisContainer
+import org.locationtech.geomesa.gt.partition.postgis.TestWithSharedPostgisContainer
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
@@ -34,7 +34,7 @@ class RoutedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
   // as such, we don't compare primary keys directly here
 
   private val sft =
-    SimpleFeatureTypes.createType("merged-ds", "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date")
+    SimpleFeatureTypes.createType(getClass.getSimpleName, "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date")
 
   private val features = Seq.tabulate(9) { u =>
     val i = u + 1 // sync up with shp fid
@@ -42,7 +42,7 @@ class RoutedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
     ScalaSimpleFeature.create(sft, s"$i", s"POINT (45 5$i)", s"name$i", 20 + i, s"2018-01-0${i}T00:00:00.000Z")
   }
 
-  private val container = new PostgisContainer()
+  private val container = TestWithSharedPostgisContainer.container
 
   private lazy val postgisParams = Map(
     "dbtype" -> "postgis-partitioned",
@@ -71,11 +71,6 @@ class RoutedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
   }
 
   override def beforeAll(): Unit = {
-    if (logger.underlying.isTraceEnabled()) {
-      container.withLogAllStatements()
-    }
-    container.start()
-
     WithClose(DataStoreFinder.getDataStore(shpParams.asJava)) { shpDs =>
       WithClose(DataStoreFinder.getDataStore(postgisParams.asJava)) { postgisDs =>
         Seq(shpDs, postgisDs).foreach { ds =>
@@ -92,8 +87,9 @@ class RoutedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
 
   override def afterAll(): Unit = {
     try {
+      // clean up our shared container
+      WithClose(DataStoreFinder.getDataStore(postgisParams.asJava))(_.removeSchema(sft.getTypeName))
       routedDs.dispose()
-      container.close()
     } finally {
       PathUtils.deleteRecursively(path)
     }
