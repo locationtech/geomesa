@@ -13,7 +13,6 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisD
 import org.locationtech.geomesa.gt.partition.postgis.dialect._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{SequenceTable, UserDataTable}
-import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.util.concurrent._
@@ -130,7 +129,7 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
               def pauseJobs(): Unit =
                 st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
 
-              st.execute("SET statement_timeout = '60s'")
+              st.execute("SET statement_timeout = '5s'")
               pauseJobs()
               Seq(info.tables.mainPartitions, info.tables.spillPartitions).foreach { parent =>
                 val child = TableIdentifier(this.schema, parent.name.raw + "_2020_01_01_00")
@@ -227,113 +226,118 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
     "recover interrupted timed write-ahead detaches and advance the next queued partition" in {
       WithClose(datastore()) { ds =>
         testSchema(ds, "timed_detach_retry") { sft =>
-          val info = TypeInfo(this.schema, sft)
-          val sources = (0 until 2).map(hour => TableIdentifier(this.schema,
-            info.tables.writeAheadPartitions.name.raw + f"_2020_01_01_$hour%02d" + "_00"))
-          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { observer =>
-            WithClose(observer.createStatement()) { st =>
-              def scalar(sql: String): Int = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getInt(1) }
+          val executor = Executors.newSingleThreadExecutor()
+          try {
+            val info = TypeInfo(this.schema, sft)
+            val sources = (0 until 2).map(hour => TableIdentifier(this.schema,
+              info.tables.writeAheadPartitions.name.raw + f"_2020_01_01_$hour%02d" + "_00"))
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { observer =>
+              WithClose(observer.createStatement()) { st =>
+                def scalar(sql: String): Int = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getInt(1) }
 
-              def pauseJobs(): Unit = {
-                st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
-              }
+                def pauseJobs(): Unit = {
+                  st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+                }
 
-              def clean(): Unit = {
-                st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadMigrations.name(info).quoted}()")
+                def clean(): Unit = {
+                  st.execute(s"CALL ${info.schema.quoted}.${CleanWriteAheadMigrations.name(info).quoted}()")
+                  pauseJobs()
+                }
+
+                def command(): String = WithClose(st.executeQuery(s"SELECT command FROM cron.job WHERE jobname = " +
+                  CleanWriteAheadMigrations.detachJobName(info).quoted)) { rs =>
+                  rs.next() must beTrue
+                  rs.getString(1)
+                }
+
+                def workers(): Int = scalar(s"SELECT count(*) FROM cron.job WHERE jobname LIKE '${info.typeIdentifier}-detach-%'")
+
+                st.execute("SET statement_timeout = '5s'")
                 pauseJobs()
-              }
-
-              def command(): String = WithClose(st.executeQuery(s"SELECT command FROM cron.job WHERE jobname = " +
-                CleanWriteAheadMigrations.detachJobName(info).quoted)) { rs =>
-                rs.next() must beTrue
-                rs.getString(1)
-              }
-
-              def workers(): Int = scalar(s"SELECT count(*) FROM cron.job WHERE jobname LIKE '${info.typeIdentifier}-detach-%'")
-
-              st.execute("SET statement_timeout = '60s'")
-              pauseJobs()
-              sources.zipWithIndex.foreach { case (source, hour) =>
-                val target = TableIdentifier(this.schema, info.tables.mainPartitions.name.raw + f"_2020_01_01_$hour%02d")
-                val bounds = s"FOR VALUES FROM ('2020-01-01 $hour:00:00') TO ('2020-01-01 ${hour + 1}:00:00')"
-                st.execute(s"CREATE TABLE ${source.qualified} PARTITION OF ${info.tables.writeAheadPartitions.name.qualified} $bounds")
-                st.execute(s"INSERT INTO ${source.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
-                  s"VALUES ('fid$hour', '2020-01-01 $hour:30:00')")
-                st.execute(s"CREATE TABLE ${target.qualified} PARTITION OF ${info.tables.mainPartitions.name.qualified} $bounds")
-                st.execute(s"INSERT INTO ${target.qualified} SELECT * FROM ${source.qualified}")
-                st.execute(s"INSERT INTO ${info.tables.writeAheadMigrations.name.qualified} VALUES " +
-                  s"('${source.qualified}', '2020-01-01 $hour:00:00', '2020-01-01 ${hour + 1}:00:00', now())")
-                // Simulate jobs left by the original per-partition scheduling scheme.
-                st.execute(s"SELECT cron.schedule('${info.typeIdentifier}-detach-' || split_part('${source.qualified}', '.', 2), " +
-                  "'0 0 1 1 *', 'SELECT 1')")
-              }
-              clean()
-              workers() mustEqual 1
-              command() must endWith(" CONCURRENTLY")
-              command() must contain(sources.head.qualified)
-              val view = info.tables.view.name.qualified
-              WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { reader =>
-                reader.setAutoCommit(false)
-                try {
-                  WithClose(reader.createStatement()) { read =>
-                    WithClose(read.executeQuery(s"SELECT count(*) FROM $view")) { rs =>
-                      rs.next() must beTrue
-                      rs.getInt(1) mustEqual 2
+                sources.zipWithIndex.foreach { case (source, hour) =>
+                  val target = TableIdentifier(this.schema, info.tables.mainPartitions.name.raw + f"_2020_01_01_$hour%02d")
+                  val bounds = s"FOR VALUES FROM ('2020-01-01 $hour:00:00') TO ('2020-01-01 ${hour + 1}:00:00')"
+                  st.execute(s"CREATE TABLE ${source.qualified} PARTITION OF ${info.tables.writeAheadPartitions.name.qualified} $bounds")
+                  st.execute(s"INSERT INTO ${source.qualified} (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
+                    s"VALUES ('fid$hour', '2020-01-01 $hour:30:00')")
+                  st.execute(s"CREATE TABLE ${target.qualified} PARTITION OF ${info.tables.mainPartitions.name.qualified} $bounds")
+                  st.execute(s"INSERT INTO ${target.qualified} SELECT * FROM ${source.qualified}")
+                  st.execute(s"INSERT INTO ${info.tables.writeAheadMigrations.name.qualified} VALUES " +
+                    s"('${source.qualified}', '2020-01-01 $hour:00:00', '2020-01-01 ${hour + 1}:00:00', now())")
+                  // Simulate jobs left by the original per-partition scheduling scheme.
+                  st.execute(s"SELECT cron.schedule('${info.typeIdentifier}-detach-' || split_part('${source.qualified}', '.', 2), " +
+                    "'0 0 1 1 *', 'SELECT 1')")
+                }
+                clean()
+                workers() mustEqual 1
+                command() must endWith(" CONCURRENTLY")
+                command() must contain(sources.head.qualified)
+                val view = info.tables.view.name.qualified
+                WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { reader =>
+                  reader.setAutoCommit(false)
+                  try {
+                    WithClose(reader.createStatement()) { read =>
+                      WithClose(read.executeQuery(s"SELECT count(*) FROM $view")) { rs =>
+                        rs.next() must beTrue
+                        rs.getInt(1) mustEqual 2
+                      }
                     }
-                  }
-                  WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { worker =>
-                    val pid = WithClose(worker.createStatement()) { query =>
-                      WithClose(query.executeQuery("SELECT pg_backend_pid()")) { rs => rs.next(); rs.getInt(1) }
-                    }
-                    WithClose(worker.createStatement()) { detach =>
-                      detach.setQueryTimeout(30)
-                      val sql = command()
-                      val task = CachedThreadPool.call(() => detach.execute(sql))
-                      try {
-                        eventually(50, 100.millis) {
-                          scalar(s"SELECT count(*) FROM pg_stat_activity WHERE pid = $pid " +
-                            "AND wait_event_type = 'Lock' AND wait_event = 'virtualxid'") mustEqual 1
-                        }
-                        scalar(s"SELECT count(*) FROM $view") mustEqual 2
-                        detach.cancel()
-                        Try(task.get(5, TimeUnit.SECONDS)).isFailure must beTrue
-                        clean()
-                        workers() mustEqual 1
-                        command() must endWith(" FINALIZE")
-                        command() must contain(sources.head.qualified)
-                        // Merge excludes these ranges; recurring recovery must still run without recopying them.
-                        st.execute(s"CALL ${info.schema.quoted}.${MergeWriteAheadPartitions.name(info).quoted}('2020-01-01 05:00:00')")
-                        pauseJobs()
-                        command() must endWith(" FINALIZE")
-                        scalar(s"SELECT count(*) FROM ${info.tables.mainPartitions.name.qualified}") mustEqual 2
-                      } finally {
-                        reader.rollback()
-                        if (!task.isDone) {
+                    WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { worker =>
+                      val pid = WithClose(worker.createStatement()) { query =>
+                        WithClose(query.executeQuery("SELECT pg_backend_pid()")) { rs => rs.next(); rs.getInt(1) }
+                      }
+                      WithClose(worker.createStatement()) { detach =>
+                        detach.setQueryTimeout(30)
+                        val sql = command()
+                        val task = executor.submit(() => detach.execute(sql))
+                        try {
+                          eventually(50, 100.millis) {
+                            scalar(s"SELECT count(*) FROM pg_stat_activity WHERE pid = $pid " +
+                              "AND wait_event_type = 'Lock' AND wait_event = 'virtualxid'") mustEqual 1
+                          }
+                          scalar(s"SELECT count(*) FROM $view") mustEqual 2
                           detach.cancel()
-                          Try(task.get(5, TimeUnit.SECONDS))
+                          Try(task.get(5, TimeUnit.SECONDS)).isFailure must beTrue
+                          clean()
+                          workers() mustEqual 1
+                          command() must endWith(" FINALIZE")
+                          command() must contain(sources.head.qualified)
+                          // Merge excludes these ranges; recurring recovery must still run without recopying them.
+                          st.execute(s"CALL ${info.schema.quoted}.${MergeWriteAheadPartitions.name(info).quoted}('2020-01-01 05:00:00')")
+                          pauseJobs()
+                          command() must endWith(" FINALIZE")
+                          scalar(s"SELECT count(*) FROM ${info.tables.mainPartitions.name.qualified}") mustEqual 2
+                        } finally {
+                          reader.rollback()
+                          if (!task.isDone) {
+                            detach.cancel()
+                            Try(task.get(5, TimeUnit.SECONDS))
+                          }
                         }
                       }
                     }
+                  } finally {
+                    reader.rollback()
                   }
-                } finally {
-                  reader.rollback()
                 }
+                st.execute(command()) // FINALIZE the interrupted first detach.
+                clean()
+                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadMigrations.name.qualified}") mustEqual 1
+                workers() mustEqual 1
+                command() must endWith(" CONCURRENTLY")
+                command() must contain(sources.last.qualified)
+                st.execute(command())
+                clean()
+                workers() mustEqual 0
+                scalar(s"SELECT count(*) FROM ${info.tables.writeAheadMigrations.name.qualified}") mustEqual 0
+                foreach(sources) { source =>
+                  scalar(s"SELECT count(*) FROM pg_class WHERE oid = to_regclass('${source.qualified}')") mustEqual 0
+                }
+                scalar(s"SELECT count(*) FROM $view") mustEqual 2
               }
-              st.execute(command()) // FINALIZE the interrupted first detach.
-              clean()
-              scalar(s"SELECT count(*) FROM ${info.tables.writeAheadMigrations.name.qualified}") mustEqual 1
-              workers() mustEqual 1
-              command() must endWith(" CONCURRENTLY")
-              command() must contain(sources.last.qualified)
-              st.execute(command())
-              clean()
-              workers() mustEqual 0
-              scalar(s"SELECT count(*) FROM ${info.tables.writeAheadMigrations.name.qualified}") mustEqual 0
-              foreach(sources) { source =>
-                scalar(s"SELECT count(*) FROM pg_class WHERE oid = to_regclass('${source.qualified}')") mustEqual 0
-              }
-              scalar(s"SELECT count(*) FROM $view") mustEqual 2
             }
+          } finally {
+            executor.shutdownNow()
           }
         }
       }
@@ -382,103 +386,108 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
         testSchema(ds, "concurrent_ageoff", s"$spec,${SftUserData.MaxPartitions.key}=2") { sft =>
           val info = TypeInfo(this.schema, sft)
           val parents = Seq(info.tables.mainPartitions, info.tables.spillPartitions)
-          WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { observer =>
-            WithClose(observer.createStatement()) { st =>
-              def scalar(sql: String): Int = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getInt(1) }
+          val executor = Executors.newSingleThreadExecutor()
+          try {
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { observer =>
+              WithClose(observer.createStatement()) { st =>
+                def scalar(sql: String): Int = WithClose(st.executeQuery(sql)) { rs => rs.next(); rs.getInt(1) }
 
-              def clean(): Unit = {
-                st.execute(s"CALL ${info.schema.quoted}.${CleanAgedOffPartitions.name(info).quoted}()")
-                // Invoke worker commands ourselves so the test does not depend on cron timing.
-                st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
-              }
-
-              def command(parent: TableConfig): String = {
-                WithClose(st.executeQuery(s"SELECT command FROM cron.job WHERE jobname = " +
-                  CleanAgedOffPartitions.detachJobName(info, parent).quoted)) { rs =>
-                  rs.next() must beTrue
-                  rs.getString(1)
+                def clean(): Unit = {
+                  st.execute(s"CALL ${info.schema.quoted}.${CleanAgedOffPartitions.name(info).quoted}()")
+                  // Invoke worker commands ourselves so the test does not depend on cron timing.
+                  st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
                 }
-              }
 
-              st.execute("SET statement_timeout = '60s'")
-              st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
-              parents.foreach { parent =>
-                Seq(0, 1, 3).foreach { hour =>
-                  val child = TableIdentifier(this.schema, parent.name.raw + f"_2020_01_01_$hour%02d").qualified
-                  st.execute(s"CREATE TABLE $child PARTITION OF ${parent.name.qualified} " +
-                    s"FOR VALUES FROM ('2020-01-01 $hour:00:00') TO ('2020-01-01 ${hour + 1}:00:00')")
-                  st.execute(s"INSERT INTO $child (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
-                    s"VALUES ('${parent.name.raw}_$hour', '2020-01-01 $hour:30:00')")
-                }
-              }
-              val view = info.tables.view.name.qualified
-              WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { reader =>
-                reader.setAutoCommit(false)
-                try {
-                  // Exhausting the result still holds relation locks until the export transaction ends.
-                  WithClose(reader.createStatement()) { read =>
-                    WithClose(read.executeQuery(s"SELECT count(*) FROM $view")) { rs =>
-                      rs.next() must beTrue
-                      rs.getInt(1) mustEqual 6
-                    }
+                def command(parent: TableConfig): String = {
+                  WithClose(st.executeQuery(s"SELECT command FROM cron.job WHERE jobname = " +
+                    CleanAgedOffPartitions.detachJobName(info, parent).quoted)) { rs =>
+                    rs.next() must beTrue
+                    rs.getString(1)
                   }
-                  st.execute(s"CALL ${info.schema.quoted}.${DropAgedOffPartitions.name(info).quoted}" +
-                    "('2020-01-01 05:00:00')")
-                  clean()
-                  scalar(s"SELECT count(*) FROM ${info.tables.ageOffQueue.name.qualified}") mustEqual 4
-                  scalar(s"SELECT count(*) FROM $view") mustEqual 2
+                }
 
-                  WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { worker =>
-                    val pid = WithClose(worker.createStatement()) { query =>
-                      WithClose(query.executeQuery("SELECT pg_backend_pid()")) { rs => rs.next(); rs.getInt(1) }
+                st.execute("SET statement_timeout = '5s'")
+                st.execute(s"UPDATE cron.job SET active = false WHERE jobname LIKE '${info.typeIdentifier}-%'")
+                parents.foreach { parent =>
+                  Seq(0, 1, 3).foreach { hour =>
+                    val child = TableIdentifier(this.schema, parent.name.raw + f"_2020_01_01_$hour%02d").qualified
+                    st.execute(s"CREATE TABLE $child PARTITION OF ${parent.name.qualified} " +
+                      s"FOR VALUES FROM ('2020-01-01 $hour:00:00') TO ('2020-01-01 ${hour + 1}:00:00')")
+                    st.execute(s"INSERT INTO $child (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) " +
+                      s"VALUES ('${parent.name.raw}_$hour', '2020-01-01 $hour:30:00')")
+                  }
+                }
+                val view = info.tables.view.name.qualified
+                WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { reader =>
+                  reader.setAutoCommit(false)
+                  try {
+                    // Exhausting the result still holds relation locks until the export transaction ends.
+                    WithClose(reader.createStatement()) { read =>
+                      WithClose(read.executeQuery(s"SELECT count(*) FROM $view")) { rs =>
+                        rs.next() must beTrue
+                        rs.getInt(1) mustEqual 6
+                      }
                     }
-                    WithClose(worker.createStatement()) { detach =>
-                      detach.setQueryTimeout(30)
-                      val sql = command(parents.head)
-                      sql must endWith(" CONCURRENTLY")
-                      val task = CachedThreadPool.call(() => detach.execute(sql))
-                      try {
-                        eventually(50, 100.millis) {
-                          scalar(s"SELECT count(*) FROM pg_stat_activity WHERE pid = $pid " +
-                            "AND wait_event_type = 'Lock' AND wait_event = 'virtualxid'") mustEqual 1
-                        }
-                        task.isDone must beFalse
-                        // This query must finish while the old export keeps detachment waiting.
-                        scalar(s"SELECT count(*) FROM $view") mustEqual 2
-                        detach.cancel()
-                        Try(task.get(5, TimeUnit.SECONDS)).isFailure must beTrue
-                        scalar(s"SELECT count(*) FROM pg_inherits WHERE inhparent = " +
-                          s"${parents.head.name.asRegclass} AND inhdetachpending") mustEqual 1
-                        clean()
-                        command(parents.head) must endWith(" FINALIZE")
-                      } finally {
-                        reader.rollback()
-                        if (!task.isDone) {
+                    st.execute(s"CALL ${info.schema.quoted}.${DropAgedOffPartitions.name(info).quoted}" +
+                      "('2020-01-01 05:00:00')")
+                    clean()
+                    scalar(s"SELECT count(*) FROM ${info.tables.ageOffQueue.name.qualified}") mustEqual 4
+                    scalar(s"SELECT count(*) FROM $view") mustEqual 2
+
+                    WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { worker =>
+                      val pid = WithClose(worker.createStatement()) { query =>
+                        WithClose(query.executeQuery("SELECT pg_backend_pid()")) { rs => rs.next(); rs.getInt(1) }
+                      }
+                      WithClose(worker.createStatement()) { detach =>
+                        detach.setQueryTimeout(30)
+                        val sql = command(parents.head)
+                        sql must endWith(" CONCURRENTLY")
+                        val task = executor.submit(() => detach.execute(sql))
+                        try {
+                          eventually(50, 100.millis) {
+                            scalar(s"SELECT count(*) FROM pg_stat_activity WHERE pid = $pid " +
+                              "AND wait_event_type = 'Lock' AND wait_event = 'virtualxid'") mustEqual 1
+                          }
+                          task.isDone must beFalse
+                          // This query must finish while the old export keeps detachment waiting.
+                          scalar(s"SELECT count(*) FROM $view") mustEqual 2
                           detach.cancel()
-                          Try(task.get(5, TimeUnit.SECONDS))
+                          Try(task.get(5, TimeUnit.SECONDS)).isFailure must beTrue
+                          scalar(s"SELECT count(*) FROM pg_inherits WHERE inhparent = " +
+                            s"${parents.head.name.asRegclass} AND inhdetachpending") mustEqual 1
+                          clean()
+                          command(parents.head) must endWith(" FINALIZE")
+                        } finally {
+                          reader.rollback()
+                          if (!task.isDone) {
+                            detach.cancel()
+                            Try(task.get(5, TimeUnit.SECONDS))
+                          }
                         }
                       }
                     }
+                  } finally {
+                    reader.rollback()
                   }
-                } finally {
-                  reader.rollback()
                 }
-              }
 
-              foreach(parents) { parent =>
-                (0 until 2).foreach { _ =>
-                  st.execute(command(parent))
-                  clean()
+                foreach(parents) { parent =>
+                  (0 until 2).foreach { _ =>
+                    st.execute(command(parent))
+                    clean()
+                  }
+                  scalar(s"SELECT count(*) FROM cron.job WHERE jobname = " +
+                    CleanAgedOffPartitions.detachJobName(info, parent).quoted) mustEqual 0
+                  scalar(s"SELECT count(*) FROM ${parent.name.qualified}") mustEqual 1
+                  scalar(s"SELECT count(*) FROM pg_class WHERE relname IN " +
+                    s"('${parent.name.raw}_2020_01_01_00', '${parent.name.raw}_2020_01_01_01')") mustEqual 0
                 }
-                scalar(s"SELECT count(*) FROM cron.job WHERE jobname = " +
-                  CleanAgedOffPartitions.detachJobName(info, parent).quoted) mustEqual 0
-                scalar(s"SELECT count(*) FROM ${parent.name.qualified}") mustEqual 1
-                scalar(s"SELECT count(*) FROM pg_class WHERE relname IN " +
-                  s"('${parent.name.raw}_2020_01_01_00', '${parent.name.raw}_2020_01_01_01')") mustEqual 0
+                scalar(s"SELECT count(*) FROM ${info.tables.ageOffQueue.name.qualified}") mustEqual 0
+                scalar(s"SELECT count(*) FROM $view") mustEqual 2
               }
-              scalar(s"SELECT count(*) FROM ${info.tables.ageOffQueue.name.qualified}") mustEqual 0
-              scalar(s"SELECT count(*) FROM $view") mustEqual 2
             }
+          } finally {
+            executor.shutdownNow()
           }
         }
       }
