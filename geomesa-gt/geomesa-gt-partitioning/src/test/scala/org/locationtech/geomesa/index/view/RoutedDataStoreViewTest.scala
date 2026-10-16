@@ -87,6 +87,8 @@ class RoutedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
 
   override def afterAll(): Unit = {
     try {
+      // clean up our shared container
+      WithClose(DataStoreFinder.getDataStore(postgisParams.asJava))(_.removeSchema(sft.getTypeName))
       routedDs.dispose()
     } finally {
       PathUtils.deleteRecursively(path)

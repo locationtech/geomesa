@@ -94,6 +94,8 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
 
   override def afterAll(): Unit = {
     try {
+      // clean up our shared container
+      WithClose(DataStoreFinder.getDataStore(postgisParams.asJava))(_.removeSchema(sft.getTypeName))
       mergedDs.dispose()
     } finally {
       PathUtils.deleteRecursively(path)
