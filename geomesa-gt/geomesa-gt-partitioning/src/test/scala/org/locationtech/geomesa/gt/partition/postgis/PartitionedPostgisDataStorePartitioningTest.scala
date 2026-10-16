@@ -225,7 +225,9 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
 
     "recover interrupted timed write-ahead detaches and advance the next queued partition" in {
       WithClose(datastore()) { ds =>
-        testSchema(ds, "timed_detach_retry") { sft =>
+        val sft = this.sft("timed_detach_retry", spec)
+        ds.createSchema(sft)
+        try {
           val executor = Executors.newSingleThreadExecutor()
           try {
             val info = TypeInfo(this.schema, sft)
@@ -339,6 +341,8 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
           } finally {
             executor.shutdownNow()
           }
+        } finally {
+          ds.removeSchema(sft.getTypeName)
         }
       }
     }
@@ -383,7 +387,9 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
 
     "age off without blocking new queries and recover an interrupted detach" in {
       WithClose(datastore()) { ds =>
-        testSchema(ds, "concurrent_ageoff", s"$spec,${SftUserData.MaxPartitions.key}=2") { sft =>
+        val sft = this.sft("concurrent_ageoff", s"$spec,${SftUserData.MaxPartitions.key}=2")
+        ds.createSchema(sft)
+        try {
           val info = TypeInfo(this.schema, sft)
           val parents = Seq(info.tables.mainPartitions, info.tables.spillPartitions)
           val executor = Executors.newSingleThreadExecutor()
@@ -489,6 +495,8 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
           } finally {
             executor.shutdownNow()
           }
+        } finally {
+          ds.removeSchema(sft.getTypeName)
         }
       }
     }
