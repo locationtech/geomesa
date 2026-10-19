@@ -16,7 +16,7 @@ import org.geotools.api.filter.sort.SortOrder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.gt.partition.postgis.PostgisContainer
+import org.locationtech.geomesa.gt.partition.postgis.TestWithSharedPostgisContainer
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.impl.MinMax
@@ -41,7 +41,7 @@ class MergedDataStoreViewDynamicFilterTest extends SpecificationWithJUnit with B
   // as such, we don't compare primary keys directly here
 
   private val sft =
-    SimpleFeatureTypes.createType("merged-ds", "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date;geomesa.index.dtg=dtg")
+    SimpleFeatureTypes.createType(getClass.getSimpleName, "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date;geomesa.index.dtg=dtg")
 
   private val features = Seq.tabulate(8) { u =>
     val i = u + 1 // sync up with shp fid
@@ -54,7 +54,7 @@ class MergedDataStoreViewDynamicFilterTest extends SpecificationWithJUnit with B
   private val defaultFilter =
     ECQL.toFilter("bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-02T12:00:00.000Z/2018-01-06T12:00:00.000Z")
 
-  private val container = new PostgisContainer()
+  private val container = TestWithSharedPostgisContainer.container
 
   private lazy val postgisParams = Map(
     "dbtype" -> "postgis-partitioned",
@@ -79,11 +79,6 @@ class MergedDataStoreViewDynamicFilterTest extends SpecificationWithJUnit with B
   private lazy val mergedDs = DataStoreFinder.getDataStore(comboParams(shpParams, postgisParams)).asInstanceOf[MergedDataStoreView]
 
   override def beforeAll(): Unit = {
-    if (logger.underlying.isTraceEnabled()) {
-      container.withLogAllStatements()
-    }
-    container.start()
-
     WithClose(DataStoreFinder.getDataStore(shpParams.asJava)) { shpDs =>
       WithClose(DataStoreFinder.getDataStore(postgisParams.asJava)) { postgisDs =>
         val copied = features.iterator
@@ -102,7 +97,8 @@ class MergedDataStoreViewDynamicFilterTest extends SpecificationWithJUnit with B
   override def afterAll(): Unit = {
     try {
       mergedDs.dispose()
-      container.close()
+      // clean up our shared container
+      WithClose(DataStoreFinder.getDataStore(postgisParams.asJava))(_.removeSchema(sft.getTypeName))
     } finally {
       PathUtils.deleteRecursively(path)
     }
