@@ -37,7 +37,7 @@ import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterat
 
 import java.time.Instant
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
-import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
+import java.util.concurrent.{ConcurrentHashMap, LinkedBlockingQueue, TimeUnit}
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 
@@ -59,6 +59,8 @@ class MergedQueryRunner(
 
   import MergedQueryRunner.openReaders
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
+  import scala.collection.JavaConverters._
 
   // query interceptors are handled by the individual data stores
   override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
@@ -92,7 +94,7 @@ class MergedQueryRunner(
         val readers = getReaders(query).map(CloseableIterator(_))
         val deduped = if (deduplicate) {
           // we re-use the feature id cache across readers
-          val cache = scala.collection.mutable.HashSet.empty[String]
+          val cache = ConcurrentHashMap.newKeySet[String]().asScala
           readers.map(new DeduplicatingSimpleFeatureIterator(_, cache))
         } else {
           readers
