@@ -52,7 +52,7 @@ class MergedDataStoreView(
   private val decorator = new TaskDecorator(taskDecorator)
 
   private[view] val runner =
-    new MergedQueryRunner(this, stores.map(s => s.copy[Queryable](DataStoreQueryable(s.source))), deduplicate, parallel)
+    new MergedQueryRunner(this, stores.map(s => s.copy[Queryable](DataStoreQueryable(s.source))), deduplicate, parallel, decorator)
 
   override val stats: GeoMesaStats = new MergedStats(stores, parallel, decorator)
 

@@ -214,8 +214,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
       val stores = this.stores()
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true, Some(decorator))
       CloseableIterator(view.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must beEmpty
-      // note: queries are not actually parallelized
-      decorator.count mustEqual 0
+      decorator.count mustEqual stores.length
     }
 
     "decorate parallel counts and bounds calls" in {

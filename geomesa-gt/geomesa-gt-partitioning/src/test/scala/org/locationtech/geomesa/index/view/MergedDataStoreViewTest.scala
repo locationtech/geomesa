@@ -45,7 +45,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
   // as such, we don't compare primary keys directly here
 
   private val sft =
-    SimpleFeatureTypes.createType("merged-ds", "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date")
+    SimpleFeatureTypes.createType(getClass.getSimpleName, "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date")
 
   private val features = Seq.tabulate(8) { u =>
     val i = u + 1 // sync up with shp fid
@@ -75,6 +75,12 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
   )
 
   private lazy val mergedDs = DataStoreFinder.getDataStore(comboParams(shpParams, postgisParams)).asInstanceOf[MergedDataStoreView]
+  private lazy val parallelMergedDs = {
+    val params = new java.util.HashMap[String, String]()
+    params.putAll(comboParams(shpParams, postgisParams))
+    params.put(MergedDataStoreViewFactory.ParallelScanParam.key, "true")
+    DataStoreFinder.getDataStore(params).asInstanceOf[MergedDataStoreView]
+  }
 
   override def beforeAll(): Unit = {
     if (logger.underlying.isTraceEnabled()) {
@@ -84,22 +90,23 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
 
     WithClose(DataStoreFinder.getDataStore(shpParams.asJava)) { shpDs =>
       WithClose(DataStoreFinder.getDataStore(postgisParams.asJava)) { postgisDs =>
-        val copied = features.iterator
-        Seq(shpDs, postgisDs).foreach { ds =>
+        Seq(shpDs -> features.take(4), postgisDs -> features.drop(4)).foreach { case (ds, toWrite) =>
           ds.createSchema(sft)
           WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            copied.take(4).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+            toWrite.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
         }
       }
     }
 
     mergedDs must not(beNull)
+    parallelMergedDs must not(beNull)
   }
 
   override def afterAll(): Unit = {
     try {
       mergedDs.dispose()
+      parallelMergedDs.dispose()
       container.close()
     } finally {
       PathUtils.deleteRecursively(path)
@@ -114,11 +121,13 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
 
   "MergedDataStoreView" should {
     "respect max features" in {
-      val query = new Query(sft.getTypeName)
-      query.setMaxFeatures(1)
-      query.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
-      mergedDs.getFeatureSource(sft.getTypeName).getCount(query) mustEqual 1
-      CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(1)
+      foreach(Seq(mergedDs, parallelMergedDs)) { ds =>
+        val query = new Query(sft.getTypeName)
+        query.setMaxFeatures(1)
+        query.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
+        ds.getFeatureSource(sft.getTypeName).getCount(query) mustEqual 1
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(1)
+      }
     }
 
     "load multiple datastores" in {
@@ -191,12 +200,13 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
     }
 
     "query multiple data stores" in {
-      val results = CloseableIterator(mergedDs.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
-
-      results must haveLength(features.length)
-      foreach(results.sortBy(_.getAttribute("name").asInstanceOf[String]).zip(features)) { case (actual, expected) =>
-        // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
-        expected.getAttributes.asScala mustEqual actual.getAttributes.asScala
+      foreach(Seq(mergedDs, parallelMergedDs)) { ds =>
+        val results = CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        results must haveLength(features.length)
+        foreach(results.sortBy(_.getAttribute("name").asInstanceOf[String]).zip(features)) { case (actual, expected) =>
+          // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
+          expected.getAttributes.asScala mustEqual actual.getAttributes.asScala
+        }
       }
     }
 
@@ -209,20 +219,22 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
       )
       val transforms = Seq(null, Array("the_geom"), Array("the_geom", "dtg"), Array("name"), Array("dtg", "the_geom", "age", "name"))
 
-      foreach(filters) { filter =>
-        val ecql = ECQL.toFilter(filter)
-        foreach(transforms) { transform =>
-          val query = new Query(sft.getTypeName, ecql, transform: _*)
-          val results = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
-          results must haveLength(4)
-          val attributes = Option(transform).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
-          forall(results) { feature =>
-            feature.getAttributes must haveLength(attributes.length)
-            forall(attributes.zipWithIndex) { case (attribute, i) =>
-              feature.getAttribute(attribute) mustEqual feature.getAttribute(i)
-              // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
-              features.find(f => feature.getID.contains(f.getID)).get.getAttribute(attribute) mustEqual
+      foreach(Seq(mergedDs, parallelMergedDs)) { ds =>
+        foreach(filters) { filter =>
+          val ecql = ECQL.toFilter(filter)
+          foreach(transforms) { transform =>
+            val query = new Query(sft.getTypeName, ecql, transform: _*)
+            val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            results must haveLength(4)
+            val attributes = Option(transform).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
+            forall(results) { feature =>
+              feature.getAttributes must haveLength(attributes.length)
+              forall(attributes.zipWithIndex) { case (attribute, i) =>
+                feature.getAttribute(attribute) mustEqual feature.getAttribute(i)
+                // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
+                features.find(f => feature.getID.contains(f.getID)).get.getAttribute(attribute) mustEqual
                   feature.getAttribute(attribute)
+              }
             }
           }
         }
@@ -264,135 +276,147 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
     }
 
     "query multiple data stores with sorting" in {
-      foreach(Seq[Array[String]](null, Array("the_geom", "dtg"))) { transform =>
-        val query = new Query(sft.getTypeName, Filter.INCLUDE, transform: _*)
-        query.setSortBy(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.DESCENDING))
-        val results = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      foreach(Seq(mergedDs, parallelMergedDs)) { ds =>
+        foreach(Seq[Array[String]](null, Array("the_geom", "dtg"))) { transform =>
+          val query = new Query(sft.getTypeName, Filter.INCLUDE, transform: _*)
+          query.setSortBy(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.DESCENDING))
+          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
-        results must haveLength(features.length)
-        // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
-        foreach(results.map(_.getAttribute("dtg")).zip(features.reverse.map(_.getAttribute("dtg")))) {
-          case (actual, expected) => expected mustEqual actual
+          results must haveLength(features.length)
+          // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
+          foreach(results.map(_.getAttribute("dtg")).zip(features.reverse.map(_.getAttribute("dtg")))) {
+            case (actual, expected) => expected mustEqual actual
+          }
         }
       }
     }
 
     "query multiple data stores and return bins" in {
-      val query = new Query(sft.getTypeName, defaultFilter, "name", "dtg", "the_geom")
-      query.getHints.put(QueryHints.BIN_TRACK, "name")
+      foreach(Seq(mergedDs, parallelMergedDs)) { ds =>
+        val query = new Query(sft.getTypeName, defaultFilter, "name", "dtg", "the_geom")
+        query.getHints.put(QueryHints.BIN_TRACK, "name")
 
-      val bytes = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).map { f =>
-        val array = f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]
-        val copy = Array.ofDim[Byte](array.length)
-        System.arraycopy(array, 0, copy, 0, array.length)
-        copy
+        val bytes = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map { f =>
+          val array = f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]
+          val copy = Array.ofDim[Byte](array.length)
+          System.arraycopy(array, 0, copy, 0, array.length)
+          copy
+        }
+
+        val expected = features.slice(2, 6).map { f =>
+          val pt = f.getDefaultGeometry.asInstanceOf[Point]
+          val time = f.getAttribute("dtg").asInstanceOf[Date].getTime
+          EncodedValues(f.getAttribute("name").hashCode, pt.getY.toFloat, pt.getX.toFloat, time, -1)
+        }
+
+        val results = bytes.flatMap(_.grouped(16).map(BinaryOutputEncoder.decode)).toList
+        results.sortBy(_.dtg) mustEqual expected
       }
-
-      val expected = features.slice(2, 6).map { f =>
-        val pt = f.getDefaultGeometry.asInstanceOf[Point]
-        val time = f.getAttribute("dtg").asInstanceOf[Date].getTime
-        EncodedValues(f.getAttribute("name").hashCode, pt.getY.toFloat, pt.getX.toFloat, time, -1)
-      }
-
-      val results = bytes.flatMap(_.grouped(16).map(BinaryOutputEncoder.decode)).toList
-      results.sortBy(_.dtg) mustEqual expected
     }
 
     "query multiple data stores and return arrow" in {
-      val query = new Query(sft.getTypeName, defaultFilter, "name", "dtg", "the_geom")
-      query.getHints.put(QueryHints.ARROW_ENCODE, true)
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-      query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
-      query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-      val out = new ByteArrayOutputStream
-      CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT))
-        .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
-        val expected = features.slice(2, 6)
-        reader.dictionaries.keySet mustEqual Set("name")
-        reader.dictionaries.apply("name").iterator.toSeq must containAllOf(expected.map(_.getAttribute("name")))
-        val results = CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList
-        results must haveLength(4)
-        foreach(results.zip(expected)) { case (actual, e) =>
-          actual.getAttributeCount mustEqual 3
-          foreach(Seq("name", "dtg", "the_geom")) { attribute =>
-            actual.getAttribute(attribute) mustEqual e.getAttribute(attribute)
+      foreach(Seq(mergedDs, parallelMergedDs)) { ds =>
+        val query = new Query(sft.getTypeName, defaultFilter, "name", "dtg", "the_geom")
+        query.getHints.put(QueryHints.ARROW_ENCODE, true)
+        query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+        query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+        query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+        val out = new ByteArrayOutputStream
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+        WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
+          val expected = features.slice(2, 6)
+          reader.dictionaries.keySet mustEqual Set("name")
+          reader.dictionaries.apply("name").iterator.toSeq must containAllOf(expected.map(_.getAttribute("name")))
+          val results = CloseableIterator(reader.features()).map(ScalaSimpleFeature.copy).toList
+          results must haveLength(4)
+          foreach(results.zip(expected)) { case (actual, e) =>
+            actual.getAttributeCount mustEqual 3
+            foreach(Seq("name", "dtg", "the_geom")) { attribute =>
+              actual.getAttribute(attribute) mustEqual e.getAttribute(attribute)
+            }
           }
         }
       }
     }
 
     "query multiple data stores for stats" in {
-      foreach(Seq[Array[String]](null, Array("dtg"))) { transform =>
-        val query = new Query(sft.getTypeName, defaultFilter, transform: _*)
-        query.getHints.put(QueryHints.STATS_STRING, "MinMax(dtg)")
-        query.getHints.put(QueryHints.ENCODE_STATS, true)
+      foreach(Seq(mergedDs, parallelMergedDs)) { ds =>
+        foreach(Seq[Array[String]](null, Array("dtg"))) { transform =>
+          val query = new Query(sft.getTypeName, defaultFilter, transform: _*)
+          query.getHints.put(QueryHints.STATS_STRING, "MinMax(dtg)")
+          query.getHints.put(QueryHints.ENCODE_STATS, true)
 
-        val results = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
-        results must haveLength(1)
+          val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          results must haveLength(1)
 
-        val stat = StatsScan.decodeStat(sft)(results.head.getAttribute(0).asInstanceOf[String])
-        stat must beAnInstanceOf[MinMax[Date]]
-        stat.asInstanceOf[MinMax[Date]].min mustEqual features(2).getAttribute("dtg")
-        stat.asInstanceOf[MinMax[Date]].max mustEqual features(5).getAttribute("dtg")
+          val stat = StatsScan.decodeStat(sft)(results.head.getAttribute(0).asInstanceOf[String])
+          stat must beAnInstanceOf[MinMax[Date]]
+          stat.asInstanceOf[MinMax[Date]].min mustEqual features(2).getAttribute("dtg")
+          stat.asInstanceOf[MinMax[Date]].max mustEqual features(5).getAttribute("dtg")
+        }
       }
     }
 
     "query multiple data stores for heatmaps" in {
-      val envelope = new ReferencedEnvelope(44, 46, 52, 59, CRS_EPSG_4326)
-      val width = 480
-      val height = 360
+      foreach(Seq(mergedDs, parallelMergedDs)) { ds =>
+        val envelope = new ReferencedEnvelope(44, 46, 52, 59, CRS_EPSG_4326)
+        val width = 480
+        val height = 360
 
-      val query = new Query(sft.getTypeName, defaultFilter, "the_geom")
-      query.getHints.put(QueryHints.DENSITY_BBOX, envelope)
-      query.getHints.put(QueryHints.DENSITY_WIDTH, width)
-      query.getHints.put(QueryHints.DENSITY_HEIGHT, height)
+        val query = new Query(sft.getTypeName, defaultFilter, "the_geom")
+        query.getHints.put(QueryHints.DENSITY_BBOX, envelope)
+        query.getHints.put(QueryHints.DENSITY_WIDTH, width)
+        query.getHints.put(QueryHints.DENSITY_HEIGHT, height)
 
-      val decode = DensityScan.decodeResult(envelope, width, height)
+        val decode = DensityScan.decodeResult(envelope, width, height)
 
-      val results = CloseableIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        val results = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
 
-      def round(f: Double): Double = math.round(f * 10) / 10d
+        def round(f: Double): Double = math.round(f * 10) / 10d
 
-      val counts = results.flatMap(decode.apply).toList.foldLeft(Map.empty[(Double, Double), Double]) {
-        case (map, (x, y, weight)) => map + ((round(x), round(y)) -> weight)
+        val counts = results.flatMap(decode.apply).toList.foldLeft(Map.empty[(Double, Double), Double]) {
+          case (map, (x, y, weight)) => map + ((round(x), round(y)) -> weight)
+        }
+
+        val expected = Seq((45.0, 53.0) -> 1.0, (45.0, 54.0) -> 1.0, (45.0, 55.0) -> 1.0, (45.0, 56.0) -> 1.0)
+
+        counts must haveSize(4)
+        counts must containTheSameElementsAs(expected)
       }
-
-      val expected = Seq((45.0, 53.0) -> 1.0, (45.0, 54.0) -> 1.0, (45.0, 55.0) -> 1.0, (45.0, 56.0) -> 1.0)
-
-      counts must haveSize(4)
-      counts must containTheSameElementsAs(expected)
     }
 
     "query multiple data stores through density process" in {
-      // code copied from DensityProcess.invertQuery, but we don't want to pull in that dependency here
-      val pixels = 10
-      // buffered output
-      val outputWidth = 480 + 2 * pixels
-      val outputHeight = 360 + 2 * pixels
+      foreach(Seq(mergedDs, parallelMergedDs)) { ds =>
+        // code copied from DensityProcess.invertQuery, but we don't want to pull in that dependency here
+        val pixels = 10
+        // buffered output
+        val outputWidth = 480 + 2 * pixels
+        val outputHeight = 360 + 2 * pixels
 
-      // slightly buffer the envelope so it's covered with our default filter
-      val envelope = new ReferencedEnvelope(43.9, 46.1, 51.9, 59.1, CRS_EPSG_4326)
+        // slightly buffer the envelope so it's covered with our default filter
+        val envelope = new ReferencedEnvelope(43.9, 46.1, 51.9, 59.1, CRS_EPSG_4326)
 
-      val query = new Query(sft.getTypeName, defaultFilter)
-      query.getHints.put(QueryHints.DENSITY_BBOX, envelope)
-      query.getHints.put(QueryHints.DENSITY_WIDTH, outputWidth)
-      query.getHints.put(QueryHints.DENSITY_HEIGHT, outputHeight)
+        val query = new Query(sft.getTypeName, defaultFilter)
+        query.getHints.put(QueryHints.DENSITY_BBOX, envelope)
+        query.getHints.put(QueryHints.DENSITY_WIDTH, outputWidth)
+        query.getHints.put(QueryHints.DENSITY_HEIGHT, outputHeight)
 
-      // we run the decode logic from density process as we don't have coverage/jai on the classpath in order to run the whole thing
-      val points = scala.collection.mutable.Map.empty[(Double, Double), Double]
-      val decode = DensityScan.decodeResult(envelope, outputWidth, outputHeight)
-      WithClose(mergedDs.getFeatureSource(sft.getTypeName).getFeatures(query).features()) { features =>
-        while (features.hasNext) {
-          val pts = decode(features.next())
-          while (pts.hasNext) {
-            val (x, y, weight) = pts.next()
-            points.put((x, y), points.getOrElse((x, y), 0d) + weight)
+        // we run the decode logic from density process as we don't have coverage/jai on the classpath in order to run the whole thing
+        val points = scala.collection.mutable.Map.empty[(Double, Double), Double]
+        val decode = DensityScan.decodeResult(envelope, outputWidth, outputHeight)
+        WithClose(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features()) { features =>
+          while (features.hasNext) {
+            val pts = decode(features.next())
+            while (pts.hasNext) {
+              val (x, y, weight) = pts.next()
+              points.put((x, y), points.getOrElse((x, y), 0d) + weight)
+            }
           }
         }
+        // TODO way to test coverage?
+        points must not(beEmpty)
       }
-      // TODO way to test coverage?
-      points must not(beEmpty)
     }
   }
 }
