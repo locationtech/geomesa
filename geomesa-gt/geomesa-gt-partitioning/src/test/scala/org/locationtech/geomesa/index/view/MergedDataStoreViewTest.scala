@@ -18,7 +18,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.gt.partition.postgis.PostgisContainer
+import org.locationtech.geomesa.gt.partition.postgis.TestWithSharedPostgisContainer
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
 import org.locationtech.geomesa.index.stats.impl.MinMax
@@ -56,7 +56,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
   private val defaultFilter =
     ECQL.toFilter("bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-02T12:00:00.000Z/2018-01-06T12:00:00.000Z")
 
-  private val container = new PostgisContainer()
+  private val container = TestWithSharedPostgisContainer.container
 
   private lazy val postgisParams = Map(
     "dbtype" -> "postgis-partitioned",
@@ -83,11 +83,6 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
   }
 
   override def beforeAll(): Unit = {
-    if (logger.underlying.isTraceEnabled()) {
-      container.withLogAllStatements()
-    }
-    container.start()
-
     WithClose(DataStoreFinder.getDataStore(shpParams.asJava)) { shpDs =>
       WithClose(DataStoreFinder.getDataStore(postgisParams.asJava)) { postgisDs =>
         Seq(shpDs -> features.take(4), postgisDs -> features.drop(4)).foreach { case (ds, toWrite) =>
@@ -107,7 +102,8 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with BeforeAfterAll
     try {
       mergedDs.dispose()
       parallelMergedDs.dispose()
-      container.close()
+      // clean up our shared container
+      WithClose(DataStoreFinder.getDataStore(postgisParams.asJava))(_.removeSchema(sft.getTypeName))
     } finally {
       PathUtils.deleteRecursively(path)
     }

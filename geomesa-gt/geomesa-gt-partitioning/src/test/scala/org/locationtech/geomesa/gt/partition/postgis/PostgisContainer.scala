@@ -9,9 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis
 
 import com.github.dockerjava.api.model.{Mount, MountType}
-import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 
@@ -42,7 +40,6 @@ class PostgisContainer(port: Option[Int] = None)
   }
 
   withEnv("POSTGRES_PASSWORD", password)
-  withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("postgis")))
   waitingFor(Wait.forLogMessage(".*database system is ready to accept connections.*", 2))
   withCreateContainerCmdModifier { cmd =>
     val mount = new Mount().withSource(volume).withTarget("/var/lib/postgresql/data").withType(MountType.VOLUME)
