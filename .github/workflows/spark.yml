@@ -75,7 +75,7 @@ jobs:
           cache-dependency-path: geomesa-spark/geomesa_pyspark/src/test/python/requirements.txt
       - name: Install python dependencies
         if: matrix.projects.name=='pyspark'
-        run: pip install -r geomesa-spark/geomesa_pyspark/src/test/python/requirements.txt
+        run: pip install --require-hashes -r geomesa-spark/geomesa_pyspark/src/test/python/requirements.txt
       - name: Set Scala version
         if: steps.changes.outputs.affected != 'false'
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
