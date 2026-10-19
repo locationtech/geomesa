@@ -37,7 +37,7 @@ import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterat
 
 import java.time.Instant
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
-import java.util.concurrent.{ConcurrentHashMap, LinkedBlockingQueue, TimeUnit}
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 
@@ -59,8 +59,6 @@ class MergedQueryRunner(
 
   import MergedQueryRunner.openReaders
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
-  import scala.collection.JavaConverters._
 
   // query interceptors are handled by the individual data stores
   override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
@@ -92,19 +90,13 @@ class MergedQueryRunner(
       // we assume the delegate stores can handle normal transforms/etc appropriately
       val scanner = () => {
         val readers = getReaders(query).map(CloseableIterator(_))
-        val deduped = if (deduplicate) {
-          // we re-use the feature id cache across readers
-          val cache = ConcurrentHashMap.newKeySet[String]().asScala
-          readers.map(new DeduplicatingSimpleFeatureIterator(_, cache))
-        } else {
-          readers
-        }
         val sorted = hints.getSortFields match {
-          case None => doParallelScan(deduped)
+          case None => doParallelScan(readers)
             // the delegate stores should sort their results, so we can sort merge them
-          case Some(sort) => new SortedMergeIterator(openReaders(deduped))(SimpleFeatureOrdering(hints.getReturnSft, sort))
+          case Some(sort) => new SortedMergeIterator(openReaders(readers))(SimpleFeatureOrdering(hints.getReturnSft, sort))
         }
-        sorted
+        val deduped = if (deduplicate) { new DeduplicatingSimpleFeatureIterator(sorted) } else { sorted }
+        deduped
       }
       MergedQueryPlan(scanner, toFeatures, None, hints.getMaxFeatures)
     }
