@@ -1,5 +1,3 @@
---require-hashes
-
 # Documentation dependencies, locked for Python 3.10 on Linux.
 Sphinx==4.5.0 \
     --hash=sha256:ebf612653238bcc8f4359627a9b7ce44ede6fdd75d9d30f68255c7383d3a6226

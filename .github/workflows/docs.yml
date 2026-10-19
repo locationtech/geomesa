@@ -43,6 +43,6 @@ jobs:
           cache: 'pip'
           cache-dependency-path: docs/requirements.txt
       - name: Install python dependencies
-        run: pip install -r docs/requirements.txt
+        run: pip install --require-hashes -r docs/requirements.txt
       - name: Build with Maven
         run: mvn clean install $MAVEN_CLI_OPTS -Pdocs -pl docs

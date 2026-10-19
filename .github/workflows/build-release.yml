@@ -56,7 +56,7 @@ jobs:
         with:
           python-version: "3.10"
       - name: Install docs dependencies
-        run: pip install -r docs/requirements.txt
+        run: pip install --require-hashes -r docs/requirements.txt
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Set profile args
