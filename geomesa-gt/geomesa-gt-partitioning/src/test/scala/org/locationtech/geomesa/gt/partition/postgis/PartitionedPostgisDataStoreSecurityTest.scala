@@ -19,7 +19,7 @@ import org.locationtech.geomesa.gt.partition.postgis.PartitionedPostgisDataStore
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
 import org.locationtech.geomesa.gt.partition.postgis.dialect._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
-import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils}
+import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
@@ -94,7 +94,8 @@ class PartitionedPostgisDataStoreSecurityTest extends TestWithSharedPostgisConta
                 val query = new Query(sft.getTypeName, Filter.INCLUDE, transforms: _*)
                 val visible = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
                 visible.map(compFromDb) mustEqual expected.map(compWithFid(_, sft, Option(transforms)))
-                visible.map(SecurityUtils.getVisibility) mustEqual expected.map(SecurityUtils.getVisibility)
+                visible.map(f => VisibilityUtils.normalize(SecurityUtils.getVisibility(f))) mustEqual
+                  expected.map(f => VisibilityUtils.normalize(SecurityUtils.getVisibility(f)))
                 val fromFeatureSource =
                   CloseableIterator(ds.getFeatureSource(query.getTypeName).getFeatures(query).features()).toList.sortBy(_.getID)
                 fromFeatureSource mustEqual visible

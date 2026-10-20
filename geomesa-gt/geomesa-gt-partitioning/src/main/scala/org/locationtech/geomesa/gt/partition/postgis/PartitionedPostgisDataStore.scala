@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -207,7 +208,7 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
   }
 }
 
-object PartitionedPostgisDataStore {
+object PartitionedPostgisDataStore extends LazyLogging {
 
   /**
    * Remove visibility from a schema, for user-facing types
@@ -273,7 +274,17 @@ object PartitionedPostgisDataStore {
       to.setAttributeNoConvert(i, from.getAttribute(i))
       i += 1
     }
-    SecurityUtils.setFeatureVisibility(to, PgVis.fromPostgisVisibility(from.getAttribute(i).asInstanceOf[String]))
+    val pgVis = from.getAttribute(i).asInstanceOf[String]
+    if (pgVis != null) {
+      val vis =
+        try { PgVis.fromPostgisVisibility(pgVis) } catch {
+          case NonFatal(e) =>
+            logger.warn(s"Error converting visibilities back to standard syntax - may be pre-release data: $pgVis", e)
+            pgVis
+        }
+      SecurityUtils.setFeatureVisibility(to, vis)
+    }
+
     to.getUserData.putAll(from.getUserData)
     to
   }
