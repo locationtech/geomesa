@@ -24,7 +24,7 @@ object VisibilityUtils {
    * @return
    */
   def visible(provider: AuthorizationsProvider): SimpleFeature => Boolean =
-    new AuthVisibilityFeatureCheck(provider.getAuthorizations)
+    new AuthVisibilityFeatureCheck(new java.util.HashSet(provider.getAuthorizations))
 
   /**
    * Return a local function that will check visibility strings directly, based on the user's current authorizations.

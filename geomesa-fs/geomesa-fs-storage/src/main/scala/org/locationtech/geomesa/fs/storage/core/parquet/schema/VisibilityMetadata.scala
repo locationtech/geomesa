@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.fs.storage.core.parquet.schema
 
 import com.google.gson.JsonObject
-import org.apache.accumulo.access.{AccessExpression, IllegalAccessExpressionException}
 
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.collection.mutable
@@ -47,9 +46,10 @@ class VisibilityMetadata(fieldId: Int) {
         val operands = expressions.iterator.map(expression => s"($expression)").toSeq
         val combined = operands.mkString("&")
         if (!withinDepthLimit(combined)) return None
-        val allOf = AccessExpression.of(combined, true).getExpression
+        // TODO simplify and de-duplicates the expression
+        val allOf = combined/*AccessExpression.of(combined, true).getExpression*/
         // Validate all operands above even when an unrestricted row makes the OR rollup true.
-        val anyOf = if (unrestricted) "" else AccessExpression.of(operands.mkString("|"), true).getExpression
+        val anyOf = if (unrestricted) "" else operands.mkString("|")/*AccessExpression.of(operands.mkString("|"), true).getExpression*/
         val json = new JsonObject()
         json.addProperty("version", 1)
         json.addProperty("fieldId", fieldId)
@@ -60,7 +60,7 @@ class VisibilityMetadata(fieldId: Int) {
         val encoded = json.toString
         if (encoded.getBytes(UTF_8).length > MaxBytes) None else Some(encoded)
       } catch {
-        case _: IllegalAccessExpressionException => None
+//        case _: IllegalAccessExpressionException => None
         case _: StackOverflowError => None // optional metadata must not fail file finalization
       }
     }

@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
-import org.apache.accumulo.access.AccessExpression;
+import org.apache.accumulo.access.Access;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -65,8 +65,9 @@ final class VisibilityFooterMetadata {
             if (!withinDepthLimit(allOf) || !withinDepthLimit(anyOf)) return Optional.empty();
             // A malformed OR must not be interpreted as FALSE: that would incorrectly prune
             // files containing visible rows. Reject the whole optional summary instead.
-            AccessExpression.validate(allOf);
-            AccessExpression.validate(anyOf);
+            var validator = Access.builder().build();;
+            validator.validateExpression(allOf);
+            validator.validateExpression(anyOf);
             return Optional.of(new Summary(Slices.utf8Slice(allOf), Slices.utf8Slice(anyOf), fileRows));
         } catch (RuntimeException e) {
             return Optional.empty();

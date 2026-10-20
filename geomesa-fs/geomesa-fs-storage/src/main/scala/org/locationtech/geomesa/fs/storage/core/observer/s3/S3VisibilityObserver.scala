@@ -10,7 +10,6 @@ package org.locationtech.geomesa.fs.storage.core
 package observer
 package s3
 
-import org.apache.accumulo.access.AccessExpression
 import org.apache.iceberg.aws.s3.S3FileIO
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
@@ -55,7 +54,6 @@ class S3VisibilityObserver(path: String, fs: S3FileIO, tag: String) extends File
       val vis = visibilities.toList.sorted.mkString("(", ")&(", ")")
       // TODO simplify and de-duplicates the expression
       val visibility = Base64.getEncoder.encodeToString(vis.getBytes(StandardCharsets.UTF_8))
-      val tagging = Tagging.builder().tagSet(Tag.builder.key(tag).value(visibility).build()).build()
       val request =
         PutObjectTaggingRequest.builder()
           .bucket(bucket)
