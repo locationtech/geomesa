@@ -26,6 +26,7 @@ import org.geotools.jdbc.{JDBCDataStore, JDBCFeatureSource, SQLDialect}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.PgVis
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.security.SecurityUtils
@@ -38,6 +39,7 @@ import java.sql.Connection
 import java.util
 import java.util.concurrent.CompletionException
 import javax.sql.DataSource
+import scala.util.control.NonFatal
 
 /**
  * Data store wrapper that manages a hidden per-row visibility column (`_vis`).
@@ -271,7 +273,7 @@ object PartitionedPostgisDataStore {
       to.setAttributeNoConvert(i, from.getAttribute(i))
       i += 1
     }
-    SecurityUtils.setFeatureVisibility(to, from.getAttribute(i).asInstanceOf[String])
+    SecurityUtils.setFeatureVisibility(to, PgVis.fromPostgisVisibility(from.getAttribute(i).asInstanceOf[String]))
     to.getUserData.putAll(from.getUserData)
     to
   }
@@ -288,7 +290,12 @@ object PartitionedPostgisDataStore {
       throw new IllegalArgumentException(
         s"Feature ${sf.getID} does not contain a visibility label under the user data key ${SecurityUtils.FEATURE_VISIBILITY}")
     }
-    visibility
+    try {
+      PgVis.toPostgisVisibility(visibility)
+    } catch {
+      case NonFatal(e) =>
+        throw new IllegalArgumentException(s"Feature ${sf.getID} does not contain a valid visibility label: $visibility", e)
+    }
   }
 
   /**

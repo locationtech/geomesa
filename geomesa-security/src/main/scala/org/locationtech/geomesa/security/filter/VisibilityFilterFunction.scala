@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.security.filter
 
-import org.apache.accumulo.access.{AccessEvaluator, Authorizations}
+import org.apache.accumulo.access.Access
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.capability.FunctionName
 import org.geotools.api.filter.expression.Expression
@@ -24,8 +24,8 @@ class VisibilityFilterFunction extends FunctionExpressionImpl(VisibilityFilterFu
 
   private val cache = scala.collection.mutable.Map.empty[String, java.lang.Boolean]
 
-  private val auths = Authorizations.of(VisibilityFilterFunction.provider.getAuthorizations)
-  private val access = AccessEvaluator.of(auths)
+  private val access =
+    Access.builder().build().newEvaluator(new java.util.HashSet[String](VisibilityFilterFunction.provider.getAuthorizations))
 
   private var expression: Expression = _
 

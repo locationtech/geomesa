@@ -20,36 +20,45 @@ object MainView extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     // if visibilities are enabled, filter each branch by evaluating the hidden '_vis' column against the
-    // caller's authorizations, stamped into the 'geomesa.auths' session variable by SessionDataSource.
-    // the auths array is built in an uncorrelated sub-select so that it's evaluated once per query (as an
-    // init plan) rather than re-running current_setting/string_to_array for every row
-    val visibilityFilter =
-      info.cols.vis.map(vis => s"pg_vis(${vis.quoted}, (SELECT string_to_array(current_setting('$AuthConfigName', true), ',')))")
-    def filter(conditions: Seq[String]): String =
-      if (conditions.isEmpty) { "" } else { conditions.mkString(" WHERE ", " AND ", "") }
-    val writeAheadPartitionsFilter = filter(
-      Seq(
-        s"""NOT EXISTS (
-           |  SELECT FROM ${info.tables.writeAheadMigrations.name.qualified} migration
-           |  WHERE write_ahead_partition.${info.cols.dtg.quoted} >= migration.partition_start
-           |    AND write_ahead_partition.${info.cols.dtg.quoted} < migration.partition_end
-           |)""".stripMargin
-      ) ++ visibilityFilter
-    )
-    val numericFilter = filter(
-      Seq(s"NOT EXISTS (SELECT FROM ${info.tables.writeAheadRetirements.name.qualified} retired " +
-          "WHERE retired.partition_oid = write_ahead.tableoid)") ++ visibilityFilter
-    )
-    def ageOffFilter(alias: String): String = filter(
-      Seq(s"NOT EXISTS (SELECT FROM ${info.tables.ageOffQueue.name.qualified} queue " +
-          s"WHERE queue.partition_oid = $alias.tableoid)") ++ visibilityFilter
-    )
+    // caller's authorizations, stamped into the 'geomesa.auths' session variable by SessionDataSource
+
+    val withUserAuths = info.cols.vis.fold("") { _ =>
+      s"""  -- Compute the user's authorizations as a native tsvector exactly once
+         |  WITH user_auths AS (
+         |    SELECT array_to_tsvector(string_to_array(current_setting('$AuthConfigName', true), ',')) AS vis
+         |  )""".stripMargin
+    }
+    val joinUserAuths = info.cols.vis.fold("")(_ => "CROSS JOIN user_auths")
+    def andWhereVisible(alias: String): String = info.cols.vis.fold("")(v => s"""AND pg_vis($alias.${v.quoted}, user_auths.vis)""")
+
     Seq(
       s"""CREATE OR REPLACE VIEW ${info.tables.view.name.qualified} AS
-         |  SELECT * FROM ${info.tables.writeAhead.name.qualified} write_ahead$numericFilter UNION ALL
-         |  SELECT * FROM ${info.tables.writeAheadPartitions.name.qualified} write_ahead_partition$writeAheadPartitionsFilter UNION ALL
-         |  SELECT * FROM ${info.tables.mainPartitions.name.qualified} main_partition${ageOffFilter("main_partition")} UNION ALL
-         |  SELECT * FROM ${info.tables.spillPartitions.name.qualified} spill_partition${ageOffFilter("spill_partition")};""".stripMargin
+         |$withUserAuths
+         |  SELECT wa.* FROM ${info.tables.writeAhead.name.qualified} wa $joinUserAuths WHERE
+         |    NOT EXISTS (
+         |      SELECT FROM ${info.tables.writeAheadRetirements.name.qualified} retired
+         |        WHERE retired.partition_oid = wa.tableoid
+         |    ) ${andWhereVisible("wa")}
+         |  UNION ALL
+         |  SELECT wap.* FROM ${info.tables.writeAheadPartitions.name.qualified} wap $joinUserAuths WHERE
+         |    NOT EXISTS (
+         |      SELECT FROM ${info.tables.writeAheadMigrations.name.qualified} migration
+         |        WHERE wap.${info.cols.dtg.quoted} >= migration.partition_start
+         |        AND wap.${info.cols.dtg.quoted} < migration.partition_end
+         |    ) ${andWhereVisible("wap")}
+         |  UNION ALL
+         |  SELECT mp.* FROM ${info.tables.mainPartitions.name.qualified} mp $joinUserAuths WHERE
+         |    NOT EXISTS (
+         |      SELECT FROM ${info.tables.ageOffQueue.name.qualified} queue
+         |        WHERE queue.partition_oid = mp.tableoid
+         |    ) ${andWhereVisible("mp")}
+         |  UNION ALL
+         |  SELECT sp.* FROM ${info.tables.spillPartitions.name.qualified} sp $joinUserAuths WHERE
+         |    NOT EXISTS (
+         |      SELECT FROM ${info.tables.ageOffQueue.name.qualified} queue
+         |        WHERE queue.partition_oid = sp.tableoid
+         |    ) ${andWhereVisible("sp")}
+         |;""".stripMargin
     )
   }
 
