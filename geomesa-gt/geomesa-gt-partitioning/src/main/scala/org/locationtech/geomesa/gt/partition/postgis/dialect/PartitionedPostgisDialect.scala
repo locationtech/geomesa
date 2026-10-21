@@ -21,7 +21,7 @@ import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, getIndexedColumns}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
-import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, PgVis, TruncateToPartition, TruncateToTenMinutes}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, TruncateToPartition, TruncateToTenMinutes}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTrigger, InsertTrigger, UpdateTrigger, WriteAheadTrigger}
@@ -421,7 +421,6 @@ object PartitionedPostgisDialect extends StrictLogging {
     WriteAheadTable,
     WriteAheadTrigger,
     PartitionTables,
-    PgVis, // must be created before the main view, which references it
     WriteAheadMigrationsTable,
     AgeOffQueueTable,
     WriteAheadRetirementsTable,

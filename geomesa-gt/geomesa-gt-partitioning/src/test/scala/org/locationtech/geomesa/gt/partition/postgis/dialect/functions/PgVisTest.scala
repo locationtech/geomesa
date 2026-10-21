@@ -11,7 +11,8 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect.functions
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.BasicDataSource
 import org.locationtech.geomesa.gt.partition.postgis.PostgisContainer
-import org.locationtech.geomesa.gt.partition.postgis.dialect.ExecutionContext
+import org.locationtech.geomesa.gt.partition.postgis.dialect.ColumnName
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.MainView
 import org.locationtech.geomesa.security.VisibilityUtils
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.slf4j.LoggerFactory
@@ -73,11 +74,6 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
     ds.setUrl(s"jdbc:postgresql://${container.getHost}:${container.getMappedPort(5432)}/postgres")
     ds.setUsername("postgres")
     ds.setPassword(container.password)
-    WithClose(ds.getConnection) { cx =>
-      WithClose(new ExecutionContext(cx)) { ec =>
-        PgVis.create(null)(ec)
-      }
-    }
   }
 
   override def afterAll(): Unit = CloseWithLogging(Seq(ds, container))
@@ -86,7 +82,7 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
     "correctly evaluate visibilities" in {
       val sql =
         s"""WITH user_auths AS (SELECT array_to_tsvector(string_to_array(?, ',')) AS vis)
-           |SELECT pg_vis(?, user_auths.vis) FROM user_auths""".stripMargin
+           |SELECT user_auths.vis @@ ?::tsquery FROM user_auths""".stripMargin
       WithClose(ds.getConnection) { cx =>
         WithClose(cx.prepareStatement(sql)) { ps =>
           foreach(tests) { test =>
@@ -135,7 +131,7 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
         }
         val sql =
           s"""WITH user_auths AS (SELECT array_to_tsvector(string_to_array(?, ',')) AS vis)
-             |SELECT id FROM test CROSS JOIN user_auths WHERE pg_vis(test.visibilities, user_auths.vis)""".stripMargin
+             |SELECT id FROM test CROSS JOIN user_auths WHERE ${MainView.whereVisible("test", ColumnName("visibilities"))}""".stripMargin
         WithClose(cx.prepareStatement(sql)) { ps =>
           foreach(testCases) { test =>
             ps.setString(1, test.auths.mkString(","))

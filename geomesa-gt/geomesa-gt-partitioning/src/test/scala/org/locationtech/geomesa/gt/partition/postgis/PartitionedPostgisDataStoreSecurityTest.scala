@@ -55,7 +55,7 @@ class PartitionedPostgisDataStoreSecurityTest extends TestWithSharedPostgisConta
             WithClose(cx.prepareStatement(s"""select pg_get_viewdef('${this.schema}."${sft.getTypeName}"'::regclass, true);""")) { st =>
               WithClose(st.executeQuery()) { rs =>
                 rs.next() must beTrue
-                rs.getString(1).toLowerCase(Locale.US).split("pg_vis") must haveLength(5) // 4 tables
+                rs.getString(1).toLowerCase(Locale.US).split("\\Quser_auths.vis @@\\E") must haveLength(5) // 4 tables
               }
             }
           }

@@ -12,7 +12,6 @@ package functions
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.apache.accumulo.access.ParsedAccessExpression.ExpressionType
 import org.apache.accumulo.access.{Access, ParsedAccessExpression}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.SqlStatements
 
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -20,7 +19,7 @@ import java.util.regex.Pattern
 /**
  * Provides per-row visibility filtering
  */
-object PgVis extends PgVis with AdvisoryLockSql {
+object PgVis {
 
   import scala.collection.JavaConverters._
 
@@ -42,8 +41,6 @@ object PgVis extends PgVis with AdvisoryLockSql {
 
   private val PostgisVisPattern = Pattern.compile("""^\(*'""")
   private val EscapedChars = Seq('\'', '"', '\\')
-
-  override protected val lockId: Long = 1957550962396498252L
 
   /**
    * Converts an Accumulo expressions to a tsvector expression, suitable for visibility evaluation in postgis
@@ -150,42 +147,4 @@ object PgVis extends PgVis with AdvisoryLockSql {
     }
     result.toString
   }
-}
-
-class PgVis extends SqlStatements {
-
-  override protected def createStatements(info: TypeInfo): Seq[String] = {
-    Seq(
-      """-- Evaluate visibilities against authorizations.
-        |--
-        |-- Note that visibility strings are expected to be well formed - invalid strings will not raise errors but will
-        |-- always evaluate to 'false'. Empty/null strings are considered invalid.
-        |--
-        |-- A valid expression is a sequence of tokens (chars from [A-Za-z0-9_-.:/], or any chars if quoted with ' or ")
-        |-- joined by the binary operators & (and) or | (or). & and | may not be mixed at the same level without
-        |-- parentheses to disambiguate, e.g. 'A|B&C' is invalid but '(A|B)&C' and 'A|(B&C)' are valid.
-        |--
-        |-- arguments:
-        |--   vis         - visibility expression, consisting of tokens separated by & and |
-        |--   auth_vector - user authorization tokens
-        |-- returns: the result of evaluating the visibilities against the authorizations, i.e. true if the user can see the piece of data
-        |CREATE OR REPLACE FUNCTION pg_vis(vis text, auth_vector tsvector) RETURNS boolean AS $BODY$
-        |  BEGIN
-        |    IF vis IS NULL OR vis = '' THEN
-        |      return false;
-        |    END IF;
-        |    -- perform the fast native C-level evaluation
-        |    RETURN auth_vector @@ vis::tsquery;
-        |  EXCEPTION
-        |    -- invalid syntax errors exclude the row
-        |    WHEN OTHERS THEN
-        |      RAISE WARNING 'Invalid visibility expression: %', vis;
-        |      RETURN false;
-        |  END;
-        |$BODY$ LANGUAGE plpgsql IMMUTABLE PARALLEL SAFE;
-        |""".stripMargin
-    )
-  }
-
-  override protected def dropStatements(info: TypeInfo): Seq[String] = Seq.empty // function is shared between types
 }

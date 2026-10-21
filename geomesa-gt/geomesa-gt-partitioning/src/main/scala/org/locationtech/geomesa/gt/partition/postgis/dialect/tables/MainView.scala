@@ -18,6 +18,16 @@ object MainView extends SqlStatements {
 
   import SessionDataSource.AuthConfigName
 
+  /**
+   * Where visible clause. Assumes user auths are accessible via `user_auths.vis`
+   *
+   * @param table table or alias
+   * @param col vis column
+   * @return
+   */
+  def whereVisible(table: String, col: ColumnName): String =
+    s"$table.${col.quoted} IS NOT NULL AND $table.${col.quoted} <> '' AND user_auths.vis @@ $table.${col.quoted}::tsquery"
+
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     // if visibilities are enabled, filter each branch by evaluating the hidden '_vis' column against the
     // caller's authorizations, stamped into the 'geomesa.auths' session variable by SessionDataSource
@@ -29,7 +39,7 @@ object MainView extends SqlStatements {
          |  )""".stripMargin
     }
     val joinUserAuths = info.cols.vis.fold("")(_ => "CROSS JOIN user_auths")
-    def andWhereVisible(alias: String): String = info.cols.vis.fold("")(v => s"""AND pg_vis($alias.${v.quoted}, user_auths.vis)""")
+    def andWhereVisible(alias: String): String = info.cols.vis.fold("")(v => s"AND ${whereVisible(alias, v)}")
 
     Seq(
       s"""CREATE OR REPLACE VIEW ${info.tables.view.name.qualified} AS
