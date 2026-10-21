@@ -19,7 +19,7 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.output.Slf4jLogConsumer
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
@@ -103,11 +103,9 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
     }
 
     "correctly convert from visibilities to tsvector syntax and back" in {
-      foreach(tests) { test =>
-        Try(PgVis.toPostgisVisibility(test.vis)) match {
-          case Success(vis) => VisibilityUtils.normalize(PgVis.fromPostgisVisibility(vis)) mustEqual VisibilityUtils.normalize(test.vis)
-          case Failure(e) => if (test.visible) { ko(e.getMessage) } else { ok /* invalid syntax expression */ }
-        }
+      foreach(tests.filter(t => Try(VisibilityUtils.normalize(t.vis)).isSuccess)) { test =>
+        VisibilityUtils.normalize(PgVis.fromPostgisVisibility(PgVis.toPostgisVisibility(test.vis))) mustEqual
+          VisibilityUtils.normalize(test.vis)
       }
     }
 

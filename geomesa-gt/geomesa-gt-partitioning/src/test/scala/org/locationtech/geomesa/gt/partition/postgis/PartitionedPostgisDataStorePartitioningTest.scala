@@ -319,6 +319,7 @@ class PartitionedPostgisDataStorePartitioningTest extends TestWithSharedPostgisC
                   reader.rollback()
                 }
               }
+              // note: this can cause occasional test failures due to deadlocking with a scheduled cron run
               st.execute(command()) // FINALIZE the interrupted first detach.
               clean()
               scalar(s"SELECT count(*) FROM ${info.tables.writeAheadMigrations.name.qualified}") mustEqual 1

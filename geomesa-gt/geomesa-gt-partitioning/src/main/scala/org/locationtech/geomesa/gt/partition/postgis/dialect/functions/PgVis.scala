@@ -15,6 +15,7 @@ import org.apache.accumulo.access.{Access, ParsedAccessExpression}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.SqlStatements
 
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 
 /**
  * Provides per-row visibility filtering
@@ -28,7 +29,7 @@ object PgVis extends PgVis with AdvisoryLockSql {
   private val toPostgisCache =
     Caffeine.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES).build(
       new CacheLoader[String, String] {
-        override def load(key: String): String = toPostgis(access.newParsedExpression(key))
+        override def load(key: String): String = toPostgis(key)
       }
     )
 
@@ -38,6 +39,9 @@ object PgVis extends PgVis with AdvisoryLockSql {
         override def load(key: String): String = fromPostgis(key)
       }
     )
+
+  private val PostgisVisPattern = Pattern.compile("""^\(*'""")
+  private val EscapedChars = Seq('\'', '"', '\\')
 
   override protected val lockId: Long = 1957550962396498252L
 
@@ -58,10 +62,28 @@ object PgVis extends PgVis with AdvisoryLockSql {
   def fromPostgisVisibility(vis: String): String = fromPostgisCache.get(vis)
 
   /**
+   * Converts an Accumulo expressions to a tsvector expression
+   *
+   * @param expression visibility expression
+   * @return
+   */
+  private def toPostgis(expression: String): String = {
+    // parse first to ensure a valid expression
+    val parsed = access.newParsedExpression(expression)
+    // but if possible, just use the original expression
+    if (EscapedChars.forall(c => expression.indexOf(c) == -1)) {
+      expression
+    } else {
+      // we have to use tsvector quoting/escaping instead of accumulo
+      toPostgis(parsed)
+    }
+  }
+
+  /**
    * Converts an Accumulo expressions to a tsvector expression. Expressions are wrapped in single quotes, and single quotes
    * and back-slashes within a term are doubled to escape them.
    *
-   * @param expression expression
+   * @param expression visibility expression
    * @return
    */
   private def toPostgis(expression: ParsedAccessExpression): String = {
@@ -80,6 +102,10 @@ object PgVis extends PgVis with AdvisoryLockSql {
    * @return
    */
   private def fromPostgis(expression: String): String = {
+    if (!PostgisVisPattern.matcher(expression).find()) {
+      // assumed to be an original, non-escaped expression
+      return expression
+    }
     val result = new StringBuilder(expression.length)
     var index = 0
     while (index < expression.length) {
