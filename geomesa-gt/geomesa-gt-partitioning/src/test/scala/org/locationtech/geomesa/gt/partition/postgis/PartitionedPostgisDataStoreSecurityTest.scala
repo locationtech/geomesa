@@ -61,7 +61,11 @@ class PartitionedPostgisDataStoreSecurityTest extends TestWithSharedPostgisConta
           }
 
           // visibility label to assign to each feature
-          val visibilities = Seq("admin", "user", "user&admin", "user|admin", "admin", "user", "user&admin", "user|admin", "admin", "user")
+          val userLabel = "user:access" // include `:` to validate (should be escaped)
+          val adminLabel = "admin_0" // include numbers and `_` to validate (should not be escaped)
+          val visibilities =
+            Seq(adminLabel, userLabel, s"$userLabel&$adminLabel", s"$userLabel|$adminLabel", adminLabel, userLabel,
+              s"$userLabel&$adminLabel", s"$userLabel|$adminLabel", adminLabel, userLabel)
           val features = this.features(sft).zip(visibilities).map { case (sf, vis) => SecurityUtils.setFeatureVisibility(sf, vis) }
 
           // write some data
@@ -77,7 +81,7 @@ class PartitionedPostgisDataStoreSecurityTest extends TestWithSharedPostgisConta
           }
 
           def runQueries(): MatchResult[_] = {
-            foreach(Seq(Seq.empty, Seq("admin"), Seq("user"), Seq("user", "admin"))) { auths =>
+            foreach(Seq(Seq.empty, Seq(adminLabel), Seq(userLabel), Seq(userLabel, adminLabel))) { auths =>
               provider.auths = auths
               val expected = features.filter { f =>
                 val vis = SecurityUtils.getVisibility(f)

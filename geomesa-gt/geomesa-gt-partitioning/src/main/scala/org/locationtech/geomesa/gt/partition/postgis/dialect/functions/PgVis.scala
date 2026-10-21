@@ -40,7 +40,6 @@ object PgVis {
     )
 
   private val PostgisVisPattern = Pattern.compile("""^\(*'""")
-  private val EscapedChars = Seq('\'', '"', '\\')
 
   /**
    * Converts an Accumulo expressions to a tsvector expression, suitable for visibility evaluation in postgis
@@ -67,13 +66,32 @@ object PgVis {
   private def toPostgis(expression: String): String = {
     // parse first to ensure a valid expression
     val parsed = access.newParsedExpression(expression)
+    if (parsed.getType == ExpressionType.EMPTY) {
+      throw new IllegalArgumentException("Invalid empty visibility label")
+    }
     // but if possible, just use the original expression
-    if (EscapedChars.forall(c => expression.indexOf(c) == -1)) {
+    if (!needsEscaping(expression)) {
       expression
     } else {
       // we have to use tsvector quoting/escaping instead of accumulo
       toPostgis(parsed)
     }
+  }
+
+  private def needsEscaping(expression: String): Boolean = {
+    var i = 0
+    while (i < expression.length) {
+      val c = expression.charAt(i)
+      if ((c >= 'A' && c <= 'Z') ||
+          (c >= 'a' && c <= 'z') ||
+          (c >= '0' && c <= '9') ||
+          c == '_'|| c == '(' || c == ')' || c == '&' || c == '|') {
+        i += 1
+      } else {
+        return true
+      }
+    }
+    false
   }
 
   /**
