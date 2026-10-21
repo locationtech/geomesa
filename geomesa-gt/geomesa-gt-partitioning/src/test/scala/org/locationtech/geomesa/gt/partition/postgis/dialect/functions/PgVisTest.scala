@@ -20,8 +20,6 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.output.Slf4jLogConsumer
 
-import scala.util.Try
-
 class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
   private val container = new PostgisContainer()
@@ -49,19 +47,27 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
     StandaloneTestCase(""""u\"ser"&admin""", Seq("user", "admin"), visible = false),
     StandaloneTestCase(""""u\"ser"&admin""", Seq("u\"ser", "admin"), visible = true),
     StandaloneTestCase(""""u\\\\ser"&admin""", Seq("u\\\\ser", "admin"), visible = true),
-    StandaloneTestCase("A.B-C+D", Seq("A", "B", "C", "D"), visible = false),
+    StandaloneTestCase("ops-team", Seq("ops-team"), visible = true),
+    StandaloneTestCase("geo:admin", Seq("geo:admin"), visible = true),
+    StandaloneTestCase("path/read", Seq("path/read"), visible = true),
+    StandaloneTestCase("\"user name\"", Seq("user name"), visible = true),
+    StandaloneTestCase("\"A&B\"", Seq("A&B"), visible = true),
+    StandaloneTestCase("\"O'Reilly\"", Seq("O'Reilly"), visible = true),
+    StandaloneTestCase("(\"user name\"|ops-team)&geo:admin", Seq("ops-team", "geo:admin"), visible = true),
+    StandaloneTestCase("(\"user name\"|ops-team)&geo:admin", Seq("ops-team"), visible = false),
     // invalid syntax tests
-    StandaloneTestCase("A|B&C", Seq("A", "B", "C"), visible = false),
-    StandaloneTestCase("A&B|C", Seq("A", "B", "C"), visible = false),
-    StandaloneTestCase("A|!B", Seq("A", "B", "C"), visible = false),
-    StandaloneTestCase("A=B", Seq("A", "B", "C"), visible = false),
-    StandaloneTestCase("A|B|", Seq("A", "B", "C"), visible = false),
-    StandaloneTestCase("A||B", Seq("A", "B", "C"), visible = false),
-    StandaloneTestCase("A(B", Seq("A", "B", "C"), visible = false),
-    StandaloneTestCase("A&|B", Seq("A", "B", "C"), visible = false),
-    StandaloneTestCase("()", Seq("A", "B", "C"), visible = false),
-    StandaloneTestCase(")", Seq("A", "B", "C"), visible = false),
-    StandaloneTestCase("'A'", Seq("A", "B", "C"), visible = false),
+    StandaloneTestCase("A.B-C+D", Seq("A", "B", "C", "D"), visible = false, invalid = true),
+    StandaloneTestCase("A|B&C", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A&B|C", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A|!B", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A=B", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A|B|", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A||B", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A(B", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A&|B", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("()", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase(")", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("'A'", Seq("A", "B", "C"), visible = false, invalid = true),
   )
 
   override def beforeAll(): Unit = {
@@ -86,12 +92,16 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
       WithClose(ds.getConnection) { cx =>
         WithClose(cx.prepareStatement(sql)) { ps =>
           foreach(tests) { test =>
-            ps.setString(1, test.auths.mkString(","))
-            ps.setString(2, Try(PgVis.toPostgisVisibility(test.vis)).getOrElse(""))
-            WithClose(ps.executeQuery()) { rs =>
-              rs.next must beTrue
-              rs.getBoolean(1) mustEqual test.visible
-              rs.next must beFalse
+            if (test.invalid) {
+              PgVis.toPostgisVisibility(test.vis) must throwAn[IllegalArgumentException]
+            } else {
+              ps.setString(1, test.auths.mkString(","))
+              ps.setString(2, PgVis.toPostgisVisibility(test.vis))
+              WithClose(ps.executeQuery()) { rs =>
+                rs.next must beTrue
+                rs.getBoolean(1) mustEqual test.visible
+                rs.next must beFalse
+              }
             }
           }
         }
@@ -99,7 +109,7 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
     }
 
     "correctly convert from visibilities to tsvector syntax and back" in {
-      foreach(tests.filter(t => Try(VisibilityUtils.normalize(t.vis)).isSuccess)) { test =>
+      foreach(tests.filterNot(_.invalid)) { test =>
         VisibilityUtils.normalize(PgVis.fromPostgisVisibility(PgVis.toPostgisVisibility(test.vis))) mustEqual
           VisibilityUtils.normalize(test.vis)
       }
@@ -145,7 +155,7 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
     }
   }
 
-  private case class StandaloneTestCase(vis: String, auths: Seq[String], visible: Boolean)
+  private case class StandaloneTestCase(vis: String, auths: Seq[String], visible: Boolean, invalid: Boolean = false)
   private case class TestData(id: Int, name: String, vis: String)
   private case class TableTestCase(auths: Seq[String], ids: Seq[Int])
 }
