@@ -14,7 +14,6 @@ import org.apache.accumulo.access.ParsedAccessExpression.ExpressionType
 import org.apache.accumulo.access.{Access, ParsedAccessExpression}
 
 import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
 
 /**
  * Provides per-row visibility filtering
@@ -38,8 +37,6 @@ object PgVis {
         override def load(key: String): String = fromPostgis(key)
       }
     )
-
-  private val PostgisVisPattern = Pattern.compile("""^\(*'""")
 
   /**
    * Converts an Accumulo expressions to a tsvector expression, suitable for visibility evaluation in postgis
@@ -69,29 +66,7 @@ object PgVis {
     if (parsed.getType == ExpressionType.EMPTY) {
       throw new IllegalArgumentException("Invalid empty visibility label")
     }
-    // but if possible, just use the original expression
-    if (!needsEscaping(expression)) {
-      expression
-    } else {
-      // we have to use tsvector quoting/escaping instead of accumulo
-      toPostgis(parsed)
-    }
-  }
-
-  private def needsEscaping(expression: String): Boolean = {
-    var i = 0
-    while (i < expression.length) {
-      val c = expression.charAt(i)
-      if ((c >= 'A' && c <= 'Z') ||
-          (c >= 'a' && c <= 'z') ||
-          (c >= '0' && c <= '9') ||
-          c == '_'|| c == '(' || c == ')' || c == '&' || c == '|') {
-        i += 1
-      } else {
-        return true
-      }
-    }
-    false
+    toPostgis(parsed)
   }
 
   /**
@@ -117,10 +92,6 @@ object PgVis {
    * @return
    */
   private def fromPostgis(expression: String): String = {
-    if (!PostgisVisPattern.matcher(expression).find()) {
-      // assumed to be an original, non-escaped expression
-      return expression
-    }
     val result = new StringBuilder(expression.length)
     var index = 0
     while (index < expression.length) {
