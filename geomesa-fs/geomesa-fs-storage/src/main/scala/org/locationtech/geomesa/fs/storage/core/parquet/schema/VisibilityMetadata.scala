@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.core.parquet.schema
 
 import com.google.gson.JsonObject
-import org.apache.accumulo.access.{AccessExpression, IllegalAccessExpressionException}
+import org.locationtech.geomesa.security.VisibilityUtils
 
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.collection.mutable
@@ -46,10 +46,12 @@ class VisibilityMetadata(fieldId: Int) {
         // operand is parenthesized so compound AND/OR expressions retain their meaning.
         val operands = expressions.iterator.map(expression => s"($expression)").toSeq
         val combined = operands.mkString("&")
-        if (!withinDepthLimit(combined)) return None
-        val allOf = AccessExpression.of(combined, true).getExpression
+        if (!withinDepthLimit(combined)) {
+          return None
+        }
+        val allOf = VisibilityUtils.normalize(combined)
         // Validate all operands above even when an unrestricted row makes the OR rollup true.
-        val anyOf = if (unrestricted) "" else AccessExpression.of(operands.mkString("|"), true).getExpression
+        val anyOf = if (unrestricted) { "" } else { VisibilityUtils.normalize(operands.mkString("|")) }
         val json = new JsonObject()
         json.addProperty("version", 1)
         json.addProperty("fieldId", fieldId)
@@ -60,7 +62,7 @@ class VisibilityMetadata(fieldId: Int) {
         val encoded = json.toString
         if (encoded.getBytes(UTF_8).length > MaxBytes) None else Some(encoded)
       } catch {
-        case _: IllegalAccessExpressionException => None
+        case _: IllegalArgumentException => None
         case _: StackOverflowError => None // optional metadata must not fail file finalization
       }
     }
@@ -82,7 +84,7 @@ object VisibilityMetadata {
   val MaxDepth = 128
 
   /** Bound recursive parsing without counting parentheses inside quoted authorization labels. */
-  def withinDepthLimit(expression: String): Boolean = {
+  private def withinDepthLimit(expression: String): Boolean = {
     var depth = 0
     var quoted = false
     var escaped = false

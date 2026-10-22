@@ -9,15 +9,15 @@
 package org.locationtech.geomesa.fs.storage.core
 
 import com.google.gson.JsonParser
-import org.apache.accumulo.access.{AccessEvaluator, Authorizations}
+import org.apache.accumulo.access.Access
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.security.UserGroupInformation
+import org.apache.iceberg._
 import org.apache.iceberg.deletes.PositionDelete
 import org.apache.iceberg.exceptions.ValidationException
 import org.apache.iceberg.hadoop.HadoopTables
 import org.apache.iceberg.io.FileIO
 import org.apache.iceberg.parquet.Parquet
-import org.apache.iceberg._
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.io.LocalInputFile
 import org.geotools.api.data.Query
@@ -40,6 +40,8 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
   import scala.collection.JavaConverters._
 
   sequential
+
+  private val access = Access.builder().build()
 
   private def withStorage[T](test: FileSystemStorage => T, formatVersion: Int = 3): T = {
     UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("geomesa-compaction-test"))
@@ -112,7 +114,8 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
           scan.map(f => Option(SecurityUtils.getVisibility(f)).getOrElse("")).toList
         }
         foreach(Seq("", "A", "A,B", "C", "A,B,C")) { auths =>
-          val evaluator = AccessEvaluator.of(Authorizations.of(auths.split(",").filter(_.nonEmpty): _*))
+          val set = new java.util.HashSet(java.util.Arrays.asList(auths.split(",").filter(_.nonEmpty): _*))
+          val evaluator = access.newEvaluator(set)
           evaluator.canAccess(json.get("allOf").getAsString) mustEqual values.forall(evaluator.canAccess)
           evaluator.canAccess(json.get("anyOf").getAsString) mustEqual values.exists(evaluator.canAccess)
         }

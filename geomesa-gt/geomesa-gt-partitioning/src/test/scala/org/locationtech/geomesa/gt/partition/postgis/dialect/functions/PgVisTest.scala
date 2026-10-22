@@ -11,83 +11,107 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect.functions
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.BasicDataSource
 import org.locationtech.geomesa.gt.partition.postgis.PostgisContainer
-import org.locationtech.geomesa.gt.partition.postgis.dialect.ExecutionContext
+import org.locationtech.geomesa.gt.partition.postgis.dialect.ColumnName
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.MainView
+import org.locationtech.geomesa.security.VisibilityUtils
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.slf4j.LoggerFactory
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
+import org.testcontainers.containers.output.Slf4jLogConsumer
 
 class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
   private val container = new PostgisContainer()
   private val ds = new BasicDataSource()
 
+  private val tests = Seq(
+    StandaloneTestCase("user", Seq("user", "admin", "test"), visible = true),
+    StandaloneTestCase("user", Seq("user"), visible = true),
+    StandaloneTestCase("user", Seq("admin", "test"), visible = false),
+    StandaloneTestCase("user", Seq.empty, visible = false),
+    StandaloneTestCase("user&admin&test", Seq("user", "admin", "test"), visible = true),
+    StandaloneTestCase("user&admin&test", Seq("user", "admin"), visible = false),
+    StandaloneTestCase("user&admin&test", Seq("test"), visible = false),
+    StandaloneTestCase("user&admin&test", Seq.empty, visible = false),
+    StandaloneTestCase("user|admin|test", Seq("user", "admin", "test"), visible = true),
+    StandaloneTestCase("user|admin|test", Seq("user", "admin"), visible = true),
+    StandaloneTestCase("user|admin|test", Seq("test"), visible = true),
+    StandaloneTestCase("user|admin|test", Seq.empty, visible = false),
+    StandaloneTestCase("(user&admin)|test", Seq("user", "admin", "test"), visible = true),
+    StandaloneTestCase("(user&admin)|test", Seq("test"), visible = true),
+    StandaloneTestCase("(user&admin)|test", Seq("user", "admin"), visible = true),
+    StandaloneTestCase("(user&admin)|test", Seq("admin"), visible = false),
+    StandaloneTestCase("(user&admin)|test", Seq.empty, visible = false),
+    StandaloneTestCase(""""user"&admin""", Seq("user", "admin"), visible = true),
+    StandaloneTestCase(""""u\"ser"&admin""", Seq("user", "admin"), visible = false),
+    StandaloneTestCase(""""u\"ser"&admin""", Seq("u\"ser", "admin"), visible = true),
+    StandaloneTestCase(""""u\\\\ser"&admin""", Seq("u\\\\ser", "admin"), visible = true),
+    StandaloneTestCase("ops-team", Seq("ops-team"), visible = true),
+    StandaloneTestCase("geo:admin", Seq("geo:admin"), visible = true),
+    StandaloneTestCase("path/read", Seq("path/read"), visible = true),
+    StandaloneTestCase("\"user name\"", Seq("user name"), visible = true),
+    StandaloneTestCase("\"A&B\"", Seq("A&B"), visible = true),
+    StandaloneTestCase("\"O'Reilly\"", Seq("O'Reilly"), visible = true),
+    StandaloneTestCase("(\"user name\"|ops-team)&geo:admin", Seq("ops-team", "geo:admin"), visible = true),
+    StandaloneTestCase("(\"user name\"|ops-team)&geo:admin", Seq("ops-team"), visible = false),
+    // invalid syntax tests
+    StandaloneTestCase("A.B-C+D", Seq("A", "B", "C", "D"), visible = false, invalid = true),
+    StandaloneTestCase("A|B&C", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A&B|C", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A|!B", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A=B", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A|B|", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A||B", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A(B", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("A&|B", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("()", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase(")", Seq("A", "B", "C"), visible = false, invalid = true),
+    StandaloneTestCase("'A'", Seq("A", "B", "C"), visible = false, invalid = true),
+  )
+
   override def beforeAll(): Unit = {
     if (logger.underlying.isTraceEnabled()) {
-      container.withLogAllStatements()
+      container
+        .withLogAllStatements()
+        .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("postgis")))
     }
     container.start()
     ds.setUrl(s"jdbc:postgresql://${container.getHost}:${container.getMappedPort(5432)}/postgres")
     ds.setUsername("postgres")
     ds.setPassword(container.password)
-    WithClose(ds.getConnection) { cx =>
-      WithClose(new ExecutionContext(cx)) { ec =>
-        PgVis.create(null)(ec)
-      }
-    }
   }
 
   override def afterAll(): Unit = CloseWithLogging(Seq(ds, container))
 
   "pg_vis" should {
     "correctly evaluate visibilities" in {
-      val tests = Seq(
-        StandaloneTestCase("user", Array("user", "admin", "test"), visible = true),
-        StandaloneTestCase("user", Array("user"), visible = true),
-        StandaloneTestCase("user", Array("admin", "test"), visible = false),
-        StandaloneTestCase("user", Array.empty, visible = false),
-        StandaloneTestCase("user&admin&test", Array("user", "admin", "test"), visible = true),
-        StandaloneTestCase("user&admin&test", Array("user", "admin"), visible = false),
-        StandaloneTestCase("user&admin&test", Array("test"), visible = false),
-        StandaloneTestCase("user&admin&test", Array.empty, visible = false),
-        StandaloneTestCase("user|admin|test", Array("user", "admin", "test"), visible = true),
-        StandaloneTestCase("user|admin|test", Array("user", "admin"), visible = true),
-        StandaloneTestCase("user|admin|test", Array("test"), visible = true),
-        StandaloneTestCase("user|admin|test", Array.empty, visible = false),
-        StandaloneTestCase("(user&admin)|test", Array("user", "admin", "test"), visible = true),
-        StandaloneTestCase("(user&admin)|test", Array("test"), visible = true),
-        StandaloneTestCase("(user&admin)|test", Array("user", "admin"), visible = true),
-        StandaloneTestCase("(user&admin)|test", Array("admin"), visible = false),
-        StandaloneTestCase("(user&admin)|test", Array.empty, visible = false),
-        StandaloneTestCase(""""user"&admin""", Array("user", "admin"), visible = true),
-        StandaloneTestCase(""""u\"ser"&admin""", Array("user", "admin"), visible = false),
-        StandaloneTestCase(""""u\"ser"&admin""", Array("u\"ser", "admin"), visible = true),
-        StandaloneTestCase(""""u\\\\ser"&admin""", Array("u\\\\ser", "admin"), visible = true),
-        StandaloneTestCase("A.B-C+D", Array("A", "B", "C", "D"), visible = false),
-        // invalid syntax tests
-        StandaloneTestCase("A|B&C", Array("A", "B", "C"), visible = false),
-        StandaloneTestCase("A&B|C", Array("A", "B", "C"), visible = false),
-        StandaloneTestCase("A=B", Array("A", "B", "C"), visible = false),
-        StandaloneTestCase("A|B|", Array("A", "B", "C"), visible = false),
-        StandaloneTestCase("A||B", Array("A", "B", "C"), visible = false),
-        StandaloneTestCase("A(B", Array("A", "B", "C"), visible = false),
-        StandaloneTestCase("A&|B", Array("A", "B", "C"), visible = false),
-        StandaloneTestCase("()", Array("A", "B", "C"), visible = false),
-        StandaloneTestCase(")", Array("A", "B", "C"), visible = false),
-        StandaloneTestCase("A|!B", Array("A", "B", "C"), visible = false),
-        StandaloneTestCase("'A'", Array("A", "B", "C"), visible = false),
-      )
+      val sql =
+        s"""WITH user_auths AS (SELECT array_to_tsvector(string_to_array(?, ',')) AS vis)
+           |SELECT user_auths.vis @@ ?::tsquery FROM user_auths""".stripMargin
       WithClose(ds.getConnection) { cx =>
-        WithClose(cx.prepareStatement("select pg_vis(?,?);")) { ps =>
+        WithClose(cx.prepareStatement(sql)) { ps =>
           foreach(tests) { test =>
-            ps.setString(1, test.vis)
-            ps.setArray(2, cx.createArrayOf("varchar", test.auths))
-            WithClose(ps.executeQuery()) { rs =>
-              rs.next must beTrue
-              rs.getBoolean(1) mustEqual test.visible
-              rs.next must beFalse
+            if (test.invalid) {
+              PgVis.toPostgisVisibility(test.vis) must throwAn[IllegalArgumentException]
+            } else {
+              ps.setString(1, test.auths.mkString(","))
+              ps.setString(2, PgVis.toPostgisVisibility(test.vis))
+              WithClose(ps.executeQuery()) { rs =>
+                rs.next must beTrue
+                rs.getBoolean(1) mustEqual test.visible
+                rs.next must beFalse
+              }
             }
           }
         }
+      }
+    }
+
+    "correctly convert from visibilities to tsvector syntax and back" in {
+      foreach(tests.filterNot(_.invalid)) { test =>
+        VisibilityUtils.normalize(PgVis.fromPostgisVisibility(PgVis.toPostgisVisibility(test.vis))) mustEqual
+          VisibilityUtils.normalize(test.vis)
       }
     }
 
@@ -98,10 +122,10 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
         TestData(2, "test users", "(user|admin)&test"),
       )
       val testCases = Seq(
-        TableTestCase(Array[AnyRef]("admin"), Seq(0, 1)),
-        TableTestCase(Array[AnyRef]("user"), Seq(0)),
-        TableTestCase(Array[AnyRef]("user", "test"), Seq(0, 2)),
-        TableTestCase(Array[AnyRef]("admin", "test"), Seq(0, 1, 2)),
+        TableTestCase(Seq("admin"), Seq(0, 1)),
+        TableTestCase(Seq("user"), Seq(0)),
+        TableTestCase(Seq("user", "test"), Seq(0, 2)),
+        TableTestCase(Seq("admin", "test"), Seq(0, 1, 2)),
       )
       WithClose(ds.getConnection) { cx =>
         WithClose(cx.createStatement()) { st =>
@@ -115,9 +139,12 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
             ps.executeUpdate()
           }
         }
-        WithClose(cx.prepareStatement("select id from test where pg_vis(visibilities,?) = true;")) { ps =>
+        val sql =
+          s"""WITH user_auths AS (SELECT array_to_tsvector(string_to_array(?, ',')) AS vis)
+             |SELECT id FROM test CROSS JOIN user_auths WHERE ${MainView.whereVisible("test", ColumnName("visibilities"))}""".stripMargin
+        WithClose(cx.prepareStatement(sql)) { ps =>
           foreach(testCases) { test =>
-            ps.setArray(1, ps.getConnection.createArrayOf("varchar", test.auths))
+            ps.setString(1, test.auths.mkString(","))
             val result = WithClose(ps.executeQuery()) { rs =>
               Iterator.continually(rs).takeWhile(_.next).map(_.getInt(1)).toList
             }
@@ -128,7 +155,7 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
     }
   }
 
-  private case class StandaloneTestCase(vis: String, auths: Array[AnyRef], visible: Boolean)
+  private case class StandaloneTestCase(vis: String, auths: Seq[String], visible: Boolean, invalid: Boolean = false)
   private case class TestData(id: Int, name: String, vis: String)
-  private case class TableTestCase(auths: Array[AnyRef], ids: Seq[Int])
+  private case class TableTestCase(auths: Seq[String], ids: Seq[Int])
 }
