@@ -49,6 +49,7 @@ class PartionedPostgisDialectTest extends SpecificationWithJUnit with Mockito {
       MainView.create(info)(sqlCapture)
       // one predicate per union branch (write ahead, wa partitions, main partitions, spill)
       sqlCapture.sql.split("\\Quser_auths.vis @@\\E").length - 1 mustEqual 4
+      sqlCapture.sql must not(contain("::tsquery"))
     }
 
     "not add a pg_vis predicate when there is no _vis column" in {

@@ -129,9 +129,9 @@ class PgVisTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogg
       )
       WithClose(ds.getConnection) { cx =>
         WithClose(cx.createStatement()) { st =>
-          st.executeUpdate("CREATE TABLE test(id integer primary key, name varchar, visibilities varchar);")
+          st.executeUpdate("CREATE TABLE test(id integer primary key, name varchar, visibilities tsquery);")
         }
-        WithClose(cx.prepareStatement("INSERT INTO test(id, name, visibilities) VALUES (?, ?, ?);")) { ps =>
+        WithClose(cx.prepareStatement("INSERT INTO test(id, name, visibilities) VALUES (?, ?, ?::tsquery);")) { ps =>
           testData.foreach { d =>
             ps.setInt(1, d.id)
             ps.setString(2, d.name)

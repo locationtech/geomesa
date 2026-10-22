@@ -299,6 +299,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
   override def registerSqlTypeNameToClassMappings(mappings: java.util.Map[String, Class[_]]): Unit = {
     super.registerSqlTypeNameToClassMappings(mappings)
     mappings.put("array", classOf[java.util.List[_]])
+    mappings.put("tsquery", classOf[String])
   }
 
   override def registerSqlTypeToSqlTypeNameOverrides(overrides: java.util.Map[Integer, String]): Unit = {

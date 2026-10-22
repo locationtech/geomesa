@@ -13,6 +13,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.data.postgis.PostGISPSDialect
 import org.geotools.jdbc.{JDBCDataStore, PreparedFilterToSQL}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.VisCol
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.PartitionedPostgisPsFilterToSql
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
@@ -39,8 +40,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, val delegate: Partitione
       ps: PreparedStatement,
       column: Int,
       cx: Connection): Unit = {
-    // json columns are string type in geotools, but we have to use setObject or else we get a binding error
-    if (binding == classOf[String] && att != null && att.isJson) {
+    // json and tsquery columns are string types in geotools, but require setObject to preserve their native types
+    if (binding == classOf[String] && att != null && (att.isJson || att.getLocalName == VisCol)) {
       ps.setObject(column, value, Types.OTHER)
     } else if (binding.isArray || binding == classOf[java.util.List[_]]) {
       // handle bug in jdbc store not calling setArrayValue in update statements

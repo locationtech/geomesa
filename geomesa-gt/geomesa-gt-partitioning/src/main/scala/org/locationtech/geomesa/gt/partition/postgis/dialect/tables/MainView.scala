@@ -26,7 +26,7 @@ object MainView extends SqlStatements {
    * @return
    */
   def whereVisible(table: String, col: ColumnName): String =
-    s"$table.${col.quoted} IS NOT NULL AND $table.${col.quoted} <> '' AND user_auths.vis @@ $table.${col.quoted}::tsquery"
+    s"$table.${col.quoted} IS NOT NULL AND $table.${col.quoted} <> '' AND user_auths.vis @@ $table.${col.quoted}"
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     // if visibilities are enabled, filter each branch by evaluating the hidden '_vis' column against the

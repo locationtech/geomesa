@@ -237,6 +237,7 @@ object PartitionedPostgisDataStore extends LazyLogging {
     val builder = new SimpleFeatureTypeBuilder()
     builder.init(sft)
     builder.nillable(true)
+    builder.userData(JDBCDataStore.JDBC_NATIVE_TYPENAME, "tsquery")
     builder.add(PartitionedPostgisDialect.VisCol, classOf[String])
     val result = builder.buildFeatureType()
     result.getUserData.putAll(sft.getUserData)
