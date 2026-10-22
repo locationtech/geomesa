@@ -8,21 +8,21 @@
 
 package org.locationtech.geomesa.trino.security;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.airlift.slice.Slice;
 import io.trino.spi.function.Description;
 import io.trino.spi.function.ScalarFunction;
 import io.trino.spi.function.SqlNullable;
 import io.trino.spi.function.SqlType;
 import io.trino.spi.type.StandardTypes;
+import org.apache.accumulo.access.Access;
 import org.apache.accumulo.access.AccessEvaluator;
-import org.apache.accumulo.access.Authorizations;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Row-entitlement UDF: same semantics as geomesa-security's
@@ -86,8 +86,8 @@ public final class GeoMesaSecurityFunctions {
     }
 
     private static AccessEvaluator buildEvaluator(String auths) {
-        List<String> list = auths.isEmpty() ? List.of() : Arrays.asList(auths.split(","));
-        return AccessEvaluator.of(Authorizations.of(list));
+        Set<String> list = auths.isEmpty() ? Set.of() : new HashSet<>(Arrays.asList(auths.split(",")));
+        return Access.builder().build().newEvaluator(list);
     }
 }
 

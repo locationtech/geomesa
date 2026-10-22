@@ -48,8 +48,7 @@ class PartionedPostgisDialectTest extends SpecificationWithJUnit with Mockito {
       val sqlCapture = new SqlCapture()
       MainView.create(info)(sqlCapture)
       // one predicate per union branch (write ahead, wa partitions, main partitions, spill)
-      sqlCapture.sql.split("pg_vis").length - 1 mustEqual 4
-      sqlCapture.sql must contain(s"""pg_vis(${escape(VisCol)}, (SELECT string_to_array(current_setting('geomesa.auths', true), ',')))""")
+      sqlCapture.sql.split("\\Quser_auths.vis @@\\E").length - 1 mustEqual 4
     }
 
     "not add a pg_vis predicate when there is no _vis column" in {

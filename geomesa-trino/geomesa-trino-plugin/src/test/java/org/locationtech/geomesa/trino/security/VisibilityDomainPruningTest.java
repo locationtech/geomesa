@@ -11,11 +11,10 @@ package org.locationtech.geomesa.trino.security;
 import io.airlift.slice.Slices;
 import io.trino.spi.predicate.Domain;
 import io.trino.spi.type.VarcharType;
+import org.apache.accumulo.access.Access;
 import org.apache.accumulo.access.AccessEvaluator;
-import org.apache.accumulo.access.Authorizations;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -59,7 +58,8 @@ class VisibilityDomainPruningTest {
         // uses): with no authorizations, only a NULL/empty visibility should be accessible,
         // regardless of expression complexity. This is the soundness argument for the
         // unconditional (non-opt-in) pruning tier, verified against a variety of expressions.
-        AccessEvaluator eval = AccessEvaluator.of(Authorizations.of(List.of()));
+        Set<String> empty = Set.of();
+        AccessEvaluator eval = Access.builder().build().newEvaluator(empty);
         String[] expressions = {"admin", "admin&ops", "admin|ops", "(admin|ops)&secure"};
         for (String expr : expressions) {
             assertThat(eval.canAccess(expr)).isFalse();
@@ -80,7 +80,7 @@ class VisibilityDomainPruningTest {
         // "admin&ops" per AccessEvaluator, and expressionDomain admits it: it checks the
         // literal candidate expression through the real is_visible() decision rather than
         // decomposing into tokens, so compound (&/|) values are handled correctly.
-        AccessEvaluator eval = AccessEvaluator.of(Authorizations.of(List.of("admin", "ops")));
+        AccessEvaluator eval = Access.builder().build().newEvaluator(Set.of("admin", "ops"));
         assertThat(eval.canAccess("admin&ops")).isTrue();
 
         Domain domain = VisibilityDomainPruning

@@ -19,7 +19,7 @@ import org.locationtech.geomesa.gt.partition.postgis.PartitionedPostgisDataStore
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
 import org.locationtech.geomesa.gt.partition.postgis.dialect._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
-import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils}
+import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
@@ -55,13 +55,17 @@ class PartitionedPostgisDataStoreSecurityTest extends TestWithSharedPostgisConta
             WithClose(cx.prepareStatement(s"""select pg_get_viewdef('${this.schema}."${sft.getTypeName}"'::regclass, true);""")) { st =>
               WithClose(st.executeQuery()) { rs =>
                 rs.next() must beTrue
-                rs.getString(1).toLowerCase(Locale.US).split("pg_vis") must haveLength(5) // 4 tables
+                rs.getString(1).toLowerCase(Locale.US).split("\\Quser_auths.vis @@\\E") must haveLength(5) // 4 tables
               }
             }
           }
 
           // visibility label to assign to each feature
-          val visibilities = Seq("admin", "user", "user&admin", "user|admin", "admin", "user", "user&admin", "user|admin", "admin", "user")
+          val userLabel = "user:access" // include `:` to validate (should be escaped)
+          val adminLabel = "admin_0" // include numbers and `_` to validate (should not be escaped)
+          val visibilities =
+            Seq(adminLabel, userLabel, s"$userLabel&$adminLabel", s"$userLabel|$adminLabel", adminLabel, userLabel,
+              s"$userLabel&$adminLabel", s"$userLabel|$adminLabel", adminLabel, userLabel)
           val features = this.features(sft).zip(visibilities).map { case (sf, vis) => SecurityUtils.setFeatureVisibility(sf, vis) }
 
           // write some data
@@ -77,7 +81,7 @@ class PartitionedPostgisDataStoreSecurityTest extends TestWithSharedPostgisConta
           }
 
           def runQueries(): MatchResult[_] = {
-            foreach(Seq(Seq.empty, Seq("admin"), Seq("user"), Seq("user", "admin"))) { auths =>
+            foreach(Seq(Seq.empty, Seq(adminLabel), Seq(userLabel), Seq(userLabel, adminLabel))) { auths =>
               provider.auths = auths
               val expected = features.filter { f =>
                 val vis = SecurityUtils.getVisibility(f)
@@ -94,7 +98,8 @@ class PartitionedPostgisDataStoreSecurityTest extends TestWithSharedPostgisConta
                 val query = new Query(sft.getTypeName, Filter.INCLUDE, transforms: _*)
                 val visible = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
                 visible.map(compFromDb) mustEqual expected.map(compWithFid(_, sft, Option(transforms)))
-                visible.map(SecurityUtils.getVisibility) mustEqual expected.map(SecurityUtils.getVisibility)
+                visible.map(f => VisibilityUtils.normalize(SecurityUtils.getVisibility(f))) mustEqual
+                  expected.map(f => VisibilityUtils.normalize(SecurityUtils.getVisibility(f)))
                 val fromFeatureSource =
                   CloseableIterator(ds.getFeatureSource(query.getTypeName).getFeatures(query).features()).toList.sortBy(_.getID)
                 fromFeatureSource mustEqual visible
@@ -127,16 +132,26 @@ class PartitionedPostgisDataStoreSecurityTest extends TestWithSharedPostgisConta
 
           runQueries()
 
-          // verify features without vis throw errors on write
+          // verify features with invalid vis throw errors on write
           WithClose(new DefaultTransaction()) { tx =>
+            val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
+
             val sf = ScalaSimpleFeature.copy(features.head)
+
             sf.getUserData.remove(SecurityUtils.FEATURE_VISIBILITY)
             WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
               FeatureUtils.write(writer, sf, useProvidedFid = true) must throwAn[IllegalArgumentException]
             }
-            val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
             fs.addFeatures(new ListFeatureCollection(sft, sf)) must throwAn[IllegalArgumentException]
-            tx.commit()
+
+            // a valid tsquery string, but not a valid vis string (vis requires parentheses instead of relying on order-of-ops)
+            sf.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "A&B|C")
+            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+              FeatureUtils.write(writer, sf, useProvidedFid = true) must throwAn[IllegalArgumentException]
+            }
+            fs.addFeatures(new ListFeatureCollection(sft, sf)) must throwAn[IllegalArgumentException]
+
+            tx.rollback()
           }
 
           // verify that if somehow features end up without vis, they are not returned

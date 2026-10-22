@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.fs.storage.core.parquet.io
 
 import com.google.gson.JsonParser
-import org.apache.accumulo.access.{AccessEvaluator, AccessExpression, Authorizations}
+import org.apache.accumulo.access.{Access, AccessExpression}
 import org.apache.iceberg.MetadataColumns
 import org.apache.iceberg.mapping.{MappingUtil, NameMappingParser}
 import org.apache.parquet.conf.PlainParquetConfiguration
 import org.apache.parquet.example.data.simple.SimpleGroupFactory
-import org.apache.parquet.hadoop.{ParquetFileReader, ParquetFileWriter}
 import org.apache.parquet.hadoop.example.ExampleParquetWriter
+import org.apache.parquet.hadoop.{ParquetFileReader, ParquetFileWriter}
 import org.apache.parquet.io.{LocalInputFile, LocalOutputFile}
 import org.apache.parquet.schema.MessageTypeParser
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -23,6 +23,7 @@ import org.locationtech.geomesa.fs.storage.core.fs.LocalObjectStore
 import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.VisibilityMetadata
 import org.locationtech.geomesa.fs.storage.core.schema.SimpleFeatureSchema
+import org.locationtech.geomesa.security.VisibilityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.SpecificationWithJUnit
@@ -35,6 +36,8 @@ class VisibilityMetadataTest extends SpecificationWithJUnit {
   private val sft = SimpleFeatureTypes.createType("rollup", "name:String")
   private val conf = Map(SimpleFeatureSchema.IcebergNameMappingKey ->
       """[{"field-id":1,"names":["__fid__"]},{"field-id":2,"names":["__vis__"]},{"field-id":3,"names":["name"]}]""")
+
+  private val access = Access.builder().build()
 
   "Visibility footer rollup" should {
     "write visibility and GeoParquet metadata together for spatial parity fixtures" >> {
@@ -110,10 +113,10 @@ class VisibilityMetadataTest extends SpecificationWithJUnit {
             summary.get("scope").getAsString mustEqual "file"
             metadata.size() must beGreaterThan(1)
             val operands = expressions.filter(v => v != null && v.nonEmpty).distinct.map(v => s"($v)")
-            summary.get("allOf").getAsString mustEqual AccessExpression.of(operands.mkString("&"), true).getExpression
+            summary.get("allOf").getAsString mustEqual VisibilityUtils.normalize(operands.mkString("&"))
             summary.get("anyOf").getAsString mustEqual
                 (if (expressions.exists(v => v == null || v.isEmpty)) ""
-                 else AccessExpression.of(operands.mkString("|"), true).getExpression)
+                 else VisibilityUtils.normalize(operands.mkString("|")))
           }
         } finally {
           Files.deleteIfExists(file)
@@ -167,19 +170,19 @@ class VisibilityMetadataTest extends SpecificationWithJUnit {
       overLimit.observe("(" * VisibilityMetadata.MaxDepth + "A" + ")" * VisibilityMetadata.MaxDepth)
       overLimit.metadata must beNone
       val quoted = new VisibilityMetadata(2)
-      quoted.observe(AccessExpression.quote("A\"" + "(" * 1000 + "A\\"))
+      quoted.observe(access.quote("A\"" + "(" * 1000 + "A\\"))
       quoted.metadata must beSome
     }
 
     "preserve all-row and any-row semantics including quoted and escaped labels" >> {
       val labels = Seq("A", "B", "C", "A B", "A\"B", "A\\B", "A&B", "\u20ac")
-      val expressions = Seq("A|(B&C)", "B|A") ++ labels.drop(3).map(AccessExpression.quote)
+      val expressions = Seq("A|(B&C)", "B|A") ++ labels.drop(3).map(access.quote)
       val observer = new VisibilityMetadata(2)
       expressions.foreach(observer.observe)
       val summary = JsonParser.parseString(observer.metadata.get).getAsJsonObject
       foreach(0 until (1 << labels.size)) { mask =>
         val auths = labels.zipWithIndex.collect { case (label, i) if (mask & (1 << i)) != 0 => label }
-        val evaluator = AccessEvaluator.of(Authorizations.of(auths.asJava))
+        val evaluator = access.newEvaluator(auths.toSet.asJava)
         evaluator.canAccess(summary.get("allOf").getAsString) mustEqual expressions.forall(evaluator.canAccess)
         evaluator.canAccess(summary.get("anyOf").getAsString) mustEqual expressions.exists(evaluator.canAccess)
       }
@@ -192,8 +195,7 @@ class VisibilityMetadataTest extends SpecificationWithJUnit {
       expressions.foreach(observer.observe)
       val summary = JsonParser.parseString(observer.metadata.get).getAsJsonObject
       summary.get("rowCount").getAsLong mustEqual 2L * VisibilityMetadata.MaxExpressions
-      summary.get("allOf").getAsString mustEqual
-          AccessExpression.of(expressions.map(e => s"($e)").mkString("&"), true).getExpression
+      summary.get("allOf").getAsString mustEqual VisibilityUtils.normalize(expressions.map(e => s"($e)").mkString("&"))
       observer.observe("B")
       observer.metadata must beNone
     }

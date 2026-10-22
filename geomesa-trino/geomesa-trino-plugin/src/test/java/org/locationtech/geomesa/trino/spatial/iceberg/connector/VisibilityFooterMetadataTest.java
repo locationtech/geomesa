@@ -89,7 +89,7 @@ class VisibilityFooterMetadataTest {
         json.addProperty("anyOf", deep);
         assertThat(VisibilityFooterMetadata.parse(json.toString(), 2, 6)).isEmpty();
         String label = "A\"" + "(".repeat(1000) + "A\\";
-        String quoted = org.apache.accumulo.access.AccessExpression.quote(label);
+        String quoted = org.apache.accumulo.access.Access.builder().build().quote(label);
         assertThat(decision(quoted, quoted, label)).isEqualTo(VisibilityFooterReader.Result.ALL_VISIBLE);
     }
 
