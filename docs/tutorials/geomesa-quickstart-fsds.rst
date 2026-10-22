@@ -5,7 +5,7 @@ GeoMesa FileSystem Quick Start
 
 This tutorial is the fastest and easiest way to get started with GeoMesa using the
 FileSytem data store (FSDS). The FSDS lets you store and query data without any database
-instance, using flat files. These files can be stored in HDFS, AWS, or even your local disk.
+instance, using files in object storage (e.g. S3).
 
 It is a good stepping-stone on the path to the other tutorials, that present increasingly
 involved examples of how to use GeoMesa.
@@ -17,9 +17,9 @@ In the spirit of keeping things simple, the code in this tutorial only
 does a few small things:
 
 1. Establishes a new (static) SimpleFeatureType
-2. Prepares the file system to store this type of data
+2. Prepares the object store to store this type of data
 3. Creates a few thousand example SimpleFeatures
-4. Writes these SimpleFeatures to the file system
+4. Writes these SimpleFeatures to the object store
 5. Queries for a given geographic rectangle, time range, and attribute
    filter, writing out the entries in the result set
 6. Uses GeoServer to visualize the data (optional)
@@ -31,6 +31,7 @@ Before you begin, you must have the following installed and configured:
 
 -  `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
 -  Apache `Maven <https://maven.apache.org/>`__ {{maven_required_version}}
+-  Docker (to run the object store and Iceberg catalog)
 -  a GitHub client
 
 Download and Build the Tutorial
@@ -48,15 +49,24 @@ Pick a reasonable directory on your machine, and run:
     Make sure that you download or checkout the version of the tutorials project that corresponds to
     your GeoMesa version. See :ref:`tutorial_versions` for more details.
 
-To ensure that the quick start works with your environment, modify the ``pom.xml``
-to set the appropriate versions for Hadoop, etc.
-
 For ease of use, the project builds a bundled artifact that contains all the required
 dependencies in a single JAR. To build, run:
 
 .. code-block:: bash
 
     $ mvn clean install -pl geomesa-tutorials-fsds/geomesa-tutorials-fsds-quickstart -am
+
+Setting up the Environment
+--------------------------
+
+Use the following ``docker`` command to start up an object store (for storing data files) and an Iceberg catalog
+(for storing file metadata):
+
+.. code-block:: bash
+
+    $ docker run -p 8333:8333 -p 8181:8181 \
+        -e S3_TABLE_BUCKET=warehouse \
+        chrislusf/seaweedfs
 
 Running the Tutorial
 --------------------
@@ -67,13 +77,18 @@ On the command line, run:
 
     $ java -cp geomesa-tutorials-fsds/geomesa-tutorials-fsds-quickstart/target/geomesa-tutorials-fsds-quickstart-{{release}}.jar \
         org.geomesa.example.fsds.FileSystemQuickStart \
-        --fs.path /tmp/fsds/                          \
-        --fs.encoding parquet
+        --fs.config.properties "type=rest
+    uri=http://127.0.0.1:8181
+    iceberg.namespace=geomesa
+    warehouse=s3://warehouse
+    s3.endpoint=http://127.0.0.1:8333
+    s3.path-style-access=true
+    client.region=us-east-1
+    client.credentials-provider=software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider"
 
 The arguments above indicate:
 
--  ``fs.path`` the FSDS storage path. Each simple feature type will produce a sub-directory here.
--  ``fs.encoding`` the file storage encoding. The quick start comes pre-configured to use Apache's Parquet encoding.
+-  ``fs.config.properties`` a list of properties used to configure the Iceberg catalog
 
 Once run, you should see the following output:
 
@@ -197,20 +212,27 @@ FSDS tools distribution directory:
 
 .. code:: bash
 
-    bin/geomesa-fs export               \
-        --feature-name gdelt-quickstart \
-        --output-format leaflet         \
-        --path /tmp/fsds/
+    $ ./bin/geomesa-fs export                        \
+        --feature-name gdelt-quickstart              \
+        --output-format leaflet                      \
+        --output gdelt.html                          \
+        --config 'type=rest'                         \
+        --config 'uri=http://127.0.0.1:8181'         \
+        --config 'iceberg.namespace=geomesa'         \
+        --config 'warehouse=s3://warehouse'          \
+        --config 's3.endpoint=http://127.0.0.1:8333' \
+        --config 's3.path-style-access=true'         \
+        --config 'client.region=us-east-1'           \
+        --config 'client.credentials-provider=software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider'
 
 Where the connection parameters are the same you used above during the quickstart. To view the map simply
-open the url provided by the command in your web browser. If you click the menu in the upper right of the
+open the ``gdelt.html`` output file in your web browser. If you click the menu in the upper right of the
 map you can enable and disable the heatmap and feature layers as well as the two provided base layers.
 
 .. figure:: _static/geomesa-quickstart-gdelt-data/leaflet-layer-preview.png
     :alt: Visualizing quick-start data with Leaflet
 
     Visualizing quick-start data with Leaflet
-
 
 Visualize Data With GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -238,7 +260,7 @@ Connection parameters:
    command line when you ran the tutorial; they describe how to connect
    to the FSDS location where your data reside
 
-Click "Save", and GeoServer will search your FSDS directory for any
+Click "Save", and GeoServer will search your FSDS catalog for any
 GeoMesa-managed feature types.
 
 Publish the Layer
