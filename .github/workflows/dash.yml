@@ -6,6 +6,10 @@ on:
   schedule:
     - cron: '20 21 * * 0'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
