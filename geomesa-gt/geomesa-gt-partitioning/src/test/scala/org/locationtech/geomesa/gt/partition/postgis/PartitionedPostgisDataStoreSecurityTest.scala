@@ -132,16 +132,26 @@ class PartitionedPostgisDataStoreSecurityTest extends TestWithSharedPostgisConta
 
           runQueries()
 
-          // verify features without vis throw errors on write
+          // verify features with invalid vis throw errors on write
           WithClose(new DefaultTransaction()) { tx =>
+            val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
+
             val sf = ScalaSimpleFeature.copy(features.head)
+
             sf.getUserData.remove(SecurityUtils.FEATURE_VISIBILITY)
             WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
               FeatureUtils.write(writer, sf, useProvidedFid = true) must throwAn[IllegalArgumentException]
             }
-            val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
             fs.addFeatures(new ListFeatureCollection(sft, sf)) must throwAn[IllegalArgumentException]
-            tx.commit()
+
+            // a valid tsquery string, but not a valid vis string (vis requires parentheses instead of relying on order-of-ops)
+            sf.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "A&B|C")
+            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+              FeatureUtils.write(writer, sf, useProvidedFid = true) must throwAn[IllegalArgumentException]
+            }
+            fs.addFeatures(new ListFeatureCollection(sft, sf)) must throwAn[IllegalArgumentException]
+
+            tx.rollback()
           }
 
           // verify that if somehow features end up without vis, they are not returned
