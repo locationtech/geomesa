@@ -1,3 +1,5 @@
+.. _redis_quickstart:
+
 GeoMesa Redis Quick Start
 =========================
 
@@ -27,9 +29,7 @@ Before you begin, you must have the following installed and configured:
 -  `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
 -  Apache `Maven <https://maven.apache.org/>`__ {{maven_required_version}}
 -  a GitHub client
--  a Redis instance
-
-If you do not have an existing Redis instance, you can easily download one from https://redis.io/download
+-  Docker, for running a local Redis instance
 
 Download and Build the Tutorial
 -------------------------------
@@ -53,6 +53,18 @@ dependencies in a single JAR. To build, run:
 
     $ mvn clean install -pl geomesa-tutorials-redis/geomesa-tutorials-redis-quickstart -am
 
+Setting up the Environment
+--------------------------
+
+Use the following ``docker`` command to start up a Redis instance:
+
+.. code-block:: bash
+
+    $ docker run --rm -p 6379:6379 redis
+
+Alternatively, you can use an existing Redis instance you have access to. Adjust the connection parameters in the
+rest of the tutorial as appropriate.
+
 Running the Tutorial
 --------------------
 
@@ -62,13 +74,8 @@ On the command line, run:
 
     $ java -cp geomesa-tutorials-redis/geomesa-tutorials-redis-quickstart/target/geomesa-tutorials-redis-quickstart-{{release}}.jar \
         org.geomesa.example.redis.RedisQuickStart \
-        --redis.url <url> --redis.catalog <catalog>
-
-where you provide the following arguments:
-
--  ``<url>`` the Redis connection URL. If you have deployed a local instance of Redis, this will generally
-   be ``localhost``
--  ``<catalog>`` the Redis catalog. This should be a unique key in your Redis instance, for example ``geomesa``
+        --redis.url localhost:6379 \
+        --redis.catalog geomesa
 
 Optionally, you can also specify that the quick start should delete its data upon completion. Use the
 ``--cleanup`` flag when you run to enable this behavior.
@@ -168,8 +175,10 @@ contained in ``org.geomesa.example.data.GDELTData``:
 -  ``getTestData`` parses an embedded TSV file to create ``SimpleFeature`` objects
 -  ``getTestQueries`` illustrates several different query types, using CQL (GeoTools' Contextual Query Language)
 
-Visualize Data (optional)
--------------------------
+.. _redis_quickstart_visualize:
+
+Visualize the Data
+------------------
 
 There are two options to visual the data ingested by this quick start. The easiest option is to use the
 ``export`` command of the GeoMesa Redis tools distribution. For a more production ready example, you
@@ -193,20 +202,20 @@ Redis tools distribution directory:
 .. code:: bash
 
     bin/geomesa-redis export            \
-        --url <url>                     \
-        --catalog <table>               \
+        --url localhost:6379            \
+        --catalog geomesa               \
         --feature-name gdelt-quickstart \
-        --output-format leaflet
+        --output-format leaflet         \
+        --output gdelt.html
 
 Where the connection parameters are the same you used above during the quickstart. To view the map simply
-open the url provided by the command in your web browser. If you click the menu in the upper right of the
+open the ``gdelt.html`` output file in your web browser. If you click the menu in the upper right of the
 map you can enable and disable the heatmap and feature layers as well as the two provided base layers.
 
 .. figure:: _static/geomesa-quickstart-gdelt-data/leaflet-layer-preview.png
     :alt: Visualizing quick-start data with Leaflet
 
     Visualizing quick-start data with Leaflet
-
 
 Visualize Data With GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -306,12 +306,14 @@ div.admonition.warning, div.admonition.note {
   background-color: #fcfcfc !important;
 }
 
-.sphinx-tabs .sphinx-tabs-panel div {
-  margin: 1px 0;
-}
-
 .rst-content .toc-backref {
   color: #565656;
+}
+
+.rst-content section>img.align-center {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 24px;
 }
 
 .rst-content .section ul:last-child, .rst-content .toctree-wrapper ul:last-child {
@@ -346,6 +348,18 @@ div.admonition.warning, div.admonition.note {
 }
 
 .rst-content blockquote.pull-quote div p:last-child {
+  margin-bottom: 0;
+}
+
+.sphinx-tabs .sphinx-tabs-panel div {
+  margin: 1px 0;
+}
+
+.sphinx-tabs .sphinx-tabs-panel div[class^=highlight] {
+  margin: 1px 0 24px;
+}
+
+.sphinx-tabs .sphinx-tabs-panel div[class^=highlight]:last-child {
   margin-bottom: 0;
 }
 
