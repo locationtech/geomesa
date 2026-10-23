@@ -1,5 +1,3 @@
-.. _fsds_quickstart:
-
 GeoMesa FileSystem Quick Start
 ==============================
 
@@ -185,8 +183,6 @@ contained in ``org.geomesa.example.data.GDELTData``:
 -  ``getSimpleFeatureType`` creates the ``SimpleFeatureType`` representing the data
 -  ``getTestData`` parses an embedded TSV file to create ``SimpleFeature`` objects
 -  ``getTestQueries`` illustrates several different query types, using CQL (GeoTools' Contextual Query Language)
-
-.. _fsds_quickstart_visualize:
 
 Visualize Data (optional)
 -------------------------

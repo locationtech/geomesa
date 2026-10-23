@@ -13,8 +13,8 @@ This tutorial uses `Docker <https://docs.docker.com/get-docker/>`_, and assumes 
 About this Tutorial
 -------------------
 
-This quick start operates by reading CSV files from the local filesystem, and writing them to GeoMesa
-Parquet files using the PutGeoMesa processor.
+This quick start operates by reading CSV files from the local filesystem, and writing them to a Redis
+instance using the PutGeoMesa processor.
 
 Download the GeoMesa NiFi NARs
 ------------------------------
@@ -24,17 +24,17 @@ the relevant sections are reproduced here. For this tutorial, we will be using t
 
 * ``geomesa-datastore-services-nar``
 * ``geomesa-datastore-services-api-nar``
-* ``geomesa-fs-nar``
+* ``geomesa-redis-nar``
 
-This tutorial will use the GeoMesa FileSystem data store to avoid external dependencies, but any other back-end
+This tutorial will use the GeoMesa Redis data store to simplify setup, but any other back-end
 store can be used instead by changing the ``DataStoreService`` used.
 
 .. code-block:: bash
 
-    mkdir -p ~/gm-nifi-quickstart/extensions
-    cd ~/gm-nifi-quickstart
-    export NARS="geomesa-fs-nar geomesa-datastore-services-api-nar geomesa-datastore-services-nar"
-    for nar in $NARS; do wget -O "extensions/${nar}_{{scala_binary_version}}-{{release}}.nar" "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-{{release}}/${nar}_{{scala_binary_version}}-{{release}}.nar"; done
+    $ mkdir -p ~/gm-nifi-quickstart/extensions
+    $ cd ~/gm-nifi-quickstart
+    $ export NARS="geomesa-redis-nar geomesa-datastore-services-api-nar geomesa-datastore-services-nar"
+    $ for nar in $NARS; do wget -O "extensions/${nar}_{{scala_binary_version}}-{{release}}.nar" "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-{{release}}/${nar}_{{scala_binary_version}}-{{release}}.nar"; done
 
 Obtain GDELT data
 -----------------
@@ -48,29 +48,54 @@ Run the following commands to download a recent GDELT file:
 
 .. code-block:: bash
 
-    cd ~/gm-nifi-quickstart
-    mkdir gdelt
-    export GDELT_URL="$(wget -qO- 'http://data.gdeltproject.org/gdeltv2/masterfilelist.txt' | head -n 1 | awk '{ print $3 }')"
-    wget "$GDELT_URL" -qO- "gdelt/$(basename $GDELT_URL)"
-    unzip -d gdelt gdelt/*.zip
-    rm gdelt/*.zip
+    $ cd ~/gm-nifi-quickstart
+    $ mkdir gdelt
+    $ export GDELT_URL="$(wget -qO- 'http://data.gdeltproject.org/gdeltv2/masterfilelist.txt' | head -n 1 | awk '{ print $3 }')"
+    $ wget "$GDELT_URL" -qO "gdelt/$(basename $GDELT_URL)"
+    $ unzip -d gdelt gdelt/*.zip
+    $ rm gdelt/*.zip
+
+Then run the following to download the GeoMesa converter definition for GDELT. This defines how the GDELT data should be parsed:
+
+.. code-block:: bash
+
+    $ cd ~/gm-nifi-quickstart
+    $ wget "https://raw.githubusercontent.com/locationtech/geomesa/refs/tags/geomesa-{{release}}/geomesa-tools/conf/sfts/gdelt/reference.conf" \
+      -qO reference.conf
+
+Run Redis with Docker
+---------------------
+
+We'll use Redis as our back-end data store, as it's lightweight and easy to set up.
+
+First, we'll create a docker network so that Redis and NiFi can connect to each other:
+
+.. code-block:: bash
+
+    $ docker network ls | grep -q geomesa || { echo "Creating docker network"; docker network create geomesa; }
+
+Next, use the following command to start up a Redis instance:
+
+.. code-block:: bash
+
+    $ docker run --rm -p 6379:6379 --network geomesa --hostname redis --name redis redis:latest
 
 Run NiFi with Docker
 --------------------
 
-Next, we will run NiFi through Docker, mounting in our NARs and a directory for writing out data:
+Next, we will run NiFi through Docker, mounting in our NARs. In a separate console, run:
 
 .. code-block:: bash
 
-    cd ~/gm-nifi-quickstart
-    mkdir fs
-    docker run --rm \
+    $ cd ~/gm-nifi-quickstart
+    $ docker run --rm \
+      --network geomesa \
       -p 8443:8443 \
       -e SINGLE_USER_CREDENTIALS_USERNAME=nifi \
       -e SINGLE_USER_CREDENTIALS_PASSWORD=nifipassword \
-      -v "$(pwd)/extensions:/opt/nifi/nifi-current/nar_extensions:ro" \
-      -v "$(pwd)/fs:/fs:rw" \
-      -v "$(pwd)/gdelt:/gdelt:ro" \
+      -v "$PWD/extensions:/opt/nifi/nifi-current/nar_extensions:ro" \
+      -v "$PWD/gdelt:/gdelt:ro" \
+      -v "$PWD/reference.conf:/opt/nifi/nifi-current/conf/reference.conf:ro" \
       apache/nifi:2.4.0
 
 Once NiFi has finished starting up, it will be available at ``https://localhost:8443/nifi``. You will likely have to
@@ -80,49 +105,43 @@ in with the credentials we specified in the run command; i.e. ``nifi``/``nifipas
 Create the NiFi Flow
 --------------------
 
-.. note::
-
-  These instructions are for NiFi 1.x - in NiFi 2.x the screens and buttons will be slightly different.
-
 If you are not familiar with NiFi, follow the `Getting Started <https://nifi.apache.org/docs/nifi-docs/html/getting-started.html>`__
 guide to familiarize yourself. The rest of this tutorial assumes a basic understanding of NiFi.
 
-Add the ingest processor by dragging a new processor to your flow, and selecting ``PutGeoMesa``. Select the
-processor and click the 'configure' button to configure it. On the properties tab, select ``DataStoreService``
-and click on "Create new service". There should be only one option, the ``FileSystemDataStoreService``, so
-click the "Create" button. Next, click the small arrow next to the ``FileSystemDataStoreService`` entry, and
-select "Yes" when prompted to save changes. This should bring you to the Controller Services screen. Click
-the small gear next to the ``FileSystemDataStoreService`` to configure it. On the properties tab, enter the
+Add the ingest processor by dragging a new processor to your flow, and selecting ``PutGeoMesa``. Double-click the
+processor to configure it. On the properties tab, select the three-dot menu next to ``DataStoreService`` and click
+on "Create new service". There should be only one option, the ``RedisDataStoreService``, so
+click the "Add" button. Next, select the three-dot menu next to the ``RedisDataStoreService`` entry and select "Go to service",
+then select "Yes" when prompted to save changes. This should bring you to the Controller Services screen. Click
+the three-dot menu next to the ``RedisDataStoreService`` and select "Edit". On the properties tab, enter the
 following configuration:
 
-* ``fs.path`` - ``/fs``
-* ``fs.encoding`` - ``parquet``
+* ``redis.url`` - ``redis:6379``
+* ``redis.catalog`` - ``geomesa``
 
-.. image:: /tutorials/_static/img/nifi-qs-fs-controller-config.png
+.. image:: /tutorials/_static/img/nifi-qs-redis-controller-config.png
    :align: center
 
 Click "Apply", and the service should show as "validating". Click the "refresh" button in the bottom left of the
-screen, and the service should show as "disabled". Click the small lightning bolt next to the configure gear, and
-the click the "Enable" button to enable it. Once enabled, close the dialog, then close the controller services
-page by clicking the ``X`` in the top right. This should bring you back to the main flow.
+screen, and the service should show as "disabled". Select the three-dot menu next to the ``RedisDataStoreService``
+entry, and click "Enable". Click the "Enable" button on the following dialog. Once enabled, close the dialog, then
+click "Back to processor" in the top-left of the controller services. Click "Cancel" in the processor dialog, which
+should bring you back to the main flow but keep our data store service configuration intact.
 
 Now we will add two more processors to read our GDELT data. First, add a ``ListFile`` processor, and configure
 the ``Input Directory`` to be ``/gdelt`` (the location of our mounted GDELT data). Next, add a ``FetchFile``
 processor, and connect the output of ``ListFile`` to it.
 
 Now we will create a process to set the attributes GeoMesa needs to ingest the data. Add an ``UpdateAttribute``
-processor, and use the ``+`` button on the properties tab to add four dynamic properties:
+processor, and use the ``+`` button on the properties tab to add three dynamic properties. These properties define
+the format of the input data:
 
 * ``geomesa.converter`` - ``gdelt2``
 * ``geomesa.sft.name`` - ``gdelt``
 * ``geomesa.sft.spec`` - ``gdelt2``
-* ``geomesa.sft.user-data`` - ``geomesa.fs.scheme={"name":"daily","options":{"dtg-attribute":"dtg"}}``
 
 .. image:: /tutorials/_static/img/nifi-qs-update-attributes.png
    :align: center
-
-The first three properties define the format of the input data. The last property is used by the GeoMesa File System
-data store to partition the data on disk. See :ref:`fsds_partition_schemes` for more information.
 
 Next, connect the output of the ``FetchFile`` processor to the ``UpdateAttribute`` processor, and the output
 of the ``UpdateAttribute`` processor to the ``PutGeoMesa`` processor. Auto-terminate any other relationships
@@ -143,16 +162,4 @@ Visualize the Data
 ------------------
 
 Once the data has been ingested, you can use GeoServer to visualize it on a map. Follow the instructions
-in the File System data store quick-start tutorial, :ref:`fsds_quickstart_visualize`.
-
-Note that due to Docker file permissions, you may need to run something like the following to make the data
-accessible:
-
-.. code-block:: bash
-
-    cd ~/gm-nifi-quickstart
-    docker run --rm \
-      -v "$(pwd)/fs:/fs:rw" \
-      --entrypoint bash \
-      apache/nifi:2.4.0 \
-      -c "chmod -R 777 /fs"
+in the File System data store quick-start tutorial, :ref:`redis_quickstart_visualize`.
