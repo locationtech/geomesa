@@ -26,15 +26,16 @@ object MainView extends SqlStatements {
    * @return
    */
   def whereVisible(table: String, col: ColumnName): String =
-    s"$table.${col.quoted} IS NOT NULL AND $table.${col.quoted} <> '' AND user_auths.vis @@ $table.${col.quoted}::tsquery"
+    s"$table.${col.quoted} IS NOT NULL AND $table.${col.quoted} <> '' AND $table.${col.quoted}::tsquery @@ user_auths.vis"
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     // if visibilities are enabled, filter each branch by evaluating the hidden '_vis' column against the
     // caller's authorizations, stamped into the 'geomesa.auths' session variable by SessionDataSource
 
     val withUserAuths = info.cols.vis.fold("") { _ =>
-      s"""  -- Compute the user's authorizations as a native tsvector exactly once
-         |  WITH user_auths AS (
+      s"""  -- compute the user's authorizations as a native tsvector
+         |  -- use NOT MATERIALIZED so that it can be pushed into each table scan
+         |  WITH user_auths AS NOT MATERIALIZED (
          |    SELECT array_to_tsvector(string_to_array(current_setting('$AuthConfigName', true), ',')) AS vis
          |  )""".stripMargin
     }
