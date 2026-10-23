@@ -238,7 +238,7 @@ function geomesa_scala_console() {
     read -r -p "Download scala %%scala.binary.version%% (y/n)? " confirm
     confirm=${confirm,,} # lower-casing
     if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
-      local sourceURL=("https://downloads.lightbend.com/scala/%%scala.version%%/scala-%%scala.version%%.tgz")
+      local sourceURL=("https://github.com/scala/scala/releases/download/v%%scala.version%%/scala-%%scala.version%%.tgz")
       local outputDir="${%%tools.dist.name%%_HOME}/dist/"
       local outputFile="${outputDir}/scala-%%scala.version%%.tgz"
       if ! download_urls "$outputDir" sourceURL[@]; then
