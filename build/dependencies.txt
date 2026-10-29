@@ -340,6 +340,7 @@ org.jdbi:jdbi3-core:3.54.0:compile
 org.jruby.jcodings:jcodings:1.0.58:compile
 org.jruby.joni:joni:2.2.1:compile
 org.jspecify:jspecify:1.0.0:compile
+org.jspecify:jspecify:1.0.1:compile
 org.locationtech.jts.io:jts-io-common:1.20.0:compile
 org.locationtech.jts:jts-core:1.20.0:compile
 org.locationtech.spatial4j:spatial4j:0.8:compile
@@ -359,6 +360,11 @@ org.scala-lang.modules:scala-xml_2.13:2.2.0:compile
 org.scala-lang:scala-library:2.13.18:compile
 org.scala-lang:scala-reflect:2.13.18:compile
 org.slf4j:slf4j-api:2.0.18:compile
+org.springframework:spring-beans:7.0.10:compile
+org.springframework:spring-beans:7.0.8:compile
+org.springframework:spring-core:7.0.10:compile
+org.springframework:spring-core:7.0.8:compile
+org.springframework:spring-web:7.0.10:compile
 org.weakref:jmxutils:1.29:compile
 org.xmlresolver:xmlresolver:5.2.2:compile
 org.xmlresolver:xmlresolver:data:5.2.2:compile
@@ -644,9 +650,7 @@ org.slf4j:slf4j-reload4j:2.0.18:provided
 org.springframework.security:spring-security-core:7.1.0:provided
 org.springframework.security:spring-security-crypto:7.1.0:provided
 org.springframework:spring-aop:7.0.8:provided
-org.springframework:spring-beans:7.0.8:provided
 org.springframework:spring-context:7.0.8:provided
-org.springframework:spring-core:7.0.8:provided
 org.springframework:spring-expression:7.0.8:provided
 org.threeten:threeten-extra:1.8.0:provided
 org.tukaani:xz:1.10:provided

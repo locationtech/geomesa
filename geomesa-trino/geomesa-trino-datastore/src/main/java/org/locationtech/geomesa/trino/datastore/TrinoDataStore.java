@@ -14,8 +14,10 @@ import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
+import org.locationtech.geomesa.security.ThreadLocalAuthorizationsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -23,6 +25,8 @@ import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 /**
  * Read-only GeoTools {@link ContentDataStore} backed by a Trino/Iceberg catalog, with Z2/XZ2
@@ -40,6 +44,15 @@ public class TrinoDataStore extends ContentDataStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrinoDataStore.class);
     private static final long TYPE_NAMES_TTL_MILLIS = TimeUnit.SECONDS.toMillis(60);
+    private static final String JDBC_URL_PREFIX = "jdbc:trino://";
+    private static final String JDBC_URL_FORMAT = JDBC_URL_PREFIX + "%s:%d/%s/%s";
+    private static final String FORWARDED_HEADER_PREFIX = "x-geomesa-forwarded-";
+    private static final String EXTRA_HEADERS_PROPERTY = "extraHeaders";
+    private static final String HEADER_VALUE_SEPARATOR = ":";
+    private static final String HEADER_ENTRY_SEPARATOR = ";";
+    private static final Pattern HEADER_NAME_PATTERN = Pattern.compile("[!#$%&'*+.^_`|~0-9A-Za-z-]+");
+    private static final Set<String> TRANSPORT_HEADERS = Set.of("host", "connection", "content-length",
+        "transfer-encoding", "upgrade", "te", "trailer", "keep-alive", "proxy-authorization", "proxy-authenticate");
 
     /** Default Trino connection user — a dedicated service account. The datastore
      *  is the trusted intermediary: it forwards each caller's authorizations to
@@ -57,6 +70,27 @@ public class TrinoDataStore extends ContentDataStore {
      *  the connector honors the auths credential. Must match the catalog's
      *  {@code geomesa.security.secret-credential} (default {@code secret}). */
     static final String SECRET_CREDENTIAL = "secret";
+
+    private List<String> forwardHeaders = List.of();
+    private String forwardedHeadersUrl;
+
+    /** Separate request transport; schema discovery retains the normal connection. */
+    void configureHeaderForwarding(String names, String url) {
+        forwardHeaders = names == null || names.isBlank() ? List.of() :
+            Arrays.stream(names.split(","))
+                .map(name -> {
+                    String normalized = name.trim().toLowerCase(Locale.ROOT);
+                    if (!HEADER_NAME_PATTERN.matcher(normalized).matches() || TRANSPORT_HEADERS.contains(normalized)) {
+                        throw new IllegalArgumentException("Invalid or transport-controlled forwarding header name");
+                    }
+                    return normalized;
+                })
+                .distinct().toList();
+        if (url != null && !url.startsWith(JDBC_URL_PREFIX)) {
+            throw new IllegalArgumentException("Forwarded-header URL must be a Trino JDBC URL");
+        }
+        forwardedHeadersUrl = url == null ? String.format(JDBC_URL_FORMAT, host, port, catalog, trinoSchema) : url;
+    }
 
     private final String host;
     private final int port;
@@ -93,25 +127,54 @@ public class TrinoDataStore extends ContentDataStore {
     /** Metadata connection (no caller auths) — for table listing against
      *  information_schema, which the connector never row-filters. */
     Connection connect() throws SQLException {
-        return connect(null);
+        var headers = ThreadLocalAuthorizationsProvider.requestHeaders();
+        if (!forwardHeaders.isEmpty() && !headers.isEmpty()) {
+            return forwardedConnection(headers, null);
+        }
+        // Metadata discovery without a job retains the configured service identity.
+        return pool.borrow(null);
     }
 
-    /** Returns a Trino connection carrying the caller's authorizations as a Trino
-     *  extra credential. The {@code spatial_iceberg} connector's
-     *  ExtraCredentialAuthorizationResolver reads it to build the row-level
-     *  visibility filter for THIS request. Because the credential is fixed at
-     *  connection creation, connections are pooled keyed by the normalized
-     *  (sorted, deduped) auth set: a request only ever gets a connection whose
-     *  credential matches its own auths exactly. Close the connection to return
-     *  it to the pool. When {@code auths} is null/empty no credential is sent
-     *  (the caller then sees only unrestricted rows — fail-closed). */
+    /** Forwarded contexts use dedicated connections, never the authorization-only pool. */
     Connection connect(List<String> auths) throws SQLException {
-        return pool.borrow(auths);
+        if (forwardHeaders.isEmpty()) { return pool.borrow(auths); }
+        return forwardedConnection(ThreadLocalAuthorizationsProvider.requestHeaders(), auths);
+    }
+
+    private Connection forwardedConnection(HttpHeaders headers,
+                                            List<String> auths) throws SQLException {
+        var selected = new LinkedHashMap<String, String>();
+        for (String name : forwardHeaders) {
+            List<String> values = headers.get(name);
+            if (values == null || values.isEmpty()) { throw new SQLException("A configured forwarded header is missing"); }
+            if (values.size() != 1 || values.get(0) == null || values.get(0).isBlank() ||
+                    values.get(0).chars().anyMatch(c -> c < ' ' || c > '~')) {
+                throw new SQLException("A configured forwarded header has an invalid value");
+            }
+            String value = values.get(0);
+            // JDBC extraHeaders forbids spaces and uses semicolon delimiters. Encode the
+            // opaque value; a configured proxy restores the original header at the server.
+            selected.put(FORWARDED_HEADER_PREFIX + name,
+                Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.US_ASCII)));
+        }
+        var props = connectionProperties(user, auths, secret);
+        props.setProperty(EXTRA_HEADERS_PROPERTY, selected.entrySet().stream()
+            .map(e -> e.getKey() + HEADER_VALUE_SEPARATOR + e.getValue()).collect(Collectors.joining(HEADER_ENTRY_SEPARATOR)));
+        return openForwardedConnection(forwardedHeadersUrl, props);
+    }
+
+    protected Connection openForwardedConnection(String url, Properties properties) throws SQLException {
+        try {
+            return DriverManager.getConnection(url, properties);
+        } catch (SQLException | IllegalArgumentException e) {
+            // Driver property errors may render every supplied header. Do not retain their cause.
+            throw new SQLException("Unable to establish a connection with forwarded request headers");
+        }
     }
 
     /** Opens a real connection for a normalized auth set (pool miss). */
     private Connection openConnection(List<String> normalizedAuths) throws SQLException {
-        String url = String.format("jdbc:trino://%s:%d/%s/%s",
+        String url = String.format(JDBC_URL_FORMAT,
             host, port, catalog, trinoSchema);
         return DriverManager.getConnection(url, connectionProperties(user, normalizedAuths, secret));
     }

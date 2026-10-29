@@ -196,3 +196,41 @@ catalog reachable through a view must enforce its own row-level visibility filte
 querying user. For example, a trino connector pointing at PostGIS must be configured (and PostGIS configured) to
 ensure visibility filtering (see :ref:`data_security`). **A catalog that does not enforce visibility filtering must not
 be attached to a view on the spatial_iceberg connector that is intended to perform visibility filtering.**
+
+Forwarding private request headers
+----------------------------------
+
+``trino.forward-headers`` is a comma-separated allowlist of headers read from
+``ThreadLocalAuthorizationsProvider.withRequestHeaders``. Values are opaque:
+this transport does not interpret credentials or verify tokens. Authentication
+and grants remain the destination Trino server's responsibility.
+
+``trino.forward-headers-url`` optionally selects a separate JDBC URL for these
+connections, for example a TLS-terminating ingress with ``SSL=true`` and
+``SSLVerification=FULL``. Without an override the normal host/port is used.
+Every configured header is required for data connections; missing values reject
+requests. JDBC extraHeaders forbids spaces and uses semicolon delimiters, so
+values are base64-encoded into ``X-Geomesa-Forwarded-<header-name>`` carriers.
+Configure an allowlisted inbound proxy filter to decode and remove the carriers,
+restore the exact original values, and reject conflicting direct/carried headers.
+Encoding is transport framing; use TLS to protect sensitive values.
+Only selected headers are transmitted, and their connections never enter the
+shared authorization-only pool. Outside a request context, metadata discovery
+retains the existing service connection; restrict that identity to metadata.
+
+``ThreadLocalAuthorizationsProvider.wrap`` captures both headers and grants,
+restoring the executor thread's prior scope on success or failure. Supply it as
+a ``UnaryOperator[Runnable]`` through ``geomesa.merged.task.decorator`` when using
+parallel merged stores. Query-api configures this decorator automatically.
+
+Request header contexts use Spring's ``HttpHeaders``. ``withRequestHeaders``
+copies the supplied headers into a read-only snapshot, so later
+changes to the caller's headers do not affect submitted work. Each forwarded
+header sent to Trino must contain exactly one value. Header values remain private execution
+context and must not be included in logs or public job representations.
+
+For bearer authentication, restore Authorization unchanged in the proxy adapter.
+Native clients retain the authenticator's user-matching checks.
+Enable Trino's forwarded-protocol processing for TLS termination. The authenticator
+verifies issuer, signature, audience and expiry and supplies protected grants;
+the per-query authorizations continue to narrow the SQL visibility predicate.

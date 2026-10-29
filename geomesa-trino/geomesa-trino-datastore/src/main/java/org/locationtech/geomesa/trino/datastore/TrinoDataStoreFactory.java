@@ -53,6 +53,11 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
                 + "when Trino-layer visibility enforcement is active on the catalog.",
             false, TrinoDataStore.DEFAULT_USER);
 
+    public static final Param FORWARD_HEADERS = new Param("trino.forward-headers", String.class,
+        "Comma-separated request headers required on data connections; empty disables forwarding", false, "");
+    public static final Param FORWARDED_HEADERS_URL = new Param("trino.forward-headers-url", String.class,
+        "Optional JDBC URL for connections carrying request headers; discovery uses the normal host/port", false);
+
     /** Comma-delimited superset of authorizations to use for queries. */
     public static final Param AUTHS = new Param("geomesa.security.auths", String.class,
         "Comma-delimited superset of authorizations to be used for queries", false);
@@ -90,7 +95,7 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
      * @return parameter descriptors
      */
     @Override public Param[] getParametersInfo() {
-        return new Param[]{HOST, PORT, SCHEMA, USER, AUTHS, SECRET, METRICS_REGISTRY_PARAM, METRICS_REGISTRY_CONFIG_PARAM, NAMESPACE};
+        return new Param[]{HOST, PORT, CATALOG, SCHEMA, USER, AUTHS, SECRET, FORWARD_HEADERS, FORWARDED_HEADERS_URL, METRICS_REGISTRY_PARAM, METRICS_REGISTRY_CONFIG_PARAM, NAMESPACE};
     }
 
     /**
@@ -134,6 +139,7 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
         var metrics = metricsOpt.isDefined() ? metricsOpt.get() : null;
         TrinoDataStore ds =
             new TrinoDataStore(host, port, catalog, schema, authProvider, user, secret, metrics);
+        ds.configureHeaderForwarding((String) FORWARD_HEADERS.lookUp(params), (String) FORWARDED_HEADERS_URL.lookUp(params));
         String namespace = (String) NAMESPACE.lookUp(params);
         if (namespace != null && !namespace.isBlank()) {
             ds.setNamespaceURI(namespace);
