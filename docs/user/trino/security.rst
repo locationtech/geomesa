@@ -228,7 +228,7 @@ identity context fail. Background discovery uses ``trino.user`` (default
 ``DelegatedAuthorizationsProvider.wrap`` captures the delegated identity and current
 authorizations, restoring the executor thread's prior scope on success or failure.
 Supply it as a ``UnaryOperator[Runnable]`` through ``geomesa.merged.task.decorator``
-when using parallel merged stores. Query-api configures this decorator automatically.
+when using parallel merged stores.
 Only the three configured identity headers are emitted; execution context cannot
 carry arbitrary request headers or bearer tokens.
 
