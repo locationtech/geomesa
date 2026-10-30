@@ -162,7 +162,7 @@ public class TrinoDataStore extends ContentDataStore {
         }
         String subject = selected.get(userHeader);
         if (subject.isBlank() || subject.chars().anyMatch(c -> c <= 32 || c > 126 || c == ';')) {
-            throw new SQLException("Delegated user cannot be represented in JDBC headers");
+            throw new SQLException("Delegated user '" + subject + "' cannot be represented in JDBC headers");
         }
         for (String name : List.of(groupsHeader, authsHeader)) {
             String value = selected.get(name);
