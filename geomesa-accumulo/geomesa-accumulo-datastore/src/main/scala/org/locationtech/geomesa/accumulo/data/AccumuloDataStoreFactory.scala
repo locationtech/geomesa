@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
- * Portions Crown Copyright (c) 2016-2025 Dstl
+ * Copyright (c) 2013-2026 General Atomics Integrated Intelligence, Inc.
+ * Portions Crown Copyright (c) 2016-2026 Dstl
  * Portions Copyright (c) 2021 The MITRE Corporation
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
