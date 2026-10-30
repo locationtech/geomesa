@@ -138,8 +138,7 @@
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.1.6</accumulo.version>
         <zookeeper.version>3.9.5</zookeeper.version>
-        <thrift.version>0.17.0</thrift.version>
-        <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
+        <thrift.version>0.25.0</thrift.version> <!-- accumulo ships with 0.17.0, but this should be compatible for client usage -->
         <hadoop.version>3.5.0</hadoop.version>
         <spark.version>4.2.0</spark.version>
         <hbase.version>2.6.6-hadoop3</hbase.version>

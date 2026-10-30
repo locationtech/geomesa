@@ -237,7 +237,7 @@ org.apache.parquet:parquet-jackson:1.17.0:compile
 org.apache.parquet:parquet-jackson:1.18.1:compile
 org.apache.parquet:parquet-variant:1.17.0:compile
 org.apache.parquet:parquet-variant:1.18.1:compile
-org.apache.thrift:libthrift:0.17.0:compile
+org.apache.thrift:libthrift:0.25.0:compile
 org.apache.xml:xml-commons-resolver:1.2:compile
 org.apache.yetus:audience-annotations:0.12.0:compile
 org.apache.yetus:audience-annotations:0.13.0:compile
@@ -479,6 +479,7 @@ jakarta.activation:jakarta.activation-api:1.2.1:provided
 jakarta.activation:jakarta.activation-api:1.2.2:provided
 jakarta.servlet.jsp:jakarta.servlet.jsp-api:2.3.6:provided
 jakarta.servlet:jakarta.servlet-api:4.0.4:provided
+jakarta.servlet:jakarta.servlet-api:5.0.0:provided
 jakarta.servlet:jakarta.servlet-api:6.0.0:provided
 jakarta.validation:jakarta.validation-api:2.0.2:provided
 jakarta.validation:jakarta.validation-api:3.0.2:provided
@@ -527,6 +528,9 @@ org.apache.hbase:hbase-http:2.6.6-hadoop3:provided
 org.apache.hbase:hbase-procedure:2.6.6-hadoop3:provided
 org.apache.hbase:hbase-server:2.6.6-hadoop3:provided
 org.apache.hive:hive-storage-api:2.8.1:provided
+org.apache.httpcomponents.client5:httpclient5:5.2.1:provided
+org.apache.httpcomponents.core5:httpcore5-h2:5.4.4:provided
+org.apache.httpcomponents.core5:httpcore5:5.4.4:provided
 org.apache.ivy:ivy:2.5.3:provided
 org.apache.kafka:kafka-clients:3.9.2:provided
 org.apache.kafka:kafka-streams-scala_2.13:3.9.2:provided
