@@ -468,10 +468,10 @@ io.dropwizard.metrics:metrics-jvm:3.2.6:provided
 io.github.java-diff-utils:java-diff-utils:4.16:provided
 io.micrometer:micrometer-registry-cloudwatch2:1.17.0:provided
 io.netty:netty-transport-native-epoll:4.2.18.Final:provided
-io.opentelemetry:opentelemetry-api-incubator:1.65.0-alpha:provided
-io.opentelemetry:opentelemetry-api:1.65.0:provided
-io.opentelemetry:opentelemetry-common:1.65.0:provided
-io.opentelemetry:opentelemetry-context:1.65.0:provided
+io.opentelemetry:opentelemetry-api-incubator:1.67.0-alpha:provided
+io.opentelemetry:opentelemetry-api:1.67.0:provided
+io.opentelemetry:opentelemetry-common:1.67.0:provided
+io.opentelemetry:opentelemetry-context:1.67.0:provided
 io.prometheus:prometheus-metrics-exporter-pushgateway:1.5.1:provided
 io.swagger.core.v3:swagger-annotations:2.1.10:provided
 io.trino:trino-spi:483:provided
