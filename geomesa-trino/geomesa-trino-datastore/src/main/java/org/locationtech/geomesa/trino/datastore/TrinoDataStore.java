@@ -14,6 +14,8 @@ import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
+import org.locationtech.geomesa.security.DelegatedIdentity;
+import org.locationtech.geomesa.security.DelegatedAuthorizationsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Read-only GeoTools {@link ContentDataStore} backed by a Trino/Iceberg catalog, with Z2/XZ2
@@ -35,11 +38,17 @@ import java.util.concurrent.TimeUnit;
  * Filter simplification and splitting reuse GeoTools visitors independently of the datastore base class. Because the
  * forwarded authorizations are fixed on a connection at creation, connections are pooled keyed by the normalized
  * auth set ({@link ConnectionPool}): requests with the same effective auths reuse connections (see {@link #connect(List)}).
+ * Delegation instead emits configured user/groups/auths headers on dedicated, unpooled connections.
  */
 public class TrinoDataStore extends ContentDataStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrinoDataStore.class);
     private static final long TYPE_NAMES_TTL_MILLIS = TimeUnit.SECONDS.toMillis(60);
+    private static final String JDBC_URL_PREFIX = "jdbc:trino://";
+    private static final String JDBC_URL_FORMAT = JDBC_URL_PREFIX + "%s:%d/%s/%s";
+    private static final String EXTRA_HEADERS_PROPERTY = "extraHeaders";
+    private static final String HEADER_VALUE_SEPARATOR = ":";
+    private static final String HEADER_ENTRY_SEPARATOR = ";";
 
     /** Default Trino connection user — a dedicated service account. The datastore
      *  is the trusted intermediary: it forwards each caller's authorizations to
@@ -57,6 +66,36 @@ public class TrinoDataStore extends ContentDataStore {
      *  the connector honors the auths credential. Must match the catalog's
      *  {@code geomesa.security.secret-credential} (default {@code secret}). */
     static final String SECRET_CREDENTIAL = "secret";
+
+    private boolean delegation;
+    private String delegationUrl;
+    private String userHeader;
+    private String groupsHeader;
+    private String authsHeader;
+
+    /** Dedicated endpoint for delegated queries and metadata discovery. */
+    void configureDelegation(boolean enabled, String url, String userHeader, String groupsHeader, String authsHeader) {
+        if (url != null && !url.startsWith(JDBC_URL_PREFIX)) {
+            throw new IllegalArgumentException("Delegation URL must be a Trino JDBC URL");
+        }
+        if (enabled) {
+            this.userHeader = normalizeHeaderName(userHeader);
+            this.groupsHeader = normalizeHeaderName(groupsHeader);
+            this.authsHeader = normalizeHeaderName(authsHeader);
+            if (new HashSet<>(List.of(this.userHeader, this.groupsHeader, this.authsHeader)).size() != 3) {
+                throw new IllegalArgumentException("Delegated user, groups and auths header names must be distinct");
+            }
+        }
+        delegation = enabled;
+        delegationUrl = url == null ? String.format(JDBC_URL_FORMAT, host, port, catalog, trinoSchema) : url;
+    }
+
+    private static String normalizeHeaderName(String name) {
+        if (name == null || !name.matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+")) {
+            throw new IllegalArgumentException("A valid delegation header name is required");
+        }
+        return name.toLowerCase(Locale.ROOT);
+    }
 
     private final String host;
     private final int port;
@@ -90,28 +129,70 @@ public class TrinoDataStore extends ContentDataStore {
     /** Null when no security params were supplied (filtering disabled). */
     AuthorizationsProvider authProvider() { return authProvider; }
 
-    /** Metadata connection (no caller auths) — for table listing against
-     *  information_schema, which the connector never row-filters. */
+    /** Metadata connection: delegated jobs retain their identity; background discovery
+     *  uses the configured service user with no grants. */
     Connection connect() throws SQLException {
-        return connect(null);
+        if (delegation) {
+            var identity = DelegatedAuthorizationsProvider.identity().orElse(null);
+            return delegatedConnection(identity, identity == null ? null :
+                (authProvider == null ? List.of() : authProvider.getAuthorizations()), true);
+        }
+        return pool.borrow(null);
     }
 
-    /** Returns a Trino connection carrying the caller's authorizations as a Trino
-     *  extra credential. The {@code spatial_iceberg} connector's
-     *  ExtraCredentialAuthorizationResolver reads it to build the row-level
-     *  visibility filter for THIS request. Because the credential is fixed at
-     *  connection creation, connections are pooled keyed by the normalized
-     *  (sorted, deduped) auth set: a request only ever gets a connection whose
-     *  credential matches its own auths exactly. Close the connection to return
-     *  it to the pool. When {@code auths} is null/empty no credential is sent
-     *  (the caller then sees only unrestricted rows — fail-closed). */
+    /** Delegated identities use dedicated connections, never the authorization-only pool. */
     Connection connect(List<String> auths) throws SQLException {
+        if (delegation) { return delegatedConnection(DelegatedAuthorizationsProvider.identity().orElse(null), auths, false); }
         return pool.borrow(auths);
+    }
+
+    private Connection delegatedConnection(DelegatedIdentity identity, List<String> auths, boolean metadata) throws SQLException {
+        var selected = new LinkedHashMap<String, String>();
+        if (metadata && identity == null) {
+            selected.put(userHeader, user);
+            selected.put(groupsHeader, "");
+            selected.put(authsHeader, "");
+        } else {
+            if (identity == null) { throw new SQLException("Delegated identity is missing"); }
+            selected.put(userHeader, identity.user());
+            selected.put(groupsHeader, String.join(",", identity.groups().stream().sorted().toList()));
+            // Data connections must honor any configured authorization ceiling.
+            var effectiveAuths = auths == null ? identity.auths().stream().sorted().toList() : auths;
+            AuthTokens.validate(effectiveAuths);
+            selected.put(authsHeader, String.join(",", effectiveAuths));
+        }
+        String subject = selected.get(userHeader);
+        if (subject.isBlank() || subject.chars().anyMatch(c -> c <= 32 || c > 126 || c == ';')) {
+            throw new SQLException("Delegated user cannot be represented in JDBC headers");
+        }
+        for (String name : List.of(groupsHeader, authsHeader)) {
+            String value = selected.get(name);
+            if (value.chars().anyMatch(c -> c <= 32 || c > 126 || c == ';')) {
+                throw new SQLException("Delegated grant cannot be represented in JDBC headers");
+            }
+            // The receiving mapper must treat absent grants as empty; JDBC rejects empty property values.
+            if (value.isEmpty()) { selected.remove(name); }
+        }
+        var props = new Properties();
+        // Trino's session user must match the authenticated delegated identity.
+        props.setProperty("user", subject);
+        props.setProperty(EXTRA_HEADERS_PROPERTY, selected.entrySet().stream()
+            .map(e -> e.getKey() + HEADER_VALUE_SEPARATOR + e.getValue()).collect(Collectors.joining(HEADER_ENTRY_SEPARATOR)));
+        return openDelegatedConnection(delegationUrl, props);
+    }
+
+    protected Connection openDelegatedConnection(String url, Properties properties) throws SQLException {
+        try {
+            return DriverManager.getConnection(url, properties);
+        } catch (SQLException | IllegalArgumentException e) {
+            // Driver property errors may render every supplied header. Do not retain their cause.
+            throw new SQLException("Unable to establish a connection with delegated identity");
+        }
     }
 
     /** Opens a real connection for a normalized auth set (pool miss). */
     private Connection openConnection(List<String> normalizedAuths) throws SQLException {
-        String url = String.format("jdbc:trino://%s:%d/%s/%s",
+        String url = String.format(JDBC_URL_FORMAT,
             host, port, catalog, trinoSchema);
         return DriverManager.getConnection(url, connectionProperties(user, normalizedAuths, secret));
     }
