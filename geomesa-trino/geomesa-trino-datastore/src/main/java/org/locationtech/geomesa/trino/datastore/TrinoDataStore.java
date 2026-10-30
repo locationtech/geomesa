@@ -155,11 +155,10 @@ public class TrinoDataStore extends ContentDataStore {
         } else {
             if (identity == null) { throw new SQLException("Delegated identity is missing"); }
             selected.put(userHeader, identity.user());
-            selected.put(groupsHeader, String.join(",", identity.groups().stream().sorted().toList()));
+            selected.put(groupsHeader, delegatedGrants(identity.groups().stream().sorted().toList()));
             // Data connections must honor any configured authorization ceiling.
             var effectiveAuths = auths == null ? identity.auths().stream().sorted().toList() : auths;
-            AuthTokens.validate(effectiveAuths);
-            selected.put(authsHeader, String.join(",", effectiveAuths));
+            selected.put(authsHeader, delegatedGrants(effectiveAuths));
         }
         String subject = selected.get(userHeader);
         if (subject.isBlank() || subject.chars().anyMatch(c -> c <= 32 || c > 126 || c == ';')) {
@@ -167,9 +166,6 @@ public class TrinoDataStore extends ContentDataStore {
         }
         for (String name : List.of(groupsHeader, authsHeader)) {
             String value = selected.get(name);
-            if (value.chars().anyMatch(c -> c <= 32 || c > 126 || c == ';')) {
-                throw new SQLException("Delegated grant cannot be represented in JDBC headers");
-            }
             // The receiving mapper must treat absent grants as empty; JDBC rejects empty property values.
             if (value.isEmpty()) { selected.remove(name); }
         }
@@ -179,6 +175,16 @@ public class TrinoDataStore extends ContentDataStore {
         props.setProperty(EXTRA_HEADERS_PROPERTY, selected.entrySet().stream()
             .map(e -> e.getKey() + HEADER_VALUE_SEPARATOR + e.getValue()).collect(Collectors.joining(HEADER_ENTRY_SEPARATOR)));
         return openDelegatedConnection(delegationUrl, props);
+    }
+
+    private static String delegatedGrants(List<String> grants) throws SQLException {
+        for (String grant : grants) {
+            if (grant == null || grant.isEmpty() ||
+                    grant.chars().anyMatch(c -> c <= 32 || c > 126 || c == ',' || c == ';')) {
+                throw new SQLException("Delegated grant '" + grant + "' cannot be represented in JDBC headers");
+            }
+        }
+        return String.join(",", grants);
     }
 
     protected Connection openDelegatedConnection(String url, Properties properties) throws SQLException {

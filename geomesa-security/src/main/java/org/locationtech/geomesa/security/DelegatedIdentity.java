@@ -23,24 +23,16 @@ public final class DelegatedIdentity {
             throw new IllegalArgumentException("Delegated user must not be blank");
         }
         this.user = user;
-        this.groups = copyGrants(groups);
-        this.auths = copyGrants(auths);
+        this.groups = Set.copyOf(groups);
+        this.auths = Set.copyOf(auths);
     }
 
     public String user() { return user; }
     public Set<String> groups() { return groups; }
     public Set<String> auths() { return auths; }
 
-    private static Set<String> copyGrants(Set<String> grants) {
-        var snapshot = Set.copyOf(grants);
-        for (String grant : snapshot) {
-            if (grant.isEmpty() || !grant.equals(grant.trim()) ||
-                    grant.chars().anyMatch(c -> c == ',' || c == ';' || c < 32 || c > 126)) {
-                throw new IllegalArgumentException("Invalid delegated grant");
-            }
-        }
-        return snapshot;
+    @Override
+    public String toString() {
+        return "DelegatedIdentity[user=" + user + ", groups=" + groups + ", auths=" + auths + "]";
     }
-
-    @Override public String toString() { return "DelegatedIdentity[REDACTED]"; }
 }

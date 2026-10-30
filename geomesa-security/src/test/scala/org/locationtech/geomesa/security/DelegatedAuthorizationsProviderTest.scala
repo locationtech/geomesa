@@ -20,7 +20,7 @@ class DelegatedAuthorizationsProviderTest extends Specification {
   import DelegatedAuthorizationsProvider.{withAuthorizations, wrap}
 
   "DelegatedAuthorizationsProvider" should {
-    "copy and redact the complete delegated identity" in {
+    "copy and describe the complete delegated identity" in {
       val groups = new java.util.HashSet[String]()
       val auths = new java.util.HashSet[String]()
       groups.add("analysts")
@@ -31,11 +31,17 @@ class DelegatedAuthorizationsProviderTest extends Specification {
       identity.user() mustEqual "alice"
       identity.groups() mustEqual java.util.Collections.singleton("analysts")
       identity.auths() mustEqual java.util.Collections.singleton("U")
-      identity.toString must not(contain("alice"))
+      identity.toString mustEqual "DelegatedIdentity[user=alice, groups=[analysts], auths=[U]]"
       identity.groups().clear() must throwA[UnsupportedOperationException]
+      identity.auths().clear() must throwA[UnsupportedOperationException]
       new DelegatedIdentity("", java.util.Collections.emptySet[String](), java.util.Collections.emptySet[String]()) must throwA[IllegalArgumentException]
-      new DelegatedIdentity("alice", java.util.Collections.singleton("one,two"), java.util.Collections.emptySet[String]()) must
-        throwA[IllegalArgumentException]
+    }
+
+    "preserve grants independently of transport restrictions" in {
+      val grants = new java.util.HashSet[String](java.util.Arrays.asList("", "one,two", "one;two", " team ", "équipe", "a\nb"))
+      val identity = new DelegatedIdentity("alice", grants, grants)
+      identity.groups() mustEqual grants
+      identity.auths() mustEqual grants
     }
 
     "distinguish absent identity from a user with empty grants" in {

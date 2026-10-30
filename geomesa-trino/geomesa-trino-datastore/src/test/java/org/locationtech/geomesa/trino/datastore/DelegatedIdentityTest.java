@@ -153,6 +153,31 @@ class DelegatedIdentityTest {
         assertThat(store.calls.get(0)).doesNotContainKey("extraCredentials");
     }
 
+    @Test void unrepresentableGroupsFailWithoutConnectingAndIdentifyTheGrant() {
+        var store = new Store();
+        for (String grant : List.of("", "one,two", "one;two", " team", "team ", "two teams", "équipe", "a\nb", "a\u007fb")) {
+            var identity = new DelegatedIdentity("alice", Set.of(grant), Set.of());
+            assertThatThrownBy(() -> withIdentity(identity, List.of(), () -> store.connect(List.of())))
+                .cause().isInstanceOf(SQLException.class)
+                .hasMessage("Delegated grant '" + grant + "' cannot be represented in JDBC headers");
+        }
+        assertThat(store.calls).isEmpty();
+    }
+
+    @Test void unrepresentableAuthsFailWithoutConnectingAndIdentifyTheGrant() {
+        var store = new Store();
+        for (String grant : List.of("", "one,two", "one;two", " team", "team ", "two teams", "équipe", "a\nb", "a\u007fb")) {
+            var identity = new DelegatedIdentity("alice", Set.of(), Set.of(grant));
+            for (Callable<Connection> connect : List.<Callable<Connection>>of(
+                    () -> store.connect(List.of(grant)), () -> store.connect(null), store::connect)) {
+                assertThatThrownBy(() -> withIdentity(identity, List.of(grant), connect))
+                    .cause().isInstanceOf(SQLException.class)
+                    .hasMessage("Delegated grant '" + grant + "' cannot be represented in JDBC headers");
+            }
+        }
+        assertThat(store.calls).isEmpty();
+    }
+
     @Test void delegatedPropertiesIncludingEmptyGrantsAreAcceptedByTheRealJdbcDriver() throws Exception {
         var store = new TrinoDataStore("127.0.0.1", 1, "spatial_iceberg", "spatial", null, "geomesa", null, null);
         store.configureDelegation(true, "jdbc:trino://127.0.0.1:1/spatial_iceberg/spatial?SSL=true", "x-test-user", "x-test-groups", "x-test-auths");
