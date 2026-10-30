@@ -10,6 +10,10 @@ on:
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   JAVA_VERSION: 25
   JAVA_RUNTIME_VERSION: 17
