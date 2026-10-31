@@ -15,7 +15,6 @@ import org.geotools.data.store.ContentFeatureSource;
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
 import org.locationtech.geomesa.security.DelegatedIdentity;
-import org.locationtech.geomesa.security.DelegatedAuthorizationsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,29 +66,6 @@ public class TrinoDataStore extends ContentDataStore {
      *  {@code geomesa.security.secret-credential} (default {@code secret}). */
     static final String SECRET_CREDENTIAL = "secret";
 
-    private boolean delegation;
-    private String delegationUrl;
-    private String userHeader;
-    private String groupsHeader;
-    private String authsHeader;
-
-    /** Dedicated endpoint for delegated queries and metadata discovery. */
-    void configureDelegation(boolean enabled, String url, String userHeader, String groupsHeader, String authsHeader) {
-        if (url != null && !url.startsWith(JDBC_URL_PREFIX)) {
-            throw new IllegalArgumentException("Delegation URL must be a Trino JDBC URL");
-        }
-        if (enabled) {
-            this.userHeader = normalizeHeaderName(userHeader);
-            this.groupsHeader = normalizeHeaderName(groupsHeader);
-            this.authsHeader = normalizeHeaderName(authsHeader);
-            if (new HashSet<>(List.of(this.userHeader, this.groupsHeader, this.authsHeader)).size() != 3) {
-                throw new IllegalArgumentException("Delegated user, groups and auths header names must be distinct");
-            }
-        }
-        delegation = enabled;
-        delegationUrl = url == null ? String.format(JDBC_URL_FORMAT, host, port, catalog, trinoSchema) : url;
-    }
-
     private static String normalizeHeaderName(String name) {
         if (name == null || !name.matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+")) {
             throw new IllegalArgumentException("A valid delegation header name is required");
@@ -106,6 +82,12 @@ public class TrinoDataStore extends ContentDataStore {
     /** Shared secret presented to the connector; null/empty when the catalog isn't secret-gated. */
     private final String secret;
     private final Closeable registry;
+
+    private boolean delegation;
+    private String delegationUrl;
+    private String userHeader;
+    private String groupsHeader;
+    private String authsHeader;
 
     private final Object typeNamesLock = new Object();
     private Map<String, String> cachedTypeNames;
@@ -126,48 +108,78 @@ public class TrinoDataStore extends ContentDataStore {
         this.registry = metrics == null ? null : metrics.register();
     }
 
+    /** Dedicated endpoint for delegated queries and metadata discovery. */
+    void configureDelegation(boolean enabled, String url, String userHeader, String groupsHeader, String authsHeader) {
+        if (url != null && !url.startsWith(JDBC_URL_PREFIX)) {
+            throw new IllegalArgumentException("Delegation URL must be a Trino JDBC URL");
+        }
+        if (enabled) {
+            if (authProvider == null) {
+                throw new IllegalArgumentException("Delegation requires a configured AuthorizationsProvider");
+            }
+            this.userHeader = normalizeHeaderName(userHeader);
+            this.groupsHeader = normalizeHeaderName(groupsHeader);
+            this.authsHeader = normalizeHeaderName(authsHeader);
+            if (new HashSet<>(List.of(this.userHeader, this.groupsHeader, this.authsHeader)).size() != 3) {
+                throw new IllegalArgumentException("Delegated user, groups and auths header names must be distinct");
+            }
+        }
+        delegation = enabled;
+        delegationUrl = url == null ? String.format(JDBC_URL_FORMAT, host, port, catalog, trinoSchema) : url;
+    }
+
     /** Null when no security params were supplied (filtering disabled). */
     AuthorizationsProvider authProvider() { return authProvider; }
 
-    /** Metadata connection: delegated jobs retain their identity; background discovery
-     *  uses the configured service user with no grants. */
     Connection connect() throws SQLException {
         if (delegation) {
-            var identity = DelegatedAuthorizationsProvider.identity().orElse(null);
-            return delegatedConnection(identity, identity == null ? null :
-                (authProvider == null ? List.of() : authProvider.getAuthorizations()), true);
+            // Delegated identities use dedicated connections, never the authorization-only pool
+            // for background discovery, the auth provider must handle setting the system-level user correctly.
+            var user = authProvider.currentUser();
+            if (user == null) {
+                throw new SQLException("Delegated identity is missing");
+            }
+            return delegatedConnection(user);
         }
         return pool.borrow(null);
     }
 
-    /** Delegated identities use dedicated connections, never the authorization-only pool. */
     Connection connect(List<String> auths) throws SQLException {
-        if (delegation) { return delegatedConnection(DelegatedAuthorizationsProvider.identity().orElse(null), auths, false); }
+        if (delegation) {
+            // Delegated identities use dedicated connections, never the authorization-only pool
+            var user = authProvider.currentUser();
+            if (user == null) {
+                throw new SQLException("Delegated identity is missing");
+            }
+            if (auths != null) {
+                // Data connections must honor any configured authorization ceiling
+                user = new DelegatedIdentity(user.user(), user.groups(), auths);
+            }
+            return delegatedConnection(user);
+        }
         return pool.borrow(auths);
     }
 
-    private Connection delegatedConnection(DelegatedIdentity identity, List<String> auths, boolean metadata) throws SQLException {
-        var selected = new LinkedHashMap<String, String>();
-        if (metadata && identity == null) {
-            selected.put(userHeader, user);
-            selected.put(groupsHeader, "");
-            selected.put(authsHeader, "");
-        } else {
-            if (identity == null) { throw new SQLException("Delegated identity is missing"); }
-            selected.put(userHeader, identity.user());
-            selected.put(groupsHeader, delegatedGrants(identity.groups().stream().sorted().toList()));
-            // Data connections must honor any configured authorization ceiling.
-            var effectiveAuths = auths == null ? identity.auths().stream().sorted().toList() : auths;
-            selected.put(authsHeader, delegatedGrants(effectiveAuths));
+    private Connection delegatedConnection(DelegatedIdentity identity) throws SQLException {
+        if (identity == null) {
+            // shouldn't happen due to checks at calling sites, but just as a sanity check
+            throw new SQLException("Delegated identity is missing");
         }
-        String subject = selected.get(userHeader);
+        var subject = identity.user();
         if (subject.isBlank() || subject.chars().anyMatch(c -> c <= 32 || c > 126 || c == ';')) {
             throw new SQLException("Delegated user '" + subject + "' cannot be represented in JDBC headers");
         }
-        for (String name : List.of(groupsHeader, authsHeader)) {
-            String value = selected.get(name);
-            // The receiving mapper must treat absent grants as empty; JDBC rejects empty property values.
-            if (value.isEmpty()) { selected.remove(name); }
+
+        var groups = delegatedGrants(identity.groups().stream().sorted().toList());
+        var auths = delegatedGrants(identity.auths().stream().sorted().toList());
+
+        var selected = new LinkedHashMap<String, String>();
+        selected.put(userHeader, subject);
+        if (!groups.isEmpty()) {
+            selected.put(groupsHeader, groups);
+        }
+        if (!auths.isEmpty()) {
+            selected.put(authsHeader, auths);
         }
         var props = new Properties();
         // Trino's session user must match the authenticated delegated identity.

@@ -9,23 +9,40 @@
 package org.locationtech.geomesa.trino.datastore;
 
 import org.junit.jupiter.api.Test;
+import org.locationtech.geomesa.security.AuthorizationsProvider;
 import org.locationtech.geomesa.security.DelegatedIdentity;
-import org.locationtech.geomesa.security.DelegatedAuthorizationsProvider;
-import scala.runtime.AbstractFunction0;
 
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DelegatedIdentityTest {
+
+    private static class ThreadLocalAuthProvider implements AuthorizationsProvider {
+
+        public static ThreadLocal<DelegatedIdentity> identities = new ThreadLocal<>();
+
+        @Override
+        public List<String> getAuthorizations() {
+            var user = currentUser();
+            return user == null ? null : List.copyOf(user.auths());
+        }
+
+        @Override
+        public DelegatedIdentity currentUser() {
+            return identities.get();
+        }
+
+        @Override
+        public void configure(Map<String, ?> params) {
+        }
+    }
+
     private static class Store extends TrinoDataStore {
         final List<Properties> calls = new ArrayList<>();
 
@@ -35,7 +52,7 @@ class DelegatedIdentityTest {
 
         Store(String userHeader, String groupsHeader, String authsHeader) {
             super("trino", 8080, "spatial_iceberg", "spatial",
-                new DelegatedAuthorizationsProvider(), "geomesa", null, null);
+                new ThreadLocalAuthProvider(), "geomesa", null, null);
             configureDelegation(true, "jdbc:trino://trino:8443/spatial_iceberg/spatial?SSL=true",
                 userHeader, groupsHeader, authsHeader);
         }
@@ -48,12 +65,28 @@ class DelegatedIdentityTest {
         }
     }
 
+    private static Connection withIdentity(DelegatedIdentity identity, List<String> auths, Callable<Connection> action) {
+        var existing = ThreadLocalAuthProvider.identities.get();
+        ThreadLocalAuthProvider.identities.set(new DelegatedIdentity(identity.user(), identity.groups(), auths));
+        try {
+            return action.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (existing == null) {
+                ThreadLocalAuthProvider.identities.remove();
+            } else {
+                ThreadLocalAuthProvider.identities.set(existing);
+            }
+        }
+    }
+
     @Test void headerNamesComeFromConfigurationWithoutChangingTheIdentity() {
         var store = new Store("Application-User", "Application-Groups", "Application-Auths");
-        withIdentity(new DelegatedIdentity("alice", Set.of("analysts"), Set.of("U")), List.of("U"),
-            () -> store.connect(List.of("U")));
+        withIdentity(new DelegatedIdentity("alice", Set.of("analysts"), Set.of("user")), List.of("user"),
+            () -> store.connect(List.of("user")));
         assertThat(store.calls.get(0).getProperty("extraHeaders"))
-            .contains("application-user:alice", "application-groups:analysts", "application-auths:U")
+            .contains("application-user:alice", "application-groups:analysts", "application-auths:user")
             .doesNotContain("x-test-");
     }
 
@@ -86,59 +119,44 @@ class DelegatedIdentityTest {
         }
     }
 
-    private static Connection withIdentity(DelegatedIdentity identity, List<String> auths, Callable<Connection> action) {
-        return DelegatedAuthorizationsProvider.withIdentity(identity, new AbstractFunction0<>() {
-            @Override public Connection apply() {
-                return DelegatedAuthorizationsProvider.withAuthorizations(auths, new AbstractFunction0<>() {
-                    @Override public Connection apply() {
-                        try { return action.call(); }
-                        catch (Exception e) { throw new RuntimeException(e); }
-                    }
-                });
-            }
-        });
-    }
-
     @Test void equalAuthsHaveDistinctUsersGroupsAndConnections() {
         var store = new Store();
-        var alice = withIdentity(new DelegatedIdentity("alice", Set.of("team:one", "team-two"), Set.of("U", "FOUO")), List.of("U"),
-            () -> store.connect(List.of("U")));
-        var bob = withIdentity(new DelegatedIdentity("bob", Set.of("other"), Set.of("U")), List.of("U"),
-            () -> store.connect(List.of("U")));
+        var alice = withIdentity(new DelegatedIdentity("alice", Set.of("team:one", "team-two"), Set.of("user", "admin")), List.of("user"),
+            () -> store.connect(List.of("user")));
+        var bob = withIdentity(new DelegatedIdentity("bob", Set.of("other"), Set.of("user")), List.of("user"),
+            () -> store.connect(List.of("user")));
         assertThat(alice).isNotSameAs(bob);
         assertThat(store.calls.get(0).getProperty("user")).isEqualTo("alice");
         assertThat(store.calls.get(1).getProperty("user")).isEqualTo("bob");
         assertThat(store.calls.get(0).getProperty("extraHeaders"))
-            .contains("x-test-user:alice", "x-test-groups:team-two,team:one", "x-test-auths:U")
-            .doesNotContain("FOUO");
+            .contains("x-test-user:alice", "x-test-groups:team-two,team:one", "x-test-auths:user")
+            .doesNotContain("admin");
         assertThat(store.calls.get(0)).doesNotContainKey("extraCredentials");
-        assertThat(DelegatedAuthorizationsProvider.identity().isEmpty()).isTrue();
+        assertThat(ThreadLocalAuthProvider.identities.get()).isNull();
     }
 
-    @Test void metadataUsesJobIdentityInScopeAndServiceIdentityOutsideIt() throws Exception {
+    @Test void metadataUsesJobIdentityInScope() throws Exception {
         var store = new Store();
-        withIdentity(new DelegatedIdentity("alice", Set.of("analysts"), Set.of("U", "FOUO")),
-            List.of("U"), store::connect);
+        withIdentity(new DelegatedIdentity("alice", Set.of("analysts"), Set.of("user", "admin")),
+            List.of("user"), store::connect);
         assertThat(store.calls.get(0).getProperty("user")).isEqualTo("alice");
         assertThat(store.calls.get(0).getProperty("extraHeaders"))
-            .contains("x-test-groups:analysts", "x-test-auths:U").doesNotContain("FOUO");
-        store.connect();
-        assertThat(store.calls.get(1).getProperty("user")).isEqualTo("geomesa");
-        assertThat(store.calls.get(1).getProperty("extraHeaders")).isEqualTo("x-test-user:geomesa");
+            .contains("x-test-groups:analysts", "x-test-auths:user").doesNotContain("admin");
+        assertThatThrownBy(() -> store.connect()).hasMessage("Delegated identity is missing");
     }
 
     @Test void missingQueryIdentityFailsWithoutConnecting() {
         var store = new Store();
-        assertThatThrownBy(() -> store.connect(List.of("U"))).hasMessage("Delegated identity is missing");
+        assertThatThrownBy(() -> store.connect(List.of("user"))).hasMessage("Delegated identity is missing");
         assertThat(store.calls).isEmpty();
-        assertThat(DelegatedAuthorizationsProvider.identity().isEmpty()).isTrue();
+        assertThat(ThreadLocalAuthProvider.identities.get()).isNull();
     }
 
     @Test void unrepresentableUserFailsWithoutConnecting() {
         var store = new Store();
         assertThatThrownBy(() -> withIdentity(new DelegatedIdentity("alice;invalid", Set.of(), Set.of()),
             List.of(), () -> store.connect(List.of())))
-            .cause().hasMessage("Delegated user cannot be represented in JDBC headers");
+            .cause().hasMessage("Delegated user 'alice;invalid' cannot be represented in JDBC headers");
         assertThat(store.calls).isEmpty();
     }
 
@@ -179,19 +197,18 @@ class DelegatedIdentityTest {
     }
 
     @Test void delegatedPropertiesIncludingEmptyGrantsAreAcceptedByTheRealJdbcDriver() throws Exception {
-        var store = new TrinoDataStore("127.0.0.1", 1, "spatial_iceberg", "spatial", null, "geomesa", null, null);
+        var store = new TrinoDataStore("127.0.0.1", 1, "spatial_iceberg", "spatial", new ThreadLocalAuthProvider(), "geomesa", null, null);
         store.configureDelegation(true, "jdbc:trino://127.0.0.1:1/spatial_iceberg/spatial?SSL=true", "x-test-user", "x-test-groups", "x-test-auths");
-        withIdentity(new DelegatedIdentity("alice", Set.of("group:allowed"), Set.of("U")),
-            List.of("U"), () -> store.connect(List.of("U"))).close();
+        withIdentity(new DelegatedIdentity("alice", Set.of("group:allowed"), Set.of("user")),
+            List.of("user"), () -> store.connect(List.of("user"))).close();
         withIdentity(new DelegatedIdentity("alice", Set.of(), Set.of()),
             List.of(), () -> store.connect(List.of())).close();
-        store.connect().close();
     }
 
     @Test void driverErrorsDoNotExposeIdentityProperties() {
-        var store = new TrinoDataStore("127.0.0.1", 1, "spatial_iceberg", "spatial", null, "geomesa", null, null);
+        var store = new TrinoDataStore("127.0.0.1", 1, "spatial_iceberg", "spatial", new ThreadLocalAuthProvider(), "geomesa", null, null);
         store.configureDelegation(true, "jdbc:trino://127.0.0.1:1/spatial_iceberg/spatial?unknownProperty=value", "x-test-user", "x-test-groups", "x-test-auths");
-        assertThatThrownBy(() -> withIdentity(new DelegatedIdentity("alice", Set.of("analysts"), Set.of("U")), List.of("U"), () -> store.connect(List.of("U"))))
+        assertThatThrownBy(() -> withIdentity(new DelegatedIdentity("alice", Set.of("analysts"), Set.of("user")), List.of("user"), () -> store.connect(List.of("user"))))
             .cause().isInstanceOf(SQLException.class)
             .hasMessage("Unable to establish a connection with delegated identity").hasNoCause();
     }
