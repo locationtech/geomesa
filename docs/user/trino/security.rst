@@ -197,6 +197,8 @@ querying user. For example, a trino connector pointing at PostGIS must be config
 ensure visibility filtering (see :ref:`data_security`). **A catalog that does not enforce visibility filtering must not
 be attached to a view on the spatial_iceberg connector that is intended to perform visibility filtering.**
 
+.. _trino_auth_delegation:
+
 Delegated authorization
 -----------------------
 

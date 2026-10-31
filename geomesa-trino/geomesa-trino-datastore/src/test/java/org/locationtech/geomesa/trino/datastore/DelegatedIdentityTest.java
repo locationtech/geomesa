@@ -107,7 +107,7 @@ class DelegatedIdentityTest {
             "trino.delegation.enabled", true))).isInstanceOf(IllegalArgumentException.class);
         var store = (TrinoDataStore) factory.createDataStore(Map.of(
             "trino.host", "127.0.0.1", "trino.port", 1, "trino.delegation.enabled", true,
-            "trino.delegation-url", "jdbc:trino://127.0.0.1:1/spatial_iceberg/spatial?SSL=true",
+            "trino.delegation.url", "jdbc:trino://127.0.0.1:1/spatial_iceberg/spatial?SSL=true",
             "trino.delegation.user-header", "Factory-User",
             "trino.delegation.groups-header", "Factory-Groups",
             "trino.delegation.auths-header", "Factory-Auths"));

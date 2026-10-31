@@ -66,13 +66,6 @@ public class TrinoDataStore extends ContentDataStore {
      *  {@code geomesa.security.secret-credential} (default {@code secret}). */
     static final String SECRET_CREDENTIAL = "secret";
 
-    private static String normalizeHeaderName(String name) {
-        if (name == null || !name.matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+")) {
-            throw new IllegalArgumentException("A valid delegation header name is required");
-        }
-        return name.toLowerCase(Locale.ROOT);
-    }
-
     private final String host;
     private final int port;
     private final String catalog;
@@ -126,6 +119,13 @@ public class TrinoDataStore extends ContentDataStore {
         }
         delegation = enabled;
         delegationUrl = url == null ? String.format(JDBC_URL_FORMAT, host, port, catalog, trinoSchema) : url;
+    }
+
+    private static String normalizeHeaderName(String name) {
+        if (name == null || !name.matches("[!#$%&'*+.^_`|~0-9A-Za-z-]+")) {
+            throw new IllegalArgumentException("A valid delegation header name is required");
+        }
+        return name.toLowerCase(Locale.ROOT);
     }
 
     /** Null when no security params were supplied (filtering disabled). */

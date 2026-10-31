@@ -56,7 +56,7 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
     public static final Param DELEGATION = new Param("trino.delegation.enabled", Boolean.class,
         "Emit delegated user/groups/auths on dedicated connections to a workload-restricted Trino listener", false, false);
 
-    public static final Param DELEGATION_URL = new Param("trino.delegation-url", String.class,
+    public static final Param DELEGATION_URL = new Param("trino.delegation.url", String.class,
         "Optional JDBC URL for delegated query and metadata connections, including TLS settings", false);
     public static final Param DELEGATION_USER_HEADER = new Param("trino.delegation.user-header", String.class,
         "User header name; required when delegation is enabled", false);
