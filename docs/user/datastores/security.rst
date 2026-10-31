@@ -94,12 +94,21 @@ Providers must implement the following interface:
     public interface AuthorizationsProvider {
 
         /**
-         * Gets the authorizations for the current context. This may change over time
-         * (e.g. in a multi-user environment), so the result should not be cached.
+         * Gets the authorizations for the current context. This may change over time (e.g. in a multi-user environment),
+         * so the result should not be cached.
          *
-         * @return authorizations
+         * @return authorizations, not null
          */
         List<String> getAuthorizations();
+
+        /**
+         * Gets the current user, with groups and auths. This may change over time (e.g. in a multi-user environment),
+         * so the result should not be cached. The authorizations *must* be the same as returned from `getAuthorizations`
+         * (for a given call point). If there is no actual end user, a system-level user should be returned.
+         *
+         * @return current user, not null
+         */
+        DelegatedIdentity currentUser();
 
         /**
          * Configures this instance with parameters passed into the DataStoreFinder

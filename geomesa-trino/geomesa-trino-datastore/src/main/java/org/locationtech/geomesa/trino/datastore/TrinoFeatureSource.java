@@ -16,11 +16,11 @@ import org.geotools.api.filter.And;
 import org.geotools.api.filter.Filter;
 import org.geotools.api.filter.FilterFactory;
 import org.geotools.api.filter.expression.PropertyName;
+import org.geotools.api.filter.sort.SortBy;
+import org.geotools.api.filter.sort.SortOrder;
 import org.geotools.api.filter.spatial.BBOX;
 import org.geotools.api.filter.spatial.BinarySpatialOperator;
 import org.geotools.api.filter.spatial.Intersects;
-import org.geotools.api.filter.sort.SortBy;
-import org.geotools.api.filter.sort.SortOrder;
 import org.geotools.data.FilteringFeatureReader;
 import org.geotools.data.MaxFeatureReader;
 import org.geotools.data.ReTypeFeatureReader;
@@ -29,14 +29,15 @@ import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.filter.visitor.PostPreProcessFilterSplittingVisitor;
 import org.geotools.filter.visitor.SimplifyingFilterVisitor;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.geomesa.filter.FilterHelper;
 import org.locationtech.geomesa.index.conf.QueryHints;
 import org.locationtech.geomesa.index.geoserver.ViewParams;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
+import org.locationtech.geomesa.security.DelegatedIdentity;
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty;
 import org.locationtech.geomesa.utils.geotools.AttributeExtractingVisitor;
 import org.locationtech.geomesa.utils.json.JsonPathPropertyNameResolver;
@@ -252,11 +253,12 @@ class TrinoFeatureSource extends ContentFeatureSource {
 
     private int countOnce(Query query, String where) throws IOException, SQLException {
         String typeName = entry.getName().getLocalPart();
-        VisibilityContext vis = visibility();
+        DelegatedIdentity user = user();
+        VisibilityContext vis = visibility(user);
         String whereWithVis = combineWhere(where, vis == null ? null : vis.conjunct());
         String sql = String.format("SELECT COUNT(*) FROM %s.%s.%s%s",
             escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(trinoStore.getTableName(typeName)), whereWithVis);
-        try (Connection conn = trinoStore.connect(vis == null ? null : vis.auths());
+        try (Connection conn = trinoStore.connect(user);
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             rs.next();
@@ -309,7 +311,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
         if (getSchema().getGeometryDescriptor() == null) return null;
         String geomName = getSchema().getGeometryDescriptor().getLocalName();
         String bboxCol = "__" + geomName + "_bbox__";
-        VisibilityContext vis = visibility();
+        DelegatedIdentity user = user();
+        VisibilityContext vis = visibility(user);
         // note: this may give a larger bounds due to not taking client-side filters into account, but should still be valid
         String where = combineWhere(splitFilter(query).pushableSql, vis == null ? null : vis.conjunct());
         String sql = String.format(
@@ -317,7 +320,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
             " MAX(%1$s.xmax), MAX(%1$s.ymax)" +
             " FROM %2$s.%3$s.%4$s%5$s",
             escapeQuotes(bboxCol), escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(trinoStore.getTableName(typeName)), where);
-        try (Connection conn = trinoStore.connect(vis == null ? null : vis.auths());
+        try (Connection conn = trinoStore.connect(user);
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
@@ -365,7 +368,8 @@ class TrinoFeatureSource extends ContentFeatureSource {
         FilterSplit split = splitFilter(query);
         var includeFids = (Boolean) query.getHints().getOrDefault(QueryHints.INCLUDE_FID(), Boolean.TRUE);
         String fidColumn = includeFids ? "__fid__" : null;
-        VisibilityContext vis = visibility();
+        DelegatedIdentity user = user();
+        VisibilityContext vis = visibility(user);
         String visColumn = vis == null ? null : vis.visColumn();
         SimpleFeatureType sft;
         boolean retype = false; // if we need to re-type post query
@@ -402,7 +406,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
         }
         // Auths fetched once (in visibility()) so the extra credential and the SQL
         // conjunct can't diverge under per-request providers.
-        List<String> auths = vis == null ? null : vis.auths();
+        Set<String> auths = vis == null ? null : vis.user().auths();
         String where = combineWhere(split.pushableSql, visColumn == null ? null : visibilityConjunct(visColumn, auths));
         String orderBy = toOrderByClause(query.getSortBy());
         // don't push the limit down when there's a residual: the client-side filter runs
@@ -413,7 +417,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
             cols, escapeQuotes(trinoStore.catalog()), escapeQuotes(trinoStore.trinoSchema()), escapeQuotes(trinoStore.getTableName(typeName)), where, orderBy, limit);
         Connection conn;
         try {
-            conn = trinoStore.connect(auths);
+            conn = trinoStore.connect(user);
         } catch (SQLException e) {
             throw new IOException("Failed to open connection for query: " + sql, e);
         }
@@ -477,7 +481,7 @@ class TrinoFeatureSource extends ContentFeatureSource {
      *  column identifier is double-quoted and the auths literal escaped. Throws
      *  {@code IllegalArgumentException} on a token containing a transport delimiter —
      *  the UDF would re-split it into auths that were never issued (see {@link AuthTokens}). */
-    static String visibilityConjunct(String visColumn, List<String> auths) {
+    static String visibilityConjunct(String visColumn, Collection<String> auths) {
         AuthTokens.validate(auths);
         String literal = String.join(",", auths).replace("'", "''");
         return "is_visible(" + escapeQuotes(visColumn) + ", '" + literal + "')";
@@ -647,21 +651,32 @@ class TrinoFeatureSource extends ContentFeatureSource {
     /** The table's visibility column plus the caller's auths, captured together so
      *  a query makes a single {@code provider.getAuthorizations()} call and feeds
      *  the same auths to the extra credential and the SQL conjunct. */
-    private record VisibilityContext(String visColumn, List<String> auths) {
+    private record VisibilityContext(String visColumn, DelegatedIdentity user) {
         String conjunct() {
-            return visibilityConjunct(visColumn, auths);
+            return visibilityConjunct(visColumn, user.auths());
         }
+    }
+
+    private DelegatedIdentity user() {
+        AuthorizationsProvider provider = trinoStore.authProvider();
+        if (provider == null) {
+            return null;
+        }
+        return provider.currentUser();
     }
 
     /** Non-null iff security params are configured AND the table has a visibility
      *  column. Auths are fetched per query (per-request providers). */
-    private VisibilityContext visibility() throws IOException {
-        AuthorizationsProvider provider = trinoStore.authProvider();
-        if (provider == null) return null;
+    private VisibilityContext visibility(DelegatedIdentity user) throws IOException {
+        if (user == null) {
+            return null;
+        }
         String visColumn =
             (String) getSchema().getUserData().get(TrinoSchemaDiscovery.VIS_COLUMN_KEY);
-        if (visColumn == null) return null;
-        return new VisibilityContext(visColumn, provider.getAuthorizations());
+        if (visColumn == null) {
+            return null;
+        }
+        return new VisibilityContext(visColumn, user);
     }
 
     /**
