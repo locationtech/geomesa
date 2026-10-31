@@ -218,10 +218,10 @@ The groups and auths use comma-separated values. Since JDBC extraHeaders cannot 
 characters, those values will fail at runtime. Empty grant headers are omitted on the JDBC wire and map to empty sets.
 The driver session user matches the delegated user. Every delegated connection is newly opened and closed by its caller,
 including metadata reads; the auth-set pool is not used when delegation is enabled. Data queries without the full
-identity context fail. In order to support background discovery, the ``AuthorizationsProvider`` must supply a valid
-system user (e.g. the ``trino.user`` configuration, default ``geomesa``, usually with empty groups and auths).
+identity context fail. For metadata queries (e.g. layer discovery), the value of the ``trino.user`` parameter is passed
+as the user, with empty groups and auths.
 
-Use ``trino.delegation-url`` for the native TLS JDBC URL, including ``SSL=true`` and ``SSLTrustStorePath`` as appropriate.
+Use ``trino.delegation.url`` for the native TLS JDBC URL, including ``SSL=true`` and ``SSLTrustStorePath`` as appropriate.
 If not set, the normal host/port/catalog/schema is used. This mode uses no shared authentication secret. The receiving
 listener must restrict callers by authenticated workload identity: these headers and the ``geomesa`` name are assertions,
 not credentials. Do not expose this listener through an untrusted/public ingress.

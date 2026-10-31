@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * would require integrating these paths and per-request authorization with its SQL dialect and connection handling.
  * Filter simplification and splitting reuse GeoTools visitors independently of the datastore base class. Because the
  * forwarded authorizations are fixed on a connection at creation, connections are pooled keyed by the normalized
- * auth set ({@link ConnectionPool}): requests with the same effective auths reuse connections (see {@link #connect(List)}).
+ * auth set ({@link ConnectionPool}): requests with the same effective auths reuse connections (see {@link #connect(DelegatedIdentity)}).
  * Delegation instead emits configured user/groups/auths headers on dedicated, unpooled connections.
  */
 public class TrinoDataStore extends ContentDataStore {
@@ -51,7 +51,7 @@ public class TrinoDataStore extends ContentDataStore {
 
     /** Default Trino connection user — a dedicated service account. The datastore
      *  is the trusted intermediary: it forwards each caller's authorizations to
-     *  Trino per query as an extra credential (see {@link #connect(List)}), so the
+     *  Trino per query as an extra credential (see {@link #connect(DelegatedIdentity)}), so the
      *  connector's row filter enforces the real per-request auths rather than a
      *  blanket service-account grant. Override via the {@code user} connection param. */
     static final String DEFAULT_USER = "geomesa";
@@ -86,7 +86,7 @@ public class TrinoDataStore extends ContentDataStore {
     private Map<String, String> cachedTypeNames;
     private long cachedTypeNamesExpiry = 0L;
 
-    /** Connections keyed by normalized auth set — see {@link #connect(List)}. */
+    /** Connections keyed by normalized auth set — see {@link #connect(DelegatedIdentity)}. */
     private final ConnectionPool pool = new ConnectionPool(this::openConnection);
 
     TrinoDataStore(String host, int port, String catalog, String schema,
@@ -131,33 +131,36 @@ public class TrinoDataStore extends ContentDataStore {
     /** Null when no security params were supplied (filtering disabled). */
     AuthorizationsProvider authProvider() { return authProvider; }
 
+    /**
+     * Metadata connection - uses the system user, with no auths.
+     * Type names, etc are cached and shared between users, so don't make user-specific calls here.
+     *
+     * @return connection
+     * @throws SQLException on error
+     */
     Connection connect() throws SQLException {
         if (delegation) {
-            // Delegated identities use dedicated connections, never the authorization-only pool
-            // for background discovery, the auth provider must handle setting the system-level user correctly.
-            var user = authProvider.currentUser();
-            if (user == null) {
-                throw new SQLException("Delegated identity is missing");
-            }
-            return delegatedConnection(user);
+            return delegatedConnection(new DelegatedIdentity(user, Set.of(), Set.of()));
         }
         return pool.borrow(null);
     }
 
-    Connection connect(List<String> auths) throws SQLException {
+    /**
+     * Query connection - uses the current user
+     *
+     * @param user current user
+     * @return connection
+     * @throws SQLException on error
+     */
+    Connection connect(DelegatedIdentity user) throws SQLException {
         if (delegation) {
             // Delegated identities use dedicated connections, never the authorization-only pool
-            var user = authProvider.currentUser();
             if (user == null) {
                 throw new SQLException("Delegated identity is missing");
             }
-            if (auths != null) {
-                // Data connections must honor any configured authorization ceiling
-                user = new DelegatedIdentity(user.user(), user.groups(), auths);
-            }
             return delegatedConnection(user);
         }
-        return pool.borrow(auths);
+        return pool.borrow(user == null ? null : List.copyOf(user.auths()));
     }
 
     private Connection delegatedConnection(DelegatedIdentity identity) throws SQLException {
