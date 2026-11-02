@@ -199,7 +199,7 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
     $ echo 'export GEOMESA_HBASE_HOME=/path/to/geomesa-hbase_{{scala_binary_version}}-{{release}}' >> ~/.bashrc
     $ echo 'export PATH=${GEOMESA_HBASE_HOME}/bin:$PATH' >> ~/.bashrc
     $ source ~/.bashrc
-    $ which geomesa-hbae
+    $ which geomesa-hbase
 
 Running Commands
 ^^^^^^^^^^^^^^^^
