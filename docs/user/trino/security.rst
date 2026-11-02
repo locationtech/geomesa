@@ -196,3 +196,32 @@ catalog reachable through a view must enforce its own row-level visibility filte
 querying user. For example, a trino connector pointing at PostGIS must be configured (and PostGIS configured) to
 ensure visibility filtering (see :ref:`data_security`). **A catalog that does not enforce visibility filtering must not
 be attached to a view on the spatial_iceberg connector that is intended to perform visibility filtering.**
+
+.. _trino_auth_delegation:
+
+Delegated authorization
+-----------------------
+
+The Trino data store supports emitting headers to the Trino cluster for authentication. Setting the parameter
+``trino.delegation.enabled=true`` emits user, groups and auths headers from a ``DelegatedIdentity`` provided by the
+configured ``AuthorizationsProvider``. The identity contains only the user ID and immutable groups/auths sets. Header
+names have no defaults and must be supplied through these datastore parameters:
+
+* ``trino.delegation.user-header``: header containing the user ID.
+* ``trino.delegation.groups-header``: header containing the comma-separated groups.
+* ``trino.delegation.auths-header``: header containing the comma-separated auths.
+
+All three names must be valid HTTP header names and distinct (case-insensitively). They must match the receiving Trino
+header mapper in order to be effective. The datastore maps identity fields to those configured names.
+
+The groups and auths use comma-separated values. Since JDBC extraHeaders cannot carry spaces, semicolons, or non-ASCII
+characters, those values will fail at runtime. Empty grant headers are omitted on the JDBC wire and map to empty sets.
+The driver session user matches the delegated user. Every delegated connection is newly opened and closed by its caller,
+including metadata reads; the auth-set pool is not used when delegation is enabled. Data queries without the full
+identity context fail. For metadata queries (e.g. layer discovery), the value of the ``trino.user`` parameter is passed
+as the user, with empty groups and auths.
+
+Use ``trino.delegation.url`` for the native TLS JDBC URL, including ``SSL=true`` and ``SSLTrustStorePath`` as appropriate.
+If not set, the normal host/port/catalog/schema is used. This mode uses no shared authentication secret. The receiving
+listener must restrict callers by authenticated workload identity: these headers and the ``geomesa`` name are assertions,
+not credentials. Do not expose this listener through an untrusted/public ingress.

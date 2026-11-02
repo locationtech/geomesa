@@ -18,6 +18,7 @@ Parameter                           Type   Description
 ``geomesa.security.auths-secret``   String Shared secret presented to Trino as the 'secret' extra credential; must match the
                                            catalog's secret
 ``geomesa.security.*``                     See :ref:`trino_security`
+``trino.delegation.*``                     See :ref:`trino_auth_delegation`
 ``geomesa.metrics.registry``        String Specify the type of registry used to publish metrics. Must be one of ``none``,
                                            ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.
 ``geomesa.metrics.registry.config`` String Override the default registry config. See :ref:`geomesa_metrics` for configuration

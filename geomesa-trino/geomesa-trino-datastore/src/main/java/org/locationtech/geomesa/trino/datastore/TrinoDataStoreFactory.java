@@ -53,6 +53,18 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
                 + "when Trino-layer visibility enforcement is active on the catalog.",
             false, TrinoDataStore.DEFAULT_USER);
 
+    public static final Param DELEGATION = new Param("trino.delegation.enabled", Boolean.class,
+        "Emit delegated user/groups/auths on dedicated connections to a workload-restricted Trino listener", false, false);
+
+    public static final Param DELEGATION_URL = new Param("trino.delegation.url", String.class,
+        "Optional JDBC URL for delegated query and metadata connections, including TLS settings", false);
+    public static final Param DELEGATION_USER_HEADER = new Param("trino.delegation.user-header", String.class,
+        "User header name; required when delegation is enabled", false);
+    public static final Param DELEGATION_GROUPS_HEADER = new Param("trino.delegation.groups-header", String.class,
+        "Groups header name; required when delegation is enabled", false);
+    public static final Param DELEGATION_AUTHS_HEADER = new Param("trino.delegation.auths-header", String.class,
+        "Auths header name; required when delegation is enabled", false);
+
     /** Comma-delimited superset of authorizations to use for queries. */
     public static final Param AUTHS = new Param("geomesa.security.auths", String.class,
         "Comma-delimited superset of authorizations to be used for queries", false);
@@ -90,7 +102,9 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
      * @return parameter descriptors
      */
     @Override public Param[] getParametersInfo() {
-        return new Param[]{HOST, PORT, SCHEMA, USER, AUTHS, SECRET, METRICS_REGISTRY_PARAM, METRICS_REGISTRY_CONFIG_PARAM, NAMESPACE};
+        return new Param[]{HOST, PORT, SCHEMA, USER, AUTHS, SECRET, DELEGATION, DELEGATION_URL,
+            DELEGATION_USER_HEADER, DELEGATION_GROUPS_HEADER, DELEGATION_AUTHS_HEADER,
+            METRICS_REGISTRY_PARAM, METRICS_REGISTRY_CONFIG_PARAM, NAMESPACE};
     }
 
     /**
@@ -134,6 +148,9 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
         var metrics = metricsOpt.isDefined() ? metricsOpt.get() : null;
         TrinoDataStore ds =
             new TrinoDataStore(host, port, catalog, schema, authProvider, user, secret, metrics);
+        ds.configureDelegation(Boolean.TRUE.equals(DELEGATION.lookUp(params)), (String) DELEGATION_URL.lookUp(params),
+            (String) DELEGATION_USER_HEADER.lookUp(params), (String) DELEGATION_GROUPS_HEADER.lookUp(params),
+            (String) DELEGATION_AUTHS_HEADER.lookUp(params));
         String namespace = (String) NAMESPACE.lookUp(params);
         if (namespace != null && !namespace.isBlank()) {
             ds.setNamespaceURI(namespace);

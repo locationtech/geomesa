@@ -49,6 +49,13 @@ prevents GeoServer from providing SQL views and SQL virtual tables against the s
 runtime instance types. If necessary, the underlying data store can be accessed by checking for
 ``org.geotools.data.store.DecoratingDataStore`` and using the ``isWrapperFor`` / ``unwrap`` methods.
 
+``AuthorizationsProvider`` API Update
+-------------------------------------
+
+The ``org.locationtech.geomesa.security.AuthorizationsProvider`` API has been updated to add additional user information
+(name and groups) that may be useful for authorization. Currently only the Trino data store makes use of this extra
+information.
+
 Removal of ``geomesa-site.xml``
 -------------------------------
 
@@ -98,8 +105,8 @@ The following dependencies have been upgraded:
 * typesafe-config ``1.4.3`` -> ``1.4.9``
 * zookeeper ``3.9.3`` -> ``3.9.5``
 
-StrategyDecider API Update
---------------------------
+``StrategyDecider`` API Update
+------------------------------
 
 The ``org.locationtech.geomesa.index.planning.StrategyDecider`` API has been changed slightly to provide more context for
 implementations to use. The old API method has been deprecated and will be removed in a future version.

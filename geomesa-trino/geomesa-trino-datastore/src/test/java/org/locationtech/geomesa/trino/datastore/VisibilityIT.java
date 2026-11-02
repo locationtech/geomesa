@@ -144,7 +144,7 @@ class VisibilityIT {
     /**
      * Auths are fail-closed end-to-end: an UNCONFIGURED store (no geomesa.security
      * params) behaves exactly like a store with explicit empty auths — both see
-     * only the null-visibility rows (see {@code TrinoDataStore.connect(List)}:
+     * only the null-visibility rows (see {@code TrinoDataStore.connect(DelegatedIdentity)}:
      * null/empty auths forward no credential, so the caller sees only unrestricted
      * rows). Granting auths then widens the result set tier by tier.
      *
