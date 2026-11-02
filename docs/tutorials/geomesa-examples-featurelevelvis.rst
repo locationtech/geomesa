@@ -119,7 +119,7 @@ Looking at the Code
 -------------------
 
 The source code is meant to be accessible for this tutorial. The main logic is contained in
-``org.geomesa.example.accumulo.vis.FeatureLevelVisibilityTutoriall`` in the
+``org.geomesa.example.accumulo.vis.FeatureLevelVisibilityTutorial`` in the
 ``geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-feature-level-vis`` module. Some relevant methods are:
 
 -  ``getSimpleFeatureType`` add an extra attribute to the base GDELT feature type
