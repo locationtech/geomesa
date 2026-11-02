@@ -261,4 +261,4 @@ the GeoMesa JAR there:
 .. code-block:: shell
 
     hadoop fs -mkdir /hbase/lib
-    hadoop fs -put geomesa-hbase-distributed-runtime-hbase2-{{scala_binary_version}}-{{release}}.jar /hbase/lib/
+    hadoop fs -put geomesa-hbase-distributed-runtime-hbase2_{{scala_binary_version}}-{{release}}.jar /hbase/lib/

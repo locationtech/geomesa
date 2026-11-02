@@ -45,7 +45,7 @@ NiFi installation. There two common NAR files, and seven datastore-specific NAR 
 Common NAR files:
 
 * ``geomesa-datastore-services-api-nar_{{scala_binary_version}}-{{release}}.nar``
-* ``geomesa-datastore-services-nar_{{scala_binary_version}}-{{release}}_.nar``
+* ``geomesa-datastore-services-nar_{{scala_binary_version}}-{{release}}.nar``
 
 Datastore NAR files:
 
