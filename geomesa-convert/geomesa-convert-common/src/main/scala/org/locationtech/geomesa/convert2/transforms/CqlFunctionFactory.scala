@@ -13,7 +13,7 @@ import org.geotools.api.filter.expression.PropertyName
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.convert2.transforms.CqlFunctionFactory.{CqlTransformerFunction, arrayIndexProperty}
+import org.locationtech.geomesa.convert2.transforms.CqlFunctionFactory.{CqlTransformerFunction, DeferredCqlTransformerFunction, arrayIndexProperty}
 import org.locationtech.geomesa.convert2.transforms.Expression.Literal
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 
@@ -37,7 +37,11 @@ class CqlFunctionFactory extends TransformerFunctionFactory with LazyLogging {
       }
       names.foreach { f =>
         val name = f.getFunctionName.toString
-        builder += new CqlTransformerFunction(name, f.getArguments.size())
+        val expressions = Array.tabulate(f.getArguments.size())(arrayIndexProperty)
+        try { builder += new CqlTransformerFunction(name, expressions) } catch {
+          // Some CQL functions require literal arguments, which are unavailable during function discovery.
+          case _: Exception => builder += new DeferredCqlTransformerFunction(name, f.getArguments.size())
+        }
       }
     }
     builder.result()
@@ -51,29 +55,37 @@ object CqlFunctionFactory {
   // use alphas for the array indices, as used by the ArrayPropertyAccessor, below
   private def arrayIndexProperty(i: Int): PropertyName = ff.property(('a' + i).toChar.toString)
 
-  class CqlTransformerFunction(name: String,
-                               argCount: Int,
-                               expressions: Option[Array[_ <: org.geotools.api.filter.expression.Expression]] = None)
+  private def cqlExpressions(args: List[Expression], argCount: Int) = {
+    Array.tabulate(argCount) { i =>
+      if (i < args.length && args(i).isInstanceOf[Literal[_]]) {
+        ff.literal(args(i).asInstanceOf[Literal[_]].value)
+      } else {
+        arrayIndexProperty(i)
+      }
+    }
+  }
+
+  class CqlTransformerFunction(name: String, expressions: Array[_ <: org.geotools.api.filter.expression.Expression])
       extends NamedTransformerFunction(Seq(s"cql:$name")) {
 
-    def this(name: String, expressions: Array[_ <: org.geotools.api.filter.expression.Expression]) =
-      this(name, expressions.length, Some(expressions))
+    private val fn = ff.function(name, expressions: _*)
 
-    // Some CQL functions require literal arguments, so initialize them after parsing the converter expression.
-    private val fn = expressions.map(e => ff.function(name, e: _*))
-
-    override def apply(args: Array[AnyRef]): AnyRef = fn.get.evaluate(args)
+    override def apply(args: Array[AnyRef]): AnyRef = fn.evaluate(args)
 
     override def getInstance(args: List[Expression]): CqlTransformerFunction = {
       // remap literals to cql literals so that they can be optimized (e.g. prepared geometries, etc)
-      val expressions = Array.tabulate(argCount) { i =>
-        if (i < args.length && args(i).isInstanceOf[Literal[_]]) {
-          ff.literal(args(i).asInstanceOf[Literal[_]].value)
-        } else {
-          arrayIndexProperty(i)
-        }
-      }
-      new CqlTransformerFunction(name, argCount, Some(expressions))
+      new CqlTransformerFunction(name, cqlExpressions(args, fn.getFunctionName.getArguments.size()))
+    }
+  }
+
+  private class DeferredCqlTransformerFunction(name: String, argCount: Int)
+      extends NamedTransformerFunction(Seq(s"cql:$name")) {
+
+    override def apply(args: Array[AnyRef]): AnyRef =
+      throw new UnsupportedOperationException(s"CQL function '$name' must be initialized with converter arguments")
+
+    override def getInstance(args: List[Expression]): CqlTransformerFunction = {
+      new CqlTransformerFunction(name, cqlExpressions(args, argCount))
     }
   }
 
