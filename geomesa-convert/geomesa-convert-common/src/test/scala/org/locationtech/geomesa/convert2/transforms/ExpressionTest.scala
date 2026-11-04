@@ -769,6 +769,11 @@ class ExpressionTest extends Specification {
       exp.apply(Array(null, "POINT(27.8 31.1)")) mustEqual true
       exp.apply(Array(null, "POINT(1 1)")) mustEqual false
     }
+    "support cql functions with literal-only arguments" >> {
+      val exp = Expression("cql:isVisible('A', $1)")
+      exp.apply(Array(null, "A")) mustEqual true
+      exp.apply(Array(null, "B")) mustEqual false
+    }
     "convert stringToDouble zero default" >> {
       val exp = Expression("stringToDouble($1, 0.0)")
       exp.apply(Array("", "1.2")) mustEqual 1.2
