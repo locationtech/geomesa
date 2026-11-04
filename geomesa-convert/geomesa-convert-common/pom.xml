@@ -66,6 +66,11 @@
             <artifactId>gt-epsg-hsql</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-security_${scala.binary.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

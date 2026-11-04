@@ -37,10 +37,7 @@ class CqlFunctionFactory extends TransformerFunctionFactory with LazyLogging {
       }
       names.foreach { f =>
         val name = f.getFunctionName.toString
-        val expressions = Array.tabulate(f.getArguments.size())(arrayIndexProperty)
-        try { builder += new CqlTransformerFunction(name, expressions) } catch {
-          case e: Exception => logger.warn(s"Couldn't create cql function '$name': ${e.toString}")
-        }
+        builder += new CqlTransformerFunction(name, f.getArguments.size())
       }
     }
     builder.result()
@@ -54,23 +51,29 @@ object CqlFunctionFactory {
   // use alphas for the array indices, as used by the ArrayPropertyAccessor, below
   private def arrayIndexProperty(i: Int): PropertyName = ff.property(('a' + i).toChar.toString)
 
-  class CqlTransformerFunction(name: String, expressions: Array[_ <: org.geotools.api.filter.expression.Expression])
+  class CqlTransformerFunction(name: String,
+                               argCount: Int,
+                               expressions: Option[Array[_ <: org.geotools.api.filter.expression.Expression]] = None)
       extends NamedTransformerFunction(Seq(s"cql:$name")) {
 
-    private val fn = ff.function(name, expressions: _*)
+    def this(name: String, expressions: Array[_ <: org.geotools.api.filter.expression.Expression]) =
+      this(name, expressions.length, Some(expressions))
 
-    override def apply(args: Array[AnyRef]): AnyRef = fn.evaluate(args)
+    // Some CQL functions require literal arguments, so initialize them after parsing the converter expression.
+    private val fn = expressions.map(e => ff.function(name, e: _*))
+
+    override def apply(args: Array[AnyRef]): AnyRef = fn.get.evaluate(args)
 
     override def getInstance(args: List[Expression]): CqlTransformerFunction = {
       // remap literals to cql literals so that they can be optimized (e.g. prepared geometries, etc)
-      val expressions = Array.tabulate(fn.getFunctionName.getArguments.size()) { i =>
+      val expressions = Array.tabulate(argCount) { i =>
         if (i < args.length && args(i).isInstanceOf[Literal[_]]) {
           ff.literal(args(i).asInstanceOf[Literal[_]].value)
         } else {
           arrayIndexProperty(i)
         }
       }
-      new CqlTransformerFunction(name, expressions)
+      new CqlTransformerFunction(name, argCount, Some(expressions))
     }
   }
 
