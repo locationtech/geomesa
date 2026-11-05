@@ -27,10 +27,11 @@ import org.geotools.jdbc.{JDBCDataStore, JDBCFeatureSource, SQLDialect}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.auths.SessionDataSource
 import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.PgVis
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
-import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.security.{AuthorizationsProvider, HasAuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.json.JsonPathPropertyNameResolver
@@ -59,7 +60,7 @@ import scala.util.control.NonFatal
  *
  * @param delegate wrapped jdbc data store
  */
-class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDataStore(delegate) {
+class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDataStore(delegate) with HasAuthorizationsProvider {
 
   import PartitionedPostgisDataStore._
   import PartitionedPostgisDialect.VisCol
@@ -84,6 +85,8 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore) extends DecoratingDat
           }
         }
       })
+
+  override val authProvider: AuthorizationsProvider = delegate.getDataSource.asInstanceOf[SessionDataSource].provider
 
   // pass-through methods for jdbc ops
   def dialect: SQLDialect = delegate.dialect

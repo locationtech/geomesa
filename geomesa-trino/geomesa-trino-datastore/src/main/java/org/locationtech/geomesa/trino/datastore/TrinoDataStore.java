@@ -15,6 +15,7 @@ import org.geotools.data.store.ContentFeatureSource;
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory;
 import org.locationtech.geomesa.security.AuthorizationsProvider;
 import org.locationtech.geomesa.security.DelegatedIdentity;
+import org.locationtech.geomesa.security.HasAuthorizationsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
  * auth set ({@link ConnectionPool}): requests with the same effective auths reuse connections (see {@link #connect(DelegatedIdentity)}).
  * Delegation instead emits configured user/groups/auths headers on dedicated, unpooled connections.
  */
-public class TrinoDataStore extends ContentDataStore {
+public class TrinoDataStore extends ContentDataStore implements HasAuthorizationsProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrinoDataStore.class);
     private static final long TYPE_NAMES_TTL_MILLIS = TimeUnit.SECONDS.toMillis(60);
@@ -128,8 +129,7 @@ public class TrinoDataStore extends ContentDataStore {
         return name.toLowerCase(Locale.ROOT);
     }
 
-    /** Null when no security params were supplied (filtering disabled). */
-    AuthorizationsProvider authProvider() { return authProvider; }
+    public AuthorizationsProvider authProvider() { return authProvider; }
 
     /**
      * Metadata connection - uses the system user, with no auths.

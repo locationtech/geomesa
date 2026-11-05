@@ -54,7 +54,6 @@ class MergedQueryRunner(
     stores: Seq[MergedSource[Queryable]],
     deduplicate: Boolean,
     parallel: Boolean,
-    decorator: TaskDecorator = new TaskDecorator(None),
   ) extends QueryRunner with LazyLogging {
 
   import MergedQueryRunner.openReaders
@@ -140,7 +139,7 @@ class MergedQueryRunner(
       readers: Iterator[CloseableIterator[SimpleFeature]],
       copyFeatures: Boolean = false): CloseableIterator[SimpleFeature] = {
     if (parallel) {
-      new ParallelScanIterator(openReaders(readers), decorator, copyFeatures, 32768)
+      new ParallelScanIterator(openReaders(readers), stores.map(_.decorator), copyFeatures, 32768)
     } else {
       CloseableIterator(readers).flatMap(i => i)
     }
@@ -189,7 +188,7 @@ object MergedQueryRunner {
 
   private class ParallelScanIterator(
       readers: Seq[CloseableIterator[SimpleFeature]],
-      decorator: TaskDecorator,
+      decorators: Seq[TaskDecorator],
       copyFeatures: Boolean,
       batchSize: Int,
     ) extends CloseableIterator[SimpleFeature] {
@@ -200,7 +199,7 @@ object MergedQueryRunner {
 
     private val ex = new CachedThreadPool(readers.length)
     private val tasks = {
-      val tasks = readers.map(r => ex.submit(decorator(new ParallelScanTask(r))))
+      val tasks = readers.zip(decorators).map { case (r, decorator) => ex.submit(decorator(new ParallelScanTask(r))) }
       ex.shutdown()
       tasks
     }
