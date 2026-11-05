@@ -17,8 +17,8 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, Sta
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, Stat}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.MergedSourceSft
-import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -30,13 +30,11 @@ import java.util.concurrent.CopyOnWriteArrayList
  *
  * @param stores data stores
  * @param parallel parallel execution or serial
- * @param decorator task decorator for parallel tasks
  */
-class MergedStats(stores: Seq[MergedSource[DataStore]], parallel: Boolean, decorator: TaskDecorator)
-  extends GeoMesaStats {
+class MergedStats(stores: Seq[MergedSource[DataStore]], parallel: Boolean) extends GeoMesaStats {
 
-  import org.locationtech.geomesa.index.view.MergedStats.{MergedStatWriter, StatsWithSchemas}
   import org.locationtech.geomesa.index.view.MergedStats.StatsWithSchemas.StatsWithSchemasSft
+  import org.locationtech.geomesa.index.view.MergedStats.{MergedStatWriter, StatsWithSchemas}
 
   import scala.collection.JavaConverters._
 
@@ -44,7 +42,7 @@ class MergedStats(stores: Seq[MergedSource[DataStore]], parallel: Boolean, decor
   private implicit val ev: MergedSourceSft[StatsWithSchemas] = StatsWithSchemasSft
 
   private val stats: Seq[MergedSource[StatsWithSchemas]] = stores.map {
-    case s@MergedSource(stats: HasGeoMesaStats, _, _, _) => s.copy(StatsWithSchemas(stats.stats, s.source))
+    case s@MergedSource(stats: HasGeoMesaStats, _, _, _, _) => s.copy(StatsWithSchemas(stats.stats, s.source))
     case s => s.copy(StatsWithSchemas(new UnoptimizedRunnableStats(s.source), s.source))
   }
 
@@ -60,7 +58,7 @@ class MergedStats(stores: Seq[MergedSource[DataStore]], parallel: Boolean, decor
 
     if (parallel) {
       val results = new CopyOnWriteArrayList[Long]()
-      stats.toList.map(s => CachedThreadPool.submit(decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
+      stats.toList.map(s => CachedThreadPool.submit(s.decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
       results.asScala.reduceLeftOption(_ + _)
     } else {
       stats.flatMap(getSingle).reduceLeftOption(_ + _)
@@ -81,7 +79,7 @@ class MergedStats(stores: Seq[MergedSource[DataStore]], parallel: Boolean, decor
 
     if (parallel) {
       val results = new CopyOnWriteArrayList[MinMax[T]]()
-      stats.toList.map(s => CachedThreadPool.submit(decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
+      stats.toList.map(s => CachedThreadPool.submit(s.decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
       results.asScala.reduceLeftOption(_ + _)
     } else {
       stats.flatMap(getSingle).reduceLeftOption(_ + _)
@@ -149,7 +147,7 @@ class MergedStats(stores: Seq[MergedSource[DataStore]], parallel: Boolean, decor
     val now = Instant.now()
     if (parallel) {
       val results = new CopyOnWriteArrayList[Option[T]]()
-      stats.toList.map(s => CachedThreadPool.submit(decorator(() => results.add(query(s.source.stats, s.filter(typeName, filter, now)))))).foreach(_.get)
+      stats.toList.map(s => CachedThreadPool.submit(s.decorator(() => results.add(query(s.source.stats, s.filter(typeName, filter, now)))))).foreach(_.get)
       results.asScala.reduceLeft((res, next) => for { r <- res; n <- next } yield { (r + n).asInstanceOf[T] })
     } else {
       // lazily evaluate each stat as we only return Some if all the child stores do

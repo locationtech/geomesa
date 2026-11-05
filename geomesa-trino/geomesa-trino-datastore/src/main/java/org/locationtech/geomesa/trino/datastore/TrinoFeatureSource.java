@@ -36,7 +36,6 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.geomesa.filter.FilterHelper;
 import org.locationtech.geomesa.index.conf.QueryHints;
 import org.locationtech.geomesa.index.geoserver.ViewParams;
-import org.locationtech.geomesa.security.AuthorizationsProvider;
 import org.locationtech.geomesa.security.DelegatedIdentity;
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty;
 import org.locationtech.geomesa.utils.geotools.AttributeExtractingVisitor;
@@ -658,16 +657,11 @@ class TrinoFeatureSource extends ContentFeatureSource {
     }
 
     private DelegatedIdentity user() {
-        AuthorizationsProvider provider = trinoStore.authProvider();
-        if (provider == null) {
-            return null;
-        }
-        return provider.currentUser();
+        return trinoStore.authProvider().currentUser();
     }
 
-    /** Non-null iff security params are configured AND the table has a visibility
-     *  column. Auths are fetched per query (per-request providers). */
-    private VisibilityContext visibility(DelegatedIdentity user) throws IOException {
+    /** Non-null the table has a visibility column. Auths are fetched per query (per-request providers). */
+    private VisibilityContext visibility(DelegatedIdentity user) {
         if (user == null) {
             return null;
         }

@@ -79,6 +79,8 @@ Authorizations are a list of tags, corresponding to the visibility label tags be
 user might have an authorization of ``user``, while an admin user might have an authorization of ``admin,user``.
 Authorizations are simple string matches. They can be thought of as roles, although there is no hierarchy.
 
+.. _auth_providers:
+
 Authorizations Providers
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -108,7 +110,19 @@ Providers must implement the following interface:
          *
          * @return current user, not null
          */
-        DelegatedIdentity currentUser();
+        default DelegatedIdentity currentUser() {
+            return DelegatedIdentity.anonymous(getAuthorizations());
+        }
+
+        /**
+         * Wrap a runnable in order to propagate authorizations to a separate thread
+         *
+         * @param r the function argument
+         * @return a runnable with propagated authorizations
+         */
+        default Runnable apply(Runnable r) {
+            return r;
+        }
 
         /**
          * Configures this instance with parameters passed into the DataStoreFinder

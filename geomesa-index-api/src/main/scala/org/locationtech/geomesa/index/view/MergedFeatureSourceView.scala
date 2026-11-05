@@ -18,7 +18,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
-import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource
 import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
@@ -33,14 +33,12 @@ import java.util.concurrent.CopyOnWriteArrayList
  * @param ds data store
  * @param sources delegate feature sources
  *  @param parallel scan stores in parallel (vs sequentially)
- * @param decorator parallel task decorator
  * @param sft simple feature type
  */
 class MergedFeatureSourceView(
     ds: MergedDataStoreView,
     sources: Seq[MergedSource[SimpleFeatureSource]],
     parallel: Boolean,
-    decorator: TaskDecorator,
     sft: SimpleFeatureType
   ) extends SimpleFeatureSource with LazyLogging {
 
@@ -59,7 +57,7 @@ class MergedFeatureSourceView(
         def getSingle(source: MergedSource[SimpleFeatureSource]): Int = source.source.getCount(source.filter(query, now))
 
         val results = new CopyOnWriteArrayList[Int]()
-        sources.toList.map(s => CachedThreadPool.submit(decorator(() => results.add(getSingle(s))))).foreach(_.get)
+        sources.toList.map(s => CachedThreadPool.submit(s.decorator(() => results.add(getSingle(s))))).foreach(_.get)
         results.asScala.foldLeft(0)((sum, count) => if (sum < 0 || count < 0) { -1 } else { sum + count })
       } else {
         // if one of our sources can't get a count (i.e. is negative), give up and return -1
@@ -84,7 +82,7 @@ class MergedFeatureSourceView(
 
     val sourceBounds = if (parallel) {
       val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
-      sources.toList.map(s => CachedThreadPool.submit(decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
+      sources.toList.map(s => CachedThreadPool.submit(s.decorator(() => getSingle(s).foreach(results.add)))).foreach(_.get)
       results.asScala
     } else {
       sources.flatMap(getSingle)
