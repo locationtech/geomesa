@@ -12,7 +12,6 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.apache.accumulo.access.{Access, AccessEvaluator}
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.capability.FunctionName
-import org.geotools.api.filter.expression.Expression
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
@@ -27,26 +26,17 @@ import scala.util.Try
  */
 class IsVisibleFilterFunction extends FunctionExpressionImpl(IsVisibleFilterFunction.Name) {
 
-  private var auths: String = _
-  private var expression: Expression = _
-
-  override def setParameters(params: java.util.List[Expression]): Unit = {
-    super.setParameters(params)
-    this.auths = params.get(0).evaluate(null, classOf[String])
-    if (auths == null) {
-      throw new IllegalArgumentException(s"Function $name first argument must be a literal string, got: ${params.get(0)}")
-    }
-    expression = params.get(1)
-  }
-
   override def evaluate(obj: Object): Object = {
-    val vis = expression.evaluate(obj).asInstanceOf[String]
+    val vis = getExpression(1).evaluate(obj).asInstanceOf[String]
     if (vis == null || vis.isBlank) {
       java.lang.Boolean.TRUE
-    } else if (auths.isBlank) {
-      java.lang.Boolean.FALSE
     } else {
-      IsVisibleFilterFunction.visibilityCache.get(auths -> vis)
+      val auths = getExpression(0).evaluate(obj, classOf[String])
+      if (auths == null || auths.isBlank) {
+        java.lang.Boolean.FALSE
+      } else {
+        IsVisibleFilterFunction.visibilityCache.get(auths -> vis)
+      }
     }
   }
 }

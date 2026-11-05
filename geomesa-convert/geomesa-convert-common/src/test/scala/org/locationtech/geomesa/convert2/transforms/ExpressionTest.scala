@@ -762,12 +762,21 @@ class ExpressionTest extends Specification {
       // note: area is not particularly close as there aren't very many points in the polygon
       buf.asInstanceOf[Polygon].getArea must beCloseTo(math.Pi * 4.0, 0.2)
     }
+    "support direct CQL function evaluation" >> {
+      val buffer = TransformerFunction.functions("cql:buffer")
+      buffer.apply(Array("POINT(1 1)", Double.box(2.0))) must beAnInstanceOf[Polygon]
+    }
     "pass literals through to cql functions" >> {
       val exp = Expression("cql:intersects(geometry('POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))'), $1)")
       exp must beAnInstanceOf[FunctionExpression]
       exp.asInstanceOf[FunctionExpression].arguments.headOption must beSome(beAnInstanceOf[Literal[_]])
       exp.apply(Array(null, "POINT(27.8 31.1)")) mustEqual true
       exp.apply(Array(null, "POINT(1 1)")) mustEqual false
+    }
+    "support cql functions with literal-only arguments" >> {
+      val exp = Expression("cql:isVisible('A', $1)")
+      exp.apply(Array(null, "A")) mustEqual true
+      exp.apply(Array(null, "B")) mustEqual false
     }
     "convert stringToDouble zero default" >> {
       val exp = Expression("stringToDouble($1, 0.0)")
