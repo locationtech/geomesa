@@ -89,6 +89,15 @@ class VisibilityFilterFunctionTest extends Specification {
         filter(Some("name")).evaluate(featureWithAttribute("ADMIN&USER")) must beFalse
       }
     }
+    "evaluate authorization expressions" in {
+      val isVisible = ff2.function(
+        IsVisibleFilterFunction.Name.getFunctionName,
+        ff2.property("name"),
+        ff2.literal("ADMIN"))
+      val filter = ff2.equals(isVisible, ff2.literal(true))
+      filter.evaluate(featureWithAttribute("ADMIN")) must beTrue
+      filter.evaluate(featureWithAttribute("USER")) must beFalse
+    }
   }
 }
 
