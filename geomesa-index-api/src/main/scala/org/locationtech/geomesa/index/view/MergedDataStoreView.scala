@@ -18,8 +18,8 @@ import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues, andF
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.{MergedSourceSft, TypeOption}
-import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
 import org.locationtech.geomesa.index.view.MergedQueryRunner.{DataStoreQueryable, Queryable}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -36,31 +36,27 @@ import java.util.function.UnaryOperator
  * @param stores delegate stores
  * @param deduplicate deduplicate results across stores
  * @param parallel execute queries in parallel
- * @param taskDecorator parallel task decorator
  * @param namespace namespace
  */
 class MergedDataStoreView(
     val stores: Seq[MergedSource[DataStore]],
     deduplicate: Boolean,
     parallel: Boolean,
-    taskDecorator: Option[UnaryOperator[Runnable]] = None,
     namespace: Option[String] = None
   ) extends MergedDataStoreSchemas(stores.map(_.source), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 
   require(stores.nonEmpty, "No delegate stores configured")
 
-  private val decorator = new TaskDecorator(taskDecorator)
-
   private[view] val runner =
-    new MergedQueryRunner(this, stores.map(s => s.copy[Queryable](DataStoreQueryable(s.source))), deduplicate, parallel, decorator)
+    new MergedQueryRunner(this, stores.map(s => s.copy[Queryable](DataStoreQueryable(s.source))), deduplicate, parallel)
 
-  override val stats: GeoMesaStats = new MergedStats(stores, parallel, decorator)
+  override val stats: GeoMesaStats = new MergedStats(stores, parallel)
 
   override def getFeatureSource(name: Name): SimpleFeatureSource = getFeatureSource(name.getLocalPart)
 
   override def getFeatureSource(typeName: String): SimpleFeatureSource = {
     val sources = stores.map(s => s.copy(s.source.getFeatureSource(typeName)))
-    new MergedFeatureSourceView(this, sources, parallel, decorator, getSchema(typeName))
+    new MergedFeatureSourceView(this, sources, parallel, getSchema(typeName))
   }
 
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader =
@@ -134,7 +130,12 @@ object MergedDataStoreView extends LazyLogging {
    * @param to end date filter, keyed by type name
    * @tparam T type binding
    */
-  case class MergedSource[T](source: T, sourceFilter: TypeOption[Filter], from: TypeOption[DateFilter], to: TypeOption[DateFilter]) {
+  case class MergedSource[T](
+      source: T,
+      sourceFilter: TypeOption[Filter] = TypeOption.empty,
+      from: TypeOption[DateFilter] = TypeOption.empty,
+      to: TypeOption[DateFilter] = TypeOption.empty,
+      decorator: TaskDecorator = new TaskDecorator(None)) {
 
     import FilterHelper.ff
 
@@ -203,8 +204,6 @@ object MergedDataStoreView extends LazyLogging {
   }
 
   object MergedSource {
-
-    def apply[T](source: T): MergedSource[T] = MergedSource(source, TypeOption.empty, TypeOption.empty, TypeOption.empty)
 
     /**
      * Per feature-type lookup

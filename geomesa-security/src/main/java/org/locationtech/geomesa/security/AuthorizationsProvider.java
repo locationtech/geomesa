@@ -10,11 +10,12 @@ package org.locationtech.geomesa.security;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 
 /**
  * An interface to define passing authorizations.
  */
-public interface AuthorizationsProvider {
+public interface AuthorizationsProvider extends UnaryOperator<Runnable> {
 
     String AUTH_PROVIDER_SYS_PROPERTY = "geomesa.auth.provider.impl";
 
@@ -38,6 +39,16 @@ public interface AuthorizationsProvider {
      */
     default DelegatedIdentity currentUser() {
         return DelegatedIdentity.anonymous(getAuthorizations());
+    }
+
+    /**
+     * Wrap a runnable in order to propagate authorizations to a separate thread
+     *
+     * @param r the function argument
+     * @return a runnable with propagated authorizations
+     */
+    default Runnable apply(Runnable r) {
+        return r;
     }
 
     /**

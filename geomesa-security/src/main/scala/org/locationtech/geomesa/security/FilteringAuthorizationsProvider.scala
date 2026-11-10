@@ -27,5 +27,7 @@ class FilteringAuthorizationsProvider(val wrappedProvider: AuthorizationsProvide
     new DelegatedIdentity(user.user(), user.groups(), auths)
   }
 
+  override def apply(r: Runnable): Runnable = wrappedProvider.apply(r)
+
   override def configure(params: java.util.Map[String, _]): Unit = wrappedProvider.configure(params)
 }
