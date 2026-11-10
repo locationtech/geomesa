@@ -17,8 +17,10 @@ import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.{PathFiltering, PathFilteringFactory}
 import org.locationtech.geomesa.fs.storage.converter.schemes.{NamedOptions, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.core.StorageCatalog.CatalogUpdate
 import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergCatalog, SimpleFeatureIcebergSchema}
-import org.locationtech.geomesa.fs.storage.core.{BloomFilterConfig, FileSystemStorage, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.parquet.BloomFilterConfig
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 
 import java.net.URI
@@ -114,6 +116,12 @@ class ConverterCatalog(val conf: Map[String, String]) extends StorageCatalog wit
       partitions: Seq[String],
       targetFileSize: Option[Long],
       bloomFilters: Seq[BloomFilterConfig]): FileSystemStorage =
+    throw new UnsupportedOperationException("Converter storage is read-only")
+
+  override def update(typeName: String): CatalogUpdate =
+    throw new UnsupportedOperationException("Converter storage is read-only")
+
+  override def delete(typeName: String, purge: Boolean): Unit =
     throw new UnsupportedOperationException("Converter storage is read-only")
 
   override def close(): Unit = {}
