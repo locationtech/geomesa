@@ -111,8 +111,6 @@ object PartitionedPostgisDataStoreFactory {
     }
 
     override protected def createDataSource(params: java.util.Map[String, _], dialect: SQLDialect): DataSource = {
-      val auths = AuthUtils.getProvider(params, AuthsParam.lookupOpt(params).getOrElse("").split(",").filterNot(_.isEmpty).toSeq)
-
       val dataSource = super.createDataSource(params, dialect)
 
       val metrics = MetricsRegistryParam.lookupRegistry(params).flatMap { registry =>
@@ -161,7 +159,7 @@ object PartitionedPostgisDataStoreFactory {
         }
       }
 
-      new SessionDataSource(metrics.getOrElse(dataSource), auths)
+      sessionDataSource(metrics.getOrElse(dataSource), params)
     }
 
     private def tryBindPostgresMetrics(dataSource: MetricsDataSource, params: java.util.Map[String, _]): Unit = {
@@ -185,6 +183,11 @@ object PartitionedPostgisDataStoreFactory {
       } catch {
         case NonFatal(e) => logger.warn("Error binding postgres metrics:", e)
       }
+    }
+
+    private def sessionDataSource(delegate: DataSource, params: java.util.Map[String, _]): SessionDataSource = {
+      val auths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filterNot(_.isEmpty).toSeq
+      new SessionDataSource(delegate, AuthUtils.getProvider(params, auths))
     }
 
     override def createDataSource(params: java.util.Map[String, _]): BasicDataSource = {
@@ -234,6 +237,12 @@ object PartitionedPostgisDataStoreFactory {
           ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 
         case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
+      }
+
+      // if dataSource was specified directly by a parameter, wrap it here to provide session stamping and authorizations
+      ds.getDataSource match {
+        case _: SessionDataSource => // no-op
+        case s => ds.setDataSource(sessionDataSource(s, params))
       }
 
       ds

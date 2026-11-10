@@ -15,7 +15,8 @@ import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.TypeOption
-import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource, TaskDecorator}
+import org.locationtech.geomesa.security.HasAuthorizationsProvider
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
@@ -23,7 +24,6 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 import java.awt.RenderingHints
 import java.util.function.UnaryOperator
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
 
 /**
   * Data store factory for merged view
@@ -58,6 +58,9 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 
     val namespace = NamespaceParam.lookupOpt(params)
     val nsConfig = namespace.map(ConfigValueFactory.fromAnyRef)
+    val taskDecorator = TaskDecoratorParam.lookupOpt(params)
+    val deduplicate = DeduplicateParam.lookup(params).booleanValue()
+    val parallel = ParallelScanParam.lookup(params).booleanValue()
 
     val stores = Seq.newBuilder[MergedSource[DataStore]]
     stores.sizeHint(configs.length)
@@ -77,21 +80,18 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
         val dateOffsetStart = parseTypeOptions(DateOffsetStartParam, DateFilter.apply, storeParams)
         val dateOffsetEnd = parseTypeOptions(DateOffsetEndParam, DateFilter.apply, storeParams)
 
-        Try(DataStoreFinder.getDataStore(storeParams)) match {
-          case Success(null)  => throw error
-          case Success(store) => stores += MergedSource(store, filter, dateOffsetStart, dateOffsetEnd)
-          case Failure(e)     => throw error.initCause(e)
+        val store = try { DataStoreFinder.getDataStore(storeParams) } catch { case NonFatal(e) => throw error.initCause(e) }
+        if (store == null) {
+          throw error
         }
+        val decorator = taskDecorator.orElse(Some(store).collect { case s: HasAuthorizationsProvider => s.authProvider })
+        stores += MergedSource(store, filter, dateOffsetStart, dateOffsetEnd, new TaskDecorator(decorator))
       }
     } catch {
       case NonFatal(e) => stores.result.foreach(_.source.dispose()); throw e
     }
 
-    val deduplicate = DeduplicateParam.lookup(params).booleanValue()
-    val parallel = ParallelScanParam.lookup(params).booleanValue()
-    val decorator = TaskDecoratorParam.lookupOpt(params)
-
-    new MergedDataStoreView(stores.result, deduplicate, parallel, decorator, namespace)
+    new MergedDataStoreView(stores.result, deduplicate, parallel, namespace)
   }
 
   override def getDisplayName: String = DisplayName

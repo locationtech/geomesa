@@ -52,9 +52,12 @@ runtime instance types. If necessary, the underlying data store can be accessed 
 ``AuthorizationsProvider`` API Update
 -------------------------------------
 
-The ``org.locationtech.geomesa.security.AuthorizationsProvider`` API has been updated to add additional user information
-(name and groups) that may be useful for authorization. Currently only the Trino data store makes use of this extra
-information.
+The ``org.locationtech.geomesa.security.AuthorizationsProvider`` API has been updated with two additional methods:
+
+* ``currentUser()`` adds additional user information (name and groups) that may be useful for authorization. Currently
+  only the Trino data store makes use of this extra information.
+* ``apply(Runnable r)`` supports passing authorizations into cached thread pools. Currently only the merged data store view
+  makes use of this functionality.
 
 Removal of ``geomesa-site.xml``
 -------------------------------

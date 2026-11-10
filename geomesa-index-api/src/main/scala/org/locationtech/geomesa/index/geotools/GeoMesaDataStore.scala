@@ -23,6 +23,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.planning.DataStoreQueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
+import org.locationtech.geomesa.security.{AuthorizationsProvider, HasAuthorizationsProvider}
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.conf.SemanticVersion.MinorOrdering
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, IndexId, SemanticVersion}
@@ -35,8 +36,8 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.IOException
-import java.util.{Collections, Locale}
 import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
+import java.util.{Collections, Locale}
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -47,7 +48,7 @@ import scala.util.control.NonFatal
  * @tparam DS type of this data store
  */
 abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaDataStoreConfig)
-    extends MetadataBackedDataStore(config) with HasGeoMesaStats {
+    extends MetadataBackedDataStore(config) with HasGeoMesaStats with HasAuthorizationsProvider {
 
   this: DS =>
 
@@ -58,6 +59,8 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
   private val runner = new DataStoreQueryRunner(this)
 
   val manager: IndexManager = new IndexManager(this)
+
+  override def authProvider: AuthorizationsProvider = config.authProvider
 
   // abstract methods to be implemented by subclasses
 

@@ -73,7 +73,8 @@ The parameter ``geomesa.merged.scan.parallel`` can be set to ``true`` to scan al
 instead of sequentially. When parallel scanning is enabled, the parameter ``geomesa.merged.task.decorator`` can
 be set to the fully-qualified name of a class implementing  ``java.util.function.UnaryOperator<java.lang.Runnable>``.
 The decorator will be invoked on tasks before they are passed off to a new thread. This can be used, for example, to
-propagate thread-local user authorizations.
+propagate thread-local user authorizations. If not otherwise specified, any configured :ref:`auth_providers`
+will be used to decorate tasks for the associated data store.
 
 Query Filtering
 ^^^^^^^^^^^^^^^
