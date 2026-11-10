@@ -293,7 +293,7 @@
             <plugin>
                 <groupId>io.trino</groupId>
                 <artifactId>trino-maven-plugin</artifactId>
-                <version>24</version>
+                <version>${trino.maven.plugin.version}</version>
                 <extensions>true</extensions>
             </plugin>
         </plugins>

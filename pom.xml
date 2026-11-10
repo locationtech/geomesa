@@ -201,6 +201,7 @@
         <maven.surefire.plugin.version>3.6.0</maven.surefire.plugin.version>
         <scala.maven.plugin.version>4.9.10</scala.maven.plugin.version>
         <scoverage.maven.plugin.version>2.1.5</scoverage.maven.plugin.version>
+        <trino.maven.plugin.version>26</trino.maven.plugin.version>
 
         <!-- maven properties -->
         <maven.deploy.at.end>true</maven.deploy.at.end>
