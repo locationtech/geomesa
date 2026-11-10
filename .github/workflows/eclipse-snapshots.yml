@@ -6,6 +6,10 @@ on:
       - main
       - '[0-9]+.[0-9]+.x'
   workflow_dispatch:
+  # eclipse seems to delete all snapshots on Friday night - schedule this early Saturday so that downstream jobs don't fail
+  schedule:
+    - cron: '20 1 * * 6' # At 01:20 on Saturday
+      timezone: 'America/New_York'
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
