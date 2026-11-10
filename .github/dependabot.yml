@@ -22,11 +22,19 @@ updates:
       default-days: 7
     commit-message:
       prefix: "[dependabot] "
-    allow:
-      - dependency-name: "*:*-maven-plugin"
-      - dependency-name: "org.apache.maven.plugins:*"
     groups:
+      dependencies:
+        exclude-patterns:
+          - "*:*-maven-plugin"
+          - "org.apache.maven.plugins:*"
+        update-types:
+          # note: major version bumps are not grouped, so end up in a PR per update
+          - "minor"
+          - "patch"
       plugins:
+        patterns:
+          - "*:*-maven-plugin"
+          - "org.apache.maven.plugins:*"
         update-types:
           - "major"
           - "minor"
