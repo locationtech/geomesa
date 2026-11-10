@@ -17,6 +17,7 @@ import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSo
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.{FileSystemDataStoreConfig, FileSystemDelegateDataStore}
 import org.locationtech.geomesa.fs.data.stats.FileSystemStats
+import org.locationtech.geomesa.fs.storage.core.StorageCatalog.CatalogUpdate
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.MetricsConfig
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
@@ -32,7 +33,7 @@ import scala.concurrent.duration.Duration
  * @param catalog storage catalog
  * @param config config
  */
-class FileSystemDataStore(val catalog: StorageCatalog, config: FileSystemDataStoreConfig)
+class FileSystemDataStore(catalog: StorageCatalog, config: FileSystemDataStoreConfig)
     extends DecoratingDataStore(new FileSystemDelegateDataStore(catalog, config))
       with HasGeoMesaStats with LazyLogging {
 
@@ -48,11 +49,19 @@ class FileSystemDataStore(val catalog: StorageCatalog, config: FileSystemDataSto
    */
   def storage(typeName: String): FileSystemStorage = delegate.asInstanceOf[FileSystemDelegateDataStore].storage(typeName)
 
+  /**
+   * Run a schema update operation
+   *
+   * @param typeName simple feature type name
+   * @return
+   */
+  def update(typeName: String): CatalogUpdate = delegate.asInstanceOf[FileSystemDelegateDataStore].update(typeName)
+
   override def updateSchema(typeName: Name, featureType: SimpleFeatureType): Unit =
     updateSchema(typeName.getLocalPart, featureType)
 
   override def updateSchema(typeName: String, featureType: SimpleFeatureType): Unit =
-    throw new UnsupportedOperationException("Use `catalog.update(typeName)` for schema changes")
+    throw new UnsupportedOperationException("Use `update(typeName)` for schema changes")
 
   override def dispose(): Unit = try { super.dispose() } finally { stats.close() }
 }
@@ -123,8 +132,8 @@ object FileSystemDataStore {
 
     override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
     override def removeSchema(typeName: String): Unit = {
+      cleanCacheInstance(typeName)
       catalog.delete(typeName, purge = true)
-      cache.invalidate(typeName)
     }
 
     override def createFeatureSource(entry: ContentEntry): ContentFeatureSource =
@@ -144,6 +153,17 @@ object FileSystemDataStore {
       storage
     }
 
+    /**
+     * Run a schema update operation
+     *
+     * @param typeName simple feature type name
+     * @return
+     */
+    def update(typeName: String): CatalogUpdate = {
+      cleanCacheInstance(typeName)
+      catalog.update(typeName)
+    }
+
     override def dispose(): Unit = {
       try {
         CloseWithLogging(cache.asMap().asScala.values)
@@ -151,6 +171,14 @@ object FileSystemDataStore {
         cache.invalidateAll()
       } finally {
         super.dispose()
+      }
+    }
+
+    private def cleanCacheInstance(typeName: String): Unit = {
+      if (cache.asMap().containsKey(typeName)) {
+        val existing = cache.get(typeName)
+        cache.invalidate(typeName)
+        existing.close()
       }
     }
   }

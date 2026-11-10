@@ -99,9 +99,15 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
       } else if (update.`type`() != existing.`type`()) {
         val path = Option(parent).fold(update.name())(p => s"$p.${update.name()}")
         if (update.`type`().isStructType && existing.`type`().isStructType) {
+          val updateStruct = update.`type`().asStructType()
           val existingStruct = existing.`type`().asStructType()
-          update.`type`().asStructType().fields().asScala.foreach { field =>
+          updateStruct.fields().asScala.foreach { field =>
             walkColumnUpdates(path, field, existingStruct.field(field.name()), op)
+          }
+          existingStruct.fields().asScala.foreach { field =>
+            if (updateStruct.field(field.name()) == null) {
+              op.deleteColumn(s"$path.${field.name()}")
+            }
           }
         } else if (update.`type`().isPrimitiveType && existing.`type`().isPrimitiveType) {
           op.updateColumn(path, update.`type`().asPrimitiveType())
@@ -121,16 +127,19 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
             s"Attribute '$attribute' does not exist in the schema: ${schema.sft.getTypeName} " +
               SimpleFeatureTypes.encodeType(schema.sft))
         }
-        val (columnSpecProp, columnSpec) =
-          attributeProperty(SimpleFeatureTypes.renameDescriptor(descriptor, newName), descriptor == schema.sft.getGeometryDescriptor)
-        val oldCol = ColumnName.encode(attribute)
+        val renamedDescriptor = SimpleFeatureTypes.renameDescriptor(descriptor, newName)
+        val (columnSpecProp, columnSpec) = attributeProperty(renamedDescriptor, descriptor == schema.sft.getGeometryDescriptor)
+        val oldCols = colsFor(descriptor).map(_.name())
+        val newCols = colsFor(renamedDescriptor).map(_.name())
         val oldBloomProps = bloomFilterKeys(attribute).map(k => k -> table.properties().get(k))
         val propsToAdd =
           Map(columnSpecProp -> columnSpec) ++
             bloomFilterKeys(newName).zip(oldBloomProps).flatMap { case (newKey, (_, value)) => Option(value).map(newKey -> _) }
-        val propsToRemove = oldBloomProps.map(_._1) :+ IcebergCatalog.columnSpecProperty(oldCol)
+        val propsToRemove = oldBloomProps.map(_._1) :+ IcebergCatalog.columnSpecProperty(oldCols.head)
         val tx = table.newTransaction()
-        tx.updateSchema().renameColumn(oldCol, ColumnName.encode(newName)).commit()
+        val updateSchema = tx.updateSchema()
+        oldCols.zip(newCols).foreach { case (old, newName) => updateSchema.renameColumn(old, newName) }
+        updateSchema.commit()
         val updateProperties = tx.updateProperties()
         propsToRemove.foreach(updateProperties.remove)
         propsToAdd.foreach { case (k, v) => updateProperties.set(k, v) }
@@ -235,7 +244,7 @@ object IcebergSchemaEvolution {
   private def attributeProperty(descriptor: AttributeDescriptor, default: Boolean): (String, String) = {
     // assertion: the sft is only needed to determine the default geometry field
     val (k, v) = IcebergCatalog.sftAttributeProperty(null, descriptor)
-    if (default) { (k, s"*$v") } else { (k, v) }
+    if (default && !v.startsWith("*")) { (k, s"*$v") } else { (k, v) }
   }
 
   private def colsFor(column: AttributeDescriptor): Seq[NestedField] = {

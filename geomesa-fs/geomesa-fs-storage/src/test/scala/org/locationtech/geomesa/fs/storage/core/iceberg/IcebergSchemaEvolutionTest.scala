@@ -24,6 +24,7 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.Point
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
@@ -206,20 +207,47 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
           storage.sft.indexOf("firstName") mustEqual 0
           storage.sft.getDescriptor("firstName").getType.getBinding mustEqual classOf[String]
           val newFeatures = features.map { orig =>
-            val sf = ScalaSimpleFeature.retype(storage.sft, orig).asInstanceOf[ScalaSimpleFeature]
-            sf.setAttribute("firstName", orig.getAttribute("name"))
+            val sf = ScalaSimpleFeature.copy(storage.sft, orig) // copies features by index instead of name
             sf.setId(s"1_${sf.getID}")
             sf
           }
           WithClose(storage.getMultiPartitionWriter())(writer => newFeatures.foreach(writer.write))
           foreach(queryList) { case (filter, expected) =>
             val retyped = expected.flatMap { sf =>
-              newFeatures.find(_.getID == s"1_${sf.getID}") ++
-                Seq(ScalaSimpleFeature.retype(storage.sft, sf)).map { r => r.setAttribute("firstName", sf.getAttribute("name")); r }
+              newFeatures.find(_.getID == s"1_${sf.getID}") ++ Seq(ScalaSimpleFeature.copy(storage.sft, sf))
             }
             foreach(transformsList) { transform =>
               val updatedFilter = filter.replaceAllLiterally("name =", "firstName =")
               val updatedTransform = Option(transform).map(_.map(_.replace("name", "firstName"))).orNull
+              testQuery(storage, storage.sft, updatedFilter, updatedTransform, retyped)
+            }
+          }
+        }
+      }
+    }
+
+    "rename a geometry column" in {
+      withCatalog { catalog =>
+        catalog.update(sft.getTypeName).columns().rename("geom", "location")
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.sft.getAttributeCount mustEqual sft.getAttributeCount
+          storage.sft.getDescriptor("geom") must beNull
+          storage.sft.indexOf("location") mustEqual 3
+          storage.sft.getDescriptor("location").getType.getBinding mustEqual classOf[Point]
+          storage.sft.getGeometryDescriptor.getLocalName mustEqual "location"
+          val newFeatures = features.map { orig =>
+            val sf = ScalaSimpleFeature.copy(storage.sft, orig)
+            sf.setId(s"1_${sf.getID}")
+            sf
+          }
+          WithClose(storage.getMultiPartitionWriter())(writer => newFeatures.foreach(writer.write))
+          foreach(queryList) { case (filter, expected) =>
+            val retyped = expected.flatMap { sf =>
+              newFeatures.find(_.getID == s"1_${sf.getID}") ++ Seq(ScalaSimpleFeature.copy(storage.sft, sf))
+            }
+            foreach(transformsList) { transform =>
+              val updatedFilter = filter.replaceAllLiterally("geom", "location")
+              val updatedTransform = Option(transform).map(_.map(_.replace("geom", "location"))).orNull
               testQuery(storage, storage.sft, updatedFilter, updatedTransform, retyped)
             }
           }
@@ -303,7 +331,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
     "update a structural type" in {
       withCatalog { catalog =>
         val updatedType =
-          """{"name":"properties","type":"record","fields":[{"name":"count","type":"int"},{"name":"name","type":"string"},""" +
+          """{"name":"properties","type":"record","fields":[{"name":"name","type":"string"},""" +
             """{"name":"nested","type":{"name":"kv","type":"record","fields":[{"name":"key","type":"string"}]}}]}"""
         val descriptor = SimpleFeatureTypes.createDescriptor(s"json:String:json=true:json-schema='$updatedType'")
         catalog.update(sft.getTypeName).columns().update(descriptor)
@@ -317,13 +345,17 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
             val sf = ScalaSimpleFeature.retype(storage.sft, orig).asInstanceOf[ScalaSimpleFeature]
             sf.setId(s"1_${sf.getID}")
             val i = sf.getAttribute("age")
-            sf.setAttribute("json", s"""{"count":$i,"name":"${i}name","nested":{"key":"k$i"}}""")
+            sf.setAttribute("json", s"""{"name":"${i}name","nested":{"key":"k$i"}}""")
             sf
           }
           WithClose(storage.getMultiPartitionWriter())(writer => newFeatures.foreach(writer.write))
           foreach(queryList) { case (filter, expected) =>
             val retyped = expected.flatMap { sf =>
-              newFeatures.find(_.getID == s"1_${sf.getID}") ++ Seq(ScalaSimpleFeature.retype(storage.sft, sf))
+              newFeatures.find(_.getID == s"1_${sf.getID}") ++
+                Seq(ScalaSimpleFeature.retype(storage.sft, sf)).map { retyped =>
+                  retyped.setAttribute("json", retyped.getAttribute("json").toString.replaceAll(""""count":\d+,""", ""))
+                  retyped
+                }
             }
             foreach(Seq(null, Array("geom", "dtg", "json"))) { transform =>
               testQuery(storage, storage.sft, filter, transform, retyped)
