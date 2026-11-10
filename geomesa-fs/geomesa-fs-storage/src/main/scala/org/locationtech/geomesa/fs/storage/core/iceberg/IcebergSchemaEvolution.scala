@@ -12,7 +12,6 @@ package iceberg
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg.catalog.{Catalog, TableIdentifier}
 import org.apache.iceberg.expressions.Expressions
-import org.apache.iceberg.transforms.Transform
 import org.apache.iceberg.types.Types.NestedField
 import org.apache.iceberg.{PartitionSpec, UpdateSchema}
 import org.geotools.api.feature.`type`.AttributeDescriptor
@@ -25,8 +24,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.{Geometry, Point}
 
-import scala.collection.JavaConverters._
-
 /**
  * Schema evolution for iceberg tables
  *
@@ -36,6 +33,8 @@ import scala.collection.JavaConverters._
 class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends CatalogUpdate with LazyLogging {
 
   import IcebergSchemaEvolution.{attributeProperty, bloomFilterKeys, colsFor}
+
+  import scala.collection.JavaConverters._
 
   override def columns(): CatalogUpdate.ColumnUpdate = IcebergColumnUpdate
   override def indices(): CatalogUpdate.IndexUpdate = IcebergIndexUpdate
@@ -191,8 +190,8 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
         }
 
         val updateSpec = table.updateSpec()
-        (currentSpec -- updatedSpec).foreach { case (_, _, name) => updateSpec.removeField(name) }
-        (updatedSpec -- currentSpec).foreach { case (sourceId, transform, name) =>
+        currentSpec.filterNot(updatedSpec.contains).foreach { case (_, _, name) => updateSpec.removeField(name) }
+        updatedSpec.filterNot(currentSpec.contains).foreach { case (sourceId, transform, name) =>
           updateSpec.addField(name, Expressions.transform(schema.schema.findColumnName(sourceId), transform))
         }
         updateSpec.commit()
@@ -230,6 +229,8 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
 }
 
 object IcebergSchemaEvolution {
+
+  import scala.collection.JavaConverters._
 
   private def attributeProperty(descriptor: AttributeDescriptor, default: Boolean): (String, String) = {
     // assertion: the sft is only needed to determine the default geometry field
