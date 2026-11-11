@@ -48,6 +48,8 @@ class IcebergUpdateWriter(
     deleter: MultiPartitionDeleter,
   ) extends FileSystemUpdateWriter {
 
+  private val closed = new AtomicBoolean(false)
+
   // feature returned from reader
   private var original: SimpleFeature = _
 
@@ -95,16 +97,18 @@ class IcebergUpdateWriter(
   override def flush(): Unit = FlushQuietly.raise(writer, deleter)
 
   override def close(): Unit = {
-    CloseWithLogging.raise(Seq(reader, writer, deleter))
-    if (!deleter.files.isEmpty) {
-      val delta = storage.table.newRowDelta()
-      // guard against concurrent commits that touch the same delete files
-      Option(storage.table.currentSnapshot()).foreach(s => delta.validateFromSnapshot(s.snapshotId()))
-      deleter.files.forEach(f => delta.addDeletes(f))
-      // remove any previous DVs whose deletes we merged into the newly written DVs, otherwise
-      // the commit will fail validation with multiple live DVs referencing the same data file
-      deleter.rewritten.forEach(f => delta.removeDeletes(f))
-      delta.commit()
+    if (closed.compareAndSet(false, true)) {
+      CloseWithLogging.raise(Seq(reader, writer, deleter))
+      if (!deleter.files.isEmpty) {
+        val delta = storage.table.newRowDelta()
+        // guard against concurrent commits that touch the same delete files
+        Option(storage.table.currentSnapshot()).foreach(s => delta.validateFromSnapshot(s.snapshotId()))
+        deleter.files.forEach(f => delta.addDeletes(f))
+        // remove any previous DVs whose deletes we merged into the newly written DVs, otherwise
+        // the commit will fail validation with multiple live DVs referencing the same data file
+        deleter.rewritten.forEach(f => delta.removeDeletes(f))
+        delta.commit()
+      }
     }
   }
 }

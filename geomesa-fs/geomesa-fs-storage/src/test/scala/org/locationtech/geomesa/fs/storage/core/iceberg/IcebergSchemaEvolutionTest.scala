@@ -32,11 +32,14 @@ import org.testcontainers.containers.Network
 
 import java.net.URI
 import java.time.temporal.ChronoUnit
+import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger
 
 class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfterAll {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   import scala.collection.JavaConverters._
 
   private val paths = new AtomicInteger()
@@ -198,6 +201,12 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
       }
     }
 
+    "fail when removing a partitioned column" in {
+      withCatalog { catalog =>
+        catalog.update(sft.getTypeName).columns().remove("geom") must throwAn[org.apache.iceberg.exceptions.ValidationException]
+      }
+    }
+
     "rename a column" in {
       withCatalog { catalog =>
         catalog.update(sft.getTypeName).columns().rename("name", "firstName")
@@ -216,8 +225,8 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
             val retyped = expected.flatMap { sf =>
               newFeatures.find(_.getID == s"1_${sf.getID}") ++ Seq(ScalaSimpleFeature.copy(storage.sft, sf))
             }
+            val updatedFilter = filter.replaceAllLiterally("name =", "firstName =")
             foreach(transformsList) { transform =>
-              val updatedFilter = filter.replaceAllLiterally("name =", "firstName =")
               val updatedTransform = Option(transform).map(_.map(_.replace("name", "firstName"))).orNull
               testQuery(storage, storage.sft, updatedFilter, updatedTransform, retyped)
             }
@@ -245,9 +254,38 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
             val retyped = expected.flatMap { sf =>
               newFeatures.find(_.getID == s"1_${sf.getID}") ++ Seq(ScalaSimpleFeature.copy(storage.sft, sf))
             }
+            val updatedFilter = filter.replaceAllLiterally("geom", "location")
             foreach(transformsList) { transform =>
-              val updatedFilter = filter.replaceAllLiterally("geom", "location")
               val updatedTransform = Option(transform).map(_.map(_.replace("geom", "location"))).orNull
+              testQuery(storage, storage.sft, updatedFilter, updatedTransform, retyped)
+            }
+          }
+        }
+      }
+    }
+
+    "rename the default date column" in {
+      withCatalog { catalog =>
+        catalog.update(sft.getTypeName).columns().rename("dtg", "ts")
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.sft.getAttributeCount mustEqual sft.getAttributeCount
+          storage.sft.getDescriptor("dtg") must beNull
+          storage.sft.indexOf("ts") mustEqual 4
+          storage.sft.getDescriptor("ts").getType.getBinding mustEqual classOf[Date]
+          storage.sft.getDtgField must beSome("ts")
+          val newFeatures = features.map { orig =>
+            val sf = ScalaSimpleFeature.copy(storage.sft, orig)
+            sf.setId(s"1_${sf.getID}")
+            sf
+          }
+          WithClose(storage.getMultiPartitionWriter())(writer => newFeatures.foreach(writer.write))
+          foreach(queryList) { case (filter, expected) =>
+            val retyped = expected.flatMap { sf =>
+              newFeatures.find(_.getID == s"1_${sf.getID}") ++ Seq(ScalaSimpleFeature.copy(storage.sft, sf))
+            }
+            val updatedFilter = filter.replaceAllLiterally("dtg", "ts")
+            foreach(transformsList) { transform =>
+              val updatedTransform = Option(transform).map(_.map(_.replace("dtg", "ts"))).orNull
               testQuery(storage, storage.sft, updatedFilter, updatedTransform, retyped)
             }
           }
@@ -381,8 +419,11 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
             sf
           }
           WithClose(storage.getMultiPartitionWriter())(writer => newFeatures.foreach(writer.write))
+          // validate deletes against new and old data
+          WithClose(storage.getWriter(ECQL.toFilter("IN ('4', '1_4')"), 1))(writer => writer.foreach(_ => writer.remove()))
+
           foreach(queryList) { case (filter, expected) =>
-            val retyped = expected.flatMap(sf => newFeatures.find(_.getID == s"1_${sf.getID}") ++ Seq(sf))
+            val retyped = expected.filterNot(_.getID == "4").flatMap(sf => newFeatures.find(_.getID == s"1_${sf.getID}") ++ Seq(sf))
             foreach(transformsList) { transform =>
               testQuery(storage, storage.sft, filter, transform, retyped)
             }

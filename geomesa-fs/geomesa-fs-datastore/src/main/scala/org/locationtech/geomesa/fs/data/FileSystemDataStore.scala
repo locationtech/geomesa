@@ -132,7 +132,7 @@ object FileSystemDataStore {
 
     override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
     override def removeSchema(typeName: String): Unit = {
-      cleanCacheInstance(typeName)
+      clearCaches(typeName)
       catalog.delete(typeName, purge = true)
     }
 
@@ -160,7 +160,7 @@ object FileSystemDataStore {
      * @return
      */
     def update(typeName: String): CatalogUpdate = {
-      cleanCacheInstance(typeName)
+      clearCaches(typeName)
       catalog.update(typeName)
     }
 
@@ -174,11 +174,17 @@ object FileSystemDataStore {
       }
     }
 
-    private def cleanCacheInstance(typeName: String): Unit = {
+    private def clearCaches(typeName: String): Unit = {
       if (cache.asMap().containsKey(typeName)) {
         val existing = cache.get(typeName)
         cache.invalidate(typeName)
         existing.close()
+      }
+      Seq(new NameImpl(typeName), new NameImpl(namespaceURI, typeName)).foreach { key =>
+        val entry = entries.remove(key)
+        if (entry != null) {
+          entry.dispose()
+        }
       }
     }
   }

@@ -86,10 +86,11 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
     val tableProps = IcebergCatalog.sftTableProperties(sft) ++ {
       val size = targetFileSize.map(s => s"${Metadata.PropertyPrefix}${Metadata.TargetFileSize}" -> s.toString).toMap
       // file format v3 lets us use variant encoding
-       val format =
-         Map(TableProperties.FORMAT_VERSION -> "3", TableProperties.DELETE_MODE -> RowLevelOperationMode.MERGE_ON_READ.modeName())
+      val format = Map(TableProperties.FORMAT_VERSION -> "3")
+      val deleteMode = Map(TableProperties.DELETE_MODE -> RowLevelOperationMode.MERGE_ON_READ.modeName())
       // persisted as the standard iceberg properties, so that other iceberg writers (e.g. compaction) honor them too
-      size ++ format ++ BloomFilterConfig.tableProperties(bloomFilters)
+      val blooms = BloomFilterConfig.tableProperties(bloomFilters)
+      size ++ format ++ deleteMode ++ blooms
     }
     val spec = schemes.foldLeft(PartitionSpec.builderFor(schema))((b, m) => m.spec(b)).build()
     catalog.ensureNamespace(namespace)

@@ -21,6 +21,7 @@ import org.locationtech.geomesa.fs.storage.core.parquet.BloomFilterConfig
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.{Geometry, Point}
 
@@ -46,7 +47,7 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
       WithClose(catalog.loadTable(tableId)) { table =>
         val tx = table.newTransaction()
         colsFor(attribute).foldLeft(tx.updateSchema())((update, col) => update.addColumn(col.name(), col.`type`())).commit()
-        val (columnSpecProp, columnSpec) = attributeProperty(attribute, default = false)
+        val (columnSpecProp, columnSpec) = attributeProperty(attribute)
         tx.updateProperties().set(columnSpecProp, columnSpec).commit()
         tx.commitTransaction()
       }
@@ -87,7 +88,7 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
           updateSchema.commit()
         }
 
-        val (columnSpecProp, columnSpec) = attributeProperty(update, existing == schema.sft.getGeometryDescriptor)
+        val (columnSpecProp, columnSpec) = attributeProperty(update)
         tx.updateProperties().set(columnSpecProp, columnSpec).commit()
         tx.commitTransaction()
       }
@@ -128,13 +129,18 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
               SimpleFeatureTypes.encodeType(schema.sft))
         }
         val renamedDescriptor = SimpleFeatureTypes.renameDescriptor(descriptor, newName)
-        val (columnSpecProp, columnSpec) = attributeProperty(renamedDescriptor, descriptor == schema.sft.getGeometryDescriptor)
         val oldCols = colsFor(descriptor).map(_.name())
         val newCols = colsFor(renamedDescriptor).map(_.name())
-        val oldBloomProps = bloomFilterKeys(attribute).map(k => k -> table.properties().get(k))
-        val propsToAdd =
-          Map(columnSpecProp -> columnSpec) ++
-            bloomFilterKeys(newName).zip(oldBloomProps).flatMap { case (newKey, (_, value)) => Option(value).map(newKey -> _) }
+        val oldBloomProps = bloomFilterKeys(attribute).map(k => k -> Option(table.properties().get(k)))
+        val propsToAdd = {
+          val (columnSpecProp, columnSpec) = attributeProperty(renamedDescriptor)
+          val blooms = bloomFilterKeys(newName).zip(oldBloomProps).flatMap { case (newKey, (_, value)) => value.map(newKey -> _) }
+          val dtgUserData = {
+            val key = s"${IcebergCatalog.UserDataPrefix}${Configs.DefaultDtgField}"
+            if (table.properties().get(key) == attribute) { Map(key -> newName) } else { Map.empty }
+          }
+          Map(columnSpecProp -> columnSpec) ++ blooms ++ dtgUserData
+        }
         val propsToRemove = oldBloomProps.map(_._1) :+ IcebergCatalog.columnSpecProperty(oldCols.head)
         val tx = table.newTransaction()
         val updateSchema = tx.updateSchema()
@@ -149,11 +155,12 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
     }
 
     override def remove(attribute: String): Unit = {
-      val col = ColumnName.encode(attribute)
-      val propsToRemove = bloomFilterKeys(attribute) :+ IcebergCatalog.columnSpecProperty(col)
       WithClose(catalog.loadTable(tableId)) { table =>
+        val schema = SimpleFeatureIcebergSchema(table)
+        val colsToRemove = colsFor(schema.sft.getDescriptor(attribute)).map(_.name())
+        val propsToRemove = bloomFilterKeys(attribute) :+ IcebergCatalog.columnSpecProperty(colsToRemove.head)
         val tx = table.newTransaction()
-        tx.updateSchema().deleteColumn(col).commit()
+        colsToRemove.foldLeft(tx.updateSchema())((update, col) => update.deleteColumn(col)).commit()
         propsToRemove.foldLeft(tx.updateProperties())((update, prop) => update.remove(prop)).commit()
         tx.commitTransaction()
       }
@@ -241,10 +248,9 @@ object IcebergSchemaEvolution {
 
   import scala.collection.JavaConverters._
 
-  private def attributeProperty(descriptor: AttributeDescriptor, default: Boolean): (String, String) = {
+  private def attributeProperty(descriptor: AttributeDescriptor): (String, String) = {
     // assertion: the sft is only needed to determine the default geometry field
-    val (k, v) = IcebergCatalog.sftAttributeProperty(null, descriptor)
-    if (default && !v.startsWith("*")) { (k, s"*$v") } else { (k, v) }
+    IcebergCatalog.sftAttributeProperty(null, descriptor)
   }
 
   private def colsFor(column: AttributeDescriptor): Seq[NestedField] = {
