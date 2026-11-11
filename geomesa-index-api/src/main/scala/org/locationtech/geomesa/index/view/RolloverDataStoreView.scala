@@ -17,10 +17,11 @@ import org.locationtech.geomesa.filter.ff
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
-import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource, TaskDecorator}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.TypeOption
 import org.locationtech.geomesa.index.view.RolloverDataStoreView.Delegate
+import org.locationtech.geomesa.security.HasAuthorizationsProvider
 
 import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
@@ -36,7 +37,7 @@ import java.util.function.UnaryOperator
  * @param destination destination delegate
  * @param coverage provider of complete, queryable and final destination intervals, keyed by feature type
  * @param parallel scan delegates concurrently
- * @param taskDecorator caller-supplied context propagation for parallel operations
+ * @param taskDecorator optional context propagation override; defaults to each delegate's authorizations provider
  * @param namespace namespace of this logical view
  */
 class RolloverDataStoreView(
@@ -154,13 +155,19 @@ class RolloverDataStoreView(
     merged(selected)
   }
 
-  private def merged(selected: Seq[MergedSource[DataStore]]): MergedDataStoreView =
-    new MergedDataStoreView(selected, deduplicate = false, parallel = parallel,
-      taskDecorator = taskDecorator, namespace = namespace) {
+  private def merged(selected: Seq[MergedSource[DataStore]]): MergedDataStoreView = {
+    val decorated = selected.map { source =>
+      val decorator = taskDecorator.orElse(Some(source.source).collect {
+        case store: HasAuthorizationsProvider => store.authProvider
+      })
+      source.copy(decorator = new TaskDecorator(decorator))
+    }
+    new MergedDataStoreView(decorated, deduplicate = false, parallel = parallel, namespace = namespace) {
       // Operation plans borrow delegates just like the public view. They are kept
       // private, but must never acquire ownership if their lifecycle changes later.
       override def dispose(): Unit = {}
     }
+  }
 }
 
 object RolloverDataStoreView {

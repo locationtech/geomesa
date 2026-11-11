@@ -1,5 +1,5 @@
 Rollover Data Store View
-=======================
+========================
 
 ``RolloverDataStoreView`` presents a read-only logical view over existing source
 and destination data stores. It reuses ``MergedDataStoreView`` for query execution
@@ -8,8 +8,7 @@ operation; it neither moves records nor requires deletion or age-off from a sour
 
 A time-relative merge filter assumes the destination has caught up. Rollover
 instead uses a published interval, so delays or failures do not advance routing
-just because time passes. Static merged-store filters remain appropriate when
-an externally maintained cutoff already provides the required guarantees.
+just because time passes.
 
 Coverage contract
 -----------------
@@ -40,16 +39,11 @@ on subsequent operations. A returned collection, its iterators, visitors, sorted
 views and subcollections retain the operation's interval. This freezes routing,
 not the underlying records or a cross-store database transaction.
 
-No interval means source-only routing. Provider errors fail the query; they are
-not interpreted as an absent interval. Published coverage with no advertised
-destination schema also fails rather than silently returning only source data.
-Source retention can limit source-only results and remains the caller's responsibility.
-
 Construction
 ------------
 
-This is a programmatic view over borrowed data stores, not a new datastore factory.
-An application supplies existing stores and a coverage provider:
+This is a programmatic view over provided data stores- the caller supplies the existing
+stores and a coverage provider:
 
 .. code-block:: scala
 
@@ -73,10 +67,14 @@ The view rejects incompatible resolved temporal attributes before constructing
 filters: a configured default date field takes precedence over the first Date
 attribute, following the existing merged-store rule.
 
-Set ``parallel = true`` for concurrent scans and pass a
-``taskDecorator: Option[java.util.function.UnaryOperator[Runnable]]`` to propagate
-application context. The caller supplies authorization; the view has no dependency
-on any application's identity provider, database, producer, or workflow system.
+Set ``parallel = true`` for concurrent scans. For delegates implementing
+``HasAuthorizationsProvider``, the view automatically uses their authorization
+providers to propagate context to worker threads, following the merged-store
+convention. An explicit
+``taskDecorator: Option[java.util.function.UnaryOperator[Runnable]]`` overrides
+this behavior for all delegates. The caller supplies authorization; the view has
+no dependency on any application's identity provider, database, producer, or
+workflow system.
 
 The public feature source always returns the rollover view from ``getDataStore``,
 including when supplied to an optimized GeoMesa process visitor. It rejects queries

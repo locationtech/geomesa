@@ -31,6 +31,7 @@ import org.geotools.data.memory.MemoryDataStore
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.security.{AuthorizationsProvider, HasAuthorizationsProvider}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
@@ -79,14 +80,14 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
   class Store extends MemoryDataStore {
     var closed = false
     val identities = new ConcurrentLinkedQueue[String]()
+    protected def recordIdentity(): Unit = identities.add(Option(context.get()).getOrElse("none"))
     override def dispose(): Unit = { closed = true; super.dispose() }
     override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {
       val reader = super.getFeatureReader(query, transaction)
       new SimpleFeatureReader {
         override def getFeatureType = reader.getFeatureType
         override def hasNext: Boolean = {
-          val identity = Option(context.get()).getOrElse("none")
-          identities.add(identity)
+          recordIdentity()
           reader.hasNext
         }
         override def next() = reader.next()
@@ -110,10 +111,12 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
     override protected def createFeatureSource(entry: ContentEntry, query: Query): ContentFeatureSource =
       new MemoryFeatureStore(entry, query) {
         override protected def getCountInternal(query: Query): Int = {
+          recordIdentity()
           val reader = CloseableIterator(getReader(query))
           try { reader.length } finally { reader.close() }
         }
         override protected def getBoundsInternal(query: Query): ReferencedEnvelope = {
+          recordIdentity()
           val bounds = new ReferencedEnvelope(getSchema.getCoordinateReferenceSystem)
           val reader = CloseableIterator(getReader(query))
           try { reader.foreach(f => bounds.expandToInclude(f.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal)) }
@@ -121,6 +124,23 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
           bounds
         }
       }
+  }
+
+  class AuthorizedStore(name: String) extends ExactStore with HasAuthorizationsProvider {
+    override val authProvider: AuthorizationsProvider = new AuthorizationsProvider {
+      override def getAuthorizations: java.util.List[String] = java.util.Collections.emptyList[String]()
+      override def configure(params: java.util.Map[String, _]): Unit = {}
+      override def apply(task: Runnable): Runnable = {
+        val captured = s"$name:${context.get()}"
+        () => {
+          val previous = context.get()
+          context.set(captured)
+          try { task.run() } finally {
+            if (previous == null) { context.remove() } else { context.set(previous) }
+          }
+        }
+      }
+    }
   }
 
   def populate(store: Store, origin: String, name: String = typeName): Unit = {
@@ -147,6 +167,12 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
     val reader = CloseableIterator(store.getFeatureReader(query, Transaction.AUTO_COMMIT))
     try { reader.map(f => f.getAttribute("origin").toString -> f.getAttribute("dtg").asInstanceOf[Date].getTime).toList }
     finally { reader.close() }
+  }
+
+  def readParallel(store: RolloverDataStoreView): Int = {
+    // Sorted merging reads on the calling thread; an unsorted query exercises parallel delegate scans.
+    val reader = CloseableIterator(store.getFeatureReader(new Query(typeName), Transaction.AUTO_COMMIT))
+    try { reader.length } finally { reader.close() }
   }
 
   "Rollover view" should {
@@ -210,6 +236,47 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
         source.closed must beFalse
         destination.closed must beFalse
       }
+      success
+    }
+
+    "automatically propagate each delegate's authorization context for parallel operations" in {
+      import scala.collection.JavaConverters._
+      val source = new AuthorizedStore("source"); val destination = new AuthorizedStore("destination")
+      populate(source, "source"); populate(destination, "destination")
+      val store = new RolloverDataStoreView(Seq(Delegate(source)), Delegate(destination), new Coverage, parallel = true)
+      try {
+        val featureSource = store.getFeatureSource(typeName)
+        val operations: Seq[() => Any] = Seq(
+          () => readParallel(store) mustEqual 3,
+          () => featureSource.getCount(new Query(typeName)) mustEqual 3,
+          () => featureSource.getBounds().getMaxX mustEqual 2d,
+          () => store.stats.getCount(store.getSchema(typeName), exact = true) must beSome(3L))
+        Seq("first-user", "second-user").foreach { user =>
+          context.set(user)
+          operations.foreach { operation =>
+            source.identities.clear(); destination.identities.clear()
+            operation()
+            source.identities.asScala.toSet mustEqual Set(s"source:$user")
+            destination.identities.asScala.toSet mustEqual Set(s"destination:$user")
+            context.get() mustEqual user
+          }
+        }
+      } finally { context.remove(); store.dispose(); source.dispose(); destination.dispose() }
+      success
+    }
+
+    "prefer an explicit task decorator to delegate authorization providers" in {
+      import scala.collection.JavaConverters._
+      val source = new AuthorizedStore("source"); val destination = new AuthorizedStore("destination")
+      populate(source, "source"); populate(destination, "destination")
+      val store = new RolloverDataStoreView(Seq(Delegate(source)), Delegate(destination), new Coverage,
+        parallel = true, taskDecorator = Some(decorator))
+      try {
+        context.set("explicit-context")
+        readParallel(store) mustEqual 3
+        source.identities.asScala.toSet mustEqual Set("explicit-context")
+        destination.identities.asScala.toSet mustEqual Set("explicit-context")
+      } finally { context.remove(); store.dispose(); source.dispose(); destination.dispose() }
       success
     }
 
