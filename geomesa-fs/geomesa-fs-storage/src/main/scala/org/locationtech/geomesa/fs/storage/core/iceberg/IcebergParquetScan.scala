@@ -15,6 +15,7 @@ import org.apache.iceberg.data.{GenericDeleteFilter, InternalRecordWrapper, Reco
 import org.apache.iceberg.expressions.{Evaluator, Expression, Expressions}
 import org.apache.iceberg.parquet.Parquet
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergFilterConverter.ReferenceVisitor
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.IsCloseableImplicits.ExecutorServiceIsCloseable
@@ -158,6 +159,23 @@ class IcebergParquetScan(
     CloseableIterator(iter.asScala, CloseWithLogging(Seq(iter, reader)))
   }
 
+  private def withResidualColumns(projection: Schema, residual: Expression): Schema = {
+    if (residual == null) {
+      return projection
+    }
+    val columns = projection.columns().asScala
+    val columnNames = columns.map(_.name()).toSet
+    val toAdd = ReferenceVisitor(residual).flatMap { reference =>
+      val column = reference.takeWhile(_ != '.')
+      if (columnNames.contains(column)) { None } else { Option(table.schema().findField(column)) }
+    }
+    if (toAdd.isEmpty) {
+      projection
+    } else {
+      new Schema((columns ++ toAdd).asJava, projection.getAliases, projection.identifierFieldIds())
+    }
+  }
+
   private class TaskRunnable(tasks: Seq[FileScanTask]) extends Runnable {
     override def run(): Unit = {
       try {
@@ -169,14 +187,15 @@ class IcebergParquetScan(
                 s"Only positional deletes are supported, but got equality deletes: ${task.deletes().asScala.map(_.location()).mkString(", ")}")
               Some(filter).filter(_.hasPosDeletes)
             }
-            val projection = deleteFilter.fold(schema.schema)(_.requiredSchema())
+            val residual = task.residual()
+            // we sometimes get residuals that aren't part of the filter, e.g. due to partition spec changes - add them here
+            val projection = withResidualColumns(deleteFilter.fold(schema.schema)(_.requiredSchema()), residual)
             WithClose(readFile(task, projection)) { iter =>
               val withDeletes = deleteFilter.fold(iter) { deletes =>
                 val index = deletes.deletedRowPositions()
                 val position = projection.accessorForField(MetadataColumns.ROW_POSITION.fieldId())
                 iter.filterNot(r => index.isDeleted(position.get(r).asInstanceOf[java.lang.Long]))
               }
-              val residual = task.residual()
               val filtered = if (residual == null || residual == Expressions.alwaysTrue()) { withDeletes } else {
                 val filter = new Evaluator(projection.asStruct(), residual, false)
                 val wrapper = new InternalRecordWrapper(projection.asStruct())

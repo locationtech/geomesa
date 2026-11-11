@@ -124,7 +124,7 @@ object IcebergFilterConverter extends LazyLogging {
       }
       predicates.reduce(Expressions.or)
     }
-    val bboxCols = ExpressionVisitors.visit(bboxPredicate, ReferenceVisitor)
+    val bboxCols = ReferenceVisitor(bboxPredicate)
 
     // partition level filter for partition pruning
     // assertion - we don't need to include the z col in our read schema as this expression will be removed during manifest scanning
@@ -372,7 +372,10 @@ object IcebergFilterConverter extends LazyLogging {
   /**
    * Visitor to extract column references (names) from an expression
    */
-  private object ReferenceVisitor extends ExpressionVisitor[Set[String]] {
+  object ReferenceVisitor extends ExpressionVisitor[Set[String]] {
+
+    def apply(expression: Expression): Set[String] = ExpressionVisitors.visit(expression, this)
+
     override def alwaysTrue: Set[String] = Set.empty
     override def alwaysFalse: Set[String] = Set.empty
     override def not(result: Set[String]): Set[String] = result

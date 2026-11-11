@@ -8,20 +8,20 @@
 
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
+import org.apache.iceberg._
 import org.apache.iceberg.data.{BaseDeleteLoader, DeleteLoader}
 import org.apache.iceberg.deletes.{BaseDVFileWriter, DVFileWriter, PositionDeleteIndex}
 import org.apache.iceberg.io.OutputFile
 import org.apache.iceberg.util.{CharSequenceMap, DeleteFileSet}
-import org.apache.iceberg.{DeleteFile, ManifestFiles, PartitionSpec, StructLike}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.{FastSettableFeature, ScalaSimpleFeature}
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemUpdateWriter
 import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergUpdateWriter.MultiPartitionDeleter
 import org.locationtech.geomesa.fs.storage.core.utils.{MultiPartitionAction, MultiPartitionWriter}
-import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -47,6 +47,8 @@ class IcebergUpdateWriter(
     writer: MultiPartitionWriter,
     deleter: MultiPartitionDeleter,
   ) extends FileSystemUpdateWriter {
+
+  private val closed = new AtomicBoolean(false)
 
   // feature returned from reader
   private var original: SimpleFeature = _
@@ -95,16 +97,18 @@ class IcebergUpdateWriter(
   override def flush(): Unit = FlushQuietly.raise(writer, deleter)
 
   override def close(): Unit = {
-    CloseWithLogging.raise(Seq(reader, writer, deleter))
-    if (!deleter.files.isEmpty) {
-      val delta = storage.table.newRowDelta()
-      // guard against concurrent commits that touch the same delete files
-      Option(storage.table.currentSnapshot()).foreach(s => delta.validateFromSnapshot(s.snapshotId()))
-      deleter.files.forEach(f => delta.addDeletes(f))
-      // remove any previous DVs whose deletes we merged into the newly written DVs, otherwise
-      // the commit will fail validation with multiple live DVs referencing the same data file
-      deleter.rewritten.forEach(f => delta.removeDeletes(f))
-      delta.commit()
+    if (closed.compareAndSet(false, true)) {
+      CloseWithLogging.raise(Seq(reader, writer, deleter))
+      if (!deleter.files.isEmpty) {
+        val delta = storage.table.newRowDelta()
+        // guard against concurrent commits that touch the same delete files
+        Option(storage.table.currentSnapshot()).foreach(s => delta.validateFromSnapshot(s.snapshotId()))
+        deleter.files.forEach(f => delta.addDeletes(f))
+        // remove any previous DVs whose deletes we merged into the newly written DVs, otherwise
+        // the commit will fail validation with multiple live DVs referencing the same data file
+        deleter.rewritten.forEach(f => delta.removeDeletes(f))
+        delta.commit()
+      }
     }
   }
 }
@@ -137,7 +141,7 @@ object IcebergUpdateWriter {
    * @param maxOpenPartitions max open partition writers
    */
   private class MultiPartitionDeleter(storage: FileSystemStorage, maxOpenPartitions: Int)
-      extends MultiPartitionAction[DeleteWriter](storage, maxOpenPartitions) {
+      extends MultiPartitionAction[DeleteWriter, (Int, StructLike)](storage, maxOpenPartitions) {
 
     // newly written delete files (DVs) to add on commit
     val files: java.util.Set[DeleteFile] = Collections.newSetFromMap(new ConcurrentHashMap[DeleteFile, java.lang.Boolean]())
@@ -149,11 +153,18 @@ object IcebergUpdateWriter {
     // loads existing deletes for a data file so they can be merged into the new DV - a data file
     // can only be referenced by a single DV, so we have to rewrite any existing one
     private val writer = new BaseDVFileWriter(fileSupplier, new PreviousDeleteLoader(storage))
+    // loads partition specs from data files - if partitioning is changed, old files might have different partition schemes
+    private val dataFileLoader = new ManifestLoader(storage)
 
-    override protected def createAction(partition: Partition): DeleteWriter =
-      new DeleteWriter(writer, storage.table.spec(), storage.metadata.partition(partition))
+    override protected def createAction(partition: (Int, StructLike)): DeleteWriter = {
+      val (specId, partitionStruct) = partition
+      new DeleteWriter(writer, storage.table.specs().get(specId), partitionStruct)
+    }
+
     override protected def apply(action: DeleteWriter, feature: SimpleFeature): Unit =
       action.apply(feature.asInstanceOf[StructSimpleFeature])
+    override protected def grouping(feature: SimpleFeature): (Int, StructLike) =
+      dataFileLoader(feature.asInstanceOf[StructSimpleFeature].getFilePath)
 
     override def close(): Unit = {
       if (closed.compareAndSet(false, true)) {
@@ -208,6 +219,31 @@ object IcebergUpdateWriter {
         loader.loadPositionDeletes(set, path)
       }
     }
+  }
+
+  private class ManifestLoader(storage: FileSystemStorage) extends Function[String, (Int, StructLike)] {
+
+    import scala.collection.JavaConverters._
+
+    private lazy val dataFilesByPath: CharSequenceMap[(Int, StructLike)] = {
+      val map = CharSequenceMap.create[(Int, StructLike)]()
+      val snapshot = storage.table.currentSnapshot()
+      if (snapshot != null) {
+        val io = storage.table.io()
+        val specs = storage.table.specs()
+        snapshot.dataManifests(io).asScala.foreach { manifest =>
+          WithClose(ManifestFiles.read(manifest, io, specs)) { reader =>
+            WithClose(reader.iterator()) { iterator =>
+              // manifest readers reuse record instances
+              iterator.asScala.foreach(file => map.put(file.location(), (file.specId(), file.copy().partition())))
+            }
+          }
+        }
+      }
+      map
+    }
+
+    override def apply(path: String): (Int, StructLike) = dataFilesByPath.get(path)
   }
 
   /**

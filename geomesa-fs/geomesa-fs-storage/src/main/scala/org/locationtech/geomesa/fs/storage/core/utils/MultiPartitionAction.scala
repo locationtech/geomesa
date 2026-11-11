@@ -10,8 +10,8 @@ package org.locationtech.geomesa.fs.storage.core.utils
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
 import org.locationtech.geomesa.fs.storage.core.utils.MultiPartitionAction.ActionHolder
-import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
 
 import java.io.{Closeable, Flushable}
@@ -27,19 +27,20 @@ import scala.util.control.NonFatal
  * @param storage file system storage instance
  * @param maxOpenPartitions max open partition writers
  */
-abstract class MultiPartitionAction[T <: Closeable with Flushable](storage: FileSystemStorage, maxOpenPartitions: Int)
+abstract class MultiPartitionAction[T <: Closeable with Flushable, U](storage: FileSystemStorage, maxOpenPartitions: Int)
     extends (SimpleFeature => Unit) with Closeable with Flushable with LazyLogging {
 
-  private val perPartition = new ConcurrentHashMap[Partition, ActionHolder[T]]()
-  private val oldest = MultiPartitionAction.WriterHolder.oldest[T]
+  private val perPartition = new ConcurrentHashMap[U, ActionHolder[T]]()
+  private val oldest = MultiPartitionAction.WriterHolder.oldest[T, U]
 
   private lazy val logId = getClass.getSimpleName
 
-  protected def createAction(partition: Partition): T
+  protected def createAction(partition: U): T
   protected def apply(action: T, feature: SimpleFeature): Unit
+  protected def grouping(feature: SimpleFeature): U
 
   override def apply(feature: SimpleFeature): Unit = {
-    val partition = Partition(storage.schemes.map(_.getPartition(feature)))
+    val partition = grouping(feature)
     apply(perPartition.compute(partition, ComputeForAction).action, feature)
     if (perPartition.size() > maxOpenPartitions) {
       val oldest = perPartition.reduceEntries(maxOpenPartitions / 2, this.oldest)
@@ -75,8 +76,8 @@ abstract class MultiPartitionAction[T <: Closeable with Flushable](storage: File
     }
   }
 
-  private object ComputeForAction extends BiFunction[Partition, ActionHolder[T], ActionHolder[T]] {
-    override def apply(p: Partition, current: ActionHolder[T]): ActionHolder[T] = {
+  private object ComputeForAction extends BiFunction[U, ActionHolder[T], ActionHolder[T]] {
+    override def apply(p: U, current: ActionHolder[T]): ActionHolder[T] = {
       if (current == null) {
         logger.debug(s"Opening $logId for partition $p")
         new ActionHolder(createAction(p))
@@ -87,8 +88,8 @@ abstract class MultiPartitionAction[T <: Closeable with Flushable](storage: File
     }
   }
 
-  private object ComputeForFlush extends BiFunction[Partition, ActionHolder[T], ActionHolder[T]] {
-    override def apply(p: Partition, current: ActionHolder[T]): ActionHolder[T] = {
+  private object ComputeForFlush extends BiFunction[U, ActionHolder[T], ActionHolder[T]] {
+    override def apply(p: U, current: ActionHolder[T]): ActionHolder[T] = {
       if (current != null) {
         logger.debug(s"Flushing $logId for partition $p")
         current.flush()
@@ -119,7 +120,7 @@ object MultiPartitionAction extends LazyLogging {
   }
 
   private object WriterHolder {
-    def oldest[T <: Closeable with Flushable]: BiFunction[Entry[Partition, ActionHolder[T]], Entry[Partition, ActionHolder[T]], Entry[Partition, ActionHolder[T]]] =
+    def oldest[T <: Closeable with Flushable, U]: BiFunction[Entry[U, ActionHolder[T]], Entry[U, ActionHolder[T]], Entry[U, ActionHolder[T]]] =
       (left, right) => if (right.getValue.age < left.getValue.age) { right } else { left }
   }
 }

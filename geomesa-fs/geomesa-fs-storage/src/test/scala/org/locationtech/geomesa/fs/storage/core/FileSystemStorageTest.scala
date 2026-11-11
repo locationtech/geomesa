@@ -28,6 +28,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorageTest.{IcebergRestContainer, SeaweedFsContainer}
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
+import org.locationtech.geomesa.fs.storage.core.parquet.BloomFilterConfig
 import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.fs.storage.core.parquet.s3.S3InputFile
 import org.locationtech.geomesa.fs.storage.core.parquet.schema.{GeoParquetMetadata, SimpleFeatureParquetSchema}

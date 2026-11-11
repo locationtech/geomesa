@@ -341,22 +341,6 @@ object SimpleFeatureIcebergSchema extends LazyLogging {
     NestedField.optional(name).withId(fieldId).ofType(fieldType).build()
 
   /**
-   * Every column mapped to its full attribute spec, for the table properties that
-   * `IcebergCatalog.columnSpecProperty` names.
-   *
-   * These are the description of the feature type that a written table carries.
-   *
-   * @param sft simple feature type
-   * @return storage column name to attribute spec
-   */
-  private[iceberg] def columnSpecs(sft: SimpleFeatureType): Map[String, String] = {
-    val specs = sft.getAttributeDescriptors.asScala.map { d =>
-      ColumnName(d.getLocalName).column -> SimpleFeatureTypes.encodeDescriptor(sft, d)
-    }
-    specs.toMap
-  }
-
-  /**
    * Builds the schema type for an attribute
    *
    * @param bindings object type
