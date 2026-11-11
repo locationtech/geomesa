@@ -68,7 +68,7 @@ package object core {
    *
    * @param values set of dimensions that make up the partition
    */
-  case class Partition(values: Seq[PartitionKey], specId: Option[String] = Option.empty) {
+  case class Partition(values: Seq[PartitionKey]) {
     override lazy val toString: String = gson.toJson(this)
   }
 
