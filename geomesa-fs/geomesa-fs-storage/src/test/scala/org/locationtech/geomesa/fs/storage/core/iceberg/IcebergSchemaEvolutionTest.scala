@@ -419,15 +419,37 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
             sf
           }
           WithClose(storage.getMultiPartitionWriter())(writer => newFeatures.foreach(writer.write))
-          // validate deletes against new and old data
-          WithClose(storage.getWriter(ECQL.toFilter("IN ('4', '1_4')"), 1))(writer => writer.foreach(_ => writer.remove()))
-
           foreach(queryList) { case (filter, expected) =>
-            val retyped = expected.filterNot(_.getID == "4").flatMap(sf => newFeatures.find(_.getID == s"1_${sf.getID}") ++ Seq(sf))
+            val retyped = expected.flatMap(sf => newFeatures.find(_.getID == s"1_${sf.getID}") ++ Seq(sf))
             foreach(transformsList) { transform =>
               testQuery(storage, storage.sft, filter, transform, retyped)
             }
           }
+        }
+      }
+    }
+
+    "apply delete vectors from old specs after changing partitions" in {
+      val features = Seq(
+        ScalaSimpleFeature.create(sft, "jan", "january", 0, """{"count":0,"name":"jan"}""", "POINT(40 50)", "2014-01-15T00:00:00.000Z"),
+        ScalaSimpleFeature.create(sft, "feb", "february", 1, """{"count":1,"name":"feb"}""", "POINT(40 50)", "2014-02-15T00:00:00.000Z"),
+      )
+
+      WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, Seq("year"), None, Seq.empty)) { storage =>
+          WithClose(storage.getMultiPartitionWriter()) { writer =>
+            features.foreach(writer.write)
+          }
+          // verify both features landed in the same file
+          storage.metadata.files().scan().toList must haveLength(1)
+        }
+
+        catalog.update(sft.getTypeName).indices().setPartitions(Seq("month"))
+
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          WithClose(storage.getWriter(ECQL.toFilter("IN ('jan', 'feb')"), 1))(writer => writer.foreach(_ => writer.remove()))
+          testQuery(storage, storage.sft, "INCLUDE", null, Seq.empty)
+          testQuery(storage, storage.sft, "dtg DURING 2014-02-01T00:00:00.000Z/2014-03-01T00:00:00.000Z", null, Seq.empty)
         }
       }
     }
