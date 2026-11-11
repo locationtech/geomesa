@@ -48,7 +48,13 @@ class MinMaxVisitor(features: SimpleFeatureCollection, attribute: String, cached
   override def execute(source: SimpleFeatureSource, query: Query): Unit = {
     logger.debug(s"Running Geomesa min/max process on source type ${source.getClass.getName}")
 
-    source.getDataStore match {
+    // A feature source may expose statistics scoped to its query operation. Prefer those to
+    // datastore-wide statistics, which may resolve a different routing snapshot.
+    val provider = source match {
+      case stats: HasGeoMesaStats => stats
+      case _ => source.getDataStore
+    }
+    provider match {
       case ds: HasGeoMesaStats =>
         resultCalc = ds.stats.getMinMax[Any](source.getSchema, attribute, query.getFilter, !cached) match {
           case None     => createResult("{}")
