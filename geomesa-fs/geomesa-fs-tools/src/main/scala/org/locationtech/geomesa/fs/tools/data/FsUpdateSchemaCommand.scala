@@ -8,14 +8,15 @@
 
 package org.locationtech.geomesa.fs.tools.data
 
-import com.beust.jcommander.{ParameterException, Parameters}
+import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, OptionalSchemeParams}
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.data.FsUpdateSchemaCommand.FsUpdateSchemaParams
 import org.locationtech.geomesa.tools.data.UpdateSchemaCommand
 import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.UpdateSchemaParams
+import org.locationtech.geomesa.tools.utils.ParameterConverters.BytesValidator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
@@ -51,7 +52,7 @@ class FsUpdateSchemaCommand extends UpdateSchemaCommand[FileSystemDataStore] wit
       val keywords = Option(updated.getUserData.get(Configs.Keywords)).map(_.toString).filterNot(_.isBlank)
       ds.update(typeName).metadata().setUserData(Configs.Keywords, keywords)
     }
-    (params.userData.asScala ++ params.storageOpts.asScala).foreach { case (k, v) =>
+    params.userData.asScala.foreach { case (k, v) =>
       ds.update(typeName).metadata().setUserData(k, Option(v))
     }
     // do this last so type name change doesn't affect the other ops
@@ -69,21 +70,23 @@ class FsUpdateSchemaCommand extends UpdateSchemaCommand[FileSystemDataStore] wit
       sft.setTargetFileSize(s)
       s"Setting target file size to '$s'"
     }
-    val opts = params.storageOpts.asScala.map { case (k, v) =>
-      sft.getUserData.put(k, v) match {
-        case null => s"Adding user data: '$k=$v'"
-        case old  => s"Updating user data: '$k=$v' (was '$old')"
-      }
-    }
-    scheme.toSeq ++ fileSize ++ opts
+    scheme.toSeq ++ fileSize
   }
 }
 
 object FsUpdateSchemaCommand {
 
   @Parameters(commandDescription = "Update a GeoMesa feature type")
-  class FsUpdateSchemaParams extends UpdateSchemaParams with FsParams with OptionalSchemeParams {
-    override def validate(): Option[ParameterException] =
-      super.validate().filter(_ => scheme == null && storageOpts.isEmpty && targetFileSize == null)
+  class FsUpdateSchemaParams extends UpdateSchemaParams with FsParams {
+    @Parameter(names = Array("--set-partition-scheme"), description = "Update the partition scheme")
+    var scheme: String = _
+
+    @Parameter(
+      names = Array("--set-target-file-size"),
+      description = "Update the target size for data files",
+      validateValueWith = Array(classOf[BytesValidator]))
+    var targetFileSize: String = _
+
+    override def validate(): Option[ParameterException] = super.validate().filter(_ => scheme == null && targetFileSize == null)
   }
 }

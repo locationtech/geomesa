@@ -13,7 +13,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterNotUsedParam}
 import org.locationtech.geomesa.hbase.tools.data.HBaseUpdateSchemaCommand.HBaseUpdateSchemaParams
-import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.{RenameTablesParams, UpdateSchemaWithStatsCommand, UpdateSchemaWithStatsParams}
+import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.{NoBackupParam, RenameTablesParam, UpdateSchemaWithStatsCommand, UpdateSchemaWithStatsParams}
 
 class HBaseUpdateSchemaCommand extends UpdateSchemaWithStatsCommand[HBaseDataStore] with HBaseDataStoreCommand {
   override val params = new HBaseUpdateSchemaParams()
@@ -21,6 +21,6 @@ class HBaseUpdateSchemaCommand extends UpdateSchemaWithStatsCommand[HBaseDataSto
 
 object HBaseUpdateSchemaCommand {
   @Parameters(commandDescription = "Update a GeoMesa feature type")
-  class HBaseUpdateSchemaParams extends UpdateSchemaWithStatsParams
-    with RenameTablesParams with HBaseParams with RemoteFilterNotUsedParam
+  class HBaseUpdateSchemaParams
+    extends UpdateSchemaWithStatsParams with RenameTablesParam with NoBackupParam with HBaseParams with RemoteFilterNotUsedParam
 }
