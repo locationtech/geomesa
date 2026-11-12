@@ -8,12 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools
 
-import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
-import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
-import org.locationtech.geomesa.fs.tools.export.{FsExportCommand, FsPlaybackCommand}
-import org.locationtech.geomesa.fs.tools.ingest.{FsGeneratePartitionFiltersCommand, FsIngestCommand, FsManageMetadataCommand}
-import org.locationtech.geomesa.fs.tools.stats._
-import org.locationtech.geomesa.fs.tools.status._
 import org.locationtech.geomesa.tools.{Command, Runner}
 
 object FsRunner extends Runner {
@@ -22,22 +16,23 @@ object FsRunner extends Runner {
 
   override protected def commands: Seq[Command] = {
     super.commands ++ Seq(
-      new FsCreateSchemaCommand,
-      new FsDescribeSchemaCommand,
-      new FsExportCommand,
-      new FsPlaybackCommand,
-      new FsIngestCommand,
-      new FsGetTypeNamesCommand,
-      new FsGetSftConfigCommand,
-      new FsManageMetadataCommand,
-      new FsCompactCommand,
-      new FsGetPartitionsCommand,
-      new FsGetFilesCommand,
-      new FsGeneratePartitionFiltersCommand,
-      new FsStatsBoundsCommand,
-      new FsStatsCountCommand,
-      new FsStatsHistogramCommand,
-      new FsStatsTopKCommand
+      new compact.FsCompactCommand(),
+      new data.FsCreateSchemaCommand(),
+      new data.FsUpdateSchemaCommand(),
+      new export.FsExportCommand(),
+      new export.FsPlaybackCommand(),
+      new ingest.FsGeneratePartitionFiltersCommand(),
+      new ingest.FsIngestCommand(),
+      new ingest.FsManageMetadataCommand(),
+      new stats.FsStatsBoundsCommand(),
+      new stats.FsStatsCountCommand(),
+      new stats.FsStatsHistogramCommand(),
+      new stats.FsStatsTopKCommand(),
+      new status.FsDescribeSchemaCommand(),
+      new status.FsGetFilesCommand(),
+      new status.FsGetPartitionsCommand(),
+      new status.FsGetSftConfigCommand(),
+      new status.FsGetTypeNamesCommand(),
     )
   }
 }

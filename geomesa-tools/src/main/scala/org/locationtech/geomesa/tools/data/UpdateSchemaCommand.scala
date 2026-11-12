@@ -10,10 +10,12 @@ package org.locationtech.geomesa.tools.data
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.api.data.DataStore
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.tools._
-import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.UpdateSchemaParams
+import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.{NoBackupParam, RenameTablesParam, UpdateSchemaParams}
+import org.locationtech.geomesa.tools.utils.ParameterConverters.UserDataConverter
 import org.locationtech.geomesa.tools.utils.{NoopParameterSplitter, Prompt}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
@@ -65,22 +67,24 @@ trait UpdateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
       canRenameTables = true
     }
 
-    params.renameAttributes.asScala.grouped(2).foreach { case Seq(from, to) =>
-      val i = sft.indexOf(from.asInstanceOf[String])
+    params.renameAttributes.asScala.grouped(2).foreach { case Seq(from: String, to: String) =>
+      val i = sft.indexOf(from)
       if (i == -1) {
         throw new ParameterException(s"Attribute '$from' does not exist in the schema")
       }
       val attribute = new AttributeTypeBuilder()
       attribute.init(sft.getDescriptor(i))
-      builder.set(i, attribute.buildDescriptor(to.asInstanceOf[String]))
+      builder.set(i, attribute.buildDescriptor(to))
       if (sft.getGeomField == from) {
-        builder.setDefaultGeometry(to.asInstanceOf[String])
+        builder.setDefaultGeometry(to)
       }
       prompts.append(s"\n  $number: Renaming attribute '$from' to '$to'")
       canRenameTables = canRenameTables || sft.getIndices.exists(_.attributes.contains(from))
     }
 
-    if (canRenameTables && params.renameTables) {
+    val renameTables =
+      canRenameTables && Option(params).collect { case p: RenameTablesParam => p.renameTables }.getOrElse(false)
+    if (renameTables) {
       prompts.append(s"\n  $number: Renaming index tables (WARNING may be expensive)")
     }
 
@@ -106,40 +110,52 @@ trait UpdateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
       prompts.append(s"\n  $number: Removing keywords: '${keywords.mkString("', '")}'")
     }
     if (!params.userData.isEmpty) {
-      params.userData.asScala.foreach { ud =>
-        ud.split(":", 2) match {
-          case Array(k, v) =>
-            updated.getUserData.put(k, v) match {
-              case null => prompts.append(s"\n  $number: Adding user data: '$k=$v'")
-              case old  => prompts.append(s"\n  $number: Updating user data: '$k=$v' (was '$old')")
-            }
-          case _ => throw new ParameterException(s"Invalid user data entry - expected 'key:value': $ud")
+      params.userData.asScala.foreach { case (k, v) =>
+        updated.getUserData.put(k, v) match {
+          case null => prompts.append(s"\n  $number: Adding user data: '$k=$v'")
+          case old  => prompts.append(s"\n  $number: Updating user data: '$k=$v' (was '$old')")
         }
       }
     }
 
-    Option(params.enableStats).map(_.booleanValue()).foreach { enable =>
-      sft.setStatsEnabled(enable)
-      prompts.append(s"\n  $number: ${if (enable) { "En" } else { "Dis" }}abling stats")
-    }
-
-    if (params.renameTables) {
+    if (renameTables) {
       updated.getUserData.put(SimpleFeatureTypes.Configs.UpdateRenameTables, java.lang.Boolean.TRUE)
     }
-    if (params.noBackup) {
+    if (Option(params).collect { case p: NoBackupParam => p.noBackup }.getOrElse(false)) {
       updated.getUserData.put(SimpleFeatureTypes.Configs.UpdateBackupMetadata, java.lang.Boolean.FALSE)
     }
+
+    storeSpecificUpdates(sft).foreach(message => prompts.append(s"\n  $number: $message"))
 
     Command.user.info(s"Preparing to update schema '${sft.getTypeName}':$prompts")
     if (params.force || Prompt.confirm("Continue (y/n)? ")) {
       Command.user.info("Updating, please wait...")
-      ds.updateSchema(sft.getTypeName, updated)
+      doUpdate(ds, sft.getTypeName, updated)
       Command.user.info("Update complete")
     }
   }
+
+  protected def storeSpecificUpdates(sft: SimpleFeatureType): Seq[String] = Seq.empty
+  protected def doUpdate(ds: DS, typeName: String, updated: SimpleFeatureType): Unit = ds.updateSchema(typeName, updated)
 }
 
 object UpdateSchemaCommand {
+
+  trait UpdateSchemaWithStatsCommand[DS <: DataStore] extends UpdateSchemaCommand[DS] {
+
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    override val params: UpdateSchemaWithStatsParams
+
+    override protected def storeSpecificUpdates(sft: SimpleFeatureType): Seq[String] = {
+      Option(params.enableStats).map(_.booleanValue()) match {
+        case None => Seq.empty
+        case Some(enable) =>
+          sft.setStatsEnabled(enable)
+          Seq(s"${if (enable) { "En" } else { "Dis" }}abling stats")
+      }
+    }
+  }
 
   // @Parameters(commandDescription = "Update a GeoMesa feature type")
   trait UpdateSchemaParams extends RequiredTypeNameParam with OptionalForceParam {
@@ -175,24 +191,9 @@ object UpdateSchemaCommand {
     @Parameter(
       names = Array("--add-user-data"),
       description = "Add a new entry or update an existing entry in the feature type user data, delineated with a colon (:)",
-      splitter = classOf[NoopParameterSplitter])
-    var userData: java.util.List[String] = Collections.emptyList()
-
-    @Parameter(
-      names = Array("--enable-stats"),
-      description = "Enable or disable stats for the feature type",
-      arity = 1)
-    var enableStats: java.lang.Boolean = _
-
-    @Parameter(
-      names = Array("--rename-tables"),
-      description = "When updating the type name, also rename index tables to match the new type name")
-    var renameTables: Boolean = false
-
-    @Parameter(
-      names = Array("--no-backup"),
-      description = "Don't back up data store metadata before updating the schema")
-    var noBackup: Boolean = false
+      splitter = classOf[NoopParameterSplitter],
+      converter = classOf[UserDataConverter])
+    var userData: java.util.List[(String, String)] = Collections.emptyList()
 
     def validate(): Option[ParameterException] = {
       if (rename == null &&
@@ -202,5 +203,27 @@ object UpdateSchemaCommand {
         None
       }
     }
+  }
+
+  trait UpdateSchemaWithStatsParams extends UpdateSchemaParams {
+    @Parameter(
+      names = Array("--enable-stats"),
+      description = "Enable or disable stats for the feature type",
+      arity = 1)
+    var enableStats: java.lang.Boolean = _
+  }
+
+  trait RenameTablesParam extends UpdateSchemaParams {
+    @Parameter(
+      names = Array("--rename-tables"),
+      description = "When updating the type name, also rename index tables to match the new type name")
+    var renameTables: Boolean = false
+  }
+
+  trait NoBackupParam extends UpdateSchemaParams {
+    @Parameter(
+      names = Array("--no-backup"),
+      description = "Don't back up data store metadata before updating the schema")
+    var noBackup: Boolean = false
   }
 }

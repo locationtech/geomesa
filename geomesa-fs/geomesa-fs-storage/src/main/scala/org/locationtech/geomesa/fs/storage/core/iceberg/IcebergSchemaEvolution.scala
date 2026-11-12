@@ -38,7 +38,7 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
   import scala.collection.JavaConverters._
 
   override def columns(): CatalogUpdate.ColumnUpdate = IcebergColumnUpdate
-  override def indices(): CatalogUpdate.IndexUpdate = IcebergIndexUpdate
+  override def table(): CatalogUpdate.TableUpdate = IcebergTableUpdate
   override def metadata(): CatalogUpdate.MetadataUpdate = IcebergMetadataUpdate
 
   private object IcebergColumnUpdate extends CatalogUpdate.ColumnUpdate {
@@ -193,7 +193,15 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
     }
   }
 
-  private object IcebergIndexUpdate extends CatalogUpdate.IndexUpdate {
+  private object IcebergTableUpdate extends CatalogUpdate.TableUpdate {
+
+    override def rename(newName: String): Unit = {
+      val newTableId = TableIdentifier.of(tableId.namespace(), ColumnName.encode(newName))
+      catalog.renameTable(tableId, newTableId)
+      WithClose(catalog.loadTable(newTableId)) { table =>
+        table.updateProperties().set(IcebergCatalog.TypeNameKey, newName).commit()
+      }
+    }
 
     override def setPartitions(partitions: Seq[String]): Unit = {
       WithClose(catalog.loadTable(tableId)) { table =>
@@ -230,6 +238,7 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
   }
 
   private object IcebergMetadataUpdate extends CatalogUpdate.MetadataUpdate {
+
     override def setTargetFileSize(size: Option[Long]): Unit = {
       val prop = s"${Metadata.PropertyPrefix}${Metadata.TargetFileSize}"
       WithClose(catalog.loadTable(tableId)) { table =>
@@ -237,6 +246,17 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
         size match {
           case None => update.remove(prop)
           case Some(s) => update.set(prop, s.toString)
+        }
+        update.commit()
+      }
+    }
+
+    override def setUserData(key: String, value: Option[String]): Unit = {
+      WithClose(catalog.loadTable(tableId)) { table =>
+        val update = table.updateProperties()
+        value match {
+          case None => update.remove(s"${IcebergCatalog.UserDataPrefix}$key")
+          case Some(v) => update.set(s"${IcebergCatalog.UserDataPrefix}$key", v)
         }
         update.commit()
       }

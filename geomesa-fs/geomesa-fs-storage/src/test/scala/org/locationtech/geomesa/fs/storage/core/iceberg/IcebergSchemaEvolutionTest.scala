@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
+import org.apache.iceberg.exceptions.NoSuchTableException
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -405,7 +406,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "change the partition spec" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).indices().setPartitions(Seq("z2:bits=4", "month"))
+        catalog.update(sft.getTypeName).table().setPartitions(Seq("z2:bits=4", "month"))
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           // note: original order isn't preserved, schemes are sorted by name
           storage.schemes mustEqual Seq(DateTimeScheme("dtg", 4, ChronoUnit.MONTHS), Z2Scheme("geom", 3, 4))
@@ -444,7 +445,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
           storage.metadata.files().scan().toList must haveLength(1)
         }
 
-        catalog.update(sft.getTypeName).indices().setPartitions(Seq("month"))
+        catalog.update(sft.getTypeName).table().setPartitions(Seq("month"))
 
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           WithClose(storage.getWriter(ECQL.toFilter("IN ('jan', 'feb')"), 1))(writer => writer.foreach(_ => writer.remove()))
@@ -456,7 +457,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "add bloom filters" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).indices().addBloomFilters(Seq(BloomFilterConfig("age", Some(100), Some(0.05))))
+        catalog.update(sft.getTypeName).table().addBloomFilters(Seq(BloomFilterConfig("age", Some(100), Some(0.05))))
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           val oldFiles = storage.metadata.files().scan().map(_.file().location())
           val newFeatures = features.map { orig =>
@@ -496,7 +497,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "remove bloom filters" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).indices().removeBloomFilters(Seq("name"))
+        catalog.update(sft.getTypeName).table().removeBloomFilters(Seq("name"))
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           val oldFiles = storage.metadata.files().scan().map(_.file().location())
           val newFeatures = features.map { orig =>
@@ -542,6 +543,23 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
         catalog.update(sft.getTypeName).metadata().setTargetFileSize(None)
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sizer.targetSize must beNone
+        }
+      }
+    }
+
+    "rename a table" in {
+      withCatalog { catalog =>
+        val renamed = "renamed-test"
+        catalog.update(sft.getTypeName).table().rename(renamed)
+        catalog.getTypeNames must containTheSameElementsAs(Seq(renamed))
+        WithClose(catalog.load(sft.getTypeName))(_ => ()) must throwA[NoSuchTableException]
+        WithClose(catalog.load(renamed)) { storage =>
+          storage.sft.getTypeName mustEqual renamed
+          foreach(queryList) { case (filter, expected) =>
+            foreach(transformsList) { transform =>
+              testQuery(storage, storage.sft, filter, transform, expected)
+            }
+          }
         }
       }
     }

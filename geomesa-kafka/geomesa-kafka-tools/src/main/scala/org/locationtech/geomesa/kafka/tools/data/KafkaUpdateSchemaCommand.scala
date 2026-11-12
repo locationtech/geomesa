@@ -13,7 +13,7 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.tools.data.KafkaUpdateSchemaCommand.KafkaUpdateSchemaParams
 import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, KafkaDataStoreParams, StatusDataStoreParams}
 import org.locationtech.geomesa.tools.data.UpdateSchemaCommand
-import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.UpdateSchemaParams
+import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.{NoBackupParam, UpdateSchemaParams}
 
 class KafkaUpdateSchemaCommand extends UpdateSchemaCommand[KafkaDataStore] with KafkaDataStoreCommand {
   override val params = new KafkaUpdateSchemaParams()
@@ -21,5 +21,5 @@ class KafkaUpdateSchemaCommand extends UpdateSchemaCommand[KafkaDataStore] with 
 
 object KafkaUpdateSchemaCommand {
   @Parameters(commandDescription = "Update a GeoMesa feature type")
-  class KafkaUpdateSchemaParams extends UpdateSchemaParams with KafkaDataStoreParams with StatusDataStoreParams
+  class KafkaUpdateSchemaParams extends UpdateSchemaParams with NoBackupParam with KafkaDataStoreParams with StatusDataStoreParams
 }
