@@ -9,7 +9,7 @@ features and each query is sent to only one data store. This can be used, for ex
 
 In order to use a layer through the a data store view, the SimpleFeatureType must exist (and match) in all of
 the underlying stores. If a schema exists in some stores but not all of them, it will not show up in the
-combined view.
+combined view. Programmatic merged views can override delegate selection using a filter provider, as described below.
 
 Installation
 ------------
@@ -111,6 +111,72 @@ time-based filters:
         }
       ]
     }
+
+Operation-scoped Filtering
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Programmatic merged views accept an optional ``MergedDataStoreView.FilterProvider``. Its ``filters`` method
+returns one fixed filter for each selected delegate, in order. The view resolves the provider once for each
+reader, count, bounds, statistics or ``getFeatures`` operation and ANDs the returned filters with existing
+store filters. Configured relative dates use the same captured time. A returned collection retains its
+filters through iteration, visitors, sorting and subcollections; a later operation on a cached feature source
+resolves the provider again. This freezes routing, not the underlying records or a cross-store transaction.
+
+A provider can override ``select`` to choose delegates for each feature type. Selection is used for both
+schema discovery and routing and must not read changing coverage. All selected schemas must be compatible.
+``MergedSource.acceptsType`` provides an additional per-delegate feature-type predicate.
+Without a provider, the existing intersection of delegate schemas is used.
+
+Verified Destination Coverage
+""""""""""""""""""""""""""""
+
+``CoverageFilterProvider`` routes a producer-certified event-time interval to a destination store and its
+complement to a source store. Unlike a relative date filter, routing advances only when coverage is published.
+The view does not move records or require source deletion or age-off.
+
+.. code-block:: scala
+
+    import org.locationtech.geomesa.index.view._
+    import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource
+
+    val view = new MergedDataStoreView(
+      stores = Seq(MergedSource(primaryStore), MergedSource(secondaryStore)),
+      deduplicate = false,
+      parallel = true,
+      filterProvider = Some(new CoverageFilterProvider(secondaryStore, verifiedCoverage)))
+
+Here the stores are caller-supplied instances, and ``verifiedCoverage`` implements:
+
+.. code-block:: scala
+
+    trait DestinationCoverage extends java.io.Closeable {
+      def coverage(datasetId: String): Option[CoverageInterval]
+    }
+
+    case class CoverageInterval(from: java.time.Instant, through: java.time.Instant)
+
+Dataset IDs are feature type names, scoped to the configured destination. The producer certifies that
+``[from, through)`` is continuous, complete, queryable and final, including reconciled late arrivals and
+updates. Boundaries must be finite, nonempty and representable at millisecond precision. A completed export
+or elapsed quiet period alone does not establish finality. Verification and publication are external to the view.
+
+Destination rows are queried inside the interval. Source rows are queried before ``from``, at or after
+``through``, and when their timestamp is null. With no published coverage, only source rows are returned.
+Provider failures propagate to the caller, and published coverage without an available destination schema fails.
+
+Discovery is the union of selected types. Each type may occur in at most one source delegate; destination-only
+types require published coverage to query. All delegates must agree on dataset identity and their resolved
+temporal attribute: the configured default date field takes precedence over the first Date attribute.
+``MergedSource.acceptsType`` can restrict both discovery and routing. Multiple source stores are supported
+when their selected feature types do not overlap.
+
+The public feature source returns the merged view from ``getDataStore``. Optimized visitors and statistics
+use the captured operation filters. For parallel scans, delegate authorization providers supply context unless
+a ``MergedSource`` has an explicit task decorator.
+
+As with other merged views, the view owns its physical stores. Disposing it also closes the filter provider
+and its coverage provider, once. Do not share these resources among independently disposed views. If construction
+fails, the caller remains responsible for cleanup. Avoid disposal or destination rewrites while queries are in flight.
 
 Store Configuration Provider
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

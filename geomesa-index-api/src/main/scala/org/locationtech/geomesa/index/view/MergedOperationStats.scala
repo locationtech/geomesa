@@ -16,10 +16,12 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
 import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStatWriter, Stat}
 
-/** Read-only stats facade: resolve once per operation, never close borrowed stats or expose their writers. */
-private[view] class RolloverStats(resolve: String => MergedDataStoreView) extends GeoMesaStats {
-
-  override val writer: GeoMesaStatWriter = NoopStatWriter
+/** Statistics sharing one resolved merge plan per operation. */
+private[view] class MergedOperationStats(
+    resolve: String => MergedDataStoreView,
+    override val writer: GeoMesaStatWriter = NoopStatWriter,
+    onClose: () => Unit = () => {}
+  ) extends GeoMesaStats {
 
   override def getCount(
       sft: SimpleFeatureType,
@@ -80,7 +82,7 @@ private[view] class RolloverStats(resolve: String => MergedDataStoreView) extend
       filter: Filter,
       exact: Boolean): Option[T] = run(sft, (stats, schema) => stats.getStat[T](schema, query, filter, exact))
 
-  override def close(): Unit = {}
+  override def close(): Unit = onClose()
 
   private def run[T](sft: SimpleFeatureType, run: (GeoMesaStats, SimpleFeatureType) => T): T = {
     val plan = resolve(sft.getTypeName)

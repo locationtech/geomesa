@@ -15,13 +15,13 @@ import java.time.Instant
 case class CoverageInterval(from: Instant, through: Instant) {
   require(from != null && through != null && from.isBefore(through), "Invalid destination coverage interval")
   require(Seq(from, through).forall(i => Instant.ofEpochMilli(i.toEpochMilli) == i),
-    "Rollover coverage boundaries must have millisecond precision")
+    "Destination coverage boundaries must have millisecond precision")
 }
 
 /**
  * Dataset IDs are feature type names, scoped to the configured destination.
  * Publication and finality are the provider's responsibility; this interface does not prescribe a producer.
  */
-trait RolloverCoverage extends Closeable {
+trait DestinationCoverage extends Closeable {
   def coverage(datasetId: String): Option[CoverageInterval]
 }

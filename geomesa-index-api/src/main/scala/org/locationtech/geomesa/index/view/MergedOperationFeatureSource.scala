@@ -27,15 +27,15 @@ import java.awt.RenderingHints.Key
 import java.util.Collections
 
 /** Public owner-preserving facade. Each operation resolves one private merge plan. */
-private[view] class RolloverFeatureSourceView(
-    owner: RolloverDataStoreView,
+private[view] class MergedOperationFeatureSource(
+    owner: MergedDataStoreView,
     typeName: String,
     resolve: () => MergedDataStoreView,
     schema: () => SimpleFeatureType,
     capabilities: () => QueryCapabilities
   ) extends SimpleFeatureSource with HasGeoMesaStats {
 
-  override val stats: RolloverStats = new RolloverStats(name => {
+  override val stats: MergedOperationStats = new MergedOperationStats(name => {
     owner.ensureOpen()
     require(name == typeName, s"Feature source '$typeName' cannot query '$name'")
     resolve()
@@ -80,7 +80,7 @@ private[view] class RolloverFeatureSourceView(
 
   private class OperationCollection(plan: MergedDataStoreView, operation: Query)
       extends GeoMesaFeatureVisitingCollection(
-        pinnedSource(plan), new RolloverStats(name => {
+        pinnedSource(plan), new MergedOperationStats(name => {
           require(name == typeName, "Operation feature type must not change")
           plan
         }), operation) {
@@ -116,7 +116,7 @@ private[view] class RolloverFeatureSourceView(
     }
   }
 
-  private def pinnedSource(plan: MergedDataStoreView): RolloverFeatureSourceView =
-    new RolloverFeatureSourceView(owner, typeName, () => plan, () => plan.getSchema(typeName),
+  private def pinnedSource(plan: MergedDataStoreView): MergedOperationFeatureSource =
+    new MergedOperationFeatureSource(owner, typeName, () => plan, () => plan.getSchema(typeName),
       () => plan.getFeatureSource(typeName).getQueryCapabilities)
 }

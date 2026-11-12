@@ -42,7 +42,7 @@ class MergedStats(stores: Seq[MergedSource[DataStore]], parallel: Boolean) exten
   private implicit val ev: MergedSourceSft[StatsWithSchemas] = StatsWithSchemasSft
 
   private val stats: Seq[MergedSource[StatsWithSchemas]] = stores.map {
-    case s@MergedSource(stats: HasGeoMesaStats, _, _, _, _) => s.copy(StatsWithSchemas(stats.stats, s.source))
+    case s@MergedSource(stats: HasGeoMesaStats, _, _, _, _, _) => s.copy(StatsWithSchemas(stats.stats, s.source))
     case s => s.copy(StatsWithSchemas(new UnoptimizedRunnableStats(s.source), s.source))
   }
 

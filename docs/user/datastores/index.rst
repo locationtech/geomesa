@@ -21,7 +21,6 @@ Not sure where to begin? Take a look at :doc:`/user/getting_started`.
     query_planning
     query_interceptor
     query_config
-    rollover
     filter_functions
     analytic_queries
     security

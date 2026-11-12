@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.index.view
 
-import org.locationtech.geomesa.index.view.RolloverDataStoreView.Delegate
-import org.geotools.api.data.{Query, SimpleFeatureReader, SimpleFeatureSource, SimpleFeatureStore, Transaction}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
+import org.geotools.api.data.{DataStore, Query, SimpleFeatureReader, SimpleFeatureSource, SimpleFeatureStore, Transaction}
 import org.geotools.api.feature.Feature
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.data.memory.MemoryFeatureStore
@@ -40,7 +40,7 @@ import java.time.Instant
 import java.util.Date
 import java.util.concurrent.ConcurrentLinkedQueue
 
-class RolloverDataStoreViewTest extends SpecificationWithJUnit {
+class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
   sequential
 
   private val context = new ThreadLocal[String]()
@@ -62,7 +62,7 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
   private val boundary = Instant.parse("2026-01-02T00:00:00Z")
   private val typeName = "track-sf-example"
 
-  class Coverage extends RolloverCoverage {
+  class Coverage extends DestinationCoverage {
     var start = boundary.minusSeconds(3600)
     var published = Map(typeName -> boundary)
     var reads = 0
@@ -79,9 +79,10 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
 
   class Store extends MemoryDataStore {
     var closed = false
+    var disposals = 0
     val identities = new ConcurrentLinkedQueue[String]()
     protected def recordIdentity(): Unit = identities.add(Option(context.get()).getOrElse("none"))
-    override def dispose(): Unit = { closed = true; super.dispose() }
+    override def dispose(): Unit = { closed = true; disposals += 1; super.dispose() }
     override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {
       val reader = super.getFeatureReader(query, transaction)
       new SimpleFeatureReader {
@@ -152,16 +153,30 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
     }
   }
 
-  def fixture(f: (RolloverDataStoreView, Store, Store, Coverage) => Any): Unit = {
+  def coverageView(
+      sources: Seq[MergedSource[DataStore]],
+      destination: MergedSource[DataStore],
+      coverage: DestinationCoverage,
+      parallel: Boolean = false,
+      taskDecorator: Option[java.util.function.UnaryOperator[Runnable]] = None,
+      namespace: Option[String] = None): MergedDataStoreView = {
+    val stores = (sources :+ destination).map { source =>
+      taskDecorator.fold(source)(op => source.copy(decorator = new TaskDecorator(Some(op))))
+    }
+    new MergedDataStoreView(stores, deduplicate = false, parallel = parallel, namespace = namespace,
+      filterProvider = Some(new CoverageFilterProvider(destination.source, coverage)))
+  }
+
+  def fixture(f: (MergedDataStoreView, Store, Store, Coverage) => Any): Unit = {
     val source = new Store; val destination = new Store; val coverage = new Coverage
     populate(source, "source"); populate(destination, "destination")
-    val store = new RolloverDataStoreView(
-      Seq(Delegate(source)), Delegate(destination), coverage, parallel = true,
-      taskDecorator = Some(decorator), namespace = Some("rollover"))
+    val store = coverageView(
+      Seq(MergedSource(source)), MergedSource(destination), coverage, parallel = true,
+      taskDecorator = Some(decorator), namespace = Some("coverage"))
     try { f(store, source, destination, coverage) } finally { store.dispose(); source.dispose(); destination.dispose() }
   }
 
-  def read(store: RolloverDataStoreView, name: String = typeName): Seq[(String, Long)] = {
+  def read(store: MergedDataStoreView, name: String = typeName): Seq[(String, Long)] = {
     val query = new Query(name, Filter.INCLUDE)
     query.setSortBy(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.ASCENDING))
     val reader = CloseableIterator(store.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -169,13 +184,13 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
     finally { reader.close() }
   }
 
-  def readParallel(store: RolloverDataStoreView): Int = {
+  def readParallel(store: MergedDataStoreView): Int = {
     // Sorted merging reads on the calling thread; an unsorted query exercises parallel delegate scans.
     val reader = CloseableIterator(store.getFeatureReader(new Query(typeName), Transaction.AUTO_COMMIT))
     try { reader.length } finally { reader.close() }
   }
 
-  "Rollover view" should {
+  "Merged view with destination coverage" should {
     "split overlapping sources without a gap or duplicate at the coverage boundary" in {
       fixture { (store, _, _, coverage) =>
         read(store).map(_._1) mustEqual Seq("destination", "source", "source")
@@ -222,7 +237,7 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
       success
     }
 
-    "propagate injected context to both readers and leave physical pools owned by their original stores" in {
+    "propagate injected context to both readers and dispose delegates and coverage once" in {
       import scala.collection.JavaConverters._
       fixture { (store, source, destination, coverage) =>
         context.set("example-context")
@@ -233,8 +248,10 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
         store.dispose()
         coverage.closed must beTrue
         coverage.closes mustEqual 1
-        source.closed must beFalse
-        destination.closed must beFalse
+        source.disposals mustEqual 1
+        destination.disposals mustEqual 1
+        source.closed must beTrue
+        destination.closed must beTrue
       }
       success
     }
@@ -243,7 +260,7 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
       import scala.collection.JavaConverters._
       val source = new AuthorizedStore("source"); val destination = new AuthorizedStore("destination")
       populate(source, "source"); populate(destination, "destination")
-      val store = new RolloverDataStoreView(Seq(Delegate(source)), Delegate(destination), new Coverage, parallel = true)
+      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), new Coverage, parallel = true)
       try {
         val featureSource = store.getFeatureSource(typeName)
         val operations: Seq[() => Any] = Seq(
@@ -269,7 +286,7 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
       import scala.collection.JavaConverters._
       val source = new AuthorizedStore("source"); val destination = new AuthorizedStore("destination")
       populate(source, "source"); populate(destination, "destination")
-      val store = new RolloverDataStoreView(Seq(Delegate(source)), Delegate(destination), new Coverage,
+      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), new Coverage,
         parallel = true, taskDecorator = Some(decorator))
       try {
         context.set("explicit-context")
@@ -315,8 +332,8 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
       val first = new Store; val second = new Store; val destination = new Store
       populate(first, "one"); populate(second, "two"); populate(destination, "destination")
       val coverage = new Coverage
-      val store = new RolloverDataStoreView(
-        Seq(Delegate(first), Delegate(second)), Delegate(destination), coverage)
+      val store = coverageView(
+        Seq(MergedSource(first), MergedSource(second)), MergedSource(destination), coverage)
       try { store.getSchema(typeName) must throwA[IllegalArgumentException] }
       finally { store.dispose(); first.dispose(); second.dispose(); destination.dispose() }
     }
@@ -324,8 +341,8 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
       val source = new Store; val destination = new Store; val coverage = new Coverage
       populate(source, "source"); populate(destination, "destination")
       populate(source, "hidden", "excluded")
-      val store = new RolloverDataStoreView(Seq(Delegate(source, _ == typeName)),
-        Delegate(destination, _ == typeName), coverage, namespace = Some("example"))
+      val store = coverageView(Seq(MergedSource(source, acceptsType = _ == typeName)),
+        MergedSource(destination, acceptsType = _ == typeName), coverage, namespace = Some("example"))
       try {
         store.getTypeNames.toSeq mustEqual Seq(typeName)
         store.getNames.get(0).getNamespaceURI mustEqual "example"
@@ -339,7 +356,7 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
       CoverageInterval(boundary, boundary.plusNanos(1)) must throwA[IllegalArgumentException]
       val source = new Store
       try {
-        new RolloverDataStoreView(Seq(Delegate(source)), Delegate(source), new Coverage) must
+        coverageView(Seq(MergedSource(source)), MergedSource(source), new Coverage) must
           throwA[IllegalArgumentException]
       } finally { source.dispose() }
     }
@@ -348,8 +365,8 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
       val source = new Store; val destination = new Store; val coverage = new Coverage
       populate(source, "source"); populate(destination, "destination")
       populate(source, "hidden", "hidden"); populate(destination, "hidden", "hidden")
-      val store = new RolloverDataStoreView(Seq(Delegate(source, _ == typeName)),
-        Delegate(destination, _ == typeName), coverage)
+      val store = coverageView(Seq(MergedSource(source, acceptsType = _ == typeName)),
+        MergedSource(destination, acceptsType = _ == typeName), coverage)
       try {
         val fs = store.getFeatureSource(typeName)
         fs.getDataStore must beTheSameAs(store)
@@ -376,8 +393,8 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
         val reader = features.features()
         try { CloseableIterator(reader).length mustEqual 3 } finally { reader.close() }
         visitorSource.getDataStore.dispose()
-        source.closed must beFalse
-        destination.closed must beFalse
+        source.closed must beTrue
+        destination.closed must beTrue
         coverage.closes mustEqual 1
       } finally { store.dispose(); source.dispose(); destination.dispose() }
     }
@@ -403,7 +420,7 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
         populate(ds, origin)
         ds.addFeature(ScalaSimpleFeature.create(ds.getSchema(typeName), "null-time", origin, null, "POINT (5 5)"))
       }
-      val store = new RolloverDataStoreView(Seq(Delegate(source)), Delegate(destination), coverage)
+      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), coverage)
       try {
         val cached = store.getFeatureSource(typeName)
         coverage.published = Map.empty
@@ -419,11 +436,11 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
       } finally { store.dispose(); source.dispose(); destination.dispose() }
     }
 
-    "resolve one plan for count, bounds, stats and collection visitors without owning delegate stats" in {
+    "resolve one plan for count, bounds, stats and collection visitors and preserve merged stats ownership" in {
       val source = new ExactStore; val destination = new ExactStore; val coverage = new Coverage
       populate(source, "source"); populate(destination, "destination")
       source.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore].removeFeatures(Filter.INCLUDE)
-      val store = new RolloverDataStoreView(Seq(Delegate(source)), Delegate(destination), coverage)
+      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), coverage)
       try {
         val cached = store.getFeatureSource(typeName)
         val query = new Query(typeName)
@@ -448,10 +465,10 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
         coverage.reads mustEqual 7
         store.stats.writer.clear(store.getSchema(typeName))
         store.stats.close()
-        source.statsWrites mustEqual 0
-        destination.statsWrites mustEqual 0
-        source.statsCloses mustEqual 0
-        destination.statsCloses mustEqual 0
+        source.statsWrites mustEqual 1
+        destination.statsWrites mustEqual 1
+        source.statsCloses mustEqual 1
+        destination.statsCloses mustEqual 1
       } finally { store.dispose(); source.dispose(); destination.dispose() }
     }
 
@@ -473,7 +490,7 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
       val source = new ExactStore; val destination = new ExactStore; val coverage = new Coverage
       populate(source, "source"); populate(destination, "destination")
       source.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore].removeFeatures(Filter.INCLUDE)
-      val store = new RolloverDataStoreView(Seq(Delegate(source)), Delegate(destination), coverage)
+      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), coverage)
       try {
         val cached = store.getFeatureSource(typeName)
         val collection = cached.getFeatures()
@@ -518,7 +535,7 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
         schema.getUserData.put("geomesa.index.dtg", dtg)
         ds.createSchema(schema)
       }
-      val store = new RolloverDataStoreView(Seq(Delegate(source)), Delegate(destination), coverage)
+      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), coverage)
       try {
         store.getSchema(typeName) must throwA[IllegalArgumentException](".*different temporal attributes.*")
         read(store) must throwA[IllegalArgumentException](".*different temporal attributes.*")
@@ -528,7 +545,7 @@ class RolloverDataStoreViewTest extends SpecificationWithJUnit {
     "fail when published coverage has no advertised destination and propagate provider failures" in {
       val source = new Store; val destination = new Store; val coverage = new Coverage
       populate(source, "source")
-      val store = new RolloverDataStoreView(Seq(Delegate(source)), Delegate(destination), coverage)
+      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), coverage)
       try {
         read(store) must throwA[IllegalArgumentException](".*no available destination schema.*")
         coverage.reads mustEqual 1
