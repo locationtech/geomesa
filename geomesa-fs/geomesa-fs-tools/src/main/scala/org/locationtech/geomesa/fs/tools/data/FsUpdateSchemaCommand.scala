@@ -32,7 +32,7 @@ class FsUpdateSchemaCommand extends UpdateSchemaCommand[FileSystemDataStore] wit
   override val params: FsUpdateSchemaParams = new FsUpdateSchemaParams()
 
   override protected def doUpdate(ds: FileSystemDataStore, typeName: String, updated: SimpleFeatureType): Unit = {
-    params.renameAttributes.asScala.grouped(2).foreach { case Seq(from, to) =>
+    params.renameAttributes.asScala.grouped(2).foreach { case Seq(from: String, to: String) =>
       ds.update(typeName).columns().rename(from, to)
     }
     params.attributes.asScala.foreach { attribute =>
