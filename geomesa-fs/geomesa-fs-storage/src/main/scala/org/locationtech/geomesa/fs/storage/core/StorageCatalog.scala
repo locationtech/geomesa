@@ -102,11 +102,11 @@ object StorageCatalog extends LazyLogging {
     def columns(): CatalogUpdate.ColumnUpdate
 
     /**
-     * Updates to indices and partitioning
+     * Non-column table updates
      *
      * @return
      */
-    def indices(): CatalogUpdate.IndexUpdate
+    def table(): CatalogUpdate.TableUpdate
 
     /**
      * Updates to metadata values
@@ -160,7 +160,14 @@ object StorageCatalog extends LazyLogging {
       def reorder(attribute: String, position: Int): Unit
     }
 
-    trait IndexUpdate {
+    trait TableUpdate {
+
+      /**
+       * Rename the table
+       *
+       * @param newName new name
+       */
+      def rename(newName: String): Unit
 
       /**
        * Overwrite the current partition spec
@@ -192,6 +199,14 @@ object StorageCatalog extends LazyLogging {
        * @param size target size, in bytes, or None to clear an existing target size
        */
       def setTargetFileSize(size: Option[Long]): Unit
+
+      /**
+       * Sets a user data property
+       *
+       * @param key key
+       * @param value value, empty to remove an existing key
+       */
+      def setUserData(key: String, value: Option[String]): Unit
     }
   }
 }

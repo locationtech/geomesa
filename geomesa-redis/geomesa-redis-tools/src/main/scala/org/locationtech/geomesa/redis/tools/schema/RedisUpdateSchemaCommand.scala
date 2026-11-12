@@ -13,14 +13,13 @@ import org.locationtech.geomesa.redis.data.RedisDataStore
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand.RedisDataStoreParams
 import org.locationtech.geomesa.redis.tools.schema.RedisUpdateSchemaCommand.RedisUpdateSchemaParams
-import org.locationtech.geomesa.tools.data.UpdateSchemaCommand
-import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.UpdateSchemaParams
+import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.{RenameTablesParams, UpdateSchemaWithStatsCommand, UpdateSchemaWithStatsParams}
 
-class RedisUpdateSchemaCommand extends UpdateSchemaCommand[RedisDataStore] with RedisDataStoreCommand {
+class RedisUpdateSchemaCommand extends UpdateSchemaWithStatsCommand[RedisDataStore] with RedisDataStoreCommand {
   override val params = new RedisUpdateSchemaParams()
 }
 
 object RedisUpdateSchemaCommand {
   @Parameters(commandDescription = "Update a GeoMesa feature type")
-  class RedisUpdateSchemaParams extends UpdateSchemaParams with RedisDataStoreParams
+  class RedisUpdateSchemaParams extends UpdateSchemaWithStatsParams with RenameTablesParams with RedisDataStoreParams
 }

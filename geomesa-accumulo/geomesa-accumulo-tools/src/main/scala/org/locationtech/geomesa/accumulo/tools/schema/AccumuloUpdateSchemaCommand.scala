@@ -12,14 +12,13 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.tools.schema.AccumuloUpdateSchemaCommand.AccumuloUpdateSchemaParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
-import org.locationtech.geomesa.tools.data.UpdateSchemaCommand
-import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.UpdateSchemaParams
+import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.{RenameTablesParams, UpdateSchemaWithStatsCommand, UpdateSchemaWithStatsParams}
 
-class AccumuloUpdateSchemaCommand extends UpdateSchemaCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
+class AccumuloUpdateSchemaCommand extends UpdateSchemaWithStatsCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
   override val params = new AccumuloUpdateSchemaParams()
 }
 
 object AccumuloUpdateSchemaCommand {
   @Parameters(commandDescription = "Update a GeoMesa feature type")
-  class AccumuloUpdateSchemaParams extends UpdateSchemaParams with AccumuloDataStoreParams
+  class AccumuloUpdateSchemaParams extends UpdateSchemaWithStatsParams with RenameTablesParams with AccumuloDataStoreParams
 }

@@ -14,7 +14,7 @@ import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand.CassandraDataStoreParams
 import org.locationtech.geomesa.cassandra.tools.commands.CassandraUpdateSchemaCommand.CassandraUpdateSchemaParams
 import org.locationtech.geomesa.tools.data.UpdateSchemaCommand
-import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.UpdateSchemaParams
+import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.{RenameTablesParams, UpdateSchemaParams}
 
 class CassandraUpdateSchemaCommand extends UpdateSchemaCommand[CassandraDataStore] with CassandraDataStoreCommand {
   override val params = new CassandraUpdateSchemaParams()
@@ -22,5 +22,5 @@ class CassandraUpdateSchemaCommand extends UpdateSchemaCommand[CassandraDataStor
 
 object CassandraUpdateSchemaCommand {
   @Parameters(commandDescription = "Update a GeoMesa feature type")
-  class CassandraUpdateSchemaParams extends UpdateSchemaParams with CassandraDataStoreParams
+  class CassandraUpdateSchemaParams extends UpdateSchemaParams with RenameTablesParams with CassandraDataStoreParams
 }

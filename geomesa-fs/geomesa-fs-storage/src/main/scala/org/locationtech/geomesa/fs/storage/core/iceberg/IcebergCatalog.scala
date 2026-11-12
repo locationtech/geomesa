@@ -52,7 +52,7 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
     new CacheLoader[TableIdentifier, Option[String]]() {
       override def load(id: TableIdentifier): Option[String] = {
         WithClose(catalog.loadTable(id)) { table =>
-          Option(table.properties().get("geomesa.sft.name"))
+          Option(table.properties().get(IcebergCatalog.TypeNameKey))
         }
       }
     }
@@ -118,6 +118,8 @@ object IcebergCatalog {
 
   import scala.collection.JavaConverters._
 
+  val TypeNameKey = s"${GeoMesaPropertyPrefix}sft.name"
+
   val UserDataPrefix = s"${GeoMesaPropertyPrefix}userdata."
 
   /**
@@ -141,7 +143,7 @@ object IcebergCatalog {
    * @return
    */
   def sftTableProperties(sft: SimpleFeatureType): Map[String, String] = {
-    val typeName = Map(s"${GeoMesaPropertyPrefix}sft.name" -> sft.getTypeName)
+    val typeName = Map(TypeNameKey -> sft.getTypeName)
     val userData = {
       val prefixes = sft.getUserDataPrefixes
       sft.getUserData.asScala.collect {
