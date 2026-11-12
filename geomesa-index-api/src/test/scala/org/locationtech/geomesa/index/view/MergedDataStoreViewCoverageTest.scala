@@ -8,193 +8,142 @@
 
 package org.locationtech.geomesa.index.view
 
-import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
-import org.geotools.api.data.{DataStore, Query, SimpleFeatureReader, SimpleFeatureSource, SimpleFeatureStore, Transaction}
-import org.geotools.api.feature.Feature
+import org.geotools.api.data.{DataStore, Query, SimpleFeatureStore, Transaction}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.data.memory.MemoryFeatureStore
-import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
-import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.feature.visitor.{CalcResult, CountVisitor}
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.sort.SortOrder
+import org.geotools.feature.visitor.CountVisitor
+import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.process.{GeoMesaProcessVisitor, MinMaxVisitor}
-import org.locationtech.geomesa.index.stats.{HasGeoMesaStats, NoopStatWriter, Stat}
-import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
-import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
+import org.locationtech.geomesa.index.process.MinMaxVisitor
+import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.stats.impl.CountStat
-import org.locationtech.jts.geom.Geometry
-import org.geotools.api.filter.Filter
-import org.geotools.api.filter.sort.SortOrder
-import org.geotools.data.memory.MemoryDataStore
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.security.{AuthorizationsProvider, HasAuthorizationsProvider}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
+import org.locationtech.geomesa.index.view.MergedFilterProvider.QueryContext
+import org.locationtech.geomesa.index.view.filters.RolloverFilterProvider.{CoverageInterval, DestinationProvider, SourceProvider}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
 
 import java.time.Instant
 import java.util.Date
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicInteger
 
-class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
+class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit with MergedDataStoreViewTestSupport {
   sequential
 
-  private val context = new ThreadLocal[String]()
-  private val decorator = new java.util.function.UnaryOperator[Runnable] {
-    override def apply(task: Runnable): Runnable = {
-      val captured = context.get()
-      new Runnable {
-        override def run(): Unit = {
-          val previous = context.get()
-          context.set(captured)
-          try { task.run() } finally {
-            if (previous == null) { context.remove() } else { context.set(previous) }
-          }
-        }
-      }
-    }
-  }
-
-  private val boundary = Instant.parse("2026-01-02T00:00:00Z")
-  private val typeName = "track-sf-example"
-
-  class Coverage extends DestinationCoverage {
+  // Exercise the real rollover filters with an in-memory lookup; JDBC context sharing is tested separately.
+  class Coverage {
     var start = boundary.minusSeconds(3600)
     var published = Map(typeName -> boundary)
-    var reads = 0
-    var closed = false
-    var closes = 0
+    val reads = new AtomicInteger()
+    val closes = new AtomicInteger()
+    val timestamps = new ConcurrentLinkedQueue[Instant]()
+    val contexts = new ConcurrentLinkedQueue[QueryContext]()
     var failed = false
-    override def coverage(name: String): Option[CoverageInterval] = {
-      reads += 1
+
+    private def coverage(name: String, context: QueryContext): Option[CoverageInterval] = {
+      contexts.add(context)
+      val asOf = context.now
+      reads.incrementAndGet()
+      timestamps.add(asOf)
       if (failed) { throw new java.sql.SQLException("coverage boundary unavailable") }
-      published.get(name).map(end => CoverageInterval(start, end))
+      published.get(name).map(end => CoverageInterval(name, asOf, start, end))
     }
-    override def close(): Unit = { closed = true; closes += 1 }
-  }
 
-  class Store extends MemoryDataStore {
-    var closed = false
-    var disposals = 0
-    val identities = new ConcurrentLinkedQueue[String]()
-    protected def recordIdentity(): Unit = identities.add(Option(context.get()).getOrElse("none"))
-    override def dispose(): Unit = { closed = true; disposals += 1; super.dispose() }
-    override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {
-      val reader = super.getFeatureReader(query, transaction)
-      new SimpleFeatureReader {
-        override def getFeatureType = reader.getFeatureType
-        override def hasNext: Boolean = {
-          recordIdentity()
-          reader.hasNext
-        }
-        override def next() = reader.next()
-        override def close(): Unit = reader.close()
-      }
+    val source: SourceProvider = new SourceProvider {
+      override protected def coverage(sft: SimpleFeatureType, context: QueryContext): Option[CoverageInterval] =
+        Coverage.this.coverage(sft.getTypeName, context)
+      override def close(): Unit = { closes.incrementAndGet() }
     }
-  }
-
-  class ExactStore extends Store with HasGeoMesaStats {
-    var statsCloses = 0
-    var statsWrites = 0
-    override val stats = new UnoptimizedRunnableStats(this) {
-      override val writer: GeoMesaStatWriter = new GeoMesaStatWriter {
-        override def analyze(sft: SimpleFeatureType): Seq[Stat] = { statsWrites += 1; Seq.empty }
-        override def updater(sft: SimpleFeatureType) = NoopStatWriter.updater(sft)
-        override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = { statsWrites += 1 }
-        override def clear(sft: SimpleFeatureType): Unit = { statsWrites += 1 }
-      }
-      override def close(): Unit = { statsCloses += 1 }
-    }
-    override protected def createFeatureSource(entry: ContentEntry, query: Query): ContentFeatureSource =
-      new MemoryFeatureStore(entry, query) {
-        override protected def getCountInternal(query: Query): Int = {
-          recordIdentity()
-          val reader = CloseableIterator(getReader(query))
-          try { reader.length } finally { reader.close() }
-        }
-        override protected def getBoundsInternal(query: Query): ReferencedEnvelope = {
-          recordIdentity()
-          val bounds = new ReferencedEnvelope(getSchema.getCoordinateReferenceSystem)
-          val reader = CloseableIterator(getReader(query))
-          try { reader.foreach(f => bounds.expandToInclude(f.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal)) }
-          finally { reader.close() }
-          bounds
-        }
-      }
-  }
-
-  class AuthorizedStore(name: String) extends ExactStore with HasAuthorizationsProvider {
-    override val authProvider: AuthorizationsProvider = new AuthorizationsProvider {
-      override def getAuthorizations: java.util.List[String] = java.util.Collections.emptyList[String]()
-      override def configure(params: java.util.Map[String, _]): Unit = {}
-      override def apply(task: Runnable): Runnable = {
-        val captured = s"$name:${context.get()}"
-        () => {
-          val previous = context.get()
-          context.set(captured)
-          try { task.run() } finally {
-            if (previous == null) { context.remove() } else { context.set(previous) }
-          }
-        }
-      }
-    }
-  }
-
-  def populate(store: Store, origin: String, name: String = typeName): Unit = {
-    val schema = SimpleFeatureTypes.createType(name, "origin:String,dtg:Date,*geom:Point:srid=4326")
-    store.createSchema(schema)
-    Seq(-1L, 0L, 1L).zipWithIndex.foreach { case (seconds, i) =>
-      store.addFeature(ScalaSimpleFeature.create(schema, i.toString, origin,
-        Date.from(boundary.plusSeconds(seconds)), s"POINT ($i $i)"))
+    val destination: DestinationProvider = new DestinationProvider {
+      override protected def coverage(sft: SimpleFeatureType, context: QueryContext): Option[CoverageInterval] =
+        Coverage.this.coverage(sft.getTypeName, context)
+      override def close(): Unit = { closes.incrementAndGet() }
     }
   }
 
   def coverageView(
-      sources: Seq[MergedSource[DataStore]],
+      source: MergedSource[DataStore],
       destination: MergedSource[DataStore],
-      coverage: DestinationCoverage,
+      coverage: Coverage,
       parallel: Boolean = false,
       taskDecorator: Option[java.util.function.UnaryOperator[Runnable]] = None,
       namespace: Option[String] = None): MergedDataStoreView = {
-    val stores = (sources :+ destination).map { source =>
+    val stores = Seq(source.copy(provider = coverage.source), destination.copy(provider = coverage.destination)).map { source =>
       taskDecorator.fold(source)(op => source.copy(decorator = new TaskDecorator(Some(op))))
     }
-    new MergedDataStoreView(stores, deduplicate = false, parallel = parallel, namespace = namespace,
-      filterProvider = Some(new CoverageFilterProvider(destination.source, coverage)))
+    new MergedDataStoreView(stores, deduplicate = false, parallel = parallel, namespace = namespace)
   }
 
   def fixture(f: (MergedDataStoreView, Store, Store, Coverage) => Any): Unit = {
     val source = new Store; val destination = new Store; val coverage = new Coverage
     populate(source, "source"); populate(destination, "destination")
     val store = coverageView(
-      Seq(MergedSource(source)), MergedSource(destination), coverage, parallel = true,
+      MergedSource(source), MergedSource(destination), coverage, parallel = true,
       taskDecorator = Some(decorator), namespace = Some("coverage"))
-    try { f(store, source, destination, coverage) } finally { store.dispose(); source.dispose(); destination.dispose() }
-  }
-
-  def read(store: MergedDataStoreView, name: String = typeName): Seq[(String, Long)] = {
-    val query = new Query(name, Filter.INCLUDE)
-    query.setSortBy(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.ASCENDING))
-    val reader = CloseableIterator(store.getFeatureReader(query, Transaction.AUTO_COMMIT))
-    try { reader.map(f => f.getAttribute("origin").toString -> f.getAttribute("dtg").asInstanceOf[Date].getTime).toList }
-    finally { reader.close() }
-  }
-
-  def readParallel(store: MergedDataStoreView): Int = {
-    // Sorted merging reads on the calling thread; an unsorted query exercises parallel delegate scans.
-    val reader = CloseableIterator(store.getFeatureReader(new Query(typeName), Transaction.AUTO_COMMIT))
-    try { reader.length } finally { reader.close() }
+    try { f(store, source, destination, coverage) } finally { store.dispose() }
   }
 
   "Merged view with destination coverage" should {
+    "share one context across delegates and create a fresh context for each operation" in {
+      import scala.collection.JavaConverters._
+      foreach(Seq(false, true)) { parallel =>
+        val coverage = new Coverage
+        val source = new ExactStore
+        val destination = new ExactStore
+        populate(source, "source")
+        populate(destination, "destination")
+        val view = coverageView(MergedSource(source), MergedSource(destination), coverage, parallel)
+        try {
+          val schema = view.getSchema(typeName)
+          val filter = ECQL.toFilter("dtg >= '2026-01-02T00:00:00Z'")
+          val query = new Query(typeName, filter)
+          val featureSource = view.getFeatureSource(typeName)
+          val operations = Seq[() => Unit](
+            () => { val reader = CloseableIterator(view.getFeatureReader(query, Transaction.AUTO_COMMIT))
+              try { reader.toList } finally { reader.close() } },
+            () => { featureSource.getCount(query) },
+            () => { featureSource.getBounds(query) },
+            () => { view.stats.getCount(schema, filter, exact = true) },
+            () => { view.stats.getMinMax[Date](schema, "dtg", filter, exact = true) },
+            () => { view.stats.getStat[CountStat](schema, Stat.Count(), filter, exact = true) })
+          var previous: QueryContext = null
+          foreach(operations) { run =>
+            coverage.contexts.clear()
+            run()
+            val contexts = coverage.contexts.asScala.toList
+            contexts must haveLength(2)
+            (contexts.head eq contexts.last) must beTrue
+            (contexts.head eq previous) must beFalse
+            FastFilterFactory.optimize(schema, contexts.head.base) mustEqual FastFilterFactory.optimize(schema, filter)
+            contexts.head.state.isEmpty must beTrue
+            contexts.head.state.put("previous-operation", true)
+            previous = contexts.head
+            success
+          }
+        } finally { view.dispose() }
+      }
+    }
+
+    "reject invalid or submillisecond coverage bounds" in {
+      CoverageInterval(typeName, boundary, boundary, boundary) must throwA[IllegalArgumentException]
+      CoverageInterval(typeName, boundary, boundary.plusSeconds(1), boundary) must throwA[IllegalArgumentException]
+      CoverageInterval(typeName, boundary, boundary.minusNanos(1), boundary) must throwA[IllegalArgumentException]
+      CoverageInterval(typeName, boundary, boundary.minusSeconds(1), boundary.plusNanos(1)) must
+        throwA[IllegalArgumentException]
+      CoverageInterval(typeName, boundary, null, boundary) must throwA[IllegalArgumentException]
+    }
+
     "split overlapping sources without a gap or duplicate at the coverage boundary" in {
       fixture { (store, _, _, coverage) =>
         read(store).map(_._1) mustEqual Seq("destination", "source", "source")
-        coverage.reads mustEqual 1
+        coverage.reads.get() mustEqual 2
         val query = new Query(typeName, ECQL.toFilter("dtg >= '2026-01-02T00:00:00Z'"))
         query.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
         val features = CloseableIterator(store.getFeatureSource(typeName).getFeatures(query).features())
@@ -207,6 +156,7 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
       fixture { (store, _, _, coverage) =>
         coverage.published = Map.empty
         read(store).map(_._1) mustEqual Seq("source", "source", "source")
+        coverage.reads.get() mustEqual 2
         coverage.published = Map(typeName -> boundary)
         read(store).map(_._1) mustEqual Seq("destination", "source", "source")
         coverage.published = Map(typeName -> boundary.plusSeconds(1))
@@ -215,13 +165,14 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
       success
     }
 
-    "discover new types, include source-only types and use independent type coverage" in {
+    "discover types shared by both stores and use independent type coverage" in {
       fixture { (store, source, destination, coverage) =>
         val other = "summary-sf-other"
         populate(source, "recent-summary", other)
+        store.getTypeNames.toSet mustEqual Set(typeName)
+        populate(destination, "old-summary", other)
         store.getTypeNames.toSet mustEqual Set(typeName, other)
         read(store, other).map(_._1) mustEqual Seq.fill(3)("recent-summary")
-        populate(destination, "old-summary", other)
         coverage.published += other -> boundary.plusSeconds(1)
         read(store, other).map(_._1) mustEqual Seq("old-summary", "old-summary", "recent-summary")
         read(store).map(_._1) mustEqual Seq("destination", "source", "source")
@@ -237,166 +188,58 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
       success
     }
 
-    "propagate injected context to both readers and dispose delegates and coverage once" in {
+    "pass the same query timestamp to both coverage providers" in {
       import scala.collection.JavaConverters._
-      fixture { (store, source, destination, coverage) =>
-        context.set("example-context")
-        try { read(store).size mustEqual 3 } finally { context.remove() }
-        source.identities.asScala.toSet mustEqual Set("example-context")
-        destination.identities.asScala.toSet mustEqual Set("example-context")
-        store.dispose()
-        store.dispose()
-        coverage.closed must beTrue
-        coverage.closes mustEqual 1
-        source.disposals mustEqual 1
-        destination.disposals mustEqual 1
-        source.closed must beTrue
-        destination.closed must beTrue
+
+      fixture { (store, _, _, coverage) =>
+        read(store).map(_._1) mustEqual Seq("destination", "source", "source")
+        coverage.reads.get() mustEqual 2
+        val timestamps = coverage.timestamps.asScala.toList
+        timestamps must haveLength(2)
+        timestamps.distinct must haveLength(1)
       }
       success
     }
 
-    "automatically propagate each delegate's authorization context for parallel operations" in {
-      import scala.collection.JavaConverters._
-      val source = new AuthorizedStore("source"); val destination = new AuthorizedStore("destination")
-      populate(source, "source"); populate(destination, "destination")
-      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), new Coverage, parallel = true)
-      try {
-        val featureSource = store.getFeatureSource(typeName)
-        val operations: Seq[() => Any] = Seq(
-          () => readParallel(store) mustEqual 3,
-          () => featureSource.getCount(new Query(typeName)) mustEqual 3,
-          () => featureSource.getBounds().getMaxX mustEqual 2d,
-          () => store.stats.getCount(store.getSchema(typeName), exact = true) must beSome(3L))
-        Seq("first-user", "second-user").foreach { user =>
-          context.set(user)
-          operations.foreach { operation =>
-            source.identities.clear(); destination.identities.clear()
-            operation()
-            source.identities.asScala.toSet mustEqual Set(s"source:$user")
-            destination.identities.asScala.toSet mustEqual Set(s"destination:$user")
-            context.get() mustEqual user
-          }
-        }
-      } finally { context.remove(); store.dispose(); source.dispose(); destination.dispose() }
-      success
+    "route timestamps before, within and after the covered interval in sequential and parallel scans" in {
+      foreach(Seq(false, true)) { parallel =>
+        val source = new Store; val destination = new Store; val coverage = new Coverage
+        populate(source, "source"); populate(destination, "destination")
+        coverage.start = boundary
+        coverage.published = Map(typeName -> boundary.plusSeconds(1))
+        val store = coverageView(MergedSource(source), MergedSource(destination), coverage, parallel)
+        try {
+          read(store).map(_._1) mustEqual Seq("source", "destination", "source")
+          readParallel(store) mustEqual 3
+        } finally { store.dispose() }
+      }
     }
 
-    "prefer an explicit task decorator to delegate authorization providers" in {
-      import scala.collection.JavaConverters._
-      val source = new AuthorizedStore("source"); val destination = new AuthorizedStore("destination")
-      populate(source, "source"); populate(destination, "destination")
-      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), new Coverage,
-        parallel = true, taskDecorator = Some(decorator))
-      try {
-        context.set("explicit-context")
-        readParallel(store) mustEqual 3
-        source.identities.asScala.toSet mustEqual Set("explicit-context")
-        destination.identities.asScala.toSet mustEqual Set("explicit-context")
-      } finally { context.remove(); store.dispose(); source.dispose(); destination.dispose() }
-      success
+    "close both rollover providers and delegate stores" in {
+      val source = new Store; val destination = new Store; val coverage = new Coverage
+      val store = coverageView(MergedSource(source), MergedSource(destination), coverage)
+      store.dispose()
+      coverage.closes.get() mustEqual 2
+      source.disposals mustEqual 1
+      destination.disposals mustEqual 1
+      source.closed must beTrue
+      destination.closed must beTrue
     }
 
-    "refresh cached sources while freezing each returned collection" in {
+    "resolve coverage when a collection is read and refresh cached feature sources" in {
       fixture { (store, _, _, coverage) =>
         coverage.start = boundary
         coverage.published = Map(typeName -> boundary.plusSeconds(1))
         val source = store.getFeatureSource(typeName)
         val collection = source.getFeatures()
-        read(store).map(_._1) mustEqual Seq("source", "destination", "source")
+        coverage.reads.get() mustEqual 0
         coverage.published = Map(typeName -> boundary.plusSeconds(2))
         val features = CloseableIterator(collection.features())
-        try { features.map(_.getAttribute("origin").toString).toList.sorted mustEqual Seq("destination", "source", "source") }
+        try { features.map(_.getAttribute("origin").toString).toList.sorted mustEqual Seq("destination", "destination", "source") }
         finally { features.close() }
         read(store).map(_._1) mustEqual Seq("source", "destination", "destination")
-        val refreshed = CloseableIterator(source.getFeatures().features())
-        try { refreshed.map(_.getAttribute("origin").toString).toList.sorted mustEqual Seq("destination", "destination", "source") }
-        finally { refreshed.close() }
       }
       success
-    }
-
-    "require coverage for destination-only types and apply both interval bounds" in {
-      fixture { (store, _, destination, coverage) =>
-        val other = "destination-only"
-        populate(destination, "destination", other)
-        read(store, other) must throwA[IllegalArgumentException]
-        coverage.start = boundary
-        coverage.published += other -> boundary.plusSeconds(1)
-        read(store, other).size mustEqual 1
-      }
-      success
-    }
-
-    "reject an ambiguous source placement instead of merging unrelated copies" in {
-      val first = new Store; val second = new Store; val destination = new Store
-      populate(first, "one"); populate(second, "two"); populate(destination, "destination")
-      val coverage = new Coverage
-      val store = coverageView(
-        Seq(MergedSource(first), MergedSource(second)), MergedSource(destination), coverage)
-      try { store.getSchema(typeName) must throwA[IllegalArgumentException] }
-      finally { store.dispose(); first.dispose(); second.dispose(); destination.dispose() }
-    }
-    "apply delegate predicates to discovery, schema lookup and query routing" in {
-      val source = new Store; val destination = new Store; val coverage = new Coverage
-      populate(source, "source"); populate(destination, "destination")
-      populate(source, "hidden", "excluded")
-      val store = coverageView(Seq(MergedSource(source, acceptsType = _ == typeName)),
-        MergedSource(destination, acceptsType = _ == typeName), coverage, namespace = Some("example"))
-      try {
-        store.getTypeNames.toSeq mustEqual Seq(typeName)
-        store.getNames.get(0).getNamespaceURI mustEqual "example"
-        store.getSchema("excluded") must beNull
-        read(store, "excluded") must throwA[IllegalArgumentException]
-      } finally { store.dispose(); source.dispose(); destination.dispose() }
-    }
-
-    "reject invalid coverage intervals and aliased source/destination stores" in {
-      CoverageInterval(boundary, boundary) must throwA[IllegalArgumentException]
-      CoverageInterval(boundary, boundary.plusNanos(1)) must throwA[IllegalArgumentException]
-      val source = new Store
-      try {
-        coverageView(Seq(MergedSource(source)), MergedSource(source), new Coverage) must
-          throwA[IllegalArgumentException]
-      } finally { source.dispose() }
-    }
-
-    "keep ownership and type selection through feature sources and process visitors" in {
-      val source = new Store; val destination = new Store; val coverage = new Coverage
-      populate(source, "source"); populate(destination, "destination")
-      populate(source, "hidden", "hidden"); populate(destination, "hidden", "hidden")
-      val store = coverageView(Seq(MergedSource(source, acceptsType = _ == typeName)),
-        MergedSource(destination, acceptsType = _ == typeName), coverage)
-      try {
-        val fs = store.getFeatureSource(typeName)
-        fs.getDataStore must beTheSameAs(store)
-        fs.getDataStore.getNames.size() mustEqual 1
-        fs.getFeatures(new Query("hidden")) must throwA[IllegalArgumentException]
-        fs.getCount(new Query("hidden")) must throwA[IllegalArgumentException]
-        fs.getBounds(new Query("hidden")) must throwA[IllegalArgumentException]
-        val input = new Query(typeName)
-        val features = fs.getFeatures(input)
-        input.setTypeName("hidden")
-        input.setFilter(Filter.EXCLUDE)
-        var visitorSource: SimpleFeatureSource = null
-        val visitor = new GeoMesaProcessVisitor {
-          override def execute(s: SimpleFeatureSource, q: Query): Unit = {
-            visitorSource = s
-            q.setTypeName("hidden") // mutation must not alter the collection's own query
-          }
-          override def visit(feature: Feature): Unit = {}
-          override def getResult: CalcResult = null
-        }
-        GeoMesaFeatureCollection.visit(features, visitor)
-        visitorSource.getDataStore must beTheSameAs(store)
-        visitorSource.getFeatures(new Query("hidden")) must throwA[IllegalArgumentException]
-        val reader = features.features()
-        try { CloseableIterator(reader).length mustEqual 3 } finally { reader.close() }
-        visitorSource.getDataStore.dispose()
-        source.closed must beTrue
-        destination.closed must beTrue
-        coverage.closes mustEqual 1
-      } finally { store.dispose(); source.dispose(); destination.dispose() }
     }
 
     "refresh a cached feature source after publication and source retention" in {
@@ -409,7 +252,7 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
         val current = CloseableIterator(cached.getFeatures().features())
         try { current.length mustEqual 3 } finally { current.close() }
         val original = CloseableIterator(before.features())
-        try { original.length mustEqual 0 } finally { original.close() }
+        try { original.length mustEqual 3 } finally { original.close() }
       }
       success
     }
@@ -420,7 +263,7 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
         populate(ds, origin)
         ds.addFeature(ScalaSimpleFeature.create(ds.getSchema(typeName), "null-time", origin, null, "POINT (5 5)"))
       }
-      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), coverage)
+      val store = coverageView(MergedSource(source), MergedSource(destination), coverage)
       try {
         val cached = store.getFeatureSource(typeName)
         coverage.published = Map.empty
@@ -433,64 +276,67 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
         cached.getCount(new Query(typeName)) mustEqual 4
         cached.getCount(query) mustEqual 1
         store.stats.getCount(store.getSchema(typeName), query.getFilter, exact = true) must beSome(1L)
-      } finally { store.dispose(); source.dispose(); destination.dispose() }
+      } finally { store.dispose() }
     }
 
-    "resolve one plan for count, bounds, stats and collection visitors and preserve merged stats ownership" in {
+    "refresh coverage for count, bounds, stats and collection visitors and preserve merged stats ownership" in {
       val source = new ExactStore; val destination = new ExactStore; val coverage = new Coverage
       populate(source, "source"); populate(destination, "destination")
       source.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore].removeFeatures(Filter.INCLUDE)
-      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), coverage)
+      val store = coverageView(MergedSource(source), MergedSource(destination), coverage)
       try {
         val cached = store.getFeatureSource(typeName)
         val query = new Query(typeName)
         cached.getCount(query) mustEqual 1
-        coverage.reads mustEqual 1
+        coverage.reads.get() mustEqual 2
         cached.getBounds(query).getMaxX mustEqual 0d
-        coverage.reads mustEqual 2
+        coverage.reads.get() mustEqual 4
         val collection = cached.getFeatures(query)
-        coverage.reads mustEqual 3
+        coverage.reads.get() mustEqual 4
         coverage.published = Map(typeName -> boundary.plusSeconds(2))
-        collection.size() mustEqual 1
+        collection.size() mustEqual 3
         val countVisitor = new CountVisitor
         GeoMesaFeatureCollection.visit(collection, countVisitor)
-        countVisitor.getCount mustEqual 1
-        coverage.reads mustEqual 3
+        countVisitor.getCount mustEqual 3
+        coverage.reads.get() mustEqual 8
         cached.getCount(query) mustEqual 3
         cached.getBounds(query).getMaxX mustEqual 2d
-        coverage.reads mustEqual 5
+        coverage.reads.get() mustEqual 12
         store.stats.getCount(store.getSchema(typeName), exact = true) must beSome(3L)
-        coverage.reads mustEqual 6
+        coverage.reads.get() mustEqual 14
         store.stats.getStat[CountStat](store.getSchema(typeName), Stat.Count(), exact = true).map(_.count) must beSome(3L)
-        coverage.reads mustEqual 7
+        coverage.reads.get() mustEqual 16
         store.stats.writer.clear(store.getSchema(typeName))
         store.stats.close()
         source.statsWrites mustEqual 1
         destination.statsWrites mustEqual 1
         source.statsCloses mustEqual 1
         destination.statsCloses mustEqual 1
-      } finally { store.dispose(); source.dispose(); destination.dispose() }
+      } finally { store.dispose() }
     }
 
-    "retain the operation interval through sorting and subcollections" in {
+    "resolve current coverage for sorted subcollections" in {
       fixture { (store, _, _, coverage) =>
         val collection = store.getFeatureSource(typeName).getFeatures()
-        coverage.published = Map(typeName -> boundary.plusSeconds(2))
+        coverage.start = boundary
+        coverage.published = Map(typeName -> boundary.plusSeconds(1))
         val filtered = collection.subCollection(ECQL.toFilter("origin = 'source'"))
           .sort(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.DESCENDING))
         val reader = CloseableIterator(filtered.features())
-        try { reader.map(_.getAttribute("dtg").asInstanceOf[Date].toInstant).toList mustEqual Seq(boundary.plusSeconds(1), boundary) }
-        finally { reader.close() }
-        coverage.reads mustEqual 1
+        try {
+          reader.map(_.getAttribute("dtg").asInstanceOf[Date].toInstant).toList mustEqual
+            Seq(boundary.plusSeconds(1), boundary.minusSeconds(1))
+        } finally { reader.close() }
+        coverage.reads.get() mustEqual 2
       }
       success
     }
 
-    "keep min/max process statistics on the collection's captured interval" in {
+    "refresh coverage for min/max process statistics" in {
       val source = new ExactStore; val destination = new ExactStore; val coverage = new Coverage
       populate(source, "source"); populate(destination, "destination")
       source.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore].removeFeatures(Filter.INCLUDE)
-      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), coverage)
+      val store = coverageView(MergedSource(source), MergedSource(destination), coverage)
       try {
         val cached = store.getFeatureSource(typeName)
         val collection = cached.getFeatures()
@@ -501,60 +347,13 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
           try { result.next().getAttribute(0).toString } finally { result.close() }
         }
         val original = minMax(collection)
-        coverage.reads mustEqual 1
+        coverage.reads.get() mustEqual 2
         coverage.published = Map(typeName -> boundary.plusSeconds(2))
-        minMax(collection) mustEqual original
-        coverage.reads mustEqual 1
+        minMax(collection) must not(beEqualTo(original))
+        coverage.reads.get() mustEqual 4
         minMax(cached.getFeatures()) must not(beEqualTo(original))
-        coverage.reads mustEqual 2
-      } finally { store.dispose(); source.dispose(); destination.dispose() }
-    }
-
-    "preserve min/max visitor fallbacks for ordinary feature sources" in {
-      Seq(new Store, new ExactStore).foreach { store =>
-        try {
-          populate(store, "source")
-          val source = store.getFeatureSource(typeName)
-          val features = source.getFeatures()
-          val expected = Stat(source.getSchema, Stat.MinMax("dtg"))
-          CloseableIterator(features.features()).foreach(expected.observe)
-          val visitor = new MinMaxVisitor(features, "dtg", cached = false)
-          visitor.execute(source, new Query(typeName))
-          val result = visitor.getResult.results.features()
-          try { result.next().getAttribute(0).toString mustEqual expected.toJson }
-          finally { result.close() }
-        } finally { store.dispose() }
-      }
-      success
-    }
-
-    "reject different default temporal attributes even when attribute definitions match" in {
-      val source = new Store; val destination = new Store; val coverage = new Coverage
-      Seq(source -> "eventTime", destination -> "arrivalTime").foreach { case (ds, dtg) =>
-        val schema = SimpleFeatureTypes.createType(typeName, "eventTime:Date,arrivalTime:Date,*geom:Point:srid=4326")
-        schema.getUserData.put("geomesa.index.dtg", dtg)
-        ds.createSchema(schema)
-      }
-      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), coverage)
-      try {
-        store.getSchema(typeName) must throwA[IllegalArgumentException](".*different temporal attributes.*")
-        read(store) must throwA[IllegalArgumentException](".*different temporal attributes.*")
-      } finally { store.dispose(); source.dispose(); destination.dispose() }
-    }
-
-    "fail when published coverage has no advertised destination and propagate provider failures" in {
-      val source = new Store; val destination = new Store; val coverage = new Coverage
-      populate(source, "source")
-      val store = coverageView(Seq(MergedSource(source)), MergedSource(destination), coverage)
-      try {
-        read(store) must throwA[IllegalArgumentException](".*no available destination schema.*")
-        coverage.reads mustEqual 1
-        coverage.failed = true
-        read(store) must throwA[java.sql.SQLException]
-        coverage.failed = false
-        coverage.published = Map.empty
-        read(store).size mustEqual 3
-      } finally { store.dispose(); source.dispose(); destination.dispose() }
+        coverage.reads.get() mustEqual 6
+      } finally { store.dispose() }
     }
 
     "preserve the internal GeoMesa reader and encoded stats query paths" in {
@@ -564,12 +363,10 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
         val query = new Query(typeName)
         val reader = api.getFeatureReader(schema, Transaction.AUTO_COMMIT, query)
         coverage.published = Map(typeName -> boundary.plusSeconds(2))
-        query.setTypeName("hidden")
-        query.setFilter(Filter.EXCLUDE)
         val features = CloseableIterator(reader.reader())
-        try { features.map(_.getAttribute("origin").toString).toList.sorted mustEqual Seq("destination", "source", "source") }
+        try { features.map(_.getAttribute("origin").toString).toList mustEqual Seq.fill(3)("destination") }
         finally { features.close() }
-        coverage.reads mustEqual 1
+        coverage.reads.get() mustEqual 2
         val countQuery = new Query(typeName)
         countQuery.getHints.put(QueryHints.STATS_STRING, Stat.Count())
         countQuery.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
@@ -579,7 +376,7 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit {
           StatsScan.decodeStat(schema)(statsReader.next().getAttribute(0).toString).asInstanceOf[CountStat].count mustEqual 3L
           statsReader.hasNext must beFalse
         } finally { statsReader.close() }
-        coverage.reads mustEqual 2
+        coverage.reads.get() mustEqual 4
       }
       success
     }

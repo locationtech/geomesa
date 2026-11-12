@@ -10,16 +10,21 @@ package org.locationtech.geomesa.index.view
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
+import org.geotools.api.feature.FeatureVisitor
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.sort.SortBy
+import org.geotools.api.util.ProgressListener
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.filter.andFilters
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
+import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource
 import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
+import org.locationtech.geomesa.index.view.MergedFilterProvider.QueryContext
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
 import java.awt.RenderingHints.Key
@@ -32,7 +37,7 @@ import java.util.concurrent.CopyOnWriteArrayList
  *
  * @param ds data store
  * @param sources delegate feature sources
- *  @param parallel scan stores in parallel (vs sequentially)
+ * @param parallel scan stores in parallel (vs sequentially)
  * @param sft simple feature type
  */
 class MergedFeatureSourceView(
@@ -51,10 +56,10 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
-    val now = Instant.now() // shared current time passed to all stores for consistency in bounds calculations
+    val context = QueryContext(query.getFilter)
     val total =
       if (parallel) {
-        def getSingle(source: MergedSource[SimpleFeatureSource]): Int = source.source.getCount(source.filter(query, now))
+        def getSingle(source: MergedSource[SimpleFeatureSource]): Int = source.source.getCount(source.filter(query, context))
 
         val results = new CopyOnWriteArrayList[Int]()
         sources.toList.map(s => CachedThreadPool.submit(s.decorator(() => results.add(getSingle(s))))).foreach(_.get)
@@ -62,7 +67,7 @@ class MergedFeatureSourceView(
       } else {
         // if one of our sources can't get a count (i.e. is negative), give up and return -1
         sources.foldLeft(0) { case (sum, source) =>
-          lazy val count = source.source.getCount(source.filter(query, now))
+          lazy val count = source.source.getCount(source.filter(query, context))
           if (sum < 0 || count < 0) { -1 } else { sum + count }
         }
       }
@@ -76,9 +81,9 @@ class MergedFeatureSourceView(
   override def getBounds: ReferencedEnvelope = getBounds(new Query(sft.getTypeName))
 
   override def getBounds(query: Query): ReferencedEnvelope = {
-    val now = Instant.now() // shared current time passed to all stores for consistency in bounds calculations
+    val context = QueryContext(query.getFilter)
     def getSingle(source: MergedSource[SimpleFeatureSource]): Option[ReferencedEnvelope] =
-      Option(source.source.getBounds(source.filter(query, now)))
+      Option(source.source.getBounds(source.filter(query, context)))
 
     val sourceBounds = if (parallel) {
       val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
@@ -133,8 +138,24 @@ class MergedFeatureSourceView(
 
     override def size: Int = {
       // note: we shouldn't return -1 here, but we don't return the actual value unless EXACT_COUNT is set
-      val count = getCount
-      if (count < 0) { 0 } else { count }
+      math.max(0, getCount)
+    }
+
+    override def subCollection(filter: Filter): SimpleFeatureCollection = {
+      val copy = new Query(query)
+      copy.setFilter(andFilters(Seq(copy.getFilter, filter)))
+      new MergedFeatureCollection(copy)
+    }
+
+    override def sort(order: SortBy): SimpleFeatureCollection = {
+      val copy = new Query(query)
+      copy.setSortBy(Option(copy.getSortBy).fold(Array(order))(_ :+ order): _*)
+      new MergedFeatureCollection(copy)
+    }
+
+    override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit = visitor match {
+      case v: GeoMesaProcessVisitor => v.execute(MergedFeatureSourceView.this, new Query(query))
+      case _ => super.accepts(visitor, progress)
     }
   }
 }

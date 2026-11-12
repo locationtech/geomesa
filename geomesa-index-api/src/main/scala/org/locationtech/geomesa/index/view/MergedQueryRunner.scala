@@ -28,6 +28,7 @@ import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
 import org.locationtech.geomesa.index.view.MergedQueryRunner.{MergedQueryPlan, ParallelScanIterator, Queryable}
 import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
+import org.locationtech.geomesa.index.view.MergedFilterProvider.QueryContext
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
@@ -105,14 +106,16 @@ class MergedQueryRunner(
   // query each delegate store - note, it's important that this is an iterator (lazily evaluated) in order for things to be
   // cleaned up correctly
   private def getReaders(query: Query): Iterator[FeatureReader[SimpleFeatureType, SimpleFeature]] = {
-    val now = Instant.now() // shared current time passed to all stores for consistency in bounds calculations
-    stores.iterator.map { store =>
+    val context = QueryContext(query.getFilter)
+    // evaluate filters up front - this allows for easier shared state between filter providers
+    val queries = stores.toList.map { store =>
       val copy = new Query(query) // make sure to coy the hints so they aren't shared
       // suppress the reduce step for gm stores so that we can do the merge here
       copy.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-      copy.setFilter(store.filter(query.getTypeName, query.getFilter, now))
-      store.source.getFeatureReader(copy, Transaction.AUTO_COMMIT)
+      copy.setFilter(store.filter(query.getTypeName, context))
+      (store.source, copy)
     }
+    queries.iterator.map { case (source, query) => source.getFeatureReader(query, Transaction.AUTO_COMMIT) }
   }
 
   private def scanner(

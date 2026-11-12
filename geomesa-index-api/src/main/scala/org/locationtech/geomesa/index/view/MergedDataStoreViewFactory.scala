@@ -14,15 +14,17 @@ import org.geotools.api.data.{DataStore, DataStoreFactorySpi, DataStoreFinder}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
-import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.TypeOption
-import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource, TaskDecorator}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.{MergedSource, TaskDecorator}
+import org.locationtech.geomesa.index.view.MergedFilterProvider.TypedProvider
 import org.locationtech.geomesa.security.HasAuthorizationsProvider
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
+import org.locationtech.geomesa.utils.io.CloseQuietly
 
 import java.awt.RenderingHints
 import java.util.function.UnaryOperator
+import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 /**
@@ -62,11 +64,12 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
     val deduplicate = DeduplicateParam.lookup(params).booleanValue()
     val parallel = ParallelScanParam.lookup(params).booleanValue()
 
-    val stores = Seq.newBuilder[MergedSource[DataStore]]
-    stores.sizeHint(configs.length)
+    // track resources to clean up on error
+    val datastores = ArrayBuffer.empty[DataStore]
+    val providers = ArrayBuffer.empty[MergedFilterProvider]
 
     try {
-      configs.foreach { config =>
+      val sources = configs.map { config =>
         lazy val error =
           new IllegalArgumentException(s"Could not load store using configuration:\n" +
               config.root().render(ConfigRenderOptions.concise().setFormatted(true)))
@@ -76,22 +79,23 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
         // allow for unquoted keys
         storeParams.putAll(paramConf.toStringMap().asJava)
 
-        val filter = parseTypeOptions(StoreFilterParam, parseFilter, storeParams)
-        val dateOffsetStart = parseTypeOptions(DateOffsetStartParam, DateFilter.apply, storeParams)
-        val dateOffsetEnd = parseTypeOptions(DateOffsetEndParam, DateFilter.apply, storeParams)
-
         val store = try { DataStoreFinder.getDataStore(storeParams) } catch { case NonFatal(e) => throw error.initCause(e) }
         if (store == null) {
           throw error
         }
+        datastores += store
+        val provider = parseFilterProvider(storeParams)
+        providers += provider
         val decorator = taskDecorator.orElse(Some(store).collect { case s: HasAuthorizationsProvider => s.authProvider })
-        stores += MergedSource(store, filter, dateOffsetStart, dateOffsetEnd, new TaskDecorator(decorator))
+        MergedSource(store, provider, new TaskDecorator(decorator))
       }
+      new MergedDataStoreView(sources, deduplicate, parallel, namespace)
     } catch {
-      case NonFatal(e) => stores.result.foreach(_.source.dispose()); throw e
+      case NonFatal(e) =>
+        CloseQuietly(providers).foreach(e.addSuppressed)
+        CloseQuietly(datastores).foreach(e.addSuppressed)
+        throw e
     }
-
-    new MergedDataStoreView(stores.result, deduplicate, parallel, namespace)
   }
 
   override def getDisplayName: String = DisplayName
@@ -112,9 +116,29 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
   override val DisplayName: String = "Merged DataStore View (GeoMesa)"
   override val Description: String = "A merged, read-only view of multiple data stores"
 
-  val StoreFilterParam = new GeoMesaParam[String]("geomesa.merged.store.filter", readWrite = ReadWriteFlag.ReadOnly)
-  val DateOffsetStartParam = new GeoMesaParam[String]("geomesa.merged.store.date.start", readWrite = ReadWriteFlag.ReadOnly)
-  val DateOffsetEndParam = new GeoMesaParam[String]("geomesa.merged.store.date.end", readWrite = ReadWriteFlag.ReadOnly)
+  val StoreFilterParam =
+    new GeoMesaParam[String](
+      "geomesa.merged.store.filter",
+      "An ECQL expression used to filter queries against this store",
+      readWrite = ReadWriteFlag.ReadOnly)
+
+  val StoreFilterProviderParam =
+    new GeoMesaParam[MergedFilterProvider](
+      "geomesa.merged.store.filter-provider",
+      "A MergedFilterProvider class used to filter queries against this store",
+      readWrite = ReadWriteFlag.ReadOnly)
+
+  val DateOffsetStartParam =
+    new GeoMesaParam[String](
+      "geomesa.merged.store.date.start",
+      "An inclusive start date or ISO-8601 offset used to filter queries against this store",
+      readWrite = ReadWriteFlag.ReadOnly)
+
+  val DateOffsetEndParam =
+    new GeoMesaParam[String](
+      "geomesa.merged.store.date.end",
+      "An exclusive end date or ISO-8601 offset used to filter queries against this store",
+      readWrite = ReadWriteFlag.ReadOnly)
 
   val ConfigLoaderParam: Option[GeoMesaParam[String]] = {
     val loaders = ServiceLoader.load[MergedViewConfigLoader]().map(_.getClass.getName)
@@ -174,10 +198,41 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
     }
   }
 
-  private def parseTypeOptions[T](param: GeoMesaParam[String], parser: String => T, params: java.util.Map[String, _]): TypeOption[T] = {
-    val prefix = param.key + "."
-    val types = params.asScala.collect { case (k, v) if k.startsWith(prefix) => k.substring(prefix.length) -> parser(v.toString) }
-    val default = param.lookupOpt(params).map(parser)
-    new TypeOption[T](types.toMap, default)
+  private def parseFilterProvider(params: java.util.Map[String, _]): MergedFilterProvider = {
+    val opened = ArrayBuffer.empty[MergedFilterProvider]
+
+    def paramsFor(param: GeoMesaParam[_]): Map[String, String] = {
+      val prefix = param.key + "."
+      params.asScala.toMap.collect {
+        case (k, v) if k.startsWith(prefix) => k.substring(prefix.length) -> v.toString
+      }
+    }
+
+    def parseProvider(param: GeoMesaParam[String], parser: String => MergedFilterProvider): Option[MergedFilterProvider] = {
+      val byTypes = paramsFor(param).map { case (k, v) =>
+        val provider = parser(v)
+        opened += provider
+        k -> provider
+      }
+      val default = param.lookupOpt(params).map(parser)
+      opened ++= default
+      if (byTypes.isEmpty) {
+        default
+      } else {
+        Some(TypedProvider(byTypes, default))
+      }
+    }
+
+    try {
+      val static = parseProvider(StoreFilterParam, f => MergedFilterProvider.static(parseFilter(f)))
+      val dateOffsetStart = parseProvider(DateOffsetStartParam, MergedFilterProvider.from)
+      val dateOffsetEnd = parseProvider(DateOffsetEndParam, MergedFilterProvider.to)
+      val custom = StoreFilterProviderParam.lookupOpt(params)
+      opened ++= custom
+      custom.foreach(_.init(paramsFor(StoreFilterProviderParam)))
+      MergedFilterProvider.and(static.toSeq ++ dateOffsetStart ++ dateOffsetEnd ++ custom)
+    } catch {
+      case NonFatal(e) => CloseQuietly(opened).foreach(e.addSuppressed); throw e
+    }
   }
 }

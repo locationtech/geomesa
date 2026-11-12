@@ -17,9 +17,10 @@ import org.geotools.data._
 import org.geotools.feature.{AttributeTypeBuilder, FeatureTypes, NameImpl}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
 
 import java.io.IOException
+import scala.util.control.NonFatal
 
 package object view extends LazyLogging {
 
@@ -110,7 +111,7 @@ package object view extends LazyLogging {
       }
     }
 
-    override def dispose(): Unit = stores.foreach(_.dispose())
+    override def dispose(): Unit = CloseQuietly.raise(stores)
 
     override def getInfo: ServiceInfo = {
       val info = new DefaultServiceInfo()
@@ -136,7 +137,9 @@ package object view extends LazyLogging {
     // reverse the ordering so we get the head of the queue as the first value
     private val heads = scala.collection.mutable.PriorityQueue.empty[(T, Int)](Ordering.Tuple2(ordering.reverse, Ordering.Int))
 
-    init()
+    try { init() } catch {
+      case NonFatal(e) => CloseQuietly(streams).foreach(e.addSuppressed); throw e
+    }
 
     private def init(): Unit = {
       var i = 0
