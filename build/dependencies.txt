@@ -219,12 +219,12 @@ org.apache.hbase:hbase-replication:2.6.6-hadoop3:compile
 org.apache.hbase:hbase-zookeeper:2.6.6-hadoop3:compile
 org.apache.httpcomponents:httpclient:4.5.14:compile
 org.apache.httpcomponents:httpcore:4.4.16:compile
-org.apache.iceberg:iceberg-api:1.11.0:compile
-org.apache.iceberg:iceberg-aws:1.11.0:compile
-org.apache.iceberg:iceberg-core:1.11.0:compile
-org.apache.iceberg:iceberg-data:1.11.0:compile
-org.apache.iceberg:iceberg-nessie:1.11.0:compile
-org.apache.iceberg:iceberg-parquet:1.11.0:compile
+org.apache.iceberg:iceberg-api:1.12.0:compile
+org.apache.iceberg:iceberg-aws:1.12.0:compile
+org.apache.iceberg:iceberg-core:1.12.0:compile
+org.apache.iceberg:iceberg-data:1.12.0:compile
+org.apache.iceberg:iceberg-nessie:1.12.0:compile
+org.apache.iceberg:iceberg-parquet:1.12.0:compile
 org.apache.orc:orc-format:shaded-protobuf:1.1.1:compile
 org.apache.parquet:parquet-avro:1.17.0:compile
 org.apache.parquet:parquet-avro:1.18.1:compile
@@ -354,7 +354,7 @@ org.postgresql:postgresql:42.7.13:compile
 org.projectnessie.nessie:nessie-client:0.108.1:compile
 org.projectnessie.nessie:nessie-model:0.108.1:compile
 org.reactivestreams:reactive-streams:1.0.4:compile
-org.roaringbitmap:RoaringBitmap:1.6.14:compile
+org.roaringbitmap:RoaringBitmap:1.6.23:compile
 org.scala-lang.modules:scala-xml_2.13:2.2.0:compile
 org.scala-lang:scala-library:2.13.18:compile
 org.scala-lang:scala-reflect:2.13.18:compile

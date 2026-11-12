@@ -94,7 +94,7 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
     val writer = Parquet.writeDeletes(storage.table.io().newOutputFile(path))
       .withSpec(storage.table.spec()).buildPositionWriter[Void]()
     WithClose(writer) { out =>
-      paths.sorted.foreach(file => out.write(PositionDelete.create[Void]().set(file, 0L, null)))
+      paths.sorted.foreach(file => out.write(PositionDelete.create[Void]().set(file, 0L)))
     }
     storage.table.newRowDelta().addDeletes(writer.toDeleteFile).commit()
     writer.toDeleteFile.location()
