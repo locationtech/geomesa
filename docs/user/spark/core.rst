@@ -149,7 +149,6 @@ Note that some providers may be read-only.
 
 See :doc:`./providers` for details on specific provider implementations.
 
-
 GeoJSON Output
 ^^^^^^^^^^^^^^
 

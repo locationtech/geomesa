@@ -81,6 +81,20 @@ object ParameterConverters {
     }
   }
 
+  class UserDataConverter(name: String) extends BaseConverter[(String, String)](name) {
+    override def convert(value: String): (String, String) = {
+      try {
+        val i = value.indexOf(':')
+        if (i == -1) {
+          throw new IllegalArgumentException("user data pairs must be separated by an ':'")
+        }
+        (value.substring(0, i), value.substring(i + 1))
+      } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
+      }
+    }
+  }
+
   class DateConverter(name: String) extends BaseConverter[Date](name) {
     override def convert(value: String): Date = {
       try {

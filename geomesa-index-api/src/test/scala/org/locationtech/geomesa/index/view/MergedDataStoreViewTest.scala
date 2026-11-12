@@ -20,7 +20,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.stats.impl.CountStat
 import org.locationtech.geomesa.index.view.MergedDataStoreView.DateFilter.{RelativeDate, StaticDate}
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.{MergedSourceSft, TypeOption}
-import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource}
+import org.locationtech.geomesa.index.view.MergedDataStoreView.{DateFilter, MergedSource, TaskDecorator}
 import org.locationtech.geomesa.index.view.MergedDataStoreViewTest.CountingTaskDecorator
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -75,7 +75,7 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
     store.getFeatureReader(ArgumentMatchers.any(), ArgumentMatchers.any()) returns emptyReader()
     val fs = featureSource(i)
     store.getFeatureSource(ArgumentMatchers.anyString()) returns fs
-    MergedSource(store, TypeOption(filter), TypeOption.empty, TypeOption.empty)
+    MergedSource(store, TypeOption(filter), TypeOption.empty, TypeOption.empty, new TaskDecorator(None))
   }
 
   // standardizes filters so that comparisons work as expected for non-equals but equivalent values
@@ -211,16 +211,16 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
 
     "decorate parallel queries" in {
       val decorator = new CountingTaskDecorator()
-      val stores = this.stores()
-      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true, Some(decorator))
+      val stores = this.stores().map(_.copy(decorator = new TaskDecorator(Some(decorator))))
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true)
       CloseableIterator(view.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must beEmpty
       decorator.count mustEqual stores.length
     }
 
     "decorate parallel counts and bounds calls" in {
       val decorator = new CountingTaskDecorator()
-      val stores = this.stores()
-      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true, Some(decorator))
+      val stores = this.stores().map(_.copy(decorator = new TaskDecorator(Some(decorator))))
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true)
       val fs = view.getFeatureSource(sft.getTypeName)
       val query = new Query(sft.getTypeName)
       fs.getCount(query) mustEqual 3
@@ -233,8 +233,8 @@ class MergedDataStoreViewTest extends SpecificationWithJUnit with Mockito {
 
     "decorate parallel statistics" in {
       val decorator = new CountingTaskDecorator()
-      val stores = this.stores()
-      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true, Some(decorator))
+      val stores = this.stores().map(_.copy(decorator = new TaskDecorator(Some(decorator))))
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true)
       view.stats.getCount(sft) must beNone
       decorator.count mustEqual 3
       view.stats.getMinMax(sft, "age") must beNone

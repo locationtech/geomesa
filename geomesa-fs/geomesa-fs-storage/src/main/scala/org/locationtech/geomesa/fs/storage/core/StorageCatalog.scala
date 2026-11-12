@@ -8,8 +8,12 @@
 
 package org.locationtech.geomesa.fs.storage.core
 
+import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.fs.storage.core.StorageCatalog.CatalogUpdate
 import org.locationtech.geomesa.fs.storage.core.iceberg.IcebergCatalog
+import org.locationtech.geomesa.fs.storage.core.parquet.BloomFilterConfig
 
 import java.io.Closeable
 
@@ -54,9 +58,24 @@ trait StorageCatalog extends Closeable {
       partitions: Seq[String],
       targetFileSize: Option[Long] = None,
       bloomFilters: Seq[BloomFilterConfig] = Seq.empty): FileSystemStorage
+
+  /**
+   * Update an existing storage instance
+   *
+   * @param typeName type to update
+   */
+  def update(typeName: String): CatalogUpdate
+
+  /**
+   * Delete a storage instance
+   *
+   * @param typeName feature type name
+   * @param purge if true, all underlying data will be deleted
+   */
+  def delete(typeName: String, purge: Boolean): Unit
 }
 
-object StorageCatalog {
+object StorageCatalog extends LazyLogging {
 
   val NamespaceConfigKey = "namespace"
 
@@ -67,4 +86,127 @@ object StorageCatalog {
    * @return
    */
   def apply(conf: Map[String, String]): StorageCatalog = new IcebergCatalog(conf)
+
+  /**
+   * Update API. All operations are metadata only, in that they do not update any existing data files. Existing files
+   * will still be accessible using the updated table, but they will not benefit from a new partition scheme, they will only
+   * return null values for new columns, etc.
+   */
+  trait CatalogUpdate {
+
+    /**
+     * Updates to columns
+     *
+     * @return
+     */
+    def columns(): CatalogUpdate.ColumnUpdate
+
+    /**
+     * Non-column table updates
+     *
+     * @return
+     */
+    def table(): CatalogUpdate.TableUpdate
+
+    /**
+     * Updates to metadata values
+     *
+     * @return
+     */
+    def metadata(): CatalogUpdate.MetadataUpdate
+  }
+
+  object CatalogUpdate {
+
+    trait ColumnUpdate {
+
+      /**
+       * Add a new column
+       *
+       * @param attribute attribute to add
+       */
+      def add(attribute: AttributeDescriptor): Unit
+
+      /**
+       * Update an existing column, by widening the type. Note: not all updates are supported. For structural types,
+       * nested columns can be added, removed, or updated based solely on the column name.
+       *
+       * @param update updated attribute
+       */
+      def update(update: AttributeDescriptor): Unit
+
+      /**
+       * Rename an existing column
+       *
+       * @param attribute current attribute name
+       * @param newName updated attribute name
+       */
+      def rename(attribute: String, newName: String): Unit
+
+      /**
+       * Remove a column
+       *
+       * @param attribute attribute name to remove
+       */
+      def remove(attribute: String): Unit
+
+      /**
+       * Change the position of an attribute
+       *
+       * @param attribute attribute to move
+       * @param position new position, in the range [0, attributes.length - 1]. other attributes will be shifted left or right
+       *                 as necessary, depending on the original and the destination position
+       */
+      def reorder(attribute: String, position: Int): Unit
+    }
+
+    trait TableUpdate {
+
+      /**
+       * Rename the table
+       *
+       * @param newName new name
+       */
+      def rename(newName: String): Unit
+
+      /**
+       * Overwrite the current partition spec
+       *
+       * @param partitions new partitions
+       */
+      def setPartitions(partitions: Seq[String]): Unit
+
+      /**
+       * Add bloom filters to columns
+       *
+       * @param filters filters
+       */
+      def addBloomFilters(filters: Seq[BloomFilterConfig]): Unit
+
+      /**
+       * Remove bloom filters from columns
+       *
+       * @param attributes columns to remove the filters from
+       */
+      def removeBloomFilters(attributes: Seq[String]): Unit
+    }
+
+    trait MetadataUpdate {
+
+      /**
+       * Set or clear the target file size
+       *
+       * @param size target size, in bytes, or None to clear an existing target size
+       */
+      def setTargetFileSize(size: Option[Long]): Unit
+
+      /**
+       * Sets a user data property
+       *
+       * @param key key
+       * @param value value, empty to remove an existing key
+       */
+      def setUserData(key: String, value: Option[String]): Unit
+    }
+  }
 }

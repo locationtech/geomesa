@@ -283,15 +283,11 @@ org.apache.httpcomponents.core5:httpcore5-h2:5.4.4:compile
 org.apache.httpcomponents.core5:httpcore5:5.4.4:compile
 org.apache.httpcomponents:httpclient:4.5.14:compile
 org.apache.httpcomponents:httpcore:4.4.16:compile
-org.apache.iceberg:iceberg-api:1.11.0:compile
 org.apache.iceberg:iceberg-api:1.12.0:compile
-org.apache.iceberg:iceberg-aws:1.11.0:compile
 org.apache.iceberg:iceberg-aws:1.12.0:compile
-org.apache.iceberg:iceberg-core:1.11.0:compile
 org.apache.iceberg:iceberg-core:1.12.0:compile
-org.apache.iceberg:iceberg-data:1.11.0:compile
+org.apache.iceberg:iceberg-data:1.12.0:compile
 org.apache.iceberg:iceberg-nessie:1.12.0:compile
-org.apache.iceberg:iceberg-parquet:1.11.0:compile
 org.apache.iceberg:iceberg-parquet:1.12.0:compile
 org.apache.orc:orc-format:shaded-protobuf:1.1.1:compile
 org.apache.parquet:parquet-avro:1.17.0:compile

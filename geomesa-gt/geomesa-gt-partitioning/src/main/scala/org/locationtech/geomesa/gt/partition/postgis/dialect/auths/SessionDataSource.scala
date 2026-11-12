@@ -31,7 +31,7 @@ import javax.sql.DataSource
  * @param delegate the underlying data source (usually the store's pooled data source)
  * @param provider authorizations provider
  */
-class SessionDataSource(delegate: DataSource, provider: AuthorizationsProvider) extends ManageableDataSource {
+class SessionDataSource(delegate: DataSource, val provider: AuthorizationsProvider) extends ManageableDataSource {
 
   import scala.collection.JavaConverters._
 

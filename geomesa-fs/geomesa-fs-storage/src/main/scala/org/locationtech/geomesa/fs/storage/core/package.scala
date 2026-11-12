@@ -12,20 +12,26 @@ import com.google.gson._
 import com.typesafe.config.ConfigFactory
 import org.apache.iceberg.Table
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.fs.storage.core.parquet.BloomFilterConfig
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.IsCloseable
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
 import pureconfig.generic.semiauto.deriveConvert
 import pureconfig.{ConfigConvert, ConfigSource}
 
+import java.io.Closeable
 import java.lang.reflect.Type
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 package object core {
 
   val CacheDurationProperty: SystemProperty = SystemProperty("geomesa.fs.file.cache.duration", "15 minutes")
   val FileValidationEnabled: SystemProperty = SystemProperty("geomesa.fs.validate.file", "false")
+
+  val GeoMesaPropertyPrefix = "geomesa."
+
+  implicit val TableIsCloseable: IsCloseable[Table] = (obj: Table) => Try(Option(obj).collect { case c: Closeable => c.close() })
 
   private val gson =
     new GsonBuilder()
@@ -41,7 +47,7 @@ package object core {
 
   object Metadata {
 
-    val PropertyPrefix = "geomesa.props."
+    val PropertyPrefix = s"${GeoMesaPropertyPrefix}props."
 
     val TargetFileSize = "target-file-size"
 

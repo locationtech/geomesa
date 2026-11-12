@@ -6,12 +6,15 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core
+package org.locationtech.geomesa.fs.storage.core.parquet
 
+import org.locationtech.geomesa.fs.storage.core.StorageKeys
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
 
 class BloomFilterConfigTest extends SpecificationWithJUnit {
+
+  import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
 
   private val sft =
     SimpleFeatureTypes.createType("blooms", "name:String,Code-Value:String,age:Int,tags:List[String],dtg:Date,*geom:Point:srid=4326")

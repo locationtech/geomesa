@@ -6,20 +6,25 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core.iceberg
+package org.locationtech.geomesa.fs.storage.core
+package iceberg
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg._
 import org.apache.iceberg.catalog.{Catalog, Namespace, SupportsNamespaces, TableIdentifier}
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.fs.storage.core.StorageCatalog.CatalogUpdate
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
+import org.locationtech.geomesa.fs.storage.core.parquet.BloomFilterConfig
 import org.locationtech.geomesa.fs.storage.core.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
-import org.locationtech.geomesa.fs.storage.core.{BloomFilterConfig, FileSystemStorage, Metadata, StorageCatalog}
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Metadata, StorageCatalog}
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
@@ -46,9 +51,8 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
   private val typeNameCache = Caffeine.newBuilder().expireAfterWrite(expiry, TimeUnit.MILLISECONDS).build(
     new CacheLoader[TableIdentifier, Option[String]]() {
       override def load(id: TableIdentifier): Option[String] = {
-        val table = catalog.loadTable(id)
-        try { Option(table.properties().get("geomesa.sft.name")) } finally {
-          CloseWithLogging(Option(table).collect { case c: Closeable => c })
+        WithClose(catalog.loadTable(id)) { table =>
+          Option(table.properties().get(IcebergCatalog.TypeNameKey))
         }
       }
     }
@@ -82,16 +86,25 @@ class IcebergCatalog(config: Map[String, String]) extends StorageCatalog with La
     val tableProps = IcebergCatalog.sftTableProperties(sft) ++ {
       val size = targetFileSize.map(s => s"${Metadata.PropertyPrefix}${Metadata.TargetFileSize}" -> s.toString).toMap
       // file format v3 lets us use variant encoding
-       val format =
-         Map(TableProperties.FORMAT_VERSION -> "3", TableProperties.DELETE_MODE -> RowLevelOperationMode.MERGE_ON_READ.modeName())
+      val format = Map(TableProperties.FORMAT_VERSION -> "3")
+      val deleteMode = Map(TableProperties.DELETE_MODE -> RowLevelOperationMode.MERGE_ON_READ.modeName())
       // persisted as the standard iceberg properties, so that other iceberg writers (e.g. compaction) honor them too
-      size ++ format ++ BloomFilterConfig.tableProperties(bloomFilters)
+      val blooms = BloomFilterConfig.tableProperties(bloomFilters)
+      size ++ format ++ deleteMode ++ blooms
     }
     val spec = schemes.foldLeft(PartitionSpec.builderFor(schema))((b, m) => m.spec(b)).build()
     catalog.ensureNamespace(namespace)
     val table = catalog.createTable(tableId(sft.getTypeName), schema, spec, null, tableProps.asJava)
     // re-load to pick up the correct schema field ids
     load(table)
+  }
+
+  override def update(typeName: String): CatalogUpdate = new IcebergSchemaEvolution(catalog, tableId(typeName))
+
+  override def delete(typeName: String, purge: Boolean): Unit = {
+    val table = tableId(typeName)
+    catalog.dropTable(table, purge)
+    typeNameCache.invalidate(table)
   }
 
   override def close(): Unit = catalog.close()
@@ -105,12 +118,14 @@ object IcebergCatalog {
 
   import scala.collection.JavaConverters._
 
-  val UserDataPrefix = "geomesa.userdata."
+  val TypeNameKey = s"${GeoMesaPropertyPrefix}sft.name"
+
+  val UserDataPrefix = s"${GeoMesaPropertyPrefix}userdata."
 
   /**
    * Prefix for properties describing a single column.
    */
-  val ColumnPrefix = "geomesa.col."
+  val ColumnPrefix = s"${GeoMesaPropertyPrefix}col."
 
   /**
    * Property carrying the full attribute spec for one column, written for every column and read
@@ -128,18 +143,26 @@ object IcebergCatalog {
    * @return
    */
   def sftTableProperties(sft: SimpleFeatureType): Map[String, String] = {
-    val typeName = Map("geomesa.sft.name" -> sft.getTypeName)
+    val typeName = Map(TypeNameKey -> sft.getTypeName)
     val userData = {
       val prefixes = sft.getUserDataPrefixes
       sft.getUserData.asScala.collect {
         case (k, v) if v != null && prefixes.exists(k.toString.startsWith) => s"$UserDataPrefix$k" -> v.toString
       }
     }
-    val columnSpecs = SimpleFeatureIcebergSchema.columnSpecs(sft).map {
-      case (column, spec) => columnSpecProperty(column) -> spec
-    }
+    val columnSpecs = sft.getAttributeDescriptors.asScala.map(sftAttributeProperty(sft, _)).toMap
     typeName ++ userData ++ columnSpecs
   }
+
+  /**
+   * Property for a single attribute
+   *
+   * @param sft simple feature type
+   * @param d attribute
+   * @return
+   */
+  def sftAttributeProperty(sft: SimpleFeatureType, d: AttributeDescriptor): (String, String) =
+    columnSpecProperty(ColumnName.encode(d.getLocalName)) -> SimpleFeatureTypes.encodeDescriptor(sft, d)
 
   private implicit class RichConf(val conf: Map[String, String]) extends AnyVal {
     def required(k: String): String =

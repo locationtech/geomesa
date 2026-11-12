@@ -312,7 +312,7 @@ case class FileSystemStorage(
   def getWriter(filter: Filter, threads: Int): FileSystemUpdateWriter =
     IcebergUpdateWriter(this, filter, threads, conf.getWriterMaxOpenPartitions)
 
-  override def close(): Unit = CloseWithLogging(Option(table).collect { case c: Closeable => c })
+  override def close(): Unit = CloseQuietly.raise(table)
 
   /**
    * Helper for accessing metadata on files and partitions
