@@ -13,10 +13,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.Query
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
+import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource, DecoratingDataStore}
 import org.geotools.feature.NameImpl
-import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
+import org.locationtech.geomesa.fs.data.FileSystemDataStore.{FileSystemDataStoreConfig, FileSystemDelegateDataStore}
 import org.locationtech.geomesa.fs.data.stats.FileSystemStats
+import org.locationtech.geomesa.fs.storage.core.StorageCatalog.CatalogUpdate
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageCatalog}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.MetricsConfig
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
@@ -33,50 +34,12 @@ import scala.concurrent.duration.Duration
  * @param config config
  */
 class FileSystemDataStore(catalog: StorageCatalog, config: FileSystemDataStoreConfig)
-    extends ContentDataStore with HasGeoMesaStats with LazyLogging {
+    extends DecoratingDataStore(new FileSystemDelegateDataStore(catalog, config))
+      with HasGeoMesaStats with LazyLogging {
 
-  import scala.collection.JavaConverters._
-
-  private val cache = Caffeine.newBuilder().build(
-    new CacheLoader[String, FileSystemStorage]() {
-      override def load(typeName: String): FileSystemStorage = catalog.load(typeName)
-    }
-  )
+  // note: we use a decorating store as an indirection layer in order to override final methods in ContentDataStore
 
   override val stats: GeoMesaStats = new FileSystemStats(this)
-
-  private val registry = config.metrics.map(_.register())
-
-  this.namespaceURI = config.conf.getOrElse(StorageCatalog.NamespaceConfigKey, null)
-
-  override def createTypeNames(): java.util.List[Name] = {
-    val names = new java.util.ArrayList[Name]()
-    catalog.getTypeNames.foreach(name => names.add(new NameImpl(getNamespaceURI, name)))
-    names
-  }
-
-  override def createSchema(original: SimpleFeatureType): Unit = {
-    import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
-    if (catalog.getTypeNames.contains(original.getTypeName)) {
-      logger.warn(
-        s"Schema already exists: ${SimpleFeatureTypes.encodeType(cache.get(original.getTypeName).sft, includeUserData = true)}")
-    } else {
-      // copy the feature type so that we don't affect it when removing user data, below
-      val sft = SimpleFeatureTypes.copy(original)
-
-      GeoMesaSchemaValidator.validate(sft)
-      // remove the configs in the user data as they're persisted separately
-      val scheme = sft.removeScheme().getOrElse {
-        throw new IllegalArgumentException("Partition scheme must be specified in the SimpleFeatureType user data")
-      }
-      val fileSize = sft.removeTargetFileSize()
-      val bloomFilters = sft.removeBloomFilters()
-      cache.put(sft.getTypeName, catalog.create(sft, scheme, fileSize, bloomFilters))
-    }
-  }
-
-  override def createFeatureSource(entry: ContentEntry): ContentFeatureSource =
-    new FileSystemFeatureStore(storage(entry.getTypeName), entry, Query.ALL, config)
 
   /**
    * Get a handle on the underlying storage instance for a given simple feature type
@@ -84,23 +47,23 @@ class FileSystemDataStore(catalog: StorageCatalog, config: FileSystemDataStoreCo
    * @param typeName simple feature type name
    * @return
    */
-  def storage(typeName: String): FileSystemStorage = {
-    val storage = cache.get(typeName)
-    if (storage == null) {
-      throw new IllegalArgumentException(s"Schema '$typeName' doesn't exist or could not be loaded")
-    }
-    storage
-  }
+  def storage(typeName: String): FileSystemStorage = delegate.asInstanceOf[FileSystemDelegateDataStore].storage(typeName)
 
-  override def dispose(): Unit = {
-    try {
-      CloseWithLogging(cache.asMap().asScala.values)
-      CloseWithLogging(Seq(catalog) ++ registry)
-      cache.invalidateAll()
-    } finally {
-      super.dispose()
-    }
-  }
+  /**
+   * Run a schema update operation
+   *
+   * @param typeName simple feature type name
+   * @return
+   */
+  def update(typeName: String): CatalogUpdate = delegate.asInstanceOf[FileSystemDelegateDataStore].update(typeName)
+
+  override def updateSchema(typeName: Name, featureType: SimpleFeatureType): Unit =
+    updateSchema(typeName.getLocalPart, featureType)
+
+  override def updateSchema(typeName: String, featureType: SimpleFeatureType): Unit =
+    throw new UnsupportedOperationException("Use `update(typeName)` for schema changes")
+
+  override def dispose(): Unit = try { super.dispose() } finally { stats.close() }
 }
 
 object FileSystemDataStore {
@@ -118,4 +81,111 @@ object FileSystemDataStore {
     queryTimeout: Option[Duration],
     metrics: Option[MetricsConfig],
   )
+
+  /**
+   * Base data store implementation
+   *
+   * @param catalog storage catalog
+   * @param config config
+   */
+  private class FileSystemDelegateDataStore(catalog: StorageCatalog, config: FileSystemDataStoreConfig)
+      extends ContentDataStore with LazyLogging {
+
+    import org.locationtech.geomesa.fs.storage.core.RichSimpleFeatureType
+
+    import scala.collection.JavaConverters._
+
+    private val cache = Caffeine.newBuilder().build(
+      new CacheLoader[String, FileSystemStorage]() {
+        override def load(typeName: String): FileSystemStorage = catalog.load(typeName)
+      }
+    )
+
+    private val registry = config.metrics.map(_.register())
+
+    this.namespaceURI = config.conf.getOrElse(StorageCatalog.NamespaceConfigKey, null)
+
+    override def createTypeNames(): java.util.List[Name] = {
+      val names = new java.util.ArrayList[Name]()
+      catalog.getTypeNames.foreach(name => names.add(new NameImpl(getNamespaceURI, name)))
+      names
+    }
+
+    override def createSchema(original: SimpleFeatureType): Unit = {
+      if (catalog.getTypeNames.contains(original.getTypeName)) {
+        logger.warn(
+          s"Schema already exists: ${SimpleFeatureTypes.encodeType(cache.get(original.getTypeName).sft, includeUserData = true)}")
+      } else {
+        // copy the feature type so that we don't affect it when removing user data, below
+        val sft = SimpleFeatureTypes.copy(original)
+
+        GeoMesaSchemaValidator.validate(sft)
+        // remove the configs in the user data as they're persisted separately
+        val scheme = sft.removeScheme().getOrElse {
+          throw new IllegalArgumentException("Partition scheme must be specified in the SimpleFeatureType user data")
+        }
+        val fileSize = sft.removeTargetFileSize()
+        val bloomFilters = sft.removeBloomFilters()
+        cache.put(sft.getTypeName, catalog.create(sft, scheme, fileSize, bloomFilters))
+      }
+    }
+
+    override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
+    override def removeSchema(typeName: String): Unit = {
+      clearCaches(typeName)
+      catalog.delete(typeName, purge = true)
+    }
+
+    override def createFeatureSource(entry: ContentEntry): ContentFeatureSource =
+      new FileSystemFeatureStore(storage(entry.getTypeName), entry, Query.ALL, config)
+
+    /**
+     * Get a handle on the underlying storage instance for a given simple feature type
+     *
+     * @param typeName simple feature type name
+     * @return
+     */
+    def storage(typeName: String): FileSystemStorage = {
+      val storage = cache.get(typeName)
+      if (storage == null) {
+        throw new IllegalArgumentException(s"Schema '$typeName' doesn't exist or could not be loaded")
+      }
+      storage
+    }
+
+    /**
+     * Run a schema update operation
+     *
+     * @param typeName simple feature type name
+     * @return
+     */
+    def update(typeName: String): CatalogUpdate = {
+      clearCaches(typeName)
+      catalog.update(typeName)
+    }
+
+    override def dispose(): Unit = {
+      try {
+        CloseWithLogging(cache.asMap().asScala.values)
+        CloseWithLogging(Seq(catalog) ++ registry)
+        cache.invalidateAll()
+      } finally {
+        super.dispose()
+      }
+    }
+
+    private def clearCaches(typeName: String): Unit = {
+      if (cache.asMap().containsKey(typeName)) {
+        val existing = cache.get(typeName)
+        cache.invalidate(typeName)
+        existing.close()
+      }
+      Seq(new NameImpl(typeName), new NameImpl(namespaceURI, typeName)).foreach { key =>
+        val entry = entries.remove(key)
+        if (entry != null) {
+          entry.dispose()
+        }
+      }
+    }
+  }
 }

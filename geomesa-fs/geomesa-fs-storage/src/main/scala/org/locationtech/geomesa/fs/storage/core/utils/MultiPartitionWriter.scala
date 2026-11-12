@@ -19,7 +19,7 @@ import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
  * @param maxOpenPartitions max open partition writers
  */
 class MultiPartitionWriter(storage: FileSystemStorage, maxOpenPartitions: Int)
-    extends MultiPartitionAction[FileSystemWriter](storage, maxOpenPartitions) with FileSystemWriter {
+    extends MultiPartitionAction[FileSystemWriter, Partition](storage, maxOpenPartitions) with FileSystemWriter {
 
   override def write(feature: SimpleFeature): Unit = apply(feature)
 
@@ -27,4 +27,5 @@ class MultiPartitionWriter(storage: FileSystemStorage, maxOpenPartitions: Int)
 
   override protected def apply(writer: FileSystemWriter, feature: SimpleFeature): Unit = writer.write(feature)
   override protected def createAction(partition: Partition): FileSystemWriter = storage.getWriter(partition)
+  override protected def grouping(feature: SimpleFeature): Partition = Partition(storage.schemes.map(_.getPartition(feature)))
 }

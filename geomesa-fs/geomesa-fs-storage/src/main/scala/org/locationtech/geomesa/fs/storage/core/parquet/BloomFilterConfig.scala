@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.core
+package org.locationtech.geomesa.fs.storage.core.parquet
 
 import org.apache.iceberg.TableProperties
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -82,7 +82,7 @@ object BloomFilterConfig {
    */
   def tableProperties(configs: Seq[BloomFilterConfig]): Map[String, String] = {
     configs.flatMap { config =>
-      val column = ColumnName(config.attribute).column
+      val column = ColumnName.encode(config.attribute)
       Seq(s"$PARQUET_BLOOM_FILTER_COLUMN_ENABLED_PREFIX$column" -> "true") ++
         config.ndv.map(n => s"$PARQUET_BLOOM_FILTER_COLUMN_NDV_PREFIX$column" -> n.toString) ++
         config.fpp.map(f => s"$PARQUET_BLOOM_FILTER_COLUMN_FPP_PREFIX$column" -> f.toString)
