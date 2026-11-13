@@ -46,64 +46,27 @@ object RolloverFilterProvider {
           "typeName text NOT NULL, " +
           "covered_from timestamp without time zone NOT NULL, " +
           "covered_through timestamp without time zone NOT NULL, " +
-          "updated timestamp without time zone NOT NULL, " +
-          "PRIMARY KEY (typeName, updated))")
+          "PRIMARY KEY (typeName))")
     }
   }
 
   /**
-   * Insert a coverage publication and retain the ten most recent publications for its type name, ordered by `updated`.
-   * The interval timestamp is stored as `updated`.
-   * Requires READ_COMMITTED isolation. An existing transaction remains caller-managed; otherwise this method
-   * commits insertion and pruning atomically. Concurrent publishers are serialized with a table lock.
+   * Insert or replace the coverage interval for a type name. The caller manages the connection and transaction.
    *
    * @param connection connection
    * @param table table name, optionally qualified with a schema
-   * @param interval coverage publication
+   * @param interval coverage interval
    */
   def insertCoverage(connection: Connection, table: String, interval: CoverageInterval): Unit = {
     val qualifiedTable = quoteTable(table)
-    require(connection.getTransactionIsolation == Connection.TRANSACTION_READ_COMMITTED,
-      "Coverage publication requires READ_COMMITTED transaction isolation")
-    val autoCommit = connection.getAutoCommit
-    if (autoCommit) {
-      connection.setAutoCommit(false)
-    }
-    val savepoint = if (autoCommit) { None } else { Some(connection.setSavepoint()) }
-    try {
-      // serialize publishers, including the first publication for a type. the next statement gets a
-      // fresh READ_COMMITTED snapshot after the lock is acquired. readers remain unblocked.
-      WithClose(connection.createStatement())(_.execute(s"LOCK TABLE $qualifiedTable IN SHARE ROW EXCLUSIVE MODE"))
-      WithClose(connection.prepareStatement(
-        s"INSERT INTO $qualifiedTable (typeName, covered_from, covered_through, updated) VALUES (?, ?, ?, ?)")) { statement =>
-        statement.setString(1, interval.typeName)
-        statement.setObject(2, interval.from.atOffset(ZoneOffset.UTC).toLocalDateTime)
-        statement.setObject(3, interval.through.atOffset(ZoneOffset.UTC).toLocalDateTime)
-        statement.setObject(4, interval.timestamp.atOffset(ZoneOffset.UTC).toLocalDateTime)
-        statement.executeUpdate()
-      }
-      WithClose(connection.prepareStatement(
-        s"DELETE FROM $qualifiedTable WHERE typeName = ? AND updated IN (" +
-          s"SELECT updated FROM $qualifiedTable WHERE typeName = ? ORDER BY updated DESC OFFSET 10)")) { statement =>
-        statement.setString(1, interval.typeName)
-        statement.setString(2, interval.typeName)
-        statement.executeUpdate()
-      }
-      if (autoCommit) {
-        connection.commit()
-      } else {
-        savepoint.foreach(connection.releaseSavepoint)
-      }
-    } catch {
-      case e: Exception =>
-        try {
-          if (autoCommit) { connection.rollback() } else { savepoint.foreach(connection.rollback) }
-        } catch { case rollback: Exception => e.addSuppressed(rollback) }
-        throw e
-    } finally {
-      if (autoCommit) {
-        connection.setAutoCommit(true)
-      }
+    WithClose(connection.prepareStatement(
+      s"INSERT INTO $qualifiedTable (typeName, covered_from, covered_through) VALUES (?, ?, ?) " +
+        "ON CONFLICT (typeName) DO UPDATE SET " +
+        "covered_from = EXCLUDED.covered_from, covered_through = EXCLUDED.covered_through")) { statement =>
+      statement.setString(1, interval.typeName)
+      statement.setObject(2, interval.from.atOffset(ZoneOffset.UTC).toLocalDateTime)
+      statement.setObject(3, interval.through.atOffset(ZoneOffset.UTC).toLocalDateTime)
+      statement.executeUpdate()
     }
   }
 
@@ -120,8 +83,8 @@ object RolloverFilterProvider {
     "\"" + identifier + "\""
   }
 
-  case class CoverageInterval(typeName: String, timestamp: Instant, from: Instant, through: Instant) {
-    require(typeName != null && timestamp != null, "Coverage type name and timestamp must not be null")
+  case class CoverageInterval(typeName: String, from: Instant, through: Instant) {
+    require(typeName != null, "Coverage type name must not be null")
     require(from != null && through != null, "Coverage interval must not have null bounds")
     require(from.isBefore(through), "Coverage interval must have from < through")
     require(from.getNano % 1000000 == 0 && through.getNano % 1000000 == 0, "Coverage bounds must have millisecond precision")
@@ -162,12 +125,7 @@ object RolloverFilterProvider {
 
       this.url = required("url")
       this.table = s"${quoteIdentifier(required("schema"))}.${quoteIdentifier(required("table"))}"
-      this.sql =
-        "SELECT covered_from, covered_through, updated " +
-          s"FROM $table " +
-          "WHERE typeName = ? and updated <= ? " +
-          "ORDER BY updated DESC " +
-          "LIMIT 1"
+      this.sql = s"SELECT covered_from, covered_through FROM $table WHERE typeName = ?"
       source = new BasicDataSource()
       source.setUrl(url)
       source.setUsername(required("username"))
@@ -181,7 +139,7 @@ object RolloverFilterProvider {
     protected def coverage(sft: SimpleFeatureType, context: QueryContext): Option[CoverageInterval] = {
       val state = context.state.compute(StateKey, (_, existing) => {
         if (existing == null) {
-          CoverageState(url, table, dtgField(sft), readCoverage(sft.getTypeName, context.now))
+          CoverageState(url, table, dtgField(sft), readCoverage(sft.getTypeName))
         } else {
           validate(sft, existing.asInstanceOf[CoverageState])
         }
@@ -202,20 +160,18 @@ object RolloverFilterProvider {
       existing
     }
 
-    private def readCoverage(typeName: String, asOf: Instant): Option[CoverageInterval] = {
+    private def readCoverage(typeName: String): Option[CoverageInterval] = {
       WithClose(source.getConnection) { cx =>
         WithClose(cx.prepareStatement(sql)) { statement =>
           statement.setQueryTimeout(5)
           statement.setString(1, typeName)
-          statement.setObject(2, asOf.atOffset(ZoneOffset.UTC).toLocalDateTime)
           WithClose(statement.executeQuery()) { results =>
             if (!results.next()) {
               None
             } else {
               val from = Option(results.getObject(1, classOf[LocalDateTime])).map(_.toInstant(ZoneOffset.UTC)).orNull
               val through = Option(results.getObject(2, classOf[LocalDateTime])).map(_.toInstant(ZoneOffset.UTC)).orNull
-              val updated = Option(results.getObject(3, classOf[LocalDateTime])).map(_.toInstant(ZoneOffset.UTC)).orNull
-              Some(CoverageInterval(typeName, updated, from, through))
+              Some(CoverageInterval(typeName, from, through))
             }
           }
         }

@@ -53,7 +53,7 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit with Merged
       reads.incrementAndGet()
       timestamps.add(asOf)
       if (failed) { throw new java.sql.SQLException("coverage boundary unavailable") }
-      published.get(name).map(end => CoverageInterval(name, asOf, start, end))
+      published.get(name).map(end => CoverageInterval(name, start, end))
     }
 
     val source: SourceProvider = new SourceProvider {
@@ -132,12 +132,12 @@ class MergedDataStoreViewCoverageTest extends SpecificationWithJUnit with Merged
     }
 
     "reject invalid or submillisecond coverage bounds" in {
-      CoverageInterval(typeName, boundary, boundary, boundary) must throwA[IllegalArgumentException]
-      CoverageInterval(typeName, boundary, boundary.plusSeconds(1), boundary) must throwA[IllegalArgumentException]
-      CoverageInterval(typeName, boundary, boundary.minusNanos(1), boundary) must throwA[IllegalArgumentException]
-      CoverageInterval(typeName, boundary, boundary.minusSeconds(1), boundary.plusNanos(1)) must
+      CoverageInterval(typeName, boundary, boundary) must throwA[IllegalArgumentException]
+      CoverageInterval(typeName, boundary.plusSeconds(1), boundary) must throwA[IllegalArgumentException]
+      CoverageInterval(typeName, boundary.minusNanos(1), boundary) must throwA[IllegalArgumentException]
+      CoverageInterval(typeName, boundary.minusSeconds(1), boundary.plusNanos(1)) must
         throwA[IllegalArgumentException]
-      CoverageInterval(typeName, boundary, null, boundary) must throwA[IllegalArgumentException]
+      CoverageInterval(typeName, null, boundary) must throwA[IllegalArgumentException]
     }
 
     "split overlapping sources without a gap or duplicate at the coverage boundary" in {
