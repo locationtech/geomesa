@@ -19,6 +19,7 @@ import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, Stat}
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedSource.MergedSourceSft
+import org.locationtech.geomesa.index.view.MergedFilterProvider.QueryContext
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -42,18 +43,18 @@ class MergedStats(stores: Seq[MergedSource[DataStore]], parallel: Boolean) exten
   private implicit val ev: MergedSourceSft[StatsWithSchemas] = StatsWithSchemasSft
 
   private val stats: Seq[MergedSource[StatsWithSchemas]] = stores.map {
-    case s@MergedSource(stats: HasGeoMesaStats, _, _, _, _) => s.copy(StatsWithSchemas(stats.stats, s.source))
+    case s@MergedSource(stats: HasGeoMesaStats, _, _) => s.copy(StatsWithSchemas(stats.stats, s.source))
     case s => s.copy(StatsWithSchemas(new UnoptimizedRunnableStats(s.source), s.source))
   }
 
   override val writer: GeoMesaStatWriter = new MergedStatWriter(stats.map(_.source.stats.writer))
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
-    val now = Instant.now() // shared current time passed to all stores for consistency in bounds calculations
+    val context = QueryContext(filter)
     // note: unlike most methods in this class, this will return if any of the merged stores provide a response
     def getSingle(source: MergedSource[StatsWithSchemas]): Option[Long] = {
       val schema = source.source.ds.getSchema(sft.getTypeName)
-      source.source.stats.getCount(schema, source.filter(sft.getTypeName, filter, now), exact, queryHints)
+      source.source.stats.getCount(schema, source.filter(sft.getTypeName, context), exact, queryHints)
     }
 
     if (parallel) {
@@ -70,11 +71,11 @@ class MergedStats(stores: Seq[MergedSource[DataStore]], parallel: Boolean) exten
     attribute: String,
     filter: Filter,
     exact: Boolean): Option[MinMax[T]] = {
-    val now = Instant.now() // shared current time passed to all stores for consistency in bounds calculations
+    val context = QueryContext(filter)
     // note: unlike most methods in this class, this will return if any of the merged stores provide a response
     def getSingle(source: MergedSource[StatsWithSchemas]): Option[MinMax[T]] = {
       val schema = source.source.ds.getSchema(sft.getTypeName)
-      source.source.stats.getMinMax[T](schema, attribute, source.filter(sft.getTypeName, filter, now), exact)
+      source.source.stats.getMinMax[T](schema, attribute, source.filter(sft.getTypeName, context), exact)
     }
 
     if (parallel) {
@@ -144,18 +145,18 @@ class MergedStats(stores: Seq[MergedSource[DataStore]], parallel: Boolean) exten
   override def close(): Unit = CloseWithLogging(stats.map(_.source.stats))
 
   private def merge[T <: Stat](typeName: String, filter: Filter, query: (GeoMesaStats, Filter) => Option[T]): Option[T] = {
-    val now = Instant.now()
+    val context = QueryContext(filter)
     if (parallel) {
       val results = new CopyOnWriteArrayList[Option[T]]()
-      stats.toList.map(s => CachedThreadPool.submit(s.decorator(() => results.add(query(s.source.stats, s.filter(typeName, filter, now)))))).foreach(_.get)
+      stats.toList.map(s => CachedThreadPool.submit(s.decorator(() => results.add(query(s.source.stats, s.filter(typeName, context)))))).foreach(_.get)
       results.asScala.reduceLeft((res, next) => for { r <- res; n <- next } yield { (r + n).asInstanceOf[T] })
     } else {
       // lazily evaluate each stat as we only return Some if all the child stores do
-      val head = query(stats.head.source.stats, stats.head.filter(typeName, filter, now))
+      val head = query(stats.head.source.stats, stats.head.filter(typeName, context))
       stats.tail.foldLeft(head) { case (result, stat) =>
         for {
           r <- result
-          n <- query(stat.source.stats, stat.filter(typeName, filter, now))
+          n <- query(stat.source.stats, stat.filter(typeName, context))
         } yield {
           (r + n).asInstanceOf[T]
         }
