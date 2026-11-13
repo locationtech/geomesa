@@ -107,15 +107,13 @@ class MergedQueryRunner(
   // cleaned up correctly
   private def getReaders(query: Query): Iterator[FeatureReader[SimpleFeatureType, SimpleFeature]] = {
     val context = QueryContext(query.getFilter)
-    // evaluate filters up front - this allows for easier shared state between filter providers
-    val queries = stores.toList.map { store =>
+    stores.iterator.map { store =>
       val copy = new Query(query) // make sure to coy the hints so they aren't shared
       // suppress the reduce step for gm stores so that we can do the merge here
       copy.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
       copy.setFilter(store.filter(query.getTypeName, context))
-      (store.source, copy)
+      store.source.getFeatureReader(copy, Transaction.AUTO_COMMIT)
     }
-    queries.iterator.map { case (source, query) => source.getFeatureReader(query, Transaction.AUTO_COMMIT) }
   }
 
   private def scanner(
