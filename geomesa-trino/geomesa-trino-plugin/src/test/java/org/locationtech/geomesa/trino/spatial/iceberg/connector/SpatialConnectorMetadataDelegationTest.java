@@ -83,6 +83,8 @@ class SpatialConnectorMetadataDelegationTest {
         "getMaterializedViewFreshness(ConnectorSession,SchemaTableName,boolean)",
         "getMaterializedViewProperties(ConnectorSession,SchemaTableName,ConnectorMaterializedViewDefinition)",
         "renameMaterializedView(ConnectorSession,SchemaTableName,SchemaTableName)",
+        "getTableHandleForMaterializedViewExecute(ConnectorSession,ConnectorAccessControl,ConnectorTableHandle,String,Map,RetryMode)",
+        "setMaterializedViewComment(ConnectorSession,SchemaTableName,Optional)",
         "setMaterializedViewColumnComment(ConnectorSession,SchemaTableName,String,Optional)",
         // ALTER TABLE EXECUTE — maintenance runs via make / iceberg-spatial-tools.
         "beginTableExecute(ConnectorSession,ConnectorTableExecuteHandle,ConnectorTableHandle)",
