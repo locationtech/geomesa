@@ -29,6 +29,7 @@ object RolloverFilterProvider {
 
   import FilterHelper.ff
 
+  private val DefaultTableName = "rollover_status"
   private val StateKey = getClass.getName
 
   /**
@@ -36,17 +37,18 @@ object RolloverFilterProvider {
    * Timestamps are stored without a time zone, using UTC wall-clock values for conversion to and from Instant.
    *
    * @param cx connection
-   * @param table table name, optionally qualified with a schema (e.g. `public.rollover`)
+   * @param schema schema name, or None to use the connection's default schema
+   * @param table table name
    */
-  def createTable(cx: Connection, table: String): Unit = {
-    val qualifiedTable = quoteTable(table)
+  def createTable(cx: Connection, schema: Option[String], table: String): Unit = {
+    val qualifiedTable = quoteTable(schema, table)
     WithClose(cx.createStatement()) { st =>
       st.executeUpdate(
         s"CREATE TABLE IF NOT EXISTS $qualifiedTable (" +
-          "typeName text NOT NULL, " +
+          "type_name text NOT NULL, " +
           "covered_from timestamp without time zone NOT NULL, " +
           "covered_through timestamp without time zone NOT NULL, " +
-          "PRIMARY KEY (typeName))")
+          "PRIMARY KEY (type_name))")
     }
   }
 
@@ -54,14 +56,15 @@ object RolloverFilterProvider {
    * Insert or replace the coverage interval for a type name. The caller manages the connection and transaction.
    *
    * @param connection connection
-   * @param table table name, optionally qualified with a schema
+   * @param schema schema name, or None to use the connection's default schema
+   * @param table table name
    * @param interval coverage interval
    */
-  def insertCoverage(connection: Connection, table: String, interval: CoverageInterval): Unit = {
-    val qualifiedTable = quoteTable(table)
+  def insertCoverage(connection: Connection, schema: Option[String], table: String, interval: CoverageInterval): Unit = {
+    val qualifiedTable = quoteTable(schema, table)
     WithClose(connection.prepareStatement(
-      s"INSERT INTO $qualifiedTable (typeName, covered_from, covered_through) VALUES (?, ?, ?) " +
-        "ON CONFLICT (typeName) DO UPDATE SET " +
+      s"INSERT INTO $qualifiedTable (type_name, covered_from, covered_through) VALUES (?, ?, ?) " +
+        "ON CONFLICT (type_name) DO UPDATE SET " +
         "covered_from = EXCLUDED.covered_from, covered_through = EXCLUDED.covered_through")) { statement =>
       statement.setString(1, interval.typeName)
       statement.setObject(2, interval.from.atOffset(ZoneOffset.UTC).toLocalDateTime)
@@ -70,12 +73,8 @@ object RolloverFilterProvider {
     }
   }
 
-  private def quoteTable(table: String): String = {
-    require(table != null, "Table name must not be null")
-    val parts = table.split("\\.", -1)
-    require(parts.length <= 2, s"Invalid table name: $table")
-    parts.map(quoteIdentifier).mkString(".")
-  }
+  private def quoteTable(schema: Option[String], table: String): String =
+    s"${schema.fold("")(s => s"${quoteIdentifier(s)}.")}${quoteIdentifier(table)}"
 
   private def quoteIdentifier(identifier: String): String = {
     require(identifier != null && identifier.matches("[A-Za-z_][A-Za-z0-9_]{0,62}"),
@@ -124,8 +123,8 @@ object RolloverFilterProvider {
       def required(k: String): String = config.getOrElse(k, throw new IllegalArgumentException(s"Missing required key: $k"))
 
       this.url = required("url")
-      this.table = s"${quoteIdentifier(required("schema"))}.${quoteIdentifier(required("table"))}"
-      this.sql = s"SELECT covered_from, covered_through FROM $table WHERE typeName = ?"
+      this.table = quoteTable(config.get("schema"), config.getOrElse("table", DefaultTableName))
+      this.sql = s"SELECT covered_from, covered_through FROM $table WHERE type_name = ?"
       source = new BasicDataSource()
       source.setUrl(url)
       source.setUsername(required("username"))
