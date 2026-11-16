@@ -42,7 +42,7 @@ class RolloverFilterProviderTest extends SpecificationWithJUnit {
     val table = "Rollover_" + UUID.randomUUID().toString.replace("-", "")
     WithClose(DriverManager.getConnection(url, "postgres", container.password)) { cx =>
       WithClose(cx.createStatement())(_.execute("SET TIME ZONE 'Pacific/Honolulu'"))
-      RolloverFilterProvider.createTable(cx, s"public.$table")
+      RolloverFilterProvider.createTable(cx, Some("public"), table)
       val provider = new Provider
       try {
         provider.init(Map("schema" -> "public", "table" -> table, "url" -> url,
@@ -57,7 +57,7 @@ class RolloverFilterProviderTest extends SpecificationWithJUnit {
   }
 
   private def insert(cx: Connection, table: String, name: String, to: Instant): Unit =
-    RolloverFilterProvider.insertCoverage(cx, s"public.$table", CoverageInterval(name, start, to))
+    RolloverFilterProvider.insertCoverage(cx, Some("public"), table, CoverageInterval(name, start, to))
 
   private def count(cx: Connection, table: String): Long = {
     WithClose(cx.createStatement()) { statement =>
@@ -171,19 +171,19 @@ class RolloverFilterProviderTest extends SpecificationWithJUnit {
         WithClose(cx.getMetaData.getColumns(null, "public", table, "%")) { columns =>
           val types = Vector.newBuilder[(String, String)]
           while (columns.next()) { types += columns.getString("COLUMN_NAME") -> columns.getString("TYPE_NAME") }
-          types.result() mustEqual Vector("typename" -> "text", "covered_from" -> "timestamp", "covered_through" -> "timestamp")
+          types.result() mustEqual Vector("type_name" -> "text", "covered_from" -> "timestamp", "covered_through" -> "timestamp")
         }
-        RolloverFilterProvider.createTable(cx, table)
+        RolloverFilterProvider.createTable(cx, None, table)
         cx.setAutoCommit(false)
         try {
-          RolloverFilterProvider.insertCoverage(cx, table, interval)
-          RolloverFilterProvider.createTable(cx, s"public.$table")
+          RolloverFilterProvider.insertCoverage(cx, None, table, interval)
+          RolloverFilterProvider.createTable(cx, Some("public"), table)
           count(cx, table) mustEqual 1L
           cx.isClosed must beFalse
           cx.getAutoCommit must beFalse
           cx.rollback()
           count(cx, table) mustEqual 0L
-          RolloverFilterProvider.insertCoverage(cx, s"public.$table", interval)
+          RolloverFilterProvider.insertCoverage(cx, Some("public"), table, interval)
           cx.commit()
           provider.lookup(interval.typeName, QueryContext(Filter.INCLUDE, now)) must beSome(interval)
           count(cx, table) mustEqual 1L
@@ -198,7 +198,7 @@ class RolloverFilterProviderTest extends SpecificationWithJUnit {
         insert(cx, table, "other", now)
         insert(cx, table, "replacement", now)
         val interval = CoverageInterval("replacement", start.plusSeconds(60), now.plusSeconds(60))
-        RolloverFilterProvider.insertCoverage(cx, s"public.$table", interval)
+        RolloverFilterProvider.insertCoverage(cx, Some("public"), table, interval)
         count(cx, table) mustEqual 2L
         provider.lookup("replacement", QueryContext(Filter.INCLUDE, now)) must beSome(interval)
         provider.lookup("other", QueryContext(Filter.INCLUDE, now)) must beSome(CoverageInterval("other", start, now))
@@ -232,8 +232,11 @@ class RolloverFilterProviderTest extends SpecificationWithJUnit {
     "reject invalid table names before executing SQL" in {
       fixture { (cx, table, _) =>
         foreach(Seq("", ".table", "public.", "public..table", "db.public.table", "table; DROP TABLE other", "table--")) { invalid =>
-          RolloverFilterProvider.createTable(cx, invalid) must throwA[IllegalArgumentException]
-          RolloverFilterProvider.insertCoverage(cx, invalid, CoverageInterval("helper", start, now)) must
+          RolloverFilterProvider.createTable(cx, None, invalid) must throwA[IllegalArgumentException]
+          RolloverFilterProvider.createTable(cx, Some(invalid), table) must throwA[IllegalArgumentException]
+          RolloverFilterProvider.insertCoverage(cx, None, invalid, CoverageInterval("helper", start, now)) must
+            throwA[IllegalArgumentException]
+          RolloverFilterProvider.insertCoverage(cx, Some(invalid), table, CoverageInterval("helper", start, now)) must
             throwA[IllegalArgumentException]
         }
         count(cx, table) mustEqual 0L
@@ -268,7 +271,7 @@ class RolloverFilterProviderTest extends SpecificationWithJUnit {
             |ALTER COLUMN covered_through DROP NOT NULL""".stripMargin)
         }
         WithClose(cx.prepareStatement(
-          s"""INSERT INTO public."$table" (typeName, covered_from, covered_through) VALUES (?, ?, ?)""")) { statement =>
+          s"""INSERT INTO public."$table" (type_name, covered_from, covered_through) VALUES (?, ?, ?)""")) { statement =>
           Seq("null-from", "null-to").foreach { name =>
             statement.setString(1, name)
             statement.setObject(2, if (name == "null-from") { null } else { start.atOffset(ZoneOffset.UTC).toLocalDateTime })
@@ -277,7 +280,7 @@ class RolloverFilterProviderTest extends SpecificationWithJUnit {
           }
         }
         WithClose(cx.prepareStatement(
-          s"""INSERT INTO public."$table" (typeName, covered_from, covered_through) VALUES (?, ?, ?)""")) { statement =>
+          s"""INSERT INTO public."$table" (type_name, covered_from, covered_through) VALUES (?, ?, ?)""")) { statement =>
           statement.setString(1, "submillisecond")
           statement.setObject(2, start.plusNanos(1000).atOffset(ZoneOffset.UTC).toLocalDateTime)
           statement.setObject(3, now.atOffset(ZoneOffset.UTC).toLocalDateTime)

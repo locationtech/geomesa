@@ -116,13 +116,31 @@ using scheduled jobs. Rollover filtering is designed to address this use case, b
 data migration results.
 
 Rollover filtering requires a JDBC connection used for retrieving rollover results. The migration process must update
-the results table, which is not covered here but can be accomplished through
-``org.locationtech.geomesa.index.view.filters.RolloverFilterProvider#insertCoverage``. For stores configured with
-a ``SourceProvider``, data will be filtered to be outside the published coverage. For stores configured with a
-``DestinationProvider``, data will be filtered on be inside the published coverage - if there are no published coverages,
-then no data will be returned from the destination store.
+the results table, which can be accomplished through
+``org.locationtech.geomesa.index.view.filters.RolloverFilterProvider#createTable`` and
+``org.locationtech.geomesa.index.view.filters.RolloverFilterProvider#insertCoverage``.
 
-In order to configure rollover filtering, specify the rollover filter provider as a custom provider:
+The table DDL is (note that the table name is configurable):
+
+.. code-block:: sql
+
+    CREATE TABLE rollover_status (
+      type_name text NOT NULL,
+      covered_from timestamp without time zone NOT NULL,
+      covered_through timestamp without time zone NOT NULL,
+      PRIMARY KEY (type_name)
+    )
+
+For stores configured with a ``SourceProvider``, data will be filtered to be outside the published coverage. For stores
+configured with a ``DestinationProvider``, data will be filtered on be inside the published coverage - if there are no published
+coverages, then no data will be returned from the destination store.
+
+In order to configure rollover filtering, specify the rollover filter provider as a custom provider. The ``url``,
+``username`` and ``password`` parameters are required. The ``schema`` parameter is optional - if omitted, the table
+will be resolved using the default schema of the JDBC connection (i.e. the ``search_path`` in PostgreSQL). The
+``table`` parameter is optional, and defaults to ``rollover_status``. The ``max-connections`` parameter is optional,
+and defaults to ``2``. Note that all providers in a merged view must use the same ``url``, ``schema`` and ``table``
+configuration.
 
 .. code-block:: json
 
