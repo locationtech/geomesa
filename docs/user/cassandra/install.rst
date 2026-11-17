@@ -25,18 +25,12 @@ This creates a key space called "mykeyspace". This is a top-level name space wit
 and it will provide a place for GeoMesa to put all of its data, including data for spatial features
 and associated metadata.
 
-Next, you'll need to set the ``CASSANDRA_HOME`` environment variable. GeoMesa uses this variable
-to find the Cassandra jars. These jars should be in the ``lib`` directory of your Cassandra
-installation. To set the variable add the following line to your ``.profile`` or ``.bashrc`` file::
-
-    export CASSANDRA_HOME=/path/to/cassandra
-
-Finally, make sure you know a contact point for your Cassandra instance.
+Finally, make sure you know a contact point and the local datacenter for your Cassandra instance.
 If you are just trying things locally, and using the default Cassandra settings,
-the contact point would be ``127.0.0.1:9042``. You can check and configure the
-port you are using using the ``native_transport_port`` in the Cassandra
+the contact point would be ``127.0.0.1:9042`` and the local datacenter would be ``datacenter1``. You can check and
+configure the port you are using using the ``native_transport_port`` in the Cassandra
 configuration file (located at ``conf/cassandra.yaml`` in your Cassandra
-installation directory).
+installation directory). The datacenter name of each node is shown by ``nodetool status``.
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -80,18 +74,12 @@ GeoMesa Cassandra comes with a set of command line tools for managing Cassandra 
 
 .. note::
 
-    ``geomesa-cassandra`` will read the ``$CASSANDRA_HOME`` and ``$HADOOP_HOME`` environment variables to load the
-    appropriate JAR files for Cassandra and Hadoop. In addition, ``geomesa-cassandra`` will pull any
-    additional JARs from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable into the class path.
-    Use the ``geomesa-cassandra classpath`` command in order to see what JARs are being used.
+    ``geomesa-cassandra`` will read the ``$HADOOP_HOME`` environment variable to load the appropriate JAR files
+    for Hadoop. In addition, ``geomesa-cassandra`` will pull any additional JARs from the ``$GEOMESA_EXTRA_CLASSPATHS``
+    environment variable into the class path. Use the ``geomesa-cassandra classpath`` command in order to see what
+    JARs are being used.
 
-If you do not have a local Cassandra installation, the first time you run the tools it will prompt you to download
-the necessary JARs. You may also do this manually using the scripts provided with the distribution:
-
-.. code-block:: bash
-
-    $ ./bin/install-dependencies.sh
-
+The Cassandra Java driver is bundled with the binary distribution, so no additional JARs are required.
 Run ``geomesa-cassandra`` without arguments to confirm that the tools work.
 
 .. code::
@@ -128,12 +116,12 @@ directory of your GeoServer installation:
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 
-Next, install the JARs for Cassandra. By default, JARs will be downloaded from Maven central. You may
+Next, install the JARs for the Cassandra Java driver. By default, JARs will be downloaded from Maven central. You may
 override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
 you can download the JARs manually.
 
-Edit the file ``geomesa-cassandra_{{scala_binary_version}}-{{release}}/conf/dependencies.sh`` to set the version of Cassandra
-to match the target environment, and then run the script:
+The JARs to install are listed in the file ``geomesa-cassandra_{{scala_binary_version}}-{{release}}/conf/dependencies.sh``.
+Edit the versions if required to match the target environment, and then run the script:
 
 .. code-block:: bash
 

@@ -49,8 +49,8 @@ After creating the keyspace, note your ScyllaDB contact point. For a local Docke
 this will be ``127.0.0.1:9042``. You can verify the port in the ScyllaDB configuration.
 
 Since ScyllaDB is wire-compatible with Cassandra, GeoMesa uses the same libraries and
-configuration. Set the ``CASSANDRA_HOME`` environment variable to point to a Cassandra
-installation, or let GeoMesa download the necessary JARs automatically (see below).
+configuration. The command-line tools bundle the Cassandra Java driver, and the GeoServer plugin installs it
+the same way as for Cassandra (see below).
 
 Installing GeoMesa Tools and Plugins
 ------------------------------------
@@ -77,5 +77,4 @@ instructions on:
 .. note::
 
     The same Cassandra client JARs work with both Cassandra and ScyllaDB due to wire protocol compatibility.
-    When using ``$CASSANDRA_HOME`` or installing dependencies, use the Cassandra client libraries as documented
-    in the Cassandra installation guide.
+    When installing dependencies, use the Cassandra client libraries as documented in the Cassandra installation guide.

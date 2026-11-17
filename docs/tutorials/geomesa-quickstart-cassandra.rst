@@ -227,6 +227,7 @@ run the following command from the GeoMesa Cassandra tools distribution director
     bin/geomesa-cassandra export    \
         --output-format leaflet     \
         --contact-point <host:port> \
+        --local-datacenter <dc>     \
         --key-space <keyspace>      \
         --catalog <table>           \
         -f gdelt-quickstart         \

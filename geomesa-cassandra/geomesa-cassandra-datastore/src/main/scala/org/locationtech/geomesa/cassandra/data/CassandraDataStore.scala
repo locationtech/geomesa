@@ -13,6 +13,7 @@ import com.datastax.oss.driver.api.core._
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
+import org.locationtech.geomesa.cassandra.schemaStatement
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -48,7 +49,7 @@ class CassandraDataStore(val session: CqlSession, config: CassandraDataStoreConf
 
   override def delete(): Unit = {
     val tables = getTypeNames.flatMap(getAllIndexTableNames).distinct :+ config.catalog
-    tables.toList.map(t => CachedThreadPool.submit(() => session.execute(s"drop table $t"))).foreach(_.get)
+    tables.toList.map(t => CachedThreadPool.submit(() => session.execute(schemaStatement(s"drop table $t")))).foreach(_.get)
   }
 
   override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {

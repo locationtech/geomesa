@@ -17,4 +17,7 @@ trait CassandraConnectionParams extends CredentialsParams {
 
   @Parameter(names = Array("-k", "--key-space"), description = "Cassandra key space (must already exist)", required = true)
   var keySpace: String = _
+
+  @Parameter(names = Array("--local-datacenter"), description = "Cassandra local datacenter (e.g. 'datacenter1')", required = true)
+  var localDatacenter: String = _
 }
