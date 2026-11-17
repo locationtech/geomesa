@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.Params
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.LooseBBoxParam
 import org.locationtech.geomesa.index.utils.{ExplainString, Explainer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -129,7 +129,20 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
           testQuery(ds, typeName, "dtg AFTER 2014-01-05T12:00:00.000Z", transforms, toAdd.drop(5))
           testQuery(ds, typeName, "dtg BEFORE 2014-01-05T12:00:00.000Z", transforms, toAdd.take(5))
           testQuery(ds, typeName, "dtg > '2014-01-08T00:00:00.000Z'", transforms, toAdd.drop(7))
+          testQuery(ds, typeName, "dtg BEFORE 2014-01-02T12:00:00.000Z OR dtg AFTER 2014-01-08T12:00:00.000Z", transforms,
+            toAdd.take(2) ++ toAdd.drop(8))
         }
+      }
+
+      // open-ended time filter with a spatial filter, forced to use the z3 index (the z values are only applied
+      // client-side for the open-ended periods)
+      foreach(Seq("dtg AFTER 2014-01-05T12:00:00.000Z", "dtg BEFORE 2014-01-05T12:00:00.000Z")) { time =>
+        val query = new Query(typeName, ECQL.toFilter(s"bbox(geom,42,48,52,62) AND $time"))
+        query.getHints.put(QueryHints.QUERY_INDEX, "z3")
+        val expected = if (time.contains("AFTER")) { toAdd.drop(5) } else { toAdd.slice(2, 5) }
+        val ids = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.map(_.getID)
+        ids must haveLength(expected.length)
+        ids must containTheSameElementsAs(expected.map(_.getID))
       }
 
       def testTransforms(ds: CassandraDataStore) = {
