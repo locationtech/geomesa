@@ -266,6 +266,17 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
 
       ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore].addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
 
+      // open-ended periods are selected with a single 'allow filtering' statement (not one per shard),
+      // while the boundary period still uses the index
+      foreach(Seq("dtg AFTER 2014-01-05T12:00:00.000Z", "dtg BEFORE 2014-01-05T12:00:00.000Z")) { filter =>
+        val plans = ds.getQueryPlan(new Query(typeName, ECQL.toFilter(filter)))
+        val statements = plans.flatMap(_.asInstanceOf[CassandraQueryPlan].ranges).map(_.getQuery)
+        val (filtering, indexed) = statements.partition(_.contains("ALLOW FILTERING"))
+        filtering must haveLength(1)
+        filtering.head must not(contain("shard"))
+        indexed must not(beEmpty)
+      }
+
       def blocked(filter: String): MatchResult[Any] = {
         val query = new Query(typeName, ECQL.toFilter(filter))
         CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must throwA[RuntimeException].like {

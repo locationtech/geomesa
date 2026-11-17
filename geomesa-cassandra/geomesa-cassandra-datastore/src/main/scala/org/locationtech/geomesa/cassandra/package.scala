@@ -36,5 +36,11 @@ package object cassandra {
   case class NamedColumn(name: String, i: Int, cType: String, jType: Class[_], partition: Boolean = false)
 
   case class ColumnSelect(column: NamedColumn, start: Any, end: Any, startInclusive: Boolean, endInclusive: Boolean)
-  case class RowSelect(clauses: Seq[ColumnSelect])
+  /**
+   * Selection criteria for a query statement
+   *
+   * @param clauses where clauses
+   * @param allowFiltering use 'allow filtering' - note that this requires a full table scan
+   */
+  case class RowSelect(clauses: Seq[ColumnSelect], allowFiltering: Boolean = false)
 }
