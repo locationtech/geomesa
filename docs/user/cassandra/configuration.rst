@@ -25,6 +25,7 @@ __ https://docs.datastax.com/en/developer/java-driver/4.17/manual/core/configura
 geomesa.cassandra.schema.timeout
 ++++++++++++++++++++++++++++++++
 
-Sets the timeout used for schema operations, i.e. creating, dropping or truncating tables. As schema changes have to
-be agreed on by all nodes in the cluster, they can take longer than regular requests. The timeout is defined as a
-duration, e.g. ``60 seconds`` or ``100 millis``. Default is ``30 seconds``.
+Sets the timeout used for schema operations, i.e. creating, dropping or truncating tables. Cassandra applies schema
+changes one at a time, and they have to be agreed on by all nodes in the cluster (dropping a table also snapshots it,
+by default), so they can take much longer than regular requests. The timeout is defined as a duration, e.g.
+``60 seconds`` or ``100 millis``. Default is ``2 minutes``.
