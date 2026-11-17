@@ -91,20 +91,22 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 
     if (strategy.keyRanges.isEmpty) { EmptyPlan(strategy, processor.reducer) } else {
       val mapper = CassandraColumnMapper(strategy.index)
-      val ranges = {
-        val selects = strategy.keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
-        // a full table scan covers every other range, so only run it to avoid returning duplicate results
-        selects.find(_.clauses.isEmpty) match {
-          case Some(scan) => Seq(scan)
-          case None => selects
-        }
+      val selects = strategy.keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
+      // a full table scan covers every other range, so only run it to avoid returning duplicate results
+      val (ranges, planStrategy) = selects.find(_.clauses.isEmpty) match {
+        case None => (selects, strategy)
+        case Some(scan) =>
+          // some ranges can't be selected in cassandra (e.g. open-ended time periods) and fall back to a full table
+          // scan - mark the strategy as a full table scan so that the query guards (i.e. blocking full table scans)
+          // are applied to it
+          (Seq(scan), strategy.copy(keyRanges = CassandraIndexAdapter.FullTableKeyRange))
       }
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ks = Option(ds.session.getKeyspace.orElse(null)).map(_.asInternal())
       val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))
       val threads = ds.config.queries.threads
       val project = hints.getProjection
-      StatementPlan(ds, strategy, tables, statements, threads, strategy.ecql, processor, project)
+      StatementPlan(ds, planStrategy, tables, statements, threads, strategy.ecql, processor, project)
     }
   }
 
@@ -129,6 +131,9 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 object CassandraIndexAdapter extends LazyLogging {
 
   val TableNameLimit = 48
+
+  // matches the key ranges that GeoMesaFeatureIndex uses to identify full table scans
+  private val FullTableKeyRange: Seq[ScanRange[_]] = Seq(UnboundedRange(null))
 
   def statement(keyspace: Option[String], table: String, criteria: Seq[ColumnSelect]): SimpleStatement = {
     QueryBuilder.selectFrom(keyspace.orNull, table).all().where(
