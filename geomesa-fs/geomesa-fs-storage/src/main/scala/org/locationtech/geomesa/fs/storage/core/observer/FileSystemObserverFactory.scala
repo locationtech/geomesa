@@ -45,7 +45,7 @@ object FileSystemObserverFactory {
   }
 
   object CompositeObserver {
-    def apply(observers: Seq[FileSystemObserver]): FileSystemObserver = {
+    def merge(observers: Seq[FileSystemObserver]): FileSystemObserver = {
       val seq = observers.flatMap {
         case NoOpObserver => Seq.empty
         case o: CompositeObserver => o.observers

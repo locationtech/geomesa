@@ -22,7 +22,7 @@ import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.{FileSystemUpd
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.iceberg.SimpleFeatureIcebergSchema
 import org.locationtech.geomesa.fs.storage.core.utils.FileScan.FluentScan
-import org.locationtech.geomesa.fs.storage.core.{CacheDurationProperty, FileSystemStorage, Partition}
+import org.locationtech.geomesa.fs.storage.core.{CacheDurationProperty, FileSystemStorage, Partition, StorageTransaction}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.security.VisibilityUtils
@@ -94,13 +94,16 @@ class ConverterStorage(
     }
   }
 
-  override def getWriter(partition: Partition): FileSystemWriter =
+  override def newTransaction(): StorageTransaction =
     throw new UnsupportedOperationException("Converter storage is read-only")
 
-  override def getWriter(filter: Filter, threads: Int): FileSystemUpdateWriter =
+  override def getWriter(partition: Partition, transaction: StorageTransaction): FileSystemWriter =
     throw new UnsupportedOperationException("Converter storage is read-only")
 
-  override def getMultiPartitionWriter(): FileSystemWriter =
+  override def getUpdateWriter(filter: Filter, threads: Int, transaction: StorageTransaction): FileSystemUpdateWriter =
+    throw new UnsupportedOperationException("Converter storage is read-only")
+
+  override def getMultiPartitionWriter(transaction: StorageTransaction): FileSystemWriter =
     throw new UnsupportedOperationException("Converter storage is read-only")
 
   override val metadata: FileSystemStorage.DataFiles = new FileSystemStorage.DataFiles() {

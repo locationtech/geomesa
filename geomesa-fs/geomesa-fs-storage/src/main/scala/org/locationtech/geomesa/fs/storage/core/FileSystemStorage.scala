@@ -25,10 +25,11 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.fs.storage.core.StorageTransaction.{ConflictException, TableTransaction}
 import org.locationtech.geomesa.fs.storage.core.fs.ObjectStore
 import org.locationtech.geomesa.fs.storage.core.iceberg.FileBoundsParser.StringParser
 import org.locationtech.geomesa.fs.storage.core.iceberg._
-import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.CompositeObserver
+import org.locationtech.geomesa.fs.storage.core.observer.FileSystemObserverFactory.{CompositeObserver, NoOpObserver}
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.core.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter}
 import org.locationtech.geomesa.fs.storage.core.schema.{BoundingBoxField, ColumnName, SimpleFeatureSchema}
@@ -40,7 +41,7 @@ import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.impl.MinMax.MinMaxDefaults
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
-import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, SecurityUtils, VisibilityUtils}
+import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, SecurityUtils, VisibilityChecker, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, WithClose}
@@ -49,6 +50,7 @@ import org.locationtech.jts.geom.Geometry
 import java.io.{Closeable, Flushable}
 import java.net.URI
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.{Locale, UUID}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
@@ -135,9 +137,14 @@ case class FileSystemStorage(
    * @param query query
    * @param threads read threads
    * @param forUpdate include row and file data required for positional deletes
+   * @param snapshotId snapshot to read, instead of the current table state
    * @return
    */
-  private[core] def getReader(query: Query, threads: Int, forUpdate: Boolean): CloseableIterator[SimpleFeature] = {
+  private[core] def getReader(
+      query: Query,
+      threads: Int,
+      forUpdate: Boolean,
+      snapshotId: Option[Long] = None): CloseableIterator[SimpleFeature] = {
     val configured = QueryRunner.configureQuery(sft, query)
     val filter = Option(configured.getFilter).getOrElse(Filter.INCLUDE)
     val icebergFilter = IcebergFilterConverter(schema, schemes, filter)
@@ -160,7 +167,7 @@ case class FileSystemStorage(
     val remainingFilter = icebergFilter.remainder.map(FastFilterFactory.optimize(readSchema.schema.sft, _))
     val transformer = readSchema.transforms.map { case (tsft, transforms) => new TransformSimpleFeature(tsft, transforms) }
 
-    val scan = new IcebergParquetScan(table, readSchema.schema, icebergFilter.expression, threads)
+    val scan = new IcebergParquetScan(table, readSchema.schema, icebergFilter.expression, threads, snapshotId = snapshotId)
     try {
       val visible = scan.filter(visFilter.apply)
       val filtered = remainingFilter.fold(visible)(f => visible.filter(f.evaluate))
@@ -267,50 +274,123 @@ case class FileSystemStorage(
   }
 
   /**
+   * Starts a new transaction. Writers created with the transaction will not modify the table until the transaction
+   * is committed, at which point all of their changes are published atomically. A transaction can only be
+   * committed or rolled back once.
+   *
+   * @return
+   */
+  def newTransaction(): StorageTransaction = new TableTransaction(this)
+
+  /**
    * Get an appending writer for a given partition. This method is thread-safe and can be called multiple times,
    * but a given feature can only be appended/modified in a single thread, otherwise the behavior is undefined.
    *
+   * Data is not visible until the writer is closed and the transaction is committed. With auto-commit, data is
+   * committed atomically when the writer is closed.
+   *
    * @param partition partitions
+   * @param transaction transaction
    * @return writer
    */
-  def getWriter(partition: Partition): FileSystemWriter = {
-    val conf = this.conf ++ Map(SimpleFeatureSchema.PartitionKey -> partition.toString)
+  def getWriter(partition: Partition, transaction: StorageTransaction = StorageTransaction.AutoCommit): FileSystemWriter = {
+    transaction match {
+      case StorageTransaction.AutoCommit =>
+        val tx = new TableTransaction(this)
+        new AutoCommitWriter(newWriter(partition, tx), tx)
 
-    def newWriter(): FileSystemWriter = {
-      val path = newFilePath()
-      val tableObserver = new AddDataFileObserver(path, partition)
-      val observer = if (observers.isEmpty) { tableObserver } else {
-        new CompositeObserver(observers.map(_.apply(path)).+:(tableObserver))
-      }
-      ParquetFileSystemWriter(schema, conf, table.io(), path, observer)
-    }
-
-    sizer.targetSize match {
-      case None => newWriter()
-      case Some(s) => new ChunkedFileSystemWriter(Iterator.continually(newWriter()), sizer.estimator(s))
+      case tx: TableTransaction =>
+        newWriter(partition, validate(tx))
     }
   }
 
   /**
    * Get an appending writer that will write to multiple partitions, based on the features being written.
-   * Note that this writer does not support the `size` method
+   * Note that this writer does not support the `size` method.
    *
+   * Data is not visible until the writer is closed and the transaction is committed. With auto-commit, data is
+   * committed atomically when the writer is closed.
+   *
+   * @param transaction transaction
    * @return
    */
-  // noinspection AccessorLikeMethodIsEmptyParen
-  def getMultiPartitionWriter(): FileSystemWriter = new MultiPartitionWriter(this, conf.getWriterMaxOpenPartitions)
+  def getMultiPartitionWriter(transaction: StorageTransaction = StorageTransaction.AutoCommit): FileSystemWriter = {
+    transaction match {
+      case StorageTransaction.AutoCommit =>
+        val tx = new TableTransaction(this)
+        new AutoCommitWriter(new MultiPartitionWriter(this, tx, conf.getWriterMaxOpenPartitions), tx)
+
+      case tx: TableTransaction =>
+        new MultiPartitionWriter(this, validate(tx), conf.getWriterMaxOpenPartitions)
+    }
+  }
 
   /**
    * Gets a modifying writer. This method is thread-safe and can be called multiple times, but a given feature
    * can only be appended/modified in a single thread, otherwise the behavior is undefined. There is no guarantee
    * that any concurrent modifications will be reflected in the returned writer.
    *
+   * Modifications are not visible until the writer is closed and the transaction is committed. With auto-commit,
+   * modifications are committed atomically when the writer is closed.
+   *
+   * The writer will not return any uncommitted changes made in the transaction, and a given feature can only be
+   * modified once per transaction.
+   *
    * @param filter the filter used to select features for modification
    * @param threads suggested threads used for reading data files
+   * @param transaction transaction
    * @return
    */
-  def getWriter(filter: Filter, threads: Int): FileSystemUpdateWriter =
-    IcebergUpdateWriter(this, filter, threads, conf.getWriterMaxOpenPartitions)
+  def getUpdateWriter(
+      filter: Filter,
+      threads: Int,
+      transaction: StorageTransaction = StorageTransaction.AutoCommit): FileSystemUpdateWriter = {
+    transaction match {
+      case StorageTransaction.AutoCommit =>
+        val tx = new TableTransaction(this)
+        new AutoCommitUpdateWriter(IcebergUpdateWriter(this, tx, filter, threads, conf.getWriterMaxOpenPartitions), tx)
+
+      case tx: TableTransaction =>
+        IcebergUpdateWriter(this, validate(tx), filter, threads, conf.getWriterMaxOpenPartitions)
+    }
+  }
+
+  /**
+   * Creates a writer for a partition that adds its files to a transaction
+   *
+   * @param partition partition
+   * @param transaction transaction
+   * @return
+   */
+  private def newWriter(partition: Partition, transaction: TableTransaction): FileSystemWriter = {
+    val conf = this.conf ++ Map(SimpleFeatureSchema.PartitionKey -> partition.toString)
+    transaction.opened()
+
+    def newFileWriter(): FileSystemWriter = {
+      val path = newFilePath()
+      val observer = if (observers.isEmpty) { NoOpObserver } else { CompositeObserver.merge(observers.map(_.apply(path))) }
+      new DataFileWriter(ParquetFileSystemWriter(schema, conf, table.io(), path, observer), path, partition, transaction)
+    }
+
+    val writer = try {
+      sizer.targetSize match {
+        case None => newFileWriter()
+        case Some(s) =>
+          // note: the file size estimate is persisted in the table metadata, so it's only updated after the data is
+          // committed, and only with the most recent estimate from the transaction
+          new ChunkedFileSystemWriter(
+            Iterator.continually(newFileWriter()), sizer.estimator(s), transaction.afterCommit(FileSizeCallbackKey, _))
+      }
+    } catch {
+      case NonFatal(e) => transaction.closed(); throw e
+    }
+    new TrackedWriter(writer, transaction)
+  }
+
+  private def validate(transaction: TableTransaction): TableTransaction = {
+    require(transaction.table.eq(table), "Transaction was created by a different storage instance")
+    transaction
+  }
 
   override def close(): Unit = CloseQuietly.raise(table)
 
@@ -411,25 +491,64 @@ case class FileSystemStorage(
   }
 
   /**
-   * Observer to add a file to the metadata upon closing
+   * Writes a single data file, and adds it to a transaction once it has been successfully closed
    *
+   * @param delegate file writer
    * @param path file path
    * @param partition file partition
+   * @param transaction transaction
    */
-  private class AddDataFileObserver(path: String, partition: Partition) extends FileSystemObserver {
+  private class DataFileWriter(
+      delegate: FileSystemWriter,
+      path: String,
+      partition: Partition,
+      transaction: TableTransaction
+    ) extends FileSystemWriter with VisibilityChecker {
+
     private var empty = true
-    override def apply(feature: SimpleFeature): Unit = { empty = false }
-    override def flush(): Unit = {}
+    private var closed = false
+
+    // note: explicit to avoid a conflict with the implicit class of the same name in this package
+    private val requireVis =
+      new org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType(schema.sft).isVisibilityRequired
+
+    override def write(feature: SimpleFeature): Unit = {
+      if (requireVis) {
+        // check up front, so that an invalid feature is rejected without failing the transaction
+        requireVisibilities(feature)
+      }
+      try { delegate.write(feature) } catch {
+        // the file may be missing features or have a partial write, so the transaction can't be committed
+        case NonFatal(e) => transaction.failed(e); throw e
+      }
+      empty = false
+    }
+
+    override def size: Long = delegate.size
+
+    override def flush(): Unit = delegate.flush()
+
     override def close(): Unit = {
-      if (empty) {
-        logger.warn(s"Not adding empty data file: $path")
-      } else {
-        // TODO this is reading the file footer again, could we track this during write instead?
-        logger.debug(s"Adding new data file: $path")
-        val file = toDataFile(path, partition)
-        val append = table.newAppend()
-        append.appendFile(file)
-        append.commit()
+      if (!closed) {
+        closed = true
+        try {
+          // note: this closes any observers, so the file is only added if they all succeed
+          delegate.close()
+          if (empty) {
+            logger.debug(s"Not adding empty data file: $path")
+            transaction.deleteQuietly(path)
+          } else {
+            // TODO this is reading the file footer again, could we track this during write instead?
+            logger.debug(s"Adding new data file: $path")
+            transaction.add(toDataFile(path, partition))
+          }
+        } catch {
+          case NonFatal(e) =>
+            // the transaction can't be committed if it's missing a file
+            transaction.failed(e)
+            transaction.deleteQuietly(path)
+            throw e
+        }
       }
     }
   }
@@ -443,15 +562,22 @@ object FileSystemStorage extends LazyLogging {
   val WriterMaxOpenPartitions = "fs.writer.partitions.max.open"
   val WriterMaxOpenPartitionsDefault = 32
 
+  // key for the after-commit callback that persists the file size estimate
+  private val FileSizeCallbackKey = "file-size"
+
   /**
    * Writes files up to a given size, then starts a new file
    *
    * @param writers iterator of files to write
    * @param estimator target file size estimator
+   * @param onClose invoked with the estimator when this writer is closed, by default closes the estimator
    */
   // noinspection ScalaWeakerAccess
-  class ChunkedFileSystemWriter(writers: Iterator[FileSystemWriter], estimator: UpdatingFileSizeEstimator)
-      extends FileSystemWriter {
+  class ChunkedFileSystemWriter(
+      writers: Iterator[FileSystemWriter],
+      estimator: UpdatingFileSizeEstimator,
+      onClose: UpdatingFileSizeEstimator => Unit = _.close()
+    ) extends FileSystemWriter {
 
     private var totalCount = 0L // total number of features written across all chunks
     private var totalBytes = 0L // sum size of all finished chunks
@@ -488,7 +614,72 @@ object FileSystemStorage extends LazyLogging {
       if (writer != null) {
         writer.close()
       }
-      estimator.close()
+      onClose(estimator)
+    }
+  }
+
+  /**
+   * Tracks an open writer in a transaction
+   *
+   * @param delegate writer
+   * @param transaction transaction
+   */
+  private class TrackedWriter(delegate: FileSystemWriter, transaction: TableTransaction) extends FileSystemWriter {
+
+    private val closed = new AtomicBoolean(false)
+
+    override def write(feature: SimpleFeature): Unit = delegate.write(feature)
+    override def size: Long = delegate.size
+    override def flush(): Unit = delegate.flush()
+    override def close(): Unit = {
+      if (closed.compareAndSet(false, true)) {
+        try { delegate.close() } finally {
+          transaction.closed()
+        }
+      }
+    }
+  }
+
+  /**
+   * Commits a transaction when the writer is closed
+   *
+   * @param delegate writer
+   * @param transaction transaction
+   */
+  private class AutoCommitWriter(delegate: FileSystemWriter, transaction: TableTransaction) extends FileSystemWriter {
+
+    private val closed = new AtomicBoolean(false)
+
+    override def write(feature: SimpleFeature): Unit = delegate.write(feature)
+    override def size: Long = delegate.size
+    override def flush(): Unit = delegate.flush()
+    override def close(): Unit = {
+      if (closed.compareAndSet(false, true)) {
+        transaction.autoCommit(delegate.close())
+      }
+    }
+  }
+
+  /**
+   * Commits a transaction when the update writer is closed
+   *
+   * @param delegate writer
+   * @param transaction transaction
+   */
+  private class AutoCommitUpdateWriter(delegate: FileSystemUpdateWriter, transaction: TableTransaction)
+      extends FileSystemUpdateWriter {
+
+    private val closed = new AtomicBoolean(false)
+
+    override def hasNext: Boolean = delegate.hasNext
+    override def next(): SimpleFeature = delegate.next()
+    override def write(): Unit = delegate.write()
+    override def remove(): Unit = delegate.remove()
+    override def flush(): Unit = delegate.flush()
+    override def close(): Unit = {
+      if (closed.compareAndSet(false, true)) {
+        transaction.autoCommit(delegate.close())
+      }
     }
   }
 
@@ -569,12 +760,18 @@ object FileSystemStorage extends LazyLogging {
 
     /**
      * Writes a modification to the last feature returned by `next`
+     *
+     * @throws ConflictException if the feature has already been modified in the same transaction
      */
+    @throws(classOf[ConflictException])
     def write(): Unit
 
     /**
      * Deletes the last feature returned by `next`
+     *
+     * @throws ConflictException if the feature has already been modified in the same transaction
      */
+    @throws(classOf[ConflictException])
     def remove(): Unit
   }
 

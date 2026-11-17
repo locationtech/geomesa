@@ -735,7 +735,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
               logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
               // verify deletes are tracked in counts
-              WithClose(storage.getWriter(ECQL.toFilter("IN ('000','100','200','201')"), 1)) { writer =>
+              WithClose(storage.getUpdateWriter(ECQL.toFilter("IN ('000','100','200','201')"), 1)) { writer =>
                 while (writer.hasNext) {
                   writer.next()
                   writer.remove()
@@ -784,7 +784,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           testQuery(storage, sft)("INCLUDE", null, features)
 
           // do this in two passes to validate merging delete vectors
-          WithClose(storage.getWriter(ECQL.toFilter("IN('0', '1')"), 1)) { updater =>
+          WithClose(storage.getUpdateWriter(ECQL.toFilter("IN('0', '1')"), 1)) { updater =>
             updater.hasNext must beTrue
             while (updater.hasNext) {
               val feature = updater.next
@@ -793,7 +793,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
               }
             }
           }
-          WithClose(storage.getWriter(ECQL.toFilter("IN('1')"), 1)) { updater =>
+          WithClose(storage.getUpdateWriter(ECQL.toFilter("IN('1')"), 1)) { updater =>
             updater.hasNext must beTrue
             while (updater.hasNext) {
               val feature = updater.next
@@ -903,7 +903,7 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
           TestObserverFactory.observers.flatMap(_.features) must containTheSameElementsAs(features)
 
           TestObserverFactory.observers.clear()
-          val updater = storage.getWriter(Filter.INCLUDE, 1)
+          val updater = storage.getUpdateWriter(Filter.INCLUDE, 1)
 
           updater.hasNext must beTrue
           while (updater.hasNext) {

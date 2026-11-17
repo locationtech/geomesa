@@ -142,8 +142,9 @@ modifying writes.
   Pay close attention to the use of ``PROVIDED_FID`` in the following sections. This hint controls the behavior
   of each feature ID.
 
-Some data stores support transactions, which can be used to isolate a group of operations. GeoMesa does not
-support transactions, so the default GeoTools ``Transaction.AUTO_COMMIT`` is used in the examples. Generally,
+Some data stores support transactions, which can be used to isolate a group of operations. Most GeoMesa data stores
+do not support transactions, so the default GeoTools ``Transaction.AUTO_COMMIT`` is used in the examples (see
+:ref:`fsds_transactions` and :ref:`kafka_transactional_writes` for the exceptions). Generally,
 once a writer is successfully closed, the data has been persisted to the underlying store. Until then,
 data may be cached and buffered locally, and may not be persisted or available to query.
 

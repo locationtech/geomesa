@@ -10,16 +10,18 @@ package org.locationtech.geomesa.fs.data
 
 import com.google.gson.JsonParser
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.{DataStoreFinder, Query, SimpleFeatureStore, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.sort.SortOrder
+import org.geotools.data.DefaultTransaction
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.data.container.FsContainerTest
 import org.locationtech.geomesa.fs.storage.core.StorageKeys
+import org.locationtech.geomesa.fs.storage.core.StorageTransaction.ConflictException
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -424,6 +426,144 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
             CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(ScalaSimpleFeature.copy).toList.sortBy(_.getID)
           results mustEqual expected
         }
+      }
+    }
+
+    "support transactions" in {
+      WithClose(DataStoreFinder.getDataStore(newParams().asJava)) { ds =>
+        ds.createSchema(sft)
+
+        def read(tx: Transaction): Seq[SimpleFeature] =
+          CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), tx)).map(ScalaSimpleFeature.copy).toList.sortBy(_.getID)
+
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.take(5).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+
+        val expected = features.drop(1).map(ScalaSimpleFeature.copy)
+        expected.head.setAttribute("name", "updated")
+
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.drop(5).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+          WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter("IN ('0', '1')"), tx)) { writer =>
+            foreach(0 to 1) { _ =>
+              writer.hasNext must beTrue
+              val f = writer.next
+              f.getID match {
+                case "0" => writer.remove()
+                case "1" => f.setAttribute("name", "updated"); writer.write()
+              }
+              ok
+            }
+            writer.hasNext must beFalse
+          }
+          // uncommitted changes are not visible, inside or outside the transaction
+          read(tx) mustEqual features.take(5)
+          read(Transaction.AUTO_COMMIT) mustEqual features.take(5)
+
+          tx.commit()
+
+          read(tx) mustEqual expected
+          read(Transaction.AUTO_COMMIT) mustEqual expected
+
+          // verify feature store methods, and rollback
+          val store = ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
+          store.setTransaction(tx)
+          store.removeFeatures(ECQL.toFilter("IN ('2')"))
+          store.modifyFeatures("name", "updated", ECQL.toFilter("IN ('3')"))
+          read(Transaction.AUTO_COMMIT) mustEqual expected
+
+          tx.rollback()
+
+          read(Transaction.AUTO_COMMIT) mustEqual expected
+
+          store.removeFeatures(ECQL.toFilter("IN ('2')"))
+          tx.commit()
+
+          read(Transaction.AUTO_COMMIT) mustEqual expected.filterNot(_.getID == "2")
+
+          // conflicting changes are rejected
+          store.removeFeatures(ECQL.toFilter("IN ('3')"))
+          WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter("IN ('3')"), Transaction.AUTO_COMMIT)) { writer =>
+            writer.hasNext must beTrue
+            writer.next.setAttribute("name", "conflict")
+            writer.write()
+          }
+          tx.commit() must throwA[ConflictException]
+          tx.rollback()
+
+          // a feature can only be modified once per transaction
+          store.removeFeatures(ECQL.toFilter("IN ('4')"))
+          store.removeFeatures(ECQL.toFilter("IN ('4')")) must throwA[ConflictException]
+          store.modifyFeatures("name", "updated", ECQL.toFilter("IN ('4')")) must throwA[ConflictException]
+          tx.rollback()
+
+          // conflicts with auto-commit are raised when the writer is closed
+          val writer = ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter("IN ('4')"), Transaction.AUTO_COMMIT)
+          try {
+            writer.hasNext must beTrue
+            writer.next.setAttribute("name", "conflict")
+            ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
+              .modifyFeatures("name", "updated", ECQL.toFilter("IN ('4')"))
+            writer.write()
+          } finally {
+            writer.close() must throwA[ConflictException]
+          }
+
+          // changes that aren't committed are discarded when the transaction is closed
+          store.removeFeatures(ECQL.toFilter("IN ('4')"))
+        }
+
+        val result = read(Transaction.AUTO_COMMIT)
+        result.map(_.getID) mustEqual expected.map(_.getID).filterNot(_ == "2")
+        result.find(_.getID == "3").map(_.getAttribute("name")) must beSome[AnyRef]("conflict")
+        result.find(_.getID == "4").map(_.getAttribute("name")) must beSome[AnyRef]("updated")
+      }
+    }
+
+    "raise conflicts in transactions with multiple feature types" in {
+      WithClose(DataStoreFinder.getDataStore(newParams().asJava)) { ds =>
+        val typeNames = Seq("parquet", "parquet2")
+        typeNames.foreach { typeName =>
+          ds.createSchema(SimpleFeatureTypes.renameSft(sft, typeName))
+          WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+            features.take(2).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+        }
+
+        def ids(typeName: String): Seq[String] =
+          CloseableIterator(ds.getFeatureReader(new Query(typeName), Transaction.AUTO_COMMIT)).map(_.getID).toList.sorted
+
+        WithClose(new DefaultTransaction()) { tx =>
+          val stores = typeNames.map { typeName =>
+            val store = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+            store.setTransaction(tx)
+            store
+          }
+          // both types conflict
+          foreach(typeNames.zip(stores)) { case (typeName, store) =>
+            store.removeFeatures(ECQL.toFilter("IN ('0')"))
+            ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore].modifyFeatures("name", "conflict", ECQL.toFilter("IN ('0')"))
+            ok
+          }
+          tx.commit() must throwA[ConflictException]
+          tx.rollback()
+
+          // only one type conflicts - the other is committed, and isn't re-applied by a re-try
+          stores.head.removeFeatures(ECQL.toFilter("IN ('1')"))
+          stores.last.removeFeatures(ECQL.toFilter("IN ('1')"))
+          ds.getFeatureSource(typeNames.last).asInstanceOf[SimpleFeatureStore].modifyFeatures("name", "conflict", ECQL.toFilter("IN ('1')"))
+          tx.commit() must throwA[ConflictException]
+          ids(typeNames.head) mustEqual Seq("0")
+          ids(typeNames.last) mustEqual Seq("0", "1")
+          tx.commit() must throwA[ConflictException]
+          tx.rollback()
+          tx.commit()
+        }
+        ids(typeNames.head) mustEqual Seq("0")
+        ids(typeNames.last) mustEqual Seq("0", "1")
       }
     }
 

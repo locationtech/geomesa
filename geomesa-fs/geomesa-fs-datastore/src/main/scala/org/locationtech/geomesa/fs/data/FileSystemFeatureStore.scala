@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
+import org.geotools.api.data.{DataStore, FeatureReader, FeatureWriter, Query, QueryCapabilities, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.data.simple.DelegateSimpleFeatureReader
@@ -19,14 +19,17 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
-import org.locationtech.geomesa.fs.storage.core.FileSystemStorage
+import org.locationtech.geomesa.fs.storage.core.StorageTransaction.ConflictException
+import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageTransaction}
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.json.JsonPathPropertyNameResolver
 
-import java.io.Closeable
+import java.io.{Closeable, IOException}
 import java.util.concurrent.atomic.AtomicLong
+import scala.collection.mutable.ArrayBuffer
+import scala.util.control.NonFatal
 
 class FileSystemFeatureStore(
     val storage: FileSystemStorage,
@@ -36,13 +39,39 @@ class FileSystemFeatureStore(
   ) extends ContentFeatureStore(entry, query) with LazyLogging {
 
   override def getWriterInternal(query: Query, flags: Int): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
+    val transaction = storageTransaction()
     // note: check update first as sometimes we get ADD | UPDATE
     if ((flags & WRITER_UPDATE) == WRITER_UPDATE) {
-      new FileSystemFeatureWriterModify(storage, query.getFilter, config.readThreads)
+      new FileSystemFeatureWriterModify(storage, transaction, query.getFilter, config.readThreads)
     } else if ((flags & WRITER_ADD) == WRITER_ADD) {
-      new FileSystemFeatureWriterAppend(storage)
+      new FileSystemFeatureWriterAppend(storage, transaction)
     } else {
       throw new IllegalArgumentException(s"Expected one of $WRITER_ADD or $WRITER_UPDATE, but got: $flags")
+    }
+  }
+
+  /**
+   * Gets the storage transaction associated with the current geotools transaction
+   *
+   * @return storage transaction
+   */
+  private def storageTransaction(): StorageTransaction = {
+    val transaction = getTransaction
+    if (transaction == null || transaction == Transaction.AUTO_COMMIT) { StorageTransaction.AutoCommit } else {
+      // note: geotools tracks its own state using the content entry as a key, so we have to use something different
+      val key = TransactionKey(getDataStore)
+      val state = transaction.synchronized {
+        transaction.getState(key) match {
+          case null =>
+            val state = new FileSystemTransactionState()
+            transaction.putState(key, state)
+            state
+
+          case state: FileSystemTransactionState => state
+          case state => throw new IllegalArgumentException(s"Found non-FileSystem state in transaction: $state")
+        }
+      }
+      state.transaction(storage)
     }
   }
 
@@ -104,9 +133,9 @@ class FileSystemFeatureStore(
     }
   }
 
-  override def canTransact: Boolean = false
   override def canEvent: Boolean = false
   override def canReproject: Boolean = false
+  override def canTransact: Boolean = true
   override def canLimit(query: Query): Boolean = true
   override def canSort(query: Query): Boolean = true
   override def canFilter(query: Query): Boolean = true
@@ -120,6 +149,113 @@ object FileSystemFeatureStore {
   private val capabilities: QueryCapabilities = new QueryCapabilities() {
     override def isReliableFIDSupported: Boolean = true
     override def isUseProvidedFIDSupported: Boolean = true
+  }
+
+  /**
+   * Key for tracking transaction state
+   *
+   * @param ds data store
+   */
+  private case class TransactionKey(ds: DataStore)
+
+  /**
+   * Holder for an open transaction
+   *
+   * @param storage storage instance
+   * @param tx transaction
+   */
+  private case class TransactionInstance(storage: FileSystemStorage, tx: StorageTransaction)
+
+  /**
+   * Ties storage transactions to a geotools transaction. A geotools transaction can be committed or rolled back multiple
+   * times, while a storage transaction is single-use - so a new storage transaction is started for each set of changes.
+   * Any uncommitted changes are rolled back when the geotools transaction is closed.
+   *
+   * A single state tracks all the feature types in a data store, as geotools hides the type of any failure if
+   * more than one state fails to commit.
+   */
+  private class FileSystemTransactionState extends Transaction.State {
+
+    // the current storage transactions, if there are any pending changes, keyed by feature type name
+    private val current = scala.collection.mutable.LinkedHashMap.empty[String, TransactionInstance]
+
+    /**
+     * Gets the current storage transaction, starting a new one if needed
+     *
+     * @param storage storage instance
+     * @return
+     */
+    def transaction(storage: FileSystemStorage): StorageTransaction = synchronized {
+      val typeName = storage.sft.getTypeName
+      current.get(typeName) match {
+        case None =>
+          val tx = storage.newTransaction()
+          current.put(typeName, TransactionInstance(storage, tx))
+          tx
+
+        case Some(instance) if instance.storage.eq(storage) => instance.tx
+
+        case _ =>
+          throw new IllegalStateException(
+            s"Schema '$typeName' was modified during the transaction - the transaction must be rolled back")
+      }
+    }
+
+    override def setTransaction(transaction: Transaction): Unit = {
+      if (transaction == null) {
+        // the transaction has been closed
+        rollback()
+      }
+    }
+
+    override def addAuthorization(authID: String): Unit = {}
+
+    override def commit(): Unit = synchronized {
+      val failures = ArrayBuffer.empty[Throwable]
+      current.toList.foreach { case (typeName, instance) =>
+        // note: if the commit fails, the storage transaction is generally left open so it can be re-tried or rolled back
+        try { instance.tx.commit() } catch {
+          case NonFatal(e) => failures += e
+        } finally {
+          if (!instance.tx.isOpen) {
+            current.remove(typeName)
+          }
+        }
+      }
+      raise(failures.toSeq)
+    }
+
+    override def rollback(): Unit = synchronized {
+      val failures = ArrayBuffer.empty[Throwable]
+      try {
+        current.values.foreach { instance =>
+          try { instance.tx.rollback() } catch {
+            case NonFatal(e) => failures += e
+          }
+        }
+      } finally {
+        current.clear()
+      }
+      raise(failures.toSeq)
+    }
+
+    /**
+     * Throws a single exception for any failures. Conflict exceptions take priority, so that they can be
+     * handled by the caller - any other failures are added as suppressed exceptions.
+     *
+     * @param failures failures
+     */
+    private def raise(failures: Seq[Throwable]): Unit = {
+      if (failures.nonEmpty) {
+        val primary = failures.find(_.isInstanceOf[ConflictException]).getOrElse(failures.head)
+        val e = primary match {
+          case e: IOException => e
+          case e => new IOException(e.getMessage, e)
+        }
+        failures.filterNot(_.eq(primary)).foreach(e.addSuppressed)
+        throw e
+      }
+    }
   }
 
   /**
@@ -164,10 +300,12 @@ object FileSystemFeatureStore {
    * Appending feature writer
    *
    * @param storage storage instance
+   * @param transaction transaction
    */
-  private class FileSystemFeatureWriterAppend(storage: FileSystemStorage) extends FastSettableFeatureWriter {
+  private class FileSystemFeatureWriterAppend(storage: FileSystemStorage, transaction: StorageTransaction)
+      extends FastSettableFeatureWriter {
 
-    private val writer = storage.getMultiPartitionWriter()
+    private val writer = storage.getMultiPartitionWriter(transaction)
     private val featureIds = new AtomicLong(0)
     private var feature: ScalaSimpleFeature = _
 
@@ -191,13 +329,18 @@ object FileSystemFeatureStore {
     * Modifying feature writer
     *
     * @param storage instance
+    * @param transaction transaction
     * @param filter query filter
     * @param readThreads read threads
     */
-  private class FileSystemFeatureWriterModify(storage: FileSystemStorage, filter: Filter, readThreads: Int)
-      extends FeatureWriter[SimpleFeatureType, SimpleFeature] with LazyLogging {
+  private class FileSystemFeatureWriterModify(
+      storage: FileSystemStorage,
+      transaction: StorageTransaction,
+      filter: Filter,
+      readThreads: Int
+    ) extends FeatureWriter[SimpleFeatureType, SimpleFeature] with LazyLogging {
 
-    private val writer = storage.getWriter(filter, threads = readThreads)
+    private val writer = storage.getUpdateWriter(filter, readThreads, transaction)
 
     override def getFeatureType: SimpleFeatureType = storage.sft
 
