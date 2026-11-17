@@ -41,7 +41,7 @@ import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.impl.MinMax.MinMaxDefaults
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
-import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, SecurityUtils, VisibilityUtils}
+import org.locationtech.geomesa.security.{AuthProviderParam, AuthUtils, AuthorizationsProvider, AuthsParam, SecurityUtils, VisibilityChecker, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, WithClose}
@@ -345,11 +345,14 @@ case class FileSystemStorage(
       filter: Filter,
       threads: Int,
       transaction: StorageTransaction = StorageTransaction.AutoCommit): FileSystemUpdateWriter = {
-    val (tx, autoCommit) = transaction match {
-      case StorageTransaction.AutoCommit => (new TableTransaction(this), true)
-      case tx: TableTransaction => (validate(tx), false)
+    transaction match {
+      case StorageTransaction.AutoCommit =>
+        val tx = new TableTransaction(this)
+        new AutoCommitUpdateWriter(IcebergUpdateWriter(this, tx, filter, threads, conf.getWriterMaxOpenPartitions), tx)
+
+      case tx: TableTransaction =>
+        IcebergUpdateWriter(this, validate(tx), filter, threads, conf.getWriterMaxOpenPartitions)
     }
-    IcebergUpdateWriter(this, tx, filter, threads, conf.getWriterMaxOpenPartitions, autoCommit)
   }
 
   /**
@@ -373,8 +376,10 @@ case class FileSystemStorage(
       sizer.targetSize match {
         case None => newFileWriter()
         case Some(s) =>
-          // note: the file size estimate is persisted in the table metadata, so it's only updated after the data is committed
-          new ChunkedFileSystemWriter(Iterator.continually(newFileWriter()), sizer.estimator(s), transaction.afterCommit)
+          // note: the file size estimate is persisted in the table metadata, so it's only updated after the data is
+          // committed, and only with the most recent estimate from the transaction
+          new ChunkedFileSystemWriter(
+            Iterator.continually(newFileWriter()), sizer.estimator(s), transaction.afterCommit(FileSizeCallbackKey, _))
       }
     } catch {
       case NonFatal(e) => transaction.closed(); throw e
@@ -498,13 +503,24 @@ case class FileSystemStorage(
       path: String,
       partition: Partition,
       transaction: TableTransaction
-    ) extends FileSystemWriter {
+    ) extends FileSystemWriter with VisibilityChecker {
 
     private var empty = true
     private var closed = false
 
+    // note: explicit to avoid a conflict with the implicit class of the same name in this package
+    private val requireVis =
+      new org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType(schema.sft).isVisibilityRequired
+
     override def write(feature: SimpleFeature): Unit = {
-      delegate.write(feature)
+      if (requireVis) {
+        // check up front, so that an invalid feature is rejected without failing the transaction
+        requireVisibilities(feature)
+      }
+      try { delegate.write(feature) } catch {
+        // the file may be missing features or have a partial write, so the transaction can't be committed
+        case NonFatal(e) => transaction.failed(e); throw e
+      }
       empty = false
     }
 
@@ -520,7 +536,7 @@ case class FileSystemStorage(
           delegate.close()
           if (empty) {
             logger.debug(s"Not adding empty data file: $path")
-            deleteFile()
+            transaction.deleteQuietly(path)
           } else {
             // TODO this is reading the file footer again, could we track this during write instead?
             logger.debug(s"Adding new data file: $path")
@@ -530,15 +546,9 @@ case class FileSystemStorage(
           case NonFatal(e) =>
             // the transaction can't be committed if it's missing a file
             transaction.failed(e)
-            deleteFile()
+            transaction.deleteQuietly(path)
             throw e
         }
-      }
-    }
-
-    private def deleteFile(): Unit = {
-      try { table.io().deleteFile(path) } catch {
-        case NonFatal(e) => logger.warn(s"Error deleting file, it will need to be cleaned up as an orphan: $path", e)
       }
     }
   }
@@ -551,6 +561,9 @@ object FileSystemStorage extends LazyLogging {
   val ParquetRowGroupSizeOpt  = "parquet.block.size"
   val WriterMaxOpenPartitions = "fs.writer.partitions.max.open"
   val WriterMaxOpenPartitionsDefault = 32
+
+  // key for the after-commit callback that persists the file size estimate
+  private val FileSizeCallbackKey = "file-size"
 
   /**
    * Writes files up to a given size, then starts a new file
@@ -642,10 +655,30 @@ object FileSystemStorage extends LazyLogging {
     override def flush(): Unit = delegate.flush()
     override def close(): Unit = {
       if (closed.compareAndSet(false, true)) {
-        try { delegate.close() } catch {
-          case NonFatal(e) => transaction.rollbackQuietly(e); throw e
-        }
-        transaction.commitOrRollback()
+        transaction.autoCommit(delegate.close())
+      }
+    }
+  }
+
+  /**
+   * Commits a transaction when the update writer is closed
+   *
+   * @param delegate writer
+   * @param transaction transaction
+   */
+  private class AutoCommitUpdateWriter(delegate: FileSystemUpdateWriter, transaction: TableTransaction)
+      extends FileSystemUpdateWriter {
+
+    private val closed = new AtomicBoolean(false)
+
+    override def hasNext: Boolean = delegate.hasNext
+    override def next(): SimpleFeature = delegate.next()
+    override def write(): Unit = delegate.write()
+    override def remove(): Unit = delegate.remove()
+    override def flush(): Unit = delegate.flush()
+    override def close(): Unit = {
+      if (closed.compareAndSet(false, true)) {
+        transaction.autoCommit(delegate.close())
       }
     }
   }

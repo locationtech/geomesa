@@ -19,6 +19,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
+import org.locationtech.geomesa.fs.storage.core.StorageTransaction.ConflictException
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, StorageTransaction}
 import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
@@ -27,6 +28,7 @@ import org.locationtech.geomesa.utils.json.JsonPathPropertyNameResolver
 
 import java.io.{Closeable, IOException}
 import java.util.concurrent.atomic.AtomicLong
+import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 class FileSystemFeatureStore(
@@ -57,7 +59,7 @@ class FileSystemFeatureStore(
     val transaction = getTransaction
     if (transaction == null || transaction == Transaction.AUTO_COMMIT) { StorageTransaction.AutoCommit } else {
       // note: geotools tracks its own state using the content entry as a key, so we have to use something different
-      val key = TransactionKey(getDataStore, storage.sft.getTypeName)
+      val key = TransactionKey(getDataStore)
       val state = transaction.synchronized {
         transaction.getState(key) match {
           case null =>
@@ -153,9 +155,8 @@ object FileSystemFeatureStore {
    * Key for tracking transaction state
    *
    * @param ds data store
-   * @param typeName feature type name
    */
-  private case class TransactionKey(ds: DataStore, typeName: String)
+  private case class TransactionKey(ds: DataStore)
 
   /**
    * Holder for an open transaction
@@ -169,11 +170,14 @@ object FileSystemFeatureStore {
    * Ties storage transactions to a geotools transaction. A geotools transaction can be committed or rolled back multiple
    * times, while a storage transaction is single-use - so a new storage transaction is started for each set of changes.
    * Any uncommitted changes are rolled back when the geotools transaction is closed.
+   *
+   * A single state tracks all the feature types in a data store, as geotools hides the type of any failure if
+   * more than one state fails to commit.
    */
   private class FileSystemTransactionState extends Transaction.State {
 
-    // the current storage transaction, if there are any pending changes
-    private var current: TransactionInstance = _
+    // the current storage transactions, if there are any pending changes, keyed by feature type name
+    private val current = scala.collection.mutable.LinkedHashMap.empty[String, TransactionInstance]
 
     /**
      * Gets the current storage transaction, starting a new one if needed
@@ -182,13 +186,19 @@ object FileSystemFeatureStore {
      * @return
      */
     def transaction(storage: FileSystemStorage): StorageTransaction = synchronized {
-      if (current == null) {
-        current = TransactionInstance(storage, storage.newTransaction())
-      } else if (!current.storage.eq(storage)) {
-        throw new IllegalStateException(
-          s"Schema '${storage.sft.getTypeName}' was modified during the transaction - the transaction must be rolled back")
+      val typeName = storage.sft.getTypeName
+      current.get(typeName) match {
+        case None =>
+          val tx = storage.newTransaction()
+          current.put(typeName, TransactionInstance(storage, tx))
+          tx
+
+        case Some(instance) if instance.storage.eq(storage) => instance.tx
+
+        case _ =>
+          throw new IllegalStateException(
+            s"Schema '$typeName' was modified during the transaction - the transaction must be rolled back")
       }
-      current.tx
     }
 
     override def setTransaction(transaction: Transaction): Unit = {
@@ -201,29 +211,49 @@ object FileSystemFeatureStore {
     override def addAuthorization(authID: String): Unit = {}
 
     override def commit(): Unit = synchronized {
-      if (current != null) {
+      val failures = ArrayBuffer.empty[Throwable]
+      current.toList.foreach { case (typeName, instance) =>
         // note: if the commit fails, the storage transaction is generally left open so it can be re-tried or rolled back
-        try { wrap(current.tx.commit()) } finally {
-          if (!current.tx.isOpen) {
-            current = null
+        try { instance.tx.commit() } catch {
+          case NonFatal(e) => failures += e
+        } finally {
+          if (!instance.tx.isOpen) {
+            current.remove(typeName)
           }
         }
       }
+      raise(failures.toSeq)
     }
 
     override def rollback(): Unit = synchronized {
-      if (current != null) {
-        try { wrap(current.tx.rollback()) } finally {
-          current = null
+      val failures = ArrayBuffer.empty[Throwable]
+      try {
+        current.values.foreach { instance =>
+          try { instance.tx.rollback() } catch {
+            case NonFatal(e) => failures += e
+          }
         }
+      } finally {
+        current.clear()
       }
+      raise(failures.toSeq)
     }
 
-    private def wrap(fn: => Unit): Unit = {
-      try { fn } catch {
-        // note: includes conflict exceptions, which are passed through so that they can be handled by the caller
-        case e: IOException => throw e
-        case NonFatal(e) => throw new IOException(e.getMessage, e)
+    /**
+     * Throws a single exception for any failures. Conflict exceptions take priority, so that they can be
+     * handled by the caller - any other failures are added as suppressed exceptions.
+     *
+     * @param failures failures
+     */
+    private def raise(failures: Seq[Throwable]): Unit = {
+      if (failures.nonEmpty) {
+        val primary = failures.find(_.isInstanceOf[ConflictException]).getOrElse(failures.head)
+        val e = primary match {
+          case e: IOException => e
+          case e => new IOException(e.getMessage, e)
+        }
+        failures.filterNot(_.eq(primary)).foreach(e.addSuppressed)
+        throw e
       }
     }
   }

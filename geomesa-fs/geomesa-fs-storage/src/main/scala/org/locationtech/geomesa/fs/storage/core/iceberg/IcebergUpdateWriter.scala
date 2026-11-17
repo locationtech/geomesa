@@ -33,14 +33,12 @@ import scala.util.control.NonFatal
  * @param transaction transaction tracking the changes
  * @param reader features to update
  * @param writer writer for updated features
- * @param autoCommit commit the transaction when this writer is closed
  */
 class IcebergUpdateWriter(
     storage: FileSystemStorage,
     transaction: TableTransaction,
     reader: CloseableIterator[SimpleFeature],
     writer: MultiPartitionWriter,
-    autoCommit: Boolean,
   ) extends FileSystemUpdateWriter {
 
   private val closed = new AtomicBoolean(false)
@@ -81,7 +79,7 @@ class IcebergUpdateWriter(
       // write before deleting to ensure the feature is valid
       transaction.validateDelete(path, position)
       writer.write(live)
-      transaction.delete(path, position)
+      transaction.deleteValidated(path, position)
     }
     original = null
     live = null
@@ -101,17 +99,10 @@ class IcebergUpdateWriter(
 
   override def close(): Unit = {
     if (closed.compareAndSet(false, true)) {
-      try {
-        try { CloseWithLogging.raise(Seq(reader, writer)) } catch {
-          case NonFatal(e) => transaction.failed(e); throw e
-        } finally {
-          transaction.closed()
-        }
-      } catch {
-        case NonFatal(e) if autoCommit => transaction.rollbackQuietly(e); throw e
-      }
-      if (autoCommit) {
-        transaction.commitOrRollback()
+      try { CloseWithLogging.raise(Seq(reader, writer)) } catch {
+        case NonFatal(e) => transaction.failed(e); throw e
+      } finally {
+        transaction.closed()
       }
     }
   }
@@ -127,7 +118,6 @@ object IcebergUpdateWriter {
    * @param filter filter for features to update
    * @param readThreads number of threads using to read features to update
    * @param maxOpenPartitions max open writer partitions
-   * @param autoCommit commit the transaction when the writer is closed
    * @return
    */
   def apply(
@@ -135,8 +125,7 @@ object IcebergUpdateWriter {
       transaction: TableTransaction,
       filter: Filter,
       readThreads: Int,
-      maxOpenPartitions: Int,
-      autoCommit: Boolean): IcebergUpdateWriter = {
+      maxOpenPartitions: Int): IcebergUpdateWriter = {
     val writer = new MultiPartitionWriter(storage, transaction, maxOpenPartitions)
     try {
       // read from the same snapshot that deletes are validated against - if the table is empty, there's nothing to update
@@ -145,7 +134,7 @@ object IcebergUpdateWriter {
         case None => CloseableIterator.empty[SimpleFeature]
         case id => storage.getReader(new Query(storage.sft.getTypeName, filter), readThreads, forUpdate = true, snapshotId = id)
       }
-      try { new IcebergUpdateWriter(storage, transaction, reader, writer, autoCommit) } catch {
+      try { new IcebergUpdateWriter(storage, transaction, reader, writer) } catch {
         case NonFatal(e) => CloseWithLogging(reader); throw e
       }
     } catch {

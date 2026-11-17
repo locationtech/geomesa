@@ -146,6 +146,10 @@ Limitations
 
 * A transaction that is used with more than one feature type is committed separately for each feature type. Each
   commit is atomic, but the transaction as a whole is not - if one commit fails, the others may still succeed.
+  If any of the commits fail due to a conflict, a ``ConflictException`` is thrown, with any other failures attached
+  as suppressed exceptions. Feature types that were committed successfully are not re-committed if the transaction
+  is re-tried. If the transaction spans multiple data stores and more than one of them fails, GeoTools will wrap
+  the failure in a ``DataSourceException``.
 * If a process exits before a transaction is committed or rolled back, the files written by the transaction will
   be left in place. As they are not referenced by the table they will not affect queries, and can be removed by
   Iceberg's orphan file clean-up.

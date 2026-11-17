@@ -91,8 +91,8 @@ object StorageTransaction {
     private val dataFiles = ArrayBuffer.empty[DataFile]
     // deleted row positions, keyed by data file path
     private val deletes = scala.collection.mutable.LinkedHashMap.empty[String, PendingDeletes]
-    // callbacks to invoke after a successful commit
-    private val callbacks = ArrayBuffer.empty[Closeable]
+    // callbacks to invoke after a successful commit, by key
+    private val callbacks = scala.collection.mutable.LinkedHashMap.empty[String, Closeable]
 
     // table state that deletes are evaluated against - loaded when first needed, so that append-only transactions
     // don't have to refresh the table
@@ -106,7 +106,18 @@ object StorageTransaction {
 
     override def isOpen: Boolean = synchronized(finished == null)
 
-    override def commit(): Unit = synchronized {
+    override def commit(): Unit = {
+      val toClose = synchronized {
+        doCommit()
+        val toClose = callbacks.values.toList
+        finish("committed")
+        toClose
+      }
+      // note: run outside of the lock, as the callbacks may be slow
+      toClose.foreach(CloseWithLogging(_))
+    }
+
+    private def doCommit(): Unit = {
       checkOpen()
       if (open > 0) {
         throw new IllegalStateException(s"Cannot commit a transaction with $open open writer(s) - close all writers first")
@@ -149,16 +160,13 @@ object StorageTransaction {
               if (deletes.isEmpty || !isConflict(e)) {
                 throw e
               } else if (attempt >= retries) {
-                throw new ConflictException(s"Transaction could not be committed after $attempt attempts due to concurrent modifications", e)
+                throw new ConflictException(s"Transaction could not be committed after ${attempt + 1} attempt(s) due to concurrent modifications", e)
               }
               attempt += 1
               rebase(e)
           }
         }
       }
-      val toClose = callbacks.toList
-      finish("committed")
-      toClose.foreach(CloseWithLogging(_))
     }
 
     override def rollback(): Unit = synchronized {
@@ -176,6 +184,18 @@ object StorageTransaction {
         case e: CommitStateUnknownException => throw e
         case NonFatal(e) => rollbackQuietly(e); throw e
       }
+    }
+
+    /**
+     * Closes a writer and then commits the transaction, rolling it back if either step fails
+     *
+     * @param close closes the writer
+     */
+    private[core] def autoCommit(close: => Unit): Unit = {
+      try { close } catch {
+        case NonFatal(e) => rollbackQuietly(e); throw e
+      }
+      commitOrRollback()
     }
 
     /**
@@ -234,11 +254,17 @@ object StorageTransaction {
     }
 
     /**
-     * Registers a callback that will be closed after a successful commit, and discarded on rollback
+     * Registers a callback that will be closed after a successful commit, and discarded on rollback. Only the
+     * most recent callback for a given key is kept. If the transaction is already finished, the callback is discarded.
      *
+     * @param key callback key
      * @param callback callback
      */
-    private[core] def afterCommit(callback: Closeable): Unit = synchronized(callbacks += callback)
+    private[core] def afterCommit(key: String, callback: Closeable): Unit = synchronized {
+      if (finished == null) {
+        callbacks.put(key, callback)
+      }
+    }
 
     /**
      * Checks that a row can be deleted, without deleting it
@@ -264,6 +290,17 @@ object StorageTransaction {
      */
     private[core] def delete(path: String, position: Long): Unit = synchronized {
       validateDelete(path, position)
+      deleteValidated(path, position)
+    }
+
+    /**
+     * Deletes a row that has already been checked with `validateDelete`, without checking it again
+     *
+     * @param path data file path
+     * @param position row position in the file
+     */
+    private[core] def deleteValidated(path: String, position: Long): Unit = synchronized {
+      checkOpen()
       val pending = deletes.getOrElseUpdate(path, {
         val (specId, partition) = pinned().dataFile(path)
         PendingDeletes(table.specs().get(specId), partition, Deletes.toPositionIndex(CloseableIterable.empty[java.lang.Long]()))
@@ -362,7 +399,12 @@ object StorageTransaction {
       new View(Option(table.currentSnapshot()))
     }
 
-    private def deleteQuietly(path: String): Unit = {
+    /**
+     * Deletes a file that isn't part of the table, logging any failure
+     *
+     * @param path file path
+     */
+    private[core] def deleteQuietly(path: String): Unit = {
       try { table.io().deleteFile(path) } catch {
         case NonFatal(e) => logger.warn(s"Error deleting file, it will need to be cleaned up as an orphan: $path", e)
       }

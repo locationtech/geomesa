@@ -523,6 +523,50 @@ class FileSystemDataStoreTest extends SpecificationWithJUnit with FsContainerTes
       }
     }
 
+    "raise conflicts in transactions with multiple feature types" in {
+      WithClose(DataStoreFinder.getDataStore(newParams().asJava)) { ds =>
+        val typeNames = Seq("parquet", "parquet2")
+        typeNames.foreach { typeName =>
+          ds.createSchema(SimpleFeatureTypes.renameSft(sft, typeName))
+          WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+            features.take(2).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+        }
+
+        def ids(typeName: String): Seq[String] =
+          CloseableIterator(ds.getFeatureReader(new Query(typeName), Transaction.AUTO_COMMIT)).map(_.getID).toList.sorted
+
+        WithClose(new DefaultTransaction()) { tx =>
+          val stores = typeNames.map { typeName =>
+            val store = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+            store.setTransaction(tx)
+            store
+          }
+          // both types conflict
+          foreach(typeNames.zip(stores)) { case (typeName, store) =>
+            store.removeFeatures(ECQL.toFilter("IN ('0')"))
+            ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore].modifyFeatures("name", "conflict", ECQL.toFilter("IN ('0')"))
+            ok
+          }
+          tx.commit() must throwA[ConflictException]
+          tx.rollback()
+
+          // only one type conflicts - the other is committed, and isn't re-applied by a re-try
+          stores.head.removeFeatures(ECQL.toFilter("IN ('1')"))
+          stores.last.removeFeatures(ECQL.toFilter("IN ('1')"))
+          ds.getFeatureSource(typeNames.last).asInstanceOf[SimpleFeatureStore].modifyFeatures("name", "conflict", ECQL.toFilter("IN ('1')"))
+          tx.commit() must throwA[ConflictException]
+          ids(typeNames.head) mustEqual Seq("0")
+          ids(typeNames.last) mustEqual Seq("0", "1")
+          tx.commit() must throwA[ConflictException]
+          tx.rollback()
+          tx.commit()
+        }
+        ids(typeNames.head) mustEqual Seq("0")
+        ids(typeNames.last) mustEqual Seq("0", "1")
+      }
+    }
+
     "support different geometry types" in {
       val types = Seq(
         ("LineString", createLine _),

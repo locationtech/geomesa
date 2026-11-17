@@ -18,7 +18,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.StorageTransaction.ConflictException
-import org.locationtech.geomesa.fs.storage.core.StorageTransactionTest.FailingObserverFactory
+import org.locationtech.geomesa.fs.storage.core.StorageTransactionTest.{FailingObserverFactory, FailingWriteObserverFactory}
 import org.locationtech.geomesa.fs.storage.core.iceberg.{IcebergCatalog, SimpleFeatureIcebergSchema}
 import org.locationtech.geomesa.fs.storage.core.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
@@ -292,6 +292,35 @@ class StorageTransactionTest extends SpecificationWithJUnit {
       }, userData = userData)
     }
 
+    "not commit after a failed write" in {
+      val userData = s";${StorageKeys.ObserversKey}='${classOf[FailingWriteObserverFactory].getName}'"
+      withStorage((storage, _, directory) => {
+        val tx = storage.newTransaction()
+        val writer = storage.getMultiPartitionWriter(tx)
+        writer.write(feature(storage, "a"))
+        writer.write(feature(storage, "fail")) must throwA[RuntimeException]("observer failure")
+        writer.close()
+        tx.commit() must throwAn[IllegalStateException]
+        tx.rollback()
+        files(directory) must beEmpty
+        snapshots(storage) must beEmpty
+      }, userData = userData)
+    }
+
+    "read from the pinned snapshot in each update writer" in withStorage((storage, load, _) => {
+      append(storage, "a")
+      val tx = storage.newTransaction()
+      remove(storage, tx, "a")
+      append(load(), "b")
+      // refreshes the table in our storage instance, so that it's past the pinned snapshot
+      names(storage) mustEqual Seq("a", "b")
+      WithClose(storage.getUpdateWriter(Filter.INCLUDE, 1, tx)) { writer =>
+        writer.map(_.getAttribute("name").toString).toList mustEqual Seq("a")
+      }
+      tx.commit()
+      names(storage) mustEqual Seq("b")
+    })
+
     "merge deletes from multiple writers into a single deletion vector" in withStorage((storage, _, _) => {
       append(storage, "a", "b", "c", "d")
       val tx = storage.newTransaction()
@@ -476,6 +505,17 @@ object StorageTransactionTest {
       override def apply(feature: SimpleFeature): Unit = {}
       override def flush(): Unit = {}
       override def close(): Unit = throw new RuntimeException("observer failure")
+    }
+    override def close(): Unit = {}
+  }
+
+  class FailingWriteObserverFactory extends FileSystemObserverFactory {
+    override def init(storage: FileSystemStorage): Unit = {}
+    override def apply(path: String): FileSystemObserver = new FileSystemObserver() {
+      override def apply(feature: SimpleFeature): Unit =
+        if (feature.getAttribute("name") == "fail") { throw new RuntimeException("observer failure") }
+      override def flush(): Unit = {}
+      override def close(): Unit = {}
     }
     override def close(): Unit = {}
   }
