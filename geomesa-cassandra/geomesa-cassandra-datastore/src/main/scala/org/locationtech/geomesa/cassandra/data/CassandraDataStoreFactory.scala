@@ -33,6 +33,10 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
   override def createNewDataStore(params: util.Map[String, _]): DataStore = createDataStore(params)
 
   override def createDataStore(params: util.Map[String, _]): DataStore = {
+    val catalog = CatalogParam.lookup(params)
+    require(!catalog.contains("."), s"Invalid parameter '${CatalogParam.key}': catalog must not contain a dot. " +
+        s"Specify the keyspace separately using '${KeySpaceParam.key}' (-k) and the catalog using '${CatalogParam.key}' (-c)")
+
     val (cp, portString) = ContactPointParam.lookup(params).split(":") match {
       case Array(one, two) => (one, two)
       case parts => throw new IllegalArgumentException(s"Invalid parameter '${ContactPointParam.key}', " +
@@ -64,8 +68,6 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     }
 
     val session = sessionBuilder.build()
-    val catalog = CatalogParam.lookup(params)
-
     val queries = CassandraQueryConfig(
       threads = QueryThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
