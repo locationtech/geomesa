@@ -124,6 +124,10 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
           testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
           testQuery(ds, typeName, "name = 'name5' OR name = 'name7'", transforms, Seq(toAdd(5), toAdd(7)))
           testQuery(ds, typeName, "(name = 'name5' OR name = 'name6') and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, Seq(toAdd(5), toAdd(6)))
+          // open-ended time filters
+          testQuery(ds, typeName, "dtg AFTER 2014-01-05T12:00:00.000Z", transforms, toAdd.drop(5))
+          testQuery(ds, typeName, "dtg BEFORE 2014-01-05T12:00:00.000Z", transforms, toAdd.take(5))
+          testQuery(ds, typeName, "dtg > '2014-01-08T00:00:00.000Z'", transforms, toAdd.drop(7))
         }
       }
 
@@ -239,6 +243,9 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
       testQuery(ds, typeName, "bbox(geom,-126,42,-119,45)", null, toAdd.dropRight(4))
       testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
       testQuery(ds, typeName, "(name = 'name5' OR name = 'name6') and bbox(geom,-126,38,-119,52) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-01T07:59:59.000Z", null, Seq(toAdd(5), toAdd(6)))
+      // open-ended time filters
+      testQuery(ds, typeName, "dtg AFTER 2014-01-01T04:30:00.000Z", null, toAdd.drop(5))
+      testQuery(ds, typeName, "dtg BEFORE 2014-01-01T04:30:00.000Z", null, toAdd.take(5))
     }
 
     "delete schemas" in {
@@ -319,6 +326,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
     val features = CloseableIterator(fr).toList
     val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
+    features must haveLength(results.length) // no duplicates
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)
       forall(attributes.zipWithIndex) { case (attribute, i) =>

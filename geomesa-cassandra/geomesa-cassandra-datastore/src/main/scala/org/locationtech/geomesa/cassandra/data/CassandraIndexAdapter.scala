@@ -91,7 +91,14 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 
     if (strategy.keyRanges.isEmpty) { EmptyPlan(strategy, processor.reducer) } else {
       val mapper = CassandraColumnMapper(strategy.index)
-      val ranges = strategy.keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
+      val ranges = {
+        val selects = strategy.keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
+        // a full table scan covers every other range, so only run it to avoid returning duplicate results
+        selects.find(_.clauses.isEmpty) match {
+          case Some(scan) => Seq(scan)
+          case None => selects
+        }
+      }
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ks = Option(ds.session.getKeyspace.orElse(null)).map(_.asInternal())
       val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))

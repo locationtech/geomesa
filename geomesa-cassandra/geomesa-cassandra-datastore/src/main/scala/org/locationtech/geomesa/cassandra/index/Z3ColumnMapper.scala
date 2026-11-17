@@ -73,15 +73,11 @@ class Z3ColumnMapper(shards: Seq[ColumnSelect]) extends CassandraColumnMapper {
         val zSelect = ColumnSelect(ZValue, row.z, row.z, startInclusive = true, endInclusive = true)
         Seq(binSelect, zSelect)
 
-      case LowerBoundedRange(lo) =>
-        val binSelect = ColumnSelect(Period, lo.bin, null, startInclusive = true, endInclusive = false)
-        val zSelect = ColumnSelect(ZValue, lo.z, null, startInclusive = true, endInclusive = false)
-        Seq(binSelect, zSelect)
-
-      case UpperBoundedRange(hi) =>
-        val binSelect = ColumnSelect(Period, null, hi.bin, startInclusive = false, endInclusive = true)
-        val zSelect = ColumnSelect(ZValue, null, hi.z, startInclusive = false, endInclusive = true)
-        Seq(binSelect, zSelect)
+      case LowerBoundedRange(_) | UpperBoundedRange(_) =>
+        // the period is part of the partition key, which Cassandra can't select by range (without 'allow filtering'),
+        // and the open-ended periods can't be enumerated, so scan the whole table - the query filter is
+        // applied client-side
+        Seq.empty
 
       case PrefixRange(_) =>
         Seq.empty // not supported
