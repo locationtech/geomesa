@@ -27,6 +27,10 @@ Parameter                            Type    Description
 ``geomesa.stats.enable``             Boolean Toggle collection of statistics (currently not implemented)
 ==================================== ======= ========================================================================================
 
+Specify the keyspace separately from the catalog name. For example, use ``-k abc -c foobar``
+with the command-line tools, or ``cassandra.keyspace=abc`` and ``cassandra.catalog=foobar``
+in data store parameters. Catalog names must not contain a dot.
+
 Programmatic Access
 -------------------
 
