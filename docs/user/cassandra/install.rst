@@ -79,14 +79,7 @@ GeoMesa Cassandra comes with a set of command line tools for managing Cassandra 
     environment variable into the class path. Use the ``geomesa-cassandra classpath`` command in order to see what
     JARs are being used.
 
-The Cassandra Java driver is not bundled with the binary distribution. The first time you run the tools, it will
-prompt you to download the necessary JARs. You may also do this manually using the scripts provided with the
-distribution:
-
-.. code-block:: bash
-
-    $ ./bin/install-dependencies.sh
-
+The Cassandra Java driver is bundled with the binary distribution, so no additional JARs are required.
 Run ``geomesa-cassandra`` without arguments to confirm that the tools work.
 
 .. code::

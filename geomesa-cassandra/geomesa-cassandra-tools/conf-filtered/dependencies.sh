@@ -7,11 +7,11 @@
 # https://www.apache.org/licenses/LICENSE-2.0
 #
 
-# This file lists the dependencies required for running the geomesa-cassandra command-line tools
-# and the GeoServer plugin. These are the runtime dependencies of the Apache Cassandra Java driver 4.x,
-# which is not bundled in the binary distribution. Note that the JARs under $CASSANDRA_HOME/lib
-# can't be used, as Cassandra ships with an older, incompatible version of the driver.
-# Update the versions as required to match the target environment.
+# This file lists the dependencies required for running the geomesa-cassandra GeoServer plugin, i.e. the
+# Cassandra Java driver 4.x and its runtime dependencies, which the plugin does not bundle. Install them with
+# 'bin/install-dependencies.sh /path/to/geoserver/WEB-INF/lib'. The command-line tools bundle these JARs already.
+# Note that the JARs under $CASSANDRA_HOME/lib can't be used, as Cassandra ships with an older, incompatible
+# version of the driver. Update the versions as required to match the target environment.
 
 driver_install_version="%%cassandra.driver.version.recommended%%"
 

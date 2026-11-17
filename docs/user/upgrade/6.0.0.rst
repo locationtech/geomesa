@@ -20,8 +20,8 @@ according to its own upgrade procedure.
 
 Due to the upgrade to version 4 of the Cassandra Java driver, the ``geomesa-cassandra`` command-line tools now require
 the ``--local-datacenter`` argument, and no longer load JARs from ``$CASSANDRA_HOME``, as Cassandra ships with an
-older, incompatible version of the driver. Instead, the driver JARs are installed into the tools' ``lib`` directory
-by ``bin/install-dependencies.sh`` (or when prompted on first run). See :ref:`setting_up_cassandra_commandline`.
+older, incompatible version of the driver. Instead, the driver JARs are now bundled in the binary distribution.
+See :ref:`setting_up_cassandra_commandline`.
 
 The system properties ``geomesa.cassandra.connection.timeout`` and ``geomesa.cassandra.read.timeout`` are no longer
 supported. Instead, timeouts can be configured through the driver's own configuration, as described in

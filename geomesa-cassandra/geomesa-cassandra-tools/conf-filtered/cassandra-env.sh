@@ -15,8 +15,7 @@
 
 # set additional classpath entries for connecting to Cassandra
 # note: the JARs under $CASSANDRA_HOME/lib are not used, as Cassandra ships with an older, incompatible version
-# of the Java driver - instead, the required driver JARs are installed into the GeoMesa lib directory
-# (see dependencies.sh and bin/install-dependencies.sh)
+# of the Java driver - instead, the required driver JARs are bundled in the GeoMesa lib directory
 # export GEOMESA_CASSANDRA_CLASSPATH=
 
 # get cassandra classpath
