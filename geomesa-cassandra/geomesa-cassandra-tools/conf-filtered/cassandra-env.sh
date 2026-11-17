@@ -13,25 +13,15 @@
 # Cassandra Environment Variables
 # ==================================================================
 
-# set the classpath directly, which will skip all other processing
-# otherwise, CASSANDRA_HOME, etc will be used to build up the classpath
+# set additional classpath entries for connecting to Cassandra
+# note: the JARs under $CASSANDRA_HOME/lib are not used, as Cassandra ships with an older, incompatible version
+# of the Java driver - instead, the required driver JARs are installed into the GeoMesa lib directory
+# (see dependencies.sh and bin/install-dependencies.sh)
 # export GEOMESA_CASSANDRA_CLASSPATH=
-
-# Cassandra home directory
-# export CASSANDRA_HOME="${CASSANDRA_HOME:-/path/to/cassandra}"
 
 # get cassandra classpath
 function get_cassandra_classpath() {
-  if [[ -n "$GEOMESA_CASSANDRA_CLASSPATH" ]]; then
-    echo "$GEOMESA_CASSANDRA_CLASSPATH"
-  else
-    local classpath=""
-    if [[ -d "$CASSANDRA_HOME/lib" ]]; then
-      classpath="$(find_jars "$CASSANDRA_HOME"/lib true)"
-      classpath="$(remove_slf4j_from_classpath "$classpath")"
-    fi
-    echo "$classpath"
-  fi
+  echo "$GEOMESA_CASSANDRA_CLASSPATH"
 }
 
 get_cassandra_classpath

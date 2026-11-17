@@ -34,7 +34,7 @@ def ultimateReplace(app, docname, source):
 ultimate_replacements = {
   "{{accumulo_supported_versions}}": "version " + target.versions.accumulo_version,
   "{{accumulo_required_version}}": target.versions.accumulo_version,
-  "{{cassandra_supported_versions}}": "version " + target.versions.cassandra_version,
+  "{{cassandra_supported_versions}}": "versions " + target.versions.cassandra_min_version + " and " + target.versions.cassandra_version,
   "{{cassandra_required_version}}": target.versions.cassandra_version,
   "{{scylladb_supported_versions}}": "version " + target.versions.scylladb_version,
   "{{scylladb_required_version}}": target.versions.scylladb_version,

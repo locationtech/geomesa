@@ -11,6 +11,7 @@ package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.oss.driver.api.core.CqlSession
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder
+import org.locationtech.geomesa.cassandra.schemaStatement
 import org.locationtech.geomesa.index.api.IndexAdapter
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -31,7 +32,7 @@ class CassandraBackedMetadata[T](val session: CqlSession, val catalog: String, v
   }
 
   override protected def createTable(): Unit =
-    session.execute(s"CREATE TABLE IF NOT EXISTS $catalog (sft text, key text, value text, PRIMARY KEY ((sft), key))")
+    session.execute(schemaStatement(s"CREATE TABLE IF NOT EXISTS $catalog (sft text, key text, value text, PRIMARY KEY ((sft), key))"))
 
   override protected def createEmptyBackup(timestamp: String): CassandraBackedMetadata[T] = {
     val table = {

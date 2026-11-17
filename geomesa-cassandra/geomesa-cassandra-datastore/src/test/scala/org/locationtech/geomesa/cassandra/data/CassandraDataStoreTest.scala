@@ -40,7 +40,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
   sequential
 
   protected def createContainer(): CassandraContainer = {
-    new CassandraContainer(DockerImageName.parse("cassandra").withTag(sys.props.getOrElse("cassandra.docker.tag", "3.11.19")))
+    new CassandraContainer(DockerImageName.parse("cassandra").withTag(sys.props.getOrElse("cassandra.docker.tag", "5.0.9")))
       .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("cassandra")))
       .withFileSystemBind(MountableFile.forClasspathResource("init.cql").getResolvedPath, "/init.cql", BindMode.READ_ONLY)
   }

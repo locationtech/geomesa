@@ -16,7 +16,7 @@ import com.datastax.oss.driver.api.querybuilder.relation.Relation
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.cassandra.ColumnSelect
+import org.locationtech.geomesa.cassandra.{ColumnSelect, schemaStatement}
 import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.CassandraIndexWriter
 import org.locationtech.geomesa.cassandra.data.CassandraQueryPlan.{EmptyPlan, StatementPlan}
 import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper
@@ -54,7 +54,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
           s"PRIMARY KEY (${partitions.map(_.name).mkString("(", ", ", ")")}" +
           s"${if (pks.nonEmpty) { pks.map(_.name).mkString(", ", ", ", "")} else { "" }}))"
       logger.debug(create)
-      try { ds.session.execute(create) } catch {
+      try { ds.session.execute(schemaStatement(create)) } catch {
         case _: AlreadyExistsException => // ignore, another thread created it for us
       }
     }
@@ -67,7 +67,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
     tables.foreach { table =>
       val delete = s"DROP TABLE IF EXISTS $table"
       logger.debug(delete)
-      ds.session.execute(delete)
+      ds.session.execute(schemaStatement(delete))
     }
   }
 
@@ -78,7 +78,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
     tables.foreach { table =>
       val truncate = s"TRUNCATE $table"
       logger.debug(truncate)
-      ds.session.execute(truncate)
+      ds.session.execute(schemaStatement(truncate))
     }
   }
 

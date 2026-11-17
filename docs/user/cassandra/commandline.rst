@@ -21,7 +21,8 @@ General Arguments
 -----------------
 
 Most commands require you to specify the connection to Cassandra. This generally includes a contact point,
-key space, username and password. Specify the contact point and key space with ``--contact-point`` and
-``--key-space`` (or ``-P`` and ``-k``). Specify the username and password with ``--user`` and ``--password``
+local datacenter, key space, username and password. Specify the contact point and key space with ``--contact-point`` and
+``--key-space`` (or ``-P`` and ``-k``), and the local datacenter of the contact point with ``--local-datacenter``
+(e.g. ``datacenter1``, which is the default for a new Cassandra installation). Specify the username and password with ``--user`` and ``--password``
 (or ``-u`` and ``-p``). In order to avoid plaintext passwords in the bash history
 and process list, the password argument may be omitted, which will trigger a prompt for it later.
