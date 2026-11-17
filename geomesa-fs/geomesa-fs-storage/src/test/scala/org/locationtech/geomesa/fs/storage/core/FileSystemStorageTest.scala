@@ -927,6 +927,110 @@ class FileSystemStorageTest extends SpecificationWithJUnit with BeforeAfterAll w
       }
     }
 
+    "register files atomically with an identifying table property" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
+
+      val features = Seq.tabulate(10) { i =>
+        val sf = ScalaSimpleFeature.create(sft, i.toString, s"name$i", s"$i", "POINT(45 55)", "2014-01-01T00:00:01.000Z")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf
+      }
+
+      // write a file in one storage instance, to register in another
+      val (partition, source) = WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, schemes)) { storage =>
+          val partition = Partition(storage.schemes.map(_.getPartition(features.head)))
+          WithClose(storage.getWriter(partition))(w => features.foreach(w.write))
+          val files = storage.metadata.files().scan()
+          files must haveLength(1)
+          (partition, URI.create(files.head.file().location()))
+        }
+      }
+
+      // example of an idempotent registration, which checks for the id before registering
+      def registerOnce(storage: FileSystemStorage, id: String): Seq[String] = {
+        storage.table.refresh()
+        val files = Option(storage.table.properties().get(id)) match {
+          case Some(snapshot) => storage.table.snapshot(snapshot.toLong).addedDataFiles(storage.table.io()).asScala.toSeq
+          case None => storage.metadata.register(id, Map(partition -> Seq(source)))
+        }
+        files.map(_.location())
+      }
+
+      val path = newPath()
+      WithClose(StorageCatalog(path)) { catalog =>
+        WithClose(catalog.create(sft, schemes)) { storage =>
+          def paths(): Seq[String] = storage.metadata.files().scan().map(_.file().location())
+          def ids(): Seq[String] = CloseableIterator(storage.getReader(new Query(sft.getTypeName), 1)).map(_.getID).toList
+
+          // invalid ids are rejected up front, without copying any files
+          val listing = s"${storage.table.location()}/data"
+          // note: the listing is not recursive, and may include (empty) directories, including the one being listed
+          def listFiles(fs: S3ObjectStore, dir: URI): Seq[URI] = {
+            val (dirs, files) = WithClose(fs.list(dir))(_.toList).partition(_.toString.endsWith("/"))
+            files ++ dirs.filter(_.toString.length > dir.toString.length + 1).flatMap(listFiles(fs, _))
+          }
+          def copied(): Seq[URI] = WithClose(S3ObjectStore(s3Conf))(listFiles(_, URI.create(listing)))
+          storage.metadata.register("geomesa.test", Map(partition -> Seq(source))) must throwAn[IllegalArgumentException]
+          storage.metadata.register("geomesa.test", Seq(source)) must throwAn[IllegalArgumentException]
+          storage.metadata.register("", Map(partition -> Seq(source))) must throwAn[IllegalArgumentException]
+          storage.table.refresh()
+          paths() must beEmpty
+          copied() must beEmpty
+
+          val registered = registerOnce(storage, "test.batch-1")
+          registered must haveLength(1)
+          paths() mustEqual registered
+          ids() must containTheSameElementsAs(features.map(_.getID))
+          // the property tracks the snapshot that added the files
+          storage.table.properties().get("test.batch-1") mustEqual storage.table.currentSnapshot().snapshotId().toString
+
+          // checking the id first makes registration a no-op, and returns the original files
+          registerOnce(storage, "test.batch-1") mustEqual registered
+          paths() mustEqual registered
+
+          // the id is not checked by the registration itself, and the partition is read out of the file footer
+          storage.metadata.register("test.batch-1", Seq(source)) must haveLength(1)
+          paths() must haveLength(2)
+          storage.table.properties().get("test.batch-1") mustEqual storage.table.currentSnapshot().snapshotId().toString
+
+          // concurrent registrations each keep their properties
+          val threads = 4
+          val pool = java.util.concurrent.Executors.newFixedThreadPool(threads)
+          try {
+            val start = new java.util.concurrent.CountDownLatch(1)
+            val futures = Seq.tabulate(threads) { i =>
+              pool.submit(new java.util.concurrent.Callable[Seq[String]]() {
+                override def call(): Seq[String] = {
+                  // use separate table instances, as if run from different processes
+                  WithClose(StorageCatalog(path)) { catalog =>
+                    WithClose(catalog.load(sft.getTypeName)) { storage =>
+                      start.await()
+                      registerOnce(storage, s"test.concurrent-$i")
+                    }
+                  }
+                }
+              })
+            }
+            start.countDown()
+            val results = futures.map(_.get(2, java.util.concurrent.TimeUnit.MINUTES))
+            storage.table.refresh()
+            results.flatten.distinct must haveLength(threads)
+            paths() must containAllOf(results.flatten)
+            paths() must haveLength(2 + threads)
+            foreach(0 until threads)(i => storage.table.properties().asScala must haveKey(s"test.concurrent-$i"))
+          } finally {
+            pool.shutdownNow()
+          }
+
+          // the property can be removed through the table, without affecting the files
+          storage.table.updateProperties().remove("test.batch-1").commit()
+          storage.table.properties().asScala must not(haveKey("test.batch-1"))
+          paths() must haveLength(2 + threads)
+        }
+      }
+    }
+
     "write files with a target size" in {
       val sft = SimpleFeatureTypes.createType("parquet-test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 

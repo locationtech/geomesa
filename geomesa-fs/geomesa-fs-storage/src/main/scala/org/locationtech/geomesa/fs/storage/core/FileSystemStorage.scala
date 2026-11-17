@@ -13,6 +13,7 @@ import io.micrometer.core.instrument.Tags
 import org.apache.commons.codec.digest.MurmurHash3
 import org.apache.hadoop.fs.Path
 import org.apache.iceberg._
+import org.apache.iceberg.exceptions.CleanableFailure
 import org.apache.iceberg.parquet.ParquetUtil
 import org.apache.iceberg.types.{Conversions, Types}
 import org.apache.iceberg.util.LocationUtil
@@ -392,6 +393,17 @@ case class FileSystemStorage(
     transaction
   }
 
+  /**
+   * Deletes a file that isn't part of the table, logging any failure
+   *
+   * @param path file path
+   */
+  private[core] def deleteQuietly(path: String): Unit = {
+    try { table.io().deleteFile(path) } catch {
+      case NonFatal(e) => logger.warn(s"Error deleting file, it will need to be cleaned up as an orphan: $path", e)
+    }
+  }
+
   override def close(): Unit = CloseQuietly.raise(table)
 
   /**
@@ -407,7 +419,21 @@ case class FileSystemStorage(
 
     override def partitions(filter: Filter): Seq[Partition] = files().forFilter(filter).scan().map(t => partition(t.file())).distinct
 
-    override def register(files: Map[Partition, Seq[URI]]): Seq[DataFile] = {
+    override def register(files: Map[Partition, Seq[URI]]): Seq[DataFile] = register(None, files)
+
+    override def register(files: Seq[URI]): Seq[DataFile] = register(None, byPartition(files))
+
+    override def register(id: String, files: Map[Partition, Seq[URI]]): Seq[DataFile] = register(Option(id), files)
+
+    override def register(id: String, files: Seq[URI]): Seq[DataFile] = register(Option(id), byPartition(files))
+
+    private def register(id: Option[String], files: Map[Partition, Seq[URI]]): Seq[DataFile] = {
+      id.foreach { id =>
+        require(id != null && id.trim.nonEmpty, "Registration id must not be empty")
+        require(!id.startsWith(GeoMesaPropertyPrefix), s"Registration id must not start with '$GeoMesaPropertyPrefix': $id")
+      }
+
+      // copy files into the table location, without adding them to the table
       val dataFiles = files.toSeq.flatMap { case (partition, paths) =>
         paths.map { path =>
           val destination = newFilePath()
@@ -417,17 +443,38 @@ case class FileSystemStorage(
           toDataFile(destination, partition)
         }
       }
-
       if (dataFiles.nonEmpty) {
-        val append = table.newAppend()
-        dataFiles.foreach(append.appendFile)
-        append.commit()
+        try {
+          // the id is committed atomically with the files
+          val tx = id.map(_ -> table.newTransaction())
+          val append = tx.fold(table.newAppend()) { case (_, tx) => tx.newAppend() }
+          dataFiles.foreach(append.appendFile)
+          append.commit()
+          tx.foreach { case (id, tx) =>
+            // note: snapshot needs to be evaluated after committing the file append
+            tx.updateProperties().set(id, tx.table().currentSnapshot().snapshotId().toString).commit()
+            tx.commitTransaction()
+          }
+        } catch {
+          case NonFatal(e) =>
+            // CleanableFailure indicates that cleanup is safe,
+            // otherwise we can't be certain if the files are referenced by the table or not, so leave them for orphan cleanup
+            if (e.isInstanceOf[CleanableFailure]) {
+              dataFiles.foreach(f => deleteQuietly(f.location()))
+            }
+            throw e
+        }
       }
-
       dataFiles
     }
 
-    override def register(files: Seq[URI]): Seq[DataFile] = {
+    /**
+     * Groups files by the partition stored in their parquet footers
+     *
+     * @param files files
+     * @return
+     */
+    private def byPartition(files: Seq[URI]): Map[Partition, Seq[URI]] = {
       val partitioned = scala.collection.mutable.Map.empty[String, ArrayBuffer[URI]]
       WithClose(ObjectStore(files.head.getScheme, conf)) { fs =>
         files.foreach { file =>
@@ -441,7 +488,7 @@ case class FileSystemStorage(
         }
       }
 
-      register(partitioned.map { case (k, v) => Partition(k) -> v.toSeq }.toMap)
+      partitioned.map { case (k, v) => Partition(k) -> v.toSeq }.toMap
     }
 
     override def compactManifests(): Unit = table.rewriteManifests().clusterBy(f => partition(f).toString).commit()
@@ -838,6 +885,38 @@ object FileSystemStorage extends LazyLogging {
      * @return registered file
      */
     def register(file: URI): DataFile = register(Seq(file)).head
+
+    /**
+     * Register new files with this storage instance, and identify them with a table property. The files must
+     * already be in a compatible format.
+     *
+     * The identifier is used as the name of a table property, which is set to the id of the snapshot that adds the
+     * files. The property is committed atomically with the files - either both are applied, or neither is. This can
+     * be used to make registration idempotent across re-tries, by checking the table for the property before
+     * registering, for example with `table.properties().get(id)`. The property can be removed through the table once
+     * it's no longer needed.
+     *
+     * Note that the identifier is not checked - registering the same identifier again will add the files again,
+     * and update the property. As it's used as-is, the identifier should be namespaced so that it doesn't conflict
+     * with any other table properties, including the ones defined by Iceberg. Nothing is committed if there are no
+     * files to register.
+     *
+     * @param id identifier for the files, used as the name of a table property - must not start with `geomesa.`
+     * @param files files to register
+     * @return registered files
+     */
+    def register(id: String, files: Map[Partition, Seq[URI]]): Seq[DataFile]
+
+    /**
+     * Register new files with this storage instance, and identify them with a table property. The files must
+     * already be in a compatible format.
+     *
+     * @see `register(id: String, files: Map[Partition, Seq[URI]])` for details
+     * @param id identifier for the files, used as the name of a table property - must not start with `geomesa.`
+     * @param files files to register
+     * @return registered files
+     */
+    def register(id: String, files: Seq[URI]): Seq[DataFile]
 
     /**
      * Compact manifest files to improve query performance
