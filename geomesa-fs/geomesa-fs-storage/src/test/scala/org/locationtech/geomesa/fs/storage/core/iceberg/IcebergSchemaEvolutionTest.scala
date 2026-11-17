@@ -448,7 +448,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
         catalog.update(sft.getTypeName).table().setPartitions(Seq("month"))
 
         WithClose(catalog.load(sft.getTypeName)) { storage =>
-          WithClose(storage.getWriter(ECQL.toFilter("IN ('jan', 'feb')"), 1))(writer => writer.foreach(_ => writer.remove()))
+          WithClose(storage.getUpdateWriter(ECQL.toFilter("IN ('jan', 'feb')"), 1))(writer => writer.foreach(_ => writer.remove()))
           testQuery(storage, storage.sft, "INCLUDE", null, Seq.empty)
           testQuery(storage, storage.sft, "dtg DURING 2014-02-01T00:00:00.000Z/2014-03-01T00:00:00.000Z", null, Seq.empty)
         }

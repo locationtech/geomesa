@@ -21,6 +21,7 @@ directory structures.
     commandline
     configuration
     index_config
+    transactions
     partition_schemes
     metadata
     converter_fsds

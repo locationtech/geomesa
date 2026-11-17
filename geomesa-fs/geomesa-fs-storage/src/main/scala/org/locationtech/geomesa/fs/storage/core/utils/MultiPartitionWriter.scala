@@ -10,22 +10,38 @@ package org.locationtech.geomesa.fs.storage.core.utils
 
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.core.StorageTransaction.TableTransaction
 import org.locationtech.geomesa.fs.storage.core.{FileSystemStorage, Partition}
+
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Multi partition writer
  *
  * @param storage storage instance
+ * @param transaction transaction that files will be added to
  * @param maxOpenPartitions max open partition writers
  */
-class MultiPartitionWriter(storage: FileSystemStorage, maxOpenPartitions: Int)
+class MultiPartitionWriter(storage: FileSystemStorage, transaction: TableTransaction, maxOpenPartitions: Int)
     extends MultiPartitionAction[FileSystemWriter, Partition](storage, maxOpenPartitions) with FileSystemWriter {
+
+  private val closed = new AtomicBoolean(false)
+
+  transaction.opened()
 
   override def write(feature: SimpleFeature): Unit = apply(feature)
 
   override def size: Long = throw new UnsupportedOperationException("MultiPartitionWriter creates multiple files")
 
+  override def close(): Unit = {
+    if (closed.compareAndSet(false, true)) {
+      try { super.close() } finally {
+        transaction.closed()
+      }
+    }
+  }
+
   override protected def apply(writer: FileSystemWriter, feature: SimpleFeature): Unit = writer.write(feature)
-  override protected def createAction(partition: Partition): FileSystemWriter = storage.getWriter(partition)
+  override protected def createAction(partition: Partition): FileSystemWriter = storage.getWriter(partition, transaction)
   override protected def grouping(feature: SimpleFeature): Partition = Partition(storage.schemes.map(_.getPartition(feature)))
 }
