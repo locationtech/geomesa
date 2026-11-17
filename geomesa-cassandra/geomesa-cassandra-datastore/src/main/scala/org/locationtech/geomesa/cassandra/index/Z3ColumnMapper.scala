@@ -59,37 +59,42 @@ class Z3ColumnMapper(shards: Seq[ColumnSelect]) extends CassandraColumnMapper {
   }
 
   override def select(range: ScanRange[_], tieredKeyRanges: Seq[ByteRange]): Seq[RowSelect] = {
-    val clause = range.asInstanceOf[ScanRange[Z3IndexKey]] match {
+    range.asInstanceOf[ScanRange[Z3IndexKey]] match {
       case BoundedRange(lo, hi) =>
         val binSelect = ColumnSelect(Period, lo.bin, hi.bin, startInclusive = true, endInclusive = true)
         val zSelect = ColumnSelect(ZValue, lo.z, hi.z, startInclusive = true, endInclusive = true)
-        Seq(binSelect, zSelect)
-
-      case UnboundedRange(_) =>
-        Seq.empty
+        sharded(Seq(binSelect, zSelect))
 
       case SingleRowRange(row) =>
         val binSelect = ColumnSelect(Period, row.bin, row.bin, startInclusive = true, endInclusive = true)
         val zSelect = ColumnSelect(ZValue, row.z, row.z, startInclusive = true, endInclusive = true)
-        Seq(binSelect, zSelect)
+        sharded(Seq(binSelect, zSelect))
 
       case LowerBoundedRange(lo) =>
-        val binSelect = ColumnSelect(Period, lo.bin, null, startInclusive = true, endInclusive = false)
-        val zSelect = ColumnSelect(ZValue, lo.z, null, startInclusive = true, endInclusive = false)
-        Seq(binSelect, zSelect)
+        Seq(openEndedPeriods(ColumnSelect(Period, lo.bin, null, startInclusive = true, endInclusive = false)))
 
       case UpperBoundedRange(hi) =>
-        val binSelect = ColumnSelect(Period, null, hi.bin, startInclusive = false, endInclusive = true)
-        val zSelect = ColumnSelect(ZValue, null, hi.z, startInclusive = false, endInclusive = true)
-        Seq(binSelect, zSelect)
+        Seq(openEndedPeriods(ColumnSelect(Period, null, hi.bin, startInclusive = false, endInclusive = true)))
 
-      case PrefixRange(_) =>
-        Seq.empty // not supported
+      case UnboundedRange(_) | PrefixRange(_) =>
+        Seq(RowSelect(Seq.empty)) // full table scan - note: prefix ranges are not supported
 
       case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
     }
-    if (clause.isEmpty) { Seq(RowSelect(clause)) } else {
-      shards.map(s => RowSelect(clause.+:(s)))
-    }
   }
+
+  private def sharded(clause: Seq[ColumnSelect]): Seq[RowSelect] = shards.map(s => RowSelect(clause.+:(s)))
+
+  /**
+   * Selects an open-ended range of periods (i.e. a time filter with only a lower or upper bound).
+   *
+   * The period is part of the partition key, which Cassandra can only select by range with 'allow filtering',
+   * and the open-ended periods can't be enumerated. Instead, we use a single statement with 'allow filtering' across
+   * all shards, which requires a full table scan but filters out the other periods server-side. The z restriction is
+   * omitted, as it can't be combined with a range on the period - the full query filter is applied client-side.
+   *
+   * @param periods period restriction
+   * @return
+   */
+  private def openEndedPeriods(periods: ColumnSelect): RowSelect = RowSelect(Seq(periods), allowFiltering = true)
 }
