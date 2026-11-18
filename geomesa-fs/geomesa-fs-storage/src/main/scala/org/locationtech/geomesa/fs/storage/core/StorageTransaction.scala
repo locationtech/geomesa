@@ -13,7 +13,7 @@ import org.apache.iceberg._
 import org.apache.iceberg.data.{BaseDeleteLoader, DeleteLoader}
 import org.apache.iceberg.deletes.{BaseDVFileWriter, Deletes, PositionDeleteIndex}
 import org.apache.iceberg.exceptions.{CommitStateUnknownException, ValidationException}
-import org.apache.iceberg.io.{CloseableIterable, DeleteWriteResult, FileIO, InputFile, OutputFile, OutputFileFactory}
+import org.apache.iceberg.io._
 import org.apache.iceberg.util.{CharSequenceMap, DeleteFileSet, PropertyUtil}
 import org.locationtech.geomesa.fs.storage.core.StorageTransaction.ConflictException
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
@@ -156,7 +156,7 @@ object StorageTransaction {
 
             case NonFatal(e) =>
               // the deletes are re-written on each attempt, as they have to be merged with the current table state
-              puffins.foreach(deleteQuietly)
+              puffins.foreach(storage.deleteQuietly)
               if (deletes.isEmpty || !isConflict(e)) {
                 throw e
               } else if (attempt >= retries) {
@@ -171,7 +171,7 @@ object StorageTransaction {
 
     override def rollback(): Unit = synchronized {
       if (finished == null) {
-        dataFiles.foreach(f => deleteQuietly(f.location()))
+        dataFiles.foreach(f => storage.deleteQuietly(f.location()))
         finish("rolled back")
       }
     }
@@ -397,17 +397,6 @@ object StorageTransaction {
       // the table is generally long-lived, so make sure that we're working against the latest state
       table.refresh()
       new View(Option(table.currentSnapshot()))
-    }
-
-    /**
-     * Deletes a file that isn't part of the table, logging any failure
-     *
-     * @param path file path
-     */
-    private[core] def deleteQuietly(path: String): Unit = {
-      try { table.io().deleteFile(path) } catch {
-        case NonFatal(e) => logger.warn(s"Error deleting file, it will need to be cleaned up as an orphan: $path", e)
-      }
     }
 
     /**

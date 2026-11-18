@@ -115,6 +115,8 @@ class ConverterStorage(
     override def partitions(filter: Filter): Seq[Partition] = ko
     override def register(files: Map[Partition, Seq[URI]]): Seq[DataFile] = ko
     override def register(files: Seq[URI]): Seq[DataFile] = ko
+    override def register(id: String, files: Map[Partition, Seq[URI]]): Seq[DataFile] = ko
+    override def register(id: String, files: Seq[URI]): Seq[DataFile] = ko
     override def compactManifests(): Unit = ko
     override def compact(partition: Partition): Unit = ko
     override def partition(file: DataFile): Partition = ko
