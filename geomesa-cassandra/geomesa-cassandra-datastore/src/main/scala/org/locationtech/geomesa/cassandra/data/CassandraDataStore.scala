@@ -30,7 +30,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptio
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.IndexCoverage
 
-class CassandraDataStore(val session: CqlSession, config: CassandraDataStoreConfig)
+class CassandraDataStore(val session: CqlSession, override val config: CassandraDataStoreConfig)
     extends GeoMesaDataStore[CassandraDataStore](config) with LocalLocking {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -38,7 +38,7 @@ class CassandraDataStore(val session: CqlSession, config: CassandraDataStoreConf
   import scala.collection.JavaConverters._
 
   override val metadata: GeoMesaMetadata[String] =
-    new CassandraBackedMetadata(session, config.catalog, MetadataStringSerializer)
+    new CassandraBackedMetadata(session, config.catalog, MetadataStringSerializer, config.queries.consistency)
 
   override val adapter: CassandraIndexAdapter = new CassandraIndexAdapter(this)
 

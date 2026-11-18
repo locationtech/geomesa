@@ -20,4 +20,7 @@ trait CassandraConnectionParams extends CredentialsParams {
 
   @Parameter(names = Array("--local-datacenter"), description = "Cassandra local datacenter (e.g. 'datacenter1')", required = true)
   var localDatacenter: String = _
+
+  @Parameter(names = Array("--consistency"), description = "Cassandra consistency level for reads (e.g. 'LOCAL_QUORUM')")
+  var consistency: String = _
 }
