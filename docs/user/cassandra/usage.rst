@@ -15,6 +15,10 @@ Parameter                            Type    Description
 ``cassandra.keyspace *``             String  The Cassandra keyspace to use (must exist already)
 ``cassandra.username``               String  Cassandra user
 ``cassandra.password``               String  Cassandra password
+``cassandra.query.consistency``      String  The consistency level for reads (queries and metadata). Must be one of ``ONE``,
+                                             ``TWO``, ``THREE``, ``QUORUM``, ``ALL``, ``LOCAL_ONE``, ``LOCAL_QUORUM`` or
+                                             ``EACH_QUORUM``. Writes are not affected. If not specified, the driver default is
+                                             used, see :doc:`/user/cassandra/configuration`
 ``geomesa.query.audit``              Boolean Audit queries being run. Queries will be written to a log file
 ``geomesa.query.timeout``            String  The max time a query will be allowed to run before being killed. The
                                              timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``

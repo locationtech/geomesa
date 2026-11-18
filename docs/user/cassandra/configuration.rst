@@ -22,6 +22,10 @@ See the `driver documentation`__ for all available settings.
 
 __ https://docs.datastax.com/en/developer/java-driver/4.17/manual/core/configuration/index.html
 
+The driver's default consistency level (``basic.request.consistency``, which is ``LOCAL_ONE`` unless configured)
+applies to all statements, including writes. To change the consistency level used for reads only, use the
+``cassandra.query.consistency`` data store parameter instead (see :ref:`cassandra_parameters`).
+
 geomesa.cassandra.schema.timeout
 ++++++++++++++++++++++++++++++++
 

@@ -26,3 +26,6 @@ local datacenter, key space, username and password. Specify the contact point an
 (e.g. ``datacenter1``, which is the default for a new Cassandra installation). Specify the username and password with ``--user`` and ``--password``
 (or ``-u`` and ``-p``). In order to avoid plaintext passwords in the bash history
 and process list, the password argument may be omitted, which will trigger a prompt for it later.
+
+The consistency level used for reads can be set with ``--consistency`` (e.g. ``LOCAL_QUORUM``), which corresponds to the
+data store parameter ``cassandra.query.consistency``. See :ref:`cassandra_parameters` for the accepted values.

@@ -105,7 +105,11 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ks = Option(ds.session.getKeyspace.orElse(null)).map(_.asInternal())
       val statements = tables.flatMap { table =>
-        ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses, r.allowFiltering))
+        ranges.map { r =>
+          val statement = CassandraIndexAdapter.statement(ks, table, r.clauses, r.allowFiltering)
+          // if not configured, the driver default consistency will be used
+          ds.config.queries.consistency.fold(statement)(statement.setConsistencyLevel)
+        }
       }
       val threads = ds.config.queries.threads
       val project = hints.getProjection
