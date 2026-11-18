@@ -583,7 +583,7 @@ case class FileSystemStorage(
           delegate.close()
           if (empty) {
             logger.debug(s"Not adding empty data file: $path")
-            transaction.deleteQuietly(path)
+            deleteQuietly(path)
           } else {
             // TODO this is reading the file footer again, could we track this during write instead?
             logger.debug(s"Adding new data file: $path")
@@ -593,7 +593,7 @@ case class FileSystemStorage(
           case NonFatal(e) =>
             // the transaction can't be committed if it's missing a file
             transaction.failed(e)
-            transaction.deleteQuietly(path)
+            deleteQuietly(path)
             throw e
         }
       }
