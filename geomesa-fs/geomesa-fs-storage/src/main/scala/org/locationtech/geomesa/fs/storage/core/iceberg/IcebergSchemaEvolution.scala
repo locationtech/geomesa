@@ -11,10 +11,11 @@ package iceberg
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg.catalog.{Catalog, TableIdentifier}
+import org.apache.iceberg.exceptions.AlreadyExistsException
 import org.apache.iceberg.expressions.Expressions
-import org.apache.iceberg.types.{Type, TypeUtil}
 import org.apache.iceberg.types.Types.NestedField
-import org.apache.iceberg.{PartitionSpec, UpdateSchema}
+import org.apache.iceberg.types.{Type, TypeUtil}
+import org.apache.iceberg.{PartitionSpec, Transaction, UpdateSchema}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.fs.storage.core.StorageCatalog.CatalogUpdate
@@ -27,8 +28,21 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.{Geometry, Point}
 
+import scala.collection.mutable.ArrayBuffer
+
 /**
- * Schema evolution for iceberg tables
+ * Schema evolution for iceberg tables.
+ *
+ * Each change is validated when it is requested, by running it (along with any previously staged changes) in an iceberg
+ * transaction that is then discarded, without modifying the table. Any validation errors are thrown when the change is
+ * requested, and the invalid change is not staged. Nothing is persisted until `apply` is invoked, at which point all the
+ * staged changes are re-run in a single transaction and committed atomically. The table is only held open for the
+ * duration of each call, so an update can be safely abandoned without being applied.
+ *
+ * An update can only be applied once, even if the apply fails - to re-try a failed apply, a new update must be created.
+ *
+ * The one exception is a table rename, which iceberg does not support as part of a transaction - it is executed
+ * immediately after the transaction is committed.
  *
  * @param catalog catalog
  * @param tableId tableId
@@ -40,19 +54,68 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
 
   import scala.collection.JavaConverters._
 
+  private val changes = ArrayBuffer.empty[Transaction => Unit]
+
+  private var renameTo: Option[TableIdentifier] = None
+  private var applied = false
+
   override def columns(): CatalogUpdate.ColumnUpdate = IcebergColumnUpdate
   override def table(): CatalogUpdate.TableUpdate = IcebergTableUpdate
   override def metadata(): CatalogUpdate.MetadataUpdate = IcebergMetadataUpdate
 
+  override def apply(): Unit = {
+    if (applied) {
+      throw new IllegalStateException("Update has already been applied")
+    }
+    applied = true
+    withTransaction(_.commitTransaction())
+    // the rename can't be done as part of the transaction
+    renameTo.foreach(catalog.renameTable(tableId, _))
+  }
+
+  /**
+   * Stage a change, after validating it against the current table plus any previously staged changes
+   *
+   * @param change change to stage - takes a transaction, including any previously staged changes
+   * @return
+   */
+  private def stage(change: Transaction => Unit): CatalogUpdate = {
+    // the transaction is discarded without being committed, it's only used for validation
+    withTransaction(change)
+    changes += change
+    this
+  }
+
+  /**
+   * Run a function against a new transaction containing all the staged changes
+   *
+   * @param fn function
+   */
+  private def withTransaction(fn: Transaction => Unit): Unit = {
+    WithClose(catalog.loadTable(tableId)) { table =>
+      val tx = table.newTransaction()
+      changes.foreach(_.apply(tx))
+      fn(tx)
+    }
+  }
+
+  private def descriptor(schema: SimpleFeatureIcebergSchema, attribute: String): AttributeDescriptor = {
+    val descriptor = schema.sft.getDescriptor(attribute)
+    if (descriptor == null) {
+      throw new IllegalArgumentException(
+        s"Attribute '$attribute' does not exist in the schema: ${schema.sft.getTypeName} " +
+          SimpleFeatureTypes.encodeType(schema.sft))
+    }
+    descriptor
+  }
+
   private object IcebergColumnUpdate extends CatalogUpdate.ColumnUpdate {
 
-    override def add(attribute: AttributeDescriptor): Unit = {
-      WithClose(catalog.loadTable(tableId)) { table =>
-        val tx = table.newTransaction()
+    override def add(attribute: AttributeDescriptor): CatalogUpdate = {
+      stage { tx =>
         colsFor(attribute).foldLeft(tx.updateSchema())((update, col) => update.addColumn(col.name(), col.`type`())).commit()
         val (columnSpecProp, columnSpec) = attributeProperty(attribute)
         tx.updateProperties().set(columnSpecProp, columnSpec).commit()
-        tx.commitTransaction()
       }
     }
 
@@ -63,20 +126,13 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
      *
      * @param update updated attribute
      */
-    override def update(update: AttributeDescriptor): Unit = {
-      WithClose(catalog.loadTable(tableId)) { table =>
-        val schema = SimpleFeatureIcebergSchema(table)
-        val existing = schema.sft.getDescriptor(update.getLocalName)
-        if (existing == null) {
-          throw new IllegalArgumentException(
-            s"Attribute '${update.getLocalName}' does not exist in the schema: ${schema.sft.getTypeName} " +
-              SimpleFeatureTypes.encodeType(schema.sft))
-        }
+    override def update(update: AttributeDescriptor): CatalogUpdate = {
+      stage { tx =>
+        val schema = SimpleFeatureIcebergSchema(tx.table())
+        val existing = descriptor(schema, update.getLocalName)
 
         val existingIsGeom = classOf[Geometry].isAssignableFrom(existing.getType.getBinding)
         val updateIsGeom = classOf[Geometry].isAssignableFrom(update.getType.getBinding)
-
-        val tx = table.newTransaction()
 
         if (existingIsGeom || updateIsGeom) {
           // we don't need to make any actual column changes, just validate that the op is allowed
@@ -113,7 +169,6 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
 
         val (columnSpecProp, columnSpec) = attributeProperty(update)
         tx.updateProperties().set(columnSpecProp, columnSpec).commit()
-        tx.commitTransaction()
       }
     }
 
@@ -181,17 +236,13 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
       }
     }
 
-    override def rename(attribute: String, newName: String): Unit = {
-      WithClose(catalog.loadTable(tableId)) { table =>
+    override def rename(attribute: String, newName: String): CatalogUpdate = {
+      stage { tx =>
+        val table = tx.table()
         val schema = SimpleFeatureIcebergSchema(table)
-        val descriptor = schema.sft.getDescriptor(attribute)
-        if (descriptor == null) {
-          throw new IllegalArgumentException(
-            s"Attribute '$attribute' does not exist in the schema: ${schema.sft.getTypeName} " +
-              SimpleFeatureTypes.encodeType(schema.sft))
-        }
-        val renamedDescriptor = SimpleFeatureTypes.renameDescriptor(descriptor, newName)
-        val oldCols = colsFor(descriptor).map(_.name())
+        val existing = descriptor(schema, attribute)
+        val renamedDescriptor = SimpleFeatureTypes.renameDescriptor(existing, newName)
+        val oldCols = colsFor(existing).map(_.name())
         val newCols = colsFor(renamedDescriptor).map(_.name())
         val oldBloomProps = bloomFilterKeys(attribute).map(k => k -> Option(table.properties().get(k)))
         val propsToAdd = {
@@ -204,7 +255,6 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
           Map(columnSpecProp -> columnSpec) ++ blooms ++ dtgUserData
         }
         val propsToRemove = oldBloomProps.map(_._1) :+ IcebergCatalog.columnSpecProperty(oldCols.head)
-        val tx = table.newTransaction()
         val updateSchema = tx.updateSchema()
         oldCols.zip(newCols).foreach { case (old, newName) => updateSchema.renameColumn(old, newName) }
         updateSchema.commit()
@@ -212,44 +262,43 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
         propsToRemove.foreach(updateProperties.remove)
         propsToAdd.foreach { case (k, v) => updateProperties.set(k, v) }
         updateProperties.commit()
-        tx.commitTransaction()
       }
     }
 
-    override def remove(attribute: String): Unit = {
-      WithClose(catalog.loadTable(tableId)) { table =>
-        val schema = SimpleFeatureIcebergSchema(table)
-        val colsToRemove = colsFor(schema.sft.getDescriptor(attribute)).map(_.name())
+    override def remove(attribute: String): CatalogUpdate = {
+      stage { tx =>
+        val schema = SimpleFeatureIcebergSchema(tx.table())
+        val colsToRemove = colsFor(descriptor(schema, attribute)).map(_.name())
         val propsToRemove = bloomFilterKeys(attribute) :+ IcebergCatalog.columnSpecProperty(colsToRemove.head)
-        val tx = table.newTransaction()
         colsToRemove.foldLeft(tx.updateSchema())((update, col) => update.deleteColumn(col)).commit()
         propsToRemove.foldLeft(tx.updateProperties())((update, prop) => update.remove(prop)).commit()
-        tx.commitTransaction()
       }
     }
 
-    override def reorder(attribute: String, position: Int): Unit = {
-      WithClose(catalog.loadTable(tableId)) { table =>
-        val sft = SimpleFeatureIcebergSchema(table).sft
-        val descriptor = sft.getDescriptor(attribute)
-        if (descriptor == null) {
-          throw new IllegalArgumentException(
-            s"Attribute '$attribute' does not exist in the schema: ${sft.getTypeName} " +
-              SimpleFeatureTypes.encodeType(sft))
-        } else if (position < 0 || position > sft.getAttributeCount - 1) {
+    override def reorder(attribute: String, position: Int): CatalogUpdate = {
+      var warn = true // only warn once, as staged changes are run multiple times
+      stage { tx =>
+        val table = tx.table()
+        val schema = SimpleFeatureIcebergSchema(table)
+        val sft = schema.sft
+        val existing = descriptor(schema, attribute)
+        if (position < 0 || position > sft.getAttributeCount - 1) {
           throw new IllegalArgumentException(
             s"Invalid reorder position, not in [0,${sft.getAttributeCount - 1}]: $position")
         } else if (position == sft.indexOf(attribute)) {
-          logger.warn(s"Ignoring no-op move of attribute $attribute to $position")
-          return
-        }
-        val toMove = colsFor(descriptor)
-        if (position == sft.getAttributeCount - 1) {
-          val location = table.schema().columns().asScala.last.name()
-          toMove.reverse.foldLeft(table.updateSchema())((update, col) => update.moveAfter(col.name(), location)).commit()
+          if (warn) {
+            logger.warn(s"Ignoring no-op move of attribute $attribute to $position")
+            warn = false
+          }
         } else {
-          val location = ColumnName.encode(sft.getAttributeDescriptors.asScala.filterNot(_ == descriptor)(position).getLocalName)
-          toMove.foldLeft(table.updateSchema())((update, col) => update.moveBefore(col.name(), location)).commit()
+          val toMove = colsFor(existing)
+          if (position == sft.getAttributeCount - 1) {
+            val location = table.schema().columns().asScala.last.name()
+            toMove.reverse.foldLeft(tx.updateSchema())((update, col) => update.moveAfter(col.name(), location)).commit()
+          } else {
+            val location = ColumnName.encode(sft.getAttributeDescriptors.asScala.filterNot(_ == existing)(position).getLocalName)
+            toMove.foldLeft(tx.updateSchema())((update, col) => update.moveBefore(col.name(), location)).commit()
+          }
         }
       }
     }
@@ -274,16 +323,22 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
 
   private object IcebergTableUpdate extends CatalogUpdate.TableUpdate {
 
-    override def rename(newName: String): Unit = {
+    override def rename(newName: String): CatalogUpdate = {
       val newTableId = TableIdentifier.of(tableId.namespace(), ColumnName.encode(newName))
-      catalog.renameTable(tableId, newTableId)
-      WithClose(catalog.loadTable(newTableId)) { table =>
-        table.updateProperties().set(IcebergCatalog.TypeNameKey, newName).commit()
+      stage { tx =>
+        if (catalog.tableExists(newTableId)) {
+          throw new AlreadyExistsException("Table already exists: %s", newTableId)
+        }
+        tx.updateProperties().set(IcebergCatalog.TypeNameKey, newName).commit()
       }
+      // the actual rename can't be done as part of the transaction, so it's executed after the transaction is committed
+      renameTo = Some(newTableId)
+      IcebergSchemaEvolution.this
     }
 
-    override def setPartitions(partitions: Seq[String]): Unit = {
-      WithClose(catalog.loadTable(tableId)) { table =>
+    override def setPartitions(partitions: Seq[String]): CatalogUpdate = {
+      stage { tx =>
+        val table = tx.table()
         val schema = SimpleFeatureIcebergSchema(table)
         val currentSpec = table.spec().fields().asScala.map(f => (f.sourceId(), f.transform(), f.name()))
         val updatedSpec = {
@@ -292,7 +347,7 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
           fields.map(f => (f.sourceId(), f.transform(), f.name()))
         }
 
-        val updateSpec = table.updateSpec()
+        val updateSpec = tx.updateSpec()
         currentSpec.filterNot(updatedSpec.contains).foreach { case (_, _, name) => updateSpec.removeField(name) }
         updatedSpec.filterNot(currentSpec.contains).foreach { case (sourceId, transform, name) =>
           updateSpec.addField(name, Expressions.transform(schema.schema.findColumnName(sourceId), transform))
@@ -301,27 +356,27 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
       }
     }
 
-    override def addBloomFilters(filters: Seq[BloomFilterConfig]): Unit = {
-      val props = BloomFilterConfig.tableProperties(filters)
-      WithClose(catalog.loadTable(tableId)) { table =>
-        props.foldLeft(table.updateProperties()) { case (update, (k, v)) => update.set(k, v) }.commit()
+    override def addBloomFilters(filters: Seq[BloomFilterConfig]): CatalogUpdate = {
+      stage { tx =>
+        val props = BloomFilterConfig.tableProperties(filters)
+        props.foldLeft(tx.updateProperties()) { case (update, (k, v)) => update.set(k, v) }.commit()
       }
     }
 
-    override def removeBloomFilters(attributes: Seq[String]): Unit = {
-      val props = attributes.flatMap(bloomFilterKeys)
-      WithClose(catalog.loadTable(tableId)) { table =>
-        props.foldLeft(table.updateProperties())((update, k) => update.remove(k)).commit()
+    override def removeBloomFilters(attributes: Seq[String]): CatalogUpdate = {
+      stage { tx =>
+        val props = attributes.flatMap(bloomFilterKeys)
+        props.foldLeft(tx.updateProperties())((update, k) => update.remove(k)).commit()
       }
     }
   }
 
   private object IcebergMetadataUpdate extends CatalogUpdate.MetadataUpdate {
 
-    override def setTargetFileSize(size: Option[Long]): Unit = {
+    override def setTargetFileSize(size: Option[Long]): CatalogUpdate = {
       val prop = s"${Metadata.PropertyPrefix}${Metadata.TargetFileSize}"
-      WithClose(catalog.loadTable(tableId)) { table =>
-        val update = table.updateProperties()
+      stage { tx =>
+        val update = tx.updateProperties()
         size match {
           case None => update.remove(prop)
           case Some(s) => update.set(prop, s.toString)
@@ -330,9 +385,9 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
       }
     }
 
-    override def setUserData(key: String, value: Option[String]): Unit = {
-      WithClose(catalog.loadTable(tableId)) { table =>
-        val update = table.updateProperties()
+    override def setUserData(key: String, value: Option[String]): CatalogUpdate = {
+      stage { tx =>
+        val update = tx.updateProperties()
         value match {
           case None => update.remove(s"${IcebergCatalog.UserDataPrefix}$key")
           case Some(v) => update.set(s"${IcebergCatalog.UserDataPrefix}$key", v)

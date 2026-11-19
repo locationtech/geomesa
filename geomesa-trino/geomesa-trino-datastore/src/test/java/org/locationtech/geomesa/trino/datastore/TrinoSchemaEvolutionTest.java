@@ -141,7 +141,7 @@ public class TrinoSchemaEvolutionTest {
     @Test
     public void testAddColumn() throws Exception {
         try (var table = new EvolvingTable()) {
-            table.update().columns().add(SimpleFeatureTypes.createDescriptor("height:Float"));
+            table.update().columns().add(SimpleFeatureTypes.createDescriptor("height:Float")).apply();
             var updated = table.fsds.getSchema(typeName);
             Assertions.assertEquals(sft.getAttributeCount() + 1, updated.getAttributeCount());
             var written = table.write(orig -> {
@@ -168,7 +168,7 @@ public class TrinoSchemaEvolutionTest {
     @Test
     public void testRemoveColumn() throws Exception {
         try (var table = new EvolvingTable()) {
-            table.update().columns().remove("age");
+            table.update().columns().remove("age").apply();
             var updated = table.fsds.getSchema(typeName);
             Assertions.assertEquals(sft.getAttributeCount() - 1, updated.getAttributeCount());
             var written = table.write(orig -> ScalaSimpleFeature.retype(updated, orig));
@@ -187,7 +187,7 @@ public class TrinoSchemaEvolutionTest {
     @Test
     public void testRenameColumn() throws Exception {
         try (var table = new EvolvingTable()) {
-            table.update().columns().rename("name", "firstName");
+            table.update().columns().rename("name", "firstName").apply();
             var updated = table.fsds.getSchema(typeName);
             // note: copy goes by attribute index instead of name
             var written = table.write(orig -> ScalaSimpleFeature.copy(updated, orig));
@@ -208,7 +208,7 @@ public class TrinoSchemaEvolutionTest {
     @Test
     public void testRenameGeometryColumn() throws Exception {
         try (var table = new EvolvingTable()) {
-            table.update().columns().rename("geom", "location");
+            table.update().columns().rename("geom", "location").apply();
             var updated = table.fsds.getSchema(typeName);
             var written = table.write(orig -> ScalaSimpleFeature.copy(updated, orig));
             var expected = table.expected(written, orig -> ScalaSimpleFeature.copy(updated, orig));
@@ -233,7 +233,7 @@ public class TrinoSchemaEvolutionTest {
     @Test
     public void testRenameDefaultDateColumn() throws Exception {
         try (var table = new EvolvingTable()) {
-            table.update().columns().rename("dtg", "ts");
+            table.update().columns().rename("dtg", "ts").apply();
             var updated = table.fsds.getSchema(typeName);
             var written = table.write(orig -> ScalaSimpleFeature.copy(updated, orig));
             var expected = table.expected(written, orig -> ScalaSimpleFeature.copy(updated, orig));
@@ -253,7 +253,7 @@ public class TrinoSchemaEvolutionTest {
     @Test
     public void testReorderColumn() throws Exception {
         try (var table = new EvolvingTable()) {
-            table.update().columns().reorder("name", 1);
+            table.update().columns().reorder("name", 1).apply();
             var updated = table.fsds.getSchema(typeName);
             var written = table.write(orig -> ScalaSimpleFeature.retype(updated, orig));
             var expected = table.expected(written, orig -> ScalaSimpleFeature.retype(updated, orig));
@@ -268,7 +268,7 @@ public class TrinoSchemaEvolutionTest {
     @Test
     public void testReorderColumnToLast() throws Exception {
         try (var table = new EvolvingTable()) {
-            table.update().columns().reorder("name", sft.getAttributeCount() - 1);
+            table.update().columns().reorder("name", sft.getAttributeCount() - 1).apply();
             var updated = table.fsds.getSchema(typeName);
             var written = table.write(orig -> ScalaSimpleFeature.retype(updated, orig));
             var expected = table.expected(written, orig -> ScalaSimpleFeature.retype(updated, orig));
@@ -283,7 +283,7 @@ public class TrinoSchemaEvolutionTest {
     @Test
     public void testWidenColumn() throws Exception {
         try (var table = new EvolvingTable()) {
-            table.update().columns().update(SimpleFeatureTypes.createDescriptor("age:Long"));
+            table.update().columns().update(SimpleFeatureTypes.createDescriptor("age:Long")).apply();
             var updated = table.fsds.getSchema(typeName);
             var written = table.write(orig -> ScalaSimpleFeature.retype(updated, orig));
             var expected = table.expected(written, orig -> ScalaSimpleFeature.retype(updated, orig));
@@ -305,7 +305,7 @@ public class TrinoSchemaEvolutionTest {
                     "{\"name\":\"properties\",\"type\":\"record\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"}," +
                             "{\"name\":\"nested\",\"type\":{\"name\":\"kv\",\"type\":\"record\",\"fields\":[{\"name\":\"key\",\"type\":\"string\"}]}}]}";
             table.update().columns().update(
-                    SimpleFeatureTypes.createDescriptor("json:String:json=true:json-schema='" + updatedType + "'"));
+                    SimpleFeatureTypes.createDescriptor("json:String:json=true:json-schema='" + updatedType + "'")).apply();
             var updated = table.fsds.getSchema(typeName);
             var written = table.write(orig -> {
                 var sf = ScalaSimpleFeature.retype(updated, orig);
@@ -340,7 +340,7 @@ public class TrinoSchemaEvolutionTest {
     @Test
     public void testChangePartitions() throws Exception {
         try (var table = new EvolvingTable()) {
-            table.update().table().setPartitions(JavaConverters.asScalaBuffer(List.of("z2:bits=4", "month")).toSeq());
+            table.update().table().setPartitions(JavaConverters.asScalaBuffer(List.of("z2:bits=4", "month")).toSeq()).apply();
             var written = table.write(ScalaSimpleFeature::copy);
             // existing files stay in the old partition spec, new files are written with the new one
             var expected = table.expected(written, Function.identity());
@@ -356,7 +356,7 @@ public class TrinoSchemaEvolutionTest {
     public void testRenameTable() throws Exception {
         try (var table = new EvolvingTable()) {
             var renamed = "renamed-test";
-            table.update().table().rename(renamed);
+            table.update().table().rename(renamed).apply();
             // note: the existing store caches type names, so only check a new store
             var ds = table.connect();
             try {

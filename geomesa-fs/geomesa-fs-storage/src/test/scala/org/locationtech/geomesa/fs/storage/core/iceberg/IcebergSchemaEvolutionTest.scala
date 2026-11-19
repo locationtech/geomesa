@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.core.iceberg
 
+import org.apache.iceberg.HasTableOperations
 import org.apache.iceberg.exceptions.NoSuchTableException
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.geotools.api.data.Query
@@ -16,6 +17,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.core.FileSystemStorageTest.{IcebergRestContainer, SeaweedFsContainer}
+import org.locationtech.geomesa.fs.storage.core.StorageCatalog.CatalogUpdate
 import org.locationtech.geomesa.fs.storage.core.fs.S3ObjectStore
 import org.locationtech.geomesa.fs.storage.core.parquet.BloomFilterConfig
 import org.locationtech.geomesa.fs.storage.core.parquet.s3.S3InputFile
@@ -149,7 +151,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
   "IcebergSchemaEvolution" should {
     "add a column" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).columns().add(SimpleFeatureTypes.createDescriptor("height:Float"))
+        catalog.update(sft.getTypeName).columns().add(SimpleFeatureTypes.createDescriptor("height:Float")).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sft.getAttributeCount mustEqual sft.getAttributeCount + 1
           storage.sft.getDescriptor(sft.getAttributeCount).getLocalName mustEqual "height"
@@ -176,7 +178,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "remove a column" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).columns().remove("age")
+        catalog.update(sft.getTypeName).columns().remove("age").apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sft.getAttributeCount mustEqual sft.getAttributeCount - 1
           storage.sft.getDescriptor("age") must beNull
@@ -210,7 +212,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "rename a column" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).columns().rename("name", "firstName")
+        catalog.update(sft.getTypeName).columns().rename("name", "firstName").apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sft.getAttributeCount mustEqual sft.getAttributeCount
           storage.sft.getDescriptor("name") must beNull
@@ -238,7 +240,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "rename a geometry column" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).columns().rename("geom", "location")
+        catalog.update(sft.getTypeName).columns().rename("geom", "location").apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sft.getAttributeCount mustEqual sft.getAttributeCount
           storage.sft.getDescriptor("geom") must beNull
@@ -267,7 +269,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "rename the default date column" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).columns().rename("dtg", "ts")
+        catalog.update(sft.getTypeName).columns().rename("dtg", "ts").apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sft.getAttributeCount mustEqual sft.getAttributeCount
           storage.sft.getDescriptor("dtg") must beNull
@@ -296,7 +298,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "reorder a column" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).columns().reorder("name", 1)
+        catalog.update(sft.getTypeName).columns().reorder("name", 1).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sft.getAttributeCount mustEqual sft.getAttributeCount
           storage.sft.indexOf("name") mustEqual 1
@@ -320,7 +322,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "reorder a column to last" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).columns().reorder("name", sft.getAttributeCount - 1)
+        catalog.update(sft.getTypeName).columns().reorder("name", sft.getAttributeCount - 1).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sft.getAttributeCount mustEqual sft.getAttributeCount
           storage.sft.indexOf("name") mustEqual sft.getAttributeCount - 1
@@ -344,7 +346,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "widen a column" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("age:Long"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("age:Long")).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sft.getAttributeCount mustEqual sft.getAttributeCount
           storage.sft.indexOf("age") mustEqual sft.indexOf("age")
@@ -373,7 +375,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
           """{"name":"properties","type":"record","fields":[{"name":"name","type":"string"},""" +
             """{"name":"nested","type":{"name":"kv","type":"record","fields":[{"name":"key","type":"string"}]}}]}"""
         val descriptor = SimpleFeatureTypes.createDescriptor(s"json:String:json=true:json-schema='$updatedType'")
-        catalog.update(sft.getTypeName).columns().update(descriptor)
+        catalog.update(sft.getTypeName).columns().update(descriptor).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sft.getAttributeCount mustEqual sft.getAttributeCount
           storage.sft.indexOf("json") mustEqual sft.indexOf("json")
@@ -407,9 +409,9 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
     "update attribute options without changing columns" in {
       withCatalog { catalog =>
         val before = WithClose(catalog.load(sft.getTypeName))(_.table.schema())
-        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("name:String:index=true"))
-        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("*geom:Point:srid=4326"))
-        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("dtg:Date:foo=bar"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("name:String:index=true")).apply()
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("*geom:Point:srid=4326")).apply()
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("dtg:Date:foo=bar")).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.table.schema().sameSchema(before) must beTrue
           storage.sft.getDescriptor("name").getUserData.get("index") mustEqual "true"
@@ -426,14 +428,14 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
         WithClose(catalog.create(sft, Seq("day"))) { _ => }
         val before = WithClose(catalog.load(sft.getTypeName))(_.table.schema())
         // no-op updates of list/map types shouldn't fail, even though the field ids won't match
-        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("names:List[String]:foo=bar"))
-        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[String,Int]"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("names:List[String]:foo=bar")).apply()
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[String,Int]")).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.table.schema().sameSchema(before) must beTrue
           storage.sft.getDescriptor("names").getUserData.get("foo") mustEqual "bar"
         }
         // widen the element and value types
-        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[String,Long]"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[String,Long]")).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sft.getDescriptor("counts").getMapTypes() mustEqual (classOf[String], classOf[java.lang.Long])
         }
@@ -458,7 +460,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
         val optionalType =
           """{"type":"record","name":"properties","fields":[{"name":"count","type":["null","int"]},{"name":"name","type":"string"}]}"""
         catalog.update(sft.getTypeName).columns().update(
-          SimpleFeatureTypes.createDescriptor(s"json:String:json=true:json-schema='$optionalType'"))
+          SimpleFeatureTypes.createDescriptor(s"json:String:json=true:json-schema='$optionalType'")).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.table.schema().findField(countPath).isOptional must beTrue
           storage.sft.getDescriptor("json").getJsonSchema() must beSome(optionalType)
@@ -484,7 +486,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
         WithClose(catalog.create(sft, Seq("day"))) { _ => }
         WithClose(catalog.load(sft.getTypeName))(_.table.schema().findField("tags").`type`().asListType().isElementRequired must beTrue)
         catalog.update(sft.getTypeName).columns().update(
-          SimpleFeatureTypes.createDescriptor(s"tags:String:json=true:json-schema='$optionalList'"))
+          SimpleFeatureTypes.createDescriptor(s"tags:String:json=true:json-schema='$optionalList'")).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.table.schema().findField("tags").`type`().asListType().isElementOptional must beTrue
         }
@@ -511,7 +513,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
           testQuery(storage, storage.sft, "INCLUDE", null, features)
         }
         // explicit wkb encoding is fine
-        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("*geom:Point:srid=4326:encoding=wkb"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("*geom:Point:srid=4326:encoding=wkb")).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.table.schema().sameSchema(before._1) must beTrue
           testQuery(storage, storage.sft, "INCLUDE", null, features)
@@ -521,7 +523,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "change the partition spec" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).table().setPartitions(Seq("z2:bits=4", "month"))
+        catalog.update(sft.getTypeName).table().setPartitions(Seq("z2:bits=4", "month")).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           // note: original order isn't preserved, schemes are sorted by name
           storage.schemes mustEqual Seq(DateTimeScheme("dtg", 4, ChronoUnit.MONTHS), Z2Scheme("geom", 3, 4))
@@ -560,7 +562,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
           storage.metadata.files().scan().toList must haveLength(1)
         }
 
-        catalog.update(sft.getTypeName).table().setPartitions(Seq("month"))
+        catalog.update(sft.getTypeName).table().setPartitions(Seq("month")).apply()
 
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           WithClose(storage.getUpdateWriter(ECQL.toFilter("IN ('jan', 'feb')"), 1))(writer => writer.foreach(_ => writer.remove()))
@@ -572,7 +574,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "add bloom filters" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).table().addBloomFilters(Seq(BloomFilterConfig("age", Some(100), Some(0.05))))
+        catalog.update(sft.getTypeName).table().addBloomFilters(Seq(BloomFilterConfig("age", Some(100), Some(0.05)))).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           val oldFiles = storage.metadata.files().scan().map(_.file().location())
           val newFeatures = features.map { orig =>
@@ -612,7 +614,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "remove bloom filters" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).table().removeBloomFilters(Seq("name"))
+        catalog.update(sft.getTypeName).table().removeBloomFilters(Seq("name")).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           val oldFiles = storage.metadata.files().scan().map(_.file().location())
           val newFeatures = features.map { orig =>
@@ -651,21 +653,117 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
 
     "update target file size" in {
       withCatalog { catalog =>
-        catalog.update(sft.getTypeName).metadata().setTargetFileSize(Some(1000000))
+        catalog.update(sft.getTypeName).metadata().setTargetFileSize(Some(1000000)).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sizer.targetSize must beSome(1000000)
         }
-        catalog.update(sft.getTypeName).metadata().setTargetFileSize(None)
+        catalog.update(sft.getTypeName).metadata().setTargetFileSize(None).apply()
         WithClose(catalog.load(sft.getTypeName)) { storage =>
           storage.sizer.targetSize must beNone
         }
       }
     }
 
+    "apply multiple updates in a single transaction" in {
+      withCatalog { catalog =>
+        def metadataVersions(storage: FileSystemStorage): Int =
+          storage.table.asInstanceOf[HasTableOperations].operations().current().previousFiles().size()
+        val before = WithClose(catalog.load(sft.getTypeName))(s => (s.table.schema(), SimpleFeatureTypes.encodeType(s.sft), metadataVersions(s)))
+        val update = catalog.update(sft.getTypeName)
+        update.columns().add(SimpleFeatureTypes.createDescriptor("height:Float"))
+          .columns().rename("name", "firstName")
+          // note: this depends on the column added above
+          .columns().reorder("height", 0)
+          .columns().update(SimpleFeatureTypes.createDescriptor("age:Long"))
+          .table().setPartitions(Seq("month"))
+          .metadata().setTargetFileSize(Some(1000000))
+          .metadata().setUserData("foo", Some("bar"))
+        // nothing is persisted until the update is applied
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(before._1) must beTrue
+          SimpleFeatureTypes.encodeType(storage.sft) mustEqual before._2
+          metadataVersions(storage) mustEqual before._3
+        }
+        update.apply()
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          metadataVersions(storage) mustEqual before._3 + 1
+          storage.sft.getAttributeDescriptors.asScala.map(_.getLocalName).toSeq mustEqual
+            Seq("height", "firstName", "age", "json", "geom", "dtg")
+          storage.sft.getDescriptor("age").getType.getBinding mustEqual classOf[java.lang.Long]
+          storage.schemes mustEqual Seq(DateTimeScheme("dtg", storage.sft.indexOf("dtg"), ChronoUnit.MONTHS))
+          storage.sizer.targetSize must beSome(1000000)
+          storage.sft.getUserData.get("foo") mustEqual "bar"
+          val expected = features.map { orig =>
+            val sf = new ScalaSimpleFeature(storage.sft, orig.getID)
+            sf.setAttribute("firstName", orig.getAttribute("name"))
+            Seq("age", "json", "geom", "dtg").foreach(a => sf.setAttribute(a, orig.getAttribute(a)))
+            sf.getUserData.putAll(orig.getUserData)
+            sf
+          }
+          testQuery(storage, storage.sft, "INCLUDE", null, expected)
+        }
+        update.apply() must throwAn[IllegalStateException]
+      }
+    }
+
+    "validate updates before they are applied" in {
+      withCatalog { catalog =>
+        val before = WithClose(catalog.load(sft.getTypeName))(s => (s.table.schema(), SimpleFeatureTypes.encodeType(s.sft)))
+        foreach(Seq[CatalogUpdate => Any](
+          _.columns().add(SimpleFeatureTypes.createDescriptor("name:String")),
+          _.columns().update(SimpleFeatureTypes.createDescriptor("age:String")),
+          _.columns().update(SimpleFeatureTypes.createDescriptor("foo:String")),
+          _.columns().rename("foo", "bar"),
+          _.columns().rename("name", "age"),
+          _.columns().remove("foo"),
+          _.columns().remove("geom"),
+          _.columns().reorder("name", 10),
+          _.table().setPartitions(Seq("foo")),
+          _.table().rename(sft.getTypeName),
+        )) { invalid =>
+          val update = catalog.update(sft.getTypeName).columns().add(SimpleFeatureTypes.createDescriptor("height:Float"))
+          invalid(update) must throwAn[Exception]
+        }
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(before._1) must beTrue
+          SimpleFeatureTypes.encodeType(storage.sft) mustEqual before._2
+          testQuery(storage, storage.sft, "INCLUDE", null, features)
+        }
+        // an invalid change is not staged, and the update can still be used
+        val update = catalog.update(sft.getTypeName).columns().add(SimpleFeatureTypes.createDescriptor("height:Float"))
+        update.columns().rename("name", "age") must throwAn[Exception]
+        update.columns().rename("name", "firstName").apply()
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.sft.getAttributeDescriptors.asScala.map(_.getLocalName).toSeq mustEqual
+            Seq("firstName", "age", "json", "geom", "dtg", "height")
+        }
+      }
+    }
+
+    "not allow an update to be applied more than once" in {
+      withCatalog { catalog =>
+        val update = catalog.update(sft.getTypeName).columns().remove("age")
+        // make a conflicting change after the update has been validated, so that the apply fails
+        catalog.update(sft.getTypeName).columns().remove("age").apply()
+        val before = WithClose(catalog.load(sft.getTypeName))(s => (s.table.schema(), SimpleFeatureTypes.encodeType(s.sft)))
+        update.apply() must throwAn[IllegalArgumentException]
+        // the update can't be re-tried, even though it failed
+        update.apply() must throwAn[IllegalStateException]
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(before._1) must beTrue
+          SimpleFeatureTypes.encodeType(storage.sft) mustEqual before._2
+        }
+        // a successful update can't be re-applied either
+        val success = catalog.update(sft.getTypeName).columns().add(SimpleFeatureTypes.createDescriptor("height:Float"))
+        success.apply()
+        success.apply() must throwAn[IllegalStateException]
+      }
+    }
+
     "rename a table" in {
       withCatalog { catalog =>
         val renamed = "renamed-test"
-        catalog.update(sft.getTypeName).table().rename(renamed)
+        catalog.update(sft.getTypeName).table().rename(renamed).apply()
         catalog.getTypeNames must containTheSameElementsAs(Seq(renamed))
         WithClose(catalog.load(sft.getTypeName))(_ => ()) must throwA[NoSuchTableException]
         WithClose(catalog.load(renamed)) { storage =>
