@@ -212,6 +212,11 @@
                     <groupId>com.google.cloud</groupId>
                     <artifactId>google-cloud-kms</artifactId>
                 </exclusion>
+                <!-- Empty placeholder jar (classes live in grpc-api), still declared by google-http-client -->
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-context</artifactId>
+                </exclusion>
                 <!-- Alluxio filesystem + cache -->
                 <exclusion>
                     <groupId>io.trino</groupId>
