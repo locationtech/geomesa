@@ -175,6 +175,12 @@
                     <groupId>net.snowflake</groupId>
                     <artifactId>snowflake-jdbc</artifactId>
                 </exclusion>
+                <!-- Trino 484 swapped the uber jar for the thin driver, which pulls in
+                     google-cloud-storage/grpc, azure, nimbus and reactor-netty transitively -->
+                <exclusion>
+                    <groupId>net.snowflake</groupId>
+                    <artifactId>snowflake-jdbc-thin</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>org.apache.iceberg</groupId>
                     <artifactId>iceberg-snowflake</artifactId>
@@ -200,6 +206,16 @@
                 <exclusion>
                     <groupId>org.apache.iceberg</groupId>
                     <artifactId>iceberg-gcp</artifactId>
+                </exclusion>
+                <!-- Runtime-scoped KMS client for iceberg-gcp table encryption (also pulls in gax/grpc) -->
+                <exclusion>
+                    <groupId>com.google.cloud</groupId>
+                    <artifactId>google-cloud-kms</artifactId>
+                </exclusion>
+                <!-- Empty placeholder jar (classes live in grpc-api), still declared by google-http-client -->
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-context</artifactId>
                 </exclusion>
                 <!-- Alluxio filesystem + cache -->
                 <exclusion>
@@ -292,7 +308,7 @@
             <plugin>
                 <groupId>io.trino</groupId>
                 <artifactId>trino-maven-plugin</artifactId>
-                <version>24</version>
+                <version>${trino.maven.plugin.version}</version>
                 <extensions>true</extensions>
             </plugin>
         </plugins>

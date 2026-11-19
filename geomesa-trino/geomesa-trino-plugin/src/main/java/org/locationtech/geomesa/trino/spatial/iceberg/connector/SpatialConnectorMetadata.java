@@ -1918,6 +1918,20 @@ public class SpatialConnectorMetadata implements ConnectorMetadata {
     }
 
     /**
+     * Refreshes a view definition via the delegate and invalidates its cached column metadata.
+     *
+     * @param session the connector session
+     * @param viewName the schema-qualified view name
+     * @param definition the refreshed view definition
+     */
+    @Override
+    public void refreshView(ConnectorSession session, SchemaTableName viewName,
+                            ConnectorViewDefinition definition) {
+        delegate.refreshView(session, viewName, definition);
+        geomCatalog.invalidate(viewName);
+    }
+
+    /**
      * Drops a view via the delegate connector and invalidates its cached state.
      *
      * @param session the connector session

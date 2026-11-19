@@ -68,6 +68,10 @@ class SpatialConnectorMetadataViewTest {
                                boolean replace) {}
 
         @Override
+        public void refreshView(ConnectorSession session, SchemaTableName viewName,
+                                ConnectorViewDefinition definition) {}
+
+        @Override
         public void dropView(ConnectorSession session, SchemaTableName viewName) {}
 
         @Override
@@ -202,6 +206,20 @@ class SpatialConnectorMetadataViewTest {
         meta.createView(null, VIEW, definition(true, "__fid__"), Map.of(), true);
 
         assertThat(cat.visibilityColumn(VIEW)).isEmpty();
+    }
+
+    @Test
+    void refreshViewInvalidatesTheStaleObservation() {
+        GeoMesaColumnCatalog cat = new GeoMesaColumnCatalog();
+        SpatialConnectorMetadata meta = metadata(cat, definition(true, "__fid__", "__vis__"), true);
+        meta.getView(null, VIEW);
+        assertThat(cat.visibilityColumn(VIEW)).isPresent();
+
+        meta.refreshView(null, VIEW, definition(true, "__fid__"));
+
+        assertThat(cat.visibilityColumn(VIEW)).isEmpty();
+        assertThat(filtersFor(cat)).singleElement()
+            .extracting(ViewExpression::getExpression).isEqualTo("false");
     }
 
     @Test

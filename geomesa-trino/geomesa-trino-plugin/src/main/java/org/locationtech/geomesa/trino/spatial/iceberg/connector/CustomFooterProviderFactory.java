@@ -20,11 +20,12 @@ import io.trino.plugin.iceberg.encryption.EncryptionManagerFactory;
 import io.trino.plugin.iceberg.fileio.ForwardingFileIoFactory;
 import io.trino.spi.BlocksHashFactory;
 import io.trino.spi.connector.ConnectorPageSourceProvider;
+import io.trino.spi.connector.MemoryContext;
 import io.trino.spi.type.TypeManager;
 
-import java.util.Optional;
+import static java.util.Objects.requireNonNull;
 
-/** Uses the existing Iceberg injector and the same provider dependencies as Trino 483's factory.
+/** Uses the existing Iceberg injector and the same provider dependencies as Trino 484's factory.
  * Only the footer cache is decorated; all data reading and delete processing stay with Iceberg.
  */
 final class CustomFooterProviderFactory {
@@ -35,7 +36,8 @@ final class CustomFooterProviderFactory {
     private final ParquetReaderConfig parquet;
     private final TypeManager types;
     private final ParquetFooterCache cache;
-    private final Optional<BlocksHashFactory> blocksHash;
+    private final BlocksHashFactory blocksHash;
+    private final int domainCompactionThreshold;
     private final EncryptionManagerFactory encryption;
 
     CustomFooterProviderFactory(IcebergFileSystemFactory fileSystem, ForwardingFileIoFactory fileIo,
@@ -49,7 +51,8 @@ final class CustomFooterProviderFactory {
         this.parquet = parquet;
         this.types = types;
         this.cache = cache;
-        this.blocksHash = config.isEqualityDeletesBlocksHashEnabled() ? Optional.of(blocksHash) : Optional.empty();
+        this.blocksHash = requireNonNull(blocksHash, "blocksHash is null");
+        this.domainCompactionThreshold = config.getDomainCompactionThreshold();
         this.encryption = encryption;
     }
 
@@ -61,19 +64,19 @@ final class CustomFooterProviderFactory {
             injector.getInstance(ForwardingFileIoFactory.class), injector.getInstance(FileFormatDataSourceStats.class),
             injector.getInstance(OrcReaderConfig.class), injector.getInstance(ParquetReaderConfig.class),
             injector.getInstance(TypeManager.class), injector.getInstance(ParquetFooterCache.class),
-            config.isEqualityDeletesBlocksHashEnabled() ? injector.getInstance(BlocksHashFactory.class) : null,
+            injector.getInstance(BlocksHashFactory.class),
             config, injector.getInstance(EncryptionManagerFactory.class));
     }
 
-    ConnectorPageSourceProvider create(boolean bbox) {
-        return create(bbox, true);
+    ConnectorPageSourceProvider create(boolean bbox, MemoryContext memoryContext) {
+        return create(bbox, true, memoryContext);
     }
 
-    ConnectorPageSourceProvider create(boolean bbox, boolean footer) {
+    ConnectorPageSourceProvider create(boolean bbox, boolean footer, MemoryContext memoryContext) {
         var scopedCache = new ScopedParquetFooterCache(cache);
         var options = parquet.toParquetReaderOptions();
         var iceberg = new IcebergPageSourceProvider(fileSystem, fileIo, stats, orc.toOrcReaderOptions(),
-            options, types, scopedCache, blocksHash, encryption);
+            options, types, scopedCache, blocksHash, encryption, memoryContext, domainCompactionThreshold);
         return new VisibilityPageSourceProvider(bbox ? new SpatialPageSourceProvider(iceberg) : iceberg,
             footer ? new VisibilityFooterReader(fileSystem, options, stats, scopedCache) : null);
     }

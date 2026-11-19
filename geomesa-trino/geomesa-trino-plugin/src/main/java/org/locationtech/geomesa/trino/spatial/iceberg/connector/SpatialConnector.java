@@ -274,11 +274,11 @@ public class SpatialConnector implements Connector {
         if (delegate instanceof IcebergConnector iceberg) {
             var footerFactory = CustomFooterProviderFactory.from(iceberg.getInjector());
             return new ClassLoaderSafeConnectorPageSourceProviderFactory(
-                () -> footerFactory.create(bboxShortCircuit), IcebergConnector.class.getClassLoader());
+                memoryContext -> footerFactory.create(bboxShortCircuit, memoryContext), IcebergConnector.class.getClassLoader());
         }
         ConnectorPageSourceProviderFactory factory = delegate.getPageSourceProviderFactory();
-        return () -> new VisibilityPageSourceProvider(bboxShortCircuit
-            ? new SpatialPageSourceProvider(factory.createPageSourceProvider()) : factory.createPageSourceProvider());
+        return memoryContext -> new VisibilityPageSourceProvider(bboxShortCircuit
+            ? new SpatialPageSourceProvider(factory.createPageSourceProvider(memoryContext)) : factory.createPageSourceProvider(memoryContext));
     }
 
     /**

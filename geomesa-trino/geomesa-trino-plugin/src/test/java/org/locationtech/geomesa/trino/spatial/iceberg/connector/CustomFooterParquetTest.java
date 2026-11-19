@@ -26,6 +26,7 @@ import io.trino.plugin.iceberg.encryption.EncryptionManagerFactory;
 import io.trino.plugin.iceberg.delete.DeleteFile;
 import io.trino.plugin.iceberg.fileio.ForwardingFileIoFactory;
 import io.trino.spi.SplitWeight;
+import io.trino.spi.BlocksHashFactory;
 import io.trino.spi.connector.*;
 import io.trino.spi.predicate.TupleDomain;
 import io.trino.spi.security.ConnectorIdentity;
@@ -55,6 +56,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /** Reads a real file produced by VisibilityMetadataTest through Trino's actual Iceberg page source. */
 class CustomFooterParquetTest {
+    // These fixtures contain position deletes only. Equality deletes must use the server factory.
+    private static final BlocksHashFactory BLOCKS_HASH = (types, nulls, expectedSize) -> {
+        throw new AssertionError("Unexpected equality deletes in position-delete fixtures");
+    };
     private static final Location FILE = Location.of("memory:///mixed.parquet");
     private static final IcebergColumnHandle VIS = column(2, "__vis__");
     private static final IcebergColumnHandle NAME = column(3, "name");
@@ -128,7 +133,8 @@ class CustomFooterParquetTest {
                 binder.bind(ParquetReaderConfig.class).toInstance(new ParquetReaderConfig());
                 binder.bind(TypeManager.class).toInstance(types());
                 binder.bind(ParquetFooterCache.class).toInstance(ParquetFooterCache.noop());
-                binder.bind(IcebergConfig.class).toInstance(new IcebergConfig().setEqualityDeletesBlocksHashEnabled(false));
+                binder.bind(BlocksHashFactory.class).toInstance(BLOCKS_HASH);
+                binder.bind(IcebergConfig.class).toInstance(new IcebergConfig());
                 binder.bind(EncryptionManagerFactory.class).toInstance((keys, properties) -> PlaintextEncryptionManager.instance());
             });
             var factory = CustomFooterProviderFactory.from(injector);
@@ -138,7 +144,7 @@ class CustomFooterParquetTest {
                         var split = new IcebergSplit(FILE.toString(), 0, bytes.length, bytes.length, 6, IcebergFileFormat.PARQUET,
                             0, List.of(), deletes ? List.of(delete) : List.of(), SplitWeight.standard(), TupleDomain.all(), Optional.empty(),
                             OptionalLong.of(1), OptionalLong.empty(), Optional.empty());
-                        var provider = factory.create(bbox, useFooter);
+                        var provider = factory.create(bbox, useFooter, MemoryContext.NO_LIMIT);
                         for (List<String> auths : List.of(List.of("A,B,C"), List.of("A,B,C", "A,C"), List.of(""))) {
                             for (List<ColumnHandle> columns : List.<List<ColumnHandle>>of(List.of(NAME), List.of(NAME, VIS))) {
                                 var handle = new VisibilityTableHandle(TABLE, VIS, auths);
@@ -249,12 +255,12 @@ class CustomFooterParquetTest {
         try (var executor = Executors.newSingleThreadExecutor()) {
             var factory = new CustomFooterProviderFactory((identity, properties) -> fs,
                 new ForwardingFileIoFactory(executor), new FileFormatDataSourceStats(), new OrcReaderConfig(),
-                new ParquetReaderConfig(), types(), ParquetFooterCache.noop(), null,
-                new IcebergConfig().setEqualityDeletesBlocksHashEnabled(false),
+                new ParquetReaderConfig(), types(), ParquetFooterCache.noop(), BLOCKS_HASH,
+                new IcebergConfig(),
                 (keys, properties) -> PlaintextEncryptionManager.instance());
             for (boolean footer : List.of(false, true)) {
                 for (List<String> auths : List.of(List.of("Z"), List.of("A", "C"))) {
-                    try (var source = factory.create(false, footer).createPageSource(null, session(), split,
+                    try (var source = factory.create(false, footer, MemoryContext.NO_LIMIT).createPageSource(null, session(), split,
                             new VisibilityTableHandle(TABLE, VIS, auths),
                             Optional.of(new IcebergTableCredentials(Map.of(), List.of())), List.of(NAME),
                             DynamicFilter.EMPTY, MemoryContext.NO_LIMIT)) {
@@ -290,11 +296,11 @@ class CustomFooterParquetTest {
         try (var executor = Executors.newSingleThreadExecutor()) {
             var factory = new CustomFooterProviderFactory((identity, properties) -> fs,
                 new ForwardingFileIoFactory(executor), new FileFormatDataSourceStats(), new OrcReaderConfig(),
-                parquet, types(), ParquetFooterCache.noop(), null,
-                new IcebergConfig().setEqualityDeletesBlocksHashEnabled(false),
+                parquet, types(), ParquetFooterCache.noop(), BLOCKS_HASH,
+                new IcebergConfig(),
                 (keys, properties) -> PlaintextEncryptionManager.instance());
             for (boolean footer : List.of(false, true)) {
-                try (var source = factory.create(false, footer).createPageSource(null, session(parquet), split,
+                try (var source = factory.create(false, footer, MemoryContext.NO_LIMIT).createPageSource(null, session(parquet), split,
                         new VisibilityTableHandle(TABLE, VIS, List.of("A,C")),
                         Optional.of(new IcebergTableCredentials(Map.of(), List.of())), List.of(NAME),
                         DynamicFilter.EMPTY, MemoryContext.NO_LIMIT)) {
@@ -349,14 +355,14 @@ class CustomFooterParquetTest {
         try (var executor = Executors.newSingleThreadExecutor()) {
             var factory = new CustomFooterProviderFactory((identity, properties) -> fs,
                 new ForwardingFileIoFactory(executor), new FileFormatDataSourceStats(), new OrcReaderConfig(),
-                new ParquetReaderConfig(), types(), ParquetFooterCache.noop(), null,
-                new IcebergConfig().setEqualityDeletesBlocksHashEnabled(false),
+                new ParquetReaderConfig(), types(), ParquetFooterCache.noop(), BLOCKS_HASH,
+                new IcebergConfig(),
                 (keys, properties) -> PlaintextEncryptionManager.instance());
             for (boolean footer : List.of(false, true)) {
                 for (List<String> auths : List.of(List.of("A,B,C"), List.of("A,B,C", "A,C"))) {
                     for (List<ColumnHandle> columns : List.<List<ColumnHandle>>of(List.of(NAME), List.of(NAME, VIS, geom))) {
                         List<String> names = new ArrayList<>();
-                        try (var source = factory.create(true, footer).createPageSource(null, session(), split,
+                        try (var source = factory.create(true, footer, MemoryContext.NO_LIMIT).createPageSource(null, session(), split,
                                 new VisibilityTableHandle(spatial, VIS, auths),
                                 Optional.of(new IcebergTableCredentials(Map.of(), List.of())), columns,
                                 DynamicFilter.EMPTY, MemoryContext.NO_LIMIT)) {
