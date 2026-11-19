@@ -29,7 +29,7 @@ User Manual
    filesystem/index
    trino/index
    lambda/index
-   ds_views
+   ds_views/index
    upgrade/index
 
 Appendix

@@ -6,9 +6,9 @@ on:
       - main
       - '[0-9]+.[0-9]+.x'
   workflow_dispatch:
-  # eclipse seems to delete all snapshots on Friday night - schedule this early Saturday so that downstream jobs don't fail
+  # eclipse periodically deletes snapshots - check nightly and re-publish them if they're missing
   schedule:
-    - cron: '20 1 * * 6' # At 01:20 on Saturday
+    - cron: '20 1 * * *' # At 01:20 every day
       timezone: 'America/New_York'
 
 permissions:  # added using https://github.com/step-security/secure-repo
@@ -35,13 +35,43 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Check for existing snapshots
+        id: check
+        if: github.event_name == 'schedule'
+        env:
+          SCALA_VERSION: ${{ matrix.version }}
+        run: |
+          base="https://repo.eclipse.org/content/groups/snapshots/org/locationtech/geomesa"
+          version="$(sed -n 's|^    <version>\(.*\)</version>|\1|p' pom.xml | head -n1)"
+          # eclipse deletes the snapshot files but leaves the metadata, so check that the files referenced by the metadata exist
+          for spec in "geomesa_${SCALA_VERSION}:pom" "geomesa-utils_${SCALA_VERSION}:jar" "geomesa-tools_${SCALA_VERSION}:jar"; do
+            artifact="${spec%%:*}"
+            ext="${spec##*:}"
+            metadata="$(curl -sf "$base/$artifact/$version/maven-metadata.xml" || true)"
+            timestamp="$(echo "$metadata" | sed -n 's|.*<timestamp>\(.*\)</timestamp>.*|\1|p' | head -n1)"
+            build="$(echo "$metadata" | sed -n 's|.*<buildNumber>\(.*\)</buildNumber>.*|\1|p' | head -n1)"
+            if [[ -z "$timestamp" || -z "$build" ]]; then
+              echo "No snapshot metadata found for $artifact:$version"
+              exit 0
+            fi
+            file="$artifact-${version%-SNAPSHOT}-$timestamp-$build.$ext"
+            if ! curl -sfI -o /dev/null "$base/$artifact/$version/$file"; then
+              echo "Snapshot $file is missing"
+              exit 0
+            fi
+            echo "Found snapshot $file"
+          done
+          echo "Snapshots already present, skipping publish"
+          echo "skip=true" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        if: steps.check.outputs.skip != 'true'
         with:
           distribution: temurin
           java-version: |
             ${{ env.JAVA_RUNTIME_VERSION }}
             ${{ env.JAVA_VERSION }}
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: steps.check.outputs.skip != 'true'
         with:
           key: main-${{ matrix.scala-version }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
@@ -49,6 +79,7 @@ jobs:
             main-
           path: ~/.m2/repository/
       - name: Create settings.xml
+        if: steps.check.outputs.skip != 'true'
         run: |
           mkdir -p ~/.m2
           cat > ~/.m2/settings.xml <<EOF
@@ -63,9 +94,11 @@ jobs:
           </settings>
           EOF
       - name: Set Scala version
+        if: steps.check.outputs.skip != 'true'
         run: ./build/scripts/change-scala-version.sh ${{ matrix.version }}
       - name: Build with Maven
+        if: steps.check.outputs.skip != 'true'
         run: mvn clean deploy -Peclipse -DskipTests -Dmaven.deploy.at.end=false $MAVEN_CLI_OPTS
       - name: Remove settings.xml
         if: success() || failure()
-        run: rm ~/.m2/settings.xml
+        run: rm -f ~/.m2/settings.xml

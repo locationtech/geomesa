@@ -51,16 +51,31 @@
             </exclusions>
         </dependency>
 
-        <!-- manage these out since cassandra uses logback -->
+        <!-- bundle the cassandra driver (it's provided for the GeoServer plugin, see conf/dependencies.sh) -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-reload4j</artifactId>
-            <scope>provided</scope>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-core</artifactId>
+            <scope>compile</scope>
+            <exclusions>
+                <!-- use the newer version required by micrometer -->
+                <exclusion>
+                    <groupId>org.hdrhistogram</groupId>
+                    <artifactId>HdrHistogram</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>ch.qos.reload4j</groupId>
-            <artifactId>reload4j</artifactId>
-            <scope>provided</scope>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-mapper-runtime</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${geotools.guava.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

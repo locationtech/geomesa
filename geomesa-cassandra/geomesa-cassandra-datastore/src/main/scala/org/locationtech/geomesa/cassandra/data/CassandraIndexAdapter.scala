@@ -16,7 +16,7 @@ import com.datastax.oss.driver.api.querybuilder.relation.Relation
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.cassandra.ColumnSelect
+import org.locationtech.geomesa.cassandra.{ColumnSelect, schemaStatement}
 import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.CassandraIndexWriter
 import org.locationtech.geomesa.cassandra.data.CassandraQueryPlan.{EmptyPlan, StatementPlan}
 import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper
@@ -54,7 +54,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
           s"PRIMARY KEY (${partitions.map(_.name).mkString("(", ", ", ")")}" +
           s"${if (pks.nonEmpty) { pks.map(_.name).mkString(", ", ", ", "")} else { "" }}))"
       logger.debug(create)
-      try { ds.session.execute(create) } catch {
+      try { ds.session.execute(schemaStatement(create)) } catch {
         case _: AlreadyExistsException => // ignore, another thread created it for us
       }
     }
@@ -67,7 +67,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
     tables.foreach { table =>
       val delete = s"DROP TABLE IF EXISTS $table"
       logger.debug(delete)
-      ds.session.execute(delete)
+      ds.session.execute(schemaStatement(delete))
     }
   }
 
@@ -78,7 +78,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
     tables.foreach { table =>
       val truncate = s"TRUNCATE $table"
       logger.debug(truncate)
-      ds.session.execute(truncate)
+      ds.session.execute(schemaStatement(truncate))
     }
   }
 
@@ -91,13 +91,29 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 
     if (strategy.keyRanges.isEmpty) { EmptyPlan(strategy, processor.reducer) } else {
       val mapper = CassandraColumnMapper(strategy.index)
-      val ranges = strategy.keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
+      val selects = strategy.keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
+      // an unfiltered full table scan covers every other range, so only run it to avoid returning duplicate results
+      val ranges = selects.find(_.clauses.isEmpty).map(Seq(_)).getOrElse(selects)
+      // some ranges can't be selected in cassandra without 'allow filtering' (e.g. open-ended time periods), which
+      // requires a full table scan - mark the strategy as a full table scan so that the query guards
+      // (i.e. blocking full table scans) are applied to it
+      val planStrategy = if (ranges.exists(r => r.clauses.isEmpty || r.allowFiltering)) {
+        strategy.copy(keyRanges = CassandraIndexAdapter.FullTableKeyRange)
+      } else {
+        strategy
+      }
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ks = Option(ds.session.getKeyspace.orElse(null)).map(_.asInternal())
-      val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))
+      val statements = tables.flatMap { table =>
+        ranges.map { r =>
+          val statement = CassandraIndexAdapter.statement(ks, table, r.clauses, r.allowFiltering)
+          // if not configured, the driver default consistency will be used
+          ds.config.queries.consistency.fold(statement)(statement.setConsistencyLevel)
+        }
+      }
       val threads = ds.config.queries.threads
       val project = hints.getProjection
-      StatementPlan(ds, strategy, tables, statements, threads, strategy.ecql, processor, project)
+      StatementPlan(ds, planStrategy, tables, statements, threads, strategy.ecql, processor, project)
     }
   }
 
@@ -123,8 +139,15 @@ object CassandraIndexAdapter extends LazyLogging {
 
   val TableNameLimit = 48
 
-  def statement(keyspace: Option[String], table: String, criteria: Seq[ColumnSelect]): SimpleStatement = {
-    QueryBuilder.selectFrom(keyspace.orNull, table).all().where(
+  // matches the key ranges that GeoMesaFeatureIndex uses to identify full table scans
+  private val FullTableKeyRange: Seq[ScanRange[_]] = Seq(UnboundedRange(null))
+
+  def statement(
+      keyspace: Option[String],
+      table: String,
+      criteria: Seq[ColumnSelect],
+      allowFiltering: Boolean = false): SimpleStatement = {
+    val select = QueryBuilder.selectFrom(keyspace.orNull, table).all().where(
       criteria.flatMap { c =>
         val column = Relation.column(c.column.name)
         if (c.start == null) {
@@ -158,7 +181,8 @@ object CassandraIndexAdapter extends LazyLogging {
           )
         }
       }: _*
-    ).build()
+    )
+    if (allowFiltering) { select.allowFiltering().build() } else { select.build() }
   }
 
   class CassandraResultsToFeatures(_index: GeoMesaFeatureIndex[_, _], _sft: SimpleFeatureType)

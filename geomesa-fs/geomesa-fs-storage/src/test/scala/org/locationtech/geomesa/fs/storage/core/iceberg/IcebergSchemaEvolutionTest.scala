@@ -404,6 +404,121 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
       }
     }
 
+    "update attribute options without changing columns" in {
+      withCatalog { catalog =>
+        val before = WithClose(catalog.load(sft.getTypeName))(_.table.schema())
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("name:String:index=true"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("*geom:Point:srid=4326"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("dtg:Date:foo=bar"))
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(before) must beTrue
+          storage.sft.getDescriptor("name").getUserData.get("index") mustEqual "true"
+          storage.sft.getDescriptor("dtg").getUserData.get("foo") mustEqual "bar"
+          storage.sft.getGeometryDescriptor.getLocalName mustEqual "geom"
+          testQuery(storage, storage.sft, "INCLUDE", null, features)
+        }
+      }
+    }
+
+    "update list and map columns" in {
+      val sft = SimpleFeatureTypes.createType("collections", "names:List[String],counts:Map[String,Int],dtg:Date,*geom:Point:srid=4326")
+      WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, Seq("day"))) { _ => }
+        val before = WithClose(catalog.load(sft.getTypeName))(_.table.schema())
+        // no-op updates of list/map types shouldn't fail, even though the field ids won't match
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("names:List[String]:foo=bar"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[String,Int]"))
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(before) must beTrue
+          storage.sft.getDescriptor("names").getUserData.get("foo") mustEqual "bar"
+        }
+        // widen the element and value types
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[String,Long]"))
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.sft.getDescriptor("counts").getMapTypes() mustEqual (classOf[String], classOf[java.lang.Long])
+        }
+        val beforeInvalid = WithClose(catalog.load(sft.getTypeName))(s => (s.table.schema(), SimpleFeatureTypes.encodeType(s.sft)))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[Int,Long]")) must
+          throwAn[UnsupportedOperationException]
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[String,Int]")) must
+          throwAn[UnsupportedOperationException]
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("names:List[Int]")) must
+          throwAn[UnsupportedOperationException]
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(beforeInvalid._1) must beTrue
+          SimpleFeatureTypes.encodeType(storage.sft) mustEqual beforeInvalid._2
+        }
+      }
+    }
+
+    "update nullability of nested fields" in {
+      withCatalog { catalog =>
+        val countPath = "json.count"
+        WithClose(catalog.load(sft.getTypeName))(_.table.schema().findField(countPath).isRequired must beTrue)
+        val optionalType =
+          """{"type":"record","name":"properties","fields":[{"name":"count","type":["null","int"]},{"name":"name","type":"string"}]}"""
+        catalog.update(sft.getTypeName).columns().update(
+          SimpleFeatureTypes.createDescriptor(s"json:String:json=true:json-schema='$optionalType'"))
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().findField(countPath).isOptional must beTrue
+          storage.sft.getDescriptor("json").getJsonSchema() must beSome(optionalType)
+        }
+        // optional -> required isn't allowed, as existing data may contain nulls
+        val before = WithClose(catalog.load(sft.getTypeName))(s => (s.table.schema(), SimpleFeatureTypes.encodeType(s.sft)))
+        catalog.update(sft.getTypeName).columns().update(
+          SimpleFeatureTypes.createDescriptor(s"json:String:json=true:json-schema='$structuralType'")) must
+          throwAn[UnsupportedOperationException]
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(before._1) must beTrue
+          SimpleFeatureTypes.encodeType(storage.sft) mustEqual before._2
+        }
+      }
+    }
+
+    "update nullability of list elements" in {
+      val requiredList = """{"type":"array","items":"string"}"""
+      val optionalList = """{"type":"array","items":["null","string"]}"""
+      val sft = SimpleFeatureTypes.createType("nullable-lists",
+        s"tags:String:json=true:json-schema='$requiredList',dtg:Date,*geom:Point:srid=4326")
+      WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, Seq("day"))) { _ => }
+        WithClose(catalog.load(sft.getTypeName))(_.table.schema().findField("tags").`type`().asListType().isElementRequired must beTrue)
+        catalog.update(sft.getTypeName).columns().update(
+          SimpleFeatureTypes.createDescriptor(s"tags:String:json=true:json-schema='$optionalList'"))
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().findField("tags").`type`().asListType().isElementOptional must beTrue
+        }
+        catalog.update(sft.getTypeName).columns().update(
+          SimpleFeatureTypes.createDescriptor(s"tags:String:json=true:json-schema='$requiredList'")) must
+          throwAn[UnsupportedOperationException]
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().findField("tags").`type`().asListType().isElementOptional must beTrue
+          storage.sft.getDescriptor("tags").getJsonSchema() must beSome(optionalList)
+        }
+      }
+    }
+
+    "reject invalid geometry updates" in {
+      withCatalog { catalog =>
+        val before = WithClose(catalog.load(sft.getTypeName))(s => (s.table.schema(), SimpleFeatureTypes.encodeType(s.sft)))
+        foreach(Seq("name:Point:srid=4326", "geom:String", "geom:LineString:srid=4326", "*geom:Point:srid=4326:encoding=native")) { spec =>
+          catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor(spec)) must
+            throwAn[UnsupportedOperationException]
+        }
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(before._1) must beTrue
+          SimpleFeatureTypes.encodeType(storage.sft) mustEqual before._2
+          testQuery(storage, storage.sft, "INCLUDE", null, features)
+        }
+        // explicit wkb encoding is fine
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("*geom:Point:srid=4326:encoding=wkb"))
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(before._1) must beTrue
+          testQuery(storage, storage.sft, "INCLUDE", null, features)
+        }
+      }
+    }
+
     "change the partition spec" in {
       withCatalog { catalog =>
         catalog.update(sft.getTypeName).table().setPartitions(Seq("z2:bits=4", "month"))
@@ -448,7 +563,7 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
         catalog.update(sft.getTypeName).table().setPartitions(Seq("month"))
 
         WithClose(catalog.load(sft.getTypeName)) { storage =>
-          WithClose(storage.getWriter(ECQL.toFilter("IN ('jan', 'feb')"), 1))(writer => writer.foreach(_ => writer.remove()))
+          WithClose(storage.getUpdateWriter(ECQL.toFilter("IN ('jan', 'feb')"), 1))(writer => writer.foreach(_ => writer.remove()))
           testQuery(storage, storage.sft, "INCLUDE", null, Seq.empty)
           testQuery(storage, storage.sft, "dtg DURING 2014-02-01T00:00:00.000Z/2014-03-01T00:00:00.000Z", null, Seq.empty)
         }

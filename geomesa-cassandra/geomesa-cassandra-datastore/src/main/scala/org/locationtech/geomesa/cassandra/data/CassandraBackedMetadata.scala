@@ -9,8 +9,10 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import com.datastax.oss.driver.api.core.CqlSession
+import com.datastax.oss.driver.api.core.cql.SimpleStatement
+import com.datastax.oss.driver.api.core.{ConsistencyLevel, CqlSession}
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder
+import org.locationtech.geomesa.cassandra.schemaStatement
 import org.locationtech.geomesa.index.api.IndexAdapter
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -18,8 +20,21 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import java.nio.charset.StandardCharsets
 import scala.collection.JavaConverters._
 
-class CassandraBackedMetadata[T](val session: CqlSession, val catalog: String, val serializer: MetadataSerializer[T])
-    extends TableBasedMetadata[T] {
+/**
+ * Cassandra-backed metadata
+ *
+ * @param session session
+ * @param catalog catalog table
+ * @param serializer serializer
+ * @param consistency consistency level for reads - if not specified, the driver default will be used
+ * @tparam T type param
+ */
+class CassandraBackedMetadata[T](
+    val session: CqlSession,
+    val catalog: String,
+    val serializer: MetadataSerializer[T],
+    consistency: Option[ConsistencyLevel] = None
+  ) extends TableBasedMetadata[T] {
 
   // note: session gets closed by datastore dispose
 
@@ -31,7 +46,7 @@ class CassandraBackedMetadata[T](val session: CqlSession, val catalog: String, v
   }
 
   override protected def createTable(): Unit =
-    session.execute(s"CREATE TABLE IF NOT EXISTS $catalog (sft text, key text, value text, PRIMARY KEY ((sft), key))")
+    session.execute(schemaStatement(s"CREATE TABLE IF NOT EXISTS $catalog (sft text, key text, value text, PRIMARY KEY ((sft), key))"))
 
   override protected def createEmptyBackup(timestamp: String): CassandraBackedMetadata[T] = {
     val table = {
@@ -40,7 +55,7 @@ class CassandraBackedMetadata[T](val session: CqlSession, val catalog: String, v
         IndexAdapter.truncateTableName(full, CassandraIndexAdapter.TableNameLimit)
       }
     }
-    new CassandraBackedMetadata(session, table, serializer)
+    new CassandraBackedMetadata(session, table, serializer, consistency)
   }
 
   override protected def write(typeName: String, rows: Seq[(String, Array[Byte])]): Unit = {
@@ -65,7 +80,7 @@ class CassandraBackedMetadata[T](val session: CqlSession, val catalog: String, v
       .whereColumn("sft").isEqualTo(QueryBuilder.literal(typeName))
       .whereColumn("key").isEqualTo(QueryBuilder.literal(key))
       .build()
-    val rows = session.execute(query).all().asScala
+    val rows = session.execute(read(query)).all().asScala
     if (rows.length < 1) { None } else {
       Some(rows.head.getString("value").getBytes(StandardCharsets.UTF_8))
     }
@@ -75,7 +90,7 @@ class CassandraBackedMetadata[T](val session: CqlSession, val catalog: String, v
     val select = QueryBuilder.selectFrom(catalog).columns("key", "value")
       .whereColumn("sft").isEqualTo(QueryBuilder.literal(typeName))
       .build()
-    val iter = session.execute(select).all().iterator.asScala.map { row =>
+    val iter = session.execute(read(select)).all().iterator.asScala.map { row =>
       (row.getString("key"), row.getString("value").getBytes(StandardCharsets.UTF_8))
     }
     if (prefix == null || prefix.isEmpty) {
@@ -87,7 +102,10 @@ class CassandraBackedMetadata[T](val session: CqlSession, val catalog: String, v
 
   override protected def scanKeys(): CloseableIterator[(String, String)] = {
     val select = QueryBuilder.selectFrom(catalog).columns("sft", "key").build()
-    val values = session.execute(select).all().iterator.asScala.map(row => (row.getString("sft"), row.getString("key")))
+    val values = session.execute(read(select)).all().iterator.asScala.map(row => (row.getString("sft"), row.getString("key")))
     CloseableIterator(values)
   }
+
+  // applies the configured consistency level to a read statement
+  private def read(statement: SimpleStatement): SimpleStatement = consistency.fold(statement)(statement.setConsistencyLevel)
 }

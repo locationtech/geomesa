@@ -11,10 +11,6 @@
     <name>GeoMesa Cassandra</name>
     <packaging>pom</packaging>
 
-    <properties>
-        <guava.version>${cassandra.guava.version}</guava.version>
-    </properties>
-
     <modules>
         <module>geomesa-cassandra-datastore</module>
         <module>geomesa-cassandra-dist</module>

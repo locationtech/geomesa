@@ -33,6 +33,10 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
   override def createNewDataStore(params: util.Map[String, _]): DataStore = createDataStore(params)
 
   override def createDataStore(params: util.Map[String, _]): DataStore = {
+    val catalog = CatalogParam.lookup(params)
+    require(!catalog.contains("."), s"Invalid parameter '${CatalogParam.key}': catalog must not contain a dot. " +
+        s"Specify the keyspace separately using '${KeySpaceParam.key}' (-k) and the catalog using '${CatalogParam.key}' (-c)")
+
     val (cp, portString) = ContactPointParam.lookup(params).split(":") match {
       case Array(one, two) => (one, two)
       case parts => throw new IllegalArgumentException(s"Invalid parameter '${ContactPointParam.key}', " +
@@ -44,6 +48,8 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     }
     val localDatacenter = LocalDatacenterParam.lookup(params)
     val ks = KeySpaceParam.lookup(params)
+    // validated against the param enumerations
+    val consistency: Option[ConsistencyLevel] = QueryConsistencyParam.lookupOpt(params).map(DefaultConsistencyLevel.valueOf)
     val generateStats = GenerateStatsParam.lookup(params)
     val audit = if (AuditQueriesParam.lookup(params)) {
       Some(new AuditLogger("cassandra", AuditProvider.Loader.loadOrNone(params)))
@@ -64,13 +70,12 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     }
 
     val session = sessionBuilder.build()
-    val catalog = CatalogParam.lookup(params)
-
     val queries = CassandraQueryConfig(
       threads = QueryThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params),
-      parallelPartitionScans = PartitionParallelScansParam.lookup(params)
+      parallelPartitionScans = PartitionParallelScansParam.lookup(params),
+      consistency = consistency
     )
 
     val authProvider = new DefaultAuthorizationsProvider(Seq.empty)
@@ -130,7 +135,8 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       Params.LooseBBoxParam,
       Params.PartitionParallelScansParam,
       Params.QueryThreadsParam,
-      Params.QueryTimeoutParam
+      Params.QueryTimeoutParam,
+      Params.QueryConsistencyParam
     )
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =
@@ -186,6 +192,26 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
         password = true,
         deprecatedKeys = Seq("geomesa.cassandra.password"),
         supportsNiFiExpressions = true)
+
+    // consistency levels that apply to regular reads - excludes ANY (write only) and SERIAL/LOCAL_SERIAL
+    // (linearizable reads, which run a paxos round for every read)
+    private val ReadConsistencyLevels = Seq(
+      DefaultConsistencyLevel.ONE,
+      DefaultConsistencyLevel.TWO,
+      DefaultConsistencyLevel.THREE,
+      DefaultConsistencyLevel.QUORUM,
+      DefaultConsistencyLevel.ALL,
+      DefaultConsistencyLevel.LOCAL_ONE,
+      DefaultConsistencyLevel.LOCAL_QUORUM,
+      DefaultConsistencyLevel.EACH_QUORUM
+    )
+
+    val QueryConsistencyParam =
+      new GeoMesaParam[String](
+        "cassandra.query.consistency",
+        "Cassandra consistency level for reads (queries and metadata). If not specified, the driver default is used",
+        enumerations = ReadConsistencyLevels.map(_.name()),
+        supportsNiFiExpressions = true)
   }
 
   case class CassandraDataStoreConfig(
@@ -202,6 +228,7 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       threads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      parallelPartitionScans: Boolean
+      parallelPartitionScans: Boolean,
+      consistency: Option[ConsistencyLevel] = None
     ) extends DataStoreQueryConfig
 }

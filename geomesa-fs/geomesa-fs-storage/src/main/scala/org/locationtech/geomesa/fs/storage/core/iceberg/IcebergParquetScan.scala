@@ -59,8 +59,10 @@ class IcebergParquetScan(
   private val ex =
     WithClose(new CachedThreadPool(threads)) { pool =>
       // note: exclude z2 cols even if there's no transform
-      val scan = table.newScan().caseSensitive(false).project(schema.schema).filter(filter)
-      snapshotId.foreach(scan.useSnapshot)
+      // note: scans are immutable, each refinement returns a new scan
+      val scan = snapshotId.foldLeft(table.newScan().caseSensitive(false).project(schema.schema).filter(filter)) {
+        case (scan, id) => scan.useSnapshot(id)
+      }
       try {
         WithClose(scan.planTasks()) { plan =>
           WithClose(plan.iterator()) { tasks =>

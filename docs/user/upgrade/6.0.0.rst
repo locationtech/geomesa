@@ -11,6 +11,22 @@ Accumulo Version Support
 
 GeoMesa no longer supports Accumulo 2.0. Users should upgrade to the latest Accumulo 2.1.x.
 
+Cassandra Version Support
+-------------------------
+
+GeoMesa now supports Cassandra 4.1 and 5.0, and 5.0 is the recommended version. Cassandra 3.11 is end-of-life and
+is no longer tested. GeoMesa's table layout is unchanged, so existing tables can be used after upgrading Cassandra
+according to its own upgrade procedure.
+
+Due to the upgrade to version 4 of the Cassandra Java driver, the ``geomesa-cassandra`` command-line tools now require
+the ``--local-datacenter`` argument, and no longer load JARs from ``$CASSANDRA_HOME``, as Cassandra ships with an
+older, incompatible version of the driver. Instead, the driver JARs are now bundled in the binary distribution.
+See :ref:`setting_up_cassandra_commandline`.
+
+The system properties ``geomesa.cassandra.connection.timeout`` and ``geomesa.cassandra.read.timeout`` are no longer
+supported. Instead, timeouts can be configured through the driver's own configuration, as described in
+:doc:`/user/cassandra/configuration`.
+
 NiFi Version Support
 --------------------
 

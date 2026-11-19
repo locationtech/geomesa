@@ -60,6 +60,10 @@
             <groupId>com.clearspring.analytics</groupId>
             <artifactId>stream</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+        </dependency>
 
         <!-- provided dependencies -->
 

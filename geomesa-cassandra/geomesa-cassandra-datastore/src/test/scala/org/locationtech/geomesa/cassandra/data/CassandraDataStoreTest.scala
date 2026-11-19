@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.cassandra.data
 
+import com.datastax.oss.driver.api.core.{AllNodesFailedException, DefaultConsistencyLevel}
+import com.datastax.oss.driver.api.core.cql.SimpleStatement
+import com.datastax.oss.driver.api.core.servererrors.UnavailableException
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.collection.ListFeatureCollection
@@ -17,6 +20,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.Params
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.LooseBBoxParam
 import org.locationtech.geomesa.index.utils.{ExplainString, Explainer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -32,6 +36,8 @@ import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.{DockerImageName, MountableFile}
 
+import java.io.IOException
+
 @RunWith(classOf[JUnitRunner])
 class CassandraDataStoreTest extends Specification with BeforeAfterAll {
 
@@ -40,7 +46,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
   sequential
 
   protected def createContainer(): CassandraContainer = {
-    new CassandraContainer(DockerImageName.parse("cassandra").withTag(sys.props.getOrElse("cassandra.docker.tag", "3.11.19")))
+    new CassandraContainer(DockerImageName.parse("cassandra").withTag(sys.props.getOrElse("cassandra.docker.tag", "5.0.9")))
       .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("cassandra")))
       .withFileSystemBind(MountableFile.forClasspathResource("init.cql").getResolvedPath, "/init.cql", BindMode.READ_ONLY)
   }
@@ -124,7 +130,24 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
           testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
           testQuery(ds, typeName, "name = 'name5' OR name = 'name7'", transforms, Seq(toAdd(5), toAdd(7)))
           testQuery(ds, typeName, "(name = 'name5' OR name = 'name6') and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, Seq(toAdd(5), toAdd(6)))
+          // open-ended time filters
+          testQuery(ds, typeName, "dtg AFTER 2014-01-05T12:00:00.000Z", transforms, toAdd.drop(5))
+          testQuery(ds, typeName, "dtg BEFORE 2014-01-05T12:00:00.000Z", transforms, toAdd.take(5))
+          testQuery(ds, typeName, "dtg > '2014-01-08T00:00:00.000Z'", transforms, toAdd.drop(7))
+          testQuery(ds, typeName, "dtg BEFORE 2014-01-02T12:00:00.000Z OR dtg AFTER 2014-01-08T12:00:00.000Z", transforms,
+            toAdd.take(2) ++ toAdd.drop(8))
         }
+      }
+
+      // open-ended time filter with a spatial filter, forced to use the z3 index (the z values are only applied
+      // client-side for the open-ended periods)
+      foreach(Seq("dtg AFTER 2014-01-05T12:00:00.000Z", "dtg BEFORE 2014-01-05T12:00:00.000Z")) { time =>
+        val query = new Query(typeName, ECQL.toFilter(s"bbox(geom,42,48,52,62) AND $time"))
+        query.getHints.put(QueryHints.QUERY_INDEX, "z3")
+        val expected = if (time.contains("AFTER")) { toAdd.drop(5) } else { toAdd.slice(2, 5) }
+        val ids = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList.map(_.getID)
+        ids must haveLength(expected.length)
+        ids must containTheSameElementsAs(expected.map(_.getID))
       }
 
       def testTransforms(ds: CassandraDataStore) = {
@@ -239,6 +262,138 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
       testQuery(ds, typeName, "bbox(geom,-126,42,-119,45)", null, toAdd.dropRight(4))
       testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
       testQuery(ds, typeName, "(name = 'name5' OR name = 'name6') and bbox(geom,-126,38,-119,52) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-01T07:59:59.000Z", null, Seq(toAdd(5), toAdd(6)))
+      // open-ended time filters
+      testQuery(ds, typeName, "dtg AFTER 2014-01-01T04:30:00.000Z", null, toAdd.drop(5))
+      testQuery(ds, typeName, "dtg BEFORE 2014-01-01T04:30:00.000Z", null, toAdd.take(5))
+    }
+
+    "apply full table scan blocks to open-ended time filters" in {
+      val typeName = "testblockfulltable"
+
+      ds.getSchema(typeName) must beNull
+
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, "dtg:Date,*geom:Point:srid=4326"))
+
+      val sft = ds.getSchema(typeName)
+
+      val toAdd = (0 until 10).map { i =>
+        val sf = ScalaSimpleFeature.create(sft, i.toString, f"2014-01-${i + 1}%02dT00:00:01.000Z", s"POINT(4$i 5$i)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf: SimpleFeature
+      }
+
+      ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore].addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
+
+      // open-ended periods are selected with a single 'allow filtering' statement (not one per shard),
+      // while the boundary period still uses the index
+      foreach(Seq("dtg AFTER 2014-01-05T12:00:00.000Z", "dtg BEFORE 2014-01-05T12:00:00.000Z")) { filter =>
+        val plans = ds.getQueryPlan(new Query(typeName, ECQL.toFilter(filter)))
+        val statements = plans.flatMap(_.asInstanceOf[CassandraQueryPlan].ranges).map(_.getQuery)
+        val (filtering, indexed) = statements.partition(_.contains("ALLOW FILTERING"))
+        filtering must haveLength(1)
+        filtering.head must not(contain("shard"))
+        indexed must not(beEmpty)
+      }
+
+      def blocked(filter: String): MatchResult[Any] = {
+        val query = new Query(typeName, ECQL.toFilter(filter))
+        CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must throwA[RuntimeException].like {
+          case e => Iterator.iterate[Throwable](e)(_.getCause).takeWhile(_ != null).map(_.getMessage).mkString(" ") must
+              contain("Full-table scans are disabled")
+        }
+      }
+
+      QueryProperties.BlockFullTableScans.threadLocalValue.set("true")
+      try {
+        // bounded time filters can use the index
+        testQuery(ds, typeName, "dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", null, toAdd.take(8))
+        // open-ended time filters fall back to a full table scan in cassandra, so they should be blocked
+        blocked("dtg AFTER 2014-01-05T12:00:00.000Z")
+        blocked("dtg BEFORE 2014-01-05T12:00:00.000Z")
+        // unless max features is set
+        val limited = new Query(typeName, ECQL.toFilter("dtg AFTER 2014-01-05T12:00:00.000Z"), 10, null: Array[String], null)
+        CloseableIterator(ds.getFeatureReader(limited, Transaction.AUTO_COMMIT)).toList.map(_.getID) must
+            containTheSameElementsAs(toAdd.drop(5).map(_.getID))
+      } finally {
+        QueryProperties.BlockFullTableScans.threadLocalValue.remove()
+      }
+
+      // now they should go through
+      testQuery(ds, typeName, "dtg AFTER 2014-01-05T12:00:00.000Z", null, toAdd.drop(5))
+      testQuery(ds, typeName, "dtg BEFORE 2014-01-05T12:00:00.000Z", null, toAdd.take(5))
+    }
+
+    "apply the configured query consistency to reads" in {
+      val typeName = "testconsistency"
+
+      ds.getSchema(typeName) must beNull
+
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String:index=true,dtg:Date,*geom:Point:srid=4326"))
+
+      val sft = ds.getSchema(typeName)
+
+      val toAdd = (0 until 10).map { i =>
+        val sf = ScalaSimpleFeature.create(sft, i.toString, s"name$i", f"2014-01-${i + 1}%02dT00:00:01.000Z", s"POINT(4$i 5$i)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf: SimpleFeature
+      }
+
+      ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore].addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
+
+      // covers full table scans, id, attribute, z3 with multiple ranges/shards and 'allow filtering' statements
+      val filters = Seq(
+        "INCLUDE",
+        "IN('0', '2')",
+        "name < 'name5'",
+        "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z",
+        "dtg AFTER 2014-01-05T12:00:00.000Z"
+      )
+
+      def statements(store: CassandraDataStore, filter: String): Seq[SimpleStatement] =
+        store.getQueryPlan(new Query(typeName, ECQL.toFilter(filter))).flatMap(_.asInstanceOf[CassandraQueryPlan].ranges)
+
+      def withConsistency[T](level: String)(fn: CassandraDataStore => T): T = {
+        val params = this.params ++ Map(Params.QueryConsistencyParam.getName -> level)
+        val store = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[CassandraDataStore]
+        try { fn(store) } finally { store.dispose() }
+      }
+
+      // by default, the consistency is not set and the driver default is used
+      foreach(filters) { filter =>
+        val ranges = statements(ds, filter)
+        ranges must not(beEmpty)
+        foreach(ranges)(_.getConsistencyLevel must beNull)
+      }
+
+      // when configured, it's applied to every query statement
+      withConsistency("LOCAL_QUORUM") { store =>
+        foreach(filters) { filter =>
+          val ranges = statements(store, filter)
+          ranges must not(beEmpty)
+          foreach(ranges)(_.getConsistencyLevel mustEqual DefaultConsistencyLevel.LOCAL_QUORUM)
+        }
+        testQuery(store, typeName, "INCLUDE", null, toAdd)
+      }
+
+      // the test keyspace has a replication factor of 1, so it can't satisfy 'TWO' - this verifies that the
+      // configured level is sent to cassandra for metadata reads
+      withConsistency("TWO")(_.getTypeNames.toSeq) must throwAn[Exception].like { case e =>
+        // the driver retries on the next node, so the error is reported per-node in an AllNodesFailedException
+        val errors = Iterator.iterate[Throwable](e)(_.getCause).takeWhile(_ != null).toSeq.flatMap {
+          case all: AllNodesFailedException => all +: all.getAllErrors.asScala.values.flatMap(_.asScala).toSeq
+          case t => Seq(t)
+        }
+        errors must contain(beAnInstanceOf[UnavailableException])
+      }
+
+      // invalid values and levels that don't apply to regular reads are rejected
+      foreach(Seq("ANY", "SERIAL", "LOCAL_SERIAL", "quorum", "FOO")) { level =>
+        val params = this.params ++ Map(Params.QueryConsistencyParam.getName -> level)
+        new CassandraDataStoreFactory().createDataStore(params.asJava) must throwAn[IOException].like { case e =>
+          e.getMessage must contain(s"Invalid property for parameter '${Params.QueryConsistencyParam.getName}'")
+          e.getMessage must contain("Accepted values are: ONE, TWO, THREE, QUORUM, ALL, LOCAL_ONE, LOCAL_QUORUM, EACH_QUORUM")
+        }
+      }
     }
 
     "delete schemas" in {
@@ -319,6 +474,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
     val features = CloseableIterator(fr).toList
     val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
+    features must haveLength(results.length) // no duplicates
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)
       forall(attributes.zipWithIndex) { case (attribute, i) =>

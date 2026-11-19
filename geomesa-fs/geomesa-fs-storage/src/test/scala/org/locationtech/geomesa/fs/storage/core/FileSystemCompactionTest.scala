@@ -174,7 +174,7 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
     "apply deletion vectors and omit deleted visibility values from the new summaries" in withStorage { storage =>
       append(storage, Seq("a" -> "A", "deleted" -> "B"))
       append(storage, Seq("c" -> "C"))
-      WithClose(storage.getWriter(ECQL.toFilter("name = 'deleted'"), 1)) { writer =>
+      WithClose(storage.getUpdateWriter(ECQL.toFilter("name = 'deleted'"), 1)) { writer =>
         writer.hasNext must beTrue
         writer.next()
         writer.remove()
@@ -196,7 +196,7 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
       append(storage, Seq("a" -> "A", "delete-a" -> "B"))
       val first = storage.metadata.files().scan().head.file().location()
       append(storage, Seq("b" -> "A", "delete-b" -> "B"))
-      WithClose(storage.getWriter(ECQL.toFilter("name LIKE 'delete-%'"), 1)) { writer =>
+      WithClose(storage.getUpdateWriter(ECQL.toFilter("name LIKE 'delete-%'"), 1)) { writer =>
         while (writer.hasNext) { writer.next(); writer.remove() }
       }
       val snapshot = storage.table.currentSnapshot()
@@ -302,7 +302,7 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
       val compaction = new FileSystemCompaction(storage, Seq(Partition.None), None)
       val plans = compaction.plan()
       val outputs = plans.map(compaction.prepare)
-      WithClose(storage.getWriter(ECQL.toFilter("name = 'b'"), 1)) { writer => writer.next(); writer.remove() }
+      WithClose(storage.getUpdateWriter(ECQL.toFilter("name = 'b'"), 1)) { writer => writer.next(); writer.remove() }
       compaction.commit(plans, outputs) must throwA[ValidationException]
       visible(storage, "A,B,C") mustEqual Set("a")
     }
@@ -370,7 +370,7 @@ class FileSystemCompactionTest extends SpecificationWithJUnit {
 
     "remove completely deleted inputs without creating an empty output" in withStorage { storage =>
       append(storage, Seq("a" -> "A"))
-      WithClose(storage.getWriter(ECQL.toFilter("name = 'a'"), 1)) { writer => writer.next(); writer.remove() }
+      WithClose(storage.getUpdateWriter(ECQL.toFilter("name = 'a'"), 1)) { writer => writer.next(); writer.remove() }
       val snapshot = storage.table.currentSnapshot()
       val deletes = liveDeletes(storage, snapshot)
       deletes must haveLength(1)

@@ -31,6 +31,4 @@ object CassandraRunner extends Runner {
       new CassandraUpdateSchemaCommand
     )
   }
-
-  override protected def classpathEnvironments: Seq[String] = Seq("CASSANDRA_HOME")
 }
