@@ -12,6 +12,7 @@ package iceberg
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg.catalog.{Catalog, TableIdentifier}
 import org.apache.iceberg.expressions.Expressions
+import org.apache.iceberg.types.Type
 import org.apache.iceberg.types.Types.NestedField
 import org.apache.iceberg.{PartitionSpec, UpdateSchema}
 import org.geotools.api.feature.`type`.AttributeDescriptor
@@ -74,7 +75,8 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
 
         if (classOf[Geometry].isAssignableFrom(existing.getType.getBinding)) {
           // we don't need to make any actual column changes, just validate that the op is allowed
-          if (existing.getType.getBinding == classOf[Point] || update.getType.getBinding != classOf[Geometry]) {
+          if (existing.getType.getBinding != update.getType.getBinding &&
+              (existing.getType.getBinding == classOf[Point] || update.getType.getBinding != classOf[Geometry])) {
             throw new UnsupportedOperationException(
               s"Attribute '${existing.getLocalName}' can not be changed from ${existing.getType.getBinding} " +
                 s"to ${update.getType.getBinding.getSimpleName}: the only supported geometry change is widening non-point types " +
@@ -97,25 +99,40 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
     private def walkColumnUpdates(parent: String, update: NestedField, existing: NestedField, op: UpdateSchema): Unit = {
       if (existing == null) {
         op.addColumn(parent, update.name(), update.`type`())
-      } else if (update.`type`() != existing.`type`()) {
-        val path = Option(parent).fold(update.name())(p => s"$p.${update.name()}")
-        if (update.`type`().isStructType && existing.`type`().isStructType) {
-          val updateStruct = update.`type`().asStructType()
-          val existingStruct = existing.`type`().asStructType()
-          updateStruct.fields().asScala.foreach { field =>
-            walkColumnUpdates(path, field, existingStruct.field(field.name()), op)
-          }
-          existingStruct.fields().asScala.foreach { field =>
-            if (updateStruct.field(field.name()) == null) {
-              op.deleteColumn(s"$path.${field.name()}")
-            }
-          }
-        } else if (update.`type`().isPrimitiveType && existing.`type`().isPrimitiveType) {
-          op.updateColumn(path, update.`type`().asPrimitiveType())
-        } else {
-          throw new UnsupportedOperationException(
-            s"Attribute '$path' can't be changed from ${existing.`type`()} to ${update.`type`()}")
+      } else {
+        walkTypeUpdates(Option(parent).fold(update.name())(p => s"$p.${update.name()}"), update.`type`(), existing.`type`(), op)
+      }
+    }
+
+    // note: nested types are compared structurally, as the field ids of the update will not match the existing ids
+    private def walkTypeUpdates(path: String, update: Type, existing: Type, op: UpdateSchema): Unit = {
+      if (update.isStructType && existing.isStructType) {
+        val updateStruct = update.asStructType()
+        val existingStruct = existing.asStructType()
+        updateStruct.fields().asScala.foreach { field =>
+          walkColumnUpdates(path, field, existingStruct.field(field.name()), op)
         }
+        existingStruct.fields().asScala.foreach { field =>
+          if (updateStruct.field(field.name()) == null) {
+            op.deleteColumn(s"$path.${field.name()}")
+          }
+        }
+      } else if (update.isListType && existing.isListType) {
+        walkTypeUpdates(s"$path.element", update.asListType().elementType(), existing.asListType().elementType(), op)
+      } else if (update.isMapType && existing.isMapType) {
+        val updateKey = update.asMapType().keyType()
+        val existingKey = existing.asMapType().keyType()
+        if (!updateKey.isPrimitiveType || updateKey != existingKey) {
+          throw new UnsupportedOperationException(
+            s"Attribute '$path' can't change map keys from $existingKey to $updateKey")
+        }
+        walkTypeUpdates(s"$path.value", update.asMapType().valueType(), existing.asMapType().valueType(), op)
+      } else if (update.isPrimitiveType && existing.isPrimitiveType) {
+        if (update != existing) {
+          op.updateColumn(path, update.asPrimitiveType())
+        }
+      } else if (update != existing) {
+        throw new UnsupportedOperationException(s"Attribute '$path' can't be changed from $existing to $update")
       }
     }
 

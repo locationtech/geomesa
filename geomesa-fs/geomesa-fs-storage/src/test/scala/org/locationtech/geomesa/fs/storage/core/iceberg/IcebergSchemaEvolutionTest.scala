@@ -404,6 +404,46 @@ class IcebergSchemaEvolutionTest extends SpecificationWithJUnit with BeforeAfter
       }
     }
 
+    "update attribute options without changing columns" in {
+      withCatalog { catalog =>
+        val before = WithClose(catalog.load(sft.getTypeName))(_.table.schema())
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("name:String:index=true"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("*geom:Point:srid=4326"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("dtg:Date:foo=bar"))
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(before) must beTrue
+          storage.sft.getDescriptor("name").getUserData.get("index") mustEqual "true"
+          storage.sft.getDescriptor("dtg").getUserData.get("foo") mustEqual "bar"
+          storage.sft.getGeometryDescriptor.getLocalName mustEqual "geom"
+          testQuery(storage, storage.sft, "INCLUDE", null, features)
+        }
+      }
+    }
+
+    "update list and map columns" in {
+      val sft = SimpleFeatureTypes.createType("collections", "names:List[String],counts:Map[String,Int],dtg:Date,*geom:Point:srid=4326")
+      WithClose(StorageCatalog(newPath())) { catalog =>
+        WithClose(catalog.create(sft, Seq("day"))) { _ => }
+        val before = WithClose(catalog.load(sft.getTypeName))(_.table.schema())
+        // no-op updates of list/map types shouldn't fail, even though the field ids won't match
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("names:List[String]:foo=bar"))
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[String,Int]"))
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.table.schema().sameSchema(before) must beTrue
+          storage.sft.getDescriptor("names").getUserData.get("foo") mustEqual "bar"
+        }
+        // widen the element and value types
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[String,Long]"))
+        WithClose(catalog.load(sft.getTypeName)) { storage =>
+          storage.sft.getDescriptor("counts").getMapTypes() mustEqual (classOf[String], classOf[java.lang.Long])
+        }
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("counts:Map[Int,Long]")) must
+          throwAn[UnsupportedOperationException]
+        catalog.update(sft.getTypeName).columns().update(SimpleFeatureTypes.createDescriptor("names:List[Int]")) must
+          throwA[RuntimeException]
+      }
+    }
+
     "change the partition spec" in {
       withCatalog { catalog =>
         catalog.update(sft.getTypeName).table().setPartitions(Seq("z2:bits=4", "month"))
