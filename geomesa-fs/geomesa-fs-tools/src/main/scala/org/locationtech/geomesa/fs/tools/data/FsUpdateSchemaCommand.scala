@@ -32,33 +32,36 @@ class FsUpdateSchemaCommand extends UpdateSchemaCommand[FileSystemDataStore] wit
   override val params: FsUpdateSchemaParams = new FsUpdateSchemaParams()
 
   override protected def doUpdate(ds: FileSystemDataStore, typeName: String, updated: SimpleFeatureType): Unit = {
-    params.renameAttributes.asScala.grouped(2).foreach { case Seq(from: String, to: String) =>
-      ds.update(typeName).columns().rename(from, to)
-    }
-    params.attributes.asScala.foreach { attribute =>
-      val descriptor = try { SimpleFeatureSpecParser.parseAttribute(attribute).toDescriptor } catch {
+    // parse the new attributes up front, so that we don't start an update if the parameters are invalid
+    val descriptors = params.attributes.asScala.map { attribute =>
+      try { SimpleFeatureSpecParser.parseAttribute(attribute).toDescriptor } catch {
         case NonFatal(e) => throw new ParameterException(s"Invalid attribute spec: $attribute", e)
       }
-      ds.update(typeName).columns().add(descriptor)
     }
+    // stage all the changes, so that they're validated up front and then applied in a single transaction
+    val update = ds.update(typeName)
+    params.renameAttributes.asScala.grouped(2).foreach { case Seq(from: String, to: String) =>
+      update.columns().rename(from, to)
+    }
+    descriptors.foreach(update.columns().add)
     if (params.scheme != null) {
-      ds.update(typeName).table().setPartitions(params.scheme.split(",").toSeq)
+      update.table().setPartitions(params.scheme.split(",").toSeq)
     }
     if (params.targetFileSize != null) {
       // note: Memory.bytes parsing was validated earlier
-      ds.update(typeName).metadata().setTargetFileSize(Some(Memory.bytes(params.targetFileSize).get))
+      update.metadata().setTargetFileSize(Some(Memory.bytes(params.targetFileSize).get))
     }
     if (!params.plusKeywords.isEmpty || !params.minusKeywords.isEmpty) {
       val keywords = Option(updated.getUserData.get(Configs.Keywords)).map(_.toString).filterNot(_.isBlank)
-      ds.update(typeName).metadata().setUserData(Configs.Keywords, keywords)
+      update.metadata().setUserData(Configs.Keywords, keywords)
     }
     params.userData.asScala.foreach { case (k, v) =>
-      ds.update(typeName).metadata().setUserData(k, Option(v))
+      update.metadata().setUserData(k, Option(v))
     }
-    // do this last so type name change doesn't affect the other ops
     Option(params.rename).foreach { rename =>
-      ds.update(typeName).table().rename(rename)
+      update.table().rename(rename)
     }
+    update.apply()
   }
 
   override protected def storeSpecificUpdates(sft: SimpleFeatureType): Seq[String] = {
