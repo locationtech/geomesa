@@ -12,13 +12,14 @@ package iceberg
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.iceberg.catalog.{Catalog, TableIdentifier}
 import org.apache.iceberg.expressions.Expressions
-import org.apache.iceberg.types.Type
+import org.apache.iceberg.types.{Type, TypeUtil}
 import org.apache.iceberg.types.Types.NestedField
 import org.apache.iceberg.{PartitionSpec, UpdateSchema}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.fs.storage.core.StorageCatalog.CatalogUpdate
 import org.locationtech.geomesa.fs.storage.core.parquet.BloomFilterConfig
+import org.locationtech.geomesa.fs.storage.core.parquet.schema.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.core.schema.ColumnName
 import org.locationtech.geomesa.fs.storage.core.schemes.PartitionSchemeFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -35,6 +36,7 @@ import org.locationtech.jts.geom.{Geometry, Point}
 class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends CatalogUpdate with LazyLogging {
 
   import IcebergSchemaEvolution.{attributeProperty, bloomFilterKeys, colsFor}
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   import scala.collection.JavaConverters._
 
@@ -71,22 +73,41 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
               SimpleFeatureTypes.encodeType(schema.sft))
         }
 
+        val existingIsGeom = classOf[Geometry].isAssignableFrom(existing.getType.getBinding)
+        val updateIsGeom = classOf[Geometry].isAssignableFrom(update.getType.getBinding)
+
         val tx = table.newTransaction()
 
-        if (classOf[Geometry].isAssignableFrom(existing.getType.getBinding)) {
+        if (existingIsGeom || updateIsGeom) {
           // we don't need to make any actual column changes, just validate that the op is allowed
-          if (existing.getType.getBinding != update.getType.getBinding &&
+          if (!existingIsGeom || !updateIsGeom) {
+            throw new UnsupportedOperationException(
+              s"Attribute '${existing.getLocalName}' can not be changed from ${existing.getType.getBinding.getSimpleName} " +
+                s"to ${update.getType.getBinding.getSimpleName}: geometry attributes can't be converted to or from " +
+                "non-geometry types")
+          } else if (existing.getType.getBinding != update.getType.getBinding &&
               (existing.getType.getBinding == classOf[Point] || update.getType.getBinding != classOf[Geometry])) {
             throw new UnsupportedOperationException(
-              s"Attribute '${existing.getLocalName}' can not be changed from ${existing.getType.getBinding} " +
-                s"to ${update.getType.getBinding.getSimpleName}: the only supported geometry change is widening non-point types " +
-                s"to mixed Geometry")
+              s"Attribute '${existing.getLocalName}' can not be changed from ${existing.getType.getBinding.getSimpleName} " +
+                s"to ${update.getType.getBinding.getSimpleName}: the only supported geometry change is widening non-point " +
+                "types to mixed Geometry")
+          }
+          // the stored data is always wkb, so the encoding can't be changed
+          update.getEncoding.foreach { encoding =>
+            if (GeometryEncoding(encoding) != GeometryEncoding.GeoParquetWkb) {
+              throw new UnsupportedOperationException(
+                s"Attribute '${existing.getLocalName}' can not be changed to encoding '$encoding': " +
+                  "only WKB encoding is supported for geometry types")
+            }
           }
         } else {
           // assertion: only geometry types create more than 1 column, so we only need to deal with .head
           val column = IcebergSchemaEvolution.colsFor(update).head
           val updateSchema = tx.updateSchema()
-          walkColumnUpdates(null, column, schema.schema.findField(column.name()), updateSchema)
+          val existingColumn = schema.schema.findField(column.name())
+          val path = FieldPath(existing.getLocalName, column.name())
+          checkNullabilityUpdates(path, column.isOptional, existingColumn.isOptional, updateSchema)
+          walkTypeUpdates(path, column.`type`(), existingColumn.`type`(), updateSchema)
           updateSchema.commit()
         }
 
@@ -96,43 +117,67 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
       }
     }
 
-    private def walkColumnUpdates(parent: String, update: NestedField, existing: NestedField, op: UpdateSchema): Unit = {
-      if (existing == null) {
-        op.addColumn(parent, update.name(), update.`type`())
-      } else {
-        walkTypeUpdates(Option(parent).fold(update.name())(p => s"$p.${update.name()}"), update.`type`(), existing.`type`(), op)
+    private def checkNullabilityUpdates(path: FieldPath, updateOptional: Boolean, existingOptional: Boolean, op: UpdateSchema): Unit = {
+      if (updateOptional && !existingOptional) {
+        op.makeColumnOptional(path.column)
+      } else if (!updateOptional && existingOptional) {
+        // existing data may contain nulls, so this isn't safe
+        throw path.error("can't be changed from optional to required")
       }
     }
 
     // note: nested types are compared structurally, as the field ids of the update will not match the existing ids
-    private def walkTypeUpdates(path: String, update: Type, existing: Type, op: UpdateSchema): Unit = {
+    // noinspection NoTailRecursionAnnotation
+    private def walkTypeUpdates(path: FieldPath, update: Type, existing: Type, op: UpdateSchema): Unit = {
       if (update.isStructType && existing.isStructType) {
         val updateStruct = update.asStructType()
         val existingStruct = existing.asStructType()
         updateStruct.fields().asScala.foreach { field =>
-          walkColumnUpdates(path, field, existingStruct.field(field.name()), op)
+          walkStructFields(path, field, existingStruct.field(field.name()), op)
         }
         existingStruct.fields().asScala.foreach { field =>
           if (updateStruct.field(field.name()) == null) {
-            op.deleteColumn(s"$path.${field.name()}")
+            op.deleteColumn(s"${path.column}.${field.name()}")
           }
         }
       } else if (update.isListType && existing.isListType) {
-        walkTypeUpdates(s"$path.element", update.asListType().elementType(), existing.asListType().elementType(), op)
+        val updateList = update.asListType()
+        val existingList = existing.asListType()
+        val element = path.element
+        checkNullabilityUpdates(element, updateList.isElementOptional, existingList.isElementOptional, op)
+        walkTypeUpdates(element, updateList.elementType(), existingList.elementType(), op)
       } else if (update.isMapType && existing.isMapType) {
-        val updateKey = update.asMapType().keyType()
-        val existingKey = existing.asMapType().keyType()
-        if (!updateKey.isPrimitiveType || updateKey != existingKey) {
-          throw new UnsupportedOperationException(
-            s"Attribute '$path' can't change map keys from $existingKey to $updateKey")
+        val updateMap = update.asMapType()
+        val existingMap = existing.asMapType()
+        if (!updateMap.keyType().isPrimitiveType || !existingMap.keyType().isPrimitiveType) {
+          // note: geomesa and avro maps always have primitive keys, so this shouldn't come up in practice
+          throw path.error("can't be updated, as only maps with primitive keys are supported")
+        } else if (updateMap.keyType() != existingMap.keyType()) {
+          throw path.error(s"can't change map keys from ${existingMap.keyType()} to ${updateMap.keyType()}")
         }
-        walkTypeUpdates(s"$path.value", update.asMapType().valueType(), existing.asMapType().valueType(), op)
+        val value = path.value
+        checkNullabilityUpdates(value, updateMap.isValueOptional, existingMap.isValueOptional, op)
+        walkTypeUpdates(value, updateMap.valueType(), existingMap.valueType(), op)
       } else if (update.isPrimitiveType && existing.isPrimitiveType) {
         if (update != existing) {
-          op.updateColumn(path, update.asPrimitiveType())
+          if (!TypeUtil.isPromotionAllowed(existing, update.asPrimitiveType())) {
+            throw path.error(s"can't be changed from $existing to $update: the only supported primitive type changes " +
+              "are widening int to long and float to double")
+          }
+          op.updateColumn(path.column, update.asPrimitiveType())
         }
       } else if (update != existing) {
-        throw new UnsupportedOperationException(s"Attribute '$path' can't be changed from $existing to $update")
+        throw path.error(s"can't be changed from $existing to $update")
+      }
+    }
+
+    private def walkStructFields(parent: FieldPath, update: NestedField, existing: NestedField, op: UpdateSchema): Unit = {
+      if (existing == null) {
+        op.addColumn(parent.column, update.name(), update.`type`())
+      } else {
+        val path = parent.field(update.name())
+        checkNullabilityUpdates(path, update.isOptional, existing.isOptional, op)
+        walkTypeUpdates(path, update.`type`(), existing.`type`(), op)
       }
     }
 
@@ -206,6 +251,23 @@ class IcebergSchemaEvolution(catalog: Catalog, tableId: TableIdentifier) extends
           val location = ColumnName.encode(sft.getAttributeDescriptors.asScala.filterNot(_ == descriptor)(position).getLocalName)
           toMove.foldLeft(table.updateSchema())((update, col) => update.moveBefore(col.name(), location)).commit()
         }
+      }
+    }
+
+    /**
+     * Path to a (possibly nested) field
+     *
+     * @param attribute top-level attribute name, used for error messages
+     * @param column iceberg column path, used for schema updates
+     * @param display user-facing description of the nested field, used for error messages
+     */
+    private case class FieldPath(attribute: String, column: String, display: Option[String] = None) {
+      def field(name: String): FieldPath = FieldPath(attribute, s"$column.$name", Some(display.fold(name)(d => s"$d.$name")))
+      def element: FieldPath = FieldPath(attribute, s"$column.element", Some(s"${display.getOrElse("")}[element]"))
+      def value: FieldPath = FieldPath(attribute, s"$column.value", Some(s"${display.getOrElse("")}[value]"))
+      def error(msg: String): UnsupportedOperationException = {
+        val location = display.fold("")(d => s" (nested field '$d')")
+        new UnsupportedOperationException(s"Attribute '$attribute'$location $msg")
       }
     }
   }
