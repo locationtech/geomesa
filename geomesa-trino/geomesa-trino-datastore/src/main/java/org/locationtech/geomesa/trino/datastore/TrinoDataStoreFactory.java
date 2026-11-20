@@ -35,9 +35,12 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
     /** Trino coordinator port (required). */
     public static final Param PORT =
         new Param("trino.port", Integer.class, "Trino port", true);
-    /** Trino catalog; use {@code spatial_iceberg} for Z2 pruning (default {@code spatial_iceberg}). */
+    /** Name of the Trino catalog to query (default {@code spatial_iceberg}); should be a catalog
+     *  defined with the {@code spatial_iceberg} connector for spatial pruning and visibility enforcement. */
     public static final Param CATALOG =
-        new Param("trino.catalog", String.class, "Trino catalog (use spatial_iceberg for Z2 pruning)",
+        new Param("trino.catalog", String.class,
+            "Name of the Trino catalog to query. Must be a catalog defined with the spatial_iceberg "
+                + "connector for spatial pruning and visibility enforcement.",
             false, "spatial_iceberg");
     /** Trino schema (default {@code spatial}). */
     public static final Param SCHEMA =
@@ -102,7 +105,7 @@ public class TrinoDataStoreFactory implements DataStoreFactorySpi {
      * @return parameter descriptors
      */
     @Override public Param[] getParametersInfo() {
-        return new Param[]{HOST, PORT, SCHEMA, USER, AUTHS, SECRET, DELEGATION, DELEGATION_URL,
+        return new Param[]{HOST, PORT, CATALOG, SCHEMA, USER, AUTHS, SECRET, DELEGATION, DELEGATION_URL,
             DELEGATION_USER_HEADER, DELEGATION_GROUPS_HEADER, DELEGATION_AUTHS_HEADER,
             METRICS_REGISTRY_PARAM, METRICS_REGISTRY_CONFIG_PARAM, NAMESPACE};
     }

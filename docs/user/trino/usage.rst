@@ -13,6 +13,10 @@ Parameter                           Type   Description
 =================================== ====== ========================================================================================
 ``trino.host *``                    String Trino coordinator host
 ``trino.port *``                    Int    Trino coordinator port
+``trino.catalog``                   String Name of the Trino catalog to query (default ``spatial_iceberg``). This is the name of
+                                           the catalog properties file, which must define a ``spatial_iceberg`` connector
+                                           (``connector.name=spatial_iceberg``) in order to get spatial partition pruning and
+                                           visibility enforcement. See :ref:`trino_install`.
 ``trino.schema``                    String Trino schema (default ``spatial``)
 ``trino.user``                      String Trino session user
 ``geomesa.security.auths-secret``   String Shared secret presented to Trino as the 'secret' extra credential; must match the
@@ -36,6 +40,7 @@ methods, assuming that the GeoMesa code is on the classpath:
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("trino.host", "trino-coordinator");
     parameters.put("trino.port", 8080);
+    parameters.put("trino.catalog", "spatial_iceberg");
     parameters.put("trino.schema", "spatial");
     org.geotools.api.data.DataStore dataStore =
         org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
