@@ -46,6 +46,30 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |            WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.IntervalHours.key)}),
        |          ${SftUserData.IntervalHours.default}
        |        ) INTO partition_size;
+       |      SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
+       |        WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.MainTableSpace.key)}
+       |        INTO partition_tablespace;
+       |      IF partition_tablespace IS NULL THEN
+       |        index_tablespace := '';
+       |        partition_tablespace := '';
+       |      ELSE
+       |        index_tablespace := ' USING INDEX TABLESPACE '|| quote_ident(partition_tablespace);
+       |        partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
+       |      END IF;
+       |      SELECT COALESCE(
+       |        (SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
+       |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WalLogEnabled.key)}),
+       |          '${SftUserData.WalLogEnabled.default}'
+       |        ) INTO table_wa_logging;
+       |      IF table_wa_logging IS NULL OR table_wa_logging::boolean THEN
+       |        table_wa_logging := '';
+       |      ELSE
+       |        table_wa_logging := 'UNLOGGED ';
+       |      END IF;
+       |      -- release our lock on the user data table, so that we don't hold it while copying rows - otherwise
+       |      -- any ddl on the (shared) user data table will block, and then block all other readers of that table
+       |      COMMIT;
+       |
        |      main_cutoff := ${info.schema.quoted}.truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
        |
        |      -- move data from the write ahead partitions to the main partitions
@@ -112,28 +136,6 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |          GET DIAGNOSTICS unsorted_count := ROW_COUNT;
        |        ELSE
        |          RAISE INFO '% Creating partition with insert % (unattached)', timeofday()::timestamp, partition_name;
-       |
-       |          SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |            WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.MainTableSpace.key)}
-       |            INTO partition_tablespace;
-       |          IF partition_tablespace IS NULL THEN
-       |            index_tablespace := '';
-       |            partition_tablespace := '';
-       |          ELSE
-       |            index_tablespace := ' USING INDEX TABLESPACE '|| quote_ident(partition_tablespace);
-       |            partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
-       |          END IF;
-       |
-       |          SELECT COALESCE(
-       |            (SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |              WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WalLogEnabled.key)}),
-       |              '${SftUserData.WalLogEnabled.default}'
-       |            ) INTO table_wa_logging;
-       |          IF table_wa_logging IS NULL OR table_wa_logging::boolean THEN
-       |            table_wa_logging := '';
-       |          ELSE
-       |            table_wa_logging := 'UNLOGGED ';
-       |          END IF;
        |
        |          -- upper bounds are exclusive
        |          -- this won't have any indices until we attach it to the parent partition table

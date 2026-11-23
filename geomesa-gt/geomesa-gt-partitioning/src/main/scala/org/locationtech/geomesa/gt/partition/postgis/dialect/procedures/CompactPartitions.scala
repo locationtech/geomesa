@@ -72,6 +72,10 @@ object CompactPartitions extends SqlProcedure {
        |        table_wa_logging := 'UNLOGGED ';
        |      END IF;
        |
+       |      -- release our lock on the user data table, so that we don't hold it while sorting rows - otherwise
+       |      -- any ddl on the (shared) user data table will block, and then block all other readers of that table
+       |      COMMIT;
+       |
        |      RAISE INFO '% Compacting partition table %', timeofday()::timestamp, partition_name;
        |      LOCK TABLE ONLY ${info.tables.mainPartitions.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |      -- lock the child table to prevent any inserts that would be lost
