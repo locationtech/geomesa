@@ -29,7 +29,7 @@ class UserDataTable extends Sql {
     val table = TableIdentifier(info.schema.raw, Name.raw)
     val cName = TableName(Name.raw + "_pkey")
     val create =
-      s"""CREATE TABLE IF NOT EXISTS ${table.quoted} (
+      s"""CREATE TABLE IF NOT EXISTS ${table.qualified} (
          |  type_name text not null,
          |  key text not null,
          |  value text not null,
@@ -42,21 +42,21 @@ class UserDataTable extends Sql {
       s"""DO $$$$
          |BEGIN
          |  IF NOT EXISTS (SELECT FROM pg_attribute WHERE attrelid = ${table.asRegclass} AND attname = 'mutable' AND NOT attisdropped) THEN
-         |    ALTER TABLE ${table.quoted} ADD COLUMN IF NOT EXISTS mutable boolean default false;
+         |    ALTER TABLE ${table.qualified} ADD COLUMN IF NOT EXISTS mutable boolean default false;
          |  END IF;
          |END$$$$;""".stripMargin
     val constraint =
       s"""DO $$$$
          |BEGIN
          |  IF NOT EXISTS (SELECT FROM pg_constraint WHERE conname = ${cName.asLiteral} AND conrelid = ${table.asRegclass}) THEN
-         |    ALTER TABLE ${table.quoted} ADD CONSTRAINT ${cName.quoted} PRIMARY KEY (type_name, key);
+         |    ALTER TABLE ${table.qualified} ADD CONSTRAINT ${cName.quoted} PRIMARY KEY (type_name, key);
          |  END IF;
          |END$$$$;""".stripMargin
 
     Seq(create, alter, constraint).foreach(ex.execute)
 
     val insertSql =
-      s"INSERT INTO ${table.quoted} (type_name, key, value, mutable) VALUES (?, ?, ?, ?) " +
+      s"INSERT INTO ${table.qualified} (type_name, key, value, mutable) VALUES (?, ?, ?, ?) " +
           s"ON CONFLICT (type_name, key) DO UPDATE SET value = EXCLUDED.value;"
 
     def insert(config: SftUserData[_], value: String): Unit =

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{SequenceTable, UserDataTable}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.SequenceTable
 
 /**
  * Moves the current write ahead table to a sequential name, and creates a new write ahead table
@@ -44,6 +44,13 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      pexists boolean;           -- table exists check
        |    BEGIN
        |
+       |      ${UserDataConfig.select(info,
+                "partition_tablespace" -> SftUserData.WriteAheadTableSpace,
+                "table_wa_logging" -> SftUserData.WalLogEnabled)}
+       |      ${UserDataConfig.tablespaceClauses("partition_tablespace", "index_space")}
+       |      ${UserDataConfig.walLoggingClause("table_wa_logging")}
+       |      ${UserDataConfig.release}
+       |
        |      -- Serialize slot selection with rotation and cleanup before reading the current sequence.
        |      LOCK TABLE ONLY ${info.tables.writeAhead.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |      SELECT value FROM ${info.schema.quoted}.${SequenceTable.Name.quoted}
@@ -70,26 +77,6 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |        END IF;
        |        UPDATE ${info.schema.quoted}.${SequenceTable.Name.quoted} SET value = seq_val
        |          WHERE type_name = ${literal(info.typeName)};
-       |
-       |        SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WriteAheadTableSpace.key)}
-       |          INTO partition_tablespace;
-       |        IF partition_tablespace IS NULL THEN
-       |          partition_tablespace := '';
-       |          index_space := '';
-       |        ELSE
-       |          partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
-       |          index_space := ' USING INDEX' || partition_tablespace;
-       |        END IF;
-       |
-       |        SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WalLogEnabled.key)}
-       |          INTO table_wa_logging;
-       |        IF table_wa_logging IS NULL OR table_wa_logging::boolean THEN
-       |          table_wa_logging := '';
-       |        ELSE
-       |          table_wa_logging := 'UNLOGGED ';
-       |        END IF;
        |
        |        -- requires SHARE UPDATE EXCLUSIVE
        |        EXECUTE 'CREATE ' || table_wa_logging || 'TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(next_partition) || '(' ||

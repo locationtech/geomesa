@@ -93,15 +93,20 @@ class PartitionedPostgisDataStoreDdlTest extends TestWithSharedPostgisContainer 
             WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
               // simulates a long-running partition maintenance call, which reads from the user data table
               cx.setAutoCommit(false)
+              var future: Future[_] = null
               try {
                 WithClose(cx.createStatement()) { st =>
                   st.execute(s"""LOCK TABLE "$schema".${UserDataTable.Name.quoted} IN ACCESS SHARE MODE""")
                 }
-                val future = CachedThreadPool.submit(() => WithClose(datastore())(_.createSchema(sft)))
+                future = CachedThreadPool.submit(() => WithClose(datastore())(_.createSchema(sft)))
                 future.get(30, TimeUnit.SECONDS) must not(throwA[TimeoutException])
               } finally {
                 cx.rollback()
                 cx.setAutoCommit(true)
+                // if the create was blocked, wait for it to finish so that it doesn't run concurrently with our cleanup
+                if (future != null) {
+                  Try(future.get(30, TimeUnit.SECONDS))
+                }
               }
             }
             ds.getTypeNames.toSeq must contain(sft.getTypeName)
@@ -124,8 +129,6 @@ class PartitionedPostgisDataStoreDdlTest extends TestWithSharedPostgisContainer 
           }
           WithClose(cx.createStatement())(_.execute(s"""CREATE SCHEMA "$schema""""))
           try {
-            // the user data table is created through the search path, same as with the 'schema' data store parameter
-            WithClose(cx.createStatement())(_.execute(s"""SET search_path TO "$schema", public"""))
             implicit val ex: ExecutionContext = new ExecutionContext(cx)
             try {
               UserDataTable.create(info)
@@ -140,7 +143,6 @@ class PartitionedPostgisDataStoreDdlTest extends TestWithSharedPostgisContainer 
               ex.close()
             }
           } finally {
-            WithClose(cx.createStatement())(_.execute("RESET search_path"))
             WithClose(cx.createStatement())(_.execute(s"""DROP SCHEMA "$schema" CASCADE"""))
           }
         }

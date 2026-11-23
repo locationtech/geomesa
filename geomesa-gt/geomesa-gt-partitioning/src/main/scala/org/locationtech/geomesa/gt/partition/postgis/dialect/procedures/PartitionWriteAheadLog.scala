@@ -10,7 +10,7 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{SequenceTable, UserDataTable}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.SequenceTable
 
 /**
  * Partitions the write ahead table into the recent and/or main partition tables
@@ -44,28 +44,14 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |      unsorted_count bigint;
        |    BEGIN
        |      -- constants
-       |      SELECT COALESCE(
-       |        (SELECT value::int FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.IntervalHours.key)}),
-       |        ${SftUserData.IntervalHours.default})
-       |        INTO partition_size;
-       |      SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |        WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.MainTableSpace.key)}
-       |        INTO main_tablespace;
-       |      SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |        WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WriteAheadPartitionsTableSpace.key)}
-       |        INTO wa_tablespace;
-       |      SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |        WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WalLogEnabled.key)}
-       |        INTO table_wa_logging;
-       |      IF table_wa_logging IS NULL OR table_wa_logging::boolean THEN
-       |        table_wa_logging := '';
-       |      ELSE
-       |        table_wa_logging := 'UNLOGGED ';
-       |      END IF;
-       |      -- release our lock on the user data table, so that we don't hold it while copying rows - otherwise
-       |      -- any ddl on the (shared) user data table will block, and then block all other readers of that table
-       |      COMMIT;
+       |      ${UserDataConfig.select(info,
+                "partition_size" -> SftUserData.IntervalHours,
+                "main_tablespace" -> SftUserData.MainTableSpace,
+                "wa_tablespace" -> SftUserData.WriteAheadPartitionsTableSpace,
+                "table_wa_logging" -> SftUserData.WalLogEnabled)}
+       |      partition_size := COALESCE(partition_size, ${SftUserData.IntervalHours.default});
+       |      ${UserDataConfig.walLoggingClause("table_wa_logging")}
+       |      ${UserDataConfig.release}
        |
        |      main_cutoff := ${info.schema.quoted}.truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
        |
