@@ -10,7 +10,6 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
 
 /**
  * Queues partitions older than the configured maximum for concurrent detachment and deletion
@@ -30,16 +29,13 @@ object DropAgedOffPartitions extends SqlProcedure {
        |      main_cutoff timestamp without time zone;     -- max age of the records for main tables
        |      partition_start timestamp without time zone; -- start bounds for the partition we're writing
        |    BEGIN
-       |      SELECT value::int FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |        WHERE key = ${literal(SftUserData.MaxPartitions.key)}
-       |          AND type_name = ${literal(info.typeName)}
-       |        INTO num_partitions;
-       |      IF FOUND THEN
-       |        SELECT COALESCE(
-       |          (SELECT value::int FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |            WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.IntervalHours.key)}),
-       |          ${SftUserData.IntervalHours.default})
-       |          INTO partition_size;
+       |      ${UserDataConfig.select(info,
+                "num_partitions" -> SftUserData.MaxPartitions,
+                "partition_size" -> SftUserData.IntervalHours)}
+       |      partition_size := COALESCE(partition_size, ${SftUserData.IntervalHours.default});
+       |      ${UserDataConfig.release}
+       |
+       |      IF num_partitions IS NOT NULL THEN
        |        main_cutoff := ${info.schema.quoted}.truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
        |        -- remove any partitions that have aged out
        |        partition_start := main_cutoff - (make_interval(hours => partition_size) * num_partitions);

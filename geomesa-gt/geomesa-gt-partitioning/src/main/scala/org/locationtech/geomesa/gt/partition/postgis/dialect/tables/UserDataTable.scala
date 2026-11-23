@@ -28,27 +28,35 @@ class UserDataTable extends Sql {
   override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
     val table = TableIdentifier(info.schema.raw, Name.raw)
     val cName = TableName(Name.raw + "_pkey")
-    val alter =
-      s"""ALTER TABLE IF EXISTS ${table.quoted} ADD COLUMN IF NOT EXISTS mutable boolean default false;"""
     val create =
-      s"""CREATE TABLE IF NOT EXISTS ${table.quoted} (
+      s"""CREATE TABLE IF NOT EXISTS ${table.qualified} (
          |  type_name text not null,
          |  key text not null,
          |  value text not null,
          |  mutable boolean default false
          |);""".stripMargin
+    // migrate tables created before the mutable column was added
+    // note: we check for the column first, as an ALTER TABLE requires an ACCESS EXCLUSIVE lock even if it's a no-op,
+    // which will block behind (and then block) any partition maintenance that is reading from this table
+    val alter =
+      s"""DO $$$$
+         |BEGIN
+         |  IF NOT EXISTS (SELECT FROM pg_attribute WHERE attrelid = ${table.asRegclass} AND attname = 'mutable' AND NOT attisdropped) THEN
+         |    ALTER TABLE ${table.qualified} ADD COLUMN IF NOT EXISTS mutable boolean default false;
+         |  END IF;
+         |END$$$$;""".stripMargin
     val constraint =
       s"""DO $$$$
          |BEGIN
          |  IF NOT EXISTS (SELECT FROM pg_constraint WHERE conname = ${cName.asLiteral} AND conrelid = ${table.asRegclass}) THEN
-         |    ALTER TABLE ${table.quoted} ADD CONSTRAINT ${cName.quoted} PRIMARY KEY (type_name, key);
+         |    ALTER TABLE ${table.qualified} ADD CONSTRAINT ${cName.quoted} PRIMARY KEY (type_name, key);
          |  END IF;
          |END$$$$;""".stripMargin
 
-    Seq(alter, create, constraint).foreach(ex.execute)
+    Seq(create, alter, constraint).foreach(ex.execute)
 
     val insertSql =
-      s"INSERT INTO ${table.quoted} (type_name, key, value, mutable) VALUES (?, ?, ?, ?) " +
+      s"INSERT INTO ${table.qualified} (type_name, key, value, mutable) VALUES (?, ?, ?, ?) " +
           s"ON CONFLICT (type_name, key) DO UPDATE SET value = EXCLUDED.value;"
 
     def insert(config: SftUserData[_], value: String): Unit =

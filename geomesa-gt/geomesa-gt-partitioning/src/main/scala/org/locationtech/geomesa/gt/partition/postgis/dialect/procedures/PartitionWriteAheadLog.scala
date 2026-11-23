@@ -10,7 +10,7 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{SequenceTable, UserDataTable}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.SequenceTable
 
 /**
  * Partitions the write ahead table into the recent and/or main partition tables
@@ -36,17 +36,23 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |      partition_name text;                         -- partition table name
        |      partition_parent text;                       -- partition parent table name
        |      partition_tablespace text;                   -- partition tablespace
+       |      main_tablespace text;                        -- configured tablespace for main partitions
+       |      wa_tablespace text;                          -- configured tablespace for write ahead partitions
        |      index_tablespace text;                       -- index tablespace
        |      table_wa_logging text;                       -- wa log options
        |      pexists boolean;                             -- table exists check
        |      unsorted_count bigint;
        |    BEGIN
        |      -- constants
-       |      SELECT COALESCE(
-       |        (SELECT value::int FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.IntervalHours.key)}),
-       |        ${SftUserData.IntervalHours.default})
-       |        INTO partition_size;
+       |      ${UserDataConfig.select(info,
+                "partition_size" -> SftUserData.IntervalHours,
+                "main_tablespace" -> SftUserData.MainTableSpace,
+                "wa_tablespace" -> SftUserData.WriteAheadPartitionsTableSpace,
+                "table_wa_logging" -> SftUserData.WalLogEnabled)}
+       |      partition_size := COALESCE(partition_size, ${SftUserData.IntervalHours.default});
+       |      ${UserDataConfig.walLoggingClause("table_wa_logging")}
+       |      ${UserDataConfig.release}
+       |
        |      main_cutoff := ${info.schema.quoted}.truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
        |
        |      SELECT value from ${info.schema.quoted}.${SequenceTable.Name.quoted}
@@ -112,9 +118,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              partition_end := partition_start + make_interval(hours => partition_size);
        |              partition_parent := ${info.tables.mainPartitions.name.asLiteral};
        |              partition_name := partition_parent || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24');
-       |              SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |                WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.MainTableSpace.key)}
-       |                INTO partition_tablespace;
+       |              partition_tablespace := main_tablespace;
        |              IF partition_tablespace IS NULL THEN
        |                index_tablespace := '';
        |                partition_tablespace := '${info.tables.mainPartitions.storage.opts}';
@@ -136,9 +140,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              partition_end := partition_start + INTERVAL '10 MINUTES';
        |              partition_parent := ${info.tables.writeAheadPartitions.name.asLiteral};
        |              partition_name := partition_parent || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24_MI');
-       |              SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |                WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WriteAheadPartitionsTableSpace.key)}
-       |                INTO partition_tablespace;
+       |              partition_tablespace := wa_tablespace;
        |              IF partition_tablespace IS NULL THEN
        |                index_tablespace := '';
        |                partition_tablespace := '${info.tables.writeAheadPartitions.storage.opts}';
@@ -173,15 +175,6 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              GET DIAGNOSTICS unsorted_count := ROW_COUNT;
        |            ELSE
        |              RAISE INFO '% Creating partition with insert % (unattached)', timeofday()::timestamp, partition_name;
-       |
-       |              SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
-       |                WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WalLogEnabled.key)}
-       |                INTO table_wa_logging;
-       |              IF table_wa_logging IS NULL OR table_wa_logging::boolean THEN
-       |                table_wa_logging := '';
-       |              ELSE
-       |                table_wa_logging := 'UNLOGGED ';
-       |              END IF;
        |
        |              -- upper bounds are exclusive
        |              -- use "create table as" (vs create then insert) for performance benefits related to WAL skipping

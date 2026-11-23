@@ -84,6 +84,71 @@ class PartitionedPostgisDataStoreDdlTest extends TestWithSharedPostgisContainer 
       }
     }
 
+    "create schemas without blocking on readers of the user data table" in {
+      WithClose(datastore()) { ds =>
+        // ensures that the user data table exists
+        testSchema(ds, "userdata-lock-existing") { _ =>
+          val sft = this.sft("userdata-lock-create")
+          try {
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+              // simulates a long-running partition maintenance call, which reads from the user data table
+              cx.setAutoCommit(false)
+              var future: Future[_] = null
+              try {
+                WithClose(cx.createStatement()) { st =>
+                  st.execute(s"""LOCK TABLE "$schema".${UserDataTable.Name.quoted} IN ACCESS SHARE MODE""")
+                }
+                future = CachedThreadPool.submit(() => WithClose(datastore())(_.createSchema(sft)))
+                future.get(30, TimeUnit.SECONDS) must not(throwA[TimeoutException])
+              } finally {
+                cx.rollback()
+                cx.setAutoCommit(true)
+                // if the create was blocked, wait for it to finish so that it doesn't run concurrently with our cleanup
+                if (future != null) {
+                  Try(future.get(30, TimeUnit.SECONDS))
+                }
+              }
+            }
+            ds.getTypeNames.toSeq must contain(sft.getTypeName)
+          } finally {
+            Try(ds.removeSchema(sft.getTypeName))
+          }
+        }
+      }
+    }
+
+    "migrate user data tables that don't have a mutable column" in {
+      val schema = "userdata_migrate" // use a separate schema so that we don't interfere with other tests
+      val info = TypeInfo(schema, this.sft("userdata-migrate"))
+      WithClose(datastore()) { ds =>
+        WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          def columns(): Seq[String] = {
+            WithClose(cx.getMetaData.getColumns(null, schema, UserDataTable.Name.raw, null)) { rs =>
+              Iterator.continually(rs).takeWhile(_.next()).map(_.getString("COLUMN_NAME")).toList
+            }
+          }
+          WithClose(cx.createStatement())(_.execute(s"""CREATE SCHEMA "$schema""""))
+          try {
+            implicit val ex: ExecutionContext = new ExecutionContext(cx)
+            try {
+              UserDataTable.create(info)
+              columns() must contain("mutable")
+              ex.execute(s"""ALTER TABLE "$schema".${UserDataTable.Name.quoted} DROP COLUMN mutable""")
+              columns() must not(contain("mutable"))
+              UserDataTable.create(info)
+              columns() must contain("mutable")
+              UserDataTable.read(cx, schema, info.typeName) must
+                  havePair(SftUserData.IntervalHours.key -> String.valueOf(hours))
+            } finally {
+              ex.close()
+            }
+          } finally {
+            WithClose(cx.createStatement())(_.execute(s"""DROP SCHEMA "$schema" CASCADE"""))
+          }
+        }
+      }
+    }
+
     "re-create functions" in {
       WithClose(datastore()) { ds =>
         testSchema(ds, "recreate") { sft =>
