@@ -44,6 +44,15 @@ Kafka Zookeeper Deprecation
 As Kafka 4+ no longer supports Zookeeper, GeoMesa has deprecated support for using Zookeeper with the Kafka data store. See
 :ref:`no_zookeeper` for details on migrating.
 
+Cassandra Feature Expiration
+----------------------------
+
+The Cassandra data store now supports feature expiration (``geomesa.feature.expiry``), which was previously ignored.
+Existing schemas that already have it configured will start expiring features written after upgrading, and features
+that have already expired based on an attribute will no longer be written. For ingest-time expiration, index tables
+that were created before upgrading only get a time-to-live once ``updateSchema`` is called for the schema (e.g. with
+the :ref:`cli_update_schema` command). See :ref:`cassandra_feature_expiry` for details.
+
 FileSystem Data Store Compatibility
 -----------------------------------
 

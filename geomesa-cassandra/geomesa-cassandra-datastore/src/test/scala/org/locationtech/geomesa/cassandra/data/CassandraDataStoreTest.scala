@@ -511,15 +511,93 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
       update("")
       ttls() must contain(beEqualTo(0)).forall
 
-      // unsupported expirations
-      update("dtg(1 day)") must throwAn[IllegalArgumentException]
-      update("7301 days") must throwAn[IllegalArgumentException]
-      ds.getSchema(typeName).getUserData.containsKey(FeatureExpiration) must beFalse
-      foreach(Seq("dtg(1 day)", "7301 days")) { expiry =>
-        val unsupported = SimpleFeatureTypes.createType("testexpiryinvalid", s"$spec;$FeatureExpiration='$expiry'")
-        ds.createSchema(unsupported) must throwAn[IllegalArgumentException]
-        ds.getSchema("testexpiryinvalid") must beNull
+      // switching to attribute-based expiration removes the table-level ttl
+      update("1 day")
+      ttls() must contain(beEqualTo(86400)).forall
+      // updating with the same expiration re-applies the ttl, e.g. for tables created before expiration was supported
+      ds.getAllIndexTableNames(typeName).foreach { table =>
+        ds.session.execute(org.locationtech.geomesa.cassandra.schemaStatement(s"ALTER TABLE $table WITH default_time_to_live = 0"))
       }
+      ttls() must contain(beEqualTo(0)).forall
+      update("1 day")
+      ttls() must contain(beEqualTo(86400)).forall
+      update("dtg(1 day)")
+      ttls() must contain(beEqualTo(0)).forall
+
+      // unsupported expirations
+      update("7301 days") must throwAn[IllegalArgumentException]
+      ds.getSchema(typeName).getUserData.get(FeatureExpiration) mustEqual "dtg(1 day)"
+      val unsupported = SimpleFeatureTypes.createType("testexpiryinvalid", s"$spec;$FeatureExpiration='7301 days'")
+      ds.createSchema(unsupported) must throwAn[IllegalArgumentException]
+      ds.getSchema("testexpiryinvalid") must beNull
+
+      ds.removeSchema(typeName)
+      ds.getSchema(typeName) must beNull
+    }
+
+    "support attribute-based feature expiry" in {
+      import SimpleFeatureTypes.Configs.FeatureExpiration
+
+      val typeName = "testattributeexpiry"
+      val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
+
+      def query(filter: String): Seq[SimpleFeature] =
+        CloseableIterator(ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter)), Transaction.AUTO_COMMIT)).toList
+
+      ds.getSchema(typeName) must beNull
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, s"$spec;$FeatureExpiration='dtg(8 seconds)'"))
+      val sft = ds.getSchema(typeName)
+      sft must not(beNull)
+
+      val tables = ds.getAllIndexTableNames(typeName)
+      tables must haveLength(4) // id, z3, z2, attr
+      // no table-level ttl, as it's set per row
+      foreach(tables) { table =>
+        val cql = "SELECT default_time_to_live FROM system_schema.tables WHERE keyspace_name = ? AND table_name = ?"
+        ds.session.execute(SimpleStatement.newInstance(cql, "geomesa_cassandra", table)).one().getInt(0) mustEqual 0
+      }
+
+      val now = System.currentTimeMillis()
+      val dates = Seq(
+        new java.util.Date(now), // expires in 8 seconds
+        new java.util.Date(now - 86400000L), // already expired, not written
+        null, // no date to expire from, expired like in other data stores
+        new java.util.Date(now + 100L * 365 * 86400000L) // ttl is capped to expire before 2038
+      )
+      val features = dates.zipWithIndex.map { case (date, i) =>
+        val sf = ScalaSimpleFeature.create(sft, s"$i", s"name$i", date, s"POINT(4$i 5$i)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf: SimpleFeature
+      }
+      ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+          .addFeatures(new ListFeatureCollection(sft, features.asJava))
+
+      val filters = Seq("INCLUDE", "IN('0', '1', '2', '3')", "name IN ('name0', 'name1', 'name2', 'name3')",
+        "bbox(geom, 39, 49, 44, 54)")
+
+      foreach(filters)(f => query(f).map(_.getID) must containTheSameElementsAs(Seq("0", "3")))
+
+      // check the capped ttl on the stored rows
+      foreach(tables) { table =>
+        val ttl = ds.session.execute(s"SELECT TTL(sf) FROM $table").all().asScala.map(_.getInt(0))
+        ttl must haveLength(2)
+        val max = CassandraIndexAdapter.maxTimeToLive(now)
+        ttl.max must beBetween(max - 60, max)
+        ttl.min must beBetween(1, 8)
+      }
+
+      eventually(40, 500.millis)(foreach(filters)(f => query(f).map(_.getID) mustEqual Seq("3")))
+
+      // updating the feature recalculates the ttl - an expired date removes it
+      val writer = ds.getFeatureWriter(typeName, ECQL.toFilter("IN('3')"), Transaction.AUTO_COMMIT)
+      try {
+        writer.hasNext must beTrue
+        writer.next().setAttribute("dtg", new java.util.Date(now - 86400000L))
+        writer.write()
+      } finally {
+        writer.close()
+      }
+      foreach(filters)(f => query(f) must beEmpty)
 
       ds.removeSchema(typeName)
       ds.getSchema(typeName) must beNull

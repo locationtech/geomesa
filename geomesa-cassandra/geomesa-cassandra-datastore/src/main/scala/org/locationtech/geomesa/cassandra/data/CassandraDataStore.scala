@@ -65,10 +65,11 @@ class CassandraDataStore(val session: CqlSession, override val config: Cassandra
     sft.getUserData.put(SimpleFeatureTypes.Configs.UpdateRenameTables, java.lang.Boolean.FALSE)
     super.preSchemaUpdate(sft, previous)
     // validate any feature expiration - only if changed, so that existing schemas with an unsupported expiration
-    // can still be updated
+    // (e.g. shared tables) can still be updated
     if (sft.getFeatureExpiration != previous.getFeatureExpiration) {
       // noinspection ScalaDeprecation
-      if (CassandraIndexAdapter.timeToLive(sft) > 0 && sft.isTableSharing) {
+      CassandraIndexAdapter.timeToLive(sft) // validates the expiration
+      if (sft.isFeatureExpirationEnabled && sft.isTableSharing) {
         throw new IllegalArgumentException("Feature expiration is not supported for schemas with shared tables")
       }
     }
@@ -77,7 +78,10 @@ class CassandraDataStore(val session: CqlSession, override val config: Cassandra
   override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     super.onSchemaUpdated(sft, previous)
     // update the time-to-live of existing tables - note that this only affects rows written afterwards
-    if (sft.getFeatureExpiration != previous.getFeatureExpiration) {
+    // this is done whenever an expiration is configured, so that tables created before expiration was supported
+    // can be updated
+    // noinspection ScalaDeprecation
+    if ((sft.isFeatureExpirationEnabled || previous.isFeatureExpirationEnabled) && !sft.isTableSharing) {
       val ttl = CassandraIndexAdapter.timeToLive(sft)
       val keyspace = session.getKeyspace.flatMap(session.getMetadata.getKeyspace)
       manager.indices(sft).flatMap(_.getTableNames()).distinct.foreach { table =>
