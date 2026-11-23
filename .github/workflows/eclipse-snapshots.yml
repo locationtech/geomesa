@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [ "2.12", "2.13" ]
+        scala-version: [ "2.12", "2.13" ]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -39,7 +39,7 @@ jobs:
         id: check
         if: github.event_name == 'schedule'
         env:
-          SCALA_VERSION: ${{ matrix.version }}
+          SCALA_VERSION: ${{ matrix.scala-version }}
         run: |
           base="https://repo.eclipse.org/content/groups/snapshots/org/locationtech/geomesa"
           version="$(sed -n 's|^    <version>\(.*\)</version>|\1|p' pom.xml | head -n1)"
@@ -95,7 +95,7 @@ jobs:
           EOF
       - name: Set Scala version
         if: steps.check.outputs.skip != 'true'
-        run: ./build/scripts/change-scala-version.sh ${{ matrix.version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Build with Maven
         if: steps.check.outputs.skip != 'true'
         run: mvn clean deploy -Peclipse -DskipTests -Dmaven.deploy.at.end=false $MAVEN_CLI_OPTS
