@@ -29,6 +29,8 @@ import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.utils.conf.FeatureExpiration
+import org.locationtech.geomesa.utils.conf.FeatureExpiration.IngestTimeExpiration
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 import java.nio.ByteBuffer
@@ -52,7 +54,8 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       val (partitions, pks) = columns.dropRight(1).partition(_.partition) // drop serialized feature col
       val create = s"CREATE TABLE $table (${columns.map(c => s"${c.name} ${c.cType}").mkString(", ")}, " +
           s"PRIMARY KEY (${partitions.map(_.name).mkString("(", ", ", ")")}" +
-          s"${if (pks.nonEmpty) { pks.map(_.name).mkString(", ", ", ", "")} else { "" }}))"
+          s"${if (pks.nonEmpty) { pks.map(_.name).mkString(", ", ", ", "")} else { "" }}))" +
+          CassandraIndexAdapter.tableOptions(index.sft)
       logger.debug(create)
       try { ds.session.execute(schemaStatement(create)) } catch {
         case _: AlreadyExistsException => // ignore, another thread created it for us
@@ -137,7 +140,57 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 
 object CassandraIndexAdapter extends LazyLogging {
 
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   val TableNameLimit = 48
+
+  /**
+   * Max time-to-live supported by Cassandra (20 years)
+   */
+  val MaxTimeToLive: Int = 20 * 365 * 24 * 60 * 60
+
+  /**
+   * Gets the table-level time-to-live for a feature type, based on its feature expiration. Only ingest-time
+   * expiration is supported, which maps to the Cassandra `default_time_to_live` table option.
+   *
+   * @param sft simple feature type
+   * @throws IllegalArgumentException if the feature expiration isn't supported
+   * @return time-to-live in seconds, or 0 if no expiration is configured
+   */
+  @throws(classOf[IllegalArgumentException])
+  def timeToLive(sft: SimpleFeatureType): Int = {
+    sft.getFeatureExpiration match {
+      case None => 0
+      case Some(IngestTimeExpiration(ttl)) =>
+        // round up so that features never expire before the configured time
+        val seconds = math.ceil(ttl.toMillis / 1000d).toLong
+        if (seconds > MaxTimeToLive) {
+          throw new IllegalArgumentException(
+            s"Invalid feature expiration '$ttl': Cassandra supports a time-to-live of up to 20 years " +
+                s"($MaxTimeToLive seconds)")
+        }
+        seconds.toInt
+      case Some(expiration) =>
+        throw new IllegalArgumentException(
+          "Feature expiration based on an attribute is not supported by the Cassandra data store: " +
+              FeatureExpiration.unapply(expiration).getOrElse(expiration.toString))
+    }
+  }
+
+  /**
+   * Table options used when creating index tables for a feature type
+   *
+   * @param sft simple feature type
+   * @return CQL to append to a create table statement
+   */
+  private def tableOptions(sft: SimpleFeatureType): String = {
+    sft.getFeatureExpiration match {
+      // note: other expirations are rejected when creating or updating the schema, but are ignored here so that
+      // schemas created before they were rejected can still create new (partition) tables
+      case Some(_: IngestTimeExpiration) => s" WITH default_time_to_live = ${timeToLive(sft)}"
+      case _ => ""
+    }
+  }
 
   // matches the key ranges that GeoMesaFeatureIndex uses to identify full table scans
   private val FullTableKeyRange: Seq[ScanRange[_]] = Seq(UnboundedRange(null))

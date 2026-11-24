@@ -37,6 +37,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.{DockerImageName, MountableFile}
 
 import java.io.IOException
+import scala.concurrent.duration.DurationInt
 
 @RunWith(classOf[JUnitRunner])
 class CassandraDataStoreTest extends Specification with BeforeAfterAll {
@@ -459,6 +460,69 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
         ds.getSchema(typeName) must beNull
         ds.createSchema(SimpleFeatureTypes.createType(typeName, spec)) must not(throwAn[Exception])
       }
+    }
+
+    "support ingest-time feature expiry" in {
+      import SimpleFeatureTypes.Configs.FeatureExpiration
+
+      val typeName = "testexpiry"
+      val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
+
+      def ttl(table: String): Int = {
+        val cql = "SELECT default_time_to_live FROM system_schema.tables WHERE keyspace_name = ? AND table_name = ?"
+        ds.session.execute(SimpleStatement.newInstance(cql, "geomesa_cassandra", table)).one().getInt(0)
+      }
+      def ttls(): Seq[Int] = ds.getAllIndexTableNames(typeName).map(ttl)
+      def update(expiry: String): Unit = {
+        val sft = SimpleFeatureTypes.copy(ds.getSchema(typeName))
+        sft.getUserData.put(FeatureExpiration, expiry) // an empty value removes the expiry
+        ds.updateSchema(typeName, sft)
+      }
+      def query(filter: String): Seq[SimpleFeature] =
+        CloseableIterator(ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter)), Transaction.AUTO_COMMIT)).toList
+
+      ds.getSchema(typeName) must beNull
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, s"$spec;$FeatureExpiration='8 seconds'"))
+      val sft = ds.getSchema(typeName)
+      sft must not(beNull)
+
+      ds.getAllIndexTableNames(typeName) must haveLength(4) // id, z3, z2, attr
+      ttls() must contain(beEqualTo(8)).forall
+      ttl(params(Params.CatalogParam.getName)) mustEqual 0 // the catalog table should never expire
+
+      val features = (0 until 2).map { i =>
+        val sf = ScalaSimpleFeature.create(sft, s"$i", s"name$i", "2024-01-01T00:00:00.000Z", s"POINT(4$i 5$i)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf: SimpleFeature
+      }
+      ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+          .addFeatures(new ListFeatureCollection(sft, features.asJava))
+
+      val filters = Seq("INCLUDE", "IN('0', '1')", "name = 'name0' OR name = 'name1'", "bbox(geom, 39, 49, 42, 52)",
+        "bbox(geom, 39, 49, 42, 52) AND dtg during 2023-12-31T00:00:00.000Z/2024-01-02T00:00:00.000Z")
+
+      foreach(filters)(f => query(f) must containTheSameElementsAs(features))
+      eventually(40, 500.millis)(foreach(filters)(f => query(f) must beEmpty))
+
+      // update the expiry on the existing tables
+      update("1 day")
+      ttls() must contain(beEqualTo(86400)).forall
+      // remove the expiry
+      update("")
+      ttls() must contain(beEqualTo(0)).forall
+
+      // unsupported expirations
+      update("dtg(1 day)") must throwAn[IllegalArgumentException]
+      update("7301 days") must throwAn[IllegalArgumentException]
+      ds.getSchema(typeName).getUserData.containsKey(FeatureExpiration) must beFalse
+      foreach(Seq("dtg(1 day)", "7301 days")) { expiry =>
+        val unsupported = SimpleFeatureTypes.createType("testexpiryinvalid", s"$spec;$FeatureExpiration='$expiry'")
+        ds.createSchema(unsupported) must throwAn[IllegalArgumentException]
+        ds.getSchema("testexpiryinvalid") must beNull
+      }
+
+      ds.removeSchema(typeName)
+      ds.getSchema(typeName) must beNull
     }
   }
 
