@@ -91,6 +91,11 @@ provide some benefit when exporting data in certain formats (e.g. Arrow):
     existing.getUserData().put("geomesa.fid.uuid-encoded", "false");
     datastore.updateSchema("existing", existing);
 
+.. note::
+
+    The Cassandra data store does not support UUID encoding, and will disable it when creating a schema. Feature IDs
+    can still be indicated as UUIDs, but they will be stored as strings.
+
 .. warning::
 
     Ensure that you use valid UUIDs if you indicate that you are using them. Otherwise you will experience
