@@ -28,18 +28,18 @@ updated feature.
 * Ingest-time expiration uses the Cassandra ``default_time_to_live`` table option, which is set on each index table
   for the schema. Cassandra supports a time-to-live of up to 20 years.
 * Attribute-based expiration sets the time-to-live of each feature when it is written. Features that have already
-  expired, or that don't have a value for the attribute, are not written. For dates far in the future, the
-  time-to-live is capped as described below.
+  expired, or that don't have a value for the attribute, are not written. For features that would expire more
+  than 20 years in the future, the time-to-live is capped at 20 years.
 
 .. warning::
 
     Cassandra versions before 5.0, and Cassandra 5.0 running in a storage compatibility mode (the default
     ``storage_compatibility_mode`` for 5.0 is ``CASSANDRA_4``), can't store expiration dates after 2038-01-19. See
-    `CASSANDRA-14227 <https://issues.apache.org/jira/browse/CASSANDRA-14227>`__. With ingest-time expiration, writes
-    that would expire after that date are handled according to Cassandra's expiration date overflow policy, which
-    rejects them by default. With attribute-based expiration, the time-to-live of each feature is capped so that it
-    expires at the latest one day before that date. As GeoMesa can't tell which storage mode the cluster uses, this
-    cap is applied for all Cassandra versions.
+    `CASSANDRA-14227 <https://issues.apache.org/jira/browse/CASSANDRA-14227>`__. Writes that would expire after
+    that date are handled according to the Cassandra expiration date overflow policy, set through the system
+    property ``cassandra.expiration_date_overflow_policy``. The default policy ``REJECT`` fails the write, while
+    ``CAP`` stores the feature with the latest supported expiration date. Cassandra 5.0 with
+    ``storage_compatibility_mode: NONE`` supports later expiration dates.
 
 Expired data is removed from disk through compaction, after the table's ``gc_grace_seconds`` have passed. For data
 that expires, the ``TimeWindowCompactionStrategy`` is generally more efficient than the default compaction strategy.

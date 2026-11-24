@@ -177,31 +177,21 @@ object CassandraIndexAdapter extends LazyLogging {
   }
 
   /**
-   * Gets the time-to-live for a feature with an attribute-based expiration
+   * Gets the time-to-live for a feature with an attribute-based expiration.
+   *
+   * Note that expiration dates after 2038-01-19 are handled by the Cassandra expiration date overflow policy
+   * (see CASSANDRA-14227), which rejects them by default for Cassandra versions before 5.0, or 5.0 running in a
+   * storage compatibility mode
    *
    * @param expiration expiration
    * @param feature feature
-   * @return time-to-live in seconds, capped at the max supported by Cassandra, or a non-positive value if the
-   *         feature has already expired
+   * @return time-to-live in seconds, capped at the max supported by Cassandra (20 years), or a non-positive value
+   *         if the feature has already expired
    */
   def timeToLive(expiration: FeatureTimeExpiration, feature: SimpleFeature): Int = {
-    val now = System.currentTimeMillis()
-    val millis = expiration.expires(feature) - now
+    val millis = expiration.expires(feature) - System.currentTimeMillis()
     // round up so that features never expire before the configured time
-    math.min(math.ceil(millis / 1000d), maxTimeToLive(now)).toInt
-  }
-
-  /**
-   * Gets the max time-to-live that can be used for a write. Cassandra versions before 5.0 (or 5.0 running in a
-   * storage compatibility mode) reject expiration dates after 2038-01-19 (see CASSANDRA-14227), so the time-to-live
-   * is limited to expire before then, with a one day margin for clock differences
-   *
-   * @param now current time, in millis
-   * @return max time-to-live, in seconds
-   */
-  def maxTimeToLive(now: Long): Int = {
-    val beforeMaxExpiration = (Int.MaxValue - 1L) - (now / 1000L) - (24 * 60 * 60)
-    math.max(0L, math.min(MaxTimeToLive.toLong, beforeMaxExpiration)).toInt
+    math.min(math.ceil(millis / 1000d), MaxTimeToLive).toInt
   }
 
   /**

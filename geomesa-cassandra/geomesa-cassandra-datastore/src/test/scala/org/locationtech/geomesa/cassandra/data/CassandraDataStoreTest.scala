@@ -24,6 +24,7 @@ import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.LooseBBoxParam
 import org.locationtech.geomesa.index.utils.{ExplainString, Explainer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.conf.FeatureExpiration.FeatureTimeExpiration
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.slf4j.LoggerFactory
@@ -562,7 +563,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
         new java.util.Date(now), // expires in 8 seconds
         new java.util.Date(now - 86400000L), // already expired, not written
         null, // no date to expire from, expired like in other data stores
-        new java.util.Date(now + 100L * 365 * 86400000L) // ttl is capped to expire before 2038
+        new java.util.Date(now + 365L * 86400000L) // expires in a year
       )
       val features = dates.zipWithIndex.map { case (date, i) =>
         val sf = ScalaSimpleFeature.create(sft, s"$i", s"name$i", date, s"POINT(4$i 5$i)")
@@ -577,14 +578,19 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
 
       foreach(filters)(f => query(f).map(_.getID) must containTheSameElementsAs(Seq("0", "3")))
 
-      // check the capped ttl on the stored rows
+      // check the ttl on the stored rows
       foreach(tables) { table =>
         val ttl = ds.session.execute(s"SELECT TTL(sf) FROM $table").all().asScala.map(_.getInt(0))
         ttl must haveLength(2)
-        val max = CassandraIndexAdapter.maxTimeToLive(now)
-        ttl.max must beBetween(max - 60, max)
+        ttl.max must beBetween(365 * 86400 - 60, 365 * 86400 + 8)
         ttl.min must beBetween(1, 8)
       }
+
+      // ttls are capped at the max supported by cassandra
+      val expiration = FeatureTimeExpiration("dtg", sft.indexOf("dtg"), 8.seconds)
+      val farFuture = ScalaSimpleFeature.create(sft, "4", "name4", new java.util.Date(now + 100L * 365 * 86400000L),
+        "POINT(44 54)")
+      CassandraIndexAdapter.timeToLive(expiration, farFuture) mustEqual CassandraIndexAdapter.MaxTimeToLive
 
       eventually(40, 500.millis)(foreach(filters)(f => query(f).map(_.getID) mustEqual Seq("3")))
 
