@@ -53,6 +53,11 @@ class CassandraDataStore(val session: CqlSession, override val config: Cassandra
   }
 
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
+    // feature ids are stored in a text column, so uuids can't be stored in their encoded (binary) form
+    if (sft.isUuidEncoded) {
+      logger.warn("UUID feature ID encoding is not supported by the Cassandra data store - disabling UUID encoding")
+      sft.getUserData.put(SimpleFeatureTypes.Configs.FidsAreUuidEncoded, "false")
+    }
     super.preSchemaCreate(sft)
     CassandraIndexAdapter.timeToLive(sft) // validate any feature expiration
   }
