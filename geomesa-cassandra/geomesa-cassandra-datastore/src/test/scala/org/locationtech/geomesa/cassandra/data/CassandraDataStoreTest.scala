@@ -37,6 +37,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.{DockerImageName, MountableFile}
 
 import java.io.IOException
+import scala.concurrent.duration.DurationInt
 
 @RunWith(classOf[JUnitRunner])
 class CassandraDataStoreTest extends Specification with BeforeAfterAll {
@@ -396,6 +397,65 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
       }
     }
 
+    "disable uuid encoding of feature ids" in {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+      // the fid column is text, so uuids can't be stored in their encoded (binary) form
+      val configs = Seq(
+        "testuuids" -> Map(SimpleFeatureTypes.Configs.FidsAreUuids -> "true"),
+        "testuuidsencoded" ->
+            Map(SimpleFeatureTypes.Configs.FidsAreUuids -> "true", SimpleFeatureTypes.Configs.FidsAreUuidEncoded -> "true")
+      )
+
+      foreach(configs) { case (typeName, userData) =>
+        ds.getSchema(typeName) must beNull
+
+        val toCreate = SimpleFeatureTypes.createType(typeName, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+        userData.foreach { case (k, v) => toCreate.getUserData.put(k, v) }
+        toCreate.isUuidEncoded must beTrue
+        ds.createSchema(toCreate)
+
+        val sft = ds.getSchema(typeName)
+        sft.isUuid must beTrue
+        sft.isUuidEncoded must beFalse
+
+        // include uuids with bytes that aren't valid utf-8 when encoded
+        val ids = Seq(
+          "2f1c3d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+          "9b8a7c6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d",
+          "ffffffff-ffff-4fff-bfff-ffffffffffff",
+          "00000000-0000-4000-8000-000000000000"
+        )
+
+        val toAdd = ids.zipWithIndex.map { case (id, i) =>
+          val sf = ScalaSimpleFeature.create(sft, id, s"name$i", f"2014-01-${i + 1}%02dT00:00:01.000Z", s"POINT(4$i 5$i)")
+          sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          sf: SimpleFeature
+        }
+
+        val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+        fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava)).asScala.map(_.getID) must containTheSameElementsAs(ids)
+
+        // query each index
+        testQuery(ds, typeName, "INCLUDE", null, toAdd)
+        testQuery(ds, typeName, s"IN('${ids(0)}', '${ids(2)}')", null, Seq(toAdd(0), toAdd(2)))
+        testQuery(ds, typeName, "name = 'name1'", null, Seq(toAdd(1)))
+        testQuery(ds, typeName, "bbox(geom,38,48,52,62)", null, toAdd)
+        testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", null, toAdd)
+
+        // deletes have to remove the rows from each index
+        fs.removeFeatures(ECQL.toFilter(s"IN('${ids(1)}')"))
+        val remaining = toAdd.filterNot(_.getID == ids(1))
+        testQuery(ds, typeName, "INCLUDE", null, remaining)
+        testQuery(ds, typeName, s"IN('${ids(1)}')", null, Seq.empty)
+        testQuery(ds, typeName, "name = 'name1'", null, Seq.empty)
+        testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", null, remaining)
+
+        ds.removeSchema(typeName)
+        ds.getSchema(typeName) must beNull
+      }
+    }
+
     "delete schemas" in {
       val typeName = "testdelete"
 
@@ -459,6 +519,69 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
         ds.getSchema(typeName) must beNull
         ds.createSchema(SimpleFeatureTypes.createType(typeName, spec)) must not(throwAn[Exception])
       }
+    }
+
+    "support ingest-time feature expiry" in {
+      import SimpleFeatureTypes.Configs.FeatureExpiration
+
+      val typeName = "testexpiry"
+      val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
+
+      def ttl(table: String): Int = {
+        val cql = "SELECT default_time_to_live FROM system_schema.tables WHERE keyspace_name = ? AND table_name = ?"
+        ds.session.execute(SimpleStatement.newInstance(cql, "geomesa_cassandra", table)).one().getInt(0)
+      }
+      def ttls(): Seq[Int] = ds.getAllIndexTableNames(typeName).map(ttl)
+      def update(expiry: String): Unit = {
+        val sft = SimpleFeatureTypes.copy(ds.getSchema(typeName))
+        sft.getUserData.put(FeatureExpiration, expiry) // an empty value removes the expiry
+        ds.updateSchema(typeName, sft)
+      }
+      def query(filter: String): Seq[SimpleFeature] =
+        CloseableIterator(ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter)), Transaction.AUTO_COMMIT)).toList
+
+      ds.getSchema(typeName) must beNull
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, s"$spec;$FeatureExpiration='8 seconds'"))
+      val sft = ds.getSchema(typeName)
+      sft must not(beNull)
+
+      ds.getAllIndexTableNames(typeName) must haveLength(4) // id, z3, z2, attr
+      ttls() must contain(beEqualTo(8)).forall
+      ttl(params(Params.CatalogParam.getName)) mustEqual 0 // the catalog table should never expire
+
+      val features = (0 until 2).map { i =>
+        val sf = ScalaSimpleFeature.create(sft, s"$i", s"name$i", "2024-01-01T00:00:00.000Z", s"POINT(4$i 5$i)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf: SimpleFeature
+      }
+      ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+          .addFeatures(new ListFeatureCollection(sft, features.asJava))
+
+      val filters = Seq("INCLUDE", "IN('0', '1')", "name = 'name0' OR name = 'name1'", "bbox(geom, 39, 49, 42, 52)",
+        "bbox(geom, 39, 49, 42, 52) AND dtg during 2023-12-31T00:00:00.000Z/2024-01-02T00:00:00.000Z")
+
+      foreach(filters)(f => query(f) must containTheSameElementsAs(features))
+      eventually(40, 500.millis)(foreach(filters)(f => query(f) must beEmpty))
+
+      // update the expiry on the existing tables
+      update("1 day")
+      ttls() must contain(beEqualTo(86400)).forall
+      // remove the expiry
+      update("")
+      ttls() must contain(beEqualTo(0)).forall
+
+      // unsupported expirations
+      update("dtg(1 day)") must throwAn[IllegalArgumentException]
+      update("7301 days") must throwAn[IllegalArgumentException]
+      ds.getSchema(typeName).getUserData.containsKey(FeatureExpiration) must beFalse
+      foreach(Seq("dtg(1 day)", "7301 days")) { expiry =>
+        val unsupported = SimpleFeatureTypes.createType("testexpiryinvalid", s"$spec;$FeatureExpiration='$expiry'")
+        ds.createSchema(unsupported) must throwAn[IllegalArgumentException]
+        ds.getSchema("testexpiryinvalid") must beNull
+      }
+
+      ds.removeSchema(typeName)
+      ds.getSchema(typeName) must beNull
     }
   }
 

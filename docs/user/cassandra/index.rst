@@ -20,4 +20,5 @@ source distribution.
     geoserver
     commandline
     configuration
+    index_config
     heatmaps

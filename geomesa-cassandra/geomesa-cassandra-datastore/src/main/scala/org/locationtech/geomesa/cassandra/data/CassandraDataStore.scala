@@ -52,6 +52,16 @@ class CassandraDataStore(val session: CqlSession, override val config: Cassandra
     tables.toList.map(t => CachedThreadPool.submit(() => session.execute(schemaStatement(s"drop table $t")))).foreach(_.get)
   }
 
+  override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
+    // feature ids are stored in a text column, so uuids can't be stored in their encoded (binary) form
+    if (sft.isUuidEncoded) {
+      logger.warn("UUID feature ID encoding is not supported by the Cassandra data store - disabling UUID encoding")
+      sft.getUserData.put(SimpleFeatureTypes.Configs.FidsAreUuidEncoded, "false")
+    }
+    super.preSchemaCreate(sft)
+    CassandraIndexAdapter.timeToLive(sft) // validate any feature expiration
+  }
+
   override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     val rename = sft.getUserData.remove(SimpleFeatureTypes.Configs.UpdateRenameTables)
     if (FastConverter.convert(rename, classOf[java.lang.Boolean]) == java.lang.Boolean.TRUE) {
@@ -59,6 +69,30 @@ class CassandraDataStore(val session: CqlSession, override val config: Cassandra
     }
     sft.getUserData.put(SimpleFeatureTypes.Configs.UpdateRenameTables, java.lang.Boolean.FALSE)
     super.preSchemaUpdate(sft, previous)
+    // validate any feature expiration - only if changed, so that existing schemas with an unsupported expiration
+    // can still be updated
+    if (sft.getFeatureExpiration != previous.getFeatureExpiration) {
+      // noinspection ScalaDeprecation
+      if (CassandraIndexAdapter.timeToLive(sft) > 0 && sft.isTableSharing) {
+        throw new IllegalArgumentException("Feature expiration is not supported for schemas with shared tables")
+      }
+    }
+  }
+
+  override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+    super.onSchemaUpdated(sft, previous)
+    // update the time-to-live of existing tables - note that this only affects rows written afterwards
+    if (sft.getFeatureExpiration != previous.getFeatureExpiration) {
+      val ttl = CassandraIndexAdapter.timeToLive(sft)
+      val keyspace = session.getKeyspace.flatMap(session.getMetadata.getKeyspace)
+      manager.indices(sft).flatMap(_.getTableNames()).distinct.foreach { table =>
+        if (keyspace.flatMap(_.getTable(table)).isPresent) {
+          val alter = s"ALTER TABLE $table WITH default_time_to_live = $ttl"
+          logger.debug(alter)
+          session.execute(schemaStatement(alter))
+        }
+      }
+    }
   }
 
   override protected def transitionIndices(sft: SimpleFeatureType): Unit = {
