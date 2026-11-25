@@ -340,6 +340,58 @@ class PartitionedPostgisDataStoreUpdateSchemaTest extends TestWithSharedPostgisC
       }
     }
 
+    "add an index to an existing attribute through a new generation" in {
+      WithClose(datastore()) { ds =>
+        testSchema(ds, "update-schema-add-index") { sft =>
+          def indexed(info: TypeInfo): Boolean = {
+            val sql = "SELECT count(*) FROM pg_indexes WHERE schemaname = ? AND tablename = ? AND indexdef LIKE '%(age)%'"
+            WithClose(ds.getConnection(Transaction.AUTO_COMMIT)) { cx =>
+              WithClose(cx.prepareStatement(sql)) { st =>
+                st.setString(1, this.schema)
+                st.setString(2, info.tables.mainPartitions.name.raw)
+                WithClose(st.executeQuery()) { rs =>
+                  rs.next() must beTrue
+                  rs.getInt(1) > 0
+                }
+              }
+            }
+          }
+          val original = TypeInfo(this.schema, sft)
+          Columns.indexed(sft.getDescriptor("age")) must beFalse
+          indexed(original) must beFalse
+          val features = writeFeatures(ds, sft)
+
+          val update = SimpleFeatureTypes.createType(sft.getTypeName, spec.replace("age:Int", "age:Int:index=true"))
+          ds.updateSchema(sft.getTypeName, update)
+
+          // the index is added through a new generation, without modifying the existing tables
+          val current = typeInfo(ds, sft.getTypeName)
+          current.tables.view must not(beEqualTo(original.tables.view))
+          indexed(current) must beTrue
+          indexed(original) must beFalse
+          foreach(Seq(ds.getSchema(sft.getTypeName), WithClose(datastore())(_.getSchema(sft.getTypeName)))) { updated =>
+            attributes(updated) mustEqual attributes(sft)
+            Columns.indexed(updated.getDescriptor("age")) must beTrue
+          }
+
+          // existing features are still available, along with anything written to the new generation
+          query(ds, sft.getTypeName, "age = 3").map(_.getID) mustEqual Seq("fid3")
+          val added = features.take(2).map { f =>
+            val copy = SimpleFeatureBuilder.build(ds.getSchema(sft.getTypeName), f.getAttributes, s"indexed-${f.getID}")
+            copy.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            copy
+          }
+          write(ds, added)
+          query(ds, sft.getTypeName, "age = 1").map(_.getID) mustEqual Seq("fid1", "indexed-fid1")
+          query(ds, sft.getTypeName) must haveLength(12)
+
+          // the attribute is already indexed, so another update doesn't create another generation
+          ds.updateSchema(sft.getTypeName, update)
+          typeInfo(ds, sft.getTypeName).tables.view mustEqual current.tables.view
+        }
+      }
+    }
+
     "update schemas without waiting for locks on the existing view or tables" in {
       WithClose(datastore()) { ds =>
         testSchema(ds, "update-schema-locks") { sft =>
@@ -1303,11 +1355,12 @@ class PartitionedPostgisDataStoreUpdateSchemaTest extends TestWithSharedPostgisC
           writeFeatures(ds, sft)
           val config = SimpleFeatureTypes.createType(sft.getTypeName, spec)
           config.getUserData.put(SftUserData.MaxPartitions.key, "10")
-          // an index can't be added to an existing attribute
+          // index flags are ignored - an upgrade doesn't add indices to the existing tables
           val indexed = SimpleFeatureTypes.createType(sft.getTypeName, spec.replace("age:Int", "age:Int:index=true"))
           indexed.getUserData.put(SftUserData.MaxPartitions.key, "5")
-          ds.upgrade(indexed) must throwAn[UnsupportedOperationException]
-          SftUserData.MaxPartitions.get(ds.getSchema(sft.getTypeName)) must beNone
+          ds.upgrade(indexed)
+          SftUserData.MaxPartitions.get(ds.getSchema(sft.getTypeName)) must beSome(5)
+          Columns.indexed(ds.getSchema(sft.getTypeName).getDescriptor("age")) must beFalse
           ds.upgrade(config)
           WithClose(datastore()) { ds2 =>
             val upgraded = ds2.getSchema(sft.getTypeName)
@@ -1493,8 +1546,6 @@ class PartitionedPostgisDataStoreUpdateSchemaTest extends TestWithSharedPostgisC
             },
             SimpleFeatureTypes.createType(sft.getTypeName, spec.replace("props:String:json=true", "props:String")),
             SimpleFeatureTypes.createType(sft.getTypeName, spec.replace("name:List[String]", "name:List[Integer]")),
-            // adding an index to an existing attribute
-            SimpleFeatureTypes.createType(sft.getTypeName, spec.replace("age:Int", "age:Int:index=true")),
             // adding a required attribute
             update { b => b.minOccurs(1).nillable(false); b.add("required", classOf[String]) },
             // removing the default geometry

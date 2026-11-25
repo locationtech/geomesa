@@ -151,9 +151,9 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore, maxConnections: Optio
    * to 'upgrade in place' if the code is changed.
    *
    * This can be used to alter mutable user data settings, but *cannot* be used to modify the attributes
-   * of the feature type, or to rename it - use `updateSchema` instead. Any attributes in the feature type
-   * are ignored, except that flagging an existing attribute for an index that it doesn't have will fail, same
-   * as with `updateSchema`.
+   * of the feature type, to add indices, or to rename it - use `updateSchema` instead. Any attributes in the
+   * feature type are ignored, including any index flags - indices are never added to the existing tables, as that
+   * would block writes while the index is built.
    *
    * Only the current generation of the feature type is upgraded. Any previous generations (created by adding or
    * removing attributes through `updateSchema`) keep the procedures and triggers that they were created with,
@@ -177,7 +177,7 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore, maxConnections: Optio
       val updated = SimpleFeatureTypes.copy(sft)
       InternalKeys.foreach(updated.getUserData.remove)
       validateUserData(existing, updated)
-      validateIndices(existing, updated)
+      warnIgnoredIndices(existing, updated)
       try { updateConfig(typeName, existing, updated, viewExists) } finally {
         invalidate(typeName)
       }
@@ -325,18 +325,20 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore, maxConnections: Optio
    *  - adding new attributes at the end of the feature type - new attributes must be nillable, and will be null for
    *    any existing features
    *  - removing existing attributes, other than the default date and default geometry
+   *  - adding indices to existing attributes - only features written after the update will be indexed
    *  - renaming the feature type
    *  - updating user data configuration, for any configuration that isn't fixed when the schema is created - any
    *    configuration that is not specified in the updated feature type will be left unchanged
    *
    * Re-ordering or renaming attributes, changing attribute types, or changing the default date or geometry are
-   * not supported. Indices can't be added to existing attributes, unless attributes are also being added or
-   * removed, in which case the new generation is created with the indices specified in the updated feature type.
+   * not supported.
    *
-   * Adding or removing attributes will create a new generation of the feature type, with a new set of tables and a
+   * Adding or removing attributes, or adding an index, will create a new generation of the feature type, with a new set of tables and a
    * new main view which also exposes the data from the existing tables. This does not require any locks on the
    * existing view or tables, so it will not block (or be blocked by) any queries, writes or partition maintenance.
-   * The previous generation will be dropped automatically once all of its data has aged off.
+   * The previous generation will be dropped automatically once all of its data has aged off. The new generation
+   * is created with the indices specified in the updated feature type - the tables for the previous generation
+   * keep the indices that they were created with.
    *
    * Renaming a feature type only changes the name that is exposed by this data store - the underlying view,
    * tables, etc will keep their existing names.
@@ -391,8 +393,20 @@ class PartitionedPostgisDataStore(delegate: JDBCDataStore, maxConnections: Optio
     }
 
     val attributes = existing.getAttributeDescriptors.asScala.map(_.getLocalName).filter(_ != VisCol)
-    if (attributes != updated.getAttributeDescriptors.asScala.map(_.getLocalName)) {
-      // create a new generation with the updated attributes, which will include the existing data through its view
+    // an index can't be added to the existing tables without blocking writes, so it's added through a new generation
+    // note: the index flags are missing from the existing type if they couldn't be loaded, so we verify them against
+    // the database (which will fail if they still can't be loaded), to avoid creating a generation that isn't needed
+    lazy val addsIndex = {
+      val added = addedIndices(existing, updated)
+      added.nonEmpty && {
+        val indexed =
+          WithClose(getDataSource.getConnection)(partitionedDialect.indexedColumns(getDatabaseSchema, existing, _))
+        added.exists(!indexed.contains(_))
+      }
+    }
+    if (attributes != updated.getAttributeDescriptors.asScala.map(_.getLocalName) || addsIndex) {
+      // create a new generation with the updated attributes and indices, which will include the existing data
+      // through its view
       val view = WithClose(getDataSource.getConnection)(partitionedDialect.nextViewName(getDatabaseSchema, name, _))
       val generation = SimpleFeatureTypes.renameSft(updated, view)
       generation.getAttributeDescriptors.asScala.foreach { d =>
@@ -864,10 +878,6 @@ object PartitionedPostgisDataStore extends LazyLogging {
         unsupported(s"Attributes added to an existing schema must be nillable: ${d.getLocalName}")
       }
     }
-    if (added.isEmpty && retained == existing.getAttributeDescriptors.asScala.map(_.getLocalName).filter(_ != VisCol)) {
-      // the attributes aren't changing, so the update is applied to the existing tables
-      validateIndices(existing, updated)
-    }
     // note: when a feature type is loaded from the database, the default geometry will be the first geometry column,
     // so we use the default geometry that was recorded when the feature type was created, if available
     val geom = SftUserData.GeomField.get(existing).orElse(Option(existing.getGeometryDescriptor).map(_.getLocalName))
@@ -885,23 +895,36 @@ object PartitionedPostgisDataStore extends LazyLogging {
   }
 
   /**
-   * Verifies that an update to the existing tables doesn't flag an attribute for an index that it doesn't have - we
-   * don't add indices to existing tables, as that would block writes while the index is built
+   * Gets any existing attributes that are flagged for an index in the updated feature type, but not in the existing
+   * feature type
    *
    * @param existing existing (underlying) feature type
    * @param updated updated (user-facing) feature type - attributes that aren't in the existing type are ignored
+   * @return
    */
-  private def validateIndices(existing: SimpleFeatureType, updated: SimpleFeatureType): Unit = {
+  private def addedIndices(existing: SimpleFeatureType, updated: SimpleFeatureType): Seq[String] = {
     // note: the default date and geometries are always indexed, and aren't controlled by the index flag
-    updated.getAttributeDescriptors.asScala.foreach { to =>
-      val name = to.getLocalName
-      val from = existing.getDescriptor(name)
-      if (from != null && Columns.indexed(to) && !Columns.indexed(from) && !to.isInstanceOf[GeometryDescriptor] &&
-          !SftUserData.DtgField.get(existing).contains(name)) {
-        throw new UnsupportedOperationException(
-          s"Adding an index to an existing attribute is not supported: $name - indices can be added through " +
-            "CREATE INDEX statements on the parent partition tables")
-      }
+    updated.getAttributeDescriptors.asScala.toSeq.collect {
+      case to if !to.isInstanceOf[GeometryDescriptor] && Columns.indexed(to) &&
+          !SftUserData.DtgField.get(existing).contains(to.getLocalName) &&
+          Option(existing.getDescriptor(to.getLocalName)).exists(!Columns.indexed(_)) => to.getLocalName
+    }
+  }
+
+  /**
+   * Logs a warning if a feature type flags an attribute for an index that it doesn't have, when the feature type
+   * is being used to update the existing tables - we don't add indices to existing tables, as that would block
+   * writes while the index is built
+   *
+   * @param existing existing (underlying) feature type
+   * @param updated updated (user-facing) feature type
+   */
+  private def warnIgnoredIndices(existing: SimpleFeatureType, updated: SimpleFeatureType): Unit = {
+    val ignored = addedIndices(existing, updated)
+    if (ignored.nonEmpty) {
+      logger.warn(
+        s"Ignoring index flags for existing attributes of '${updated.getTypeName}': ${ignored.mkString(", ")} - " +
+            "indices can be added to existing attributes through updateSchema")
     }
   }
 

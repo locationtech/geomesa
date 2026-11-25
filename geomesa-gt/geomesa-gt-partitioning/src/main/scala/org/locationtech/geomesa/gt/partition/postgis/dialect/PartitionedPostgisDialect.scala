@@ -193,6 +193,17 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     isView(cx, TableIdentifier(schemaName, viewName))
 
   /**
+   * Gets the names of the attributes that are indexed in the main partition table for a feature type
+   *
+   * @param schemaName database schema
+   * @param sft feature type, as loaded from the jdbc store (i.e. named for its main view)
+   * @param cx connection
+   * @return
+   */
+  def indexedColumns(schemaName: String, sft: SimpleFeatureType, cx: Connection): Seq[String] =
+    getIndexedColumns(cx, TypeInfo(schemaName, sft)).get
+
+  /**
    * Sets the feature type name that is exposed for a view
    *
    * @param schemaName database schema

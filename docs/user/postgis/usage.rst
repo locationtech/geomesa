@@ -60,22 +60,22 @@ supported:
 * Adding new attributes at the end of the feature type. New attributes must be nillable, and will be ``null`` for
   any existing features.
 * Removing existing attributes, other than the default date and default geometry.
+* Adding indices to existing attributes, by flagging the attributes for indexing in the updated feature type.
 * Renaming the feature type, by passing in a feature type with a different name.
 * Updating configuration that is not fixed when the schema is created - see :ref:`postgis_index_config` for details
   on which options can be changed. Any configuration that is not specified in the updated feature type will
   be left unchanged.
 
 Re-ordering or renaming attributes, changing attribute types, and changing the default date or default geometry
-are not supported. Indices can't be added to existing attributes, unless attributes are also being added or removed,
-in which case the new tables are created with the indices specified in the updated feature type. Otherwise, indices
-can be added through ``CREATE INDEX`` statements, as described in :ref:`postgis_index_config`.
+are not supported.
 
-Adding or Removing Attributes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Adding or Removing Attributes or Indices
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Adding or removing attributes creates a new *generation* of the feature type. A new set of tables, procedures and
-scheduled jobs is created, along with a new main view. The new view also exposes the data from the previous
-generation, with ``null`` values for any attributes that were added. New writes go to the new tables.
+Adding or removing attributes, or adding an index to an existing attribute, creates a new *generation* of the
+feature type. A new set of tables, procedures and scheduled jobs is created, along with a new main view. The new
+view also exposes the data from the previous generation, with ``null`` values for any attributes that were added.
+New writes go to the new tables.
 
 Creating a new generation does not modify or lock the existing view or tables. This means that an update will not
 block, or be blocked by, any long-running queries or partition maintenance.
@@ -89,9 +89,23 @@ attempt is skipped and retried on the next maintenance run. If a feature type is
 (see :ref:`postgis_index_config`), then a previous generation that contains features will never be dropped, unless
 the features are deleted. Each generation that has not been dropped adds some overhead to queries.
 
+The new tables are created with the indices specified in the updated feature type. The tables for the previous
+generation are not modified, so an index that is added to an existing attribute will only be used for features that
+are written after the update. To index existing features, indices can be added through ``CREATE INDEX`` statements,
+as described in :ref:`postgis_index_config`.
+
 The data for a removed attribute is not deleted until the generation containing it is dropped, but it is no longer
 accessible through the data store. Changes to the age-off configuration are applied to all generations, but any
 other configuration changes will only apply to the current generation.
+
+.. warning::
+
+    Feature IDs are only checked for uniqueness within a generation. Normally, a feature that is written with the
+    same feature ID and date as an existing feature is ignored. However, if the existing feature is in a previous
+    generation, then the feature will be written to the current generation, and queries will return both copies
+    until the previous generation is dropped. A subsequent update or delete will only modify the copy in the
+    current generation. Avoid re-ingesting data that was written before a schema was updated, unless the
+    existing features are deleted first.
 
 .. note::
 
