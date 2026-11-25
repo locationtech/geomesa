@@ -57,9 +57,17 @@ trait CassandraColumnMapper {
 
   def select(range: ScanRange[_], tieredKeyRanges: Seq[ByteRange]): Seq[RowSelect]
 
-  def insert(session: CqlSession, table: String): PreparedStatement = {
+  /**
+   * Prepare an insert statement
+   *
+   * @param session session
+   * @param table table name
+   * @param ttl include a time-to-live bind marker, after the column values
+   * @return
+   */
+  def insert(session: CqlSession, table: String, ttl: Boolean = false): PreparedStatement = {
     val cql = s"INSERT INTO $table (${columns.map(_.name).mkString(", ")}) " +
-        s"values (${Seq.fill(columns.length)("?").mkString(", ")})"
+        s"values (${Seq.fill(columns.length)("?").mkString(", ")})${if (ttl) { " USING TTL ?" } else { "" }}"
     session.prepare(cql)
   }
 

@@ -29,8 +29,7 @@ import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
 import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.utils.conf.FeatureExpiration
-import org.locationtech.geomesa.utils.conf.FeatureExpiration.IngestTimeExpiration
+import org.locationtech.geomesa.utils.conf.FeatureExpiration.{FeatureTimeExpiration, IngestTimeExpiration}
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 import java.nio.ByteBuffer
@@ -150,12 +149,13 @@ object CassandraIndexAdapter extends LazyLogging {
   val MaxTimeToLive: Int = 20 * 365 * 24 * 60 * 60
 
   /**
-   * Gets the table-level time-to-live for a feature type, based on its feature expiration. Only ingest-time
-   * expiration is supported, which maps to the Cassandra `default_time_to_live` table option.
+   * Gets the table-level time-to-live for a feature type, based on its feature expiration. Ingest-time
+   * expiration maps to the Cassandra `default_time_to_live` table option. Attribute-based expiration doesn't use
+   * a table-level time-to-live, as it's set per row when writing.
    *
    * @param sft simple feature type
    * @throws IllegalArgumentException if the feature expiration isn't supported
-   * @return time-to-live in seconds, or 0 if no expiration is configured
+   * @return time-to-live in seconds, or 0 if no table-level expiration is configured
    */
   @throws(classOf[IllegalArgumentException])
   def timeToLive(sft: SimpleFeatureType): Int = {
@@ -170,11 +170,28 @@ object CassandraIndexAdapter extends LazyLogging {
                 s"($MaxTimeToLive seconds)")
         }
         seconds.toInt
+      case Some(_: FeatureTimeExpiration) => 0
       case Some(expiration) =>
-        throw new IllegalArgumentException(
-          "Feature expiration based on an attribute is not supported by the Cassandra data store: " +
-              FeatureExpiration.unapply(expiration).getOrElse(expiration.toString))
+        throw new IllegalArgumentException(s"Unexpected feature expiration: $expiration")
     }
+  }
+
+  /**
+   * Gets the time-to-live for a feature with an attribute-based expiration.
+   *
+   * Note that expiration dates after 2038-01-19 are handled by the Cassandra expiration date overflow policy
+   * (see CASSANDRA-14227), which rejects them by default for Cassandra versions before 5.0, or 5.0 running in a
+   * storage compatibility mode
+   *
+   * @param expiration expiration
+   * @param feature feature
+   * @return time-to-live in seconds, capped at the max supported by Cassandra (20 years), or a non-positive value
+   *         if the feature has already expired
+   */
+  def timeToLive(expiration: FeatureTimeExpiration, feature: SimpleFeature): Int = {
+    val millis = expiration.expires(feature) - System.currentTimeMillis()
+    // round up so that features never expire before the configured time
+    math.min(math.ceil(millis / 1000d), MaxTimeToLive).toInt
   }
 
   /**
@@ -185,8 +202,7 @@ object CassandraIndexAdapter extends LazyLogging {
    */
   private def tableOptions(sft: SimpleFeatureType): String = {
     sft.getFeatureExpiration match {
-      // note: other expirations are rejected when creating or updating the schema, but are ignored here so that
-      // schemas created before they were rejected can still create new (partition) tables
+      // note: attribute-based expiration is set per row when writing
       case Some(_: IngestTimeExpiration) => s" WITH default_time_to_live = ${timeToLive(sft)}"
       case _ => ""
     }
@@ -269,11 +285,16 @@ object CassandraIndexAdapter extends LazyLogging {
       partition: Option[String]
     ) extends BaseIndexWriter(indices, wrapper) with StrictLogging {
 
+    // attribute-based expiration is set per row, while ingest-time expiration is a table option
+    private val expiration = indices.headOption.flatMap(_.sft.getFeatureExpiration).collect {
+      case e: FeatureTimeExpiration => e
+    }
+
     private val mappers = indices.toArray.map { index =>
       val mapper = CassandraColumnMapper(index)
       // should always be writing to a single table here
       val table = index.getTableName(partition)
-      val insert = mapper.insert(ds.session, table)
+      val insert = mapper.insert(ds.session, table, ttl = expiration.isDefined)
       val delete = mapper.delete(ds.session, table)
       (mapper, insert, delete)
     }
@@ -281,18 +302,28 @@ object CassandraIndexAdapter extends LazyLogging {
     private var i = 0
 
     override protected def append(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+      val ttl = expiration match {
+        case None => Seq.empty
+        case Some(e) =>
+          val seconds = CassandraIndexAdapter.timeToLive(e, feature.feature)
+          if (seconds <= 0) {
+            logger.debug(s"Feature ${feature.feature.getID} has already expired and will not be written")
+            return
+          }
+          Seq(Int.box(seconds))
+      }
       i = 0
       while (i < values.length) {
         val (mapper, statement, _) = mappers(i)
         values(i) match {
           case kv: SingleRowKeyValue[_] =>
-            val bindings = mapper.bind(kv)
+            val bindings = mapper.bind(kv) ++ ttl
             logger.trace(s"${statement.getQuery} : ${debug(bindings)}")
             ds.session.execute(statement.bind(bindings: _*))
 
           case mkv: MultiRowKeyValue[_] =>
             mkv.split.foreach { kv =>
-              val bindings = mapper.bind(kv)
+              val bindings = mapper.bind(kv) ++ ttl
               logger.trace(s"${statement.getQuery} : ${debug(bindings)}")
               ds.session.execute(statement.bind(bindings: _*))
             }
