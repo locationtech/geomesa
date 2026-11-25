@@ -15,6 +15,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisD
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.TemporalIndexCheck
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Point
 
 import java.io.Closeable
@@ -90,11 +91,21 @@ package object dialect {
    * Note: does not do any validation, sql must be sanitized by the caller.
    *
    * @param cx connection
+   * @param commit commit (or rollback) on close, if the connection is not in auto-commit mode - otherwise the
+   *               caller is responsible for completing the transaction
    */
-  class ExecutionContext(val cx: Connection) extends Closeable with StrictLogging {
+  class ExecutionContext(val cx: Connection, commit: Boolean = true) extends Closeable with StrictLogging {
 
-    private val statement = cx.createStatement()
+    private var created: java.sql.Statement = _
     private var rollback = false
+
+    // note: created on demand, as not all contexts end up using it
+    private def statement: java.sql.Statement = {
+      if (created == null) {
+        created = cx.createStatement()
+      }
+      created
+    }
 
     /**
      * Execute a sql command
@@ -144,16 +155,63 @@ package object dialect {
     }
 
     override def close(): Unit = {
-      if (!cx.getAutoCommit) {
+      if (commit && !cx.getAutoCommit) {
         if (rollback) {
           Try(cx.rollback())
         } else {
           cx.commit()
         }
       }
-      statement.close()
+      if (created != null) {
+        created.close()
+      }
     }
   }
+
+  /**
+   * Checks if a table or view exists
+   *
+   * @param cx connection
+   * @param table table
+   * @return
+   */
+  private[dialect] def exists(cx: Connection, table: TableIdentifier): Boolean =
+    queryBoolean(cx, s"SELECT to_regclass(${literal(table.qualified)}) IS NOT NULL;")
+
+  /**
+   * Checks if a view exists
+   *
+   * @param cx connection
+   * @param view view
+   * @return
+   */
+  private[dialect] def isView(cx: Connection, view: TableIdentifier): Boolean = {
+    queryBoolean(cx,
+      s"SELECT EXISTS (SELECT FROM pg_class WHERE oid = to_regclass(${literal(view.qualified)}) AND relkind = 'v');")
+  }
+
+  private def queryBoolean(cx: Connection, sql: String): Boolean = {
+    WithClose(cx.createStatement()) { st =>
+      WithClose(st.executeQuery(sql)) { rs =>
+        rs.next() && rs.getBoolean(1)
+      }
+    }
+  }
+
+  /**
+   * Gets a statement that deletes rows from a table, if the table exists
+   *
+   * @param table table
+   * @param where where clause identifying the rows to delete
+   * @return
+   */
+  private[dialect] def deleteIfExists(table: TableIdentifier, where: String): String =
+    s"""DO $$$$
+       |BEGIN
+       |  IF to_regclass(${literal(table.qualified)}) IS NOT NULL THEN
+       |    DELETE FROM ${table.qualified} WHERE $where;
+       |  END IF;
+       |END$$$$;""".stripMargin
 
   /**
    * All the info for a feature type used by the partitioning scheme
@@ -164,6 +222,7 @@ package object dialect {
    * @param cols columns
    * @param partitions partition config
    * @param userData feature type user data
+   * @param previous the previous generation of this feature type, if any, whose data is included in the main view
    */
   case class TypeInfo(
       schema: SchemaName,
@@ -173,6 +232,7 @@ package object dialect {
       cols: Columns,
       partitions: PartitionInfo,
       userData: Map[String, String] = Map.empty,
+      previous: Option[TypeInfo] = None,
     )
 
   object TypeInfo {
@@ -367,6 +427,19 @@ package object dialect {
 
     import scala.collection.JavaConverters._
 
+    /**
+     * Checks if an attribute is flagged for indexing - accepts any index flags, so config can be consistent
+     * across data stores
+     *
+     * @param d attribute descriptor
+     * @return
+     */
+    def indexed(d: AttributeDescriptor): Boolean = {
+      Option(d.getUserData.get(AttributeOptions.OptIndex)).map(String.valueOf).exists { i =>
+        !i.isBlank && !"false".equalsIgnoreCase(i) && !"none".equalsIgnoreCase(i)
+      }
+    }
+
     def apply(original: SimpleFeatureType, tables: Tables, partitions: PartitionInfo): Columns = {
       val sft = SimpleFeatureTypes.copy(original)
       TemporalIndexCheck.validateDtgField(sft)
@@ -374,19 +447,19 @@ package object dialect {
       val dtg = sft.getDtgField.map(ColumnName.apply).getOrElse {
         throw new IllegalArgumentException("Must include a date-type attribute when using a partitioned store")
       }
-      val geom = Option(sft.getGeomField).map(ColumnName.apply).getOrElse {
+      // note: a feature type loaded by the jdbc store always has the first geometry as its default geometry, so
+      // for an existing type we use the default geometry that was recorded when it was created
+      val geom = SftUserData.GeomField.get(sft).orElse(Option(sft.getGeomField)).map(ColumnName.apply).getOrElse {
         throw new IllegalArgumentException("Must include a geometry-type attribute when using a partitioned store")
+      }
+      val geomBinding = sft.getDescriptor(geom.raw) match {
+        case d: GeometryDescriptor => d.getType.getBinding
+        case _ => throw new IllegalArgumentException(s"Default geometry '${geom.raw}' is not a geometry-type attribute")
       }
       val vis = sft.getAttributeDescriptors.asScala.collectFirst {
         case d if d.getLocalName == PartitionedPostgisDialect.VisCol => ColumnName(d)
       }
       val all = sft.getAttributeDescriptors.asScala.map(ColumnName.apply)
-
-      def indexed(d: AttributeDescriptor): Boolean =
-        Option(d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]).exists { i =>
-          // accept any index flags, so config can be consistent across data stores
-          !i.isBlank && !"false".equalsIgnoreCase(i) && !"none".equalsIgnoreCase(i)
-        }
 
       // TODO we could use covering indices, but BRIN indices don't support them
       //  val includes =
@@ -398,7 +471,7 @@ package object dialect {
           // the geometry only when it's a point: an index row is limited to ~2.7kB, and a larger geometry would fail the insert
           val includes =
             if (SftUserData.CoveringDtgIndex.get(sft) &&
-              classOf[Point].isAssignableFrom(sft.getGeometryDescriptor.getType.getBinding)) { s"INCLUDE (${geom.quoted})" } else { "" }
+              classOf[Point].isAssignableFrom(geomBinding)) { s"INCLUDE (${geom.quoted})" } else { "" }
           // carry visibility as a trailing key so repeated (dtg, visibility) pairs can be deduplicated
           Seq(ColumnIndex(Seq(dtg) ++ vis, includes = includes))
         } else if (d.isInstanceOf[GeometryDescriptor]) {
@@ -552,7 +625,7 @@ package object dialect {
   }
 
   /**
-   * Trait for modelling sql objects
+   * Trait for modeling sql objects
    */
   trait Sql {
 
@@ -568,7 +641,16 @@ package object dialect {
      *
      * @param info type info
      */
-    def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit
+    def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = dropSql(info).foreach(ex.execute)
+
+    /**
+     * The sql to drop things created by this class, without executing it. The statements don't depend on the state
+     * of a connection, so they can be executed later (for example, as part of a procedure).
+     *
+     * @param info type info
+     * @return
+     */
+    def dropSql(info: TypeInfo): Seq[String]
   }
 
   /**
@@ -579,8 +661,16 @@ package object dialect {
     override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
       createStatements(info).foreach(ex.execute)
 
-    override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit =
-      dropStatements(info).foreach(ex.execute)
+    override def dropSql(info: TypeInfo): Seq[String] = dropStatements(info)
+
+    /**
+     * The sql defined by this class, without executing it. The statements don't depend on the state of a
+     * connection, so they can be executed later (for example, as part of a procedure).
+     *
+     * @param info type info
+     * @return
+     */
+    def createSql(info: TypeInfo): Seq[String] = createStatements(info)
 
     /**
      * The sql defined by this class

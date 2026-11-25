@@ -39,6 +39,20 @@ object UpdateTrigger extends SqlTriggerFunction {
     val notAgedOff = s"NOT EXISTS (SELECT FROM ${info.tables.ageOffQueue.name.qualified} queue " +
         "WHERE queue.partition_oid = target.tableoid)"
 
+    // check the previous generation of this type, if there is one - this will invoke the triggers on the previous view
+    val previous = info.previous match {
+      case None => "RETURN NULL;"
+      case Some(prev) =>
+        s"""DELETE FROM ${prev.tables.view.name.qualified}
+           |                WHERE ${prev.cols.fid.quoted} = OLD.${info.cols.fid.quoted} AND ${prev.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted};
+           |              GET DIAGNOSTICS del_count := ROW_COUNT;
+           |              IF del_count > 0 THEN
+           |                INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
+           |              ELSE
+           |                RETURN NULL;
+           |              END IF;""".stripMargin
+    }
+
     s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    DECLARE
@@ -61,7 +75,7 @@ object UpdateTrigger extends SqlTriggerFunction {
        |            IF del_count > 0 THEN
        |              INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |            ELSE
-       |              RETURN NULL;
+       |              $previous
        |            END IF;
        |          END IF;
        |        END IF;

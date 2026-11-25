@@ -64,7 +64,8 @@ class PartitionedPostgisDataStoreMetricsTest extends TestWithSharedPostgisContai
           val tagsRegex = s"""\\{.*name="${dataSource.asInstanceOf[MetricsDataSource].jmxName}".*\\}"""
           eventually(60, 2.seconds) {
             val metrics = readMetrics()
-            metrics must contain(beMatching(s"""^commons_pool2_created_objects_total$tagsRegex 1\\.0$$"""))
+            // note: creating a schema uses two connections at once - one to hold a lock, and one to create things
+            metrics must contain(beMatching(s"""^commons_pool2_created_objects_total$tagsRegex 2\\.0$$"""))
             metrics must contain(beMatching(s"""^postgres_rows_inserted_total\\{application="geomesa",database="postgres"\\} \\d+\\.0$$"""))
           }
         }

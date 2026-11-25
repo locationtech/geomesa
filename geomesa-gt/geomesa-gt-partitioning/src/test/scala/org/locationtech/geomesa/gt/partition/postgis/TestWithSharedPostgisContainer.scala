@@ -112,9 +112,8 @@ abstract class TestWithSharedPostgisContainer extends SpecificationWithJUnit wit
     }
   }
 
-  // note: jdbc data store adds the type name into the fid, so we add it here for the comparison
   def compWithFid(sf: SimpleFeature, sft: SimpleFeatureType, transforms: Option[Array[String]] = None): Seq[Any] =
-    Seq(s"${sft.getTypeName}.${sf.getID}") ++
+    Seq(sf.getID) ++
       transforms.getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray).map(sf.getAttribute)
 
   def count(cx: Connection, table: TableConfig): Int = {

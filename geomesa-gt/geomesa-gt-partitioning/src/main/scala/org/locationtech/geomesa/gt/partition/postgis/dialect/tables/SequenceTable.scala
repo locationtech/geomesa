@@ -34,11 +34,6 @@ class SequenceTable extends Sql {
     ex.executeUpdate(insertSql, Seq(info.typeName, 0))
   }
 
-  override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
-    val rs = ex.cx.getMetaData.getTables(null, info.schema.raw, Name.raw, null)
-    val exists = try { rs.next() } finally { rs.close() }
-    if (exists) {
-      ex.executeUpdate(s"DELETE FROM ${info.schema.quoted}.${Name.quoted} WHERE type_name = ?;", Seq(info.typeName))
-    }
-  }
+  override def dropSql(info: TypeInfo): Seq[String] =
+    Seq(deleteIfExists(TableIdentifier(info.schema.raw, Name.raw), s"type_name = ${literal(info.typeName)}"))
 }

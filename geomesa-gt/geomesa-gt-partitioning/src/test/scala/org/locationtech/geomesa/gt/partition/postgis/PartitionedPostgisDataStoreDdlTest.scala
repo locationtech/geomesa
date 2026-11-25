@@ -11,6 +11,8 @@ package org.locationtech.geomesa.gt.partition.postgis
 import org.apache.commons.codec.digest.MurmurHash3
 import org.geotools.api.data._
 import org.geotools.data._
+import org.geotools.feature.NameImpl
+import org.geotools.jdbc.JDBCDataStore
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
 import org.locationtech.geomesa.gt.partition.postgis.dialect._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
@@ -218,6 +220,35 @@ class PartitionedPostgisDataStoreDdlTest extends TestWithSharedPostgisContainer 
       }
     }
 
+    "clear removed schemas from the jdbc store's cache" in {
+      // note: this validates the reflective call that's used to clear feature types from the jdbc store, which only
+      // logs a warning if it fails - if this test fails after upgrading geotools, then the reflective call in
+      // PartitionedPostgisDataStore.evict needs to be updated
+      WithClose(datastore()) { ds =>
+        val sft = this.sft("evict-cached")
+        val jdbc = ds.unwrap(classOf[JDBCDataStore])
+        jdbc must not(beNull)
+        val name = new NameImpl(jdbc.getNamespaceURI, sft.getTypeName)
+        ds.createSchema(sft)
+        try {
+          ds.getSchema(sft.getTypeName) must not(beNull)
+          jdbc.getEntry(name) must not(beNull)
+        } finally {
+          ds.removeSchema(sft.getTypeName)
+        }
+        jdbc.getEntry(name) must beNull
+        // the jdbc store won't re-create a feature type that it still has cached
+        ds.createSchema(sft)
+        try {
+          ds.getSchema(sft.getTypeName) must not(beNull)
+          jdbc.getEntry(name) must not(beNull)
+        } finally {
+          ds.removeSchema(sft.getTypeName)
+        }
+        jdbc.getEntry(name) must beNull
+      }
+    }
+
     "drop all associated tables on removeSchema" in {
       WithClose(datastore()) { ds =>
 
@@ -285,10 +316,10 @@ class PartitionedPostgisDataStoreDdlTest extends TestWithSharedPostgisContainer 
             getFunctions must haveLength(14)
             // log_cleaner, analyze_partitions, clean_wa_migrations, clean_wa_retirements, clean_age_off, roll_wa, partition_maintenance
             getCrons must haveLength(7)
-            // 4 user data, 1 seq count, 1 primary key
+            // 5 user data, 1 seq count, 1 primary key
             val meta = getMeta
             meta must haveSize(3)
-            meta.get(UserDataTable.Name.raw) must beSome(haveLength[Seq[String]](4))
+            meta.get(UserDataTable.Name.raw) must beSome(haveLength[Seq[String]](5))
             meta.get(SequenceTable.Name.raw) must beSome(haveLength[Seq[String]](1))
             meta.get(PrimaryKeyTable.Name.raw) must beSome(haveLength[Seq[String]](1))
           }

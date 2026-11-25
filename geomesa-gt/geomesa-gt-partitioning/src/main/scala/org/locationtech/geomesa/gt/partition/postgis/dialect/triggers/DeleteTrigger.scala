@@ -48,6 +48,18 @@ object DeleteTrigger extends SqlTriggerFunction {
       s"DELETE FROM ${table.name.qualified} target WHERE ${info.cols.fid.quoted} = OLD.${info.cols.fid.quoted} AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}$filter"
     }
 
+    // check the previous generation of this type, if there is one - this will invoke the triggers on the previous view
+    val previous = info.previous match {
+      case None => "RETURN NULL;"
+      case Some(prev) =>
+        s"""DELETE FROM ${prev.tables.view.name.qualified}
+           |                WHERE ${prev.cols.fid.quoted} = OLD.${info.cols.fid.quoted} AND ${prev.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted};
+           |              GET DIAGNOSTICS del_count := ROW_COUNT;
+           |              IF del_count = 0 THEN
+           |                RETURN NULL;
+           |              END IF;""".stripMargin
+    }
+
     s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    DECLARE
@@ -65,7 +77,7 @@ object DeleteTrigger extends SqlTriggerFunction {
        |            ${delete(info.tables.spillPartitions)};
        |            GET DIAGNOSTICS del_count := ROW_COUNT;
        |            IF del_count = 0 THEN
-       |              RETURN NULL;
+       |              $previous
        |            END IF;
        |          END IF;
        |        END IF;

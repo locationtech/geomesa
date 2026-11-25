@@ -12,7 +12,7 @@ package tables
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
 import org.locationtech.geomesa.utils.io.WithClose
 
-import java.sql.Connection
+import java.sql.{Connection, SQLException}
 
 /**
  * Stores feature type user data
@@ -22,6 +22,9 @@ object UserDataTable extends UserDataTable with AdvisoryLockSql {
 }
 
 class UserDataTable extends Sql {
+
+  // sql state for a table that doesn't exist
+  private val UndefinedTable = "42P01"
 
   val Name: TableName = TableName("geomesa_userdata")
 
@@ -55,18 +58,14 @@ class UserDataTable extends Sql {
 
     Seq(create, alter, constraint).foreach(ex.execute)
 
-    val insertSql =
-      s"INSERT INTO ${table.qualified} (type_name, key, value, mutable) VALUES (?, ?, ?, ?) " +
-          s"ON CONFLICT (type_name, key) DO UPDATE SET value = EXCLUDED.value;"
-
-    def insert(config: SftUserData[_], value: String): Unit =
-      ex.executeUpdate(insertSql, Seq(info.typeName, config.key, value, config.mutable))
+    def insert(config: SftUserData[_], value: String): Unit = write(info.schema.raw, info.typeName, config, value)
 
     if (info.typeIdentifier != info.typeName) {
       insert(SftUserData.IdentAlias, info.typeIdentifier)
     }
     insert(SftUserData.FidColumn, info.cols.fid.raw)
     insert(SftUserData.DtgField, info.cols.dtg.raw)
+    insert(SftUserData.GeomField, info.cols.geom.raw)
     insert(SftUserData.IntervalHours, String.valueOf(info.partitions.hoursPerPartition))
     if (info.partitions.pagesPerRange != SftUserData.PagesPerRange.default) {
       insert(SftUserData.PagesPerRange, String.valueOf(info.partitions.pagesPerRange))
@@ -84,16 +83,95 @@ class UserDataTable extends Sql {
       insert(SftUserData.VisEnabled, "true")
     }
     Seq(SftUserData.FilterWholeWorld, SftUserData.QueryInterceptors, SftUserData.ToastTupleTarget,
-        SftUserData.CoveringDtgIndex).foreach { config =>
+        SftUserData.CoveringDtgIndex, SftUserData.TypeName).foreach { config =>
       info.userData.get(config.key).foreach(v => insert(config, v))
     }
+    // note: we don't use the user data for this, as it may be stale if the previous generation has been retired
+    info.previous.foreach(prev => insert(SftUserData.PreviousView, prev.typeName))
   }
 
-  override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
-    val rs = ex.cx.getMetaData.getTables(null, info.schema.raw, Name.raw, null)
-    val exists = try { rs.next() } finally { rs.close() }
-    if (exists) {
-      ex.executeUpdate(s"DELETE FROM ${info.schema.quoted}.${Name.quoted} WHERE type_name = ?;", Seq(info.typeName))
+  override def dropSql(info: TypeInfo): Seq[String] =
+    Seq(deleteIfExists(TableIdentifier(info.schema.raw, Name.raw), s"type_name = ${literal(info.typeName)}"))
+
+  /**
+   * Write a single user data value
+   *
+   * @param schema database schema
+   * @param typeName feature type name
+   * @param config user data key
+   * @param value user data value
+   * @param ex execution context
+   */
+  def write(schema: String, typeName: String, config: SftUserData[_], value: String)(implicit ex: ExecutionContext): Unit =
+    write(schema, Seq((typeName, config, value)))
+
+  /**
+   * Write user data values for multiple types, in a single statement
+   *
+   * @param schema database schema
+   * @param values (feature type name, user data key, user data value)
+   * @param ex execution context
+   */
+  def write(schema: String, values: Seq[(String, SftUserData[_], String)])(implicit ex: ExecutionContext): Unit = {
+    ex.executeUpdate(
+      s"INSERT INTO ${escape(schema)}.${Name.quoted} (type_name, key, value, mutable) VALUES " +
+          values.map(_ => "(?, ?, ?, ?)").mkString(", ") +
+          " ON CONFLICT (type_name, key) DO UPDATE SET value = EXCLUDED.value;",
+      values.flatMap { case (typeName, config, value) => Seq(typeName, config.key, value, config.mutable) })
+  }
+
+  /**
+   * Delete a single user data value
+   *
+   * @param schema database schema
+   * @param typeName feature type name
+   * @param config user data key
+   * @param ex execution context
+   */
+  def delete(schema: String, typeName: String, config: SftUserData[_])(implicit ex: ExecutionContext): Unit = {
+    ex.executeUpdate(
+      s"DELETE FROM ${escape(schema)}.${Name.quoted} WHERE type_name = ? AND key = ?;", Seq(typeName, config.key))
+  }
+
+  /**
+   * Delete all the user data for a type
+   *
+   * @param schema database schema
+   * @param typeName feature type name
+   * @param ex execution context
+   */
+  def delete(schema: String, typeName: String)(implicit ex: ExecutionContext): Unit =
+    ex.executeUpdate(s"DELETE FROM ${escape(schema)}.${Name.quoted} WHERE type_name = ?;", Seq(typeName))
+
+  /**
+   * Read the values for particular user data keys, across all types
+   *
+   * @param cx connection
+   * @param schema database schema
+   * @param configs user data to read
+   * @return (type name, key, value)
+   */
+  def read(cx: Connection, schema: String, configs: Seq[SftUserData[_]]): Seq[(String, String, String)] = {
+    val table = TableIdentifier(schema, Name.raw)
+    val select =
+      s"SELECT type_name, key, value FROM ${table.qualified} WHERE key IN (${configs.map(c => literal(c.key)).mkString(", ")});"
+    def query(): Seq[(String, String, String)] = {
+      WithClose(cx.createStatement()) { st =>
+        WithClose(st.executeQuery(select)) { rs =>
+          Iterator.continually(rs).takeWhile(_.next()).map(r => (r.getString(1), r.getString(2), r.getString(3))).toList
+        }
+      }
+    }
+    if (cx.getAutoCommit) {
+      // the table normally exists, so skip the check for it and handle the error if it doesn't
+      try { query() } catch {
+        case e: SQLException if e.getSQLState == UndefinedTable => Seq.empty
+      }
+    } else if (exists(cx, table)) {
+      // note: we can't rely on the error in a transaction, as it would cause the transaction to be aborted
+      query()
+    } else {
+      Seq.empty
     }
   }
 

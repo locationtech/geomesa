@@ -65,6 +65,25 @@ prevents GeoServer from providing SQL views and SQL virtual tables against the s
 runtime instance types. If necessary, the underlying data store can be accessed by checking for
 ``org.geotools.data.store.DecoratingDataStore`` and using the ``isWrapperFor`` / ``unwrap`` methods.
 
+Partitioned PostGIS Feature ID Change
+-------------------------------------
+
+The partitioned PostGIS data store no longer prefixes feature IDs with the feature type name. For example, a feature
+that was previously returned with the ID ``my_type.123`` will now be returned with the ID ``123``. Feature IDs that
+include the feature type name can still be used in ID filters, unless the feature type has been renamed or has had
+attributes added or removed through ``updateSchema``.
+
+When writing features with a provided feature ID (i.e. using ``Hints.PROVIDED_FID``), the feature type name
+should not be included in the ID, as it may cause inconsistencies when returning or filtering on feature IDs.
+
+Partitioned PostGIS Connection Pool Size
+----------------------------------------
+
+Creating, updating, upgrading or removing a schema in the partitioned PostGIS data store now requires two connections
+from the connection pool at the same time, so the ``max connections`` data store parameter must be at least ``2`` for
+any data store that is used for those operations - otherwise they will fail. Data stores that only read or write
+features are not affected.
+
 ``AuthorizationsProvider`` API Update
 -------------------------------------
 
