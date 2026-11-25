@@ -33,11 +33,8 @@ private[dialect] class PartitionTablespacesTable extends Sql with LazyLogging {
     drop(info)
   }
 
-  override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
-    if (exists(info)) {
-      ex.executeUpdate(s"DELETE FROM ${info.schema.quoted}.${Name.quoted} WHERE type_name = ?;", Seq(info.typeName))
-    }
-  }
+  override def dropSql(info: TypeInfo): Seq[String] =
+    Seq(deleteIfExists(TableIdentifier(info.schema.raw, Name.raw), s"type_name = ${literal(info.typeName)}"))
 
   /**
    * Read partition table spaces for the specified type
@@ -73,9 +70,6 @@ private[dialect] class PartitionTablespacesTable extends Sql with LazyLogging {
     }
     map.result()
   }
-
-  private def exists(info: TypeInfo)(implicit ex: ExecutionContext): Boolean =
-    exists(info.schema.raw, ex.cx.getMetaData)
 
   private def exists(schema: String, metadata: DatabaseMetaData): Boolean =
     WithClose(metadata.getTables(null, schema, Name.raw, null))(_.next())

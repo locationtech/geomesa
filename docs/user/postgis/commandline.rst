@@ -15,6 +15,10 @@ Commands
 Update an existing schema to the current GeoMesa version. This will re-write the procedures used to partition
 data, and may provide improved functionality or performance. This operation cannot be reverted.
 
+If attributes have been added to or removed from the schema, then only the current generation of the schema is
+upgraded. Any previous generations will keep their existing procedures until they are dropped - see
+:ref:`postgis_update_schema` for details.
+
 ======================== =========================================================
 Argument                 Description
 ======================== =========================================================
@@ -27,7 +31,8 @@ Argument                 Description
 ^^^^^^^^^^^^^^^^^
 
 Alter an existing ``SimpleFeatureType``. For PostGIS, this command can only be used to modify configuration
-values. See :ref:`postgis_index_config` for available configuration values.
+values. See :ref:`postgis_index_config` for available configuration values. Attributes can be added or removed, and
+feature types can be renamed, through the GeoTools API - see :ref:`postgis_update_schema`.
 
 This command will also re-write the partition procedures as necessary to apply the configuration changes.
 

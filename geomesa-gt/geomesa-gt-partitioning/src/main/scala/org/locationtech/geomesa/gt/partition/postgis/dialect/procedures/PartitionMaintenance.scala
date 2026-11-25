@@ -35,7 +35,14 @@ object PartitionMaintenance extends SqlProcedure with CronSchedule {
 
   override protected def invocation(info: TypeInfo): SqlLiteral = SqlLiteral(s"CALL ${name(info).quoted}()")
 
-  private def proc(info: TypeInfo): String = {
+  /**
+   * The statement to create the maintenance procedure, without the associated cron schedule
+   *
+   * @param info type info
+   * @return
+   */
+  private[procedures] def proc(info: TypeInfo): String = {
+    val retire = info.previous.fold("")(_ => s"\n      CALL ${RetirePreviousGeneration.name(info).quoted}();")
     s"""CREATE OR REPLACE PROCEDURE ${info.schema.quoted}.${name(info).quoted}() LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
@@ -45,7 +52,7 @@ object PartitionMaintenance extends SqlProcedure with CronSchedule {
        |      cur_time := now();
        |      CALL ${PartitionWriteAheadLog.name(info).quoted}(cur_time);
        |      CALL ${MergeWriteAheadPartitions.name(info).quoted}(cur_time);
-       |      CALL ${DropAgedOffPartitions.name(info).quoted}(cur_time);
+       |      CALL ${DropAgedOffPartitions.name(info).quoted}(cur_time);$retire
        |    END;
        |  $$BODY$$;
        |""".stripMargin

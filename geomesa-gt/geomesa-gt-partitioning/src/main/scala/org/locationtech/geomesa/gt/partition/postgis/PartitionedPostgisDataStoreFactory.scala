@@ -58,8 +58,10 @@ class PartitionedPostgisDataStoreFactory extends DataStoreFactorySpi with LazyLo
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = delegate.getImplementationHints
 
-  override def createDataStore(params: java.util.Map[String, _]): DataStore =
-    new PartitionedPostgisDataStore(delegate.createDataStore(params))
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
+    val maxConnections = PartitionedPostgisDataStoreFactory.maxConnections(params)
+    new PartitionedPostgisDataStore(delegate.createDataStore(params), maxConnections)
+  }
 
   override def createNewDataStore(params: java.util.Map[String, _]): DataStore =
     throw new UnsupportedOperationException()
@@ -86,6 +88,25 @@ object PartitionedPostgisDataStoreFactory {
       MetricsRegistryParam,
       MetricsRegistryConfigParam
     )
+
+  /**
+   * Gets the max size of the connection pool, if it's limited - creating, updating, upgrading and removing schemas
+   * each require two connections at the same time, and will hang with a smaller pool. The data store uses this to
+   * fail those operations up front, without affecting clients that only read or write features.
+   *
+   * Note that we can only check a pool that is configured through the data store parameters - if a data source
+   * is passed in directly, then the pool size parameter is not used.
+   *
+   * @param params data store params
+   * @return
+   */
+  private def maxConnections(params: java.util.Map[String, _]): Option[Int] = {
+    import JDBCDataStoreFactory.{DATASOURCE, MAXCONN}
+    if (params.get(DATASOURCE.key) != null) { None } else {
+      // note: a value of zero or less means that the pool is not limited
+      Option(MAXCONN.lookUp(params).asInstanceOf[Integer]).map(_.intValue).filter(_ > 0)
+    }
+  }
 
   /**
    * The underlying JDBC-based factory that performs all the standard PostGIS/partitioning setup. Not

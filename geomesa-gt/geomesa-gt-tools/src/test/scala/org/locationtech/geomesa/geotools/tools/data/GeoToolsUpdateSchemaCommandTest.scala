@@ -39,7 +39,7 @@ class GeoToolsUpdateSchemaCommandTest extends SpecificationWithJUnit with Before
           "pg.partitions.cron.minute=1")
   val features = List.tabulate(24) { i =>
     val dtg = f"2023-10-30T0$i%02d:00:00.000Z"
-    val sf = ScalaSimpleFeature.create(sft, f"${sft.getTypeName}.id$i%02d", "name" + i, dtg, s"POINT(0 $i)")
+    val sf = ScalaSimpleFeature.create(sft, f"id$i%02d", "name" + i, dtg, s"POINT(0 $i)")
     sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     sf.getUserData.put(Hints.PROVIDED_FID, f"$i%02d")
     sf

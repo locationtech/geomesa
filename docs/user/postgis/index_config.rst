@@ -26,8 +26,10 @@ Configuring Indices
 Attributes in the feature type may be marked for indexing, which will create a B-tree index on the associated
 table column. See :ref:`attribute_indices` for details on how to specify indices.
 
-After the schema has been created, additional indices can be added through ``CREATE INDEX`` statements on the
-parent partition tables. See :ref:`pg_partition_table_design` for a description of the partition tables.
+After the schema has been created, additional indices can be added by updating the schema, which does not lock
+the existing tables but only indexes features that are written after the update - see :ref:`postgis_update_schema`.
+Alternatively, indices can be added through ``CREATE INDEX`` statements on the parent partition tables. See
+:ref:`pg_partition_table_design` for a description of the partition tables.
 
 Configuring a Covering Date Index
 ---------------------------------

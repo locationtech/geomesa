@@ -85,7 +85,7 @@ object WriteAheadTable extends SqlStatements {
 
   override protected def dropStatements(info: TypeInfo): Seq[String] = {
     Seq(
-      s"DROP TABLE IF EXISTS ${info.tables.writeAhead.name.qualified};", // note: actually gets dropped by jdbc store
+      s"DROP TABLE IF EXISTS ${info.tables.writeAhead.name.qualified};", // note: normally already dropped with a cascade
       s"DROP SEQUENCE IF EXISTS ${escape(info.tables.writeAhead.name.raw, "seq")};"
     )
   }

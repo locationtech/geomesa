@@ -194,7 +194,7 @@ class PartitionedPostgisDataStoreQueryTest extends TestWithSharedPostgisContaine
             fif.lessOrEqual(fif.property("dtg"), fif.literal(new java.util.Date(now - 60 * 60 * 1000))))
 
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
-            CloseableIterator(reader).map(_.getID).toList mustEqual Seq(s"${sft.getTypeName}.fid9")
+            CloseableIterator(reader).map(_.getID).toList mustEqual Seq("fid9")
           }
         }
       }

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.jdbc.JDBCDataStore
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.VisCol
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, VisCol}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.MainView
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Point
@@ -48,7 +48,8 @@ class PartionedPostgisDialectTest extends SpecificationWithJUnit with Mockito {
       val sqlCapture = new SqlCapture()
       MainView.create(info)(sqlCapture)
       // one predicate per union branch (write ahead, wa partitions, main partitions, spill)
-      sqlCapture.sql.split("\\Q@@ user_auths.vis\\E").length - 1 mustEqual 4
+      // note: the view definition is included twice, once to check for changes and once to create it
+      sqlCapture.sql.split("\\Q@@ user_auths.vis\\E").length - 1 mustEqual 8
     }
 
     "not add a pg_vis predicate when there is no _vis column" in {
@@ -91,6 +92,20 @@ class PartionedPostgisDialectTest extends SpecificationWithJUnit with Mockito {
         new PartitionedPostgisDialect(null).encodePostColumnCreateTable(attr, buf)
         buf.toString mustEqual "geometry (POINT, 4326)"
       }
+    }
+
+    "list all the user data configs" in {
+      // note: the list is maintained by hand, and is used to validate schema updates and to strip internal configs
+      val fields = SftUserData.getClass.getDeclaredFields.toSeq.filter(_.getType == classOf[SftUserData[_]])
+      val declared = fields.map { field =>
+        field.setAccessible(true)
+        field.get(SftUserData).asInstanceOf[SftUserData[_]]
+      }
+      declared must not(beEmpty)
+      SftUserData.Values must containTheSameElementsAs(declared)
+      SftUserData.Values.map(_.key).distinct must haveLength(SftUserData.Values.length)
+      SftUserData.Values.filter(_.internal).map(_.key) must
+          containTheSameElementsAs(Seq("pg.ident.alias", "pg.fid.col", "pg.geom.col", "pg.type.name", "pg.view.previous"))
     }
   }
 

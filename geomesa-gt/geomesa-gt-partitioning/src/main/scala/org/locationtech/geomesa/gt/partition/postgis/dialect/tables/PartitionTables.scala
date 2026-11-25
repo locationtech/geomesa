@@ -36,10 +36,18 @@ object PartitionTables extends SqlStatements {
          |  CONSTRAINT ${escape(table.name.raw, "pkey")} PRIMARY KEY (${info.cols.fid.quoted}, ${info.cols.dtg.quoted}) $indexTs
          |) PARTITION BY RANGE(${info.cols.dtg.quoted}) $tableTs;""".stripMargin
     // note: partitions inherit these indices when they're attached, so they must be declared here
+    // note: we check for the index first, as CREATE INDEX IF NOT EXISTS locks the table before checking if the index
+    // exists, which will block behind any partition maintenance (and will then block any updates or deletes)
     val indices = info.cols.filter(table.name).indices.map { index =>
-      s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, index.cols.map(_.raw).mkString("_"))}
-         |  ON ${table.name.qualified}
-         |  ${index.using} (${index.cols.map(_.quoted).mkString(", ")} ${index.opclass}) ${index.includes} ${index.storageOpts} $tableTs;""".stripMargin
+      val name = TableIdentifier(info.schema.raw, s"${table.name.raw}_${index.cols.map(_.raw).mkString("_")}")
+      s"""DO $$$$
+         |BEGIN
+         |  IF to_regclass(${literal(name.qualified)}) IS NULL THEN
+         |    CREATE INDEX IF NOT EXISTS ${name.quoted}
+         |      ON ${table.name.qualified}
+         |      ${index.using} (${index.cols.map(_.quoted).mkString(", ")} ${index.opclass}) ${index.includes} ${index.storageOpts} $tableTs;
+         |  END IF;
+         |END$$$$;""".stripMargin
     }
     Seq(create) ++ indices
   }
