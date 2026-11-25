@@ -703,7 +703,7 @@ package object dialect {
     def name(info: TypeInfo): FunctionName
 
     override protected def dropStatements(info: TypeInfo): Seq[String] =
-      Seq(s"DROP PROCEDURE IF EXISTS ${name(info).quoted};")
+      Seq(s"DROP PROCEDURE IF EXISTS ${info.schema.quoted}.${name(info).quoted};")
   }
 
   /**
